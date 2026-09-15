@@ -11,6 +11,36 @@ so every release bumps all 17 stamps together — the 14 `shared/skills/*/SKILL.
 `first-principles/.claude-plugin/plugin.json`. A body edit without a bump never reaches an
 installed session.
 
+## [Unreleased]
+
+Closes backlog **999.104**, **999.105**, **999.106**, **999.107**, **999.108** and **999.109**,
+each re-run against its own named check in its post-phase form at phase close, and resolves
+**999.71** as moot. See
+[`docs/v9.4-gate-retirement.md`](docs/v9.4-gate-retirement.md) for the measured evidence behind
+every item and [`CLAUDE.md`](CLAUDE.md) § CI gates for the current battery, CI and coverage-headline
+totals — neither is restated here.
+
+This is an **apparatus change**: VAL-04 (4-gram trigger-collision scan), VAL-05 (2,000-character
+description budget) and COLLIDE-01 (dual-install name-collision scan) are retired outright;
+PROV-GUARD is relaxed from a CI job plus a battery live leg to a battery-only self-test;
+`scripts/check-body-budget.py` and `scripts/census-delta-vectors.py` are deleted, neither having
+ever been a registered gate. Each retirement's own measured mutation evidence — that the retired
+check could not fail for a real reason — is in the record above; none of it changes what the agent
+does.
+
+Product-tier corrections landed alongside the apparatus change: `README.md`'s pre-commit hook
+sentence, the skill-listing description-ceiling sentences in `CLAUDE.md` and
+`docs/DEVELOPMENT.md`, the name-invariant enforcement row in `docs/CONFIGURATION.md`, and
+PROV-GUARD's stated scope in `docs/requirements-traceability.md` all now describe what the shipped
+apparatus actually does rather than a claim it never enforced.
+
+REG-GUARD gains a new `disable-model-invocation` value assertion — an assertion inside an existing,
+already-registered gate, not a new one — succeeding VAL-04's retired proxy check.
+
+The counting rule (D-D) is amended: a battery or CI total may now fall for a gate a successor
+retirement record names by name, rather than staying pinned to a fixed pair of digits. See
+`docs/v9.4-gate-retirement.md` §4.
+
 ## [9.3.0] — 2026-09-14
 
 Closes backlog **999.93** through **999.100** (the Trace Atlas milestone's own eight entries),

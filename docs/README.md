@@ -103,6 +103,7 @@ earned its keep on a distinct ground.
 | Document | Standing | Why it is kept |
 |---|---|---|
 | [v8.7-constraint-teardown.md](v8.7-constraint-teardown.md) | **Governing record** | TEARDOWN-01/02/03 and the K-of-5 demotion are in force; `CLAUDE.md`, both pre-commit hooks and the `docs/` prose surfaces cite it |
+| [v9.4-gate-retirement.md](v9.4-gate-retirement.md) | **Governing record** | The successor to the constraint teardown record, retiring the checker-script gates by name with a mutation proving each could not fail for a real reason |
 | [v8.5-byte-freeze-relaxation.md](v8.5-byte-freeze-relaxation.md) | **Governing record** | The relaxation still scopes which reference files may split; `sync-content.py` and `check-step0-live.py` cite it as the authority |
 | [v8.14-delivery-verification.md](v8.14-delivery-verification.md) | **Governing record** | The published form of the pre-registered STOP governing Phases 189–191 and GREENMEAN-01's WON'T-DO. One inbound reference; inbound count is the wrong test |
 | [v8.0-final-closure.md](v8.0-final-closure.md) | **Split** — governing / superseded | Its terminal ACCEPTED-FINAL dispositions still stand; **every count in it is superseded** — its 133/96/0/229 headline by the current headline stated at the top of this page, and its 15/15 battery total by today's 26/26. No terminus digit is repeated in this row: the digit that used to sit here went stale across a headline move, which is the mechanism `docs/v9.1-claim-containment-diagnosis.md` names |
