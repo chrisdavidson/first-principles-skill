@@ -25,7 +25,7 @@ For the full at-a-glance gate inventory — every gate mapped to its owning scri
 | STEP0-06 | [`docs/gates/STEP0-06.md`](gates/STEP0-06.md) | `python3 scripts/check-step0-live.py --self-test` |
 | TRACE-03 | [`docs/gates/TRACE-03.md`](gates/TRACE-03.md) | `python3 scripts/check-traceability.py --self-test` |
 | QUAL-01 | [`docs/gates/QUAL-01.md`](gates/QUAL-01.md) | `python3 scripts/check-quality-harness.py --self-test` |
-| PROV-GUARD | [`docs/gates/PROV-GUARD.md`](gates/PROV-GUARD.md) | `python3 scripts/check-provenance.py --self-test && python3 scripts/check-provenance.py` |
+| PROV-GUARD | [`docs/gates/PROV-GUARD.md`](gates/PROV-GUARD.md) | `python3 scripts/check-provenance.py --self-test` |
 | HARN-01 | [`docs/gates/HARN-01.md`](gates/HARN-01.md) | `python3 scripts/check-act-limb.py --self-test` |
 | HARN-02 | [`docs/gates/HARN-02.md`](gates/HARN-02.md) | `python3 scripts/check-loop-closure.py --self-test` |
 | HARN-03 | [`docs/gates/HARN-03.md`](gates/HARN-03.md) | `python3 scripts/check-focused-parity.py --self-test` |

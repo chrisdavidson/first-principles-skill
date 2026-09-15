@@ -4108,7 +4108,7 @@
       "apparatus"
     ],
     "statement": "The verifier parses section 3 ground truths and their `*Provenance: \u2026*` labels from an analysis document",
-    "rerun_by": "ci"
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.24/PROV-02",
@@ -4123,7 +4123,7 @@
       "apparatus"
     ],
     "statement": "Every `read-at-source` ground truth maps to a real `WebFetch`/`Read` of that source in the capture; an unmatched label is reported as a defect",
-    "rerun_by": "ci"
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.24/PROV-03",
@@ -4138,7 +4138,7 @@
       "apparatus"
     ],
     "statement": "Every literal a `read-at-source` ground truth states appears verbatim in that source's retrieved text; an unlocated literal is reported as a defect",
-    "rerun_by": "ci"
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.24/PROV-04",

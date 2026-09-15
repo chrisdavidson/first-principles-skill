@@ -65,12 +65,15 @@ BATTERY_PATH: Path = REPO_ROOT / "scripts" / "check-firewall-battery.sh"
 CI_WORKFLOW_PATH: Path = REPO_ROOT / ".github" / "workflows" / "validation.yml"
 
 # Gate ids the battery runs that deliberately carry NO CI job. QUAL-01 is
-# battery-only by design — CLAUDE.md's CI gates table states it outright
-# ("QUAL-01 is battery-only — it has no CI job, and
-# `bash scripts/check-firewall-battery.sh` is the only thing that runs it").
-# Kept as an explicit, named exemption rather than a silent skip: adding a gate
-# here is a visible diff, which is the whole point of the check.
-BATTERY_ONLY_GATE_IDS: frozenset[str] = frozenset({"QUAL-01"})
+# battery-only by design, since v8.7 — CLAUDE.md's CI gates table states it
+# outright. PROV-GUARD joined at Phase 40 (v9.4.0, backlog 999.107 option B,
+# `docs/v9.4-gate-retirement.md` §2.4): its CI job and battery live leg were
+# retired, leaving only its `--self-test` running in the battery, in QUAL-01's
+# own call shape. CLAUDE.md's own lead-in sentence is generated from this set
+# (`scripts/gen-gate-docs.py`), not hand-typed. Kept as an explicit, named
+# exemption set rather than a silent skip: adding a gate here is a visible
+# diff, which is the whole point of the check.
+BATTERY_ONLY_GATE_IDS: frozenset[str] = frozenset({"QUAL-01", "PROV-GUARD"})
 
 # `gate "VAL-01" \` / `    gate_prereq "VAL-03" \` — the battery's two
 # registration verbs. The function *definitions* (`gate() {`) never match: the
@@ -1645,7 +1648,7 @@ def _run_self_test() -> None:
     _executed.append("c25")
     # Control 26 — parse_ci_job_name over all three observed name forms.
     for job_name_26, expected_26 in (
-        ("check-provenance (PROV-GUARD)", ["PROV-GUARD"]),
+        ("check-registration (REG-GUARD)", ["REG-GUARD"]),
         ("check-example (ALPHA-01/BETA-02)", ["ALPHA-01", "BETA-02"]),
         ("GATE-02-v8.5", ["GATE-02-v8.5"]),
         ("", []),
@@ -1666,18 +1669,18 @@ def _run_self_test() -> None:
     workflow_27 = {
         "name": "validation",
         "jobs": {
-            "prov": {"name": "check-provenance (PROV-GUARD)"},
+            "prov": {"name": "check-registration (REG-GUARD)"},
             "trig": {"name": "check-example (ALPHA-01/BETA-02)"},
             "pointer": {"name": "GATE-02-v8.5"},
             "nameless": {"runs-on": "ubuntu-latest"},
         },
     }
     ci_map_27 = extract_ci_gate_ids(workflow_27)
-    if set(ci_map_27) != {"PROV-GUARD", "ALPHA-01", "BETA-02", "GATE-02-v8.5"}:
+    if set(ci_map_27) != {"REG-GUARD", "ALPHA-01", "BETA-02", "GATE-02-v8.5"}:
         sys.stderr.write(
             "check-registration --self-test: FAIL — Control 27: "
             f"extract_ci_gate_ids returned ids {sorted(ci_map_27)!r}, expected "
-            "['ALPHA-01', 'BETA-02', 'GATE-02-v8.5', 'PROV-GUARD']\n"
+            "['ALPHA-01', 'BETA-02', 'GATE-02-v8.5', 'REG-GUARD']\n"
         )
         sys.exit(1)
     if "validation" in ci_map_27:
@@ -1703,23 +1706,23 @@ def _run_self_test() -> None:
     # Control 28 — NEGATIVE CONTROL, the one this axis exists for: a battery
     # gate whose CI job has been deleted must produce exactly one failure line,
     # and that line must name the gate. This is the in-memory twin of the live
-    # control (delete the check-provenance job from validation.yml; the gate
-    # must go red).
-    battery_ids_28 = ["DUAL-04", "PROV-GUARD", "QUAL-01"]
+    # control (delete the check-version-stamps job from validation.yml; the
+    # gate must go red).
+    battery_ids_28 = ["DUAL-04", "VERSION-01", "QUAL-01"]
     ci_map_missing_28 = {"DUAL-04": "sync-check (DUAL-04)"}
     records_28 = verify_ci_job_registration(battery_ids_28, ci_map_missing_28)
     failures_28 = collect_ci_registration_failures(records_28)
-    if len(failures_28) != 1 or "PROV-GUARD" not in failures_28[0]:
+    if len(failures_28) != 1 or "VERSION-01" not in failures_28[0]:
         sys.stderr.write(
             "check-registration --self-test: FAIL — Control 28 negative "
-            "control: deleting PROV-GUARD's CI job produced "
-            f"{failures_28!r}, expected exactly one failure naming PROV-GUARD\n"
+            "control: deleting VERSION-01's CI job produced "
+            f"{failures_28!r}, expected exactly one failure naming VERSION-01\n"
         )
         sys.exit(1)
-    if "PROV-GUARD" not in format_ci_registration_text(records_28):
+    if "VERSION-01" not in format_ci_registration_text(records_28):
         sys.stderr.write(
             "check-registration --self-test: FAIL — Control 28: the rendered "
-            "report does not name the unregistered gate PROV-GUARD\n"
+            "report does not name the unregistered gate VERSION-01\n"
         )
         sys.exit(1)
 
@@ -1731,7 +1734,7 @@ def _run_self_test() -> None:
     # returned [] would pass Control 28's sibling assertions.
     ci_map_full_29 = {
         "DUAL-04": "sync-check (DUAL-04)",
-        "PROV-GUARD": "check-provenance (PROV-GUARD)",
+        "VERSION-01": "check-version-stamps (VERSION-01)",
     }
     records_29 = verify_ci_job_registration(battery_ids_28, ci_map_full_29)
     failures_29 = collect_ci_registration_failures(records_29)
@@ -1766,6 +1769,40 @@ def _run_self_test() -> None:
             "check-registration --self-test: FAIL — Control 29 exemption "
             "scope: with an empty exempt set QUAL-01 must fail, got "
             f"{failures_29b!r}\n"
+        )
+        sys.exit(1)
+    # PROV-GUARD arm: with the default (module-level) exemption set, a battery
+    # of DUAL-04 + PROV-GUARD and a CI map naming only DUAL-04 must report
+    # zero failures, with PROV-GUARD's own record showing battery_only=True —
+    # proving PROV-GUARD's Phase 40 move into BATTERY_ONLY_GATE_IDS is
+    # recognised. With QUAL-01 as the only exempt id, the same inputs must
+    # fail by name on PROV-GUARD — the exemption is scoped, not over-broad.
+    battery_ids_29c = ["DUAL-04", "PROV-GUARD"]
+    ci_map_29c = {"DUAL-04": "sync-check (DUAL-04)"}
+    records_29c = verify_ci_job_registration(battery_ids_29c, ci_map_29c)
+    failures_29c = collect_ci_registration_failures(records_29c)
+    if failures_29c:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 29 PROV-GUARD "
+            f"arm: expected zero failures, got {failures_29c!r}\n"
+        )
+        sys.exit(1)
+    prov_29c = [r for r in records_29c if r["gate_id"] == "PROV-GUARD"]
+    if len(prov_29c) != 1 or not prov_29c[0]["battery_only"]:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 29 PROV-GUARD "
+            f"arm: expected a battery-only record, got {prov_29c!r}\n"
+        )
+        sys.exit(1)
+    records_29d = verify_ci_job_registration(
+        battery_ids_29c, ci_map_29c, battery_only=frozenset({"QUAL-01"})
+    )
+    failures_29d = collect_ci_registration_failures(records_29d)
+    if len(failures_29d) != 1 or "PROV-GUARD" not in failures_29d[0]:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 29 PROV-GUARD "
+            "exemption scope: with only QUAL-01 exempt, PROV-GUARD must fail "
+            f"by name, got {failures_29d!r}\n"
         )
         sys.exit(1)
 

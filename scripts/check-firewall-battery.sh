@@ -131,8 +131,8 @@
 # completeness over two surfaces: (a) every skill directory and the main agent
 # carry a frontmatter `name:` matching their own basename; (b) every gate
 # registered in this file has a matching `name: <job> (<GATE-ID>)` job in
-# .github/workflows/validation.yml, QUAL-01 excepted as the one documented
-# battery-only gate. It registers as a `--self-test` + live `gate` call, for
+# .github/workflows/validation.yml, the gates named in BATTERY_ONLY_GATE_IDS
+# excepted. It registers as a `--self-test` + live `gate` call, for
 # the same reason VERSION-01 does: the self-test is fixture-isolated, so it
 # alone asserts nothing about the shipped tree.
 # REG-GUARD: Battery composition moved 21 -> 22. A gate that appears silently
@@ -225,6 +225,16 @@
 # ceiling would guard a listing the slash-only stubs are not in.
 # Battery composition moved 24 -> 23.
 #
+# Composition NON-change (PROV-GUARD relaxed to battery-only, Phase 40, v9.4.0
+# -- docs/v9.4-gate-retirement.md §2.4, backlog 999.107, option B): PROV-GUARD's
+# CI job and the battery's bare live leg are both removed; the `--self-test`
+# command stays, in QUAL-01's own call shape, as one `gate` call. Battery
+# composition is UNCHANGED -- still one `gate "PROV-GUARD"` registration,
+# now `--self-test`-only -- because gate() counts once per gate id regardless
+# of how many commands run under it. CI moves from 20 jobs to 19 (the
+# check-provenance job is deleted); PROV-GUARD joins QUAL-01 in
+# BATTERY_ONLY_GATE_IDS, so battery-only-by-design rises from 1 to 2.
+#
 # Composition NON-change, recorded deliberately (WR-05, Phase 20 20-REVIEW):
 # scripts/report-conformance.py is NOT registered here, and its ~98-control
 # --self-test battery is NOT a gate in this file. That was already the standing
@@ -238,8 +248,8 @@
 # Why it stays out of this file rather than becoming gate 27:
 #   - REG-GUARD's CI-job axis requires every gate registered here to have a
 #     matching `name: <job> (<GATE-ID>)` job in .github/workflows/validation.yml,
-#     with QUAL-01 the single named battery-only exemption. Registering a gate
-#     here therefore forces either a new CI job or a second exemption, and
+#     with the gates named in BATTERY_ONLY_GATE_IDS excepted. Registering a gate
+#     here therefore forces either a new CI job or a widened exemption set, and
 #     widening that exemption list is exactly what makes the axis weaker.
 #   - The generator's --check leg is a STALENESS check against a regenerated
 #     baseline. It belongs at commit time, where the staleness is created, not
@@ -448,8 +458,8 @@ gate "VERSION-01" \
 #             directory and the main agent carry a frontmatter `name:` matching
 #             their own basename; (b) every gate registered in THIS file has a
 #             matching `name: <job> (<GATE-ID>)` job in
-#             .github/workflows/validation.yml, QUAL-01 excepted as the one
-#             documented battery-only gate (WR-02, v8.24).
+#             .github/workflows/validation.yml, the gates named in
+#             BATTERY_ONLY_GATE_IDS excepted (WR-02, v8.24).
 #             Runs the live scan as well as the self-test, for the same reason
 #             VERSION-01 above does: the self-test is fixture-isolated, so the
 #             self-test alone asserts nothing about the shipped tree.
@@ -491,24 +501,18 @@ gate "QUAL-01" \
     "check-quality-harness.py --self-test" \
     "python3 scripts/check-quality-harness.py --self-test"
 
-# PROV-GUARD — capture-based provenance verification: every read-at-source
-#              ground truth in an analysis's section 3 joins to a real
-#              WebFetch/Read of that source in the run's stored capture, and
-#              every literal it states appears verbatim in the retrieved
-#              text. Runs the live scan as well as the self-test, for the
-#              same reason VERSION-01 and REG-GUARD above do: the self-test's
-#              fixtures are tempdir/in-memory, so the self-test alone
-#              asserts nothing about the committed capture at
-#              tests/quality-provenance-v8.24/ — the live leg reads
-#              7/7 sources matched, 35/35 literals located.
-#              Bare `python3`, not `uv run` — see the "Rejected: `uv run
-#              --with pytest`" note in this file's header: `uv run` may resolve
-#              and fetch from a remote index, and this script is by construction
-#              an OFFLINE firewall.
+# PROV-GUARD — capture-based provenance verification: the self-test
+#              regression-tests the verifier's own parsing, join and
+#              literal-location logic on in-memory/tempdir fixtures
+#              (D-16 positive/negative/anti-masking controls). The bare live
+#              leg over the frozen tests/quality-provenance-v8.24/ capture is
+#              a manual fixture regression (docs/v9.4-gate-retirement.md
+#              §2.4) — run by neither the battery nor CI as of Phase 40,
+#              v9.4.0. Registers in QUAL-01's own call shape for the same
+#              reason: a single `--self-test`-only `gate` call.
 gate "PROV-GUARD" \
-    "check-provenance.py --self-test + live" \
-    "python3 scripts/check-provenance.py --self-test" \
-    "python3 scripts/check-provenance.py"
+    "check-provenance.py --self-test" \
+    "python3 scripts/check-provenance.py --self-test"
 
 # HARN-01 — Act limb: the Phase 3 verification step and the Criterion 3 Fix
 #           note are present, correctly placed, and internally coherent in

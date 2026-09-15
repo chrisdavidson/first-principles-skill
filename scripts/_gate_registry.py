@@ -238,8 +238,8 @@ ENTRIES: tuple[GateEntry, ...] = (
             "-- the property VAL-04's 4-gram collision scan was a proxy for "
             "(999.104); (b) every gate this file's own battery registers has a "
             "matching `name: <job> (<GATE-ID>)` job in "
-            "`.github/workflows/validation.yml`, QUAL-01 the one named battery-only "
-            "exemption. This module's D-01 floor deliberately reuses "
+            "`.github/workflows/validation.yml`, the gates named in "
+            "`BATTERY_ONLY_GATE_IDS` exempt. This module's D-01 floor deliberately reuses "
             "`check-registration.py`'s `_BATTERY_GATE_RE` parsing semantics rather "
             "than inventing a second grammar over the same file."
         ),
@@ -391,7 +391,7 @@ ENTRIES: tuple[GateEntry, ...] = (
             "Offline blind A/B quality-measurement harness self-test — extraction "
             "guardrails, scoreline parsing, blinding, tabulation, baseline-fixture "
             "integrity, the mechanical defect detector, and the emission rendering "
-            "contract's six legs. The single named battery-only CI exemption in "
+            "contract's six legs. One of the named battery-only CI exemptions in "
             "REG-GUARD's `BATTERY_ONLY_GATE_IDS`."
         ),
         consumes=(
@@ -408,19 +408,19 @@ ENTRIES: tuple[GateEntry, ...] = (
         key="PROV-GUARD",
         gate_id="PROV-GUARD",
         extra_ids=(),
-        mechanism=_ci("check-provenance"),
-        ci_job="check-provenance",
+        mechanism="battery only — not a CI job",
+        ci_job=None,
         script="scripts/check-provenance.py",
-        run_command=(
-            "python3 scripts/check-provenance.py --self-test && "
-            "python3 scripts/check-provenance.py"
-        ),
+        run_command="python3 scripts/check-provenance.py --self-test",
         summary=(
-            "Every `read-at-source` ground truth in an analysis's section 3 joins to "
-            "a real WebFetch/Read of that source in the run's stored capture, and "
-            "every literal it states appears verbatim in that source's retrieved "
-            "text. Live leg reads `tests/quality-provenance-v8.24/` and reports "
-            "7/7 sources matched, 35/35 literals located."
+            "The self-test is an offline regression test of the verifier's own "
+            "parsing, join and literal-location logic (D-16 positive/negative/"
+            "anti-masking controls), not a product guard. Its only live input was "
+            "the frozen `tests/quality-provenance-v8.24/` fixture (7/7 sources "
+            "matched, 35/35 literals located), now outside the battery and CI — "
+            "relaxed to battery-only under 999.107 option B "
+            "(`docs/v9.4-gate-retirement.md` §2.4). One of the named battery-only "
+            "CI exemptions in REG-GUARD's `BATTERY_ONLY_GATE_IDS`."
         ),
         consumes=("control_ids", "control_count", "registered_surfaces", "locked_constants"),
     ),

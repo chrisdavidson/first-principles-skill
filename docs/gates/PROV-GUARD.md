@@ -1,4 +1,4 @@
-# PROV-GUARD: Every `read-at-source` ground truth in an analysis's section 3 joins to a real WebFetch/Read of that source in the run's stored capture, and every literal it states appears verbatim in that source's retrieved text.
+# PROV-GUARD: The self-test is an offline regression test of the verifier's own parsing, join and literal-location logic (D-16 positive/negative/anti-masking controls), not a product guard.
 
 <!-- GENERATED:FACTS -->
 ## Facts
@@ -13,8 +13,8 @@
 ## How to run
 
 ```sh
-python3 scripts/check-provenance.py --self-test && python3 scripts/check-provenance.py
+python3 scripts/check-provenance.py --self-test
 ```
 
-CI job: `check-provenance`
+CI job: — (not a CI job)
 <!-- END GENERATED:HOW-TO-RUN -->

@@ -3475,14 +3475,21 @@ def _rows_v824() -> list[MatrixRow]:
     PROV04-network-blocked control's own network-block mock left both self-tests green) and
     GATE-01 (deleting one negative control's body left both self-tests green). PROV-01, PROV-02
     and PROV-03 each broke red under check-provenance.py --self-test (label parsing, source join
-    and literal location respectively) and stay reproducible, rerun_by="ci" unchanged, because
-    PROV-GUARD's script still carries a CI job in this commit (rule (v), _row_field_problems).
-    PROV-05 broke green under check-provenance.py --self-test but red under
+    and literal location respectively) and stayed reproducible, rerun_by="ci" unchanged, at that
+    plan, because PROV-GUARD's script still carried a CI job in that commit (rule (v),
+    _row_field_problems). PROV-05 broke green under check-provenance.py --self-test but red under
     check-quality-harness.py --self-test (removing the nine provenance columns from
     _DEFECT_RECORD_FIELDS crashes _selftest_incidence_schema_compat), so it is re-pointed at that
     assertion by symbol anchor with rerun_by="battery-only" rather than re-tiered — it stays
     reproducible because a real self-test control does falsify the removed columns, just not the
     one this row originally cited.
+
+    Phase 40 plan 08 (999.107 option B, docs/v9.4-gate-retirement.md §2.4 Landing readings):
+    PROV-GUARD's CI job and battery live leg are dropped in the same commit that flips PROV-01,
+    PROV-02 and PROV-03's rerun_by from "ci" to "battery-only" — rule (iv), _row_field_problems,
+    would otherwise flag all three (a "ci" row whose script carries no ci_job) the moment
+    check-provenance.py's registry entry loses its ci_job. All three stay reproducible: each is
+    re-run by check-provenance.py --self-test in the battery, in QUAL-01's own call shape.
 
     CAP-01/CAP-03 (CR-02, v8.24 code review): both rows deliver into
     scripts/check-quality-harness.py, and both originally pointed their artifact_link at
@@ -3579,7 +3586,7 @@ def _rows_v824() -> list[MatrixRow]:
                       "The verifier parses section 3 ground truths and their `*Provenance: …*` labels "
                       "from an analysis document"
                   ),
-                  rerun_by="ci"),
+                  rerun_by="battery-only"),
         MatrixRow("v8.24/PROV-02", "PROV-02", "v8.24", "Test-Network",
                   "scripts/check-provenance.py",
                   "reproducible", "scripts/check-provenance.py", "",
@@ -3588,7 +3595,7 @@ def _rows_v824() -> list[MatrixRow]:
                       "Every `read-at-source` ground truth maps to a real `WebFetch`/`Read` of that "
                       "source in the capture; an unmatched label is reported as a defect"
                   ),
-                  rerun_by="ci"),
+                  rerun_by="battery-only"),
         MatrixRow("v8.24/PROV-03", "PROV-03", "v8.24", "Test-Network",
                   "scripts/check-provenance.py",
                   "reproducible", "scripts/check-provenance.py", "",
@@ -3597,7 +3604,7 @@ def _rows_v824() -> list[MatrixRow]:
                       "Every literal a `read-at-source` ground truth states appears verbatim in that "
                       "source's retrieved text; an unlocated literal is reported as a defect"
                   ),
-                  rerun_by="ci"),
+                  rerun_by="battery-only"),
         MatrixRow("v8.24/PROV-04", "PROV-04", "v8.24", "Test-Network",
                   "scripts/check-provenance.py",
                   "audit-only", "",

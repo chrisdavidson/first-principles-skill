@@ -637,6 +637,54 @@ _POST_UNIFICATION_STATEMENT = (
 )
 
 
+def _join_with_and(items: list[str]) -> str:
+    """Join a list of ids in prose form: 'A', 'A and B', or 'A, B and C'."""
+    if len(items) == 1:
+        return items[0]
+    if len(items) == 2:
+        return f"{items[0]} and {items[1]}"
+    return f"{', '.join(items[:-1])} and {items[-1]}"
+
+
+def _battery_only_lead_in_clause(entries) -> str:
+    """Derive the CLAUDE_MD lead-in's battery-only clause from the registry
+    (999.107 Phase 40 follow-up): every entry whose `mechanism` is exactly
+    `\"battery only — not a CI job\"` (QUAL-01's own shape, now shared by
+    PROV-GUARD) is a battery-only-by-design gate eligible for CI-job
+    registration but deliberately exempt — the same population
+    `check-registration.py`'s `BATTERY_ONLY_GATE_IDS` names by hand.
+    Excludes `mechanism=\"battery only (inline)\"` entries (INVARIANT-CHECK,
+    FROZEN-EVIDENCE): those are inline `printf` checks with no `gate()`
+    registration at all, so `extract_battery_gate_ids()` never yields them
+    and REG-GUARD's CI-job axis never considers them — including them here
+    would name gates this sentence's own subject (gates that RUN in CI) was
+    never about. Rendering this from `_gate_registry.ENTRIES` rather than a
+    hand-typed 'QUAL-01' literal means a future battery-only gate (or a
+    reverted one) never leaves this sentence stale."""
+    ids = sorted(
+        e.gate_id
+        for e in entries
+        if e.ci_job is None and e.mechanism == "battery only — not a CI job"
+    )
+    if not ids:
+        raise ValueError(
+            "_battery_only_lead_in_clause: no battery-only entries found — "
+            "at least one (QUAL-01) is expected"
+        )
+    joined = _join_with_and(ids)
+    if len(ids) == 1:
+        verb_is, subj_have, pron_it = "is", "it has", "it"
+    else:
+        verb_is, subj_have, pron_it = "are", "they have", "them"
+    return (
+        f"Every gate below except {joined} runs in "
+        "`.github/workflows/validation.yml` on push/PR to master; "
+        f"{joined} {verb_is} battery-only — {subj_have} "
+        f"no CI job, and `bash scripts/check-firewall-battery.sh` is the only "
+        f"thing that runs {pron_it}."
+    )
+
+
 def _page_slug(entry) -> str:
     """The docs/gates/<slug>.md filename stem for a registry entry. Derived
     from `entry.key` (equal to `gate_id` for every normal entry) rather than
@@ -881,10 +929,8 @@ def render_table_region(rows, surface: str) -> str:
         lead_in = (
             f"{_POST_UNIFICATION_STATEMENT}; a working session still sees the full "
             "gate list here without opening `docs/`, and per-gate detail lives in "
-            "`docs/gates/<GATE-ID>.md`. Every gate below except QUAL-01 runs in "
-            "`.github/workflows/validation.yml` on push/PR to master; QUAL-01 is "
-            "battery-only — it has no CI job, and "
-            "`bash scripts/check-firewall-battery.sh` is the only thing that runs it."
+            "`docs/gates/<GATE-ID>.md`. "
+            f"{_battery_only_lead_in_clause(_gate_registry.ENTRIES)}"
         )
     elif surface == "ARCHITECTURE_MD":
         lead_in = (
@@ -2548,6 +2594,7 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('CLAUDE.md', '1024'): ('999.69', 1, 'CANNOT-REACH (no harvest field IN THIS FILE\'S OWN generated fence): "Skill `description` fields must be third-person, ≤ 1,024 chars" (Key invariants) -- the agent-side ceiling GATE-01 (`scripts/check-agent.py`) enforces via `_MAX_DESCRIPTION_LEN = 1024`, re-used in the same sentence as a skill-side convention. VAL-05, which once carried this residue, is retired (docs/v9.4-gate-retirement.md §2.3); GATE-01 asserts the agent-side bound directly. For skill descriptions the figure has no source on the platform\'s skills page and no gate behind it (M3(b), 40-EVIDENCE.md: a 1,100-character skill description left both `claude plugin validate` and `check-agent.py` green) -- it stays a documented convention, matching docs/CONFIGURATION.md\'s row. Re-verified live this plan: `python3 scripts/check-agent.py --describe` DOES emit `locked_constants: {"max_description_len": 1024}`, and `docs/gates/GATE-01.md` -- a DIFFERENT file -- renders it verbatim; but CLAUDE.md\'s own generated GATE-01 table row only ever states `locked_constants=N entries` (a count, never the raw values), so this file\'s own inside-fence text still carries no `1024` for the outside occurrence to corroborate against -- containment is scored per file (`_containment_missing_numbers`), not tree-wide. CONTAIN-04 reconciles this residue if CLAUDE.md\'s own table row is ever widened to inline raw constant values; deferred as cannot-reach residue (D-06 proviso 2) until then.'),
     ('CLAUDE.md', '15'): ('999.69', 2, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "15 v4.0/v4.1 builder requirements retired at quick task" and "the 15 v8.24 milestone requirements registered as matrix rows" -- both arrow-free historical counts in the requirements-ledger paragraph, the same exception as \'14\' above.'),
     ('CLAUDE.md', '17'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "all 17 version stamps move in lockstep" and "A bump touches all 17 or none" -- VERSION-01\'s own registered-surfaces count. Re-verified live this plan: `python3 scripts/check-version-stamps.py --describe` emits `registered_surfaces` (4 path strings) and `stamp_source_kind_count: 4` -- no field exposes "17 hand-maintained stamps" itself today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
+    ('CLAUDE.md', '20'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "the 20 v8.26 milestone requirements registered as matrix rows at Phase 16" -- an arrow-free restatement of a prior milestone\'s requirement count in the historical requirements-ledger paragraph, the same exception as \'14\'/\'15\' above. Re-added by Phase 40 plan 08: PROV-GUARD\'s relaxation to battery-only (docs/v9.4-gate-retirement.md §2.4) moved the generated table\'s own "N in CI" text off \'20\' onto \'19\', un-covering this same pre-existing historical mention a second time (it was covered, then uncovered, then re-covered, then uncovered again across this phase\'s own plans 40-06/40-07/40-08).'),
     ('CLAUDE.md', '21'): ('999.105', 1, 'CANNOT-REACH (no harvest field): "The tally is 21 `gate`/`gate_prereq` registrations plus two inline checks" -- `scripts/check-firewall-battery.sh`\'s own call-site count, re-worded from the prior \'22\' entry when VAL-05 was retired (Phase 40, docs/v9.4-gate-retirement.md §2.3); the battery is a shell script with no `--describe` leg, so `harvest()` never reaches it. This entry\'s coincidental in-fence corroboration from the pre-retirement CI-job count (21, HC-BOUND\'s "moved it from 20 to 21" delta-chain hop) is stripped structurally by the citation-shape stripper before counting, so it never covered this occurrence in the first place -- this is a genuinely new bare digit, not a re-covered one.'),
     ('CLAUDE.md', '22'): ('999.104', 1, 'NOT A COUNT CLAIM: "this phase\'s own `/bm:code-review 22`" -- a phase-number citation, the same shape as `CLAUDE.md`\'s own \'03\' half-strip entry above, not a population total. Occurrence count lowered from 2 to 1 when VAL-05\'s retirement (Phase 40, docs/v9.4-gate-retirement.md §2.3) reworded the tally sentence off \'22\' entirely, onto \'21\' (see that key\'s own entry).'),
     ('CLAUDE.md', '260728'): ('999.73', 1, 'NOT A COUNT CLAIM: "quick task `260728-vxn`" -- a quick-task id (date-shaped digits plus a suffix), not a count. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises quick-task-id shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
@@ -2761,10 +2808,20 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # outright rather than being re-covered by coincidence -- confirmed by a
 # fresh `_containment_live_finding_counts()` reading returning no entry for
 # that page at all. Net: one key added, three removed (23 -> 21).
-_CONTAINMENT_LEDGER_MAX: int = 21
+#
+# Raised 21 -> 22 by Phase 40 plan 08 Task 1: PROV-GUARD's relaxation to
+# battery-only (docs/v9.4-gate-retirement.md §2.4, backlog 999.107 option B)
+# moved the generated table's own "N in CI"/"N CI gates" text off '20' onto
+# '19', un-covering the pre-existing "20 v8.26 milestone requirements"
+# historical mention a second time in this same phase (it was covered by
+# plan 40-06's CI-count move, uncovered and re-ledgered by plan 40-07,
+# re-covered by that same plan's edit, and is uncovered again here). One key
+# re-added (`('CLAUDE.md', '20')`, byte-identical text to its pre-40-07
+# entry); no key removed.
+_CONTAINMENT_LEDGER_MAX: int = 22
 
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:e49208f43e4324eb40ba64194cd7d23c618d88975cb2c89cbc3158a8aea65f5d"
+    "sha256:c0982717bbe24568b25365031bd55cf9a85c181dce995a4808ae6a0c0529f5e4"
 )
 
 
