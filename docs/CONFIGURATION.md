@@ -188,7 +188,7 @@ distinction is worth keeping visible.
 | Reserved words `anthropic` and `claude` are forbidden in skill `name` fields | VAL-01 |
 | `metadata.version` must be a double-quoted YAML string — never a bare number | VERSION-01 |
 | Every hand-maintained version stamp carries the **same** value | VERSION-01 |
-| `disable-model-invocation: true` must be present on every focused-mode skill stub | convention — no gate |
+| `disable-model-invocation: true` on every skill stub | REG-GUARD |
 | All reference file links use forward slashes and are one level deep from the referencing file (no nested `a.md → b.md → c.md`) | VAL-03 |
 | Every reference link in the **agent body** is plugin-root-anchored — `${CLAUDE_PLUGIN_ROOT}/agents/references/…`, never file-relative `references/…` | VAL-03 (resolves the token onto `first-principles/`), GATE-02-v8.5 (asserts the per-surface form for the four `-detail.md` pointers) |
 | Every reference link in a **skill stub** stays file-relative `references/…` — the harness resolves a slash-invoked skill against its own directory | GATE-02-v8.5 |

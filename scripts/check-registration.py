@@ -16,7 +16,7 @@ Usage:
 
 Exit codes: 0 pass, 1 validation/content failure, 2 environment error.
 
---self-test: runs 29 named, decision-traceable controls against tempdir and
+--self-test: runs 32 named, decision-traceable controls against tempdir and
 in-memory fixtures — fully offline and deterministic, no network access and
 no live Claude session, independent of the live first-principles/ tree.
 
@@ -87,13 +87,13 @@ _CI_JOB_NAME_RE = re.compile(r"^(?P<job>.*?)\s*\((?P<ids>[^()]+)\)\s*$")
 _FENCE_RE = re.compile(r"^---\s*$", re.MULTILINE)
 
 # D-21-J: a second, independently-typed transcription of `_run_self_test()`'s
-# 29 numbered control ids (matching each `# Control N` comment). `_run_self_test`
+# 32 numbered control ids (matching each `# Control N` comment). `_run_self_test`
 # appends each id to a local `_executed` list as it runs and asserts, at the
 # end, that `_executed` and this tuple agree by SET EQUALITY — the same
 # coverage-floor shape `scripts/_gate_registry.py`'s own `self_test()` uses.
 # This is the roster `--describe`'s `control_count`/`control_ids` derive from
 # (a `len()` read, never a hand-typed literal beside untouched control code).
-_CONTROL_IDS: tuple[str, ...] = tuple(f"c{n}" for n in range(1, 30))
+_CONTROL_IDS: tuple[str, ...] = tuple(f"c{n}" for n in range(1, 33))
 
 
 def _require_python_version() -> None:
@@ -193,6 +193,50 @@ def _read_frontmatter_name(path: Path) -> str | None:
     return extract_frontmatter_name(text)
 
 
+def extract_frontmatter_value(text: str, key: str) -> tuple[bool, object]:
+    """Return (present, value) for an arbitrary frontmatter key from
+    already-read SKILL.md/agent text.
+
+    999.104 successor (Plan 40-05): the value-assertion twin of
+    extract_frontmatter_name — same fence-split/empty-pre-fence/yaml.safe_load
+    parse discipline, generalized to any key rather than hardcoding `name`.
+    Returns (False, None) for any malformed or absent shape (no opening/
+    closing fence pair, content before the opening fence, invalid YAML, a
+    non-dict root, or the key simply absent); never raises.
+    """
+    parts = _FENCE_RE.split(text, maxsplit=2)
+    if len(parts) < 3:
+        return (False, None)
+    if parts[0].strip():
+        # Content before the opening fence — not valid frontmatter.
+        return (False, None)
+
+    try:
+        frontmatter = yaml.safe_load(parts[1])
+    except yaml.YAMLError:
+        return (False, None)
+
+    if not isinstance(frontmatter, dict):
+        return (False, None)
+
+    if key not in frontmatter:
+        return (False, None)
+    return (True, frontmatter[key])
+
+
+def _read_frontmatter_value(path: Path, key: str) -> tuple[bool, object]:
+    """Thin I/O wrapper around extract_frontmatter_value for a file on disk.
+
+    Mirrors _read_frontmatter_name's split: returns (False, None) on OSError
+    or UnicodeDecodeError rather than raising.
+    """
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return (False, None)
+    return extract_frontmatter_value(text, key)
+
+
 def parse_manifest(manifest_path: Path) -> dict:
     """Parse the plugin manifest JSON file and return its root object.
 
@@ -288,6 +332,40 @@ def verify_skill_names(skills: set[str], skills_dir: Path) -> list[dict]:
     return records
 
 
+def verify_skill_model_invocation_disabled(
+    skills: set[str], skills_dir: Path
+) -> list[dict]:
+    """Verify each discovered skill's SKILL.md frontmatter carries
+    `disable-model-invocation: true` as a YAML boolean.
+
+    999.104 successor: the value assertion VAL-04's 4-gram collision scan was
+    a proxy for (docs/v9.4-gate-retirement.md §2.2) — every shipped skill
+    stub's description must be out of the model's routing context, which the
+    platform's invocation table (see that record) ties directly to this one
+    boolean. Iterates `sorted(skills)`, same shape as verify_skill_names().
+    `invocation_disabled` requires `value is True`: the quoted string "true"
+    is a legal YAML scalar but not the Python boolean `True`, so it does not
+    pass (T-40-12). Never calls sys.exit — gating is the caller's job.
+    """
+    records: list[dict] = []
+    for name in sorted(skills):
+        skill_md = skills_dir / name / "SKILL.md"
+        _present, value = (
+            _read_frontmatter_value(skill_md, "disable-model-invocation")
+            if skill_md.is_file()
+            else (False, None)
+        )
+        records.append(
+            {
+                "directory_name": name,
+                "disable_model_invocation": value,
+                "type": "skill",
+                "invocation_disabled": value is True,
+            }
+        )
+    return records
+
+
 def verify_agent_name(
     agent_present: bool, agent_path: Path, expected_name: str
 ) -> dict:
@@ -375,7 +453,8 @@ def build_discovery_report(
 
     D-05 (Plan 02): three verification keys are appended after
     registration_source, preserving the flat single-level shape and the
-    nine Phase 1 keys byte-identical.
+    nine Phase 1 keys byte-identical. Plan 40-05 (999.104 successor) adds a
+    fourth, skill_invocation_verification, in the same flat shape.
     """
     registered_skill_paths, registered_agent_paths = extract_registered_paths(
         manifest
@@ -400,6 +479,9 @@ def build_discovery_report(
         "registered_agent_paths": registered_agent_paths,
         "registration_source": registration_source,
         "skill_name_verification": verify_skill_names(skills, skills_dir),
+        "skill_invocation_verification": verify_skill_model_invocation_disabled(
+            skills, skills_dir
+        ),
         "agent_name_verification": verify_agent_name(
             agent_present, agent_path, AGENT_NAME
         ),
@@ -414,8 +496,8 @@ def collect_verification_failures(report: dict) -> list[str]:
     finding in report, or [] on a clean report.
 
     Implements REG-06's accumulate-then-report requirement — every
-    discrepancy in one run, not just the first. Reads only the three
-    verification keys build_discovery_report() adds; never calls sys.exit.
+    discrepancy in one run, not just the first. Reads the four verification
+    keys build_discovery_report() adds; never calls sys.exit.
     """
     failures: list[str] = []
 
@@ -426,6 +508,15 @@ def collect_verification_failures(report: dict) -> list[str]:
                 "skill name mismatch: directory "
                 f"'{record['directory_name']}' vs frontmatter "
                 f"'{frontmatter_name}'"
+            )
+
+    for record in report["skill_invocation_verification"]:
+        if not record["invocation_disabled"]:
+            value = record["disable_model_invocation"]
+            rendered = "absent" if value is None else repr(value)
+            failures.append(
+                f"skill {record['directory_name']}: disable-model-invocation "
+                f"is {rendered}, expected true"
             )
 
     agent_record = report["agent_name_verification"]
@@ -685,6 +776,16 @@ def format_report_text(report: dict) -> str:
         f"({path_unresolved} unresolved)"
     )
 
+    invocation_verifications = report["skill_invocation_verification"]
+    invocation_disabled_count = sum(
+        1 for r in invocation_verifications if r["invocation_disabled"]
+    )
+    invocation_total = len(invocation_verifications)
+    lines.append(
+        "  Skills disabling model invocation: "
+        f"{invocation_disabled_count}/{invocation_total}"
+    )
+
     failures = collect_verification_failures(report)
     if failures:
         lines.append("  Failures:")
@@ -882,7 +983,7 @@ def _self_test_reg03_parse_manifest(
 
 
 def _run_self_test() -> None:
-    """Run 29 named, decision-traceable offline controls against the
+    """Run 32 named, decision-traceable offline controls against the
     production helpers, using tempdir and in-memory fixtures only.
 
     Fully deterministic and offline: no network, no live Claude session, no
@@ -956,6 +1057,7 @@ def _run_self_test() -> None:
         "registered_agent_paths",
         "registration_source",
         "skill_name_verification",
+        "skill_invocation_verification",
         "agent_name_verification",
         "manifest_path_verification",
     }
@@ -1255,6 +1357,7 @@ def _run_self_test() -> None:
             "registered_agent_paths",
             "registration_source",
             "skill_name_verification",
+            "skill_invocation_verification",
             "agent_name_verification",
             "manifest_path_verification",
         }
@@ -1349,6 +1452,14 @@ def _run_self_test() -> None:
                 "matches": True,
             }
         ],
+        "skill_invocation_verification": [
+            {
+                "directory_name": "alpha",
+                "disable_model_invocation": True,
+                "type": "skill",
+                "invocation_disabled": True,
+            }
+        ],
         "agent_name_verification": {
             "expected_name": "first-principles",
             "frontmatter_name": "first-principles",
@@ -1379,6 +1490,20 @@ def _run_self_test() -> None:
                 "frontmatter_name": None,
                 "type": "skill",
                 "matches": False,
+            },
+        ],
+        "skill_invocation_verification": [
+            {
+                "directory_name": "skill-one",
+                "disable_model_invocation": True,
+                "type": "skill",
+                "invocation_disabled": True,
+            },
+            {
+                "directory_name": "skill-two",
+                "disable_model_invocation": True,
+                "type": "skill",
+                "invocation_disabled": True,
             },
         ],
         "agent_name_verification": {
@@ -1645,8 +1770,156 @@ def _run_self_test() -> None:
 
     _executed.append("c29")
 
+    # Control 30 — extract_frontmatter_value over literals (in-memory, D-04):
+    # 999.104 successor value assertion. `true` -> (True, True); `false` ->
+    # (True, False); the quoted string "true" -> (True, "true") (a legal YAML
+    # scalar, not the Python boolean — the case invocation_disabled must NOT
+    # accept, T-40-12); an absent key -> (False, None); malformed frontmatter
+    # -> (False, None). Never raises.
+    control_30_cases = (
+        ("---\ndisable-model-invocation: true\n---\nbody", (True, True)),
+        ("---\ndisable-model-invocation: false\n---\nbody", (True, False)),
+        (
+            '---\ndisable-model-invocation: "true"\n---\nbody',
+            (True, "true"),
+        ),
+        ("---\nname: alpha\n---\nbody", (False, None)),
+        ("no frontmatter fence at all", (False, None)),
+    )
+    for literal_30, expected_30 in control_30_cases:
+        got_30 = extract_frontmatter_value(literal_30, "disable-model-invocation")
+        if got_30 != expected_30:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 30 "
+                f"extract_frontmatter_value({literal_30!r}, ...) = {got_30!r}, "
+                f"expected {expected_30!r}\n"
+            )
+            sys.exit(1)
+
+    _executed.append("c30")
+    # Control 31 — verify_skill_model_invocation_disabled against a tempdir
+    # fixture: alpha=true, beta=false, gamma=key absent, delta=no SKILL.md.
+    # Anti-masking: both True and False must be present in the result, so a
+    # collector that always returns True (or always False) cannot pass.
+    with tempfile.TemporaryDirectory() as tmp31:
+        tmp31_path = Path(tmp31)
+        (tmp31_path / "alpha").mkdir()
+        (tmp31_path / "alpha" / "SKILL.md").write_text(
+            "---\ndisable-model-invocation: true\n---\nbody", encoding="utf-8"
+        )
+        (tmp31_path / "beta").mkdir()
+        (tmp31_path / "beta" / "SKILL.md").write_text(
+            "---\ndisable-model-invocation: false\n---\nbody", encoding="utf-8"
+        )
+        (tmp31_path / "gamma").mkdir()
+        (tmp31_path / "gamma" / "SKILL.md").write_text(
+            "---\nname: gamma\n---\nbody", encoding="utf-8"
+        )
+        (tmp31_path / "delta").mkdir()
+
+        records_31 = verify_skill_model_invocation_disabled(
+            {"alpha", "beta", "gamma", "delta"}, tmp31_path
+        )
+        disabled_by_name_31 = {
+            r["directory_name"]: r["invocation_disabled"] for r in records_31
+        }
+        if disabled_by_name_31 != {
+            "alpha": True,
+            "beta": False,
+            "gamma": False,
+            "delta": False,
+        }:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 31: "
+                f"{disabled_by_name_31!r}, expected alpha=True, beta=False, "
+                "gamma=False, delta=False\n"
+            )
+            sys.exit(1)
+        if len(records_31) != 4:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 31: expected "
+                f"exactly 4 records, got {len(records_31)}\n"
+            )
+            sys.exit(1)
+        true_count_31 = sum(1 for v in disabled_by_name_31.values() if v is True)
+        false_count_31 = sum(1 for v in disabled_by_name_31.values() if v is False)
+        if true_count_31 == 0 or false_count_31 == 0:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 31 "
+                "anti-masking: both True and False must be present, got "
+                f"{disabled_by_name_31!r}\n"
+            )
+            sys.exit(1)
+
+    _executed.append("c31")
+    # Control 32 — mutation-restore (D-08): a fixture where every stub is
+    # true yields zero invocation failures from collect_verification_failures;
+    # flipping one stub file to false yields exactly one failure line naming
+    # that stub and the value; restoring it yields zero again. Standing
+    # instruction 7: a gate that excludes is not a gate that pins — this
+    # control proves the collector actually goes red by name on the flip.
+    with tempfile.TemporaryDirectory() as tmp32:
+        tmp32_path = Path(tmp32)
+        for skill_name_32 in ("alpha", "beta"):
+            (tmp32_path / skill_name_32).mkdir()
+            (tmp32_path / skill_name_32 / "SKILL.md").write_text(
+                "---\ndisable-model-invocation: true\n---\nbody",
+                encoding="utf-8",
+            )
+        skills_32 = {"alpha", "beta"}
+
+        def _invocation_failures_32() -> list[str]:
+            report_32 = {
+                "skill_name_verification": [],
+                "skill_invocation_verification": (
+                    verify_skill_model_invocation_disabled(skills_32, tmp32_path)
+                ),
+                "agent_name_verification": {
+                    "matches": True,
+                    "present": True,
+                    "expected_name": AGENT_NAME,
+                    "frontmatter_name": AGENT_NAME,
+                },
+                "manifest_path_verification": [],
+            }
+            return collect_verification_failures(report_32)
+
+        clean_failures_32 = _invocation_failures_32()
+        if clean_failures_32:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 32 (clean): "
+                f"expected zero invocation failures, got {clean_failures_32!r}\n"
+            )
+            sys.exit(1)
+
+        (tmp32_path / "beta" / "SKILL.md").write_text(
+            "---\ndisable-model-invocation: false\n---\nbody", encoding="utf-8"
+        )
+        flipped_failures_32 = _invocation_failures_32()
+        if len(flipped_failures_32) != 1 or "beta" not in flipped_failures_32[0]:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 32 (flipped): "
+                f"expected exactly one failure naming 'beta', got "
+                f"{flipped_failures_32!r}\n"
+            )
+            sys.exit(1)
+
+        (tmp32_path / "beta" / "SKILL.md").write_text(
+            "---\ndisable-model-invocation: true\n---\nbody", encoding="utf-8"
+        )
+        restored_failures_32 = _invocation_failures_32()
+        if restored_failures_32:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 32 "
+                f"(restored): expected zero invocation failures, got "
+                f"{restored_failures_32!r}\n"
+            )
+            sys.exit(1)
+
+    _executed.append("c32")
+
     # Coverage floor (D-21-J): _CONTROL_IDS is a second, independently-typed
-    # transcription of the 29 control ids above. A control block deleted or
+    # transcription of the 32 control ids above. A control block deleted or
     # skipped leaves its id absent from `_executed`, which this comparison
     # catches BY NAME rather than silently narrowing the published count —
     # the same shape `scripts/_gate_registry.py`'s own `self_test()` uses for
@@ -1671,7 +1944,8 @@ def _run_self_test() -> None:
         "manifest-path resolution and containment, tempdir-fixture report "
         "values, failure collection accumulate-then-report, text rendering, "
         "battery/CI gate-id extraction, CI-job registration with "
-        "missing-job negative control and exemption-scope control)"
+        "missing-job negative control and exemption-scope control, "
+        "stub disable-model-invocation value pin)"
     )
     sys.exit(0)
 
@@ -1686,7 +1960,8 @@ def describe() -> dict[str, object]:
         "control_ids": sorted(_CONTROL_IDS),
         "control_count": len(_CONTROL_IDS),
         "registered_surfaces": [
-            "plugin axis (skill/agent frontmatter name: matches directory/file basename)",
+            "plugin axis (skill/agent frontmatter name: matches directory/file "
+            "basename; every skill stub's disable-model-invocation is true)",
             "CI-job axis (every battery gate id has a matching name: <job> (<GATE-ID>) job)",
         ],
         "checked_files": sorted(
@@ -1695,6 +1970,7 @@ def describe() -> dict[str, object]:
         ),
         "locked_constants": {
             "battery_only_gate_ids": sorted(BATTERY_ONLY_GATE_IDS),
+            "required_disable_model_invocation": True,
         },
     }
 
@@ -1786,6 +2062,12 @@ def main() -> None:
     skill_matched = sum(1 for r in skill_verifications if r["matches"])
     skill_total = len(skill_verifications)
 
+    invocation_verifications = report["skill_invocation_verification"]
+    invocation_disabled_count = sum(
+        1 for r in invocation_verifications if r["invocation_disabled"]
+    )
+    invocation_total = len(invocation_verifications)
+
     ci_matched = sum(
         1 for r in ci_records if r["registered"] and not r["battery_only"]
     )
@@ -1793,6 +2075,8 @@ def main() -> None:
         f"check-registration: PASS (discovered {len(skills)} skills, "
         "agent present, manifest parsed, "
         f"{skill_matched}/{skill_total} names verified, "
+        f"{invocation_disabled_count}/{invocation_total} skills disable "
+        "model invocation, "
         f"{ci_matched}/{len(ci_records)} battery gates CI-registered "
         f"+ {len(ci_records) - ci_matched} battery-only by design)"
     )

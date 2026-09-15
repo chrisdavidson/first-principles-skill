@@ -264,7 +264,9 @@ ENTRIES: tuple[GateEntry, ...] = (
         summary=(
             "Registration completeness over two surfaces: (a) every skill directory "
             "and the main agent carry a frontmatter `name:` matching their own "
-            "basename; (b) every gate this file's own battery registers has a "
+            "basename, and every skill stub's `disable-model-invocation` is `true` "
+            "-- the property VAL-04's 4-gram collision scan was a proxy for "
+            "(999.104); (b) every gate this file's own battery registers has a "
             "matching `name: <job> (<GATE-ID>)` job in "
             "`.github/workflows/validation.yml`, QUAL-01 the one named battery-only "
             "exemption. This module's D-01 floor deliberately reuses "

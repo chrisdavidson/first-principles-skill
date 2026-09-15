@@ -3603,7 +3603,7 @@ _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('scripts/check-quality-harness.py#__doc__', '[ID] Dispatch exactly one'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-quality-harness.py#__doc__', 'one tabulated row.'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-quality-harness.py#__doc__', 'row. Dispatches exactly one'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-registration.py#__doc__', '29 named, decision-traceable controls'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-registration.py#__doc__', '32 named, decision-traceable controls'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-selfaudit-scan.py#__doc__', '(11) **What plan'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-selfaudit-scan.py#__doc__', '(12) **What plan'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-selfaudit-scan.py#__doc__', '(9) **What plan'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
@@ -3775,11 +3775,14 @@ _DEFERRED_LEDGER_MAX: int = 180
 # apart from a rubber-stamped one; it can only prove the set is not
 # drifting silently underneath an unchanged pin.
 #
-# Re-pinned by plan 26-06 Task 2, in the SAME commit as the 181 -> 180
-# reconciliation above (D-05 proviso 1): the key set changed by exactly the
-# one removed key (`('CLAUDE.md', '(43 controls)')`); no key was added.
+# Re-pinned by plan 40-05 Task 1, in the same commit as
+# scripts/check-registration.py's 999.104 successor assertion: the ledger key
+# naming that file's own module docstring moved from '29 named,
+# decision-traceable controls' to '32 named, decision-traceable controls'
+# (three new controls, c30-c32) -- same key count, one key's literal text
+# changed to match the live docstring.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:e76f58eeb5bab2a849f427f18726177fd9b2c4d2de7595fe8ba69486585eae9b"
+    "sha256:d5ebe8654b7e6114d106807ed2e3ea72376ae58818f6105776a3024e0608877c"
 )
 
 
