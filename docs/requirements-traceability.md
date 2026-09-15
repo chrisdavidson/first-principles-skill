@@ -514,9 +514,9 @@ was committed after the second reading it records.
 
 Via `check-registration.py`'s own `extract_battery_gate_ids` (piped `git show <rev>:...`) and the
 parsed `.github/workflows/validation.yml` `jobs` key, never the battery's own GREEN line: at
-`fda29cc` (`MILESTONE_BASE`), at `3c0fed0` (`PHASE_BASE`, Phase 35's first content commit) and at
-`fe06ec9` (the `[9.3.0]` CHANGELOG commit, the phase's last content commit and Reading 2's
-timing), the battery total reads 24 `extract_battery_gate_ids` registrations plus the 2 inline
+`fda29cc` (`MILESTONE_BASE`), at `3c0fed0` (`PHASE_BASE`, the last Phase 34 commit) and at
+`fe06ec9` (the `[9.3.0]` CHANGELOG commit, the phase's last content commit before its code review and
+Reading 2's timing), the battery total reads 24 `extract_battery_gate_ids` registrations plus the 2 inline
 checks (INVARIANT-CHECK, FROZEN-EVIDENCE), and the CI `jobs:` key count is read the same way at all
 three revisions. All three revisions read the identical total and the identical CI job count — the
 close count equals `fda29cc`'s exactly (standing D-D holds). `bash scripts/check-firewall-battery.sh`
@@ -548,7 +548,7 @@ Unexplained differences: 0. Differences fixed inside this phase: 0.
 
 ### Reading 2 (REL-23), after `fe06ec9`, dated 2026-09-14
 
-`fe06ec9` (Plan 35-09's `[9.3.0]` CHANGELOG commit) is HEAD; `git show --numstat --format= HEAD`
+`fe06ec9` (Plan 35-09's `[9.3.0]` CHANGELOG commit) was HEAD at the time of this reading; `git show --numstat --format= HEAD`
 names exactly one file, `CHANGELOG.md`; `git log -1 --format=%h -- scripts/check-traceability.py`
 still reads `522c873`, unchanged since Reading 1 — the intervening commit touched only
 `CHANGELOG.md`, which no subcommand reads. Instrument sha256 unchanged from Reading 1 (no
