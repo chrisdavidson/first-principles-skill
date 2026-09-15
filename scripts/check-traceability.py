@@ -5309,9 +5309,10 @@ def _rows_v93() -> list[MatrixRow]:
     (named without a path -- .planning/ is gitignored and outside every gate's reach, per
     ROWS-02's own finding). The Phase 32-34 BREAK-TESTS and EXIT-READINGS records were the
     starting point, never the evidence, for the six requirements (TIER-01, TIER-02, TIER-03,
-    TIER-04, ANCH-01, ANCH-02) whose rows already existed before this phase; the other eighteen
+    TIER-04, ANCH-01, ANCH-02) whose work shipped in Phases 32-34; the other eighteen
     (READ-01, SCHEMA-01, SCHEMA-02, STMT-01, STMT-02, ROWS-01..05, RESID-01, RESID-02,
-    REL-19..24) are new rows broken for the first time here. REL-20's own break test (this
+    REL-19..24) are requirements broken for the first time here. Every row in this batch,
+    those six included, is new in this phase. REL-20's own break test (this
     plan's own Task 3) found its headline-history-row clause stays green under its own break,
     so REL-20 re-tiers audit-only within this same commit, one headline move (D-07). TIER-03
     re-tiered audit-only afterwards, at the Phase 35 code review (CR-02), in its own headline
