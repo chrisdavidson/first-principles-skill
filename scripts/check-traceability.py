@@ -5495,10 +5495,14 @@ def _rows_v93() -> list[MatrixRow]:
 
     Capability assignment follows the same discriminator every prior milestone's rows() function
     states ("changes the agent's methodology prose or its shipped reading material ->
-    Methodology; harness and release apparatus -> Test-Network"): REL-22, REL-23 and REL-24 are
-    Methodology (a CHANGELOG record, a local-only recurrence reading, and agent-body prose
-    respectively); every other row in this batch is Test-Network (matrix-schema, row-
-    registration, tiering and release apparatus).
+    Methodology; harness and release apparatus -> Test-Network"), read together with a release-
+    record precedent that quoted wording omits: a milestone's CHANGELOG-entry and recurrence-
+    reading requirements are Methodology even though they are release apparatus (v9.1/REL-08,
+    v9.2/REL-11 and REL-13, v9.2.1/REL-16 and REL-18), while its version-stamp and gate-count
+    requirements stay Test-Network. So REL-22 and REL-23 are Methodology under that precedent (a
+    CHANGELOG record and a local-only recurrence reading), and REL-24 under the rule itself
+    (agent-body prose); REL-19 and REL-21 are Test-Network release apparatus, as is every other
+    row in this batch (matrix-schema, row-registration and tiering apparatus).
 
     DISCLOSED BOUNDARY. The one reproducible row, SCHEMA-02, carries a dispatch-checked
     `#_self_test_*` anchor (`_self_test_headline_lock`), proven called from
