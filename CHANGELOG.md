@@ -90,10 +90,12 @@ A surfaces value, a battery-only marker and a live/manual label are hand-assigne
   999.98, 999.99).** Every non-gate-artifact reproducible row now carries an explicit
   `rerun_by="live-manual"` label, and every row evidenced by `scripts/check-quality-harness.py`
   carries `rerun_by="battery-only"` — **999.97 is a re-point-and-label, not a tier split (D-T3):
-  the headline's reproducible/audit-only shape is unchanged by this move.** Self-test anchors grew
-  from 35 of 229 reproducible rows (`fda29cc`) to 55 of 244 (`522c873`), call-checked from 40 of
-  239 (phase base `3c0fed0`) to 43 of 244, across three renamed scripts (`check-loop-closure.py`,
-  `check-act-limb.py`, `check-registration.py`). **Disclosed limits —** a `rerun_by` label is a
+  the headline's reproducible/audit-only shape is unchanged by this move.** Self-test anchors,
+  read at `fda29cc` → phase base `3c0fed0` → `522c873`: anchored 35 of 229 → 52 of 239 → 55 of 244
+  reproducible rows, call-checked 25 of 229 → 40 of 239 → 43 of 244. This phase's own movement is
+  therefore 52 → 55 anchored and 40 → 43 call-checked; after the code review's re-tiers
+  (`67c4cbe`) the two counts read 53 and 41 of 240. The anchor work spans three renamed scripts
+  (`check-loop-closure.py`, `check-act-limb.py`, `check-registration.py`). **Disclosed limits —** a `rerun_by` label is a
   hand-assigned classification the matrix states, not a measurement it proves; a row could carry
   `live-manual` or `battery-only` incorrectly and no gate would catch it.
 
