@@ -62,12 +62,15 @@
 # appears silently is indistinguishable from a gate that was always there.
 #
 # Composition change (TEARDOWN-01, docs/v8.7-constraint-teardown.md): the
-# body-budget gate was retired -- scripts/check-body-budget.py is now
-# report-only and always exits 0, so tallying it would inflate the count with
-# a gate that can never fail. It is still reported below as an un-tallied
-# [INFO] line so the body's line count stays visible on every run; the drop
-# is named here rather than silently absorbed. Battery composition moved
-# 16 -> 15 as a result.
+# body-budget gate was retired -- its reporting script became report-only and
+# always exited 0, so tallying it would have inflated the count with a gate
+# that can never fail. It was still reported below as an un-tallied [INFO]
+# line so the body's line count stayed visible on every run; the drop was
+# named here rather than silently absorbed. Battery composition moved
+# 16 -> 15 as a result. That un-tallied [INFO] body-size line and its
+# report-only reporter script were themselves retired under
+# docs/v9.4-gate-retirement.md section 2.5; the tally is unchanged by this
+# further retirement, since the line was never counted in it.
 #
 # Composition change (audit 2026-08-16 stream 0 --
 # docs/audit-2026-08-16-duplication-staleness.md): the battery gained one gate,
@@ -603,12 +606,6 @@ gate "CONF-SURFACE" \
     "gen-gate-docs.py --self-test + --check" \
     "python3 scripts/gen-gate-docs.py --self-test" \
     "python3 scripts/gen-gate-docs.py --check"
-
-# body-size — un-tallied [INFO] line (TEARDOWN-01: gate retired, docs/v8.7-constraint-teardown.md).
-# Does NOT go through `gate()` -- `gate()` unconditionally increments TOTAL, and this line
-# reports rather than passes/fails. Its exit status does not influence PASS/FAIL/TOTAL.
-_body_size_report=$(python3 scripts/check-body-budget.py 2>&1)
-printf "[INFO] %-14s  %s\n" "body-size" "$_body_size_report"
 
 # ---------------------------------------------------------------------------
 # Invariant re-confirm (D-07) — byte-frozen constants in _battery_core.py.

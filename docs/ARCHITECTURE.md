@@ -145,7 +145,7 @@ Both surfaces render the same population and the same columns from `scripts/_gat
 | — | conformance-baseline drift gate (pre-commit) | `scripts/report-conformance.py --check` | `docs/conformance-baseline.md` and `docs/data/conformance.json` reproduce byte-for-byte a fresh `report-conformance.py` run (D-06); fires before commit. Deliberately not registered in the battery or in CI. (registered_surfaces=5; checked_files=2; control_ids=110; control_count=110; locked_constants=1 entries) See [`docs/gates/PRECOMMIT-conformance-baseline-drift-gate.md`](gates/PRECOMMIT-conformance-baseline-drift-gate.md). |
 | — | claim-surface generator self-test (pre-commit) | `scripts/gen-gate-docs.py --self-test` | Blocks if `scripts/gen-gate-docs.py --self-test` fails. Same WR-05 ordering discipline as the conformance generator self-test — a broken generator's own controls must be caught before its comparison against committed output (the claim-surface drift gate) is even attempted. See [`docs/gates/PRECOMMIT-claim-surface-generator-self-test.md`](gates/PRECOMMIT-claim-surface-generator-self-test.md). |
 | — | claim-surface drift gate (pre-commit) | `scripts/gen-gate-docs.py --check` | Blocks if `CLAUDE.md`'s/`docs/ARCHITECTURE.md`'s generated gate tables, `docs/TESTING.md`'s generated index, or any `docs/gates/<ID>.md` page no longer match a fresh `scripts/gen-gate-docs.py --write` run, or if CONF-13's standing literal scanner finds a non-exempt hand-maintained count literal — the same check as CONF-SURFACE, fired before commit rather than in CI/battery. See [`docs/gates/PRECOMMIT-claim-surface-drift-gate.md`](gates/PRECOMMIT-claim-surface-drift-gate.md). |
-| CONF-SURFACE | `gen-gate-docs` (CI) | `scripts/gen-gate-docs.py --self-test` | The claim-surface drift gate itself: regenerates `CLAUDE.md`'s and docs/ARCHITECTURE.md's gate tables and docs/gates/<ID>.md pages from this registry's ENTRIES and every gate's --describe emission, and fails on drift. Registered in the battery, with a matching `gen-gate-docs (CONF-SURFACE)` CI job and both pre-commit hooks (plan 21-11, D-21-C). (registered_surfaces=37; checked_files=64; derived_counts=38 entries; disclosed_bounds_anchors=14; control_ids=112; control_count=112; locked_constants=2 entries) See [`docs/gates/CONF-SURFACE.md`](gates/CONF-SURFACE.md). |
+| CONF-SURFACE | `gen-gate-docs` (CI) | `scripts/gen-gate-docs.py --self-test` | The claim-surface drift gate itself: regenerates `CLAUDE.md`'s and docs/ARCHITECTURE.md's gate tables and docs/gates/<ID>.md pages from this registry's ENTRIES and every gate's --describe emission, and fails on drift. Registered in the battery, with a matching `gen-gate-docs (CONF-SURFACE)` CI job and both pre-commit hooks (plan 21-11, D-21-C). (registered_surfaces=36; checked_files=63; derived_counts=38 entries; disclosed_bounds_anchors=14; control_ids=112; control_count=112; locked_constants=2 entries) See [`docs/gates/CONF-SURFACE.md`](gates/CONF-SURFACE.md). |
 
 Gates run on three surfaces: **19 in CI** (`.github/workflows/validation.yml`, on push/PR to master), **23 tallied in the offline battery** (`bash scripts/check-firewall-battery.sh`), and **5 pre-commit gates** (2 hook mechanisms run the identical set in the identical order). The battery is a strict superset of CI: all 19 CI gates plus 2 battery-only gates plus 2 inline checks. That is 19 + 2 + 2 = 23.
 <!-- END GENERATED -->
@@ -192,11 +192,12 @@ under Phase 40 ([`docs/v9.4-gate-retirement.md`](v9.4-gate-retirement.md) §2.2)
 gone, the suffix now disambiguates from history rather than from a live gate.
 
 The body-budget gate that used to appear in this table (blocking a commit that pushed the
-agent body past 644 lines) was retired under TEARDOWN-01
-(`docs/v8.7-constraint-teardown.md`, the standing record) — `scripts/check-body-budget.py`
-is kept on disk and reports the body's current line count on every run, but it no longer
-exits nonzero because of the body's size and no longer fires as a pre-commit gate at all; 644 survives only as a historical
-reference figure inside the script. The battery still prints it as an untallied `[INFO]` line.
+agent body past a line-count budget) was retired under TEARDOWN-01
+(`docs/v8.7-constraint-teardown.md`, the standing record). Its report-only reporter script and
+the battery's untallied `[INFO]` line were themselves retired under
+[`docs/v9.4-gate-retirement.md`](v9.4-gate-retirement.md) §2.5 — nothing reports or gates the
+agent body's line count anymore; run `wc -l first-principles/agents/first-principles.md` to
+read it.
 
 For operational run-detail — how to invoke each gate locally, `--self-test` modes, and what the pre-commit hook checks — see [docs/TESTING.md](TESTING.md).
 

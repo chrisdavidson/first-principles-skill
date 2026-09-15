@@ -66,22 +66,19 @@ this via a custom `_QuotedStr` representer on `shared/spine/SKILL.meta.yml`. Ski
 frontmatter is passed through verbatim — the source author must use quoted strings in
 `shared/skills/<slug>/SKILL.md`.
 
-## Body line budget (report-only, gate retired)
+## Body line budget (gate and reporter both retired)
 
-`scripts/check-body-budget.py` reports the generated agent body's line count
-(`first-principles/agents/first-principles.md`) on every run. `MAX_LINES = 644` survives in
-the script as a historical reference figure only — the number was recalibrated whenever it
-bound (500 → 580 → 644) rather than derived from any measured quality requirement, and the
-script no longer exits nonzero because of the body's size (it can still fail on a
-missing body file or a self-test bug — just never on the line count itself). **The gate that used to block a
-commit over this count was retired under TEARDOWN-01** (`docs/v8.7-constraint-teardown.md`,
-the standing record) — it no longer runs as part of the pre-commit hooks (see Pre-commit
-hooks below) and cannot fail a commit.
+No script reports or gates the generated agent body's line count
+(`first-principles/agents/first-principles.md`). **The gate that used to block a commit over a
+line-count budget was retired under TEARDOWN-01** (`docs/v8.7-constraint-teardown.md`, the
+standing record) — it no longer runs as part of the pre-commit hooks (see Pre-commit hooks
+below). Its report-only reporter script and the offline battery's untallied `[INFO]` line were
+themselves retired under [`docs/v9.4-gate-retirement.md`](v9.4-gate-retirement.md) §2.5.
 
-Check the current reported count:
+Check the current line count:
 
 ```bash
-python3 scripts/check-body-budget.py
+wc -l first-principles/agents/first-principles.md
 ```
 
 ## Markdownlint configuration
@@ -156,11 +153,11 @@ Both hook paths run two gates:
    being too high, and is deliberately not registered in the offline battery or in CI (D-06).
 
 A body-budget gate used to run alongside this one, blocking a commit that grew the
-generated agent body past 644 lines. It was retired under TEARDOWN-01
-(`docs/v8.7-constraint-teardown.md`) — `scripts/check-body-budget.py` no longer exits nonzero
-because of the body's size, so gating a commit on it would be dead weight, and neither `scripts/git-hooks/pre-commit` nor
-`.githooks/pre-commit` invokes it any longer. The reporter is still runnable on demand (see
-Body line budget above) for visibility into the current count.
+generated agent body past a line-count budget. It was retired under TEARDOWN-01
+(`docs/v8.7-constraint-teardown.md`); neither `scripts/git-hooks/pre-commit` nor
+`.githooks/pre-commit` invokes anything like it any longer. Its report-only reporter script
+was itself retired under [`docs/v9.4-gate-retirement.md`](v9.4-gate-retirement.md) §2.5 — see
+Body line budget above for the manual `wc -l` command that reads the current count.
 
 The gate prefers `uv` when available and falls back to `python3`. Bypass it with
 `git commit --no-verify` for intentional in-progress work.
@@ -196,8 +193,8 @@ distinction is worth keeping visible.
 | Edit `shared/` only; never edit the generated tree (`first-principles/`) directly | DUAL-04 |
 
 The agent body's line count (`first-principles/agents/first-principles.md`) is **not** an
-invariant. It is reported by `scripts/check-body-budget.py` and nothing more — the 644-line gate
-was retired under TEARDOWN-01, and 644 survives only as a historical reference figure.
+invariant. Nothing reports or gates it — the 644-line gate was retired under TEARDOWN-01, and
+its report-only reporter was itself retired under `docs/v9.4-gate-retirement.md` §2.5.
 
 ## Anti-masking measurement invariants
 

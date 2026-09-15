@@ -63,18 +63,16 @@ Routing outcomes vary between sessions, plugin sets, and Claude routing-model ve
 
 Five gates fire on every `git commit` when a hook mechanism is installed — the sync-drift gate, the conformance generator self-test, the conformance-baseline drift gate, the claim-surface generator self-test, and the claim-surface drift gate. Both `.githooks/pre-commit` and `scripts/git-hooks/pre-commit` run the same five, in the same order — see `CLAUDE.md`'s `### Pre-commit gates` section for the full per-gate detail. For how to install the hook, see [docs/DEVELOPMENT.md](DEVELOPMENT.md).
 
-### Body-size report (not a gate — TEARDOWN-01)
+### Agent body size (not a gate)
 
-**Owning script:** `scripts/check-body-budget.py`
-
-Reports the current line count of `first-principles/agents/first-principles.md` on every run; it no longer exits nonzero because of the body's size and no longer blocks a commit. The 644-line figure survives in the script as an annotated historical reference constant (`MAX_LINES: int = 644`), retained for its fitted-limit provenance rather than as an enforced bound.
+No script reports or gates the agent body's line count. The pre-commit gate that once enforced a
+line budget was retired under TEARDOWN-01 (`docs/v8.7-constraint-teardown.md`); its report-only
+reporter and the offline battery's untallied `[INFO]` line were themselves retired under
+[`docs/v9.4-gate-retirement.md`](v9.4-gate-retirement.md). To measure the body's current size:
 
 ```sh
-python3 scripts/check-body-budget.py           # report the live agent body's line count
-python3 scripts/check-body-budget.py --self-test  # run offline reporting-correctness fixtures
+wc -l first-principles/agents/first-principles.md
 ```
-
-This is no longer a gate to fix — the historical remediation advice (reduce `shared/spine/SKILL-body.md` or the `shared/agent/` phase fragments) no longer applies to a commit path. See [`docs/v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md) for the evidence and the standing record.
 
 ### Sync-drift gate
 
@@ -126,7 +124,6 @@ The two constants are no longer locked the same way. `MIN_HEADER_HITS` is still 
 Run all offline gates locally in sequence:
 
 ```sh
-python3 scripts/check-body-budget.py    # reports body size; not a gate (TEARDOWN-01)
 python3 scripts/check-agent.py --self-test
 python3 scripts/check-agent.py --file first-principles/agents/first-principles.md
 python3 scripts/check-links.py

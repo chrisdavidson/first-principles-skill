@@ -132,17 +132,15 @@ python3 scripts/sync-content.py --write && git add -u
 
 The hook opt-in is per-clone (Git does not propagate `core.hooksPath` automatically), so each contributor configures it once locally.
 
-**One-time setup — opt into the body-budget pre-commit hook (recommended):**
+**One-time setup — install the pre-commit hook via script (alternative to the opt-in above):**
 
 ```sh
 ./scripts/install-hooks.sh
 ```
 
-The installer symlinks `scripts/git-hooks/pre-commit` into `.git/hooks/pre-commit` (preserving any existing hook as `.bak` on first run, idempotent on re-run). The hook blocks commits that would push the generated agent body (`first-principles/agents/first-principles.md`) over the 644-line budget (`MAX_LINES = 644` in `scripts/check-body-budget.py`). Bypass for intentional in-progress work: `git commit --no-verify`.
+The installer symlinks `scripts/git-hooks/pre-commit` into `.git/hooks/pre-commit` (preserving any existing hook as `.bak` on first run, idempotent on re-run). The hook runs the pre-commit gates listed in `CLAUDE.md`'s Pre-commit gates section: the sync-drift gate, then the conformance generator self-test and conformance-baseline drift gate, then the claim-surface generator self-test and claim-surface drift gate. It does not check the generated agent body's line count — that budget (historically 644 lines) was retired under TEARDOWN-01 (`docs/v8.7-constraint-teardown.md`); see `docs/TESTING.md` for how to read the body's current size. Bypass for intentional in-progress work: `git commit --no-verify`.
 
-Why a body-line budget: keeps the generated agent body bounded (currently 644 lines) so it loads quickly into model context and stays under Claude Code's recommended budget for skill body length.
-
-> **Note:** the body-budget installer composes BOTH gates (body budget + sync drift) into a single `.git/hooks/pre-commit`, so contributors who use the installer do not also need the `core.hooksPath = .githooks` opt-in above. Conversely, `.githooks/pre-commit` now also runs the body-budget check, so either opt-in path gives full coverage. The two mechanisms are mutually exclusive at the Git level (Git honors one hooks path or the other); pick whichever you prefer. The installer prints a WARNING if it detects `core.hooksPath` is set.
+> **Note:** this installer and the `core.hooksPath = .githooks` opt-in above run the identical set of gates in the identical order — pick whichever you prefer; the two mechanisms are mutually exclusive at the Git level (Git honors one hooks path or the other). The installer prints a WARNING if it detects `core.hooksPath` is set.
 
 ### Testing the agent
 

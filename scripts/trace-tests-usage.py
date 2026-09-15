@@ -46,7 +46,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-# Every offline gate command that could plausibly read tests/, plus the report-only reporter.
+# Every offline gate command that could plausibly read tests/.
 # Read-only invocations only — `sync-content.py --write` is deliberately absent.
 GATE_COMMANDS: tuple[tuple[str, ...], ...] = (
     ("scripts/sync-content.py", "--check"),
@@ -62,7 +62,6 @@ GATE_COMMANDS: tuple[tuple[str, ...], ...] = (
     ("scripts/check-routing-battery.py", "--self-test"),
     ("scripts/check-traceability.py", "--self-test"),
     ("scripts/check-quality-harness.py", "--self-test"),
-    ("scripts/check-body-budget.py",),
 )
 
 

@@ -6,9 +6,11 @@
 # Gate 1 -- sync-drift gate: blocks if shared/ and the generated tree have
 # diverged (scripts/sync-content.py --check). The body-budget gate that used
 # to run alongside it was retired under TEARDOWN-01
-# (docs/v8.7-constraint-teardown.md) -- the reporting script
-# (scripts/check-body-budget.py) now always exits 0, so gating a commit on it
-# here would be dead weight.
+# (docs/v8.7-constraint-teardown.md); its report-only reporter script and the
+# battery's untallied [INFO] body-size line were themselves retired under
+# docs/v9.4-gate-retirement.md section 2.5 -- nothing reports or gates the
+# agent body's line count anymore (see docs/TESTING.md for the wc -l command
+# that reads it manually).
 # Gate 2 -- conformance generator self-test: blocks if
 # scripts/report-conformance.py --self-test fails. Runs the generator's own
 # falsifiability controls before its output is compared to anything (WR-05).

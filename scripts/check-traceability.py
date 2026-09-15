@@ -795,7 +795,7 @@ class MatrixRow:
       - P-AGENT: a path under `first-principles/agents/`, `shared/spine/`, `shared/agent/`,
         or `shared/examples` names `agent`.
       - P-AGENT-SUBJECT (D-11's "subject is the agent body" test, path-only): one of
-        `scripts/check-agent.py`, `scripts/check-body-budget.py`, `scripts/check-routing.py`,
+        `scripts/check-agent.py`, `scripts/check-routing.py`,
         `scripts/check-routing-battery.py`, `scripts/check-step0-emulator.py`,
         `scripts/check-step0-live.py`, `scripts/_battery_core.py`, or a path starting with
         `tests/routing-` or `tests/step0-`, names `agent` — each names the main agent's
@@ -1129,15 +1129,15 @@ def _rows_methodology_agent_cont() -> list[MatrixRow]:
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="none"),
         MatrixRow("v3.2/META-Q4", "META-Q4", "v3.2", "Methodology",
-                  "scripts/check-body-budget.py",
+                  "first-principles/agents/first-principles.md",
                   "audit-only", "",
                   "TEARDOWN-01 (v8.7 Phase 163, docs/v8.7-constraint-teardown.md) retired the "
-                  "body-budget pre-commit gate. scripts/check-body-budget.py is now report-only "
-                  "(always exits 0) and scripts/git-hooks/pre-commit no longer invokes it — the "
-                  "body line count is reported every firewall-battery run ([INFO] body-size) but "
-                  "is not gated. META-Q4 is therefore audit-only (reported/inspectable), not "
-                  "reproducibly enforced. Re-tiered reproducible -> audit-only in the v8.8 "
-                  "post-close TEARDOWN-01 cleanup, replacing the prior vacuously-green tier.",
+                  "body-budget pre-commit gate. docs/v9.4-gate-retirement.md section 2.5 then "
+                  "retired the report-only reporter script and the battery's [INFO] body-size "
+                  "line — nothing gates or reports the agent body's line count. META-Q4 is "
+                  "therefore audit-only (inspectable with wc -l). Re-tiered reproducible -> "
+                  "audit-only in the v8.8 post-close TEARDOWN-01 cleanup, replacing the prior "
+                  "vacuously-green tier.",
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="none"),

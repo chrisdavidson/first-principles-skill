@@ -2603,15 +2603,13 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('CLAUDE.md', '60'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "60 live claude invocations (manual only, not run in CI)" and "(60 invocations) / offline `--self-test`" -- the Step 0 live-harness manual run count. Re-verified live this plan: `python3 scripts/check-step0-live.py --describe` emits `control_count: 25` and fixture/control ids only -- no field for "60 manual invocations" exists today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
     ('CLAUDE.md', '18'): ('999.69', 1, 'CANNOT-REACH (no harvest field): "the 18 v9.1 milestone requirements registered as matrix rows at Phase 27 / REL-07" -- the v9.1 milestone\'s own row count in the requirements-ledger derivation chain, the same shape as the pre-existing "19"/"20" milestone-row-count mentions in this same paragraph (neither of which is ledgered, because each happens to share a same-page in-fence match today by coincidence -- see the `_CONTAINMENT_LEDGER_MAX` comment above the `disclosed_bounds_anchors` reconciliation for the identical coincidental-corroboration shape; the paragraph\'s "23" mention lost that same coincidental cover at Phase 40 when COLLIDE-01\'s retirement moved the CI-job count off 23, and is ledgered separately above). Re-verified live this plan: `python3 scripts/check-traceability.py --describe` emits `coverage_headline`, `registered_surfaces`, `scan_globs`, `branch_roster`/`branch_count` (19) and `locked_constants` only -- no field exposes the per-milestone matrix-row count (18) that this sentence states. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
     ('docs/ARCHITECTURE.md', '03'): ('999.73', 1, 'NOT A COUNT CLAIM: the same half-stripped slash-compound gate-id shape as `CLAUDE.md`\'s \'03\' entry -- "matching PROV-GUARD\'s and REG-GUARD\'s shape rather than HARN-01/02/03\'s and HC-BOUND\'s" leaves "02"/"03" stranded once "HARN-01" is consumed whole. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper is widened. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
-    ('docs/ARCHITECTURE.md', '644'): ('999.69', 2, 'FROZEN/RETIRED HISTORICAL CONSTANT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): the retired 644-line agent-body budget (TEARDOWN-01) -- "past 644 lines" and "644 survives only as a historical" reference constant, explicitly named as retired rather than enforced. Same figure `CLAUDE.md`\'s own literal-scan `retired-body-budget` exemption class already recognises; containment has no equivalent exemption class, hence the ledger entry.'),
-    ('docs/TESTING.md', '1'): ('999.73', 1, 'NOT A COUNT CLAIM: the arithmetic expression `_COMPOSER_FOCUS_CEILING - 1` (RR-77-08\'s surviving-conjuncts paragraph) -- an offset in a formula, not a count-noun-adjacent claim. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises arithmetic-expression shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
+    ('docs/TESTING.md', '1'):('999.73', 1, 'NOT A COUNT CLAIM: the arithmetic expression `_COMPOSER_FOCUS_CEILING - 1` (RR-77-08\'s surviving-conjuncts paragraph) -- an offset in a formula, not a count-noun-adjacent claim. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises arithmetic-expression shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('docs/TESTING.md', '2'): ('999.69', 2, 'CANNOT-REACH (no harvest field): `MIN_HEADER_HITS: int = 2` and the bolded "`MIN_HEADER_HITS=2`" heading -- `scripts/_battery_core.py`\'s own constant. Re-verified live this plan: `python3 scripts/check-routing-battery.py --describe`\'s `locked_constants` exposes only the four routing thresholds (`boundary_n_threshold`, `boundary_p_threshold`, `focused_n_threshold`, `focused_p_threshold`) -- no field for `MIN_HEADER_HITS` exists today. Deferred as cannot-reach residue (D-06 proviso 2).'),
     ('docs/TESTING.md', '2156'): ('999.73', 1, 'NOT A COUNT CLAIM: "# scripts/_battery_core.py, line 2156" -- a source-location citation, not a count claim, one of the two line-number citations this class of number covers on this page. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises line-number-citation shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('docs/TESTING.md', '2178'): ('999.73', 1, 'NOT A COUNT CLAIM: "# scripts/_battery_core.py, line 2178" -- the sibling citation to \'2156\' immediately above it in the same fixture-comment pair. Out of Phase 26\'s D-E quantity-shaped scope, same disposition as \'2156\'. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('docs/TESTING.md', '3'): ('999.73', 1, 'NOT A COUNT CLAIM: "--repeat 5 --min-pass 3" (the routing-battery run command) -- a CLI flag value in a reproduced shell command, not a count-noun-adjacent claim (the code-literal comparison `_rr7708_composer == 3` elsewhere on this page is already stripped structurally by the `==\\s*\\d` citation shape). Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises CLI-flag-value shapes in reproduced commands. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('docs/TESTING.md', '4'): ('999.69', 3, 'CANNOT-REACH (no harvest field): `_COMPOSER_FOCUS_CEILING: int = 4`, the bolded "`_COMPOSER_FOCUS_CEILING=4`" heading, and "the value itself stays 4" -- `scripts/_battery_core.py`\'s own constant (its `== 4` comparison elsewhere on this page is already stripped structurally). Re-verified live this plan: `python3 scripts/check-routing-battery.py --describe`\'s `locked_constants` exposes only the four routing thresholds -- no field for `_COMPOSER_FOCUS_CEILING` exists today. Deferred as cannot-reach residue (D-06 proviso 2).'),
     ('docs/TESTING.md', '5'): ('999.73', 1, 'NOT A COUNT CLAIM: "--repeat 5 --min-pass 3" (the routing-battery run command) -- the sibling CLI flag value to \'3\' immediately above, in the same reproduced shell command. Out of Phase 26\'s D-E quantity-shaped scope, same disposition as \'3\'. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
-    ('docs/TESTING.md', '644'): ('999.69', 1, 'FROZEN/RETIRED HISTORICAL CONSTANT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "The 644-line figure survives in the script as an annotated historical reference constant (`MAX_LINES: int = 644`)" -- the same retired body-budget figure (TEARDOWN-01) ledgered on `docs/ARCHITECTURE.md`\'s own \'644\' entry above.'),
 }
 
 # The ledger's pinned maximum size and key-set digest. Standing rule, in
@@ -2818,10 +2816,17 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # re-covered by that same plan's edit, and is uncovered again here). One key
 # re-added (`('CLAUDE.md', '20')`, byte-identical text to its pre-40-07
 # entry); no key removed.
-_CONTAINMENT_LEDGER_MAX: int = 22
+#
+# Re-pinned by plan 40-10 Task 2: two keys removed --
+# ('docs/ARCHITECTURE.md', '644') and ('docs/TESTING.md', '644') -- both
+# FROZEN/RETIRED HISTORICAL CONSTANT permits for the retired body-budget
+# figure, no longer stated on either page once this plan reworded both
+# sections off the literal '644' under the report-only body-size
+# reporter's own retirement. 22 -> 20.
+_CONTAINMENT_LEDGER_MAX: int = 20
 
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:c0982717bbe24568b25365031bd55cf9a85c181dce995a4808ae6a0c0529f5e4"
+    "sha256:2e8279c81f3e39572acdb2597ce84552a8c78643b4aa73dcf63c0e75688cf881"
 )
 
 
@@ -3604,7 +3609,6 @@ _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('docs/README.md', "13 live matrix rows'"): ('999.44', 1, "Correct: whole-system-remeasure-verdict.md anchors provenance for 13 live matrix rows' dispositions -- a closed count measured against the traceability matrix at the time this doc-index entry was written; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'several'."),
     ('docs/README.md', '13 rows'): ('999.44', 1, 'Correct: whole-system-remeasure-verdict.md is referenced by 13 rows of the traceability matrix -- a closed count of a specific matrix generation; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had dropped the number entirely.'),
     ('docs/README.md', '16 gates'): ('999.44', 1, "Correct: v8.13's launcher sat undeliverable while 16 gates stayed green -- a closed historical count of the battery size at that specific 2026-07-29 milestone-open moment, before CONF-SURFACE and other later gates were added; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'the whole battery'."),
-    ('docs/README.md', '16 surfaces'): ('999.44', 1, "Correct: v8.7-constraint-teardown.md is cited by 16 surfaces, including both pre-commit hooks -- a closed count measured at the time this doc-index entry was written; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'many'."),
     ('docs/README.md', '19 not-approved items),'): ('999.44', 1, "Correct: v8.2's re-investigation covered the 19 not-approved items -- a closed historical count from a milestone that ended in 2026 and cannot go stale; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had dropped the number entirely."),
     ('docs/README.md', '6 live rows'): ('999.44', 1, "Correct: v8.14's own milestone audit compared 6 live rows to 0 baseline rows and printed a pass -- a closed historical measurement of that specific audit run; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'live rows against a stale, empty baseline'."),
     ('docs/README.md', '612 to 590 lines, the surface'): ('999.44', 1, "Correct: v8.6 cut the agent body from 612 to 590 lines -- a closed historical measurement from a milestone that ended in 2026 and cannot go stale; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with the unfalsifiable 'shrinking the agent body's line count'."),
@@ -3848,7 +3852,7 @@ def _deferred_ledger_keys_digest(
 # reconciliation discipline (re-deriving every "live-verified" reason from
 # a fresh `--describe` invocation, never trusting a prior reading) for the
 # practice that actually catches this, since the ratchet itself cannot.
-_DEFERRED_LEDGER_MAX: int = 178
+_DEFERRED_LEDGER_MAX: int = 177
 
 
 # A sha256 pin over the ledger's sorted `(relpath, text)` key set (plan
@@ -3875,8 +3879,14 @@ _DEFERRED_LEDGER_MAX: int = 178
 # ('docs/ARCHITECTURE.md', 'two unrelated checks.') -- both NOT-A-COUNT
 # permits for the "Two gates are called GATE-02" paragraph this plan
 # replaced, per docs/v9.4-gate-retirement.md §2.2. 180 -> 178.
+#
+# Re-pinned by plan 40-10 Task 2, in the same commit as the report-only
+# body-size reporter's retirement: one key removed -- ('docs/README.md',
+# '16 surfaces') -- a NOT-A-COUNT permit for the governing-record row
+# sentence this plan reworded off that literal, per
+# docs/v9.4-gate-retirement.md §2.5. 178 -> 177.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:e2f7cf42e6ea19b03f66117e50b507521dccf18d8b4050990b1d70e71d9c4367"
+    "sha256:2471b6898eb6104b6d43304aca63968b7ab31bbebf07bca2b0d5edfb301160f5"
 )
 
 
@@ -5824,15 +5834,15 @@ def _control_containment_slash_paired_vector_stripped() -> None:
 
 def _control_delta_chain_hops_confsurface_corrected() -> None:
     """docs/gates/CONF-SURFACE.md's real, live outside text, driven through
-    `generate_all()` (never a paraphrase) -- AFTER plan 40-06 Task 2's own
-    correction: one chain, hop count 7, terminus `('178',)`, matching the
-    live `_DEFERRED_LEDGER_MAX`. This control is LIVE-TEXT-DRIVEN; plan
-    26-06 Task 2's own correction previously set it to hop count 6,
-    terminus `('180',)`. Revised again here in the SAME commit that
-    corrects the real page, per the plan's own note that a live-text
-    control tracks whatever the live text says. See
-    `_control_chain_terminus_pre_fix_synthetic_fixture` for the control
-    that stays provable in perpetuity after this correction."""
+    `generate_all()` (never a paraphrase) -- AFTER plan 40-10 Task 2's own
+    correction: one chain, hop count 8, terminus `('177',)`, matching the
+    live `_DEFERRED_LEDGER_MAX`. This control is LIVE-TEXT-DRIVEN; each
+    prior plan that shrank the ledger (26-06, 40-06) revised this same
+    assertion to the hop count and terminus its own correction produced.
+    Revised again here in the SAME commit that corrects the real page, per
+    the plan's own note that a live-text control tracks whatever the live
+    text says. See `_control_chain_terminus_pre_fix_synthetic_fixture` for
+    the control that stays provable in perpetuity after this correction."""
     pass1 = generate_all()
     entry = next(e for e in _gate_registry.ENTRIES if e.key == "CONF-SURFACE")
     path = DETAIL_PAGE_DIR / f"{_page_slug(entry)}.md"
@@ -5844,15 +5854,15 @@ def _control_delta_chain_hops_confsurface_corrected() -> None:
     ]
     chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
     assert len(chains) == 1, chains
-    assert len(chains[0]) == 7, chains[0]
-    assert chains[0][-1][1] == ("178",), chains[0]
+    assert len(chains[0]) == 8, chains[0]
+    assert chains[0][-1][1] == ("177",), chains[0]
     inside_numbers = _normalise_numbers(
         _strip_citation_shaped_numbers(
             "\n".join(line for line, is_in in zip(lines, inside) if is_in)
         ),
         include_spelled_out=True,
     )
-    assert "178" in inside_numbers, inside_numbers
+    assert "177" in inside_numbers, inside_numbers
 
 
 def _control_delta_chain_hops_qual01_out_of_grammar() -> None:

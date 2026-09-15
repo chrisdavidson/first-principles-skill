@@ -61,11 +61,11 @@ generated population-arithmetic sentence for the current count):
 - **Claim-surface drift gate** — runs `scripts/gen-gate-docs.py --check` (CONF-SURFACE) and blocks if `CLAUDE.md`'s, `docs/ARCHITECTURE.md`'s or `docs/TESTING.md`'s generated regions, or any `docs/gates/<ID>.md` page, no longer match a fresh `--write` run, or if CONF-13's standing literal scanner finds a non-exempt hand-maintained count literal.
 
 A body-budget gate used to run alongside it, blocking a commit that grew the agent body
-(`first-principles/agents/first-principles.md`) past 644 lines. It was retired under
-TEARDOWN-01 (`docs/v8.7-constraint-teardown.md`, the standing record) —
-`scripts/check-body-budget.py` still reports the body's current line count on request, but
-it no longer exits nonzero because of the body's size and no longer fires as part of the pre-commit hook; 644 survives only as a
-historical reference figure inside the script.
+(`first-principles/agents/first-principles.md`) past a line-count budget. It was retired under
+TEARDOWN-01 (`docs/v8.7-constraint-teardown.md`, the standing record), and its report-only
+reporter script was itself retired under `docs/v9.4-gate-retirement.md` §2.5 — nothing reports
+or gates the body's line count anymore; run `wc -l first-principles/agents/first-principles.md`
+to read it.
 
 The sync-drift gate is also the CI gate **DUAL-04** (`sync-check`), which closes the loop on Stage 2: it is the mechanism that enforces the `--write`/`--check` contract at both commit time and on every push or PR. If a developer edits `shared/` and skips the `--write` step, DUAL-04 fails.
 

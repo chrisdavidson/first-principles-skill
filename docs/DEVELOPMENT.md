@@ -139,7 +139,6 @@ Run these locally before pushing. For the full CI gate inventory (every gate map
 | `check-agent.py` | GATE-01 | `python3 scripts/check-agent.py` | Agent structural integrity |
 | `check-links.py` | VAL-03 | `python3 scripts/check-links.py` | Relative MD links resolve (scans `first-principles/`, `shared/`, and `docs/`; `docs/` anchors validated) |
 | `check-version-stamps.py` | VERSION-01 | `python3 scripts/check-version-stamps.py` | Every hand-maintained version stamp carries the same value; run `--self-test` for the fault-injection fixtures |
-| `check-body-budget.py` | report-only | `python3 scripts/check-body-budget.py` | Reports the agent body's current line count; gate retired under TEARDOWN-01 (`docs/v8.7-constraint-teardown.md`) |
 
 ### Measurement and routing gates
 
@@ -205,7 +204,7 @@ Keep these invariants intact when authoring or editing:
 - `metadata.version` must be a double-quoted YAML string (e.g. `version: "3.8"`), not a bare number.
 - Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
 - All reference file links use forward slashes, one level deep — no `a.md → b.md → c.md` chains.
-- The agent body (`first-principles/agents/first-principles.md`)'s line count is reported (not enforced) by `scripts/check-body-budget.py` — the 644-line gate was retired under TEARDOWN-01; see [`docs/v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md).
+- The agent body (`first-principles/agents/first-principles.md`)'s line count is neither reported nor enforced by any script — run `wc -l first-principles/agents/first-principles.md` to read it. The 644-line gate was retired under TEARDOWN-01; see [`docs/v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md).
 
 ## CI gates
 
