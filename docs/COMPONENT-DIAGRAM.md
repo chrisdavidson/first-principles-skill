@@ -94,7 +94,7 @@ flowchart LR
     LIVE["scripts/check-step0-live.py\n(STEP0-06: live MODE classification\nvia bypass channel; --self-test is CI gate)"]
 
     TRACE["scripts/check-traceability.py\n(TRACE-03: matrix emitter + gate;\n--self-test is CI gate)"]
-    MATRIX["docs/requirements-matrix.md\n(generated 395-row capability matrix)"]
+    MATRIX["docs/requirements-matrix.md\n(generated capability matrix;\nrow count = headline total)"]
     TRACEABILITY["docs/requirements-traceability.md\n(active residuals; 240/155/0/395)"]
 
     SKILLBODY -->|"reads phrase table"| EMU
