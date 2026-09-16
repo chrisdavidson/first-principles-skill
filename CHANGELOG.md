@@ -17,18 +17,27 @@ Closes backlog **999.120** as an **apparatus change**: `detect_defects`
 (`scripts/check-quality-harness.py`) gains a confidence dimension and a self-audit band census.
 The claim-audience is the measurement instrument, not a plugin user.
 
-`detect_defects` now reads a chain block's own confidence label — the heading-line parenthetical
-form and the trailing `**Confidence:**` marker form, both of which the shipped analyses use — and
-reports it across the new `high_conf_chains`, `high_conf_unverified_head`,
-`confidence_inversions` and `confidence_unparsed` columns. An unparsable label is counted under
-its own column rather than read as a clean zero. `_SELFAUDIT_CONTRADICTIONS` gains an entry for
-the Validate criterion: a Rigorous self-report next to a nonzero confidence-defect reading now
-counts as a self-audit disagreement, the same way it already does for the Challenge Assumptions,
-Reason Upward and Conclusion-to-Ground-Truth Traceability criteria. The new
-`selfaudit_bands_parsed` and `selfaudit_offvocab_bands` columns make a `selfaudit_disagreements`
-zero readable — distinguishing "no criterion band was even parsed" and "a band word outside the
-vocabulary was reported as its own finding" from genuine agreement, over a widened set of the
-band-heading shapes the shipped analyses actually emit.
+`detect_defects` reads a chain block's own confidence label in exactly three shapes: on the
+heading line, a parenthetical opening with a band word (for example `*(HIGH)*` or
+`*(Confidence: HIGH — gloss)*`); on the heading line, a `Confidence:` label carrying the band
+word, whether inside a parenthetical, inside the bold heading span, or after it; or, failing
+both, a trailing line beginning `**Confidence:**`. These are the shapes found in the frozen live
+captures and the shipped worked examples. A label in any other shape — a blockquoted marker
+line or a list-item marker line, for example — is counted under `confidence_unparsed` rather than
+read; `docs/data/conformance.json`'s `live_conformance.rows` carries the per-run reading. A
+hyphenated compound label such as `Medium-high` is currently read by its first word.
+`detect_defects` reports the reading across the new `high_conf_chains`,
+`high_conf_unverified_head`, `confidence_inversions` and `confidence_unparsed` columns. An
+unparsable label is counted under its own column rather than read as a clean zero.
+`_SELFAUDIT_CONTRADICTIONS` gains an entry for the Validate criterion: a Rigorous self-report next
+to a nonzero confidence-defect reading now counts as a self-audit disagreement, the same way it
+already does for the Challenge Assumptions, Reason Upward and Conclusion-to-Ground-Truth
+Traceability criteria. The new `selfaudit_bands_parsed` and `selfaudit_offvocab_bands` columns
+make a `selfaudit_disagreements` zero readable — distinguishing "no criterion band was even
+parsed" and "a band word outside the vocabulary was reported as its own finding" from genuine
+agreement, over a widened set of the band-heading shapes the shipped analyses actually emit. A
+leading acronym or ground-truth id in the prose right after a criterion heading is not read as a
+band word.
 
 `scripts/report-conformance.py` classifies `detect_defects`' provenance and measured-schema
 columns by name rather than by position, so this widening did not require a second, parallel
