@@ -197,7 +197,9 @@ def _read_frontmatter_name(path: Path) -> str | None:
     return extract_frontmatter_name(text)
 
 
-def extract_frontmatter_value(text: str, key: str) -> tuple[bool, object]:
+def extract_frontmatter_value(
+    text: str, key: str, raw: bool = False
+) -> tuple[bool, object]:
     """Return (present, value) for an arbitrary frontmatter key from
     already-read SKILL.md/agent text.
 
@@ -207,6 +209,14 @@ def extract_frontmatter_value(text: str, key: str) -> tuple[bool, object]:
     Returns (False, None) for any malformed or absent shape (no opening/
     closing fence pair, content before the opening fence, invalid YAML, a
     non-dict root, or the key simply absent); never raises.
+
+    With `raw=True` the block is parsed with `yaml.BaseLoader`, which
+    resolves no implicit types: every scalar comes back as the string the
+    file spells (`yes` stays `'yes'`, `True` stays `'True'`). The invocation
+    check uses this to pin the canonical lowercase spelling, because
+    `yaml.safe_load` implements YAML 1.1 booleans and reads `yes`, `on`,
+    `True` and `TRUE` all as the Python boolean `True` (Phase 40 code
+    review, WR-04).
     """
     parts = _FENCE_RE.split(text, maxsplit=2)
     if len(parts) < 3:
@@ -216,7 +226,10 @@ def extract_frontmatter_value(text: str, key: str) -> tuple[bool, object]:
         return (False, None)
 
     try:
-        frontmatter = yaml.safe_load(parts[1])
+        if raw:
+            frontmatter = yaml.load(parts[1], Loader=yaml.BaseLoader)
+        else:
+            frontmatter = yaml.safe_load(parts[1])
     except yaml.YAMLError:
         return (False, None)
 
@@ -228,7 +241,9 @@ def extract_frontmatter_value(text: str, key: str) -> tuple[bool, object]:
     return (True, frontmatter[key])
 
 
-def _read_frontmatter_value(path: Path, key: str) -> tuple[bool, object]:
+def _read_frontmatter_value(
+    path: Path, key: str, raw: bool = False
+) -> tuple[bool, object]:
     """Thin I/O wrapper around extract_frontmatter_value for a file on disk.
 
     Mirrors _read_frontmatter_name's split: returns (False, None) on OSError
@@ -238,7 +253,7 @@ def _read_frontmatter_value(path: Path, key: str) -> tuple[bool, object]:
         text = path.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError):
         return (False, None)
-    return extract_frontmatter_value(text, key)
+    return extract_frontmatter_value(text, key, raw=raw)
 
 
 def parse_manifest(manifest_path: Path) -> dict:
@@ -349,22 +364,31 @@ def verify_skill_model_invocation_disabled(
     boolean. Iterates `sorted(skills)`, same shape as verify_skill_names().
     `invocation_disabled` requires `value is True`: the quoted string "true"
     is a legal YAML scalar but not the Python boolean `True`, so it does not
-    pass (T-40-12). Never calls sys.exit — gating is the caller's job.
+    pass (T-40-12). It also requires the raw scalar, read with
+    `yaml.BaseLoader`, to be exactly `true`: YAML 1.1 truthy spellings
+    (`yes`, `on`, `True`) load as `True` under `yaml.safe_load` but are not
+    established to disable invocation on the platform (Phase 40 code
+    review, WR-04). Never calls sys.exit — gating is the caller's job.
     """
     records: list[dict] = []
     for name in sorted(skills):
         skill_md = skills_dir / name / "SKILL.md"
-        _present, value = (
-            _read_frontmatter_value(skill_md, "disable-model-invocation")
-            if skill_md.is_file()
-            else (False, None)
-        )
+        if skill_md.is_file():
+            _present, value = _read_frontmatter_value(
+                skill_md, "disable-model-invocation"
+            )
+            _raw_present, raw_value = _read_frontmatter_value(
+                skill_md, "disable-model-invocation", raw=True
+            )
+        else:
+            value, raw_value = None, None
         records.append(
             {
                 "directory_name": name,
                 "disable_model_invocation": value,
+                "disable_model_invocation_raw": raw_value,
                 "type": "skill",
-                "invocation_disabled": value is True,
+                "invocation_disabled": value is True and raw_value == "true",
             }
         )
     return records
@@ -517,7 +541,13 @@ def collect_verification_failures(report: dict) -> list[str]:
     for record in report["skill_invocation_verification"]:
         if not record["invocation_disabled"]:
             value = record["disable_model_invocation"]
-            rendered = "absent" if value is None else repr(value)
+            raw_value = record.get("disable_model_invocation_raw")
+            if value is None:
+                rendered = "absent"
+            elif isinstance(raw_value, str):
+                rendered = repr(raw_value)
+            else:
+                rendered = repr(value)
             failures.append(
                 f"skill {record['directory_name']}: disable-model-invocation "
                 f"is {rendered}, expected true"
@@ -1813,7 +1843,9 @@ def _run_self_test() -> None:
     # (True, False); the quoted string "true" -> (True, "true") (a legal YAML
     # scalar, not the Python boolean — the case invocation_disabled must NOT
     # accept, T-40-12); an absent key -> (False, None); malformed frontmatter
-    # -> (False, None). Never raises.
+    # -> (False, None). Never raises. The raw (BaseLoader) cases below pin
+    # WR-04: YAML 1.1 truthy spellings keep their own spelling, so the
+    # verifier can reject them even though safe_load reads them as True.
     control_30_cases = (
         ("---\ndisable-model-invocation: true\n---\nbody", (True, True)),
         ("---\ndisable-model-invocation: false\n---\nbody", (True, False)),
@@ -1834,9 +1866,45 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+    control_30_raw_cases = (
+        ("---\ndisable-model-invocation: true\n---\nbody", (True, "true")),
+        ("---\ndisable-model-invocation: yes\n---\nbody", (True, "yes")),
+        ("---\ndisable-model-invocation: on\n---\nbody", (True, "on")),
+        ("---\ndisable-model-invocation: True\n---\nbody", (True, "True")),
+        ("---\nname: alpha\n---\nbody", (False, None)),
+        ("no frontmatter fence at all", (False, None)),
+    )
+    for literal_30, expected_30 in control_30_raw_cases:
+        got_30 = extract_frontmatter_value(
+            literal_30, "disable-model-invocation", raw=True
+        )
+        if got_30 != expected_30:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 30 (raw) "
+                f"extract_frontmatter_value({literal_30!r}, ..., raw=True) = "
+                f"{got_30!r}, expected {expected_30!r}\n"
+            )
+            sys.exit(1)
+    # Guard the premise: safe_load really does read these spellings as True,
+    # so the raw pin is what rejects them (not a parse difference).
+    for spelling_30 in ("yes", "on", "True"):
+        got_30 = extract_frontmatter_value(
+            f"---\ndisable-model-invocation: {spelling_30}\n---\nbody",
+            "disable-model-invocation",
+        )
+        if got_30 != (True, True):
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 30 premise: "
+                f"safe_load of {spelling_30!r} = {got_30!r}, expected "
+                "(True, True)\n"
+            )
+            sys.exit(1)
+
     _executed.append("c30")
     # Control 31 — verify_skill_model_invocation_disabled against a tempdir
-    # fixture: alpha=true, beta=false, gamma=key absent, delta=no SKILL.md.
+    # fixture: alpha=true, beta=false, gamma=key absent, delta=no SKILL.md,
+    # and epsilon/zeta/eta carrying the YAML 1.1 truthy spellings yes/on/True
+    # (WR-04), each of which must be rejected.
     # Anti-masking: both True and False must be present in the result, so a
     # collector that always returns True (or always False) cannot pass.
     with tempfile.TemporaryDirectory() as tmp31:
@@ -1854,9 +1922,20 @@ def _run_self_test() -> None:
             "---\nname: gamma\n---\nbody", encoding="utf-8"
         )
         (tmp31_path / "delta").mkdir()
+        for name_31, spelling_31 in (
+            ("epsilon", "yes"),
+            ("zeta", "on"),
+            ("eta", "True"),
+        ):
+            (tmp31_path / name_31).mkdir()
+            (tmp31_path / name_31 / "SKILL.md").write_text(
+                f"---\ndisable-model-invocation: {spelling_31}\n---\nbody",
+                encoding="utf-8",
+            )
 
         records_31 = verify_skill_model_invocation_disabled(
-            {"alpha", "beta", "gamma", "delta"}, tmp31_path
+            {"alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta"},
+            tmp31_path,
         )
         disabled_by_name_31 = {
             r["directory_name"]: r["invocation_disabled"] for r in records_31
@@ -1866,17 +1945,20 @@ def _run_self_test() -> None:
             "beta": False,
             "gamma": False,
             "delta": False,
+            "epsilon": False,
+            "zeta": False,
+            "eta": False,
         }:
             sys.stderr.write(
                 "check-registration --self-test: FAIL — Control 31: "
-                f"{disabled_by_name_31!r}, expected alpha=True, beta=False, "
-                "gamma=False, delta=False\n"
+                f"{disabled_by_name_31!r}, expected alpha=True and every "
+                "other fixture False\n"
             )
             sys.exit(1)
-        if len(records_31) != 4:
+        if len(records_31) != 7:
             sys.stderr.write(
                 "check-registration --self-test: FAIL — Control 31: expected "
-                f"exactly 4 records, got {len(records_31)}\n"
+                f"exactly 7 records, got {len(records_31)}\n"
             )
             sys.exit(1)
         true_count_31 = sum(1 for v in disabled_by_name_31.values() if v is True)
