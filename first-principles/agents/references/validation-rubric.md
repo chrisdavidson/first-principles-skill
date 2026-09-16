@@ -418,7 +418,9 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
   caused the downgrade and what specific verification raises confidence to HIGH; the
   overall Conclusion section's confidence rating (HIGH / MEDIUM / LOW) matches the weakest
   chain that contributes to it, counting only chains not covered by an EXCEPT clause stated
-  in this same descriptor; no chain that consumes a GT-N? input is rated HIGH confidence.
+  in this same descriptor; no chain that consumes a GT-N? input is rated HIGH confidence;
+  every chain is rated no higher than the lowest-rated chain its head cites, a ceiling that
+  holds even when a cited chain stays MEDIUM under an EXCEPT clause below.
   Every claim in the Conclusion section rests on at least one HIGH-confidence chain, so that
   this aggregation yields HIGH. EXCEPT: a chain is explicitly marked speculative — for
   example `[Speculative]` — and the analysis states, in the same place, that the claim it
@@ -442,7 +444,8 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
 
 - **Sound** — confidence ratings exist on chains, but one or more GT-N? inputs in chains are
   not mentioned in the chain's confidence line; OR a chain is rated HIGH confidence while
-  consuming a GT-N? input (the rating does not match the unverified-input rule).
+  consuming a GT-N? input (the rating does not match the unverified-input rule); OR a chain is
+  rated above the lowest-rated chain its head cites.
 
 - **Hand-wavy** — confidence ratings appear on the overall Conclusion section but are absent
   from individual derivation chains; OR weak links are described in general terms ("some

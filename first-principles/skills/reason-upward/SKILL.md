@@ -43,6 +43,11 @@ contradicts a Ground Truth, the conclusion returns to Phase 2 for re-challenging
 **Named artifact:** Derivation Chains — one chain per conclusion, formatted as
 `GT-N + GT-M → [intermediate claim] → [conclusion]`, with confidence levels per D-07.
 
+**Confidence rule (D-07):** a chain whose head cites any `GT-N?` input is rated MEDIUM or LOW, and
+a chain is rated no higher than the lowest-rated chain its head cites — a ceiling, never a reason
+to rate a chain HIGH. A MEDIUM or LOW chain names each `GT-N?` input and inherited `Cn` behind its
+rating and what verification would raise it to HIGH.
+
 **Chain form:**
 
 The one-line form is the degenerate case, used only when the whole chain fits on one physical line; a chain that does not fit uses the head-plus-arrow-led form, and a hop is split rather than continued on a second line.
