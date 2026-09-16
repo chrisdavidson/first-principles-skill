@@ -13,6 +13,40 @@ installed session.
 
 ## [Unreleased]
 
+Closes backlog **999.120** as an **apparatus change**: `detect_defects`
+(`scripts/check-quality-harness.py`) gains a confidence dimension and a self-audit band census.
+The claim-audience is the measurement instrument, not a plugin user.
+
+`detect_defects` now reads a chain block's own confidence label — the heading-line parenthetical
+form and the trailing `**Confidence:**` marker form, both of which the shipped analyses use — and
+reports it across the new `high_conf_chains`, `high_conf_unverified_head`,
+`confidence_inversions` and `confidence_unparsed` columns. An unparsable label is counted under
+its own column rather than read as a clean zero. `_SELFAUDIT_CONTRADICTIONS` gains an entry for
+the Validate criterion: a Rigorous self-report next to a nonzero confidence-defect reading now
+counts as a self-audit disagreement, the same way it already does for the Challenge Assumptions,
+Reason Upward and Conclusion-to-Ground-Truth Traceability criteria. The new
+`selfaudit_bands_parsed` and `selfaudit_offvocab_bands` columns make a `selfaudit_disagreements`
+zero readable — distinguishing "no criterion band was even parsed" and "a band word outside the
+vocabulary was reported as its own finding" from genuine agreement, over a widened set of the
+band-heading shapes the shipped analyses actually emit.
+
+`scripts/report-conformance.py` classifies `detect_defects`' provenance and measured-schema
+columns by name rather than by position, so this widening did not require a second, parallel
+positional literal to stay in sync by hand.
+
+The after-leg evidence is a newly frozen fixture,
+[`tests/reference-reads-v9.2.2/`](tests/reference-reads-v9.2.2/README.md), captured from a live
+run and read against a pre-registered table of expected readings before any of this widening
+existed.
+
+Claim-surface correction: `detect_defects`' previously-pinned extractors are unchanged, but its
+own column set is not "unmodified" — prose across the repository that called the detector
+unmodified without qualification has been corrected to name the distinction.
+
+No gate was added or registered; the work stays inside the existing self-test. No frozen TSV was
+rewritten. See [`CLAUDE.md`](CLAUDE.md) § CI gates for the current battery, CI and
+coverage-headline totals — none of them moved and none is restated here.
+
 ## [9.3.1] — 2026-09-16
 
 Released as a patch ahead of milestone v9.4.0 (Source-Literal Pinning): this is that milestone's
