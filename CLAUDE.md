@@ -219,9 +219,10 @@ and `scripts/git-hooks/pre-commit` run the same five, in the same order:
    occurred (D-04) — and subject to the same K-of-5 noise discipline as every other live reading
    in this file. `tests/live-conformance-v9.0` and `tests/live-conformance-catalog.md` are now
    registered `_FROZEN_PATHS` entries (Phase 20) alongside `tests/adversarial-corpus-v9.0`,
-   `tests/quality-provenance-v8.24` and `tests/quality-ledger-v8.26`, and the battery total (25,
-   see above) is unaffected by either registered-vs-unregistered pre-commit gate because
-   FROZEN-EVIDENCE is an inline check that increments once regardless of array length.
+   `tests/quality-provenance-v8.24` and `tests/quality-ledger-v8.26`, and the battery total (see
+   the generated population-arithmetic sentence above) is unaffected by either
+   registered-vs-unregistered pre-commit gate because FROZEN-EVIDENCE is an inline check that
+   increments once regardless of array length.
 4. The **claim-surface generator self-test** — `scripts/gen-gate-docs.py --self-test` — same
    WR-05 ordering discipline as gate 2, ahead of gate 5's comparison.
 5. The **claim-surface drift gate** — `scripts/gen-gate-docs.py --check` (CONF-SURFACE, D-21-C,
