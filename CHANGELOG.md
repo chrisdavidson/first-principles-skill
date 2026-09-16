@@ -13,6 +13,13 @@ installed session.
 
 ## [Unreleased]
 
+## [9.3.1] — 2026-09-16
+
+Released as a patch ahead of milestone v9.4.0 (Source-Literal Pinning): this is that milestone's
+Phase 40, shipped on its own while Phases 36–39 remain open. Where the tree names "v9.4.0
+Phase 40" — including the record's own filename, `docs/v9.4-gate-retirement.md` — that is the
+work's provenance; it ships in this release.
+
 Closes backlog **999.104**, **999.105**, **999.106**, **999.107**, **999.108** and **999.109**,
 each re-run against its own named check in its post-phase form at phase close, and resolves
 **999.71** as moot. See
@@ -40,6 +47,15 @@ already-registered gate, not a new one — succeeding VAL-04's retired proxy che
 The counting rule (D-D) is amended: a battery or CI total may now fall for a gate a successor
 retirement record names by name, rather than staying pinned to a fixed pair of digits. See
 `docs/v9.4-gate-retirement.md` §4.
+
+The phase's code review returned five product-tier findings (CR-01, CR-02, WR-01..WR-03) and one
+apparatus-tier warning (WR-04), all fixed before release in `404dd69`, `e6faa31`, `8dd2442`,
+`41f13ee`, `00dc8a2` and `1774596`: stale battery totals in `CLAUDE.md` and `docs/README.md` now
+point at the generated total; `docs/ARCHITECTURE.md`'s battery chain gains VAL-05's missing
+`24 → 23` step (with two added "NOT A COUNT CLAIM" exemption-ledger entries, its bound raised from
+20 to 22); `docs/CONFIGURATION.md` lists all five pre-commit gates; the retirement record's
+`_skill_io` importer count is corrected in place; and REG-GUARD's new assertion accepts only the
+literal spelling `true`.
 
 ## [9.3.0] — 2026-09-14
 
