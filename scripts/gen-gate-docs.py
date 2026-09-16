@@ -2602,6 +2602,8 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('CLAUDE.md', '60'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "60 live claude invocations (manual only, not run in CI)" and "(60 invocations) / offline `--self-test`" -- the Step 0 live-harness manual run count. Re-verified live this plan: `python3 scripts/check-step0-live.py --describe` emits `control_count: 25` and fixture/control ids only -- no field for "60 manual invocations" exists today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
     ('CLAUDE.md', '18'): ('999.69', 1, 'CANNOT-REACH (no harvest field): "the 18 v9.1 milestone requirements registered as matrix rows at Phase 27 / REL-07" -- the v9.1 milestone\'s own row count in the requirements-ledger derivation chain, the same shape as the pre-existing "19"/"20" milestone-row-count mentions in this same paragraph (neither of which is ledgered, because each happens to share a same-page in-fence match today by coincidence -- see the `_CONTAINMENT_LEDGER_MAX` comment above the `disclosed_bounds_anchors` reconciliation for the identical coincidental-corroboration shape; the paragraph\'s "23" mention lost that same coincidental cover at Phase 40 when COLLIDE-01\'s retirement moved the CI-job count off 23, and is ledgered separately above). Re-verified live this plan: `python3 scripts/check-traceability.py --describe` emits `coverage_headline`, `registered_surfaces`, `scan_globs`, `branch_roster`/`branch_count` (19) and `locked_constants` only -- no field exposes the per-milestone matrix-row count (18) that this sentence states. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
     ('docs/ARCHITECTURE.md', '03'): ('999.73', 1, 'NOT A COUNT CLAIM: the same half-stripped slash-compound gate-id shape as `CLAUDE.md`\'s \'03\' entry -- "matching PROV-GUARD\'s and REG-GUARD\'s shape rather than HARN-01/02/03\'s and HC-BOUND\'s" leaves "02"/"03" stranded once "HARN-01" is consumed whole. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper is widened. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
+    ('docs/gates/CONF-SURFACE.md', '1'): ('999.69', 20, 'NOT A COUNT CLAIM: twenty occurrences, none a count -- the pronoun "one" ("one at a time", "a deeper one", "one real, one ..."), plan-task and test ordinals ("plan 21-20 Task 1", "Task 1 lowered it", "per test 1\'s own framing", "**Test 1 (capability, not correction).**"), and `docs/PROCESS.md` section citations ("§1", "§1.1", "§1.2") that the citation-shape stripper does not consume. None states a population total. This residue predates Phase 40 and was covered only by coincidence: `derived_counts`\' `chain_termini_uncorroborable` read 1 while `docs/ARCHITECTURE.md`\'s battery growth chain was missing VAL-05\'s hop. The Phase 40 code review (CR-02) added that hop, the derived count returned to 0, and the residue surfaced as a live finding.'),
+    ('docs/gates/CONF-SURFACE.md', '5'): ('999.69', 4, 'NOT A COUNT CLAIM: four occurrences, none a count -- "The landing site is pre-commit gate 5", "it runs entirely through pre-commit gate 5", "because pre-commit gate 5 disputes both" and "watching pre-commit gate 5" (the fifth of five fixed pre-commit gates, an ordinal position). Removed as stale by Phase 40 plan 07, when `derived_counts`\' `chain_termini_current` read 5 and covered these by coincidence; re-added at the Phase 40 code review (CR-02), whose added VAL-05 hop moved `chain_termini_current` 5 -> 6 and removed that cover.'),
     ('docs/TESTING.md', '1'):('999.73', 1, 'NOT A COUNT CLAIM: the arithmetic expression `_COMPOSER_FOCUS_CEILING - 1` (RR-77-08\'s surviving-conjuncts paragraph) -- an offset in a formula, not a count-noun-adjacent claim. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises arithmetic-expression shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('docs/TESTING.md', '2'): ('999.69', 2, 'CANNOT-REACH (no harvest field): `MIN_HEADER_HITS: int = 2` and the bolded "`MIN_HEADER_HITS=2`" heading -- `scripts/_battery_core.py`\'s own constant. Re-verified live this plan: `python3 scripts/check-routing-battery.py --describe`\'s `locked_constants` exposes only the four routing thresholds (`boundary_n_threshold`, `boundary_p_threshold`, `focused_n_threshold`, `focused_p_threshold`) -- no field for `MIN_HEADER_HITS` exists today. Deferred as cannot-reach residue (D-06 proviso 2).'),
     ('docs/TESTING.md', '2156'): ('999.73', 1, 'NOT A COUNT CLAIM: "# scripts/_battery_core.py, line 2156" -- a source-location citation, not a count claim, one of the two line-number citations this class of number covers on this page. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises line-number-citation shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
@@ -2822,10 +2824,19 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # figure, no longer stated on either page once this plan reworded both
 # sections off the literal '644' under the report-only body-size
 # reporter's own retirement. 22 -> 20.
-_CONTAINMENT_LEDGER_MAX: int = 20
+#
+# Raised 20 -> 22 at the Phase 40 code review (CR-02): adding VAL-05's
+# missing `24 -> 23` hop to `docs/ARCHITECTURE.md`'s battery growth chain
+# moved `derived_counts`' `chain_termini_uncorroborable` 1 -> 0 and
+# `chain_termini_current` 5 -> 6 in `docs/gates/CONF-SURFACE.md`'s Facts
+# fence, removing the coincidental in-fence cover for that page's
+# pre-existing non-count '1' and '5' residue. Two keys added
+# (`('docs/gates/CONF-SURFACE.md', '1')`, `('docs/gates/CONF-SURFACE.md',
+# '5')`); no key removed. The digest below is re-pinned in the same commit.
+_CONTAINMENT_LEDGER_MAX: int = 22
 
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:2e8279c81f3e39572acdb2597ce84552a8c78643b4aa73dcf63c0e75688cf881"
+    "sha256:b3c0d6e263177837b762220a86dca7e02e8a0059fa0ded3f631c0f68b723eb12"
 )
 
 

@@ -183,7 +183,12 @@ shipped skill stub slash-only (`disable-model-invocation: true`), only one routi
 remains in the model's context, and a 4-gram collision needs two competing descriptions; the scan
 could not fail for any reason that affects routing. The property it was a proxy for is now asserted
 inside REG-GUARD's existing entry rather than a new registered gate. This is the `25 → 24` move
-produced by VAL-04's removal, and is reflected in the battery total above.
+produced by VAL-04's removal, and is reflected in the battery total above. VAL-05 was retired at
+v9.4.0 under the same phase ([`docs/v9.4-gate-retirement.md`](v9.4-gate-retirement.md) §2.3) — the
+platform documents no skill-listing character ceiling of the kind the gate enforced, and every
+shipped skill stub is slash-only, so the one listing truncation the platform does state never
+renders for any of them. This is the `24 → 23` move produced by VAL-05's removal, and is reflected
+in the battery total above.
 
 **`GATE-02-v8.5` is the v8.5 pointer drift-guard** (`sync-content.py --self-test`). The `-v8.5`
 suffix once distinguished it from an unrelated, differently-shaped gate that also carried the
