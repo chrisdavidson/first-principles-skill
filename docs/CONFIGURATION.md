@@ -142,24 +142,29 @@ both mechanisms simultaneously.
 
 ### What the pre-commit hook gates
 
-Both hook paths run two gates:
+Both hook paths run the same gates in the same order. The authoritative list, with each gate's
+command and ordering rationale, is the "Pre-commit gates" section of `CLAUDE.md`. The summary below mirrors it;
+where the two disagree, `CLAUDE.md` wins. In order, the hooks run:
 
-1. **Sync-drift gate** — always runs; invokes `scripts/sync-content.py --check`.
-   Blocks the commit if `shared/` and the generated tree have diverged.
-2. **Conformance-baseline drift gate** — always runs, after gate 1; invokes
-   `scripts/report-conformance.py --check`. Blocks the commit if
-   `docs/conformance-baseline.md` or `docs/data/conformance.json` no longer match a fresh
-   run. It fails on staleness of the committed baseline only, never on a conformance count
-   being too high, and is deliberately not registered in the offline battery or in CI (D-06).
+- the **sync-drift gate** (`scripts/sync-content.py --check`), which blocks the commit if
+  `shared/` and the generated tree have diverged;
+- the **conformance generator self-test** (`scripts/report-conformance.py --self-test`);
+- the **conformance-baseline drift gate** (`scripts/report-conformance.py --check`), which blocks
+  the commit if `docs/conformance-baseline.md` or `docs/data/conformance.json` no longer match a
+  fresh run. It fails on staleness of the committed baseline only, never on a conformance count
+  being too high, and is deliberately not registered in the offline battery or in CI (D-06);
+- the **claim-surface generator self-test** (`scripts/gen-gate-docs.py --self-test`);
+- the **claim-surface drift gate** (`scripts/gen-gate-docs.py --check`), the same check as
+  CONF-SURFACE.
 
-A body-budget gate used to run alongside this one, blocking a commit that grew the
+A body-budget gate used to run alongside these, blocking a commit that grew the
 generated agent body past a line-count budget. It was retired under TEARDOWN-01
 (`docs/v8.7-constraint-teardown.md`); neither `scripts/git-hooks/pre-commit` nor
 `.githooks/pre-commit` invokes anything like it any longer. Its report-only reporter script
 was itself retired under [`docs/v9.4-gate-retirement.md`](v9.4-gate-retirement.md) §2.5 — see
 Body line budget above for the manual `wc -l` command that reads the current count.
 
-The gate prefers `uv` when available and falls back to `python3`. Bypass it with
+The hooks prefer `uv` when available and fall back to `python3`. Bypass them with
 `git commit --no-verify` for intentional in-progress work.
 
 ## CI gates
