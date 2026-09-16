@@ -5531,12 +5531,17 @@ _SELFAUDIT_EMBEDDED_VERDICT_RE = re.compile(
     re.MULTILINE,
 )
 # Q-P2 shape: `**Criterion N — Title.** WORD, ...`. The ALL-CAPS
-# requirement (`[A-Z][A-Z-]+`) is deliberate anti-overreach: ordinary
-# prose after the bold head (`**Criterion 4 — Chains.** The chains ...`)
-# is never mistaken for a verdict.
+# requirement (`[A-Z]{3,}(?:-[A-Z]+)*`) is deliberate anti-overreach:
+# ordinary prose after the bold head (`**Criterion 4 — Chains.** The
+# chains ...`) is never mistaken for a verdict. 999.120 gap closure
+# (WR-04): the verdict must be a whole ALL-CAPS word of at least three
+# letters, followed by punctuation or end of line (the `(?=[.,;:]|
+# [ \t]*$)` lookahead) — this is what makes a leading acronym in prose
+# (`DNS resolution ...`) and a ground-truth id (`GT-3 ...`) never read as
+# a verdict, where the prior `\b`-bounded pattern read both.
 _SELFAUDIT_TRAILING_VERDICT_RE = re.compile(
     r"^\*\*Criterion[ \t]+[1-6][ \t]*[—–][^\n*]*\*\*[ \t]*"
-    r"(?P<word>[A-Z][A-Z-]+)\b",
+    r"(?P<word>[A-Z]{3,}(?:-[A-Z]+)*)(?=[.,;:]|[ \t]*$)",
     re.MULTILINE,
 )
 
@@ -15185,6 +15190,11 @@ def _selftest_selfaudit_calibration() -> bool:
     head is never read as a verdict, (r) a legacy out-of-vocabulary band,
     (s) the legacy shape's regression through `_selfaudit_bands`, and (t)
     a pin on the CONTRACT-06-dependent narrow pattern's own text.
+
+    999.120 gap closure (WR-04) adds (q-2)-(q-4), directly after (q): (q-2)
+    a leading acronym (`DNS`) in ordinary prose, (q-3) a leading
+    ground-truth id (`GT-3`), and (q-4) a whole-word ALL-CAPS verdict —
+    out-of-vocabulary and in-vocabulary — is still read.
     """
     ok = True
 
@@ -15345,6 +15355,35 @@ def _selftest_selfaudit_calibration() -> bool:
     if bands or offvocab:
         _fail(f"(q) ANTI-OVERREACH prose after the head wrongly read as a "
               f"verdict: bands={bands!r} offvocab={offvocab!r}")
+
+    # (q-2) ANTI-OVERREACH (999.120 gap closure, WR-04): a leading acronym
+    # in ordinary prose is never read as a verdict.
+    bands, offvocab = _selfaudit_band_census(
+        "**Criterion 3 — Evidence.** DNS resolution was verified.\n")
+    if bands or offvocab:
+        _fail(f"(q-2) ANTI-OVERREACH a leading acronym wrongly read as a "
+              f"verdict: bands={bands!r} offvocab={offvocab!r}")
+
+    # (q-3) ANTI-OVERREACH (999.120 gap closure, WR-04): a leading
+    # ground-truth id is never read as a verdict.
+    bands, offvocab = _selfaudit_band_census(
+        "**Criterion 3 — Evidence.** GT-3 is unverified.\n")
+    if bands or offvocab:
+        _fail(f"(q-3) ANTI-OVERREACH a leading GT-N id wrongly read as a "
+              f"verdict: bands={bands!r} offvocab={offvocab!r}")
+
+    # (q-4) a whole-word ALL-CAPS verdict is still read: an out-of-vocabulary
+    # one (PRESENT) and an in-vocabulary one (HAND-WAVY, canonicalised).
+    bands, offvocab = _selfaudit_band_census(
+        "**Criterion 3 — Evidence.** PRESENT.\n")
+    if bands or offvocab != {3: "PRESENT"}:
+        _fail(f"(q-4) whole-word ALL-CAPS PRESENT misread: "
+              f"bands={bands!r} offvocab={offvocab!r}")
+    bands, offvocab = _selfaudit_band_census(
+        "**Criterion 3 — Evidence.** HAND-WAVY\n")
+    if bands != {3: "Hand-wavy"} or offvocab:
+        _fail(f"(q-4) whole-word ALL-CAPS HAND-WAVY misread: "
+              f"bands={bands!r} offvocab={offvocab!r}")
 
     # (r) legacy `Band: **PRESENT**` under a colon-separated head — an
     # out-of-vocabulary word read via the wide band line, not the strict one.
