@@ -5184,6 +5184,11 @@ _DEFECT_RECORD_FIELDS = (
     "high_conf_unverified_head",
     "confidence_inversions",
     "confidence_unparsed",
+    # Phase 41 (999.120, D-06): two more appended, same discipline —
+    # `read_defect_incidence` maps by header name, so every committed
+    # narrower file keeps parsing.
+    "selfaudit_bands_parsed",
+    "selfaudit_offvocab_bands",
 )
 
 
@@ -5463,11 +5468,49 @@ def _confidence_defects(chain_ids: list[str], blocks: list[str]) -> dict:
 # Self-Audit Gate verdict blocks, emitted as PROCESS output rather than as one
 # of the six template sections, so these are matched against the whole
 # analysis text and not against a slice.
+#
+# `_SELFAUDIT_CRITERION_RE` is left UNTOUCHED (999.120 H3, D-06 discretion
+# item 1): the CONTRACT-06-pinned `_slice_sections` calls
+# `_SELFAUDIT_CRITERION_RE.search(text, body_start)` to cap section 6, so
+# widening this pattern's value would change pinned behaviour while
+# `_slice_sections`' own sha256 digest stayed the same — a silent edit to
+# frozen behaviour. `_selfaudit_band_census`, below, reads a SEPARATE wide
+# pattern instead. Control (t) pins this pattern's text.
 _SELFAUDIT_CRITERION_RE = re.compile(
     r"^\*\*Criterion[ \t]+(?P<num>[1-6])[ \t]*:[^\n]*\*\*[ \t]*$", re.MULTILINE
 )
 _SELFAUDIT_BAND_RE = re.compile(
     r"^\**Band:\**[ \t]*\*\*(?P<band>Rigorous|Sound|Hand-wavy|Absent)\*\*",
+    re.MULTILINE,
+)
+
+# 999.120 H3 (D-06): the three shapes actually emitted, widened for the
+# census only. The wide head demarcates a criterion block under an
+# em-dash OR a colon separator (a superset of the narrow pattern above,
+# used only to find block boundaries — never to cap `_slice_sections`).
+# The embedded and trailing verdict patterns then read the word AT that
+# head's own start (`.match(text, pos)`), so they never fire on the
+# legacy colon-separated shape, which carries no colon-then-word inside
+# its own bold span.
+_SELFAUDIT_CRITERION_WIDE_RE = re.compile(
+    r"^\*\*Criterion[ \t]+(?P<num>[1-6])[ \t]*[:—–][^\n]*?\*\*", re.MULTILINE
+)
+_SELFAUDIT_BAND_WIDE_RE = re.compile(
+    r"^\**Band:\**[ \t]*\*\*(?P<word>[^*\n]+)\*\*", re.MULTILINE
+)
+# DEMO-TRIAGE shape: `**Criterion N — Title: WORD.** prose`.
+_SELFAUDIT_EMBEDDED_VERDICT_RE = re.compile(
+    r"^\*\*Criterion[ \t]+[1-6][ \t]*[—–][ \t]*[^:\n*]+:[ \t]*"
+    r"(?P<word>[A-Za-z][A-Za-z-]*)\.?\*\*",
+    re.MULTILINE,
+)
+# Q-P2 shape: `**Criterion N — Title.** WORD, ...`. The ALL-CAPS
+# requirement (`[A-Z][A-Z-]+`) is deliberate anti-overreach: ordinary
+# prose after the bold head (`**Criterion 4 — Chains.** The chains ...`)
+# is never mistaken for a verdict.
+_SELFAUDIT_TRAILING_VERDICT_RE = re.compile(
+    r"^\*\*Criterion[ \t]+[1-6][ \t]*[—–][^\n*]*\*\*[ \t]*"
+    r"(?P<word>[A-Z][A-Z-]+)\b",
     re.MULTILINE,
 )
 
@@ -5487,23 +5530,82 @@ _SELFAUDIT_CONTRADICTIONS: dict[int, tuple[str, ...]] = {
 }
 
 
+def _selfaudit_band_census(
+    analysis_text: str,
+) -> tuple[dict[int, str], dict[int, str]]:
+    """Map criterion number -> claimed band, reading every emitted shape.
+
+    999.120 H3 (D-06): `_selfaudit_bands`' `0` looked identical whether the
+    Self-Audit Gate parsed no bands, parsed bands entirely outside
+    `_BAND_VOCAB`, or genuinely agreed with measurement — three states one
+    TSV `0` cannot distinguish. This widens the read to the three shapes
+    actually emitted: the legacy `**Criterion N: Title**` heading with a
+    following `Band: **X**` line; the embedded verdict
+    `**Criterion N — Title: WORD.**` (DEMO-TRIAGE); and the trailing verdict
+    `**Criterion N — Title.** WORD.` (`tests/live-conformance-v9.0/Q-P2.md`).
+
+    A criterion block runs from its wide head's end to the next wide head's
+    start (or end of text). Within a block, the first reading wins, in this
+    order: the strict `Band:` line, the wide `Band:` line, the embedded
+    verdict at the head, the trailing verdict at the head. A word matching
+    `_BAND_VOCAB` (case-insensitively, canonicalised) is a parsed band; any
+    other word is out of vocabulary — a claim was made and read, but the
+    reconciliation cannot score it, which is a distinct finding from no
+    claim at all (control (h)'s vacuity floor). A criterion already
+    carrying a parsed band is never also counted out of vocabulary.
+
+    Returns `(bands, offvocab)`. Uses `_SELFAUDIT_CRITERION_WIDE_RE`, never
+    the narrow `_SELFAUDIT_CRITERION_RE` the CONTRACT-06-pinned
+    `_slice_sections` depends on (see the comment above that pattern).
+    """
+    vocab = {w.casefold(): w for w in _BAND_VOCAB}
+    bands: dict[int, str] = {}
+    offvocab: dict[int, str] = {}
+
+    def _claim(num: int, word: str) -> None:
+        canon = vocab.get(word.casefold())
+        if canon is not None:
+            bands.setdefault(num, canon)
+        elif num not in bands:
+            offvocab.setdefault(num, word)
+
+    heads = list(_SELFAUDIT_CRITERION_WIDE_RE.finditer(analysis_text))
+    for i, m in enumerate(heads):
+        num = int(m.group("num"))
+        end = heads[i + 1].start() if i + 1 < len(heads) else len(analysis_text)
+        block = analysis_text[m.end() : end]
+
+        bm = _SELFAUDIT_BAND_RE.search(block)
+        if bm:
+            _claim(num, bm.group("band"))
+            continue
+        wbm = _SELFAUDIT_BAND_WIDE_RE.search(block)
+        if wbm:
+            _claim(num, wbm.group("word"))
+            continue
+        em = _SELFAUDIT_EMBEDDED_VERDICT_RE.match(analysis_text, m.start())
+        if em:
+            _claim(num, em.group("word"))
+            continue
+        tm = _SELFAUDIT_TRAILING_VERDICT_RE.match(analysis_text, m.start())
+        if tm:
+            _claim(num, tm.group("word"))
+            continue
+
+    return bands, offvocab
+
+
 def _selfaudit_bands(analysis_text: str) -> dict[int, str]:
     """Map criterion number -> claimed band, from the emitted verdict blocks.
 
-    A criterion block runs from its `**Criterion N: ...**` line to the next
-    such line (or end of text); the first `Band: **X**` inside it is the
-    claim. A criterion with no band line is omitted rather than defaulted —
-    an unstated band is not a claim, and must not be scored as one.
+    Delegates to `_selfaudit_band_census` and returns only its parsed-band
+    half. A criterion with no readable verdict is still omitted — an
+    unstated band is not a claim, and must not be scored as one. A criterion
+    carrying a word outside `_BAND_VOCAB` (e.g. `PRESENT`) is likewise
+    omitted here: the census reports it under its `offvocab` half instead of
+    scoring it as a band, per 999.120 H3 (D-06).
     """
-    heads = list(_SELFAUDIT_CRITERION_RE.finditer(analysis_text))
-    bands: dict[int, str] = {}
-    for i, m in enumerate(heads):
-        end = heads[i + 1].start() if i + 1 < len(heads) else len(analysis_text)
-        block = analysis_text[m.end() : end]
-        bm = _SELFAUDIT_BAND_RE.search(block)
-        if bm:
-            bands.setdefault(int(m.group("num")), bm.group("band"))
-    return bands
+    return _selfaudit_band_census(analysis_text)[0]
 
 
 def _selfaudit_calibration_defects(analysis_text: str, record: dict) -> list[dict]:
@@ -5639,6 +5741,19 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
     disagreements = _selfaudit_calibration_defects(analysis_text, record)
     record["selfaudit_disagreements"] = len(disagreements)
     record["_selfaudit_disagreements"] = disagreements
+    # Phase 41 (999.120, D-06): the band census, computed once and shared
+    # between the reconciliation above (via `_selfaudit_bands`) and these
+    # two appended columns, so the TSV's `selfaudit_disagreements` zero is
+    # readable: 0 disagreements over N parsed bands is agreement; 0 over 0
+    # parsed and 0 out of vocabulary is "no self-audit read at all"; and a
+    # nonzero `selfaudit_offvocab_bands` means a claim was made in a word
+    # the reconciliation cannot score.
+    bands, offvocab = _selfaudit_band_census(analysis_text)
+    record["selfaudit_bands_parsed"] = len(bands)
+    record["selfaudit_offvocab_bands"] = len(offvocab)
+    record["_selfaudit_offvocab_bands"] = [
+        {"criterion": n, "word": w} for n, w in sorted(offvocab.items())
+    ]
     return record
 
 
@@ -5679,6 +5794,8 @@ _EXPECTED_CONFORMANT_RECORD = {
     "high_conf_unverified_head": 0,
     "confidence_inversions": 0,
     "confidence_unparsed": 0,
+    "selfaudit_bands_parsed": 0,
+    "selfaudit_offvocab_bands": 0,
 }
 _EXPECTED_DEFECTIVE_RECORD = {
     "conclusion_claims": 3,
@@ -5697,6 +5814,8 @@ _EXPECTED_DEFECTIVE_RECORD = {
     "high_conf_unverified_head": 1,
     "confidence_inversions": 1,
     "confidence_unparsed": 1,
+    "selfaudit_bands_parsed": 0,
+    "selfaudit_offvocab_bands": 0,
 }
 
 # D-19 pinned observed calibration vector: the detector's OBSERVED per-
@@ -6419,6 +6538,67 @@ Nothing material here.
             f"self-test FAIL: defects confidence (P8) a conceded Sound "
             f"Criterion 5 band wrongly reconciled into a disagreement: "
             f"selfaudit_disagreements={p8_sound_rec['selfaudit_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P9) end to end (999.120 H3, D-06): a six-criterion DEMO-TRIAGE-shaped
+    # embedded-verdict block (out-of-vocabulary PRESENT) reads
+    # selfaudit_bands_parsed=0, selfaudit_offvocab_bands=6,
+    # selfaudit_disagreements=0. The same base document with a legacy
+    # six-criterion Band: block instead reads parsed=6, offvocab=0.
+    p9_offvocab_block = "\n\n".join(
+        f"**Criterion {n} — Title {n}: PRESENT.** Prose for criterion {n}."
+        for n in range(1, 7)
+    )
+    p9_offvocab_rec = detect_defects(
+        _confidence_test_doc(p8_chain) + "\n\n" + p9_offvocab_block,
+        "confidence-p9-offvocab",
+    )
+    if (
+        p9_offvocab_rec["selfaudit_bands_parsed"] != 0
+        or p9_offvocab_rec["selfaudit_offvocab_bands"] != 6
+        or p9_offvocab_rec["selfaudit_disagreements"] != 0
+    ):
+        print(
+            f"self-test FAIL: defects confidence (P9) DEMO-TRIAGE-shaped "
+            f"block expected bands_parsed=0, offvocab_bands=6, "
+            f"disagreements=0, got bands_parsed="
+            f"{p9_offvocab_rec['selfaudit_bands_parsed']!r}, offvocab_bands="
+            f"{p9_offvocab_rec['selfaudit_offvocab_bands']!r}, disagreements="
+            f"{p9_offvocab_rec['selfaudit_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    if p9_offvocab_rec["selfaudit_offvocab_bands"] != len(
+        p9_offvocab_rec["_selfaudit_offvocab_bands"]
+    ):
+        print(
+            f"self-test FAIL: defects confidence (P9) selfaudit_offvocab_"
+            f"bands disagrees with len(_selfaudit_offvocab_bands): "
+            f"{p9_offvocab_rec['selfaudit_offvocab_bands']!r} vs "
+            f"{len(p9_offvocab_rec['_selfaudit_offvocab_bands'])}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p9_legacy_block = "\n\n".join(
+        f"**Criterion {n}: Title {n}**\nBand: **Sound**\nJustification: y."
+        for n in range(1, 7)
+    )
+    p9_legacy_rec = detect_defects(
+        _confidence_test_doc(p8_chain) + "\n\n" + p9_legacy_block,
+        "confidence-p9-legacy",
+    )
+    if (
+        p9_legacy_rec["selfaudit_bands_parsed"] != 6
+        or p9_legacy_rec["selfaudit_offvocab_bands"] != 0
+    ):
+        print(
+            f"self-test FAIL: defects confidence (P9) legacy six-criterion "
+            f"block expected bands_parsed=6, offvocab_bands=0, got "
+            f"bands_parsed={p9_legacy_rec['selfaudit_bands_parsed']!r}, "
+            f"offvocab_bands={p9_legacy_rec['selfaudit_offvocab_bands']!r}",
             file=sys.stderr,
         )
         ok = False
@@ -14825,6 +15005,14 @@ def _selftest_selfaudit_calibration() -> bool:
     order). Controls (l)-(m) are Criterion 5's anti-overreach half: a
     conceded Sound band next to the same nonzero readings, and a Rigorous
     claim on a clean confidence record, must each produce NO finding.
+
+    Controls (n)-(t) pin the H3 band census (999.120, D-06): (n) the
+    DEMO-TRIAGE embedded shape with an out-of-vocabulary word, (o) an
+    embedded in-vocabulary verdict reaching the reconciliation, (p) the
+    Q-P2 trailing shape, (q) ANTI-OVERREACH — ordinary prose after a bold
+    head is never read as a verdict, (r) a legacy out-of-vocabulary band,
+    (s) the legacy shape's regression through `_selfaudit_bands`, and (t)
+    a pin on the CONTRACT-06-dependent narrow pattern's own text.
     """
     ok = True
 
@@ -14942,6 +15130,75 @@ def _selftest_selfaudit_calibration() -> bool:
     if _selfaudit_calibration_defects(_audit(c5="Rigorous"), clean):
         _fail("(m) clean confidence record with a Rigorous C5 claim "
               "spuriously reported")
+
+    # (n) DEMO-TRIAGE shape: six `**Criterion N — Title: PRESENT.**` lines.
+    # PRESENT is outside `_BAND_VOCAB`, so the census parses no bands at
+    # all and reports every criterion as out of vocabulary (999.120 H3,
+    # D-06).
+    demo_triage_doc = "\n\n".join(
+        f"**Criterion {n} — Title {n}: PRESENT.** Prose for criterion {n}."
+        for n in range(1, 7)
+    )
+    bands, offvocab = _selfaudit_band_census(demo_triage_doc)
+    if bands:
+        _fail(f"(n) DEMO-TRIAGE shape unexpectedly parsed a band: {bands!r}")
+    if offvocab != {n: "PRESENT" for n in range(1, 7)}:
+        _fail(f"(n) DEMO-TRIAGE shape out-of-vocabulary mismatch: {offvocab!r}")
+
+    # (o) embedded in-vocabulary verdict reaches the reconciliation, not
+    # only the census helper.
+    d = _selfaudit_calibration_defects(
+        "**Criterion 4 — Reason Upward: Rigorous.** Prose about the chains.",
+        {**clean, "malformed_chain_blocks": 6})
+    if [x["criterion"] for x in d] != [4]:
+        _fail(f"(o) embedded in-vocabulary Rigorous vs malformed chains "
+              f"not reported: {d!r}")
+
+    # (p) Q-P2 trailing shape: two criteria, each a bold head followed by
+    # an ALL-CAPS verdict word outside the closing `**`.
+    qp2_doc = (
+        "**Criterion 4 — Chains.** RIGOROUS. Quoting the self-audit scan: "
+        "further prose about the chains.\n\n"
+        "**Criterion 5 — Conclusion.** SOUND, not rigorous. Capped below "
+        "RIGOROUS for stated reasons."
+    )
+    bands, offvocab = _selfaudit_band_census(qp2_doc)
+    if bands != {4: "Rigorous", 5: "Sound"}:
+        _fail(f"(p) Q-P2 trailing shape parsed the wrong bands: {bands!r}")
+
+    # (q) ANTI-OVERREACH: ordinary prose after the bold head is never read
+    # as a verdict — the trailing shape requires an ALL-CAPS word.
+    bands, offvocab = _selfaudit_band_census(
+        "**Criterion 4 — Chains.** The chains are fine.")
+    if bands or offvocab:
+        _fail(f"(q) ANTI-OVERREACH prose after the head wrongly read as a "
+              f"verdict: bands={bands!r} offvocab={offvocab!r}")
+
+    # (r) legacy `Band: **PRESENT**` under a colon-separated head — an
+    # out-of-vocabulary word read via the wide band line, not the strict one.
+    bands, offvocab = _selfaudit_band_census(
+        "**Criterion 3: Evidence**\nBand: **PRESENT**\nJustification: y.")
+    if bands or offvocab != {3: "PRESENT"}:
+        _fail(f"(r) legacy out-of-vocabulary band misread: "
+              f"bands={bands!r} offvocab={offvocab!r}")
+
+    # (s) legacy regression: `_selfaudit_bands` (now backed by the census)
+    # returns exactly the bands passed in, on the original colon-separated
+    # shape.
+    legacy_bands = {2: "Rigorous", 4: "Sound", 5: "Hand-wavy", 6: "Absent"}
+    got_bands = _selfaudit_bands(_audit(
+        c2=legacy_bands[2], c4=legacy_bands[4],
+        c5=legacy_bands[5], c6=legacy_bands[6]))
+    if got_bands != legacy_bands:
+        _fail(f"(s) legacy _selfaudit_bands regression: expected "
+              f"{legacy_bands!r}, got {got_bands!r}")
+
+    # (t) the CONTRACT-06-pinned narrow pattern is byte-unchanged.
+    if _SELFAUDIT_CRITERION_RE.pattern != (
+        r"^\*\*Criterion[ \t]+(?P<num>[1-6])[ \t]*:[^\n]*\*\*[ \t]*$"
+    ):
+        _fail(f"(t) _SELFAUDIT_CRITERION_RE pattern changed: "
+              f"{_SELFAUDIT_CRITERION_RE.pattern!r}")
 
     return ok
 
