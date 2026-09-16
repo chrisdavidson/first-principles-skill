@@ -253,11 +253,16 @@ would be blind to the actual production shape); these two are text-only Markdown
 authored directly against `shared/spine/references/output-template.md`'s six-section contract,
 so there is no transport shape to be blind to.
 
-Both fixtures share the same skeleton — two labelled Derivation Chains (`Chain A`, `Chain B`),
-a three-row Assumptions Table, and a three-claim Conclusion section — so that the only
-difference between them is the three deliberate defects `analyses-defective.md` introduces.
+Both fixtures share the same skeleton — `analyses-conformant.md` keeps two labelled Derivation
+Chains (`Chain A`, `Chain B`), a three-row Assumptions Table, and a three-claim Conclusion
+section, and stays byte-unchanged by this plan — it is the negative control for every column
+below, including a positive read of the bold-wrapped `**Confidence: HIGH**` shape. Plan 02
+(Phase 41, 999.120 H1) extends `analyses-defective.md` with four more Derivation Chains blocks
+(`Chain C1`-`Chain C4`) and a third ground truth (`GT-3?`, unverified), so the only difference
+between the two fixtures is the six deliberate defects `analyses-defective.md` introduces (the
+original three plus three confidence-dimension additions).
 
-**`analyses-conformant.md` — expected record (all nine numeric fields pinned):**
+**`analyses-conformant.md` — expected record (every numeric field pinned):**
 
 | Field | Value |
 |---|---|
@@ -270,8 +275,12 @@ difference between them is the three deliberate defects `analyses-defective.md` 
 | `chain_blocks` | 2 |
 | `malformed_chain_blocks` | 0 |
 | `chain_flag` | 0 |
+| `high_conf_chains` | 2 |
+| `high_conf_unverified_head` | 0 |
+| `confidence_inversions` | 0 |
+| `confidence_unparsed` | 0 |
 
-**`analyses-defective.md` — expected record (all nine numeric fields pinned):**
+**`analyses-defective.md` — expected record (every numeric field pinned):**
 
 | Field | Value | Defect |
 |---|---|---|
@@ -281,18 +290,21 @@ difference between them is the three deliberate defects `analyses-defective.md` 
 | `verdict_cells` | 3 | — |
 | `nonconforming_verdict_cells` | 1 | assumption A2's Verdict cell reads `**Unverified — flagged**`, not Accept/Challenge/Discard |
 | `verdict_flag` | 1 | — |
-| `chain_blocks` | 2 | — |
+| `chain_blocks` | 6 | — |
 | `malformed_chain_blocks` | 1 | `Chain B` is presented as a two-row table with no `GT-N → [intermediate] → [conclusion]` line |
 | `chain_flag` | 1 | — |
+| `high_conf_chains` | 4 | `Chain A`, `Chain B`, `Chain C1` and `Chain C3` are all labelled HIGH |
+| `high_conf_unverified_head` | 1 | `Chain C1` is HIGH and its head cites the unverified `GT-3?` |
+| `confidence_inversions` | 1 | `Chain C3` is HIGH over `Chain C2`, which is labelled MEDIUM |
+| `confidence_unparsed` | 1 | `Chain C4`'s marker line reads the unfilled template placeholder `**Confidence:** [HIGH / MEDIUM / LOW]`, which parses as no label |
 
-Both expected records are asserted field-by-field (not just the three flags) in
-`_selftest_defects` — a flags-only assertion would pass while the per-claim counts D-20 depends
-on drifted silently. Three structural sub-assertions (also in `_selftest_defects`) build
-in-memory variants of `analyses-conformant.md`/`analyses-defective.md` rather than adding more
-files on disk: a one-hash-heading-depth variant and an appendix-after-section-6 variant of the
-conformant fixture must reproduce its exact record, and a variant of the defective fixture with
-section 4 deleted entirely must raise `SectionResolutionError` rather than reporting zero
-malformed chains.
+Both expected records are asserted field-by-field (not just the flags) in `_selftest_defects` —
+a flags-only assertion would pass while the per-claim counts D-20 depends on drifted silently.
+Three structural sub-assertions (also in `_selftest_defects`) build in-memory variants of
+`analyses-conformant.md`/`analyses-defective.md` rather than adding more files on disk: a
+one-hash-heading-depth variant and an appendix-after-section-6 variant of the conformant fixture
+must reproduce its exact record, and a variant of the defective fixture with section 4 deleted
+entirely must raise `SectionResolutionError` rather than reporting zero malformed chains.
 
 **Fault-injection proof (Task 2), both interpreters:**
 

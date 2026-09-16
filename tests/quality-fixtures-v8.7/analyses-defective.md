@@ -3,10 +3,13 @@
 **Synthetic fixture, not evidence.** Hand-authored directly against
 `shared/spine/references/output-template.md` to pin the mechanical defect
 detector's non-zero case. Same skeleton as `analyses-conformant.md`, with
-exactly three deliberate defects: one untraced Conclusion claim, one
-non-conforming Verdict cell, and one malformed Derivation Chains block. No
-transport is involved — the discretion resolution requiring real captures
-applies to transport fixtures only.
+the original three deliberate defects — one untraced Conclusion claim, one
+non-conforming Verdict cell, and one malformed Derivation Chains block —
+plus three more (Phase 41, 999.120 H1): one HIGH chain over an unverified
+ground truth, one HIGH chain over a MEDIUM chain, and one chain whose
+confidence label cannot be parsed. No transport is involved — the
+discretion resolution requiring real captures applies to transport
+fixtures only.
 
 ---
 
@@ -34,6 +37,7 @@ families exactly once.
 
 - **GT-1** Fixture ground truth one — source: fixture
 - **GT-2** Fixture ground truth two — source: fixture
+- **GT-3?** Fixture unverified ground truth three — source: fixture (unverified)
 
 ---
 
@@ -53,6 +57,30 @@ GT-1 → fixture intermediate claim one → fixture conclusion one.
 | Fixture factor two | Fixture value two |
 
 **Confidence: HIGH**
+
+### Chain C1 — fixture chain three (HIGH over an unverified ground truth)
+
+GT-3? → fixture intermediate claim three → fixture conclusion three.
+
+**Confidence:** HIGH
+
+### Chain C2 — fixture chain four (MEDIUM)
+
+GT-1 → fixture intermediate claim four → fixture conclusion four.
+
+**Confidence: MEDIUM**
+
+### Chain C3 — fixture chain five (HIGH over a MEDIUM chain)
+
+C2 + GT-1 → fixture intermediate claim five → fixture conclusion five.
+
+**Confidence:** HIGH
+
+### Chain C4 — fixture chain six (unparsable confidence label)
+
+GT-2 → fixture intermediate claim six → fixture conclusion six.
+
+**Confidence:** [HIGH / MEDIUM / LOW]
 
 ---
 

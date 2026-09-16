@@ -5177,6 +5177,13 @@ _DEFECT_RECORD_FIELDS = (
     "zero_literal_gts",
     "orphan_fetches",
     "provenance_flag",
+    # Phase 41 (999.120, D-02/D-04): four more appended, same discipline as
+    # above — `read_defect_incidence` maps by header name, so every
+    # committed narrower file keeps parsing.
+    "high_conf_chains",
+    "high_conf_unverified_head",
+    "confidence_inversions",
+    "confidence_unparsed",
 )
 
 
@@ -5325,6 +5332,134 @@ def _chain_dependency_defects(section4: str) -> dict:
     }
 
 
+# --- Phase 41 (999.120, D-02/D-03/D-04): the confidence dimension --------
+
+_CONFIDENCE_RANK = {"HIGH": 3, "MEDIUM": 2, "LOW": 1}
+
+# D-03 shape 1: the heading-line parenthetical, `**C1 — …** *(HIGH)*` —
+# searched on the block's own label line (line 0) only. Captures the first
+# word inside the parenthetical; trailing text after it (an em-dash gloss,
+# e.g. `*(MEDIUM — rests on GT-3?)*`) is deliberately ignored.
+_CONFIDENCE_PAREN_RE = re.compile(r"\*\([ \t]*(?P<word>[A-Za-z]+)\b")
+
+# D-03 shapes 2 and 3: a trailing marker line, `**Confidence:** HIGH` or
+# `**Confidence: HIGH**` — searched over the whole block, MULTILINE, first
+# match wins. An optional parenthetical between the colon and the word
+# (`**Confidence:** (chains C1 and C2) MEDIUM`) is skipped. Requires
+# "Confidence" to be followed immediately by a colon (optionally
+# bold-closed) — `**Confidence caveat:** rated MEDIUM` does not match,
+# because "caveat" sits between "Confidence" and the colon.
+_CONFIDENCE_LINE_RE = re.compile(
+    r"^[ \t]*\*\*Confidence(?::\*\*|:)[ \t]*(?:\([^)\n]*\)[ \t]*)?(?P<word>[A-Za-z]+)\b",
+    re.MULTILINE,
+)
+
+
+def _chain_confidence_label(block: str) -> str | None:
+    """D-02/D-03: the chain's own confidence label, canonicalised upper case.
+
+    Reads both emitted shapes: the heading-line parenthetical (checked
+    first, line 0 only), then the trailing `**Confidence:**` marker line
+    (checked over the whole block). The matched word is upper-cased and
+    accepted only if it is HIGH, MEDIUM or LOW — any other word, including
+    the unfilled template placeholder `[HIGH / MEDIUM / LOW]` (which
+    matches neither regex's required immediately-following-letter
+    position), is unparsable and returns `None` rather than a guess (D-04).
+    """
+    lines = block.splitlines()
+    line0 = lines[0] if lines else block
+    m = _CONFIDENCE_PAREN_RE.search(line0)
+    if m is None:
+        m = _CONFIDENCE_LINE_RE.search(block)
+    if m is None:
+        return None
+    word = m.group("word").upper()
+    return word if word in _CONFIDENCE_RANK else None
+
+
+def _confidence_defects(chain_ids: list[str], blocks: list[str]) -> dict:
+    """D-02/D-03/D-04: confidence-label defects among Derivation Chains blocks.
+
+    Computes each block's parsed confidence label via
+    `_chain_confidence_label`, then reports: which chains are labelled
+    HIGH; which of those HIGH chains cite an unverified ground truth
+    (`GT-N?`) in their own head; which chains are confidence INVERSIONS —
+    labelled higher than the lowest parsed label among the chains their own
+    head cites (D-02, checked for every chain, not only HIGH ones); and
+    which chains could not be labelled at all.
+
+    Unpairable rule, mirroring `_chain_dependency_defects`: when
+    `chain_ids` is empty or its length disagrees with `len(blocks)`,
+    chains cannot be keyed by id. Each block is then labelled by the
+    pseudo-id `block-<n>` (1-based); `high`/`unverified_head`/`unparsed`
+    are still computed per block, but `inversions`/`inversions_partial`
+    are left empty and `unpairable` is `True` — an inversion cannot be
+    computed against a head reference this function cannot resolve to a
+    known chain id.
+
+    D-04 anti-masking: an unparsable label is counted in `unparsed`, never
+    silently skipped, and an unparsable CITED chain is excluded from the
+    citing chain's rank minimum (it neither lowers nor raises it) while
+    still recording the citing chain under `inversions_partial` — so a
+    hidden inversion behind an unparsable citation is never absorbed into
+    a clean read.
+
+    Returns lists of normalized ids under the keys `high`,
+    `unverified_head`, `inversions`, `unparsed` and `inversions_partial`,
+    plus a bool under `unpairable`.
+    """
+    pairable = bool(chain_ids) and len(chain_ids) == len(blocks)
+    if pairable:
+        names = [_normalize_chain_id(i) for i in chain_ids]
+    else:
+        names = [f"block-{i}" for i in range(1, len(blocks) + 1)]
+
+    labels: dict[str, str | None] = {}
+    head_refs: dict[str, tuple[set[str], set[str]]] = {}
+    for name, block in zip(names, blocks):
+        labels[name] = _chain_confidence_label(block)
+        head_refs[name] = _chain_head_refs(block)
+
+    known = set(names)
+    high: list[str] = []
+    unverified_head: list[str] = []
+    unparsed: list[str] = []
+    inversions: list[str] = []
+    inversions_partial: list[str] = []
+
+    for name in names:
+        label = labels[name]
+        gt_refs, chain_refs = head_refs[name]
+        if label is None:
+            unparsed.append(name)
+            continue
+        if label == "HIGH":
+            high.append(name)
+            if any(g.endswith("?") for g in gt_refs):
+                unverified_head.append(name)
+        if not pairable:
+            continue
+        cited = ({c.casefold() for c in chain_refs} & known) - {name}
+        if not cited:
+            continue
+        parsed_ranks = [
+            _CONFIDENCE_RANK[labels[c]] for c in cited if labels.get(c) is not None
+        ]
+        if any(labels.get(c) is None for c in cited):
+            inversions_partial.append(name)
+        if parsed_ranks and _CONFIDENCE_RANK[label] > min(parsed_ranks):
+            inversions.append(name)
+
+    return {
+        "high": high,
+        "unverified_head": unverified_head,
+        "inversions": inversions,
+        "unparsed": unparsed,
+        "inversions_partial": inversions_partial,
+        "unpairable": not pairable,
+    }
+
+
 # Self-Audit Gate verdict blocks, emitted as PROCESS output rather than as one
 # of the six template sections, so these are matched against the whole
 # analysis text and not against a slice.
@@ -5415,9 +5550,9 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
     the six output-template sections do not resolve — a document the parser
     cannot read must fail loudly, never report zero defects.
 
-    Returns a record with the ten fields in `_DEFECT_RECORD_FIELDS` order,
-    plus underscore-prefixed audit-only fields (claim/cell text) that are
-    never emitted to the TSV.
+    Returns a record with the fields in `_DEFECT_RECORD_FIELDS` order, plus
+    underscore-prefixed audit-only fields (claim/cell text) that are never
+    emitted to the TSV.
     """
     sections = _slice_sections(analysis_text)
     section2 = sections[2]
@@ -5432,6 +5567,7 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
     malformed_blocks = [b for b in blocks if not _chain_block_well_formed(b)]
 
     dependency = _chain_dependency_defects(section4)
+    confidence = _confidence_defects(chain_ids, blocks)
     claims = _conclusion_claims(section6, chain_ids)
     ledger = _closure_ledger_fragments(section6, chain_ids)
     untraced = [
@@ -5481,6 +5617,21 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
         "orphan_fetches": "n/a",
         "provenance_flag": "n/a",
     })
+    # Phase 41 (999.120, D-02/D-04): the confidence dimension, computed
+    # above alongside `dependency`. Placed before the self-audit
+    # reconciliation call below so a later criterion-5 wiring (Phase 41
+    # plan 03) sees these counts in `record`.
+    record.update({
+        "high_conf_chains": len(confidence["high"]),
+        "high_conf_unverified_head": len(confidence["unverified_head"]),
+        "confidence_inversions": len(confidence["inversions"]),
+        "confidence_unparsed": len(confidence["unparsed"]),
+        "_high_conf_unverified_head": confidence["unverified_head"],
+        "_confidence_inversions": confidence["inversions"],
+        "_confidence_unparsed": confidence["unparsed"],
+        "_confidence_inversions_partial": confidence["inversions_partial"],
+        "_confidence_unpairable": confidence["unpairable"],
+    })
     disagreements = _selfaudit_calibration_defects(analysis_text, record)
     record["selfaudit_disagreements"] = len(disagreements)
     record["_selfaudit_disagreements"] = disagreements
@@ -5490,8 +5641,8 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
 def run_detect_defects(analyses_dir: Path, out_path: Path) -> None:
     """`--detect-defects` CLI body: run `detect_defects` over a directory, write a TSV.
 
-    Records are written in filename order with a header row, ten columns
-    per `_DEFECT_RECORD_FIELDS`.
+    Records are written in filename order with a header row, one column
+    per name in `_DEFECT_RECORD_FIELDS`.
     """
     files = sorted(Path(analyses_dir).glob("*.md"))
     lines = ["\t".join(_DEFECT_RECORD_FIELDS)]
@@ -5504,9 +5655,9 @@ def run_detect_defects(analyses_dir: Path, out_path: Path) -> None:
 _DEFECT_FIXTURE_CONFORMANT = FIXTURES_DIR / "analyses-conformant.md"
 _DEFECT_FIXTURE_DEFECTIVE = FIXTURES_DIR / "analyses-defective.md"
 
-# Expected records (all nine numeric fields, not just the three flags — a
-# flags-only assertion would pass while the per-claim counts D-20 depends on
-# drifted silently).
+# Expected records (every numeric field, not just the flags — a flags-only
+# assertion would pass while the per-claim counts D-20 depends on drifted
+# silently).
 _EXPECTED_CONFORMANT_RECORD = {
     "conclusion_claims": 3,
     "untraced_claims": 0,
@@ -5520,6 +5671,10 @@ _EXPECTED_CONFORMANT_RECORD = {
     "dependency_cycles": 0,
     "ungrounded_chains": 0,
     "selfaudit_disagreements": 0,
+    "high_conf_chains": 2,
+    "high_conf_unverified_head": 0,
+    "confidence_inversions": 0,
+    "confidence_unparsed": 0,
 }
 _EXPECTED_DEFECTIVE_RECORD = {
     "conclusion_claims": 3,
@@ -5528,12 +5683,16 @@ _EXPECTED_DEFECTIVE_RECORD = {
     "verdict_cells": 3,
     "nonconforming_verdict_cells": 1,
     "verdict_flag": 1,
-    "chain_blocks": 2,
+    "chain_blocks": 6,
     "malformed_chain_blocks": 1,
     "chain_flag": 1,
     "dependency_cycles": 0,
     "ungrounded_chains": 0,
     "selfaudit_disagreements": 0,
+    "high_conf_chains": 4,
+    "high_conf_unverified_head": 1,
+    "confidence_inversions": 1,
+    "confidence_unparsed": 1,
 }
 
 # D-19 pinned observed calibration vector: the detector's OBSERVED per-
@@ -5995,6 +6154,221 @@ def _selftest_defects() -> bool:
                     file=sys.stderr,
                 )
                 ok = False
+
+    # Phase 41 (999.120, D-02/D-03/D-04): inline controls (P1)-(P7) for the
+    # confidence-defects columns, each built as its own minimal document
+    # (schema-compat's single-hash six-section skeleton, `# 1.` ... `# 6.`,
+    # via `_confidence_test_doc`) so `_slice_sections` resolves it without
+    # touching the two fixtures pinned above.
+    def _confidence_test_doc(section4_body: str) -> str:
+        return f"""# 1. Problem Essence
+
+**Core problem:** whether the confidence dimension parses correctly.
+
+# 2. Assumptions Table
+
+| Assumption | Type | Treatment | Verdict | Verification |
+|---|---|---|---|---|
+| An assumption | convention | Challenge before use | Accept — survives challenge | source |
+
+# 3. Ground Truths
+
+- **GT-1** a fact — source: a source
+- **GT-2** a fact — source: a source
+- **GT-3?** an unverified fact — source: a source (unverified)
+
+# 4. Derivation Chains
+
+{section4_body}
+
+# 5. Abandoned Reasoning
+
+Nothing material here.
+
+# 6. Conclusion
+
+**Recommended approach:** the first conclusion.
+"""
+
+    # (P1) DEMO-TRIAGE-shaped bold labels, one HIGH and one MEDIUM (the
+    # latter with trailing text after an em-dash inside the parenthetical),
+    # both parse.
+    p1_doc = _confidence_test_doc(
+        "**C1 — fixture chain one** *(HIGH)*\n\n"
+        "GT-1 → intermediate one → conclusion one.\n\n"
+        "**C2 — fixture chain two** *(MEDIUM — rests on GT-3?)*\n\n"
+        "GT-3? → intermediate two → conclusion two."
+    )
+    p1_rec = detect_defects(p1_doc, "confidence-p1")
+    if p1_rec["confidence_unparsed"] != 0:
+        print(
+            f"self-test FAIL: defects confidence (P1) expected both bold "
+            f"parenthetical labels to parse, got confidence_unparsed="
+            f"{p1_rec['confidence_unparsed']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    if p1_rec["high_conf_chains"] != 1:
+        print(
+            f"self-test FAIL: defects confidence (P1) expected exactly one "
+            f"HIGH chain (C1), got high_conf_chains={p1_rec['high_conf_chains']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P2) a MEDIUM chain citing a HIGH chain is not an inversion; a MEDIUM
+    # chain citing a LOW chain is one.
+    p2_doc = _confidence_test_doc(
+        "### Chain C1 — first\n\n"
+        "GT-1 → intermediate → conclusion one.\n\n"
+        "**Confidence: HIGH**\n\n"
+        "### Chain C2 — second\n\n"
+        "C1 + GT-1 → intermediate → conclusion two.\n\n"
+        "**Confidence: MEDIUM**\n\n"
+        "### Chain C3 — third\n\n"
+        "GT-2 → intermediate → conclusion three.\n\n"
+        "**Confidence: LOW**\n\n"
+        "### Chain C4 — fourth\n\n"
+        "C3 + GT-2 → intermediate → conclusion four.\n\n"
+        "**Confidence: MEDIUM**"
+    )
+    p2_rec = detect_defects(p2_doc, "confidence-p2")
+    if "c2" in p2_rec["_confidence_inversions"]:
+        print(
+            "self-test FAIL: defects confidence (P2) a MEDIUM chain citing "
+            "a HIGH chain was reported as an inversion",
+            file=sys.stderr,
+        )
+        ok = False
+    if "c4" not in p2_rec["_confidence_inversions"]:
+        print(
+            "self-test FAIL: defects confidence (P2) a MEDIUM chain citing "
+            "a LOW chain was NOT reported as an inversion",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P3) a HIGH chain citing one unparsable chain and one HIGH chain is
+    # not an inversion; its id appears in inversions_partial; the
+    # unparsable chain is counted once in confidence_unparsed.
+    p3_doc = _confidence_test_doc(
+        "### Chain C1 — first\n\n"
+        "GT-1 → intermediate → conclusion one.\n\n"
+        "**Confidence: HIGH**\n\n"
+        "### Chain C2 — second\n\n"
+        "GT-2 → intermediate → conclusion two.\n\n"
+        "**Confidence:** TBD\n\n"
+        "### Chain C3 — third\n\n"
+        "C1 + C2 + GT-1 → intermediate → conclusion three.\n\n"
+        "**Confidence: HIGH**"
+    )
+    p3_rec = detect_defects(p3_doc, "confidence-p3")
+    if "c3" in p3_rec["_confidence_inversions"]:
+        print(
+            "self-test FAIL: defects confidence (P3) a HIGH chain citing an "
+            "unparsable chain plus a HIGH chain was reported as an inversion",
+            file=sys.stderr,
+        )
+        ok = False
+    if "c3" not in p3_rec["_confidence_inversions_partial"]:
+        print(
+            "self-test FAIL: defects confidence (P3) expected C3 in "
+            "_confidence_inversions_partial",
+            file=sys.stderr,
+        )
+        ok = False
+    if p3_rec["confidence_unparsed"] != 1 or "c2" not in p3_rec["_confidence_unparsed"]:
+        print(
+            f"self-test FAIL: defects confidence (P3) expected C2 counted "
+            f"once in confidence_unparsed, got confidence_unparsed="
+            f"{p3_rec['confidence_unparsed']!r}, "
+            f"_confidence_unparsed={p3_rec['_confidence_unparsed']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P4) a block whose only confidence-shaped line is a "Confidence
+    # caveat:" line is unparsable — it is never mistaken for a label line.
+    p4_doc = _confidence_test_doc(
+        "### Chain C1 — first\n\n"
+        "GT-1 → intermediate → conclusion.\n\n"
+        "**Confidence caveat:** rated MEDIUM"
+    )
+    p4_rec = detect_defects(p4_doc, "confidence-p4")
+    if p4_rec["confidence_unparsed"] != 1 or "c1" not in p4_rec["_confidence_unparsed"]:
+        print(
+            f"self-test FAIL: defects confidence (P4) expected a "
+            f"'Confidence caveat:' line to be unparsable, got "
+            f"confidence_unparsed={p4_rec['confidence_unparsed']!r}, "
+            f"_confidence_unparsed={p4_rec['_confidence_unparsed']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P5) `**Confidence:** (chains C1 and C2) MEDIUM` parses as MEDIUM —
+    # proven indirectly via the inversion it then causes (C1 cites the LOW
+    # C2, so a correctly-parsed MEDIUM C1 must register as an inversion).
+    p5_doc = _confidence_test_doc(
+        "### Chain C1 — first\n\n"
+        "C2 → intermediate → conclusion one.\n\n"
+        "**Confidence:** (chains C1 and C2) MEDIUM\n\n"
+        "### Chain C2 — second\n\n"
+        "GT-2 → intermediate → conclusion two.\n\n"
+        "**Confidence: LOW**"
+    )
+    p5_rec = detect_defects(p5_doc, "confidence-p5")
+    if p5_rec["confidence_unparsed"] != 0:
+        print(
+            f"self-test FAIL: defects confidence (P5) expected the "
+            f"parenthetical-wrapped marker line to parse, got "
+            f"confidence_unparsed={p5_rec['confidence_unparsed']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    if "c1" not in p5_rec["_confidence_inversions"]:
+        print(
+            "self-test FAIL: defects confidence (P5) expected C1 (parsed "
+            "MEDIUM, citing the LOW C2) to register as an inversion",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P6) lower-case `**Confidence:** high` parses as HIGH.
+    p6_doc = _confidence_test_doc(
+        "### Chain C1 — first\n\n"
+        "GT-2 → intermediate → conclusion one.\n\n"
+        "**Confidence:** high\n\n"
+        "### Chain C2 — second\n\n"
+        "C1 → intermediate → conclusion two.\n\n"
+        "**Confidence: LOW**"
+    )
+    p6_rec = detect_defects(p6_doc, "confidence-p6")
+    if p6_rec["confidence_unparsed"] != 0 or p6_rec["high_conf_chains"] != 1:
+        print(
+            f"self-test FAIL: defects confidence (P6) expected lower-case "
+            f"'high' to parse as HIGH, got confidence_unparsed="
+            f"{p6_rec['confidence_unparsed']!r}, high_conf_chains="
+            f"{p6_rec['high_conf_chains']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P7) each emitted confidence count equals the length of its own audit
+    # list — the same non-vacuity discipline (f)-(h) above already pin for
+    # dependency_cycles/ungrounded_chains/selfaudit_disagreements.
+    for scalar, listed in (
+        ("high_conf_unverified_head", "_high_conf_unverified_head"),
+        ("confidence_inversions", "_confidence_inversions"),
+        ("confidence_unparsed", "_confidence_unparsed"),
+    ):
+        if defective_record[scalar] != len(defective_record[listed]):
+            print(
+                f"self-test FAIL: defects confidence (P7) {scalar}="
+                f"{defective_record[scalar]!r} disagrees with "
+                f"len({listed})={len(defective_record[listed])}",
+                file=sys.stderr,
+            )
+            ok = False
 
     return ok
 
@@ -15065,19 +15439,23 @@ def _selftest_incidence_schema_compat() -> bool:
     PROV-05 (D-11): `provenance_labels`, `unmatched_sources`,
     `unreadable_sources`, `literals_checked`, `unlocated_literals`,
     `misattributed_literals`, `zero_literal_gts`, `orphan_fetches`,
-    `provenance_flag`. The file now pins three widths — ten (the twelve
-    committed files), thirteen (the v8.18-era shape) and twenty-two (the
-    current shape) — all parsing to identical `untraced`/`verdict`/`chain`
-    sums. The nine provenance columns are read as bare strings by design
-    (`read_defect_incidence` `int()`s only the three `*_flag` columns), so
-    the `"n/a"` sentinel (D-10) round-trips safely.
+    `provenance_flag`. Four more were appended for Phase 41 (999.120,
+    D-02/D-04): `high_conf_chains`, `high_conf_unverified_head`,
+    `confidence_inversions`, `confidence_unparsed`. The file now pins four
+    widths — ten (the twelve committed files), the v8.18-era shape, the
+    PROV-05-era shape and the current live shape — all parsing to
+    identical `untraced`/`verdict`/`chain` sums. The provenance columns are
+    read as bare strings by design (`read_defect_incidence` `int()`s only
+    the three `*_flag` columns), so the `"n/a"` sentinel (D-10) round-trips
+    safely.
 
     Controls (a)-(c) pin the compatibility, (d)-(e) pin loudness, (i)-(k)
-    extend both to the twenty-two-column width (D-12): (i) all three widths
+    extend both to the PROV-05-era width (D-12): (i) all three widths
     agree, (j) the `n/a` sentinel perturbs no int-summed flag, and (k) the
-    ragged-row and missing-`chain_flag` failures stay loud at the new width
+    ragged-row and missing-`chain_flag` failures stay loud at that width
     while a renamed `provenance_flag` column does not — it is deliberately
-    not in `_REQUIRED`.
+    not in `_REQUIRED`. Controls (l)/(l-2) extend the same two properties
+    to the current live width.
     """
     ok = True
 
@@ -15096,12 +15474,20 @@ def _selftest_incidence_schema_compat() -> bool:
     # widen wide_header out from under wide_row's 13 cells.
     wide_header = "\t".join(_DEFECT_RECORD_FIELDS[:13])
     wide_row = narrow_row + "\t0\t0\t2"
-    # Phase 5 (PROV-05, D-11/D-12): the current full-width shape, twenty-two
-    # names, with the nine new provenance cells filled with the "n/a"
-    # sentinel (D-10) — proves the sentinel perturbs none of the int-summed
-    # flags.
-    widest_header = "\t".join(_DEFECT_RECORD_FIELDS)
+    # Phase 5 (PROV-05, D-11/D-12): the PROV-05-era width, ending at
+    # `provenance_flag`, with the nine provenance cells filled with the
+    # "n/a" sentinel (D-10) — proves the sentinel perturbs none of the
+    # int-summed flags. `prov05_width` is derived by name so this stays
+    # correct however many more columns are appended after it.
+    prov05_width = _DEFECT_RECORD_FIELDS.index("provenance_flag") + 1
+    widest_header = "\t".join(_DEFECT_RECORD_FIELDS[:prov05_width])
     widest_row = wide_row + "\tn/a" * 9
+    # Phase 41 (999.120, D-02/D-04): the current live width — every column
+    # appended after `provenance_flag` gets a filler cell of "0", since the
+    # four new columns are int-shaped, not the provenance block's "n/a"
+    # string sentinel.
+    current_header = "\t".join(_DEFECT_RECORD_FIELDS)
+    current_row = widest_row + "\t0" * (len(_DEFECT_RECORD_FIELDS) - prov05_width)
 
     with tempfile.TemporaryDirectory() as d:
         def _w(name: str, text: str) -> Path:
@@ -15126,8 +15512,8 @@ def _selftest_incidence_schema_compat() -> bool:
             _fail(f"(b) narrow and wide files disagree: {a!r} vs {b!r}")
 
         # (c) a headerless file falls back to positional mapping, read
-        # against the current 22-name _DEFECT_RECORD_FIELDS tuple.
-        c = read_defect_incidence(_w("nohdr.tsv", widest_row + "\n"))
+        # against the current, live _DEFECT_RECORD_FIELDS tuple.
+        c = read_defect_incidence(_w("nohdr.tsv", current_row + "\n"))
         if c["n"] != 1 or c["chain"] != 1:
             _fail(f"(c) headerless positional fallback wrong: {c!r}")
 
@@ -15203,6 +15589,26 @@ def _selftest_incidence_schema_compat() -> bool:
             pass
         else:
             _fail("(k) 22-col header missing 'chain_flag' did not raise")
+
+        # (l) a file at the live full width parses to the same dict as the
+        # ten-column file (D-12, extended to Phase 41's four new columns).
+        l_current = read_defect_incidence(
+            _w("l-current.tsv", f"{current_header}\n{current_row}\n")
+        )
+        if l_current != i_narrow:
+            _fail(
+                f"(l) live-width and ten-column files disagree: "
+                f"{l_current!r} vs {i_narrow!r}"
+            )
+
+        # (l-2) the live-width header paired with the PROV-05-era 22-cell
+        # row raises — the live header is wider than that row now.
+        try:
+            read_defect_incidence(_w("l2-ragged.tsv", f"{current_header}\n{widest_row}\n"))
+        except ValueError:
+            pass
+        else:
+            _fail("(l-2) live-width header with a PROV-05-era 22-cell row did not raise")
 
     # (f)-(h) NON-VACUITY: the three appended columns must actually CARRY the
     # findings. Pinning them only at zero — which every fixture in this file

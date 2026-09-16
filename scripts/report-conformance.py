@@ -158,11 +158,19 @@ _cites_chain = _mod._cites_chain
 classify_invocation_outcome = _mod.classify_invocation_outcome
 _read_quality_catalog = _mod._read_quality_catalog
 
-# Derived, never restated: slices of the frozen schema tuple, so widening
-# _DEFECT_RECORD_FIELDS upstream cannot silently narrow what this script excludes from
-# source-vs-twin agreement.
-PROVENANCE_FIELDS: tuple[str, ...] = _DEFECT_RECORD_FIELDS[13:]
-MEASURED_SCHEMA_FIELDS: tuple[str, ...] = _DEFECT_RECORD_FIELDS[1:13]
+# Derived, never restated: by NAME, not by position, so widening
+# _DEFECT_RECORD_FIELDS upstream (appending anywhere) cannot silently narrow what this
+# script excludes from source-vs-twin agreement or fold an appended column into the
+# provenance block it does not belong to. `[1:_PROVENANCE_START]` would have been the
+# obvious slice-based alternative and is deliberately NOT used: with append-at-end
+# placement (Phase 41, 999.120) it would silently drop every later-appended column from
+# agreement, and `[_PROVENANCE_START:]` would fold them into provenance instead.
+_PROVENANCE_START = _DEFECT_RECORD_FIELDS.index("provenance_labels")
+_PROVENANCE_END = _DEFECT_RECORD_FIELDS.index("provenance_flag") + 1
+PROVENANCE_FIELDS: tuple[str, ...] = _DEFECT_RECORD_FIELDS[_PROVENANCE_START:_PROVENANCE_END]
+MEASURED_SCHEMA_FIELDS: tuple[str, ...] = tuple(
+    f for f in _DEFECT_RECORD_FIELDS[1:] if f not in PROVENANCE_FIELDS
+)
 REPORT_FIELDS: tuple[str, ...] = (
     "section_resolution",
     "heading_chain_blocks",
@@ -170,11 +178,10 @@ REPORT_FIELDS: tuple[str, ...] = (
     "marked_untraced_claims",
     "silent_untraced_claims",
 )
-# D-04 (settled decision, sharpening RESEARCH.md A3), widened by D-06a: seventeen fields
-# compared for source-vs-twin agreement -- the twelve measured schema fields plus the five
-# report-added columns (three heading-census columns plus the two D-06a marked/silent
-# untraced-claim columns). Excluded: analysis_id (foreordained equal, same filename stem on
-# both surfaces) and the nine always-"n/a" provenance columns (foreordained equal, no capture
+# D-04 (settled decision, sharpening RESEARCH.md A3), widened by D-06a and by Phase 41
+# (999.120): the measured schema fields plus the report-added columns are compared for
+# source-vs-twin agreement. Excluded: analysis_id (foreordained equal, same filename stem
+# on both surfaces) and the always-"n/a" provenance columns (foreordained equal, no capture
 # exists for any artifact on either paired surface -- WR-04: this is a claim about
 # shared-examples and generated-twin, the only two surfaces pair_agreement compares, NOT
 # about the report as a whole; a live-conformance capture exists and its provenance columns
@@ -3478,10 +3485,13 @@ def _control_partial_row_not_dropped() -> None:
 
 
 def _control_agreement_field_scope() -> None:
-    # D-06a widened this from 15 to 17: confirming (not assuming) that appending the two
-    # new report columns to REPORT_FIELDS widens AGREEMENT_FIELDS automatically, since it
-    # is derived (MEASURED_SCHEMA_FIELDS + REPORT_FIELDS), never restated.
-    assert len(AGREEMENT_FIELDS) == 17, len(AGREEMENT_FIELDS)
+    # D-06a widened this from 15 to 17; Phase 41 (999.120) widens it again, 17 to 21:
+    # confirming (not assuming) that appending the four new H1 confidence columns after
+    # `provenance_flag` lands them in MEASURED_SCHEMA_FIELDS via the name-range derivation
+    # above, not silently excluded or folded into PROVENANCE_FIELDS. The arithmetic is
+    # 12 (pre-existing measured schema fields) + 4 (H1 columns) + 5 (report-added columns)
+    # = 21.
+    assert len(AGREEMENT_FIELDS) == 21, len(AGREEMENT_FIELDS)
     assert "analysis_id" not in AGREEMENT_FIELDS
     for field in PROVENANCE_FIELDS:
         assert field not in AGREEMENT_FIELDS, field
@@ -3489,6 +3499,21 @@ def _control_agreement_field_scope() -> None:
     assert "heading_malformed_blocks" in AGREEMENT_FIELDS
     assert "marked_untraced_claims" in AGREEMENT_FIELDS
     assert "silent_untraced_claims" in AGREEMENT_FIELDS
+    assert PROVENANCE_FIELDS == (
+        "provenance_labels",
+        "unmatched_sources",
+        "unreadable_sources",
+        "literals_checked",
+        "unlocated_literals",
+        "misattributed_literals",
+        "zero_literal_gts",
+        "orphan_fetches",
+        "provenance_flag",
+    ), PROVENANCE_FIELDS
+    for field in ("high_conf_chains", "high_conf_unverified_head",
+                  "confidence_inversions", "confidence_unparsed"):
+        assert field in MEASURED_SCHEMA_FIELDS, field
+        assert field not in PROVENANCE_FIELDS, field
 
 
 def _control_agreement_detects_measured_divergence() -> None:
@@ -3504,7 +3529,7 @@ def _control_agreement_detects_measured_divergence() -> None:
 
 
 def _control_agreement_vacuity_guard() -> None:
-    provenance_field = _DEFECT_RECORD_FIELDS[13]
+    provenance_field = PROVENANCE_FIELDS[0]
     source_row = _synthetic_row("shared-examples", "synth.md", "synth")
     twin_row = _synthetic_row(
         "generated-twin", "synth.md", "synth", **{provenance_field: "different"}

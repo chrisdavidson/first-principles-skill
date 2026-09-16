@@ -523,7 +523,7 @@ def verify(
 
 
 def provenance_defect_record(analysis_text: str, analysis_id: str, result: ProvenanceResult) -> dict:
-    """PROV-05: `detect_defects`'s 22-column record with the nine provenance keys
+    """PROV-05: `detect_defects`'s full-width record with the nine provenance keys
     overwritten from a real `ProvenanceResult` -- replacing the harness's "n/a"
     sentinel only when a capture was actually read. Does not modify
     `run_detect_defects`; this script owns its own single-row emission (D-09
@@ -1587,7 +1587,7 @@ def _control_gate01_antimask_selfproof() -> None:
 #   FLOOR-zerolabel-positive     999.7  zero labels + retrieved sources breaches it
 #   FLOOR-nofetch-negative       999.7  anti-overreach: no fetches -> nothing to verify
 #   FLOOR-covered-negative       999.7  non-vacuity: a covered analysis does not breach
-#   PROV05-record-roundtrip      PROV-05  22-column TSV round-trip
+#   PROV05-record-roundtrip      PROV-05  full-width TSV round-trip
 #   PROV04-network-blocked       D-14  full fixture verification under a socket block
 #   PROV04-network-armed-proof   D-14  the block is armed, not silently inert
 #   GATE01-antimask-selfproof    D-16  the anti-masking assertion is not itself inert
