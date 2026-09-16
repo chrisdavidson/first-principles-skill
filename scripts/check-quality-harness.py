@@ -5344,8 +5344,25 @@ _CONFIDENCE_RANK = {"HIGH": 3, "MEDIUM": 2, "LOW": 1}
 # D-03 shape 1: the heading-line parenthetical, `**C1 — …** *(HIGH)*` —
 # searched on the block's own label line (line 0) only. Captures the first
 # word inside the parenthetical; trailing text after it (an em-dash gloss,
-# e.g. `*(MEDIUM — rests on GT-3?)*`) is deliberately ignored.
+# e.g. `*(MEDIUM — rests on GT-3?)*`) is deliberately ignored. When the
+# captured word is not a band (e.g. "Confidence" in the live
+# `*(Confidence: HIGH — …)*` shape), `_chain_confidence_label` falls
+# through to the next candidate below rather than stopping here — this
+# pattern's own text is left unchanged (999.120 gap closure: CR-01).
 _CONFIDENCE_PAREN_RE = re.compile(r"\*\([ \t]*(?P<word>[A-Za-z]+)\b")
+
+# 999.120 gap closure (CR-01/WR-02): the line-0 inline alternative. Reads
+# the confidence word directly after a "Confidence:" label wherever it sits
+# on line 0, not only inside a parenthetical. Searched on line 0 only.
+# Reads three live shapes:
+#   - `**C1 — title** *(Confidence: HIGH — gloss)*` (PR-P1-R2, quality-ledger PR-P1)
+#   - `**C1 — title.** Confidence: **HIGH**` (PR-P1, PR-N2)
+#   - `**C1 — title. Confidence: HIGH.**` (PR-N1, Q-P3)
+# `Confidence caveat:` does NOT match — a word sits between "Confidence"
+# and the colon, so the label boundary never lines up.
+_CONFIDENCE_INLINE_RE = re.compile(
+    r"\bConfidence[ \t]*:[ \t]*(?:\*\*)?[ \t]*(?P<word>[A-Za-z]+)\b"
+)
 
 # D-03 shapes 2 and 3: a trailing marker line, `**Confidence:** HIGH` or
 # `**Confidence: HIGH**` — searched over the whole block, MULTILINE, first
@@ -5363,23 +5380,32 @@ _CONFIDENCE_LINE_RE = re.compile(
 def _chain_confidence_label(block: str) -> str | None:
     """D-02/D-03: the chain's own confidence label, canonicalised upper case.
 
-    Reads both emitted shapes: the heading-line parenthetical (checked
-    first, line 0 only), then the trailing `**Confidence:**` marker line
-    (checked over the whole block). The matched word is upper-cased and
-    accepted only if it is HIGH, MEDIUM or LOW — any other word, including
-    the unfilled template placeholder `[HIGH / MEDIUM / LOW]` (which
-    matches neither regex's required immediately-following-letter
-    position), is unparsable and returns `None` rather than a guess (D-04).
+    Reads three shapes, tried in order, falling through past a non-`None`
+    match whose word is not a band rather than stopping there (999.120 gap
+    closure: CR-01/WR-02): the heading-line parenthetical
+    (`_CONFIDENCE_PAREN_RE`, line 0 only), then the line-0 inline label
+    (`_CONFIDENCE_INLINE_RE`, line 0 only), then the trailing
+    `**Confidence:**` marker line (`_CONFIDENCE_LINE_RE`, whole block). The
+    first candidate whose captured word upper-cases into HIGH/MEDIUM/LOW
+    wins. Any other word on every candidate — including the unfilled
+    template placeholder `[HIGH / MEDIUM / LOW]`, a caveat gloss with no
+    marker line, or a "Confidence caveat:" near-miss — is unparsable and
+    returns `None` rather than a guess (D-04); this is a scoped widening,
+    not an unbounded one.
     """
     lines = block.splitlines()
     line0 = lines[0] if lines else block
-    m = _CONFIDENCE_PAREN_RE.search(line0)
-    if m is None:
-        m = _CONFIDENCE_LINE_RE.search(block)
-    if m is None:
-        return None
-    word = m.group("word").upper()
-    return word if word in _CONFIDENCE_RANK else None
+    for m in (
+        _CONFIDENCE_PAREN_RE.search(line0),
+        _CONFIDENCE_INLINE_RE.search(line0),
+        _CONFIDENCE_LINE_RE.search(block),
+    ):
+        if m is None:
+            continue
+        word = m.group("word").upper()
+        if word in _CONFIDENCE_RANK:
+            return word
+    return None
 
 
 def _confidence_defects(chain_ids: list[str], blocks: list[str]) -> dict:
@@ -6095,6 +6121,15 @@ def _selftest_defects() -> bool:
     document missing section 4 raising rather than scoring clean. Finally,
     the detector's observed per-document rollups over the six frozen
     analyses are pinned against the committed calibration TSV (D-19).
+
+    Controls (P1)-(P9) pin the confidence dimension (999.120). Controls
+    (P10)-(P13) close gaps CR-01/WR-02 found in it: (P10) the live
+    heading-parenthetical-with-gloss shape (`*(Confidence: HIGH — …)*`),
+    (P11) fall-through past a non-band parenthetical to the trailing marker
+    line plus precedence when line 0 itself carries a band, (P12) the two
+    inline line-0 shapes, and (P13) the anti-overreach half — a caveat gloss,
+    a "Confidence caveat:" near-miss, and the unfilled placeholder must all
+    still return `None`.
     """
     ok = True
 
@@ -6599,6 +6634,143 @@ Nothing material here.
             f"block expected bands_parsed=6, offvocab_bands=0, got "
             f"bands_parsed={p9_legacy_rec['selfaudit_bands_parsed']!r}, "
             f"offvocab_bands={p9_legacy_rec['selfaudit_offvocab_bands']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P10)-(P13) (999.120 gap closure: CR-01/WR-02): the live label shapes
+    # the agent actually emits, which P1-P9 above did not cover. (P10) pins
+    # P1/P2 on the live heading-parenthetical-with-gloss shape. (P11) pins
+    # fall-through (a non-band parenthetical yields to the trailing marker
+    # line) and precedence (a band on line 0 wins over a later marker line).
+    # (P12) pins the two inline line-0 shapes (`**C1 — t.** Confidence:
+    # **HIGH**` and `**C1 — t. Confidence: HIGH.**`). (P13) is the
+    # anti-overreach half (D-04): a caveat gloss with no marker line, a
+    # "Confidence caveat:" near-miss, and the unfilled `[HIGH / MEDIUM /
+    # LOW]` placeholder must all stay unparsed.
+
+    # (P10) the live heading shape carries P1 and P2.
+    p10_doc = _confidence_test_doc(
+        "**C1 — fixture chain one** *(Confidence: HIGH — gloss text)*\n\n"
+        "GT-3? → intermediate one → conclusion one.\n\n"
+        "**C2 — fixture chain two** *(Confidence: MEDIUM — rests on GT-3?)*\n\n"
+        "GT-3? → intermediate two → conclusion two.\n\n"
+        "**C3 — fixture chain three** *(Confidence: HIGH)*\n\n"
+        "C2 → intermediate three → conclusion three."
+    )
+    p10_rec = detect_defects(p10_doc, "confidence-p10")
+    if p10_rec["confidence_unparsed"] != 0:
+        print(
+            f"self-test FAIL: defects confidence (P10) expected all three "
+            f"live-heading-shape labels to parse, got confidence_unparsed="
+            f"{p10_rec['confidence_unparsed']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    if p10_rec["high_conf_chains"] != 2:
+        print(
+            f"self-test FAIL: defects confidence (P10) expected two HIGH "
+            f"chains (C1, C3), got high_conf_chains={p10_rec['high_conf_chains']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    if p10_rec["_high_conf_unverified_head"] != ["c1"]:
+        print(
+            f"self-test FAIL: defects confidence (P10) expected "
+            f"_high_conf_unverified_head==['c1'], got "
+            f"{p10_rec['_high_conf_unverified_head']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    if p10_rec["_confidence_inversions"] != ["c3"]:
+        print(
+            f"self-test FAIL: defects confidence (P10) expected "
+            f"_confidence_inversions==['c3'] (HIGH C3 citing MEDIUM C2), got "
+            f"{p10_rec['_confidence_inversions']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P11) fall-through (a non-band parenthetical yields to the trailing
+    # marker line) and precedence (a band on line 0 wins over a later,
+    # different marker line).
+    p11_doc = _confidence_test_doc(
+        "**C1 — fixture chain one** *(derived from GT-1)*\n\n"
+        "GT-1 → intermediate one → conclusion one.\n\n"
+        "**Confidence:** MEDIUM\n\n"
+        "**C2 — fixture chain two** *(Confidence: HIGH)*\n\n"
+        "GT-2 → intermediate two → conclusion two.\n\n"
+        "**Confidence:** LOW"
+    )
+    p11_rec = detect_defects(p11_doc, "confidence-p11")
+    if p11_rec["confidence_unparsed"] != 0:
+        print(
+            f"self-test FAIL: defects confidence (P11) expected both "
+            f"labels to parse, got confidence_unparsed="
+            f"{p11_rec['confidence_unparsed']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    if p11_rec["high_conf_chains"] != 1:
+        print(
+            f"self-test FAIL: defects confidence (P11) expected exactly "
+            f"one HIGH chain (C2, whose own line-0 band wins over its "
+            f"later LOW marker line), got high_conf_chains="
+            f"{p11_rec['high_conf_chains']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P12) the inline line-0 shapes.
+    p12_doc = _confidence_test_doc(
+        "**C1 — fixture chain one.** Confidence: **HIGH** (gloss).\n\n"
+        "GT-1 → intermediate one → conclusion one.\n\n"
+        "**C2 — fixture chain two. Confidence: MEDIUM.**\n\n"
+        "GT-2 → intermediate two → conclusion two."
+    )
+    p12_rec = detect_defects(p12_doc, "confidence-p12")
+    if p12_rec["confidence_unparsed"] != 0:
+        print(
+            f"self-test FAIL: defects confidence (P12) expected both "
+            f"inline line-0 labels to parse, got confidence_unparsed="
+            f"{p12_rec['confidence_unparsed']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    if p12_rec["high_conf_chains"] != 1:
+        print(
+            f"self-test FAIL: defects confidence (P12) expected exactly "
+            f"one HIGH chain (C1), got high_conf_chains="
+            f"{p12_rec['high_conf_chains']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P13) anti-overreach (D-04): none of these three near-misses parse.
+    p13_doc = _confidence_test_doc(
+        "**C1 — fixture chain one** *(Confidence: see below)*\n\n"
+        "GT-1 → intermediate one → conclusion one.\n\n"
+        "**C2 — fixture chain two. Confidence caveat: HIGH**\n\n"
+        "GT-2 → intermediate two → conclusion two.\n\n"
+        "**C3 — fixture chain three** *(Confidence: [HIGH / MEDIUM / LOW])*\n\n"
+        "GT-1 → intermediate three → conclusion three."
+    )
+    p13_rec = detect_defects(p13_doc, "confidence-p13")
+    if p13_rec["confidence_unparsed"] != 3 or set(
+        p13_rec["_confidence_unparsed"]
+    ) != {"c1", "c2", "c3"}:
+        print(
+            f"self-test FAIL: defects confidence (P13) expected all three "
+            f"near-miss labels to stay unparsed, got confidence_unparsed="
+            f"{p13_rec['confidence_unparsed']!r}, _confidence_unparsed="
+            f"{p13_rec['_confidence_unparsed']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    if p13_rec["high_conf_chains"] != 0:
+        print(
+            f"self-test FAIL: defects confidence (P13) expected zero HIGH "
+            f"chains, got high_conf_chains={p13_rec['high_conf_chains']!r}",
             file=sys.stderr,
         )
         ok = False
