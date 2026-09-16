@@ -354,8 +354,11 @@ _CORPUS_CATALOG_COLUMNS: dict[str, str] = {
 _VALID_STRATA: frozenset[str] = frozenset({"A", "B1", "B2"})
 
 # Phase 19 (CONF-08, D-19-08-B): the closed vocabulary the catalog's `Target`
-# column is validated against -- the three `detect_defects` columns with
-# genuine substantive reach. `Target` is deliberately scoped to these three:
+# column is validated against -- the three `detect_defects` columns the frozen
+# corpus catalog's `Target` cells were written against. The confidence and
+# band-census columns added at backlog 999.120 are deliberately not in this
+# vocabulary: the catalog is frozen, and extending `Target` needs a
+# re-catalogued corpus. `Target` is deliberately scoped to these three:
 # a stratum-B1 item reachable only by PROV-GUARD reads the literal `none`
 # here, which does not mean "nothing reaches it" -- the `Stratum` column and
 # `Rule that ought to catch it` prose carry that distinction instead.
@@ -2486,7 +2489,8 @@ def _render_adversarial_corpus_section(corpus_rows: list[dict], headline: dict) 
     lines.append(
         "**False-negative rate:** "
         f"{headline['target_missed']} of {headline['total']} corpus items' catalogued "
-        "falsehood the unmodified, CONTRACT-06-frozen `detect_defects` did not catch -- "
+        "falsehood `detect_defects` did not catch (its CONTRACT-06-frozen extractors "
+        "unmodified; its column set as widened at backlog 999.120) -- "
         "despite every item being a stated, catalogued falsehood. Each of those "
         f"{headline['target_missed']} is a false negative: a substantively wrong "
         "analysis this instrument cannot distinguish from a sound one. Diagnostic: "
@@ -2554,9 +2558,12 @@ def _render_adversarial_corpus_section(corpus_rows: list[dict], headline: dict) 
         f"({_fmt_stems(nothing_fired_stems)}) is a false negative under the same figure. "
         "Which item sits in which set is answered by the `target` / `target_hits` / "
         "`target_missed` columns of the table below, never by this prose. The "
-        "false-negative rate above is a measurement no phase may target (D-06): the only "
-        "lever that would move it is widening a frozen detector, which CONTRACT-06 "
-        "forbids."
+        "false-negative rate above is a measurement no phase may target (D-06): "
+        "it moves only when the detector's reach over the three `Target` columns "
+        "changes -- editing a CONTRACT-06-frozen extractor, which CONTRACT-06 forbids, "
+        "or widening what feeds one of those columns, as backlog 999.120 widened "
+        "`selfaudit_disagreements` -- and any such move is recorded as a reach change, "
+        "never as a target met."
     )
     lines.append("")
     lines.append(
@@ -2571,8 +2578,8 @@ def _render_adversarial_corpus_section(corpus_rows: list[dict], headline: dict) 
         lines.append("| " + " | ".join(str(r[f]) for f in _CORPUS_TABLE_FIELDS) + " |")
     lines.append("")
     lines.append(
-        "All thirteen form columns and all nine always-`n/a` provenance columns for "
-        "these items are carried in full in `docs/data/conformance.json` under "
+        "Every `detect_defects` column, including the always-`n/a` provenance columns, "
+        "for these items are carried in full in `docs/data/conformance.json` under "
         "`adversarial_corpus.rows`, and are omitted here for readability."
     )
     lines.append("")
@@ -2764,8 +2771,8 @@ def _render_live_conformance_section(
         lines.append("| " + " | ".join(str(r[f]) for f in _LIVE_TABLE_FIELDS) + " |")
     lines.append("")
     lines.append(
-        "All thirteen form columns and all nine always-`n/a` provenance columns for "
-        "these runs are carried in full in `docs/data/conformance.json` under "
+        "Every `detect_defects` column, including the always-`n/a` provenance columns, "
+        "for these runs are carried in full in `docs/data/conformance.json` under "
         "`live_conformance.rows`, and are omitted here for readability."
     )
     lines.append("")

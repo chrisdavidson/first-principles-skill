@@ -210,16 +210,17 @@ and `scripts/git-hooks/pre-commit` run the same five, in the same order:
    committed baseline only, never on a conformance count being too high (D-06,
    `.planning/phases/17-conformance-baseline/17-CONTEXT.md`). `docs/conformance-baseline.md`
    carries the pre-existing labelled surface `adversarial-corpus`, measuring
-   `tests/adversarial-corpus-v9.0/`'s deliberately-wrong probes under the unmodified, frozen
-   `detect_defects` — a clean probe reading there is a MEASUREMENT of detector reach, never a
-   statement that an artifact conforms — and now carries a fifth labelled surface,
-   `live-conformance`, measuring the agent's own live-invoked output, captured under
-   `tests/live-conformance-v9.0/`, through that same unmodified `detect_defects`. Its rate is a
-   recorded observation, stated with its N, never a gate — conditional on delegation having
-   occurred (D-04) — and subject to the same K-of-5 noise discipline as every other live reading
-   in this file. `tests/live-conformance-v9.0` and `tests/live-conformance-catalog.md` are now
-   registered `_FROZEN_PATHS` entries (Phase 20) alongside `tests/adversarial-corpus-v9.0`,
-   `tests/quality-provenance-v8.24` and `tests/quality-ledger-v8.26`, and the battery total (see
+   `tests/adversarial-corpus-v9.0/`'s deliberately-wrong probes under `detect_defects` — its
+   CONTRACT-06-frozen extractors unmodified, its column set widened at backlog 999.120 — a clean
+   probe reading there is a MEASUREMENT of detector reach, never a statement that an artifact
+   conforms — and now carries a fifth labelled surface, `live-conformance`, measuring the agent's
+   own live-invoked output, captured under `tests/live-conformance-v9.0/`, through that same
+   `detect_defects`. Its rate is a recorded observation, stated with its N, never a gate —
+   conditional on delegation having occurred (D-04) — and subject to the same K-of-5 noise
+   discipline as every other live reading in this file. `tests/live-conformance-v9.0` and
+   `tests/live-conformance-catalog.md` are now registered `_FROZEN_PATHS` entries (Phase 20)
+   alongside `tests/adversarial-corpus-v9.0`, `tests/quality-provenance-v8.24` and
+   `tests/quality-ledger-v8.26`, and the battery total (see
    the generated population-arithmetic sentence above) is unaffected by either
    registered-vs-unregistered pre-commit gate because FROZEN-EVIDENCE is an inline check that
    increments once regardless of array length.
