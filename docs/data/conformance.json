@@ -2511,7 +2511,7 @@
         "chain_flag": 0,
         "dependency_cycles": 0,
         "ungrounded_chains": 0,
-        "selfaudit_disagreements": 0,
+        "selfaudit_disagreements": 1,
         "provenance_labels": "n/a",
         "unmatched_sources": "n/a",
         "unreadable_sources": "n/a",

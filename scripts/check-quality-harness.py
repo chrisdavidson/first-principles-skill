@@ -5476,9 +5476,13 @@ _SELFAUDIT_BAND_RE = re.compile(
 # defect, and under the Criterion 4 Sound band ("chains render their hops as an
 # ordered list ... instead of the prescribed arrow-led form") a Sound verdict
 # alongside malformed chains is the CORRECT self-report, not a disagreement.
+# Criterion 5 Rigorous is contradicted by a HIGH chain resting on an
+# unverified ground truth, or by a chain rated above the chains it cites
+# (999.120 H2, D-05).
 _SELFAUDIT_CONTRADICTIONS: dict[int, tuple[str, ...]] = {
     2: ("nonconforming_verdict_cells",),
     4: ("malformed_chain_blocks", "_dependency_cycles"),
+    5: ("high_conf_unverified_head", "confidence_inversions"),
     6: ("untraced_claims",),
 }
 
@@ -6369,6 +6373,55 @@ Nothing material here.
                 file=sys.stderr,
             )
             ok = False
+
+    # (P8) end to end (999.120 H2, D-05): a HIGH chain whose head cites an
+    # unverified ground truth, plus a legacy Self-Audit Gate verdict block
+    # claiming Criterion 5 Rigorous, reconciles through `detect_defects`
+    # into a Criterion 5 selfaudit_disagreements finding. The same document
+    # with a conceded Sound band yields none — proving the reconciliation
+    # is wired end to end, not only the helper `_selfaudit_calibration_
+    # defects` pinned in isolation above.
+    p8_chain = (
+        "### Chain C1 — first\n\n"
+        "GT-1? → intermediate → conclusion one.\n\n"
+        "**Confidence: HIGH**"
+    )
+    p8_selfaudit = (
+        "\n\n**Criterion 5: Conclusion**\n"
+        "Quoted span: *\"x\"*\n"
+        "Band: **{band}**\n"
+        "Justification: y."
+    )
+    p8_rigorous_rec = detect_defects(
+        _confidence_test_doc(p8_chain) + p8_selfaudit.format(band="Rigorous"),
+        "confidence-p8-rigorous",
+    )
+    if (
+        p8_rigorous_rec["selfaudit_disagreements"] != 1
+        or p8_rigorous_rec["_selfaudit_disagreements"][0]["criterion"] != 5
+    ):
+        print(
+            f"self-test FAIL: defects confidence (P8) a Rigorous Criterion "
+            f"5 next to a HIGH chain over an unverified head did not "
+            f"reconcile into a criterion-5 disagreement: "
+            f"selfaudit_disagreements={p8_rigorous_rec['selfaudit_disagreements']!r}, "
+            f"_selfaudit_disagreements={p8_rigorous_rec['_selfaudit_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p8_sound_rec = detect_defects(
+        _confidence_test_doc(p8_chain) + p8_selfaudit.format(band="Sound"),
+        "confidence-p8-sound",
+    )
+    if p8_sound_rec["selfaudit_disagreements"] != 0:
+        print(
+            f"self-test FAIL: defects confidence (P8) a conceded Sound "
+            f"Criterion 5 band wrongly reconciled into a disagreement: "
+            f"selfaudit_disagreements={p8_sound_rec['selfaudit_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
 
     return ok
 
@@ -14765,6 +14818,13 @@ def _selftest_selfaudit_calibration() -> bool:
     band, a missing self-audit, and an unstated band must each produce NO
     finding. Without those, a check that simply always fired would pass the
     positives — honesty-not-score, D-01.
+
+    Controls (i)-(k) pin Criterion 5 (999.120 H2, D-05): a Rigorous claim
+    contradicted by a HIGH chain resting on an unverified ground truth, by
+    a confidence inversion, and by both at once (two findings, in tuple
+    order). Controls (l)-(m) are Criterion 5's anti-overreach half: a
+    conceded Sound band next to the same nonzero readings, and a Rigorous
+    claim on a clean confidence record, must each produce NO finding.
     """
     ok = True
 
@@ -14776,6 +14836,7 @@ def _selftest_selfaudit_calibration() -> bool:
     def _audit(**bands: str) -> str:
         names = {
             2: "Challenge Assumptions", 4: "Reason Upward",
+            5: "Conclusion",
             6: "Conclusion-to-Ground-Truth Traceability",
         }
         return "\n\n".join(
@@ -14784,7 +14845,8 @@ def _selftest_selfaudit_calibration() -> bool:
             for n, b in ((int(k[1:]), v) for k, v in bands.items()))
 
     clean = {"malformed_chain_blocks": 0, "untraced_claims": 0,
-             "nonconforming_verdict_cells": 0, "_dependency_cycles": []}
+             "nonconforming_verdict_cells": 0, "_dependency_cycles": [],
+             "high_conf_unverified_head": 0, "confidence_inversions": 0}
 
     # (a) Criterion 4 Rigorous vs malformed chains — the observed case.
     d = _selfaudit_calibration_defects(
@@ -14812,7 +14874,8 @@ def _selftest_selfaudit_calibration() -> bool:
 
     # (e) ANTI-OVERREACH: a correct Rigorous claim on a clean record.
     if _selfaudit_calibration_defects(_audit(c2="Rigorous", c4="Rigorous",
-                                             c6="Rigorous"), clean):
+                                             c5="Rigorous", c6="Rigorous"),
+                                       clean):
         _fail("(e) clean record with Rigorous claims spuriously reported")
 
     # (f) ANTI-OVERREACH: Sound alongside malformed chains is the CORRECT
@@ -14832,6 +14895,53 @@ def _selftest_selfaudit_calibration() -> bool:
     if _selfaudit_calibration_defects(
             noband, {**clean, "malformed_chain_blocks": 6}):
         _fail("(h) unstated band wrongly scored as a Rigorous claim")
+
+    # (i) Criterion 5 Rigorous vs a HIGH chain resting on an unverified
+    # ground truth (999.120 H2, D-05).
+    d = _selfaudit_calibration_defects(
+        _audit(c5="Rigorous"), {**clean, "high_conf_unverified_head": 1})
+    if (
+        len(d) != 1
+        or d[0]["criterion"] != 5
+        or d[0]["contradicted_by"] != "high_conf_unverified_head"
+        or d[0]["measured"] != 1
+    ):
+        _fail(f"(i) C5 Rigorous vs high_conf_unverified_head=1 not reported: {d!r}")
+
+    # (j) Criterion 5 Rigorous vs a confidence inversion.
+    d = _selfaudit_calibration_defects(
+        _audit(c5="Rigorous"), {**clean, "confidence_inversions": 2})
+    if (
+        len(d) != 1
+        or d[0]["criterion"] != 5
+        or d[0]["contradicted_by"] != "confidence_inversions"
+        or d[0]["measured"] != 2
+    ):
+        _fail(f"(j) C5 Rigorous vs confidence_inversions=2 not reported: {d!r}")
+
+    # (k) Criterion 5 Rigorous vs both nonzero — two findings, in tuple
+    # order (high_conf_unverified_head, then confidence_inversions).
+    d = _selfaudit_calibration_defects(
+        _audit(c5="Rigorous"),
+        {**clean, "high_conf_unverified_head": 1, "confidence_inversions": 2})
+    if [x["contradicted_by"] for x in d] != [
+        "high_conf_unverified_head", "confidence_inversions"
+    ]:
+        _fail(f"(k) C5 Rigorous vs both nonzero did not report two findings "
+              f"in tuple order: {d!r}")
+
+    # (l) ANTI-OVERREACH: a conceded Sound band next to both nonzero yields
+    # no finding.
+    if _selfaudit_calibration_defects(
+            _audit(c5="Sound"),
+            {**clean, "high_conf_unverified_head": 1, "confidence_inversions": 2}):
+        _fail("(l) conceded Sound band wrongly reported as a disagreement")
+
+    # (m) ANTI-OVERREACH: a Rigorous Criterion 5 claim on a clean record
+    # (both confidence fields zero) yields no finding.
+    if _selfaudit_calibration_defects(_audit(c5="Rigorous"), clean):
+        _fail("(m) clean confidence record with a Rigorous C5 claim "
+              "spuriously reported")
 
     return ok
 
