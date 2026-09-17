@@ -906,12 +906,21 @@ or reworded by this release; each ships exactly as found.
   (`docs/README.md`, `docs/MEASUREMENT-MAP.md`, `docs/COMPONENT-DIAGRAM.md`). Disposition:
   accepted, dispositioned by routing rather than by fix, filed as backlog 999.55. See
   `docs/v9.1-claim-containment-diagnosis.md` § 3.
-- **CR-03** — `docs/README.md` § "Standing of the nine milestone documents" (the
-  `whole-system-remeasure-verdict.md` row) states the document is cited by 13 matrix rows; the
-  live distinct-row count in `docs/data/matrix.json` is 12 — a raw substring count over-counts one
-  row that cites the document twice. Disposition: accepted, with the bound that nothing this
-  milestone reaches it — `docs/README.md` carries no recognised generated fence to compare the
-  claim against — filed as backlog 999.54. See `docs/v9.1-claim-containment-diagnosis.md` § 3.
+- **CR-03** — `docs/README.md` **stated, in two places**, that `whole-system-remeasure-verdict.md`
+  is cited by 13 matrix rows — the § "Standing of the nine milestone documents" row for that
+  document, and its § "Reference & history" row — against a live distinct-row count in
+  `docs/data/matrix.json` of 12, a raw substring count over-counting one row that cites the
+  document twice. Disposition: accepted, with the bound that nothing this milestone reaches it —
+  `docs/README.md` carries no recognised generated fence to compare the claim against — filed as
+  backlog 999.54. See `docs/v9.1-claim-containment-diagnosis.md` § 3.
+
+  **Correction, dated 2026-09-17 (v9.4.0 Phase 43):** this bullet named only the first of the
+  two occurrences while the introducing paragraph above frames the three findings as the
+  disposition of record shipping "exactly as found", which read as complete coverage of a defect
+  it covered half of (backlog 999.58); the second occurrence is named above as of this note. Both
+  occurrences were also reworded off the count in the same phase under backlog 999.54, so this
+  bullet's original present tense no longer described the live page and is restated in the past
+  tense — what v9.0.0 shipped, not what `docs/README.md` says today.
 
 ## [8.26.0] — 2026-09-04
 
