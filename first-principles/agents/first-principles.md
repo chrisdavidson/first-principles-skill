@@ -246,10 +246,10 @@ Analysis Output Template](${CLAUDE_PLUGIN_ROOT}/agents/references/output-templat
 six-section document assembled without it does not carry the `**Confidence:**` field the template
 requires at the end of every Derivation Chain's conclusion block (§4) and again at the end of the
 Conclusion section (§6), nor the requirement in its `Unverified input rule (D-07)` (§4) that a
-MEDIUM or LOW line name the `GT-N?` input or inherited `Cn` behind it — the unverified input notation below states
+MEDIUM or LOW line name each `GT-N?` input and each `Cn` on the chain's head rated below HIGH — the notation below states
 the rating bound, the ceiling and the verification path, not that naming requirement. An analysis assembled
 without that template read has not seen either rule; a trailing `Confidence:` field going missing,
-or a MEDIUM or LOW line that never names its `GT-N?` input or inherited `Cn`, is what that omission produces. If
+or a MEDIUM or LOW line that omits one of its `GT-N?` inputs or a cited `Cn` rated below HIGH, is what that produces. If
 that read fails, still assemble the document using only the six sections named above under Output
 format, and disclose the failed template read under the rule that closes "Before presenting
 conclusions".
