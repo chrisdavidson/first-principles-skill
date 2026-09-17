@@ -201,11 +201,13 @@ nothing here enforces that automatically.
 
 The text above (lines 1-198) is frozen and left byte-unchanged. The numbered corrections below
 supersede the specific sentences they cite; no capture, TSV reading or sha256 recorded above is
-affected — the reading method's correct in-place form is given in item 5 below.
+affected — the reading method's correct in-place form is given in item 5 below. Items 1, 3 and 5
+were corrected, and item 8 was added, on 2026-09-17.
 
-1. **"Instrument check" (line 164-165).** The claim that "a direct instrument check against the
-   frozen before-fixture already confirmed the shipped rule text names that fixture's violation by
-   name" is withdrawn. The shipped rule text names no chain: `C8` occurs in neither
+1. **"Instrument check" (line 164-165).** The claim that "a direct instrument check against
+   DEMO-TRIAGE (recorded in `42-EVIDENCE.md`) already confirmed the shipped rule text names C8's
+   exact violation" is withdrawn; `42-EVIDENCE.md` is a local planning record, not a tracked file.
+   The shipped rule text names no chain: `C8` occurs in neither
    `output-template.md` nor `validation-rubric.md`. The recorded check ran Phase 41's
    `detect_defects` over `tests/reference-reads-v9.2.1/DEMO-TRIAGE.md`, an unmodified pre-phase
    fixture, and found `confidence_inversions = 1` (`c8`). Both the instrument and the fixture
@@ -221,21 +223,23 @@ affected — the reading method's correct in-place form is given in item 5 below
    clause fails to work" sentence rested on nothing here, and is replaced with: the legs
    neither confirm nor refute the clause's live effect.
 
-3. **Qualifying shape (line 153).** The Finding's "a HIGH chain whose head cites only MEDIUM `Cn`
-   chains" is not the pre-registered definition. Restated from `catalog.md` ("Definition of a
-   qualifying chain"): a chain whose head cites at least one chain, cites only chains labelled
-   exactly MEDIUM, and carries no `GT-N?`, whatever the chain's own label. Q counts captures
-   containing such a chain; K counts those in which every such chain is rated MEDIUM or LOW; a HIGH
-   rating on such a chain is the *violation*, not the shape. Under the pre-registered definition the
-   pilot `CT-P1` did show the shape (chain C9, labelled MEDIUM), which the Finding's HIGH-only
-   wording would contradict.
+3. **Qualifying shape and K (lines 140, 153).** The Finding's "a HIGH chain whose head cites only
+   MEDIUM `Cn` chains" is not the pre-registered definition. Restated from `catalog.md`
+   ("Definition of a qualifying chain"): a chain whose head cites at least one chain, cites only
+   chains labelled exactly MEDIUM, and carries no `GT-N?`, whatever the chain's own label. Q counts
+   captures containing such a chain; K counts those in which every such chain is rated MEDIUM or
+   LOW; a HIGH rating on such a chain is the *violation*, not the shape. Under the pre-registered
+   definition the pilot `CT-P1` did show the shape (chain C9, labelled MEDIUM), which the Finding's
+   HIGH-only wording would contradict. The comparison table's K row (line 140), "qualifying chains
+   rated MEDIUM or lower", is superseded the same way: K counts captures, not chains.
 
 4. **File count (line 7).** "All thirteen files, plus this README" is wrong. The directory holds
    **25 tracked files**: 22 capture files (11 `.jsonl`/`.md` pairs), `catalog.md`,
    `read-qualifying.py` and this README.
 
 5. **Reading method (lines 78-87).** Running the reader on the whole directory reads the pilot and
-   both legs together and prints `Q=1 K=1 NO_QUALIFYING=10`, which reproduces neither recorded leg.
+   both legs together and prints `Q=1`, `K=1`, `NO_QUALIFYING=10` and `UNREADABLE_OR_UNPAIRABLE=0`,
+   each on its own line, which reproduces neither recorded leg.
    The recorded TSVs were produced per leg: each leg's five `.md`/`.jsonl` pairs were copied into a
    scratch directory holding only that leg, and the command was run as
    `python3 tests/confidence-transitivity-v9.4/read-qualifying.py <leg-scratch-dir> --jsonl-dir <leg-scratch-dir>`.
@@ -255,6 +259,13 @@ affected — the reading method's correct in-place form is given in item 5 below
 7. **Pilot-exclusion reason (lines 73-76).** Nothing would be double-counted: `CT-P1` is its own
    generation and belongs to neither leg. It is excluded because `catalog.md` ("Capture IDs")
    pre-registers pilots as excluded from K and Q.
+
+8. **Frozen-status wording (lines 3-4, 7-8, 186-187).** Those lines say this README is never
+   hand-edited and that any correction is a fresh capture rather than an edit. Read them with this
+   erratum: this README receives dated errata in this section only, below line 198; lines 1-198 and
+   every capture, catalog and reader file stay byte-unchanged. An erratum corrects this README's
+   account of the readings; it is not a correction to the captures, which still require a fresh
+   capture.
 
 One before/after movement already in the comparison table above is worth restating here:
 `confidence_inversions` read nonzero in 2 of 5 before-leg captures and 0 of 5 after. This is an
