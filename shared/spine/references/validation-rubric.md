@@ -98,10 +98,12 @@ unreachable is the satisfying evidence; the ground truth may feed only MEDIUM or
 
 **(b) Speculative chain** — Criterion 5. A chain is explicitly marked speculative and the
 analysis states the claim it supports is not load-bearing; the mark plus that statement is
-the satisfying evidence; the chain may remain MEDIUM. A speculative chain cited on another
-chain's head is load-bearing and no longer qualifies. A speculative chain with no verification
-path is therefore not cited on another chain's head; it stays speculative or moves to
-Abandoned Reasoning.
+the satisfying evidence; the chain may remain MEDIUM. Its confidence line still gives each of
+its own downgrade causes what would remove it or an explicit account of why no available
+evidence settles it, because the mark is not a no-path reason. A speculative chain cited on
+another chain's head is load-bearing and no longer qualifies. A speculative chain with no
+verification path is therefore not cited on another chain's head; it stays speculative or
+moves to Abandoned Reasoning.
 
 **(c) Absent-fails derivation** — Criterion 5. A chain establishes that a conclusion does not
 follow from an assumption shown to be false; the named false assumption is the satisfying
@@ -434,10 +436,12 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
   this aggregation yields HIGH. EXCEPT: a chain is explicitly marked speculative — for
   example `[Speculative]` — and the analysis states, in the same place, that the claim it
   supports is not load-bearing and is offered for exploration only; that mark plus that
-  statement is the satisfying evidence, and the chain may remain MEDIUM; a speculative chain
-  cited on another chain's head is load-bearing and no longer satisfies this EXCEPT clause, so
-  a speculative chain with no verification path is not cited on another chain's head and
-  instead stays speculative or moves to Abandoned Reasoning (output section 5).
+  statement is the satisfying evidence, and the chain may remain MEDIUM, though its confidence
+  line still gives each of its own downgrade causes what would remove it or an explicit account
+  of why no available evidence settles it, because the mark is not a no-path reason; a
+  speculative chain cited on another chain's head is load-bearing and no longer satisfies this
+  EXCEPT clause, so a speculative chain with no verification path is not cited on another
+  chain's head and instead stays speculative or moves to Abandoned Reasoning (output section 5).
   EXCEPT: a chain is
   an absent-fails derivation — of the form "if [assumption] were true we could conclude X;
   [assumption] is false; therefore X does not follow" — whose named false assumption is the
