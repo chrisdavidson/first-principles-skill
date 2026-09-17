@@ -49,11 +49,11 @@ Names the edited surfaces:
 - [`validation-rubric.md`](first-principles/agents/references/validation-rubric.md), Validate
   criterion and its exceptions summary: the ceiling in the Rigorous band and new banded violations
   in the Sound band; Rigorous requires, and Sound bands the omission of, naming each cited chain
-  rated below HIGH; Sound also bands a confidence line that gives a downgrade cause of its own
-  chain with neither what would remove it nor a permitted no-path reason, and a chain that cites a
-  speculative chain with no verification path; and the speculative-chain exception is narrowed, so
-  a cited chain no longer carries it and a speculative chain with no verification path is not
-  cited;
+  rated below HIGH; Sound also bands a confidence line that omits a downgrade cause of its own
+  chain, or gives one with neither what would remove it nor a permitted no-path reason, and a
+  chain that cites a speculative chain with no verification path; and the speculative-chain
+  exception is narrowed, so a cited chain no longer carries it and a speculative chain with no
+  verification path is not cited;
 - the agent body's unverified-input notation, which gains the ceiling, now asks for the
   verification that would remove an unverified input as a cause of the downgrade, and deliberately
   keeps its existing "depending on" wording while saying that the explanation belongs on the line

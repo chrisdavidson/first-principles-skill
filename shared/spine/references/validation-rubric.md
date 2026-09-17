@@ -461,17 +461,18 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
 
 - **Sound** — confidence ratings exist on chains, but a MEDIUM or LOW confidence line omits a
   GT-N? input it rests on directly, or a Cn its head cites (or, on the Conclusion section, a
-  contributing chain) that is rated below HIGH; OR a confidence line names a GT-N? input
-  without the verification that would remove it as a cause of the downgrade; OR a confidence
-  line gives a downgrade cause belonging to its own chain or Conclusion with neither what would
-  remove it as a cause of the downgrade nor a permitted no-path reason — for an absent-fails
-  derivation, the absent-fails EXCEPT clause, or an explicit account of why no available
-  evidence settles that cause —
-  including a line whose only account of such a cause is the speculative EXCEPT clause or any
-  clause other than the absent-fails one; OR a chain's head cites a chain marked speculative
-  that has no verification path; OR a chain is rated HIGH confidence while consuming a GT-N?
-  input (the rating does not match the unverified-input rule); OR a chain is rated above the
-  lowest-rated chain its head cites.
+  contributing chain) that is rated below HIGH, or a downgrade cause belonging to its own chain
+  or Conclusion — including a MEDIUM or LOW rating that no named GT-N? input or Cn accounts for
+  and whose line names no cause of its own; OR a confidence line names a GT-N? input without the
+  verification that would remove it as a cause of the downgrade; OR a confidence line gives a
+  downgrade cause belonging to its own chain or Conclusion with neither what would remove it as
+  a cause of the downgrade nor a permitted no-path reason — for an absent-fails derivation, the
+  absent-fails EXCEPT clause, or an explicit account of why no available evidence settles that
+  cause — including a line whose only account of such a cause is the speculative EXCEPT clause
+  or any clause other than the absent-fails one; OR a chain's head cites a chain marked
+  speculative that has no verification path; OR a chain is rated HIGH confidence while consuming
+  a GT-N? input (the rating does not match the unverified-input rule); OR a chain is rated above
+  the lowest-rated chain its head cites.
 
 - **Hand-wavy** — confidence ratings appear on the overall Conclusion section but are absent
   from individual derivation chains; OR weak links are described in general terms ("some
