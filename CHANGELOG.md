@@ -31,16 +31,16 @@ never a reason to rate a chain HIGH. A chain rated MEDIUM under a validation-rub
 still caps the chains that cite it. A MEDIUM or LOW confidence line explains only its own chain's
 rating, so its validity never depends on how far away a cap originates. It names each unverified
 ground truth with the verification that would remove it as a cause of the downgrade, and names each
-chain on its head rated below HIGH without re-explaining it, since the cited chain's own confidence
-line carries the explanation. For each downgrade cause belonging to the chain itself, such as a weak
-inference step or an absent-fails derivation, the line says what would remove it as a cause of the
-downgrade or gives a reason no verification path exists: the rubric's absent-fails exception, or an
-explicit account of why no available evidence settles that cause. The absent-fails exception is the
-only exception that can stand in for a verification path, and "speculative" is never such a reason.
-A speculative chain that another chain cites is load-bearing, so the rubric's speculative-chain
-exception no longer covers it and the cited chain's own confidence line states its verification
-path; a speculative chain with no verification path is not cited on another chain's head, and stays
-speculative or moves to the Abandoned Reasoning section.
+chain on its head rated below HIGH, which it need not re-explain, since the cited chain's own
+confidence line carries the explanation. For each downgrade cause belonging to the chain itself,
+such as a weak inference step or an absent-fails derivation, the line says what would remove it as
+a cause of the downgrade or gives a reason no verification path exists: the rubric's absent-fails
+exception, or an explicit account of why no available evidence settles that cause. The absent-fails
+exception is the only exception that can stand in for a verification path, and "speculative" is
+never such a reason. A speculative chain that another chain cites is load-bearing, so the rubric's
+speculative-chain exception no longer covers it and the cited chain's own confidence line states
+its verification path; a speculative chain with no verification path is not cited on another
+chain's head, and stays speculative or moves to the Abandoned Reasoning section.
 
 Names the edited surfaces:
 - [`output-template.md`](first-principles/agents/references/output-template.md), the
@@ -56,9 +56,10 @@ Names the edited surfaces:
   cited;
 - the agent body's unverified-input notation, which gains the ceiling, now asks for the
   verification that would remove an unverified input as a cause of the downgrade, and deliberately
-  keeps its existing "depending on" wording, with the template carrying the full statement, and its
-  self-audit template-read paragraph, which now says the naming requirement covers inherited
-  chains;
+  keeps its existing "depending on" wording while saying that the explanation belongs on the line
+  that rests on the unverified input directly, which a citing chain names and need not re-explain,
+  with the template carrying the full statement, and its self-audit template-read paragraph, which
+  now says the naming requirement covers inherited chains;
 - the `/reason-upward` skill, which now states the unverified-input rule (D-07) inline where it
   previously only named it, defining in place the absent-fails exception, the only exception that
   can stand in for a verification path there.

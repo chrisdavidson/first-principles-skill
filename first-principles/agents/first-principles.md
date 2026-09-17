@@ -298,7 +298,7 @@ A hop states exactly ONE inference. If a hop joins two claims with "and", or car
 
 TELL (not the rule): a hop past ~200 characters is almost always two hops. Measure the hop, then split — do not wrap it, and do not trim words to hit a number.
 
-**Unverified input notation:** `GT-N?` marks a ground truth that is an untested belief elevated for use in a chain. Any conclusion depending on a `GT-N?` input inherits a MEDIUM or LOW confidence rating with an explicit explanation of the verification that would remove that input as a cause of the downgrade; a chain is also capped at the lowest-rated chain its head cites.
+**Unverified input notation:** `GT-N?` marks a ground truth that is an untested belief elevated for use in a chain. Any conclusion depending on a `GT-N?` input inherits a MEDIUM or LOW confidence rating with an explicit explanation of the verification that would remove that input as a cause of the downgrade; that explanation belongs on the confidence line that rests on the input directly, and a chain citing a chain that carries it names that chain and need not re-explain the input. A chain is also capped at the lowest-rated chain its head cites.
 
 For the full annotated template with section-by-section guidance, type definitions, verdict vocabulary, and worked placeholder text, see the [First Principles Analysis Output Template](${CLAUDE_PLUGIN_ROOT}/agents/references/output-template.md).
 

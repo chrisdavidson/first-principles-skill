@@ -48,7 +48,7 @@ chain is rated no higher than the lowest-rated chain its head cites — a ceilin
 rate a chain HIGH. A MEDIUM or LOW chain's confidence line explains only its own chain's rating, so
 its validity never depends on how far away a cap originates. It names each `GT-N?` input with the
 verification that would remove it as a cause of the downgrade. It names each `Cn` on the chain's
-head rated below HIGH and does not re-explain that `Cn`, whose own confidence line carries the
+head rated below HIGH and need not re-explain that `Cn`, whose own confidence line carries the
 explanation. For each downgrade cause belonging to the chain itself — for example a weak inference
 step or an absent-fails derivation — it states what would remove it as a cause of the downgrade or a
 stated reason no verification path exists: the absent-fails exception, or an explicit account of why
