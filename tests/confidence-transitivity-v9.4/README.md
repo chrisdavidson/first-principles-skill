@@ -202,7 +202,7 @@ nothing here enforces that automatically.
 The text above (lines 1-198) is frozen and left byte-unchanged. The numbered corrections below
 supersede the specific sentences they cite; no capture, TSV reading or sha256 recorded above is
 affected — the reading method's correct in-place form is given in item 5 below. Items 1, 3 and 5
-were corrected, and item 8 was added, on 2026-09-17.
+were corrected, and item 8 was added and its line citation later corrected, on 2026-09-17.
 
 1. **"Instrument check" (line 164-165).** The claim that "a direct instrument check against
    DEMO-TRIAGE (recorded in `42-EVIDENCE.md`) already confirmed the shipped rule text names C8's
@@ -260,7 +260,7 @@ were corrected, and item 8 was added, on 2026-09-17.
    generation and belongs to neither leg. It is excluded because `catalog.md` ("Capture IDs")
    pre-registers pilots as excluded from K and Q.
 
-8. **Frozen-status wording (lines 3-4, 7-8, 186-187).** Those lines say this README is never
+8. **Frozen-status wording (lines 3-4, 7-8, 186-188).** Those lines say this README is never
    hand-edited and that any correction is a fresh capture rather than an edit. Read them with this
    erratum: this README receives dated errata in this section only, below line 198; lines 1-198 and
    every capture, catalog and reader file stay byte-unchanged. An erratum corrects this README's
