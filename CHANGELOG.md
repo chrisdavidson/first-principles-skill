@@ -15,6 +15,9 @@ installed session.
 
 ## [9.3.2] — 2026-09-16
 
+Amended on 2026-09-17, before publication, to restate the confidence-line rule below; the heading
+keeps the original release date.
+
 Released as a patch ahead of milestone v9.4.0 (Source-Literal Pinning): it ships Phase 42
 (backlog 999.119) and Phase 41 (backlog 999.120) while Phases 36-39 remain open. Where the tree
 names "v9.4.0 Phase 41" or "v9.4.0 Phase 42" — including the record's own phase directories —
@@ -25,33 +28,40 @@ than the lowest-rated chain its head cites — the unverified-input rule (D-07)'
 ceiling. The comparison is against the stated confidence label of each chain named on the head
 line, the line before the first `→`. The rule is a ceiling that bounds a rating from above; it is
 never a reason to rate a chain HIGH. A chain rated MEDIUM under a validation-rubric exception
-still caps the chains that cite it. A MEDIUM or LOW confidence line produced by the ceiling names
-each inherited chain alongside any unverified ground truth and, for each inherited chain, says what
-would raise it to HIGH or, where that chain is rated MEDIUM under the rubric's absent-fails
-exception, or its cap traces back through any number of cited chains to a chain that is, and no
-verification path exists, names that chain and that exception. The absent-fails exception is the
-only one such a line names. A speculative chain that another chain cites is load-bearing, so the
-rubric's speculative-chain exception no longer covers it and the citing line states its verification
+still caps the chains that cite it. A MEDIUM or LOW confidence line explains only its own chain's
+rating, so its validity never depends on how far away a cap originates. It names each unverified
+ground truth with the verification that would remove it as a cause of the downgrade, and names each
+chain on its head rated below HIGH without re-explaining it, since the cited chain's own confidence
+line carries the explanation. For each downgrade cause belonging to the chain itself, such as a weak
+inference step or an absent-fails derivation, the line says what would remove it as a cause of the
+downgrade or gives a reason no verification path exists: the rubric's absent-fails exception, or an
+explicit account of why no available evidence settles that cause. The absent-fails exception is the
+only exception that can stand in for a verification path, and "speculative" is never such a reason.
+A speculative chain that another chain cites is load-bearing, so the rubric's speculative-chain
+exception no longer covers it and the cited chain's own confidence line states its verification
 path; a speculative chain with no verification path is not cited on another chain's head, and stays
 speculative or moves to the Abandoned Reasoning section.
 
 Names the edited surfaces:
 - [`output-template.md`](first-principles/agents/references/output-template.md), the
-  unverified-input rule (D-07), the §4 confidence placeholder and the §6 Conclusion confidence
-  note;
+  unverified-input rule (D-07), the §4 confidence placeholder, the §5 list of abandonment reasons
+  and the §6 Conclusion confidence note;
 - [`validation-rubric.md`](first-principles/agents/references/validation-rubric.md), Validate
   criterion and its exceptions summary: the ceiling in the Rigorous band and new banded violations
-  in the Sound band; Rigorous requires, and Sound bands the omission of, naming each inherited
-  chain; Sound also bands a confidence line that gives neither a path to HIGH nor the absent-fails
-  naming the Rigorous band permits; and the speculative-chain exception is narrowed, so a cited
-  chain no longer carries it and a speculative chain with no verification path is not cited;
-- the agent body's unverified-input notation, which gains the ceiling and deliberately keeps its
-  existing "depending on" wording, with the template carrying the full statement, and its
+  in the Sound band; Rigorous requires, and Sound bands the omission of, naming each cited chain
+  rated below HIGH; Sound also bands a confidence line that gives a downgrade cause of its own
+  chain with neither what would remove it nor a permitted no-path reason, and a chain that cites a
+  speculative chain with no verification path; and the speculative-chain exception is narrowed, so
+  a cited chain no longer carries it and a speculative chain with no verification path is not
+  cited;
+- the agent body's unverified-input notation, which gains the ceiling, now asks for the
+  verification that would remove an unverified input as a cause of the downgrade, and deliberately
+  keeps its existing "depending on" wording, with the template carrying the full statement, and its
   self-audit template-read paragraph, which now says the naming requirement covers inherited
   chains;
 - the `/reason-upward` skill, which now states the unverified-input rule (D-07) inline where it
-  previously only named it, defining in place the absent-fails exception, the only exception a
-  confidence line there names.
+  previously only named it, defining in place the absent-fails exception, the only exception that
+  can stand in for a verification path there.
 
 The agent's reference tree carries no separate `reason-upward` file of its own, so the agent
 reaches the rule through its body and the `output-template.md` link the body already carries — not
@@ -81,16 +91,17 @@ equal effect; it is not a gate, and it cannot be attributed to the change with c
 
 The after-side captures were taken before the wording-agreement edits that also ship in this
 release. The Validate criterion's Rigorous band requires, and its Sound band bands the omission of,
-naming each inherited chain, and the agent body's template-read paragraph now says the template's
-naming requirement covers inherited chains. For each inherited chain, a confidence line gives a path
-to HIGH or, where that chain is rated MEDIUM under the absent-fails exception, or its cap traces
-back through any number of cited chains to a chain that is, and no verification path exists, names
-that chain and that exception: the template and the rubric's Rigorous band have the line name it as
-the rubric's absent-fails clause, and `/reason-upward`, which carries no rubric, has it name the
-absent-fails exception it defines. No other exception can be named: the rubric's speculative-chain
-exception no longer covers a chain that another chain cites, and a speculative chain with no
-verification path is not cited. Those edits were not live-captured. The fixture README carries a
-dated erratum correcting its own account of the readings.
+naming each cited chain rated below HIGH, and the agent body's template-read paragraph now says
+the template's naming requirement covers inherited chains. Each confidence line explains only its
+own chain's rating: a cited chain is named there and explained on its own line, and each downgrade
+cause of the chain itself gets what would remove it or a reason no verification path exists. That
+reason is the absent-fails exception, which the template and the rubric's Rigorous band name as
+the rubric's absent-fails clause and `/reason-upward`, which carries no rubric, defines in place,
+or an explicit account of why no available evidence settles that cause. No other exception can
+stand in for a verification path: the rubric's speculative-chain exception no longer covers a chain
+that another chain cites, and a speculative chain with no verification path is not cited. Those
+edits were not live-captured. The fixture README carries a dated erratum correcting its own account
+of the readings.
 
 No gate was added or registered. See [`CLAUDE.md`](CLAUDE.md) § CI gates for the current battery,
 CI and coverage-headline totals — none of them moved and none is restated here.
