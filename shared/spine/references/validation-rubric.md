@@ -98,7 +98,8 @@ unreachable is the satisfying evidence; the ground truth may feed only MEDIUM or
 
 **(b) Speculative chain** — Criterion 5. A chain is explicitly marked speculative and the
 analysis states the claim it supports is not load-bearing; the mark plus that statement is
-the satisfying evidence; the chain may remain MEDIUM.
+the satisfying evidence; the chain may remain MEDIUM. A speculative chain cited on another
+chain's head is load-bearing and no longer qualifies.
 
 **(c) Absent-fails derivation** — Criterion 5. A chain establishes that a conclusion does not
 follow from an assumption shown to be false; the named false assumption is the satisfying
@@ -414,18 +415,20 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
 - **Rigorous** — every derivation chain's weakest link is named; every GT-N? input that
   appears in a load-bearing chain, and every inherited Cn that caps one, is named in a
   confidence caveat stating which unverified input or inherited Cn caused the downgrade and
-  either what specific verification raises confidence to HIGH or, for an inherited Cn that an
-  EXCEPT clause below holds at MEDIUM, that clause; the
+  either what specific verification raises confidence to HIGH or, where an inherited Cn is
+  rated MEDIUM under an EXCEPT clause below and no verification path exists, that clause; the
   overall Conclusion section's confidence rating (HIGH / MEDIUM / LOW) matches the weakest
   chain that contributes to it, counting only chains not covered by an EXCEPT clause stated
   in this same descriptor; no chain that consumes a GT-N? input is rated HIGH confidence;
   every chain is rated no higher than the lowest-rated chain its head cites, a ceiling that
-  holds even when a cited chain stays MEDIUM under an EXCEPT clause below.
+  holds even when a cited chain is rated MEDIUM under an EXCEPT clause below.
   Every claim in the Conclusion section rests on at least one HIGH-confidence chain, so that
   this aggregation yields HIGH. EXCEPT: a chain is explicitly marked speculative — for
   example `[Speculative]` — and the analysis states, in the same place, that the claim it
   supports is not load-bearing and is offered for exploration only; that mark plus that
-  statement is the satisfying evidence, and the chain may remain MEDIUM. EXCEPT: a chain is
+  statement is the satisfying evidence, and the chain may remain MEDIUM; a speculative chain
+  cited on another chain's head is load-bearing and no longer satisfies this EXCEPT clause.
+  EXCEPT: a chain is
   an absent-fails derivation — of the form "if [assumption] were true we could conclude X;
   [assumption] is false; therefore X does not follow" — whose named false assumption is the
   satisfying evidence, and the chain may remain MEDIUM because it establishes what does not

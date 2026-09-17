@@ -35,8 +35,10 @@ contradicts a Ground Truth, the conclusion returns to Phase 2 for re-challenging
 **Confidence rule (D-07):** a chain that includes any `GT-N?` input is rated MEDIUM or LOW, and a
 chain is rated no higher than the lowest-rated chain its head cites — a ceiling, never a reason to
 rate a chain HIGH. A MEDIUM or LOW chain names each `GT-N?` input and inherited `Cn` behind its
-rating and states what verification would raise that input or `Cn` to HIGH, or, for a `Cn` that
-stays MEDIUM by design (a `[Speculative]` chain or an absent-fails derivation), says so.
+rating and states what verification of that input, or what would raise that `Cn`, would raise the
+chain to HIGH, or, where a cited `Cn` is rated MEDIUM under the absent-fails exception — it shows
+that a conclusion does not follow because an assumption it needs is false — and no verification
+path exists, names that exception.
 
 **Chain form:**
 
