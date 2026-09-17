@@ -765,6 +765,7 @@ _FROZEN_PATHS=(
     'tests/recurrence-reading-v9.1'
     'tests/reference-reads-v9.2.1'
     'tests/reference-reads-v9.2.2'
+    'tests/confidence-transitivity-v9.4'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null
