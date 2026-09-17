@@ -196,3 +196,67 @@ untracked file appearing inside the directory — but a committed `git rm` of on
 passes it clean. It is tamper-evidence for modification, not a deletion guard. Any change to this
 fixture's committed contents, including removal, must be reviewed in-diff like any other commit;
 nothing here enforces that automatically.
+
+## Erratum (2026-09-16)
+
+The text above (lines 1-198) is frozen and left byte-unchanged. The numbered corrections below
+supersede the specific sentences they cite; no capture, TSV reading or sha256 recorded above is
+affected — the reading method's correct in-place form is given in item 5 below.
+
+1. **"Instrument check" (line 164-165).** The claim that "a direct instrument check against the
+   frozen before-fixture already confirmed the shipped rule text names that fixture's violation by
+   name" is withdrawn. The shipped rule text names no chain: `C8` occurs in neither
+   `output-template.md` nor `validation-rubric.md`. The recorded check ran Phase 41's
+   `detect_defects` over `tests/reference-reads-v9.2.1/DEMO-TRIAGE.md`, an unmodified pre-phase
+   fixture, and found `confidence_inversions = 1` (`c8`). Both the instrument and the fixture
+   predate this phase's text edit, so the check tests the instrument against the fixture and says
+   nothing about the shipped clause's wording or its live effect.
+
+2. **"CT-A3's chain C7" (lines 161-163).** `CT-A3` has six chain blocks, C1 to C6, and no C7. The
+   quoted line "It inherits MEDIUM from C1, C3, C4 and C5" is **C6's own confidence line**, not a
+   separate chain C7. C6's head cites C1 through C5, with C2 labelled HIGH. The before leg shows the
+   same behaviour of naming inherited MEDIUM chains — `CT-B1`: "on MEDIUM chains C3 and C4";
+   `CT-B3`: "the MEDIUM ratings of C2, C3, C5 and C6" — so that behaviour does not distinguish the
+   legs and is not evidence for the fix. The Finding's "It is not evidence that the shipped ceiling
+   clause fails to work" sentence rested on nothing here, and is replaced with: the legs
+   neither confirm nor refute the clause's live effect.
+
+3. **Qualifying shape (line 153).** The Finding's "a HIGH chain whose head cites only MEDIUM `Cn`
+   chains" is not the pre-registered definition. Restated from `catalog.md` ("Definition of a
+   qualifying chain"): a chain whose head cites at least one chain, cites only chains labelled
+   exactly MEDIUM, and carries no `GT-N?`, whatever the chain's own label. Q counts captures
+   containing such a chain; K counts those in which every such chain is rated MEDIUM or LOW; a HIGH
+   rating on such a chain is the *violation*, not the shape. Under the pre-registered definition the
+   pilot `CT-P1` did show the shape (chain C9, labelled MEDIUM), which the Finding's HIGH-only
+   wording would contradict.
+
+4. **File count (line 7).** "All thirteen files, plus this README" is wrong. The directory holds
+   **25 tracked files**: 22 capture files (11 `.jsonl`/`.md` pairs), `catalog.md`,
+   `read-qualifying.py` and this README.
+
+5. **Reading method (lines 78-87).** Running the reader on the whole directory reads the pilot and
+   both legs together and prints `Q=1 K=1 NO_QUALIFYING=10`, which reproduces neither recorded leg.
+   The recorded TSVs were produced per leg: each leg's five `.md`/`.jsonl` pairs were copied into a
+   scratch directory holding only that leg, and the command was run as
+   `python3 tests/confidence-transitivity-v9.4/read-qualifying.py <leg-scratch-dir> --jsonl-dir <leg-scratch-dir>`.
+   The equivalent in-place form, which needs no scratch copy, is one command per leg:
+
+   ```bash
+   python3 tests/confidence-transitivity-v9.4/read-qualifying.py tests/confidence-transitivity-v9.4/CT-B1.md tests/confidence-transitivity-v9.4/CT-B2.md tests/confidence-transitivity-v9.4/CT-B3.md tests/confidence-transitivity-v9.4/CT-B4.md tests/confidence-transitivity-v9.4/CT-B5.md --jsonl-dir tests/confidence-transitivity-v9.4
+
+   python3 tests/confidence-transitivity-v9.4/read-qualifying.py tests/confidence-transitivity-v9.4/CT-A1.md tests/confidence-transitivity-v9.4/CT-A2.md tests/confidence-transitivity-v9.4/CT-A3.md tests/confidence-transitivity-v9.4/CT-A4.md tests/confidence-transitivity-v9.4/CT-A5.md --jsonl-dir tests/confidence-transitivity-v9.4
+   ```
+
+   Each command prints `Q=0`, `K=0`, `NO_QUALIFYING=5` and `UNREADABLE_OR_UNPAIRABLE=0`.
+
+6. **Summary-line formatting (lines 94, 103, 120, 132).** The tab-joined `Q=… K=…` lines above were
+   joined for display. The reader prints each summary value on its own line.
+
+7. **Pilot-exclusion reason (lines 73-76).** Nothing would be double-counted: `CT-P1` is its own
+   generation and belongs to neither leg. It is excluded because `catalog.md` ("Capture IDs")
+   pre-registers pilots as excluded from K and Q.
+
+One before/after movement already in the comparison table above is worth restating here:
+`confidence_inversions` read nonzero in 2 of 5 before-leg captures and 0 of 5 after. This is an
+N=5 observation, not a gate, and it cannot be attributed to the edit with confidence. Qualifying-chain
+counting excludes these MEDIUM-over-LOW heads by design.
