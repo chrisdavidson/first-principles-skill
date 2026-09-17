@@ -3616,8 +3616,6 @@ _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('docs/PROCESS.md', 'two plans'): ('999.44', 1, "Correct: 'Round 3 grew from two plans to three' -- round 3's original, pre-growth scope, a closed historical count distinct from the 'plans to three' entry above, which captures the post-growth half of the same sentence."),
     ('docs/README.md', '**0 items'): ('999.44', 1, "Correct: main.py's three dedicated test files collected 0 items each for two years (260728-pa2) -- a closed historical measurement; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'no items run after run'."),
     ('docs/README.md', '**one** entry'): ('999.44', 1, "Correct: as of the 2026-07-29 disposition, the use-journal limb held exactly one entry -- a closed historical count of a past state; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'only a single'."),
-    ('docs/README.md', "13 live matrix rows'"): ('999.44', 1, "Correct: whole-system-remeasure-verdict.md anchors provenance for 13 live matrix rows' dispositions -- a closed count measured against the traceability matrix at the time this doc-index entry was written; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'several'."),
-    ('docs/README.md', '13 rows'): ('999.44', 1, 'Correct: whole-system-remeasure-verdict.md is referenced by 13 rows of the traceability matrix -- a closed count of a specific matrix generation; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had dropped the number entirely.'),
     ('docs/README.md', '16 gates'): ('999.44', 1, "Correct: v8.13's launcher sat undeliverable while 16 gates stayed green -- a closed historical count of the battery size at that specific 2026-07-29 milestone-open moment, before CONF-SURFACE and other later gates were added; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'the whole battery'."),
     ('docs/README.md', '19 not-approved items),'): ('999.44', 1, "Correct: v8.2's re-investigation covered the 19 not-approved items -- a closed historical count from a milestone that ended in 2026 and cannot go stale; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had dropped the number entirely."),
     ('docs/README.md', '6 live rows'): ('999.44', 1, "Correct: v8.14's own milestone audit compared 6 live rows to 0 baseline rows and printed a pass -- a closed historical measurement of that specific audit run; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'live rows against a stale, empty baseline'."),
@@ -3862,7 +3860,7 @@ def _deferred_ledger_keys_digest(
 # reconciliation discipline (re-deriving every "live-verified" reason from
 # a fresh `--describe` invocation, never trusting a prior reading) for the
 # practice that actually catches this, since the ratchet itself cannot.
-_DEFERRED_LEDGER_MAX: int = 177
+_DEFERRED_LEDGER_MAX: int = 175
 
 
 # A sha256 pin over the ledger's sorted `(relpath, text)` key set (plan
@@ -3895,8 +3893,15 @@ _DEFERRED_LEDGER_MAX: int = 177
 # '16 surfaces') -- a NOT-A-COUNT permit for the governing-record row
 # sentence this plan reworded off that literal, per
 # docs/v9.4-gate-retirement.md §2.5. 178 -> 177.
+#
+# Re-pinned by Phase 43 plan 01 Task 1, in the same commit as backlog
+# 999.54's fix: the pair of docs/README.md frozen-historical permits for
+# the raw-substring matrix-row-citation count removed -- both
+# whole-system-remeasure-verdict.md rows this plan reworded, stating the
+# over-count and its v7.11/RECON-01 double-citation cause instead of a
+# bare digit. 177 -> 175.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:2471b6898eb6104b6d43304aca63968b7ab31bbebf07bca2b0d5edfb301160f5"
+    "sha256:b3f9b6bd29d485df3755830c5a3f041a43db0ce29b1dd021c0403747afc93ff2"
 )
 
 
@@ -5844,15 +5849,15 @@ def _control_containment_slash_paired_vector_stripped() -> None:
 
 def _control_delta_chain_hops_confsurface_corrected() -> None:
     """docs/gates/CONF-SURFACE.md's real, live outside text, driven through
-    `generate_all()` (never a paraphrase) -- AFTER plan 40-10 Task 2's own
-    correction: one chain, hop count 8, terminus `('177',)`, matching the
-    live `_DEFERRED_LEDGER_MAX`. This control is LIVE-TEXT-DRIVEN; each
-    prior plan that shrank the ledger (26-06, 40-06) revised this same
-    assertion to the hop count and terminus its own correction produced.
-    Revised again here in the SAME commit that corrects the real page, per
-    the plan's own note that a live-text control tracks whatever the live
-    text says. See `_control_chain_terminus_pre_fix_synthetic_fixture` for
-    the control that stays provable in perpetuity after this correction."""
+    `generate_all()` (never a paraphrase) -- AFTER Phase 43 plan 01 Task 1's
+    own correction: one chain, hop count 9, terminus `('175',)`, matching
+    the live `_DEFERRED_LEDGER_MAX`. This control is LIVE-TEXT-DRIVEN; each
+    prior plan that shrank the ledger (26-06, 40-06, 40-10) revised this
+    same assertion to the hop count and terminus its own correction
+    produced. Revised again here in the SAME commit that corrects the real
+    page, per the plan's own note that a live-text control tracks whatever
+    the live text says. See `_control_chain_terminus_pre_fix_synthetic_fixture`
+    for the control that stays provable in perpetuity after this correction."""
     pass1 = generate_all()
     entry = next(e for e in _gate_registry.ENTRIES if e.key == "CONF-SURFACE")
     path = DETAIL_PAGE_DIR / f"{_page_slug(entry)}.md"
@@ -5864,15 +5869,15 @@ def _control_delta_chain_hops_confsurface_corrected() -> None:
     ]
     chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
     assert len(chains) == 1, chains
-    assert len(chains[0]) == 8, chains[0]
-    assert chains[0][-1][1] == ("177",), chains[0]
+    assert len(chains[0]) == 9, chains[0]
+    assert chains[0][-1][1] == ("175",), chains[0]
     inside_numbers = _normalise_numbers(
         _strip_citation_shaped_numbers(
             "\n".join(line for line, is_in in zip(lines, inside) if is_in)
         ),
         include_spelled_out=True,
     )
-    assert "177" in inside_numbers, inside_numbers
+    assert "175" in inside_numbers, inside_numbers
 
 
 def _control_delta_chain_hops_qual01_out_of_grammar() -> None:
