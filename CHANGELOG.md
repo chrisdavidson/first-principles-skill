@@ -13,6 +13,46 @@ installed session.
 
 ## [Unreleased]
 
+Closes backlog **999.119** as a **product change**: a derivation chain is now rated no higher
+than the lowest-rated chain its head cites — the unverified-input rule (D-07)'s new transitivity
+ceiling. The comparison is against the stated confidence label of each chain named on the head
+line, the line before the first `→`. The rule is a ceiling that bounds a rating from above; it is
+never a reason to rate a chain HIGH. A chain left at MEDIUM under a validation-rubric exception
+still caps the chains that cite it. A MEDIUM or LOW confidence line produced by the ceiling names
+each inherited chain alongside any unverified ground truth.
+
+Names the edited surfaces:
+- [`output-template.md`](first-principles/agents/references/output-template.md), the
+  unverified-input rule (D-07) and the §6 Conclusion confidence note;
+- [`validation-rubric.md`](first-principles/agents/references/validation-rubric.md), Validate
+  criterion: the ceiling in the Rigorous band and a new banded violation in the Sound band;
+- the agent body's unverified-input notation;
+- the `/reason-upward` skill, which now states the unverified-input rule (D-07) inline where it
+  previously only named it.
+
+The agent's reference tree carries no separate `reason-upward` file of its own, so the agent
+reaches the rule through its body and the `output-template.md` link the body already carries — not
+through a second generated reference sibling.
+
+Evidence, reported as an observation:
+[`tests/confidence-transitivity-v9.4/`](tests/confidence-transitivity-v9.4/README.md) holds five
+live captures of one purpose-built prompt taken before the change and five after. A qualifying
+chain — one whose head cites only MEDIUM chains and no unverified ground truth — was rated MEDIUM
+or lower in K_before=0 of the Q_before=0 before-leg captures that contained one, and in K_after=0
+of the Q_after=0 after-leg captures that contained one; every one of the five captures in each leg
+contained no qualifying chain. The frozen v9.2.1 triage capture's single inversion (a HIGH decision
+chain over three MEDIUM chains) stays the standing before-reading. Neither leg reproduced the
+qualifying shape across five fresh generations, so this after-leg reading has no non-zero
+before-leg base to compare against and no ratio comparison is possible in either direction — the
+finding is scoped to what five fresh generations per side did not reproduce, not to whether the
+shipped ceiling clause fails to work: a related mixed-rank chain in the after leg shows the model
+correctly capping and naming inherited MEDIUM inputs, and a direct instrument check against the
+frozen before-fixture already confirms the shipped rule text names that fixture's violation by
+name. This is a recorded observation at five captures per leg, not a gate.
+
+No gate was added or registered. See [`CLAUDE.md`](CLAUDE.md) § CI gates for the current battery,
+CI and coverage-headline totals — none of them moved and none is restated here.
+
 Closes backlog **999.120** as an **apparatus change**: `detect_defects`
 (`scripts/check-quality-harness.py`) gains a confidence dimension and a self-audit band census.
 The claim-audience is the measurement instrument, not a plugin user.
