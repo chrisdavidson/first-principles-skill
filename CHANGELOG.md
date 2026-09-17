@@ -13,6 +13,13 @@ installed session.
 
 ## [Unreleased]
 
+## [9.3.2] — 2026-09-16
+
+Released as a patch ahead of milestone v9.4.0 (Source-Literal Pinning): it ships Phase 42
+(backlog 999.119) and Phase 41 (backlog 999.120) while Phases 36-39 remain open. Where the tree
+names "v9.4.0 Phase 41" or "v9.4.0 Phase 42" — including the record's own phase directories —
+that is the work's provenance; it ships in this release.
+
 Closes backlog **999.119** as a **product change**: a derivation chain is now rated no higher
 than the lowest-rated chain its head cites — the unverified-input rule (D-07)'s new transitivity
 ceiling. The comparison is against the stated confidence label of each chain named on the head
