@@ -101,7 +101,9 @@ unreachable is the satisfying evidence; the ground truth may feed only MEDIUM or
 **(b) Speculative chain** — Criterion 5. A chain is explicitly marked speculative and the
 analysis states the claim it supports is not load-bearing; the mark plus that statement is
 the satisfying evidence; the chain may remain MEDIUM. A speculative chain cited on another
-chain's head is load-bearing and no longer qualifies.
+chain's head is load-bearing and no longer qualifies. A speculative chain with no verification
+path is therefore not cited on another chain's head; it stays speculative or moves to
+Abandoned Reasoning.
 
 **(c) Absent-fails derivation** — Criterion 5. A chain establishes that a conclusion does not
 follow from an assumption shown to be false; the named false assumption is the satisfying
@@ -418,7 +420,9 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
   appears in a load-bearing chain, and every inherited Cn that caps one, is named in a
   confidence caveat stating which unverified input or inherited Cn caused the downgrade and
   either what specific verification raises confidence to HIGH or, where an inherited Cn is
-  rated MEDIUM under an EXCEPT clause below and no verification path exists, that clause; the
+  rated MEDIUM under the absent-fails EXCEPT clause below, or its cap traces back through any
+  number of cited chains to a chain that is, and no verification path exists, that chain and
+  that clause; the
   overall Conclusion section's confidence rating (HIGH / MEDIUM / LOW) matches the weakest
   chain that contributes to it, counting only chains not covered by an EXCEPT clause stated
   in this same descriptor; no chain that consumes a GT-N? input is rated HIGH confidence;
@@ -429,7 +433,9 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
   example `[Speculative]` — and the analysis states, in the same place, that the claim it
   supports is not load-bearing and is offered for exploration only; that mark plus that
   statement is the satisfying evidence, and the chain may remain MEDIUM; a speculative chain
-  cited on another chain's head is load-bearing and no longer satisfies this EXCEPT clause.
+  cited on another chain's head is load-bearing and no longer satisfies this EXCEPT clause, so
+  a speculative chain with no verification path is not cited on another chain's head and
+  instead stays speculative or moves to Abandoned Reasoning (output section 5).
   EXCEPT: a chain is
   an absent-fails derivation — of the form "if [assumption] were true we could conclude X;
   [assumption] is false; therefore X does not follow" — whose named false assumption is the
@@ -451,7 +457,11 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
   chains that cap a chain's rating, are not mentioned in that chain's confidence line; OR a
   chain is rated HIGH confidence while
   consuming a GT-N? input (the rating does not match the unverified-input rule); OR a chain is
-  rated above the lowest-rated chain its head cites.
+  rated above the lowest-rated chain its head cites; OR a confidence line names a GT-N? input
+  or inherited Cn but gives neither what specific verification raises confidence to HIGH nor,
+  where the Rigorous band's alternative above applies, the chain and the absent-fails EXCEPT
+  clause that alternative names — including a line that names the speculative EXCEPT clause,
+  or any clause other than the absent-fails one, for a cited chain.
 
 - **Hand-wavy** — confidence ratings appear on the overall Conclusion section but are absent
   from individual derivation chains; OR weak links are described in general terms ("some

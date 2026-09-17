@@ -46,10 +46,12 @@ contradicts a Ground Truth, the conclusion returns to Phase 2 for re-challenging
 **Confidence rule (D-07):** a chain that includes any `GT-N?` input is rated MEDIUM or LOW, and a
 chain is rated no higher than the lowest-rated chain its head cites — a ceiling, never a reason to
 rate a chain HIGH. A MEDIUM or LOW chain names each `GT-N?` input and inherited `Cn` behind its
-rating and states what verification of that input, or what would raise that `Cn`, would raise the
-chain to HIGH, or, where a cited `Cn` is rated MEDIUM under the absent-fails exception — it shows
-that a conclusion does not follow because an assumption it needs is false — and no verification
-path exists, names that exception.
+rating and, for each, states what would remove it as a cause of the downgrade — the `GT-N?` input
+verified, or the `Cn` raised to HIGH — or, where that `Cn` is rated MEDIUM under the absent-fails
+exception, or its cap traces back through any number of cited chains to a chain that is, and no
+verification path exists, names that chain and that exception. The absent-fails exception covers a
+chain showing that a conclusion does not follow because an assumption it needs is false, and it is
+the only exception such a line names.
 
 **Chain form:**
 
