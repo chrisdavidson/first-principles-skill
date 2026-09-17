@@ -26,14 +26,17 @@ ceiling. The comparison is against the stated confidence label of each chain nam
 line, the line before the first `→`. The rule is a ceiling that bounds a rating from above; it is
 never a reason to rate a chain HIGH. A chain left at MEDIUM under a validation-rubric exception
 still caps the chains that cite it. A MEDIUM or LOW confidence line produced by the ceiling names
-each inherited chain alongside any unverified ground truth.
+each inherited chain alongside any unverified ground truth, and says what would raise that chain to
+HIGH or, where a validation-rubric exception holds it at MEDIUM, names that exception.
 
 Names the edited surfaces:
 - [`output-template.md`](first-principles/agents/references/output-template.md), the
   unverified-input rule (D-07) and the §6 Conclusion confidence note;
 - [`validation-rubric.md`](first-principles/agents/references/validation-rubric.md), Validate
-  criterion: the ceiling in the Rigorous band and a new banded violation in the Sound band;
-- the agent body's unverified-input notation;
+  criterion: the ceiling in the Rigorous band, a new banded violation in the Sound band, and, in
+  both bands, the requirement that a confidence line name each inherited chain;
+- the agent body's unverified-input notation and its self-audit template-read paragraph, which now
+  says the naming requirement covers inherited chains;
 - the `/reason-upward` skill, which now states the unverified-input rule (D-07) inline where it
   previously only named it.
 
@@ -50,12 +53,25 @@ of the Q_after=0 after-leg captures that contained one; every one of the five ca
 contained no qualifying chain. The frozen v9.2.1 triage capture's single inversion (a HIGH decision
 chain over three MEDIUM chains) stays the standing before-reading. Neither leg reproduced the
 qualifying shape across five fresh generations, so this after-leg reading has no non-zero
-before-leg base to compare against and no ratio comparison is possible in either direction — the
-finding is scoped to what five fresh generations per side did not reproduce, not to whether the
-shipped ceiling clause fails to work: a related mixed-rank chain in the after leg shows the model
-correctly capping and naming inherited MEDIUM inputs, and a direct instrument check against the
-frozen before-fixture already confirms the shipped rule text names that fixture's violation by
-name. This is a recorded observation at five captures per leg, not a gate.
+before-leg base to compare against and no ratio comparison is possible in either direction. The
+finding is scoped to what five fresh generations per side did not reproduce, and it neither
+confirms nor refutes the ceiling clause's live effect. Captures on both sides name inherited MEDIUM
+chains in their confidence lines, so that behaviour does not distinguish them. Separately,
+`detect_defects` flags the triage capture's decision chain as a confidence inversion — the
+violation the new clause describes — which checks the instrument against that fixture and says
+nothing about the clause. This is a recorded observation at five captures per leg, not a gate.
+
+The broader measure moved: `confidence_inversions` read nonzero in 2/5 captures before the change
+and 0/5 after, each before-side case a MEDIUM chain citing a LOW chain — a shape the
+qualifying-chain count excludes by design. That movement is an observation at N=5, where noise can
+equal effect; it is not a gate, and it cannot be attributed to the change with confidence.
+
+The after-side captures were taken before the wording-agreement edits that also ship in this
+release: the Validate criterion's Rigorous and Sound bands and the agent body's template-read
+paragraph now require naming each inherited chain, and the template and `/reason-upward` now let a
+line name the exception that holds a cited chain at MEDIUM instead of a path to HIGH. Those edits
+were not live-captured. The fixture README carries a dated erratum correcting its own account of
+the readings.
 
 No gate was added or registered. See [`CLAUDE.md`](CLAUDE.md) § CI gates for the current battery,
 CI and coverage-headline totals — none of them moved and none is restated here.
