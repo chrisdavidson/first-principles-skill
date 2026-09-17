@@ -267,9 +267,11 @@ product findings.
 
 **Accepted limitation, stated plainly.** `bm:gsd-code-reviewer` is vendored outside this
 repository, under the plugin cache, and is replaced on plugin update — there is no repo-side
-binding. The agent holds `Read`, `Grep` and `Glob` and reads this file, which is the only reach
-this repository has into its behaviour. The first live test of whether this block is honoured is
-this phase's own `/bm:code-review 22`.
+binding, and this repository cannot pin which tools it holds. As installed when last checked
+(`bm` plugin 4.5.5, read 2026-09-17) it holds `Read`, `Write`, `Bash`, `Grep` and `Glob`;
+re-derive that set from the installed agent definition's own `tools:` line before relying on
+it. It reads this file, which is the only reach this repository has into its behaviour. The
+first live test of whether this block is honoured was Phase 22's own `/bm:code-review 22`.
 
 **The derived check a reviewer's output must satisfy**, stated as prose rather than as a gate:
 every finding in a `REVIEW.md` carries a `product` or `apparatus` tier, and a finding carrying
