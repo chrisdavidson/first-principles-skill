@@ -45,13 +45,16 @@ contradicts a Ground Truth, the conclusion returns to Phase 2 for re-challenging
 
 **Confidence rule (D-07):** a chain that includes any `GT-N?` input is rated MEDIUM or LOW, and a
 chain is rated no higher than the lowest-rated chain its head cites — a ceiling, never a reason to
-rate a chain HIGH. A MEDIUM or LOW chain names each `GT-N?` input and inherited `Cn` behind its
-rating and, for each, states what would remove it as a cause of the downgrade — the `GT-N?` input
-verified, or the `Cn` raised to HIGH — or, where that `Cn` is rated MEDIUM under the absent-fails
-exception, or its cap traces back through any number of cited chains to a chain that is, and no
-verification path exists, names that chain and that exception. The absent-fails exception covers a
-chain showing that a conclusion does not follow because an assumption it needs is false, and it is
-the only exception such a line names.
+rate a chain HIGH. A MEDIUM or LOW chain's confidence line explains only its own chain's rating, so
+its validity never depends on how far away a cap originates. It names each `GT-N?` input with the
+verification that would remove it as a cause of the downgrade. It names each `Cn` on the chain's
+head rated below HIGH and does not re-explain that `Cn`, whose own confidence line carries the
+explanation. For each downgrade cause belonging to the chain itself — for example a weak inference
+step or an absent-fails derivation — it states what would remove it as a cause of the downgrade or a
+stated reason no verification path exists: the absent-fails exception, or an explicit account of why
+no available evidence settles that cause. The absent-fails exception covers a chain showing that a
+conclusion does not follow because an assumption it needs is false, and it is the only exception that
+can stand in for a verification path.
 
 **Chain form:**
 
