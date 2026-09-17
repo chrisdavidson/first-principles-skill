@@ -426,9 +426,9 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
   own caveat carries its explanation; and for each downgrade cause belonging to the chain or
   Conclusion itself, such as a weak inference step or an absent-fails derivation, it states
   what would remove it as a cause of the downgrade or a stated reason no verification path
-  exists, that reason
-  being either the absent-fails EXCEPT clause below, the only clause that can stand in for a
-  verification path, or an explicit account of why no available evidence settles that cause;
+  exists, that reason being either, for an absent-fails derivation, the absent-fails EXCEPT
+  clause below, the only clause that can stand in for a verification path, or an explicit
+  account of why no available evidence settles that cause;
   the overall Conclusion section's confidence rating (HIGH / MEDIUM / LOW) matches the weakest
   chain that contributes to it, counting only chains not covered by an EXCEPT clause stated in
   this same descriptor; no chain that consumes a GT-N? input is rated HIGH confidence; every
@@ -466,8 +466,9 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
   contributing chain) that is rated below HIGH; OR a confidence line names a GT-N? input
   without the verification that would remove it as a cause of the downgrade; OR a confidence
   line gives a downgrade cause belonging to its own chain or Conclusion with neither what would
-  remove it as a cause of the downgrade nor a permitted no-path reason — the absent-fails
-  EXCEPT clause, or an explicit account of why no available evidence settles that cause —
+  remove it as a cause of the downgrade nor a permitted no-path reason — for an absent-fails
+  derivation, the absent-fails EXCEPT clause, or an explicit account of why no available
+  evidence settles that cause —
   including a line whose only account of such a cause is the speculative EXCEPT clause or any
   clause other than the absent-fails one; OR a chain's head cites a chain marked speculative
   that has no verification path; OR a chain is rated HIGH confidence while consuming a GT-N?

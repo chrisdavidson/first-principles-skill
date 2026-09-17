@@ -51,10 +51,10 @@ verification that would remove it as a cause of the downgrade. It names each `Cn
 head rated below HIGH and need not re-explain that `Cn`, whose own confidence line carries the
 explanation. For each downgrade cause belonging to the chain itself — for example a weak inference
 step or an absent-fails derivation — it states what would remove it as a cause of the downgrade or a
-stated reason no verification path exists: the absent-fails exception, or an explicit account of why
-no available evidence settles that cause. The absent-fails exception covers a chain showing that a
-conclusion does not follow because an assumption it needs is false, and it is the only exception that
-can stand in for a verification path.
+stated reason no verification path exists: for an absent-fails derivation, the absent-fails
+exception, or an explicit account of why no available evidence settles that cause. The absent-fails
+exception covers a chain showing that a conclusion does not follow because an assumption it needs is
+false, and it is the only exception that can stand in for a verification path.
 
 **Chain form:**
 

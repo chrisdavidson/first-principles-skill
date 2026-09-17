@@ -23,24 +23,24 @@ Released as a patch ahead of milestone v9.4.0 (Source-Literal Pinning): it ships
 names "v9.4.0 Phase 41" or "v9.4.0 Phase 42" — including the record's own phase directories —
 that is the work's provenance; it ships in this release.
 
-Closes backlog **999.119** as a **product change**: a derivation chain is now rated no higher
-than the lowest-rated chain its head cites — the unverified-input rule (D-07)'s new transitivity
-ceiling. The comparison is against the stated confidence label of each chain named on the head
-line, the line before the first `→`. The rule is a ceiling that bounds a rating from above; it is
-never a reason to rate a chain HIGH. A chain rated MEDIUM under a validation-rubric exception
-still caps the chains that cite it. A MEDIUM or LOW confidence line explains only its own chain's
-rating, so its validity never depends on how far away a cap originates. It names each unverified
-ground truth with the verification that would remove it as a cause of the downgrade, and names each
-chain on its head rated below HIGH, which it need not re-explain, since the cited chain's own
-confidence line carries the explanation. For each downgrade cause belonging to the chain itself,
-such as a weak inference step or an absent-fails derivation, the line says what would remove it as
-a cause of the downgrade or gives a reason no verification path exists: the rubric's absent-fails
-exception, or an explicit account of why no available evidence settles that cause. The absent-fails
-exception is the only exception that can stand in for a verification path, and "speculative" is
-never such a reason. A speculative chain that another chain cites is load-bearing, so the rubric's
-speculative-chain exception no longer covers it and the cited chain's own confidence line states
-its verification path; a speculative chain with no verification path is not cited on another
-chain's head, and stays speculative or moves to the Abandoned Reasoning section.
+Closes backlog **999.119** as a **product change**: a derivation chain is now rated no higher than
+the lowest-rated chain its head cites — the unverified-input rule (D-07)'s new transitivity ceiling.
+The comparison is against the stated confidence label of each chain named on the head line, the line
+before the first `→`. The rule is a ceiling that bounds a rating from above; it is never a reason to
+rate a chain HIGH. A chain rated MEDIUM under a validation-rubric exception still caps the chains
+that cite it. A MEDIUM or LOW confidence line explains only its own chain's rating, so its validity
+never depends on how far away a cap originates. It names each unverified ground truth with the
+verification that would remove it as a cause of the downgrade, and names each chain on its head
+rated below HIGH, which it need not re-explain, since the cited chain's own confidence line carries
+the explanation. For each downgrade cause belonging to the chain itself, such as a weak inference
+step or an absent-fails derivation, the line says what would remove it as a cause of the downgrade
+or gives a reason no verification path exists: for an absent-fails derivation, the rubric's
+absent-fails exception, or an explicit account of why no available evidence settles that cause. The
+absent-fails exception is the only exception that can stand in for a verification path, and
+"speculative" is never such a reason. A speculative chain that another chain cites is load-bearing,
+so the rubric's speculative-chain exception no longer covers it and the cited chain's own confidence
+line states its verification path; a speculative chain with no verification path is not cited on
+another chain's head, and stays speculative or moves to the Abandoned Reasoning section.
 
 Names the edited surfaces:
 - [`output-template.md`](first-principles/agents/references/output-template.md), the
@@ -92,17 +92,17 @@ equal effect; it is not a gate, and it cannot be attributed to the change with c
 
 The after-side captures were taken before the wording-agreement edits that also ship in this
 release. The Validate criterion's Rigorous band requires, and its Sound band bands the omission of,
-naming each cited chain rated below HIGH, and the agent body's template-read paragraph now says
-the template's naming requirement covers inherited chains. Each confidence line explains only its
-own chain's rating: a cited chain is named there and explained on its own line, and each downgrade
-cause of the chain itself gets what would remove it or a reason no verification path exists. That
-reason is the absent-fails exception, which the template and the rubric's Rigorous band name as
-the rubric's absent-fails clause and `/reason-upward`, which carries no rubric, defines in place,
-or an explicit account of why no available evidence settles that cause. No other exception can
-stand in for a verification path: the rubric's speculative-chain exception no longer covers a chain
-that another chain cites, and a speculative chain with no verification path is not cited. Those
-edits were not live-captured. The fixture README carries a dated erratum correcting its own account
-of the readings.
+naming each cited chain rated below HIGH, and the agent body's template-read paragraph now says the
+template's naming requirement covers inherited chains. Each confidence line explains only its own
+chain's rating: a cited chain is named there and explained on its own line, and each downgrade cause
+of the chain itself gets what would remove it or a reason no verification path exists. That reason
+is, for an absent-fails derivation, the absent-fails exception, which the template and the rubric's
+Rigorous band name as the rubric's absent-fails clause and `/reason-upward`, which carries no
+rubric, defines in place, or an explicit account of why no available evidence settles that cause. No
+other exception can stand in for a verification path: the rubric's speculative-chain exception no
+longer covers a chain that another chain cites, and a speculative chain with no verification path is
+not cited. Those edits were not live-captured. The fixture README carries a dated erratum correcting
+its own account of the readings.
 
 No gate was added or registered. See [`CLAUDE.md`](CLAUDE.md) § CI gates for the current battery,
 CI and coverage-headline totals — none of them moved and none is restated here.
