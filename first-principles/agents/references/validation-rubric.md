@@ -422,9 +422,9 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
   cause of the downgrade, and each Cn its head cites — or, for the Conclusion section, each
   contributing chain — that is rated below HIGH, and it need not re-explain a named Cn, whose
   own caveat carries its explanation; and for each downgrade cause belonging to the chain or
-  Conclusion itself, such as a weak inference step, a ground truth whose source the Phase 3
-  verification step could not open, or an absent-fails derivation, it states what would remove
-  it as a cause of the downgrade or a stated reason no verification path exists, that reason
+  Conclusion itself, such as a weak inference step or an absent-fails derivation, it states
+  what would remove it as a cause of the downgrade or a stated reason no verification path
+  exists, that reason
   being either the absent-fails EXCEPT clause below, the only clause that can stand in for a
   verification path, or an explicit account of why no available evidence settles that cause;
   the overall Conclusion section's confidence rating (HIGH / MEDIUM / LOW) matches the weakest
