@@ -32,10 +32,11 @@ contradicts a Ground Truth, the conclusion returns to Phase 2 for re-challenging
 **Named artifact:** Derivation Chains — one chain per conclusion, formatted as
 `GT-N + GT-M → [intermediate claim] → [conclusion]`, with confidence levels per D-07.
 
-**Confidence rule (D-07):** a chain whose head cites any `GT-N?` input is rated MEDIUM or LOW, and
-a chain is rated no higher than the lowest-rated chain its head cites — a ceiling, never a reason
-to rate a chain HIGH. A MEDIUM or LOW chain names each `GT-N?` input and inherited `Cn` behind its
-rating and what verification would raise it to HIGH.
+**Confidence rule (D-07):** a chain that includes any `GT-N?` input is rated MEDIUM or LOW, and a
+chain is rated no higher than the lowest-rated chain its head cites — a ceiling, never a reason to
+rate a chain HIGH. A MEDIUM or LOW chain names each `GT-N?` input and inherited `Cn` behind its
+rating and states what verification would raise that input or `Cn` to HIGH, or, for a `Cn` that
+stays MEDIUM by design (a `[Speculative]` chain or an absent-fails derivation), says so.
 
 **Chain form:**
 

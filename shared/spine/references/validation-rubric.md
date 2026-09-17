@@ -412,8 +412,10 @@ links resolved or explicitly flagged with confidence caveats — across all six 
 focusing on the confidence caveats attached to the Derivation Chains (output section 4).
 
 - **Rigorous** — every derivation chain's weakest link is named; every GT-N? input that
-  appears in a load-bearing chain has a confidence caveat stating which unverified input
-  caused the downgrade and what specific verification raises confidence to HIGH; the
+  appears in a load-bearing chain, and every inherited Cn that caps one, is named in a
+  confidence caveat stating which unverified input or inherited Cn caused the downgrade and
+  either what specific verification raises confidence to HIGH or, for an inherited Cn that an
+  EXCEPT clause below holds at MEDIUM, that clause; the
   overall Conclusion section's confidence rating (HIGH / MEDIUM / LOW) matches the weakest
   chain that contributes to it, counting only chains not covered by an EXCEPT clause stated
   in this same descriptor; no chain that consumes a GT-N? input is rated HIGH confidence;
@@ -440,8 +442,9 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
   two EXCEPT clauses above names it in the Criterion 5 verdict block and cites the evidence
   that clause requires; an unclaimed exception is not applied on the analysis's behalf.
 
-- **Sound** — confidence ratings exist on chains, but one or more GT-N? inputs in chains are
-  not mentioned in the chain's confidence line; OR a chain is rated HIGH confidence while
+- **Sound** — confidence ratings exist on chains, but one or more GT-N? inputs, or inherited Cn
+  chains that cap a chain's rating, are not mentioned in that chain's confidence line; OR a
+  chain is rated HIGH confidence while
   consuming a GT-N? input (the rating does not match the unverified-input rule); OR a chain is
   rated above the lowest-rated chain its head cites.
 
