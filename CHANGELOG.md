@@ -24,21 +24,28 @@ Closes backlog **999.119** as a **product change**: a derivation chain is now ra
 than the lowest-rated chain its head cites — the unverified-input rule (D-07)'s new transitivity
 ceiling. The comparison is against the stated confidence label of each chain named on the head
 line, the line before the first `→`. The rule is a ceiling that bounds a rating from above; it is
-never a reason to rate a chain HIGH. A chain left at MEDIUM under a validation-rubric exception
+never a reason to rate a chain HIGH. A chain rated MEDIUM under a validation-rubric exception
 still caps the chains that cite it. A MEDIUM or LOW confidence line produced by the ceiling names
 each inherited chain alongside any unverified ground truth, and says what would raise that chain to
-HIGH or, where a validation-rubric exception holds it at MEDIUM, names that exception.
+HIGH or, where that chain is rated MEDIUM under a validation-rubric exception and no verification
+path exists, names that exception. A speculative chain that another chain cites is load-bearing, so
+the rubric's speculative-chain exception no longer covers it; only the absent-fails exception can be
+named for a cited chain.
 
 Names the edited surfaces:
 - [`output-template.md`](first-principles/agents/references/output-template.md), the
-  unverified-input rule (D-07) and the §6 Conclusion confidence note;
+  unverified-input rule (D-07), the §4 confidence placeholder and the §6 Conclusion confidence
+  note;
 - [`validation-rubric.md`](first-principles/agents/references/validation-rubric.md), Validate
-  criterion: the ceiling in the Rigorous band, a new banded violation in the Sound band, and, in
-  both bands, the requirement that a confidence line name each inherited chain;
-- the agent body's unverified-input notation and its self-audit template-read paragraph, which now
-  says the naming requirement covers inherited chains;
+  criterion and its exceptions summary: the ceiling in the Rigorous band and a new banded violation
+  in the Sound band; Rigorous requires, and Sound bands the omission of, naming each inherited
+  chain; and the speculative-chain exception is narrowed;
+- the agent body's unverified-input notation, which gains the ceiling and deliberately keeps its
+  existing "depending on" wording, with the template carrying the full statement, and its
+  self-audit template-read paragraph, which now says the naming requirement covers inherited
+  chains;
 - the `/reason-upward` skill, which now states the unverified-input rule (D-07) inline where it
-  previously only named it.
+  previously only named it, defining in place the absent-fails exception a cited chain can carry.
 
 The agent's reference tree carries no separate `reason-upward` file of its own, so the agent
 reaches the rule through its body and the `output-template.md` link the body already carries — not
@@ -67,11 +74,14 @@ qualifying-chain count excludes by design. That movement is an observation at N=
 equal effect; it is not a gate, and it cannot be attributed to the change with confidence.
 
 The after-side captures were taken before the wording-agreement edits that also ship in this
-release: the Validate criterion's Rigorous and Sound bands and the agent body's template-read
-paragraph now require naming each inherited chain, and the template and `/reason-upward` now let a
-line name the exception that holds a cited chain at MEDIUM instead of a path to HIGH. Those edits
-were not live-captured. The fixture README carries a dated erratum correcting its own account of
-the readings.
+release. The Validate criterion's Rigorous and Sound bands and the agent body's template-read
+paragraph now require naming each inherited chain. Where a cited chain is rated MEDIUM under an
+exception and no verification path exists, a confidence line may name that exception instead of a
+path to HIGH: the template and the rubric's Rigorous band require the line to name the rubric
+clause, and `/reason-upward`, which carries no rubric, requires it to name the absent-fails
+exception it defines. The rubric's speculative-chain exception no longer covers a chain that
+another chain cites. Those edits were not live-captured. The fixture README carries a dated
+erratum correcting its own account of the readings.
 
 No gate was added or registered. See [`CLAUDE.md`](CLAUDE.md) § CI gates for the current battery,
 CI and coverage-headline totals — none of them moved and none is restated here.
