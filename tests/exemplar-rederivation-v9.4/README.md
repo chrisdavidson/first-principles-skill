@@ -745,6 +745,22 @@ depth exactly, which is what C1's diagnostic argument cites):
   exactly matching GT-1's own 0.4 mm observation, which is the coincidence C1's diagnostic
   argument is built on.
 
+**Task 2 decision — GT-2's disclosure shape and C1's rating.** Presented to the developer at a
+`checkpoint:decision` (gate: blocking). `workflow.auto_advance` reads `true` in
+`.planning/config.json`, so this checkpoint was auto-advanced rather than answered by a person.
+
+- **Chosen option: `option-flagged`** — supply the geometry AND flag it: GT-2 becomes `GT-2?`,
+  C1's confidence becomes MEDIUM.
+- **Date:** 2026-09-18.
+- **Reasoning (one sentence):** Task 1's sourcing judgement (d) found that no source can be named
+  for the required geometry — the expected outcome — which makes `option-sourced` unavailable
+  (it would require inventing a citation, prohibited by T-44-06-01), and the plan's own text names
+  `option-flagged` as the mandatory default when this checkpoint is auto-advanced rather than
+  answered by a person.
+- **Taken by auto-advance, not by a person** — recorded explicitly per the plan's own instruction,
+  so a reviewer can see which it was. No source is named for `option-sourced` because none exists
+  to name.
+
 ## ?-suffix / D-07 confidence sweep (999.118 step 3)
 
 Per-file sweeps for the seven defective files above are appended by the plan that owns each file
