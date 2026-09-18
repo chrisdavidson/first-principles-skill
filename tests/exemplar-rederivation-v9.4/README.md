@@ -535,7 +535,106 @@ sites plus the line-163 site it flagged and handed to this plan).**
 
 ### science-engineering.md         (plan 44-05)
 
-*(pending - plan 44-05)*
+**Defect 1 — GT-2's false "consistent with" derivation claim, NARROW fix per D-01 (origin: line
+55, pre-edit; the Assumptions Table row at line 36 makes the identical claim and moved with it;
+999.118's own citation `science-engineering.md:55`).**
+- Inputs (file's own): GT-2's own five enumerated loss/retention figures, read live at
+  `shared/examples/science-engineering.md:51-60` before any edit — temperature losses ~8%
+  (0.92 retained), wiring losses ~5% (0.95 retained), MPPT ~3% (0.97 retained), inverter ~4%
+  (0.96 retained), and LiFePO4 round-trip loss 5-8% (0.92 to 0.95 retained).
+- Operation, re-derived live with `python3` before any edit:
+  `0.92 * 0.95 * 0.97 * 0.96 = 0.8138688`; `0.8138688 * 0.92 = 0.748759296`;
+  `0.8138688 * 0.95 = 0.7731753599999999`. So the enumerated list compounds to a retained
+  fraction of approximately **0.749 to 0.773**, not 0.80 — 0.80 is modestly optimistic relative
+  to this list by roughly 3 to 5 percentage points.
+- **D-01's NARROW fix applied, not the broad recompute-and-cascade variant — see the declined
+  variant below.** GT-2's false sentence ("Combined, these losses are consistent with a 0.80
+  conservative derating factor.") was replaced with a sentence stating the compounded
+  0.749-0.773 range explicitly enough to be reproduced from the five percentages GT-2 already
+  states, and stating that 0.80 is retained on its own independent basis (the GT's own
+  "source: NREL and NABCEP off-grid design guidelines" clause), not as a figure derived from the
+  enumerated list. Not one number GT-2 itself uses (0.80, the five loss percentages) moved.
+- The Assumptions Table row (line 36, the "linked row" 44-PATTERNS.md names) makes the identical
+  claim in its Verification cell ("... is reflected in the conservative 0.80 factor alongside
+  wiring ... inverter ... losses"). Under D-01 the row's NUMBER (0.80) does not move; its
+  Verification cell was rewritten to state the same corrected relationship as GT-2 (0.80 is the
+  independently-sourced design-practice value; the enumerated losses compound to approximately
+  0.75-0.77, slightly below it; see GT-2) so the two sites no longer contradict each other. The
+  row's Assumption, Type, Treatment and Verdict cells were left byte-unchanged; no row was added
+  or removed (verdict_cells stays 8, confirmed post-edit).
+- **C1 hop 1's "complete loss model" sentence — adjudicated, not skipped.** C1 (line 107
+  post-edit) states "The 0.80 factor is the complete loss model — it accounts for every loss
+  between panel output and delivered load, including battery round-trip loss, so no further
+  derating is needed for battery inefficiency." Read against the corrected GT-2: this sentence
+  asserts SCOPE completeness — which losses 0.80 is meant to bundle (battery round-trip loss is
+  included in scope, so it must not be subtracted a second time) — not numerical agreement
+  between 0.80 and the enumerated list's compounded value. GT-2's own text (unchanged by this
+  correction) already states the same scope claim ("battery round-trip loss is a real,
+  non-negligible term in the energy path and is explicitly included here"). Because the sentence
+  never restates the withdrawn "consistent with" numerical claim, it is left UNCHANGED — the
+  plan's own default disposition, confirmed rather than assumed.
+- **Declined broad recompute-and-cascade variant, named explicitly per D-01's own requirement
+  that the option considered-and-declined be recorded, not merely absent.** The broad variant
+  would have recomputed the design constant to approximately 0.75-0.78 and cascaded: C1's
+  `1,875 Wh/day` gross generation target would move to approximately **1,923 Wh/day**
+  (1.5 kWh ÷ 0.78), the `341 W` minimum panel capacity would move to approximately **350 W**
+  (1,923 Wh ÷ 5.5 PSH), the stated `17% margin` above that minimum would recompute to a smaller
+  margin, and the winter-minimum recompute (`~417 W`) would also move — all while leaving the
+  shipped `400 W array` recommendation itself untouched, so the file's own stated margin language
+  would become internally inconsistent with the shipped number unless the recommendation itself
+  were also revisited. D-01 locked the narrow fix instead: 0.80 is independently defensible
+  design-practice guidance (NREL/NABCEP), not a figure the file claims to derive from the
+  enumerated list once the false "consistent with" sentence is removed, so recomputing it is
+  unnecessary and would touch a shipped equipment recommendation this phase does not license.
+- D-01 guard, confirmed live post-edit: `0.80`, `1,875`, `341 W`, `17% margin`, `417 W` and
+  `400 W` are all still present verbatim in `shared/examples/science-engineering.md`; `consistent
+  with a 0.80` returns zero hits.
+
+**Defect 2 — the 1.8 kWh/day upsizing threshold, wrong at four sites governed by two different
+constraints (999.118's own table cites only lines 108, 124, 162; this plan's own interfaces
+block additionally confirms the first occurrence at line 94, GT-5?'s own verification-path
+sentence — a site 999.118's table never named).**
+- Inputs (file's own): the shipped 6 kWh LiFePO4 bank (C2's recommendation), GT-3's 80% DoD, GT-4's
+  3-day autonomy target (battery-limited path); the shipped 400 W array (C1's recommendation),
+  GT-1's 5.5 PSH, GT-2's 0.80 derating factor (panel-limited path).
+- Operation, re-derived live with `python3` before any edit: `6 * 0.80 / 3 = 1.6000000000000003`
+  (battery-limited, kWh/day) and `400 * 5.5 * 0.80 = 1760.0` Wh/day = **1.76 kWh/day**
+  (panel-limited). The battery binds first (1.60 < 1.76): above 1.60 kWh/day the shipped 6 kWh
+  bank already fails to meet the 3-day autonomy target, before the 400 W array fails to meet the
+  daily load at 1.76 kWh/day. The file previously used a single wrong number, 1.8 kWh/day, at all
+  four sites, conflating these two different constraints.
+- Sites and results (each matched to the constraint its own sentence names, not applied
+  uniformly):
+  1. **Line 94 (post-Task-1-edit line number; pre-Task-1 line ~93-94), GT-5?'s own
+     verification-path sentence** — governs "the sizing outputs below" as a whole, so it takes
+     the BINDING threshold: "exceeds 1.8 kWh/day" -> "exceeds 1.6 kWh/day", with the
+     `6 kWh × 0.80 DoD ÷ 3 days = 1.6 kWh/day` derivation stated inline and the binding
+     (battery-before-panel) relationship named explicitly. **This is the site 999.118's own
+     table never listed** — found by this plan's own interfaces-block blast-radius read, per
+     44-RESEARCH.md's item 2.
+  2. **C1's confidence** — governs "the required panel capacity exceeds 400 W", so it takes the
+     PANEL-limited threshold: "exceeds 1.8 kWh/day" -> "exceeds 1.76 kWh/day", with the
+     `400 W × 5.5 PSH × 0.80 = 1,760 Wh/day = 1.76 kWh/day` derivation stated inline. The
+     bolded-value `**Confidence: MEDIUM**` sub-variant form was preserved exactly.
+  3. **C2's confidence** — governs "upsize the battery bank", so it takes the BATTERY-limited
+     threshold: "exceeds 1.8 kWh/day" -> "exceeds 1.6 kWh/day", with the
+     `6 kWh × 0.80 ÷ 3 days = 1.6 kWh/day` derivation stated inline. Line 122's (unchanged)
+     independent illustrative "e.g., 2.0 kWh/day" what-if and its own derived 7.5 kWh figure were
+     left entirely alone — confirmed by `2.0 kWh/day`'s count matching `git show HEAD:` exactly.
+  4. **Section 6's recommendation** — names BOTH upsizes (600 W array AND 7.5-8 kWh bank), so it
+     states BOTH thresholds rather than picking one: rewritten as a single semicolon-joined
+     sentence (not split into two sentences, per the plan's own instruction not to move
+     `conclusion_claims`) naming 1.6 kWh/day for the battery upsize and 1.76 kWh/day for the
+     panel upsize, each with its derivation stated inline.
+- Sweep confirmed: `1.8 kWh/day` returns 0 hits; `1.6 kWh/day` returns 3 hits (sites 1, 3, 4);
+  `1.76 kWh/day` returns 2 hits (sites 2, 4); `2.0 kWh/day`'s count is unchanged from `git show
+  HEAD:`; `1,760` (the Wh/day form of the panel-limited derivation) appears on the page.
+- Provenance: 999.118's own table row (`science-engineering.md:108,124,162`); 44-RESEARCH.md
+  item 2 (blast-radius findings); this plan's own interfaces block, which independently
+  re-confirmed all four sites live before any edit, including the unlisted line-94 site.
+
+**Adjudication recorded per the plan's own instruction that it be stated either way — Task 3's
+D-07 sweep below.**
 
 ### science-engineering-2.md       (plan 44-06)
 
@@ -739,6 +838,86 @@ on any of the three chains; all three legitimately remain HIGH. This matches the
 floors interface block's post-edit expectation: `high_conf_chains` stays at 3 (C1 kept HIGH per
 this plan's Task 2 decision, C2 and C3 untouched) — pre-registered below before regeneration and
 confirmed by the observed diff.
+
+### science-engineering.md
+
+Rule, quoted as above. Applied to every `**GT-N**` bullet and every chain/section-level
+confidence line in this file's own `## 3. Ground Truths`, `## 4. Derivation Chains` and
+`## 6. Conclusion` sections, read live after both of this plan's tasks landed.
+
+**GT-level table:**
+
+| File | GT | Clause deciding ?-required | ?-required | ?-present | Verdict |
+|---|---|---|---|---|---|
+| science-engineering.md | GT-1 | "source: NREL solar radiation maps; illustrative figure verifiable via NREL PVWatts for the specific site coordinates" — states illustrative/verifiable, not unverified/unmeasured | no | no | OK |
+| science-engineering.md | GT-2 | Post-correction text: "0.80 is retained here on its independent basis (NREL and NABCEP conservative off-grid design practice, cited below), not as a figure derived from the list above" — cites a named source and states a deterministic compounded range computed from GT-2's own already-stated percentages; no unverified/unmeasured language appears anywhere in GT-2's own text, before or after the correction | no | no | OK — re-examined explicitly, not assumed (see below) |
+| science-engineering.md | GT-3 | "source: LiFePO4 manufacturer specifications and electrochemical battery design literature" — a chemistry fact, not unverified | no | no | OK |
+| science-engineering.md | GT-4 | "source: current design constraint and occupant decision" — a stated design decision, not an unverified empirical claim | no | no | OK |
+| science-engineering.md | GT-5 | "unverified: this figure is derived from the per-appliance load breakdown below, which depends on occupant behavior..." | yes | yes (`GT-5?`, already suffixed pre-edit) | OK |
+
+**GT-2's `?` question, re-examined explicitly per the plan's own instruction, not skipped
+because the site happened to be edited by Task 1.** GT-2's corrected text changes WHY 0.80 is
+retained (an independently-sourced design-practice convention, not a figure claimed to be
+derived from the enumerated list) but does not change WHAT KIND of claim GT-2 makes about
+itself: GT-2 never says its own value is unverified, unmeasured, or preliminary — it names a
+citable source (NREL/NABCEP) both before and after the correction, and the corrected
+0.749-0.773 range is itself a deterministic arithmetic product of percentages GT-2 already
+stated, not a new empirical claim requiring its own verification. **Conclusion: the correction
+does not change the `?` answer for GT-2 — it remains unsuffixed.** No chain's confidence band
+changes as a result, so `high_conf_chains` does not move (pre-registered below).
+
+**Chain/section-level table:**
+
+| File | Chain/section | Head-line citations | Confidence | Cites a `GT-N?` on head | Rule 2 holds | Rule 3 holds |
+|---|---|---|---|---|---|---|
+| science-engineering.md | C1 | GT-2 + GT-5? + GT-1 | MEDIUM (unchanged) | yes (`GT-5?`) | yes (MEDIUM, not HIGH) | yes (no chain cited on head) |
+| science-engineering.md | C2 | GT-5? + GT-4 | MEDIUM (unchanged) | yes (`GT-5?`) | yes (MEDIUM, not HIGH) | yes (no chain cited on head) |
+| science-engineering.md | §6 Conclusion | "(chains C1 and C2)" throughout | MEDIUM (unchanged) | n/a (cites chains, not GTs, directly) | n/a | yes (cites C1 and C2, both MEDIUM; §6 is MEDIUM, not higher than either) |
+
+**Sweep result for science-engineering.md: zero `?`-suffix violations found, and no confidence
+label moved.** GT-5? already carried its suffix pre-edit and both chains were already MEDIUM
+citing it on their heads, so rules 2 and 3 already held before this plan's edits — **recorded as
+the expected null result.** GT-2's post-correction text was re-examined explicitly (above) and
+found not to trigger a `?` suffix. This matches the CONF-GATE floors interface block's reading
+(`high_conf_chains 0`) and the plan's own pre-registration below: no measured conformance value
+is expected to move for this file.
+
+### Pre-registered conformance expectation (plan 44-05, Task 3 Part B/C)
+
+Written BEFORE running `sync-content.py --write` or `report-conformance.py`, per the plan's own
+instruction that the expected movement be pre-registered ahead of regeneration. Read live
+against `docs/conformance-baseline.md`'s current rows immediately before this pre-registration
+(not from memory): `shared/examples/science-engineering.md` and its generated twin both read
+`conclusion_claims=3, verdict_cells=8, chain_blocks=2, high_conf_chains=0,
+marked_untraced_claims=0`.
+
+**Pre-registration:** no `**Confidence:**` label was moved anywhere in this file by Tasks 1 or
+2 (C1, C2 and §6 all stay MEDIUM — see the D-07 sweep immediately above), no Assumptions Table
+row or `### Conclusion` block was added or removed, and this file carries no claim-marker, so
+NO measured conformance value is expected to move for `shared/examples/science-engineering.md`
+or its generated twin. The regenerated twin should differ from the source by nothing but the
+`GENERATED_MARKER` header line, and `report-conformance.py --check` should report no drift.
+
+**Observed outcome, live:** matched the pre-registration exactly. `python3
+scripts/sync-content.py --write` (wrote 48 files) followed by `--check` (exit 0); `diff <(tail -n
++3 first-principles/agents/references/examples/science-engineering.md)
+shared/examples/science-engineering.md` printed nothing (twin byte-identical below the generated
+header). `python3 scripts/report-conformance.py` (regenerate, `PASS — wrote ... (42 rows)`),
+then `git diff --stat -- docs/conformance-baseline.md docs/data/conformance.json` printed
+nothing — zero bytes moved in either conformance artifact, confirmed by `python3
+scripts/report-conformance.py --check` (`PASS — no drift`). `python3 scripts/check-conf-gate.py`
+passed clean on the first live run (`check-conf-gate: PASS`, 28 artifacts, the three D-08
+self-check lines against `personal-general.md` unrelated to this plan's files) — confirmed by
+direct reading that no literal substring of `science-engineering.md`'s prose is transcribed
+anywhere in `scripts/check-conf-gate.py`, so no needle re-pin was needed (unlike plan 44-03's
+`_D08_*` case). `python3 scripts/gen-gate-docs.py --check` (harvested 19/19, exit 0). `python3
+scripts/check-version-stamps.py` (17 stamps, all `9.3.2`, PASS). `git diff --quiet HEAD --
+tests/adversarial-corpus-v9.0 shared/examples/self-application.md` exited 0 (both
+byte-unchanged). `bash scripts/check-firewall-battery.sh` printed `FIREWALL: GREEN (23/23)`,
+reproducing the pre-edit baseline exactly (23/23, same gate set). No movement occurred outside
+the pre-registered set — every column for `shared/examples/science-engineering.md` and its twin
+(`conclusion_claims=3, verdict_cells=8, chain_blocks=2, high_conf_chains=0,
+marked_untraced_claims=0`) held at its pre-registered value.
 
 ### Pre-registered conformance expectation (plan 44-04, Task 3 Part B)
 
