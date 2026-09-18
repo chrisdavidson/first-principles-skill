@@ -77,8 +77,9 @@ prescribe a counter-intervention different from the operator's first hypothesis
   values read from a bearing drawing. The required 4.9 mm effective length is about a
   fifth of the 22 mm roller diameter, which implies heavy crowning, edge relief or a
   misalignment-narrowed contact patch that no named source in this scenario
-  establishes; at a nominal full-width 18 mm contact the same model gives
-  0.21-0.25 mm, which does NOT contain GT-1's observed depth. Verification that would
+  establishes; at a nominal full-width 18 mm contact the same model, at the stated
+  70 mm inner-race radius, gives about 0.21 mm (0.208 mm), which does NOT contain
+  GT-1's observed depth. Verification that would
   make this a prediction rather than a fit, and remove the `?`: obtain the bearing
   drawing, read the effective roller contact length and race radius off it, and re-run
   this calculation. **Because the geometry was fitted to GT-1, GT-1 cannot be cited as
