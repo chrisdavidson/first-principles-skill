@@ -908,14 +908,21 @@ themselves are unchanged.
   `N → M`-shaped exemption class strips the whole delta vector including its terminus, so a stale
   terminus and a current one are indistinguishable to it. Disposition: accepted, closing at
   Phase 25's chain-terminus arm (CONTAIN-02). See `docs/v9.1-claim-containment-diagnosis.md` § 3.
-- **CR-02** — `CLAUDE.md` § "Review protocol" cites CR-05 as "an edit made in `scripts/` that
-  produced a product-tier defect," but CR-05's own `File:` field names only `docs/` prose
-  (`docs/README.md`, `docs/MEASUREMENT-MAP.md`, `docs/COMPONENT-DIAGRAM.md`). That field lives in
-  `.planning/phases/21-generate-the-claim-surface/21-REVIEW.md`, which is gitignored and since
-  relocated, so it is unreadable from the published tree; it is reproduced verbatim in
+- **CR-02** — as published, `CLAUDE.md` § "Review protocol" **cited** CR-05 as "an edit made in
+  `scripts/` that produced a product-tier defect," but CR-05's own `File:` field names only `docs/`
+  prose (`docs/README.md`, `docs/MEASUREMENT-MAP.md`, `docs/COMPONENT-DIAGRAM.md`). That field
+  lives in `.planning/phases/21-generate-the-claim-surface/21-REVIEW.md`, which is gitignored and
+  since relocated, so it is unreadable from the published tree; it is reproduced verbatim in
   `docs/v9.1-claim-containment-diagnosis.md` § 3, which is tracked — read the claim there.
   Disposition: accepted, dispositioned by routing rather than by fix, filed as backlog 999.55. See
   `docs/v9.1-claim-containment-diagnosis.md` § 3.
+
+  **Correction, dated 2026-09-17 (v9.4.0 Phase 43):** that `CLAUDE.md` sentence was corrected in
+  this same phase under backlog 999.55 — it now names the `docs/` files CR-05's `File:` field
+  names — so this bullet's original present tense no longer described the live page and is
+  restated in the past tense: what v9.0.0 shipped, not what `CLAUDE.md` says today. The dated
+  transcript in `docs/v9.1-claim-containment-diagnosis.md` § 3's CR-02 subsection no longer
+  reproduces either, and carries the same note.
 - **CR-03** — `docs/README.md` **stated, in two places**, that `whole-system-remeasure-verdict.md`
   is cited by 13 matrix rows — the § "Standing of the nine milestone documents" row for that
   document, and its § "Reference & history" row — against a live distinct-row count in
