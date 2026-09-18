@@ -906,12 +906,21 @@ and the findings, dispositions and bounds themselves are unchanged. The disposit
 all three findings is `docs/v9.1-claim-containment-diagnosis.md` § 3, which is tracked, and no
 finding's disposition rested on a `.planning/` path.
 
-- **CR-01** — `docs/gates/CONF-SURFACE.md` § "Disclosed bounds", bound (6) narrates the
-  deferred-literal ledger's growth history and states a most-recent hop of `182 → 184`, while the
-  live `_DEFERRED_LEDGER_MAX` in `scripts/gen-gate-docs.py` reads `181`. The standing scanner's
-  `N → M`-shaped exemption class strips the whole delta vector including its terminus, so a stale
-  terminus and a current one are indistinguishable to it. Disposition: accepted, closing at
-  Phase 25's chain-terminus arm (CONTAIN-02). See `docs/v9.1-claim-containment-diagnosis.md` § 3.
+- **CR-01** — as published, `docs/gates/CONF-SURFACE.md` § "Disclosed bounds", bound (6) narrated
+  the deferred-literal ledger's growth history and **stated** a most-recent hop of `182 → 184`,
+  while the live `_DEFERRED_LEDGER_MAX` in `scripts/gen-gate-docs.py` then **read** `181`. The
+  standing scanner's `N → M`-shaped exemption class strips the whole delta vector including its
+  terminus, so a stale terminus and a current one are indistinguishable to it. Disposition:
+  accepted, closing at Phase 25's chain-terminus arm (CONTAIN-02). See
+  `docs/v9.1-claim-containment-diagnosis.md` § 3.
+
+  **Correction, dated 2026-09-17 (v9.4.0 Phase 43):** both figures in that comparison have moved
+  since v9.0.0 shipped — bound (6)'s hop chain has been extended several times and the ledger pin
+  lowered with it — so this bullet's original present tense no longer described either surface and
+  is restated in the past tense: what v9.0.0 shipped, not what the two surfaces read today. Read
+  the live value from `literal_scan_ledger_max` in `docs/gates/CONF-SURFACE.md`'s generated Facts
+  fence, which is where bound (6)'s own chain terminus now sends the reader rather than restating
+  it; the two v9.0.0-era figures above are kept as the frozen record of the finding.
 - **CR-02** — as published, `CLAUDE.md` § "Review protocol" **cited** CR-05 as "an edit made in
   `scripts/` that produced a product-tier defect," but CR-05's own `File:` field names only `docs/`
   prose (`docs/README.md`, `docs/MEASUREMENT-MAP.md`, `docs/COMPONENT-DIAGRAM.md`). That field
