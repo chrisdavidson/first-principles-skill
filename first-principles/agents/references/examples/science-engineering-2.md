@@ -118,7 +118,7 @@ prescribe a counter-intervention different from the operator's first hypothesis
 ### Conclusion C1: The failure is subsurface-initiated rolling-contact damage, not a surface-origin wear mechanism
 
 GT-1 (crack origin ~0.4 mm subsurface) + GT-2? (Hertz subsurface-stress maximum ~0.35-0.45 mm at rated load)
-→ The observed origin depth coincides with the depth band where Hertzian subsurface shear stress is maximised under the bearing's actual loading. Neither GT alone fixes the mechanism: GT-1 alone could in principle be a void or inclusion at depth; GT-2 alone is a stress-field prediction without an observed crack. Together they place the observed initiation site exactly where the physical-law model predicts subsurface fatigue cracks would nucleate
+→ The observed origin depth coincides with the depth band where Hertzian subsurface shear stress is maximised under the bearing's actual loading. Neither GT alone fixes the mechanism: GT-1 alone could in principle be a void or inclusion at depth; GT-2? alone is a stress-field prediction without an observed crack. Together they place the observed initiation site exactly where the physical-law model predicts subsurface fatigue cracks would nucleate
 → The failure mechanism is subsurface-initiated, ruling out every surface-origin mechanism (boundary lubrication wear, contamination indentation, mounting damage, electrical pitting on the running surface) as the *primary* cause of the spall.
 
 **Confidence: MEDIUM** — GT-1 is a direct metallographic measurement, but GT-2?'s
@@ -162,7 +162,7 @@ polishing of the running track) to result.
 **Why abandoned:** Two independent contradictions with verified ground truths.
 
 First and dispositive: GT-1 places the crack origin ~0.4 mm *below* the raceway surface,
-inside the Hertz subsurface-stress band (GT-2). Boundary-lubrication damage
+inside the Hertz subsurface-stress band (GT-2?). Boundary-lubrication damage
 *by definition* initiates at the contact surface — the loss of EHD separation is a
 surface-asperity-contact phenomenon. A subsurface-initiated spall cannot be the primary
 product of a boundary-lubrication regime. **GT-1 alone falsifies the boundary-
