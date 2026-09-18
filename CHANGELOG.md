@@ -773,9 +773,12 @@ never an incidental fact.
   (`docs/requirements-traceability.md`, `docs/COMPONENT-DIAGRAM.md`) require a manual edit on every
   headline move that `HEADLINE-LOCK` then verifies rather than produces — named in full in
   `docs/gates/CONF-SURFACE.md`'s disclosed bounds. Separately, nothing mechanical joins the 18
-  matrix rows `_rows_v91()` registers to the requirement roster in `.planning/REQUIREMENTS.md`;
-  the correspondence was checked by hand this phase, and a stronger, roster-derived equality check
-  was considered and rejected as out of this phase's own scope.
+  matrix rows `_rows_v91()` registers to the requirement roster in `.planning/REQUIREMENTS.md`
+  (gitignored, and since archived as `.planning/milestones/v9.1.0-REQUIREMENTS.md`, so a reader of
+  the published repo can open neither; the rows themselves are tracked, in
+  `docs/requirements-matrix.md`); the correspondence was checked by hand this phase, and a
+  stronger, roster-derived equality check was considered and rejected as out of this phase's own
+  scope.
 
 **Addendum 2026-09-11, recurrence reading:** `docs/PROCESS.md`'s same-class trip, the rework
 limit that halts a phase when a defect class it closed recurs, fired on this release's
