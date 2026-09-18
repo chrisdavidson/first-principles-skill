@@ -278,10 +278,11 @@ every finding in a `REVIEW.md` carries a `product` or `apparatus` tier, and a fi
 neither is itself a defect in the review.
 
 No script, control or CI job enforces any of this. D-08 rejected a findings-classifier
-post-processor by name, and D-01 rejected the `shared/`-plus-`first-principles/` path-glob cut —
-CR-05 is the worked case: an edit made entirely in `docs/` prose (`docs/README.md`,
+post-processor by name, and D-01 made the cut a judgement a path glob cannot decide — CR-05 is
+the counterexample: an edit made entirely in `docs/` prose (`docs/README.md`,
 `docs/MEASUREMENT-MAP.md` and `docs/COMPONENT-DIAGRAM.md`, the three files its own `File:` field
-names) that produced a product-tier defect the rejected glob would have tiered apparatus.
+names) that produced a product-tier defect, which the rejected
+`shared/`-plus-`first-principles/` glob would have tiered apparatus.
 
 ### Routing battery
 
