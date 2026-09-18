@@ -118,7 +118,7 @@ This phase publishes four disclosures in the same voice R7/R9/R10 use on the age
 | tests/adversarial-corpus-v9.0/t13-grounded-alongside-cyclic-ref.md | A | OK | 0 | 2 | 2 | 0 | ungrounded_chains:c1 | [] | True | False | accept-with-reason: disclosed bound of `grounded()`'s own-ground-truth short-circuit; not treated as a fix target. |
 | tests/adversarial-corpus-v9.0/t14-order-of-magnitude-conversion.md | B2 | OK | 0 | 0 | 0 | 0 | none | [] | True | True | accept-with-reason: no unit-conversion check exists in the harness; B2. |
 
-Every `detect_defects` column, including the always-`n/a` provenance columns, for these items are carried in full in `docs/data/conformance.json` under `adversarial_corpus.rows`, and are omitted here for readability.
+Every `detect_defects` column, including the always-`n/a` provenance columns, for these items is carried in full in `docs/data/conformance.json` under `adversarial_corpus.rows`, and is omitted here for readability.
 
 ## live-conformance
 
@@ -153,7 +153,7 @@ Every `detect_defects` column, including the always-`n/a` provenance columns, fo
 | tests/live-conformance-v9.0/Q-P2.md | completed | OK | 0 | 31 | 0 | 31 | False | fix: 31 of 31 Assumptions Table Verdict cells score nonconforming — the analysis wrote its own richer vocabulary (`Accepted as a modelling convention`, `Unverified — flagged`, `Challenged — rejected`, `Verified approximately true`, `Partially verified by construction`) instead of the exact leading token `Accept`/`Challenge`/`Discard` the Verdict Vocabulary rule prescribes. Filed against `shared/spine/references/output-template.md`'s Verdict Vocabulary section (its three example bullets show only conforming forms, with no counter-example of this drift) and `shared/spine/references/validation-rubric.md` Criterion 2's Rigorous descriptor, which states the identical token-plus-em-dash requirement. The analysis text itself is not edited. |
 | tests/live-conformance-v9.0/Q-P3.md | completed | OK | 0 | 0 | 0 | 0 | True | accept-with-reason: scored 0/0/0/0 across the four D-20-A counts (section_resolution OK, heading_malformed_blocks 0, nonconforming_verdict_cells 0, silent_untraced_claims 0). Against `adversarial-corpus`'s published 10-of-13 false-negative rate, a clean reading here means this instrument found nothing, not that the analysis is correct. |
 
-Every `detect_defects` column, including the always-`n/a` provenance columns, for these runs are carried in full in `docs/data/conformance.json` under `live_conformance.rows`, and are omitted here for readability.
+Every `detect_defects` column, including the always-`n/a` provenance columns, for these runs is carried in full in `docs/data/conformance.json` under `live_conformance.rows`, and is omitted here for readability.
 
 ## recurrence-reading
 
