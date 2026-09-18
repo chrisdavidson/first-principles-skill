@@ -37,7 +37,7 @@ last touches each file.
 | shared/examples/product-business-2.md | `052691ec3a851f1d3b8dcb4aa2ff7cd0cad1b58cf22f127ae12c76ee32630935` | 211 | `d23626a775ee5765a97a72c61a5722c84fc70a044da349653399f42c5fd39096` | 216 |
 | shared/examples/product-business.md | `d948f9fda657dba4fc8c66fd9e60c5846d837c8b78655e1c2b41d2a8fe2b42c4` | 94 | `a0dc5e9257c13b338052accd3e425603301b2b511a6ecbc362f3a9b8a319d826` | 94 |
 | shared/examples/science-engineering-2.md | `282db9d21c058c7ed1dd05df45dd328eded851a7bb1d1ae7e38e379f09264aa5` | 218 | (pending — plan 44-06) | (pending — plan 44-06) |
-| shared/examples/science-engineering.md | `d5aed303b62e07f1d7ab00e4d171af2ef60a02e9009af156336095b4f4bdfe54` | 187 | (pending — plan 44-05) | (pending — plan 44-05) |
+| shared/examples/science-engineering.md | `d5aed303b62e07f1d7ab00e4d171af2ef60a02e9009af156336095b4f4bdfe54` | 187 | `9fecf530d5f18622196b5c25e98bf70d9fe9ab324e33d41d4db78d3b771a6e41` | 198 |
 | shared/examples/self-application.md | `47adb0226654cb6246b0004d83c399a81431ebcba98f9509fd61228beda0ce11` | 399 | out of scope (D-03) — pre-edit and post-edit values must be identical | out of scope (D-03) — pre-edit and post-edit values must be identical |
 | shared/examples/software-systems-2.md | `66c6548e402398c5f2c18acca34b5323d10a9ab6781754251034f265b5d9d596` | 346 | `66c6548e402398c5f2c18acca34b5323d10a9ab6781754251034f265b5d9d596` (unchanged — plan 44-01 Task 2 found nothing to fix) | 346 |
 | shared/examples/software-systems.md | `9c883ea780c2ddde363147d86db91f1ad20212b29eccc07b8dbacc03d7e3fa61` | 301 | `fa800d3f3a277ea037185212389a1be71a8aad848ab0cee513d5590af06b5b44` | 303 |
