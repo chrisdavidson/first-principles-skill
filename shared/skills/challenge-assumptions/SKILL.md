@@ -3,7 +3,7 @@ name: challenge-assumptions
 description: Slash-only Phase 2 stub — classify and test every assumption before reasoning.
 disable-model-invocation: true
 metadata:
-  version: "9.3.2"
+  version: "9.3.3"
 license: MIT
 ---
 # Focused Challenge Assumptions Mode

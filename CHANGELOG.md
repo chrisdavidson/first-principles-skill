@@ -13,6 +13,67 @@ installed session.
 
 ## [Unreleased]
 
+## [9.3.3] — 2026-09-18
+
+Released as a patch ahead of milestone v9.4.0 (Source-Literal Pinning): it ships Phase 43 (backlog
+999.54, 999.55, 999.58, 999.59, 999.60, 999.110, 999.114 and 999.122 IN-01) and Phase 44 (backlog
+999.118) while Phases 36-39 remain open. Where the tree names "v9.4.0 Phase 43" or "v9.4.0 Phase
+44", including the frozen artifact `tests/exemplar-rederivation-v9.4/`, that is the work's
+provenance; it ships in this release. Phase 45 already shipped inside `[9.3.2]`.
+
+Closes backlog **999.118** as a **product change**: the shipped worked exemplars
+(`shared/examples/*.md`, emitted to `first-principles/agents/references/examples/`) are corrected
+for hand-verified arithmetic, unit, basis and citation defects. Each corrected figure was
+re-derived by hand, and every restatement site moved with its origin:
+
+- `personal-general-2.md`: GT-6, both hops of chain C1 and chain C2 are corrected, the sensitivity
+  claim is re-derived against the corrected gap, and §6 is re-banded to LOW.
+- `personal-general.md`: the pre-tax/after-tax basis is disclosed, the percentage denominators are
+  corrected, and the compensation figure is called "rent-adjusted" rather than "effective".
+- `product-business.md`: GT-4 carries its `?` suffix, and the D-07 ceiling is applied to C1, C2 and
+  §6. The break-even formula is annualised.
+- `product-business-2.md`: the 41-of-240 distinct-account inference is stated as an upper bound.
+- `software-systems.md`: the invalid "sufficient explanation" ground is replaced. The claim that the
+  45-minute pipeline sets the two-deploys-a-day ceiling is withdrawn at every site that carried it
+  (it contradicted the file's own corrected GT-3). The leadership quote and the fenced abandoned
+  chain are kept.
+- `science-engineering.md`: GT-2's derating is fixed narrowly. The four 1.8 kWh/day sites are split
+  onto the two thresholds that actually govern them: 1.60 (battery-limited) and 1.76
+  (panel-limited).
+- `science-engineering-2.md`: the missing Hertz contact geometry is supplied and disclosed as
+  back-solved, the circular confirmation is withdrawn, the counter-figure is narrowed to 0.208 mm
+  at the stated 70 mm inner-race radius, and §6 is banded MEDIUM.
+- `estimate-fermi.md`: the bracket is re-derived from its own stated $5-10/kWh O&M range.
+
+`self-application.md` and the frozen `tests/adversarial-corpus-v9.0/` copies are byte-unchanged:
+the corpus is frozen evidence, and `self-application.md`'s staleness is filed as backlog 999.124.
+The hand re-derivations, with two dated append-only errata, are recorded in
+`tests/exemplar-rederivation-v9.4/README.md`, now registered in `_FROZEN_PATHS`. CONF-GATE's two
+D-08 mutation needles were re-transcribed from the corrected `personal-general.md` text. The
+conformance baseline's `MEASUREMENT_DATE` is bumped so the published readings carry their own
+date.
+
+Closes the Phase 43 backlog entries as **product-tier prose corrections**, each a sentence on a
+published surface that did not read true against the tree:
+
+- `docs/README.md` no longer publishes a false matrix-row count for
+  `whole-system-remeasure-verdict.md`; it points at the re-derivation instead (999.54, with the
+  CONF-13 ledger re-pinned). The `[9.0.0]` CR-03 disclosure now names both occurrences (999.58).
+- `[9.0.0]`'s citations of gitignored `.planning/` paths state that status (999.59). Its CR-01 and
+  CR-02 bullets are past-tensed where a later phase falsified the live comparison, with dated
+  correction notes.
+- `CLAUDE.md` § Review protocol names the vendored reviewer's tool set as a dated reading rather
+  than a standing fact, and drops the stale "this phase" framing (999.60). Its CR-05 counterexample
+  names the `docs/` prose edit and the glob it defeats (999.55).
+- `docs/requirements-traceability.md`: RR-114-01's two v8.0-era sites carry a dated annotation
+  pointing at the v8.5 0/5 reading (999.110), and headline-history row 18 names `rerun_by` for
+  RIGOR-06 (999.114).
+- `scripts/report-conformance.py`'s two generated sentences agree in number, which regenerates
+  `docs/conformance-baseline.md` (999.122 IN-01).
+
+No gate was added or retired, and the battery and CI totals are unchanged; see
+[`CLAUDE.md`](CLAUDE.md) § CI gates.
+
 ## [9.3.2] — 2026-09-16
 
 Amended on 2026-09-17, before publication, to restate the confidence-line rule below; the heading
