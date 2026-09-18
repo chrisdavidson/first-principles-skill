@@ -891,8 +891,10 @@ Stating that these three denominators moved is the honest reading of this pair; 
 **Three accepted findings ship live and uncorrected.** Per decision D-14
 (`.planning/phases/23-ship-v9-0-0/23-CONTEXT.md` — gitignored, and since relocated under
 `.planning/milestones/v9.0.0-phases/`, so a reader of the published repo cannot open it; the
-disposition it records is restated in full in the three bullets below), this release discloses
-three findings that `docs/v9.1-claim-containment-diagnosis.md` § 3 accepted with a stated,
+decision it records — to disclose all three findings by name, superseding D-09's no-disclosure
+clause, with the citable path for each — is enacted in the three bullets below, while D-14's own
+reasoning for that supersession is not restated here), this release discloses three findings
+that `docs/v9.1-claim-containment-diagnosis.md` § 3 accepted with a stated,
 falsifiable bound apiece — the disposition of record for all three below. None of the three
 sentences is corrected, deleted, or reworded by this release; each ships exactly as found.
 
