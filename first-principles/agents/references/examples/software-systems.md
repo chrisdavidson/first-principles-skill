@@ -67,8 +67,10 @@ preventing faster deploys, and what is the cheapest intervention that removes th
   configuration — source: observed CI pipeline configuration file (deploy stage definition)
 
 - **GT-3** The team ships approximately 2 deploys per day at maximum under the current pipeline
-  constraint; higher frequency is mechanically blocked by the 45-minute pipeline assuming
-  sequential execution — source: measured deploy frequency from CI/CD deployment records
+  constraint. The 45-minute pipeline bounds sequential deploys at roughly 10 per working day
+  (480 minutes ÷ 45 minutes ≈ 10.7), so the measured 2/day ceiling sits about five times below
+  the pipeline's own throughput limit; what sets the observed ceiling is not established by any
+  named ground truth — source: measured deploy frequency from CI/CD deployment records
   (30-day trailing count)
 
 - **GT-4** Operating a microservices estate requires per-service monitoring, independent deployment
@@ -89,11 +91,11 @@ preventing faster deploys, and what is the cheapest intervention that removes th
 
 ### Conclusion C1: Architecture is not demonstrably the primary bottleneck
 
-GT-1 (45-minute full test suite runtime) + GT-2 (every deploy requires a full pipeline pass including a complete test suite run) + GT-3 (2 deploys/day measured ceiling imposed by the sequential pipeline)
-→ The deploy cycle floor is set by the test suite wall-clock duration, and the 2-deploy/day ceiling follows directly from that floor combined with the full-pipeline-per-deploy requirement; a monolith running a fully-parallelized test suite in 8 minutes with a blue-green deploy strategy requires only 8 minutes per deploy — no architectural change is needed to remove the deploy-frequency bottleneck; architecture determines whether services can deploy independently, but the pipeline structure (sequential execution + full-suite requirement), not the monolithic architecture itself, is the sufficient cause of the measured 2-deploy/day ceiling
-→ Architecture cannot be concluded to be the primary deploy bottleneck until the test suite runtime, pipeline step serialization, and deployment restart time have been profiled and ruled out as the dominant cause. The 45-minute pipeline is a sufficient explanation of the 2-deploy/day ceiling without any architectural coupling claim.
+GT-1 (45-minute full test suite runtime) + GT-2 (every deploy requires a full pipeline pass including a complete test suite run) + GT-3 (2 deploys/day measured ceiling, not explained by the 45-minute pipeline alone)
+→ The deploy cycle floor is set by the test suite wall-clock duration; the 45-minute pipeline bounds sequential deploys at roughly 10 per working day (480 minutes ÷ 45 minutes ≈ 10.7), well above the observed 2-deploy/day ceiling, so the floor constrains cadence without explaining the observed ceiling — the gap between the two is not accounted for by any named ground truth. A monolith running a fully-parallelized test suite in 8 minutes with a blue-green deploy strategy requires only 8 minutes per deploy — no architectural change is needed to remove the deploy-frequency bottleneck; architecture determines whether services can deploy independently, but whether the pipeline structure (sequential execution + full-suite requirement), the monolithic architecture itself, or some other unmeasured factor is what actually binds the observed 2-deploy/day ceiling has not been established
+→ Architecture cannot be concluded to be the primary deploy bottleneck until the test suite runtime, pipeline step serialization, and deployment restart time have been profiled and ruled out as the dominant cause. The 45-minute pipeline is a NECESSARY constraint on deploy cadence — no deploy can complete faster than one pipeline run — but it is not a SUFFICIENT explanation of the 2-deploy/day ceiling, since it bounds deploys at roughly five times the observed rate; neither the pipeline runtime nor the architecture has been shown to be the binding constraint, and the unexplained factor — deploy windows, approval gates, release batching policy, or something else entirely — has not been measured.
 
-**Confidence:** HIGH
+**Confidence:** HIGH — this chain's conclusion is a negative claim (architecture cannot yet be concluded to be the primary bottleneck), directly supported by GT-1 and GT-2 plus the documented absence of profiling data; the chain's head cites no `GT-N?`, so the D-07 ceiling rule does not reach it. This rating does not rest on the withdrawn sufficient-explanation claim: the corrected hops establish only that the 45-minute pipeline is a necessary but not sufficient constraint on cadence, and the conclusion — that architecture's role is unestablished pending profiling — holds independently of that withdrawn claim.
 
 ---
 
@@ -109,7 +111,7 @@ GT-5 (single shared relational database schema with no service-boundary ownershi
 
 ### Conclusion C3: The minimum viable intervention is to profile the bottleneck and apply the lowest-cost fix
 
-GT-1 (45-minute test suite) + GT-3 (2 deploys/day ceiling imposed by the sequential pipeline) + GT-4 (microservices estate multiplies per-service ops overhead that a 12-engineer team must absorb)
+GT-1 (45-minute test suite) + GT-3 (2 deploys/day ceiling, not explained by the 45-minute pipeline alone) + GT-4 (microservices estate multiplies per-service ops overhead that a 12-engineer team must absorb)
 → The cost-risk profile of available interventions varies by orders of magnitude; the pipeline has four measurable stages: test suite execution, artifact build, deployment and restart, and health-check wait; profiling these stages (a configuration-level instrumentation taking approximately 1 day) identifies which stage is the dominant cost without requiring any code change; pipeline parallelization (splitting the test suite across concurrent CI workers) is a configuration-level change achievable in days to 2 weeks with no architectural risk and is fully reversible; schema decomposition along bounded-context lines is weeks-to-months of careful migration work with moderate risk and is largely reversible; a full monolith-to-microservices migration is months-to-years of architectural work with high risk and is not easily reversible, and it introduces the full GT-4 operational overhead before delivering any deploy-speed benefit; committing to the highest-cost option before ruling out lower-cost options is not consistent with minimum viable intervention principles
 → The rational sequencing is: profile the pipeline to identify the specific bottleneck, apply the lowest-cost intervention that removes it (almost certainly parallelization first), and revisit microservices only after profiling demonstrates that the bottleneck is architectural and schema decoupling alone is insufficient.
 
@@ -161,9 +163,9 @@ Probing the premise reveals why it fails here:
    engineer team, this overhead can consume enough velocity that deploy frequency decreases in
    the months after migration while the team is still standing up the infrastructure.
 
-The chain collapses at step 1: the premise does not survive Phase 2 scrutiny, and GT-1 + GT-2
-together provide a fully sufficient explanation of the current bottleneck that does not require
-any architectural claim.
+The chain collapses at step 1: the premise does not survive Phase 2 scrutiny, and GT-1 and GT-2
+establish a pipeline-level constraint the migration premise never addresses, so the premise is
+unsupported on its own terms and no architectural claim is needed to reject it.
 
 **What it ruled out:** This dead end establishes that "microservices enable faster deploys" may
 not be used as a ground truth for this analysis without empirical evidence specific to this team
@@ -230,7 +232,7 @@ that was not already in the Assumptions Table has been added there before this t
 
 | Chain | Step | Step Text (brief) | Assumption surfaced? | Added to Table? |
 |-------|------|-------------------|----------------------|-----------------|
-| Bottleneck | 1 | GT-1 + GT-2 + GT-3 → test-suite wall-clock sets the deploy-cycle floor; 2-deploy/day ceiling follows from sequential pipeline | none — step consumes only named, already-classified GTs and the logical consequence is definitional | n/a |
+| Bottleneck | 1 | GT-1 + GT-2 + GT-3 → test-suite wall-clock sets the deploy-cycle floor (~10 deploys per working day at 45 min); the observed 2/day ceiling is not explained by that floor | the cause of the gap between the ~10/day pipeline bound and the observed 2/day ceiling is unnamed — surfaced here as an open measurement gap, not resolvable from the named GTs | not added — carried as an open measurement gap in chain C1 (line 92), not a classified assumption |
 | Bottleneck | 2 | → Architecture cannot be concluded as primary bottleneck until pipeline stages are profiled | none — this is a logical negation step: without profiling data, the architectural claim is unestablished; no additional bridging fact required | n/a |
 | DB coupling | 1 | GT-5 + GT-4 → retaining shared schema after app split produces a distributed monolith; schema decomposition is a prerequisite of migration | Schema-level coupling blocks truly independent releases in the same way application-level coupling does | already present (added above in this audit) |
 | DB coupling | 2 | → Schema decomposition is executable incrementally on the monolith without splitting into separate services | none — this step follows from the separability claim in Step 1 and the existing Discard verdict on the big-bang assumption | n/a |

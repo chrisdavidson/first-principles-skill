@@ -13,7 +13,7 @@ This file is a measurement, not a contract: no figure below defines what the cod
 | Reading | shared-examples | generated-twin | contract-surface |
 |---|---|---|---|
 | Files unreadable by `_slice_sections` | 0 of 14 | 0 of 14 | 0 of 1 |
-| §6 conclusion claims (untraced) | 77 (2 untraced) | 77 (2 untraced) | 3 (3 untraced) |
+| §6 conclusion claims (untraced) | 78 (2 untraced) | 78 (2 untraced) | 3 (3 untraced) |
 | §6 untraced claims (marked / silent) | 2 untraced (2 marked, 0 silent) | 2 untraced (2 marked, 0 silent) | 3 untraced (0 marked, 3 silent) |
 | §2 verdict cells (non-conforming) | 77 (0 non-conforming) | 77 (0 non-conforming) | 1 (1 non-conforming) |
 | §4 `chain_blocks` (malformed) | 31 (0 malformed) | 31 (0 malformed) | 3 (1 malformed) |
@@ -53,7 +53,7 @@ This phase publishes four disclosures in the same voice R7/R9/R10 use on the age
 | shared/examples/personal-general-2.md | OK | 3 | 0 | 0 | 0 | personal-general-2 | 7 | 0 | 0 | 8 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 0 | 0 | 0 | 0 | 0 | 0 |
 | shared/examples/personal-general.md | OK | 2 | 0 | 0 | 0 | personal-general | 7 | 0 | 0 | 5 | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 1 | 0 | 0 | 0 | 0 | 0 |
 | shared/examples/product-business-2.md | OK | 3 | 0 | 0 | 0 | product-business-2 | 4 | 0 | 0 | 7 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 1 | 0 | 0 | 0 | 0 | 0 |
-| shared/examples/product-business.md | OK | 3 | 0 | 0 | 0 | product-business | 3 | 0 | 0 | 7 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 3 | 0 | 0 | 0 | 0 | 0 |
+| shared/examples/product-business.md | OK | 3 | 0 | 0 | 0 | product-business | 4 | 0 | 0 | 7 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 1 | 0 | 0 | 0 | 0 | 0 |
 | shared/examples/science-engineering-2.md | OK | 2 | 0 | 0 | 0 | science-engineering-2 | 3 | 0 | 0 | 8 | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 2 | 0 | 0 | 0 | 0 | 0 |
 | shared/examples/science-engineering.md | OK | 2 | 0 | 0 | 0 | science-engineering | 3 | 0 | 0 | 8 | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 0 | 0 | 0 | 0 | 0 | 0 |
 | shared/examples/self-application.md | OK | 3 | 0 | 0 | 0 | self-application | 9 | 0 | 0 | 6 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 1 | 0 | 0 | 0 | 0 | 0 |
@@ -72,7 +72,7 @@ This phase publishes four disclosures in the same voice R7/R9/R10 use on the age
 | first-principles/agents/references/examples/personal-general-2.md | OK | 3 | 0 | 0 | 0 | personal-general-2 | 7 | 0 | 0 | 8 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 0 | 0 | 0 | 0 | 0 | 0 |
 | first-principles/agents/references/examples/personal-general.md | OK | 2 | 0 | 0 | 0 | personal-general | 7 | 0 | 0 | 5 | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 1 | 0 | 0 | 0 | 0 | 0 |
 | first-principles/agents/references/examples/product-business-2.md | OK | 3 | 0 | 0 | 0 | product-business-2 | 4 | 0 | 0 | 7 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 1 | 0 | 0 | 0 | 0 | 0 |
-| first-principles/agents/references/examples/product-business.md | OK | 3 | 0 | 0 | 0 | product-business | 3 | 0 | 0 | 7 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 3 | 0 | 0 | 0 | 0 | 0 |
+| first-principles/agents/references/examples/product-business.md | OK | 3 | 0 | 0 | 0 | product-business | 4 | 0 | 0 | 7 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 1 | 0 | 0 | 0 | 0 | 0 |
 | first-principles/agents/references/examples/science-engineering-2.md | OK | 2 | 0 | 0 | 0 | science-engineering-2 | 3 | 0 | 0 | 8 | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 2 | 0 | 0 | 0 | 0 | 0 |
 | first-principles/agents/references/examples/science-engineering.md | OK | 2 | 0 | 0 | 0 | science-engineering | 3 | 0 | 0 | 8 | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 0 | 0 | 0 | 0 | 0 | 0 |
 | first-principles/agents/references/examples/self-application.md | OK | 3 | 0 | 0 | 0 | self-application | 9 | 0 | 0 | 6 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 1 | 0 | 0 | 0 | 0 | 0 |

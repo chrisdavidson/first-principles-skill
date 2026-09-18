@@ -35,7 +35,7 @@ A complete first-principles analysis of a product and business pricing question,
 - **GT-1** Current ARR is $2.4M from 240 paying teams at approximately $10,000 per team per year. — source: internal financial report (company's own ARR dashboard)
 - **GT-2** The product's current acquisition model is primarily outbound sales and referrals; no self-serve inbound channel exists. — source: known channel mix (sales team records)
 - **GT-3** Free-tier infrastructure and support must be budgeted separately from the paid-tier cost structure; they cannot be absorbed as zero marginal cost into the current operating model. — source: accounting principle; confirmed by finance team (infrastructure and support costs scale with active users, not paying users)
-- **GT-4** The free-to-paid conversion rate for this product in this ICP segment is unknown and has not been measured; no historical pilot or freemium experiment has been run. — source: verified gap (product and sales teams confirm no conversion data exists)
+- **GT-4?** The free-to-paid conversion rate for this product in this ICP segment is unknown and has not been measured; no historical pilot or freemium experiment has been run. — source: verified gap (product and sales teams confirm no conversion data exists)
 
 ---
 
@@ -43,28 +43,28 @@ A complete first-principles analysis of a product and business pricing question,
 
 ### Conclusion C1: The competitor-parity argument cannot justify adding a free tier
 
-GT-3 (free-tier costs are real and must be separately budgeted) + GT-4 (conversion rate unknown and unverified)
+GT-3 (free-tier costs are real and must be separately budgeted) + GT-4? (conversion rate unknown and unverified)
 → Any projection of free-tier profitability or payback period requires a conversion rate assumption, and that assumption cannot be filled from competitor behavior without knowing competitors' cost structure and ICP overlap
 → The competitor-parity argument ("they have a free tier, so we need one") is an analogy-as-evidence move that collapses without a named GT about competitor conversion economics — it cannot anchor a derivation chain
 
-**Confidence:** HIGH
+**Confidence:** MEDIUM — the chain's head cites GT-4?, an unverified ground truth, so under the D-07 rule (a chain citing a `GT-N?` on its head ends MEDIUM or LOW, never HIGH) it cannot be rated HIGH. The structural claim this chain reaches — that the competitor-parity argument cannot anchor a derivation chain — does not itself depend on the conversion rate's *value*, but the chain as written consumes GT-4? and is banded accordingly. This would rise once the time-boxed pilot C2 recommends produces the missing conversion data.
 
 ---
 
 ### Conclusion C2: The free-tier decision is empirical, not a convention to follow; a time-boxed pilot is the minimum required action before any adoption decision
 
-GT-1 (240 teams at $10K/year average contract; outbound acquisition model) + GT-4 (conversion rate unknown and unverified)
+GT-1 (240 teams at $10K/year average contract; outbound acquisition model) + GT-4? (conversion rate unknown and unverified)
 → At $10K/year average contract, even a modest conversion rate (1–2%) on a free-tier cohort could justify the investment; but at near-zero conversion the free tier generates support and infrastructure cost with no revenue offset — the outcome is highly sensitive to a variable that has never been measured for this product
 → Deciding to add or reject a free tier without conversion data is a decision under ignorance, not a decision under uncertainty; the minimum responsible action is to run a time-boxed pilot designed to generate the missing data before committing to a permanent pricing change
 
-**Confidence:** HIGH
+**Confidence:** MEDIUM — GT-4? is unverified, and this chain's head cites it directly, so per the D-07 rule the chain is capped below HIGH regardless of how strong the reasoning built on top of it is. The recommendation to run a time-boxed pilot is itself the mechanism that would resolve GT-4?'s open status and let this chain be re-rated once the pilot's data lands.
 
 ---
 
 ### Conclusion C3: The pilot threshold for adoption must be pre-specified before the pilot begins, not inferred from results afterward
 
 GT-2 (outbound-led acquisition; no existing self-serve channel) + GT-3 (free-tier costs are real and separately budgeted)
-→ The break-even conversion rate has the form (blended monthly cost per free user) / (average contract value): GT-1 supplies the average contract value (~$10K/year), but no named ground truth supplies the blended monthly cost per free user — GT-3 establishes only that this cost is real and must be separately budgeted, not its magnitude. The threshold is therefore not yet calculable from the named ground truths; it requires one additional measured input — the per-free-user cost — that the pilot itself must produce
+→ The break-even conversion rate has the form (blended monthly cost per free user × 12) / (average annual contract value per converting account): both sides must be stated on the same annual basis — dividing a monthly cost directly by an annual contract value, as an earlier form of this analysis did, understates the required threshold by a factor of 12. GT-1 supplies the average annual contract value (~$10K/year) for the denominator, but no named ground truth supplies the blended monthly cost per free user for the numerator — GT-3 establishes only that this cost is real and must be separately budgeted, not its magnitude. A second, separate gap: the numerator is a cost per free USER while the denominator is a contract value per converting ACCOUNT, so the formula is not dimensionally complete until the average number of free users per converting account is also named. The threshold is therefore not yet calculable from the named ground truths; it requires two additional measured inputs — the blended monthly cost per free user, and the average free-users-per-converting-account ratio — that the pilot itself must produce
 → Pre-specifying the threshold formula before the pilot — and committing to compute the actual break-even number as soon as the pilot yields the per-free-user cost — gives the pilot a falsifiable success criterion and prevents post-hoc rationalization of a result that falls below the economic break-even
 
 **Confidence:** HIGH
@@ -85,10 +85,10 @@ GT-2 (outbound-led acquisition; no existing self-serve channel) + GT-3 (free-tie
 
 ## 6. Conclusion
 
-**Recommended approach:** (chains C2 and C3) Run a time-boxed 90-day pilot with a limited cohort of free-tier users (up to 5 users, limited projects, as proposed) to generate the conversion data currently absent in GT-4. Before the pilot launches, pre-specify the break-even threshold *formula* — blended monthly cost per free user divided by average contract value gives the minimum conversion needed to cover costs. GT-1 supplies the average contract value, but the blended cost per free user is not supplied by any named ground truth (GT-3 establishes only that this cost is real); it is a required input the pilot must measure. Commit in advance to compute the actual threshold number as soon as that per-free-user cost is known. If the pilot clears the threshold, adopt the free tier with full cost budgeting per GT-3. If it does not, reject the free tier and document the result so the question does not re-open without new evidence.
+**Recommended approach:** (chains C2 and C3) Run a time-boxed 90-day pilot with a limited cohort of free-tier users (up to 5 users, limited projects, as proposed) to generate the conversion data currently absent in GT-4. Before the pilot launches, pre-specify the break-even threshold *formula* — annualised blended monthly cost per free user (× 12) divided by average annual contract value per converting account gives the minimum conversion needed to cover costs; dividing a monthly cost directly by an annual contract value understates the threshold by a factor of 12, so both sides must be annualised. GT-1 supplies the average annual contract value, but the blended monthly cost per free user is not supplied by any named ground truth (GT-3 establishes only that this cost is real); a second gap is that the numerator is per free user while the denominator is per converting account, so the average number of free users per converting account is a second required input. Both figures are required inputs the pilot must measure. Commit in advance to compute the actual threshold number as soon as that per-free-user cost is known. If the pilot clears the threshold, adopt the free tier with full cost budgeting per GT-3. If it does not, reject the free tier and document the result so the question does not re-open without new evidence.
 
 **Key insight:** (chain C1) "Competitors do it" is not a valid reason to restructure a B2B pricing model at $2.4M ARR. The free-tier question is an empirical question about this product's conversion economics, not a convention the product team is obligated to follow. An outbound-led SaaS product with $10K/year average contracts and no existing self-serve channel is structurally different from the consumer tools and developer utilities where free-tier models consistently generate positive unit economics. The methodology forced this distinction by requiring competitor behavior to be grounded in a named GT about competitor economics — and no such GT exists or can be constructed from available data.
 
 **Trade-offs acknowledged:** (chains C2 and C3) The pilot has real costs that must be budgeted before approval: engineering time to build feature gating and usage limits, infrastructure for non-paying users, and support overhead during the 90-day window. The pilot produces conversion data only for the cohort it runs on; if that cohort is not representative of the broader ICP, the data may not generalize to a full launch. There is also a pricing-page complexity cost during and after the pilot regardless of outcome.
 
-**Confidence:** HIGH
+**Confidence:** MEDIUM — the Recommended approach above explicitly cites "(chains C2 and C3)"; C2 is capped at MEDIUM under the D-07 rule because its head cites GT-4?, an unverified ground truth, and this section's own confidence inherits that cap rather than averaging it away. C3 itself remains HIGH and is unaffected by GT-4?, but the section-level rating is bound by the lower of the chains it names. This would rise once the pilot resolves GT-4?'s open status.

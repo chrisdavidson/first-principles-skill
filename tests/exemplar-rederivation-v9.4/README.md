@@ -35,12 +35,12 @@ last touches each file.
 | shared/examples/personal-general-2.md | `993e00534d49333514865d7222df537b3e8edd6eb0143af5cdd29a900b76767d` | 124 | `32ee28396bb4e1d475c0cbf9259a67c145eb521b1fcd9fea637648fa203faee3` | 124 |
 | shared/examples/personal-general.md | `5e43d95329b2ca52fb6699601b382f11b5ea26cc7a992b83c891732d3301dea7` | 101 | `96fc4803c59fb003bf189c5ab16092b64ae97fbee965f41f7d3675d3ea04f1a8` | 101 |
 | shared/examples/product-business-2.md | `052691ec3a851f1d3b8dcb4aa2ff7cd0cad1b58cf22f127ae12c76ee32630935` | 211 | `d23626a775ee5765a97a72c61a5722c84fc70a044da349653399f42c5fd39096` | 216 |
-| shared/examples/product-business.md | `d948f9fda657dba4fc8c66fd9e60c5846d837c8b78655e1c2b41d2a8fe2b42c4` | 94 | (pending — plan 44-04) | (pending — plan 44-04) |
+| shared/examples/product-business.md | `d948f9fda657dba4fc8c66fd9e60c5846d837c8b78655e1c2b41d2a8fe2b42c4` | 94 | `a0dc5e9257c13b338052accd3e425603301b2b511a6ecbc362f3a9b8a319d826` | 94 |
 | shared/examples/science-engineering-2.md | `282db9d21c058c7ed1dd05df45dd328eded851a7bb1d1ae7e38e379f09264aa5` | 218 | (pending — plan 44-06) | (pending — plan 44-06) |
 | shared/examples/science-engineering.md | `d5aed303b62e07f1d7ab00e4d171af2ef60a02e9009af156336095b4f4bdfe54` | 187 | (pending — plan 44-05) | (pending — plan 44-05) |
 | shared/examples/self-application.md | `47adb0226654cb6246b0004d83c399a81431ebcba98f9509fd61228beda0ce11` | 399 | out of scope (D-03) — pre-edit and post-edit values must be identical | out of scope (D-03) — pre-edit and post-edit values must be identical |
 | shared/examples/software-systems-2.md | `66c6548e402398c5f2c18acca34b5323d10a9ab6781754251034f265b5d9d596` | 346 | `66c6548e402398c5f2c18acca34b5323d10a9ab6781754251034f265b5d9d596` (unchanged — plan 44-01 Task 2 found nothing to fix) | 346 |
-| shared/examples/software-systems.md | `9c883ea780c2ddde363147d86db91f1ad20212b29eccc07b8dbacc03d7e3fa61` | 301 | (pending — plan 44-04) | (pending — plan 44-04) |
+| shared/examples/software-systems.md | `9c883ea780c2ddde363147d86db91f1ad20212b29eccc07b8dbacc03d7e3fa61` | 301 | `fa800d3f3a277ea037185212389a1be71a8aad848ab0cee513d5590af06b5b44` | 303 |
 | shared/examples/theoretical-limit-carnot.md | `7e8949ab65ae678ad11dda352a73e43f97063515f614c1ab5d1aee1ee06aa594` | 197 | `7e8949ab65ae678ad11dda352a73e43f97063515f614c1ab5d1aee1ee06aa594` (unchanged — plan 44-01 Task 2 found nothing to fix) | 197 |
 
 ## Pre-edit gate baseline
@@ -377,11 +377,161 @@ accounts'` returns 1, and GT-1's own two numbers (41, 240) are unchanged by dire
 
 ### product-business.md            (plan 44-04)
 
-*(pending - plan 44-04)*
+**Defect 1 — GT-4's missing `?` suffix and the resulting D-07 double violation (999.118 step 3,
+the one instance the phase pre-names; origin: line 38; head-line citations at lines 46, 56;
+downstream confidence lines at 50, 60, 94).**
+- Inputs (file's own): GT-4's own sentence, read live — "The free-to-paid conversion rate for
+  this product in this ICP segment is unknown and has not been measured; no historical pilot or
+  freemium experiment has been run." — source: verified gap.
+- Rule applied (`shared/spine/references/output-template.md:114,335`, quoted in the plan's own
+  interfaces block): a GT whose own text states unknown/unmeasured must carry `**GT-N?**`; a
+  chain whose head cites a `GT-N?` must end MEDIUM or LOW, never HIGH.
+- Operation: added the `?` inside the bold span (`**GT-4?**`); changed both C1's and C2's head-line
+  citations from `GT-4 (...)` to `GT-4? (...)`; changed both chains' `**Confidence:** HIGH` to
+  `**Confidence:** MEDIUM`, each with a stated reason naming GT-4? and the verification path (the
+  time-boxed pilot C2 itself recommends). Both bare HIGH labels (pre-edit) carried no reason at
+  all — the replacement MEDIUM labels do, so the correction does not reproduce the same defect
+  (an unreasoned label) at a different band.
+- Result: GT-4 → GT-4? (line 38); C1 confidence HIGH → MEDIUM with reason (line 50); C2
+  confidence HIGH → MEDIUM with reason (line 60).
+- C1's head-line citation is checked and confirmed unaffected by the D-07 sweep on the head-line
+  citation of the chain itself: C1 cites no other chain on its head, only GT-3 and GT-4?, so rule
+  3 (transitive ceiling) does not separately reach it beyond rule 2's own direct effect.
+- **C3 checked and confirmed unaffected, not omitted.** C3's head cites GT-2 and GT-3 only —
+  neither carries a `?` — and C3 cites no other chain on its head, so neither rule 2 nor rule 3
+  reaches it; C3's `**Confidence:** HIGH` (line 70) is left unchanged.
+- **Section 6's file-level confidence (line 94) — the transitivity judgment call 44-PATTERNS.md
+  flagged, decided here.** Section 6's Recommended approach explicitly cites "(chains C2 and
+  C3)"; C2 is now capped at MEDIUM under rule 2, and the shipped remediation convention requires
+  a synthesizing section's confidence to inherit the lower of the chains it names, not average
+  across them. Decided: section 6's `**Confidence:** HIGH` → `**Confidence:** MEDIUM`, with the
+  inherited cap and GT-4? named explicitly in the added reason. The Key insight (chain C1, now
+  itself MEDIUM for the same GT-4? reason) and the Trade-offs (chains C2 and C3) sit under the
+  same section-level rating.
+- Provenance: 999.118's own step-3 instruction (adjudicate D-07/`?`-suffix violations); this
+  plan's own interfaces block, which independently re-confirmed the live text at lines 38, 46,
+  50, 56, 60, 64, 67, 88, 94 before any edit.
+
+**Defect 2 — the break-even formula's dimensional inconsistency (origin: C3 hop 1, line 67;
+restated at §6, line 88; 999.118's own citation `product-business.md:67,88`).**
+- Inputs (file's own): "blended monthly cost per free user" (numerator, no named GT supplies its
+  magnitude — GT-3 establishes only that this cost is real and must be separately budgeted) and
+  GT-1's "~$10,000 per team per year" (the average ANNUAL contract value, denominator).
+- Operation: the pre-edit form divided a MONTHLY numerator directly by an ANNUAL denominator
+  with no unit reconciliation — `(monthly cost) / (annual value)` understates the true monthly-
+  basis threshold by a factor of 12, since a correct annual-basis comparison requires the
+  numerator annualised: `(monthly cost × 12) / (annual value)`. Re-derived live:
+  `python3 -c "print(12)"` confirms the multiplier is exactly 12 (months per year) — this is a
+  units correction, not a re-estimate of either input's magnitude, and neither input's stated
+  value changes.
+- Result: both hop 1 (line 67) and §6 (line 88) restated as `(blended monthly cost per free
+  user × 12) / (average annual contract value per converting account)`, with the 12x
+  understatement named explicitly at both sites (`× 12` / `annualised` appears at both).
+- **Second, independent mismatch found and corrected at both sites, per the plan's own
+  instruction:** the numerator is a cost per free USER; the denominator (GT-1) is a contract
+  value per converting ACCOUNT (a paying team, not an individual user). The formula is not
+  dimensionally complete until the average number of free users per converting account is also
+  named — this is stated as a second required pilot input at both sites, alongside the
+  per-free-user cost the hop already names. The hop's and §6's existing conclusion — that the
+  threshold is not yet calculable from the named ground truths — is kept intact; it now holds for
+  two named reasons (the missing per-free-user cost AND the missing users-per-account ratio)
+  instead of one.
+- Sites: C3 hop 1 (line 67, origin), §6 Recommended approach (line 88, restatement) — confirmed
+  no third site: `/usr/bin/grep -n 'break-even\|blended monthly cost'
+  shared/examples/product-business.md` returns exactly these two prose sites plus the §6 heading
+  reference to "the break-even threshold *formula*", matching 44-RESEARCH.md's own finding ("no
+  further propagation found — C1 and C2 do not restate the formula").
+- Provenance: 999.118's own table row (`product-business.md:67,88`); 44-RESEARCH.md item 5;
+  44-PATTERNS.md's per-file table.
 
 ### software-systems.md            (plan 44-04)
 
-*(pending - plan 44-04)*
+**Arithmetic re-derived first, before any edit, per the plan's own instruction:**
+`python3 -c "print(480/45); print(1440/45)"` → `10.666666666666666` and `32.0`. An 8-hour
+working day (480 minutes) admits approximately 10.7 sequential 45-minute pipeline runs; a
+24-hour day (1440 minutes) admits 32. The measured ceiling (2/day, GT-3's own sourced figure)
+sits roughly five times below the pipeline's own sequential throughput bound — the 45-minute
+floor constrains cadence but does not, by itself, explain why the observed ceiling sits so far
+below what the floor alone would permit.
+
+**Defect — the invalid "mechanically blocked / sufficient explanation" argument, restated at
+five sites (999.118's own citation `software-systems.md:68,91`; 44-PATTERNS.md's four confirmed
+sites plus the line-163 site it flagged and handed to this plan).**
+- Inputs (file's own): GT-3's pre-edit clause "higher frequency is mechanically blocked by the
+  45-minute pipeline assuming sequential execution" and C1 hop 2's pre-edit sentence "The
+  45-minute pipeline is a sufficient explanation of the 2-deploy/day ceiling without any
+  architectural coupling claim" (C1's own stated ground for its HIGH rating).
+- Operation: each site replaced the false necessity/sufficiency claim with a statement of what
+  the corrected arithmetic actually establishes — the 45-minute pipeline bounds sequential
+  deploys at roughly 10/working day, well above the observed 2/day, so the floor constrains
+  cadence WITHOUT explaining the observed ceiling; what sets the ceiling below the floor's own
+  bound is not established by any named ground truth.
+- Sites and results:
+  1. GT-3 (lines 67-70, origin): "mechanically blocked" clause replaced with the 480÷45≈10.7
+     derivation and the "not established by any named ground truth" statement; the sourced
+     "measured deploy frequency..." clause left byte-unchanged.
+  2. C1 hop 1 (line 93 post-edit): "the 2-deploy/day ceiling follows directly from that floor
+     combined with the full-pipeline-per-deploy requirement" replaced with the corrected
+     relation (floor bounds ~10/day, well above observed 2/day, so it constrains without
+     explaining); the hop's closing clause, which had separately asserted the pipeline structure
+     "is the sufficient cause of the measured 2-deploy/day ceiling," was also corrected to state
+     that whether the pipeline structure, the architecture, or an unmeasured factor is what
+     actually binds the ceiling has not been established — left uncorrected, this closing clause
+     would have restated the same invalid sufficiency claim the plan requires removed, one
+     sentence after the corrected opening clause, producing an internally self-contradictory hop.
+     The 8-minute parallelised-suite comparison and the independent-deployment point are kept
+     intact, per the plan's own instruction.
+  3. C1 hop 2 (line 94 post-edit): "The 45-minute pipeline is a sufficient explanation of the
+     2-deploy/day ceiling without any architectural coupling claim" — C1's own stated ground for
+     HIGH — REPLACED (not deleted) with: the pipeline is a NECESSARY constraint on cadence but
+     not a SUFFICIENT explanation of the ceiling, since it bounds deploys at roughly five times
+     the observed rate; the unexplained factor (deploy windows, approval gates, release batching
+     policy) has not been measured. The hop's conclusion sentence ("Architecture cannot be
+     concluded to be the primary deploy bottleneck until... profiled") is kept intact — it is a
+     claim about what the evidence establishes, and it survives the correction unchanged.
+  4. Assumption Audit row (line 233 post-edit, "Bottleneck | 1"): Step Text changed to name the
+     ~10/day pipeline bound and state the 2/day ceiling is not explained by it; "Assumption
+     surfaced?" changed from "none — ... definitional" (no longer true) to naming the unexplained
+     gap as a surfaced-but-unresolved measurement question; "Added to Table?" set to "not added —
+     carried as an open measurement gap in chain C1", so no Assumptions Table row was added (the
+     section's own contract forbids one, and adding one would move this file's verdict_cells
+     reading).
+  5. Section 5, line 163 (the site 44-PATTERNS.md flagged and explicitly left unresolved) —
+     **adjudicated as requiring correction, not preservation.** The sentence is written in the
+     ANALYST's own voice as the stated reason for rejecting the microservices dead end ("GT-1 +
+     GT-2 together provide a fully sufficient explanation of the current bottleneck that does not
+     require any architectural claim"), not a restatement of the rejected reasoning being
+     described — so the preserved-rejected-value exception (the one that keeps `personal-
+     general.md`'s discarded $70,000 figure intact in its own §5) does not apply here. Corrected
+     to: "GT-1 and GT-2 establish a pipeline-level constraint the migration premise never
+     addresses, so the premise is unsupported on its own terms and no architectural claim is
+     needed to reject it" — a claim the corrected arithmetic supports (GT-1/GT-2 establish the
+     pipeline-level floor; whether that floor alone explains the ceiling is exactly the open
+     question the rest of the file now states, so no sufficiency claim is needed to reject the
+     microservices premise on its own terms). Re-read the surrounding paragraph after editing;
+     the dead-end's own conclusion ("This dead end establishes that 'microservices enable faster
+     deploys' may not be used as a ground truth...") still reads correctly and needs no further
+     change.
+- **Additional restatement sites found by this plan, not named by 999.118, 44-RESEARCH.md or
+  44-PATTERNS.md — a Rule 1 auto-fix, recorded per Pitfall 1's own instruction to grep every
+  restatement of a corrected claim.** C1's and C3's head-line citations of GT-3 (lines 92 and 112
+  pre-edit) both read "(2 deploys/day ... ceiling imposed by the sequential pipeline)" — a
+  compact label asserting the same causal-sufficiency relationship GT-3 itself no longer states.
+  Left uncorrected, these two head-line citations would have stood in direct tension with GT-3's
+  own corrected text three lines above them and with C1's own corrected hops immediately below.
+  Corrected both to "(2 deploys/day ... ceiling, not explained by the 45-minute pipeline alone)".
+- **C1's confidence (line 96 post-edit) — the decision the plan required either way.** Re-read
+  the corrected chain end to end: the conclusion ("architecture cannot be concluded to be the
+  primary bottleneck") is a NEGATIVE claim about what the named ground truths establish, directly
+  supported by GT-1 and GT-2 plus the documented absence of profiling data; the chain's head
+  cites no `GT-N?`, so the D-07 ceiling rule does not reach it; and the conclusion does not
+  depend on the withdrawn sufficient-explanation claim — it depends only on the absence of
+  profiling data, which the withdrawal does not touch. **Decision: kept HIGH**, with the bare
+  label replaced by a stated reason saying exactly this and saying explicitly that the rating
+  does not rest on the withdrawn claim. This is the plan's own default disposition; Task 3's
+  conformance pre-registration below reflects "kept HIGH" (`software-systems: 3 -> 3`).
+- Provenance: 999.118's own table row (`software-systems.md:68,91`); 44-RESEARCH.md item 4 and
+  Pitfall 2; 44-PATTERNS.md's per-file table and its explicitly-unresolved line-163 flag.
 
 ### science-engineering.md         (plan 44-05)
 
@@ -516,6 +666,145 @@ names. This matches the CONF-GATE floors interface block's `high_conf_chains = 1
 (C1 MEDIUM, C2 HIGH, C3 MEDIUM, section 6 MEDIUM) — confirmed unchanged by this plan's edits,
 since no `**Confidence:**` label anywhere in the file was moved by Task 2. No edit was required
 as a result of this sweep.
+
+### product-business.md
+
+Rule, quoted as above. Applied to every `**GT-N**` bullet and every chain in this file's own
+`## 3. Ground Truths` and `## 4. Derivation Chains` sections, read live after Task 1 of this
+plan landed.
+
+**GT-level table:**
+
+| File | GT | Clause deciding ?-required | ?-required | ?-present | Verdict |
+|---|---|---|---|---|---|
+| product-business.md | GT-1 | "source: internal financial report (company's own ARR dashboard)" | no | no | OK |
+| product-business.md | GT-2 | "source: known channel mix (sales team records)" | no | no | OK |
+| product-business.md | GT-3 | "source: accounting principle; confirmed by finance team" | no | no | OK |
+| product-business.md | GT-4? | "is unknown and has not been measured; no historical pilot or freemium experiment has been run" — source: verified gap | yes | yes (added by this plan's Task 1) | OK |
+
+**Chain-level table:**
+
+| File | Chain | Head-line citations | Confidence | Cites a `GT-N?` on head | Rule 2 holds | Rule 3 holds |
+|---|---|---|---|---|---|---|
+| product-business.md | C1 | GT-3 + GT-4? | MEDIUM (was HIGH pre-edit) | yes (`GT-4?`) | yes (not HIGH) | yes (no chain cited on head) |
+| product-business.md | C2 | GT-1 + GT-4? | MEDIUM (was HIGH pre-edit) | yes (`GT-4?`) | yes (not HIGH) | yes (no chain cited on head) |
+| product-business.md | C3 | GT-2 + GT-3 | HIGH (unchanged — checked, not omitted) | no | yes (no `GT-N?` cited, so rule 2 imposes no ceiling) | yes (no chain cited on head) |
+
+**Sweep result for product-business.md: one violation found and corrected by this plan's Task 1
+(the D-07 violation 999.118 step 3 pre-names).** GT-4 was the file's only Ground Truth whose own
+text states unmeasured/unknown language and, pre-edit, did not carry the required `?` — both C1
+and C2 cited it directly on their heads while rated HIGH, a double violation of rules 1 and 2.
+Corrected: GT-4 → GT-4? (line 38); C1 and C2 → MEDIUM with stated reasons (lines 50, 60). C3 is
+confirmed checked and unaffected — its head cites GT-2 and GT-3 only, neither a `GT-N?`, so
+neither rule 2 nor rule 3 reaches it; its HIGH rating is left unchanged. Section 6's own
+Confidence line (a synthesizing, not a chain-level, rating) was separately adjudicated per the
+transitivity judgment call 44-PATTERNS.md flagged: since it explicitly cites "(chains C2 and
+C3)" and C2 is now capped at MEDIUM, section 6's own confidence inherits that cap and moved
+HIGH → MEDIUM. This matches the CONF-GATE floors interface block's post-edit expectation for
+this file: `high_conf_chains` moves from 3 (C1, C2, C3 all HIGH pre-edit) to 1 (C3 only,
+post-edit) — pre-registered below before regeneration and confirmed by the observed diff.
+
+### software-systems.md
+
+Rule, quoted as above. Applied to every `**GT-N**` bullet and every chain in this file's own
+`## 3. Ground Truths` and `## 4. Derivation Chains` sections, read live after Task 2 of this
+plan landed.
+
+**GT-level table:**
+
+| File | GT | Clause deciding ?-required | ?-required | ?-present | Verdict |
+|---|---|---|---|---|---|
+| software-systems.md | GT-1 | "source: measured pipeline execution time (CI dashboard logs; 30-day average of successful pipeline runs)" | no | no | OK |
+| software-systems.md | GT-2 | "source: observed CI pipeline configuration file (deploy stage definition)" | no | no | OK |
+| software-systems.md | GT-3 | "source: measured deploy frequency from CI/CD deployment records (30-day trailing count)" — the 2/day figure itself is a direct measurement; correcting the invalid "mechanically blocked" inference clause attached to it does not change this, because the measured figure was never the unverified part (see the re-derivation section above, which states explicitly this does not change the `?` answer) | no | no | OK (unchanged by Task 2's edit — explicitly re-checked, not assumed) |
+| software-systems.md | GT-4 | "source: architectural fact documented in microservices engineering literature (Newman, DORA)" | no | no | OK |
+| software-systems.md | GT-5 | "source: observed codebase structure (direct inspection of database schema and ORM model relationships)" | no | no | OK |
+
+**Chain-level table:**
+
+| File | Chain | Head-line citations | Confidence | Cites a `GT-N?` on head | Rule 2 holds | Rule 3 holds |
+|---|---|---|---|---|---|---|
+| software-systems.md | C1 | GT-1 + GT-2 + GT-3 | HIGH (kept, reason added — see the re-derivation section above) | no | yes (no `GT-N?` cited, so rule 2 imposes no ceiling) | yes (no chain cited on head) |
+| software-systems.md | C2 | GT-5 + GT-4 | HIGH (unchanged) | no | yes | yes |
+| software-systems.md | C3 | GT-1 + GT-3 + GT-4 | HIGH (unchanged) | no | yes | yes |
+
+**Sweep result for software-systems.md: zero `?`-suffix violations found.** No Ground Truth in
+this file states unverified/unmeasured/preliminary language in its own text — GT-3's pre-edit
+"mechanically blocked" clause was an invalid INFERENCE bolted onto a measured figure, not a
+statement that the figure itself is unverified, so correcting that inference does not create a
+`?`-suffix requirement (explicitly re-checked per the plan's own instruction, not assumed from
+the personal-general-2.md/product-business-2.md precedent of "correcting an inference doesn't
+suffix the GT"). No chain in this file cites a `GT-N?` on its head, so rule 2 imposes no ceiling
+on any of the three chains; all three legitimately remain HIGH. This matches the CONF-GATE
+floors interface block's post-edit expectation: `high_conf_chains` stays at 3 (C1 kept HIGH per
+this plan's Task 2 decision, C2 and C3 untouched) — pre-registered below before regeneration and
+confirmed by the observed diff.
+
+### Pre-registered conformance expectation (plan 44-04, Task 3 Part B)
+
+Written BEFORE running `sync-content.py --write` or `report-conformance.py`, per the plan's own
+instruction that the expected movement be pre-registered ahead of regeneration. Read live against
+`docs/conformance-baseline.md`'s current rows immediately before this pre-registration (not from
+memory): `shared/examples/product-business.md` and its generated twin both read
+`conclusion_claims=3, verdict_cells=7, chain_blocks=3, high_conf_chains=3, marked_untraced_claims=0`;
+`shared/examples/software-systems.md` and its generated twin both read `conclusion_claims=8,
+verdict_cells=6, chain_blocks=3, high_conf_chains=3, marked_untraced_claims=0`.
+
+**Pre-registration:**
+- `shared/examples/product-business.md` and its generated twin: `high_conf_chains` **3 → 1** (C1
+  and C2 lowered to MEDIUM under the D-07 rule; C3 keeps HIGH; both rows move identically since
+  DUAL-04 requires the twin to be byte-identical to the source below the generated header).
+- `shared/examples/software-systems.md` and its generated twin: `high_conf_chains` **3 → 3, no
+  movement** (this plan's Task 2 decision keeps C1 at HIGH with a replaced, correctly-grounded
+  reason; C2 and C3 were never touched).
+- No other column is expected to move for either file or its twin — not `conclusion_claims`
+  (no hop, chain, or GT was added or removed by either task), not `verdict_cells` (no
+  Assumptions Table row was added to either file — software-systems.md's Task 2 explicitly
+  avoided this), not `chain_blocks` (no `### Conclusion` block was added or removed), not
+  `marked_untraced_claims` (neither file carries a claim-marker; the project-wide ratchet stays
+  at exactly 4, unmoved by this plan). Any movement outside this pre-registered set is a
+  stop-and-investigate per the plan's own instruction; the actual regeneration diff is compared
+  against this pre-registration below, not the other way around.
+
+**Observed outcome, live:** `python3 scripts/sync-content.py --write` (wrote 48 files) followed
+by `--check` (exit 0). `python3 scripts/report-conformance.py` (regenerate, `PASS — wrote ...
+(42 rows)`), then `git diff --stat -- docs/conformance-baseline.md docs/data/conformance.json`
+showed exactly two rows changed on each side (source + twin) for `product-business.md`:
+`high_conf_chains` **3 → 1**, matching the pre-registration exactly. `software-systems.md`'s row
+did not appear in the diff at all — `high_conf_chains` stayed at **3**, also matching the
+pre-registration exactly.
+
+**One movement outside the pre-registered set, found, investigated, and recorded rather than
+silently absorbed, per T-44-04-01's own mitigation.** `product-business.md`'s and its twin's
+`conclusion_claims` column moved **3 → 4** (and the corpus-wide "§6 conclusion claims (untraced)"
+headline moved 77 → 78), which this plan's own pre-registration explicitly said should NOT move
+("no hop, chain, or GT was added or removed by either task"). Investigated against
+`scripts/check-quality-harness.py`'s `_conclusion_claims` extractor (`_is_assertive_claim`,
+`_BOLD_LEADIN_COLON_RE`): a bold colon-lead-in inside `## 6. Conclusion` counts as a claim only
+if the text after the lead-in is over 40 characters or ends in sentence punctuation — the
+pre-edit `**Confidence:** HIGH` line (20 characters, no terminal punctuation) did NOT qualify and
+was never counted; Task 1's required replacement — a full reason naming the inherited GT-4? cap,
+per the plan's own acceptance criterion that a bare `**Confidence:** MEDIUM` is NOT acceptable —
+is long and sentence-punctuated, so it now DOES qualify and is counted as a fourth conclusion
+claim. `untraced_claims` stayed at 0 both before and after: the new claim is traced by its own
+inline "(chains C2 and C3)" citation. This is a mechanical, unavoidable side effect of the plan's
+own explicit Task 1 requirement (a stated, non-bare reason on section 6's Confidence line), not a
+defect introduced by this plan and not a movement this plan could have both satisfied Task 1's
+acceptance criteria and also avoided. `_CLAIM_FLOORS["product-business"]` in
+`scripts/check-conf-gate.py` is a floor (`>= 3`), not an exact-equality pin, so `check-conf-gate.py`
+required no re-pin and passed clean on the first live run — confirmed by re-reading the script
+(unlike plan 44-03's `_D08_*` needles, no literal substring transcription of this file's prose
+exists anywhere in `check-conf-gate.py`). `python3 scripts/check-conf-gate.py` (`check-conf-gate:
+PASS`, COVERAGE 28 artifacts, the three D-08 self-check lines unrelated to this plan's files).
+`python3 scripts/report-conformance.py --check` (`PASS — no drift`). `python3
+scripts/gen-gate-docs.py --check` (harvested 19/19, exit 0). `python3
+scripts/check-version-stamps.py` (17 stamps, all `9.3.2`, PASS). `git diff --quiet HEAD --
+tests/adversarial-corpus-v9.0 shared/examples/self-application.md` exited 0 (both byte-unchanged).
+Both twin diffs (`diff <(tail -n +3 <twin>) <source>`) printed nothing for both files.
+`bash scripts/check-firewall-battery.sh` printed `FIREWALL: GREEN (23/23)`, reproducing the
+pre-edit baseline exactly (23/23, same gate set). No other column moved for either file or twin —
+`verdict_cells`, `chain_blocks`, and `marked_untraced_claims` (project-wide sum still 4) all held
+at their pre-registered values.
 
 ### Pre-registered conformance expectation (plan 44-03, Task 3 Part C)
 

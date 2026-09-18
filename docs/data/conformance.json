@@ -19,11 +19,11 @@
     },
     "conclusion_claims": {
       "shared-examples": {
-        "total": 77,
+        "total": 78,
         "untraced": 2
       },
       "generated-twin": {
-        "total": 77,
+        "total": 78,
         "untraced": 2
       },
       "contract-surface": {
@@ -360,7 +360,7 @@
       "heading_chain_blocks": 3,
       "heading_malformed_blocks": 0,
       "analysis_id": "product-business",
-      "conclusion_claims": 3,
+      "conclusion_claims": 4,
       "untraced_claims": 0,
       "untraced_flag": 0,
       "verdict_cells": 7,
@@ -381,7 +381,7 @@
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
-      "high_conf_chains": 3,
+      "high_conf_chains": 1,
       "high_conf_unverified_head": 0,
       "confidence_inversions": 0,
       "confidence_unparsed": 0,
@@ -878,7 +878,7 @@
       "heading_chain_blocks": 3,
       "heading_malformed_blocks": 0,
       "analysis_id": "product-business",
-      "conclusion_claims": 3,
+      "conclusion_claims": 4,
       "untraced_claims": 0,
       "untraced_flag": 0,
       "verdict_cells": 7,
@@ -899,7 +899,7 @@
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
-      "high_conf_chains": 3,
+      "high_conf_chains": 1,
       "high_conf_unverified_head": 0,
       "confidence_inversions": 0,
       "confidence_unparsed": 0,
