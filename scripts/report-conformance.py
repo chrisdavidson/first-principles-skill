@@ -2579,8 +2579,8 @@ def _render_adversarial_corpus_section(corpus_rows: list[dict], headline: dict) 
     lines.append("")
     lines.append(
         "Every `detect_defects` column, including the always-`n/a` provenance columns, "
-        "for these items are carried in full in `docs/data/conformance.json` under "
-        "`adversarial_corpus.rows`, and are omitted here for readability."
+        "for these items is carried in full in `docs/data/conformance.json` under "
+        "`adversarial_corpus.rows`, and is omitted here for readability."
     )
     lines.append("")
     return lines
@@ -2772,8 +2772,8 @@ def _render_live_conformance_section(
     lines.append("")
     lines.append(
         "Every `detect_defects` column, including the always-`n/a` provenance columns, "
-        "for these runs are carried in full in `docs/data/conformance.json` under "
-        "`live_conformance.rows`, and are omitted here for readability."
+        "for these runs is carried in full in `docs/data/conformance.json` under "
+        "`live_conformance.rows`, and is omitted here for readability."
     )
     lines.append("")
     return lines
