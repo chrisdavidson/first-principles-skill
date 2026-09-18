@@ -1714,6 +1714,124 @@ Neither correction changes any figure, any re-derivation, any custody-table hash
 reading recorded above. Both narrow a **closure claim** — what the phase established — rather
 than a measurement.
 
+## Erratum 2 (2026-09-18)
+
+The Finding, Untested-exemplar re-derivation, chain-of-custody table and Frozen-evidence
+discipline sections above are frozen and left byte-unchanged. The numbered items below supersede
+the specific sentences they cite; no re-derivation, sha256, line count or sweep reading recorded
+above is affected. Raised by the Phase 44 verification (`44-VERIFICATION.md` gaps VG-01, VG-02,
+VG-03; residual findings RF-01, RF-02) and appended additively per this file's own Frozen-evidence
+discipline section, never as a rewrite of the original text.
+
+1. **"The blast radius extended well beyond 999.118's own eleven line citations, and every
+   additional site found was corrected, not merely noted." (Finding section, Blast-radius
+   paragraph).** Narrowed for `software-systems.md`. At `695250b` the claim that the 45-minute
+   pipeline binds the 2/day deploy ceiling survived, re-worded, at further sites an exact-substring
+   sweep could not reach: C1 hop 1 (:93), C3 hop 2 (:114), the §5 runner dead end (:187, :196-197,
+   :201-202, :214-216, :220-222), the Assumption Audit intro (:230), §6 steps 1-3 (:250-253, :255,
+   :269), the Key insight (:283-286) and the Trade-offs bullet (:290), plus the Scenario line (:9).
+   This is a further live instance of backlog **999.125**'s defect class — a re-worded restatement
+   an exact-substring sweep cannot see. Closed by plan 44-08 (commit `3bde82f`), which ran a
+   concept sweep instead of a sentence sweep — `/usr/bin/grep -noiE 'bottleneck|deploy-frequency|
+   deploy frequency|limiting|achievable|sufficient|almost certainly|correct (lever|intervention)|
+   single-digit|core problem|order-of-magnitude|ceiling'` against both the pre-edit and post-edit
+   file — adjudicating every hit S (corrected) or P (preserved, with a written reason).
+
+   | Site | Location | Before (concept) | After |
+   |---|---|---|---|
+   | S1 | :9 | "limiting the team ... to roughly 2 deploys per day" | "and the team ... ships roughly 2 deploys per day" |
+   | S2 | :93 C1 hop 1 | "no architectural change is needed to remove the deploy-frequency bottleneck" | "per-deploy pipeline time is set by pipeline structure, and no architectural change is needed to shorten it" |
+   | S3 | :113 C3 hop 1 | scope = four pipeline stages only | scope widened to the completion-to-next-deploy gap, cited to GT-3 |
+   | S4 | :114 C3 hop 2 | "(almost certainly parallelization first)" | conditional on what profiling identifies as binding |
+   | S5 | :187 | "seemed to directly address the measured bottleneck" | "seemed to directly address the measured 45-minute runtime (GT-1)" |
+   | S6 | :196-197 | "still well above the threshold needed to increase deploy frequency meaningfully" | states no such threshold is established |
+   | S7 | :201-202 | "The correct lever is not the test runner" | "The larger lever on pipeline time is not the test runner" |
+   | S8 | :214-216 | "reduces the bottleneck ... core problem" | "trims pipeline time ... the pipeline's structure" |
+   | S9 | :220-222 | "The correct intervention is parallelization ... order-of-magnitude" (unconditional) | conditional on profiling showing pipeline time binds |
+   | S10 | :230 | "the pipeline-bottleneck diagnosis chain" | "the bottleneck-diagnosis chain" |
+   | S11 | :250-253 | "Identify the dominant bottleneck" (pipeline stages only) | reads the completion-to-next-deploy gap too |
+   | S12 | :255 | "Parallelize the test suite and decouple the restart" (unconditional) | conditional on profiling identifying a pipeline stage as binding |
+   | S13 | :269 | "after removing the pipeline bottleneck" | "after removing whatever constraint profiling identified as binding" |
+   | S14 | :283-286 | "the same deploy-frequency improvement ... is achievable through pipeline configuration changes" | "What the analysis does show is the order of the work" |
+   | S15 | :290 | "address the deploy-frequency bottleneck" (unconditional) | conditional on profiling identifying a pipeline stage as binding |
+   | S16 | :240 | Audit row scoped to pipeline stages only | + completion-to-next-deploy gap; + GT-3's source |
+
+   All eleven P-sites (P1-P11) were preserved with their voice adjudication recorded — notably P2,
+   the fenced abandoned-reasoning chain "Current deploys take 45 minutes, limiting releases to
+   ~2/day.", preserved verbatim as rejected reasoning inside the fenced block the analyst's own
+   voice refutes three paragraphs later. Re-running the same concept sweep post-edit mapped every
+   hit to a named S- or P-site; none fell outside the table. No confidence label and no structural
+   count moved.
+
+2. **Step 4's "All six editable files' arithmetic is CONFIRMED with zero disagreements; no edit was
+   required in any of them." and the `estimate-fermi.md` table's "every figure re-derives cleanly."
+   (Untested-exemplar re-derivation section, `estimate-fermi.md — CONFIRMED`).** Narrowed: the
+   table omitted the O&M addition step. The file cited O&M reserve `≈ $5-10/kWh of capacity` but
+   used `$3` and `$8` in its lower/upper bounds and printed a `$25-35/kWh` central band its own
+   inputs give as `$25.6-30.6/kWh`. Closed by plan 44-09 (commit `e0fb140`), which kept the cited
+   `$5-10/kWh` range byte-unchanged and re-derived every downstream figure from it rather than
+   rewriting the citation to fit the stale bounds — a citation rewrite trades an arithmetic defect
+   for an unverifiable citation change, which is strictly worse. Re-derived with `python3` before
+   writing: `8.6*0.40*3.5+5 = 17.0` (lower bound), `8.6*0.60*4+7.5 = 28.0` (central, at the O&M
+   midpoint `$7.5`, published `~$28/kWh`), `8.6*0.80*5+10 = 44.0` (upper bound); levelised cost
+   `17/12000 = 0.0014`, `28/10000 = 0.0028`, `44/8000 = 0.0055` (`~$0.0014-0.0055/kWh`); the
+   decision-check ratio `150/44 = 3.4x`. `$17-$44/kWh` now appears exactly 3 times (the
+   decision-resolution check, §6 Recommended approach, §6 bullet). The NREL `$20-50/kWh` sentence
+   and the `~$40/kWh` straddle sentence stayed byte-unchanged (re-checked: 40 still lies inside
+   17-44).
+
+3. **The `science-engineering-2.md` re-derivation's added "0.21-0.25 mm — matching ... the
+   interfaces block's stated 0.21-0.25 mm range" (a figure this fixture's own
+   `science-engineering-2.md` re-derivation entry above did not separately re-check).** Narrowed:
+   the `0.247/0.243 mm` (rounded to `0.25 mm`) end is an outer-race computation whose geometry the
+   exemplar never states; only the `0.208 mm` (rounded to `0.21 mm`) inner-race end re-derives from
+   the file's own stated 70 mm inner-race radius. Closed by plan 44-09 (commit `e0fb140`), which
+   narrowed the counter-figure to "about 0.21 mm (0.208 mm)" and named the 70 mm inner-race radius
+   it derives from. The load-bearing conclusion — the nominal-contact band excludes GT-1's observed
+   0.4 mm — is unchanged at every value the band ever carried; GT-2? keeps its `?`, and C1, C2 and
+   §6 keep their confidence labels.
+
+4. **Chain-of-custody table, post-edit columns for `shared/examples/software-systems.md`,
+   `shared/examples/estimate-fermi.md` and `shared/examples/science-engineering-2.md` (Chain of
+   custody section above).** Superseded, not overwritten — post-`44-09` values:
+
+   | file | post-edit sha256 | post-edit lines |
+   |---|---|---|
+   | shared/examples/software-systems.md | `a6cf941bf62dd11c1cea54c7aa28b4b3187d56c60cee6563213089fffc9dc54f` | 316 |
+   | shared/examples/estimate-fermi.md | `0e0bad3eb377f33df84e02382e1eaf32d7a1fe9f1e277cdfb53e66b27b7e1d6b` | 269 |
+   | shared/examples/science-engineering-2.md | `072ce9b3e7477a64975d190cbf209c4e7ae62d376eeaeca317b9cfce55ca9822` | 254 |
+
+   The original table's `estimate-fermi.md` entry, "(unchanged — plan 44-01 Task 2 found nothing to
+   fix)", is superseded by item 2 above — the file's post-`44-07` sha256/line count that entry
+   recorded is no longer current; its arithmetic, not merely its bytes, has since changed.
+
+5. **Adversarial-corpus inheritance (recorded, never fixed).** T-14 (`derived:software-systems`)
+   also carries every 44-08 S-site's pre-fix text — recorded, never fixed (D-05); the
+   cross-reference already added under backlog 999.4 already warns readers of this section not to
+   treat corpus items as a clean negative class. No corpus item derives from `estimate-fermi.md`.
+   T-02 (`derived:science-engineering-2`) also derives from a file this erratum's item 3 narrows,
+   but its own catalogued defect (`tests/adversarial-corpus-v9.0/catalog.md:49`) is GT-4's
+   fabricated `read-at-source` provenance, not the GT-2? counter-figure item 3 narrows — unaffected.
+
+6. **"Once registered by plan 44-06" and "Until plan 44-06's registration lands" (Frozen-evidence
+   discipline section).** Corrected: `tests/exemplar-rederivation-v9.4` was registered in
+   `_FROZEN_PATHS` by plan **44-07** (Task 2), commit `6ac123c` (`chore(44-07)`), confirmed against
+   `44-07-PLAN.md` must_have 3. The registration itself — that it happened, and what it does — is
+   correct; only the plan number naming it was wrong.
+
+7. **Disposition, not a correction.** `personal-general-2.md`'s "approximately $12,030" (inputs
+   give $12,028) was reviewed under RF-03 / review finding IN-01 and deliberately left unedited,
+   because the file applies the same labelled 4-significant-figure rounding convention to its C2
+   gap ($36,232 → "$36,230"). Editing only the smaller figure would make the file inconsistent with
+   its own stated convention.
+
+Items 1-3 both narrow a closure claim — what the phase established — and record a content
+correction made after this artifact was frozen; items 4-6 correct bookkeeping; item 7 records a
+disposition, not a defect. No pre-edit baseline, gate reading or re-derivation recorded above this
+erratum is altered, and every figure items 2 and 3 supersede — `estimate-fermi.md`'s O&M-derived
+bracket and `science-engineering-2.md`'s nominal-contact counter-figure — is named above with its
+corrected value.
+
 ## Phase-wide close-out sweep (plan 44-07, Task 3)
 
 Run at the phase's final content-correction HEAD (`bcf8a88`) plus this plan's own two prior
