@@ -4,7 +4,7 @@
 
 # Conformance Baseline
 
-Measurement date: 2026-09-06
+Measurement date: 2026-09-18
 
 This file is a measurement, not a contract: no figure below defines what the codebase is required to become, and no count in it gates a conformance check. Regenerating this file only ever fails on staleness -- committed bytes that no longer match a fresh run of `scripts/report-conformance.py` -- never on a count read here being high.
 
