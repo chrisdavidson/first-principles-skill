@@ -213,6 +213,11 @@ through the Hertz stress-field model led to the right one. The corollary is proc
 when a failure surface is available, the analyst's first move is to characterise the
 origin geometry (surface vs subsurface, single vs distributed) — that single observation
 discriminates between large families of mechanisms before any narrative is entertained.
+This insight is carried by chain C1, which is banded MEDIUM because its head cites
+GT-2?, so it is stated here at MEDIUM and not above it. The part that does the
+discriminating — that the origin is subsurface rather than at the contact surface —
+rests on GT-1 alone, a direct metallographic measurement, and does not depend on
+GT-2?'s band edges.
 
 **Trade-offs acknowledged:** (chain C2) The recommended bonding-ring restoration adds quarterly
 inspection labour the operator was not previously budgeting; the alternative (continue
@@ -223,7 +228,11 @@ wear-morphology mapping) is supported by textbook reference rather than in-house
 controlled test — which is acceptable because GT-1 alone is dispositive against the
 boundary-lubrication attribution; GT-7? is corroborative, not load-bearing.
 
-**Confidence: HIGH** — the primary causal chain rests on GT-1 through GT-6, most of
+**Confidence: MEDIUM** — the section's rating is bound by the lower of the chains its
+Recommended approach names: chain C2 is HIGH, but chain C1 is MEDIUM because its head
+cites GT-2?, so this section cannot be rated above MEDIUM. Neither Criterion 5 EXCEPT
+clause applies — C1 is not marked `[Speculative]` and it is not an absent-fails
+derivation. The primary causal chain rests on GT-1 through GT-6, most of
 which are verified independently. Two items carry a `?`: GT-2? (chain C1's Hertz
 geometry — effective roller contact length and race radius are inferred rather than
 read at a named source) and GT-7? (the boundary-lubrication wear-morphology mapping).
