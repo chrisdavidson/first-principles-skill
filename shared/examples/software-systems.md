@@ -64,12 +64,12 @@ preventing faster deploys, and what is the cheapest intervention that removes th
   pipeline path, blue-green swap, or rolling deploy strategy currently exists in the pipeline
   configuration — source: observed CI pipeline configuration file (deploy stage definition)
 
-- **GT-3** The team ships approximately 2 deploys per day at maximum under the current pipeline
-  constraint. The 45-minute pipeline bounds sequential deploys at roughly 10 per working day
+- **GT-3** The team ships approximately 2 deploys per day at maximum, measured. What imposes that
+  ceiling is not established here — no named ground truth accounts for it. The 45-minute
+  pipeline bounds sequential deploys at roughly 10 per working day
   (480 minutes ÷ 45 minutes ≈ 10.7), so the measured 2/day ceiling sits about five times below
-  the pipeline's own throughput limit; what sets the observed ceiling is not established by any
-  named ground truth — source: measured deploy frequency from CI/CD deployment records
-  (30-day trailing count)
+  the pipeline's own throughput limit — source: measured deploy frequency from CI/CD
+  deployment records (30-day trailing count)
 
 - **GT-4** Operating a microservices estate requires per-service monitoring, independent deployment
   pipelines, inter-service communication contracts (API versioning, schema registries), and
@@ -146,7 +146,10 @@ Probing the premise reveals why it fails here:
 1. The 45-minute pipeline is driven by the test suite runtime (GT-1) and the full-pipeline-per-
    deploy requirement (GT-2). Neither of these is caused by the monolithic architecture. A
    monolith with a parallelized 8-minute test suite and a blue-green deploy strategy deploys
-   faster than many microservices systems. Architecture is not the cause of the current ceiling.
+   faster than many microservices systems. Architecture has not been shown to be the cause of
+   the current ceiling — and neither has the pipeline: at 45 minutes it bounds sequential
+   deploys at roughly 10 per working day, five times the observed 2/day rate, so what binds
+   the observed ceiling is not established by any named ground truth.
 
 2. Even after splitting the application layer into services, the shared database schema (GT-5)
    means each service cannot execute schema migrations independently — they all share the same
@@ -271,9 +274,11 @@ Problem Essence).
 
 **Key insight:** (chains C1, C2 and C3) "Deploys are too slow" is a symptom with multiple independent possible causes
 — test suite runtime, pipeline step serialization, deployment restart overhead, and database
-schema coupling are each sufficient to explain the current ceiling, and they require different
-interventions. Architecture migration is the highest-cost, highest-risk, and least reversible
-intervention in the solution space. Selecting it as the first response to a symptom that has
+schema coupling are each candidate causes that profiling would discriminate between, and they
+require different interventions. None of them has been shown sufficient: the 45-minute pipeline
+alone bounds deploys at roughly 10 per working day, five times the observed 2/day ceiling, so
+the binding constraint is still unmeasured. Architecture migration is the highest-cost,
+highest-risk, and least reversible intervention in the solution space. Selecting it as the first response to a symptom that has
 not been diagnosed is not reasoning from first principles — it is reasoning from convention
 (the convention that "microservices solve deploy problems"). The analysis shows that the same
 deploy-frequency improvement the team is seeking is achievable through pipeline configuration
