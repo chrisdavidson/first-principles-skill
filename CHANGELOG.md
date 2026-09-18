@@ -896,11 +896,13 @@ three findings that `docs/v9.1-claim-containment-diagnosis.md` § 3 accepted wit
 falsifiable bound apiece — the disposition of record for all three below. None of the three
 sentences is corrected, deleted, or reworded by this release; each ships exactly as found.
 
-**Correction, dated 2026-09-17 (v9.4.0 Phase 43):** as published, the D-14 and CR-02 citations
-above named `.planning/` paths bare, resting two of the three dispositions of record on files a
-reader of the published repo cannot open (backlog 999.59); the gitignore disclosure and the
-tracked-surface pointer are added by this note, and the findings, dispositions and bounds
-themselves are unchanged.
+**Correction, dated 2026-09-17 (v9.4.0 Phase 43):** as published, the D-14 citation above and the
+CR-02 citation below named `.planning/` paths bare — the decision authorising this disclosure, and
+the source record behind one of the findings — neither openable by a reader of the published repo
+(backlog 999.59); the gitignore disclosure and the tracked-surface pointer are added by this note,
+and the findings, dispositions and bounds themselves are unchanged. The disposition of record for
+all three findings is `docs/v9.1-claim-containment-diagnosis.md` § 3, which is tracked, and no
+finding's disposition rested on a `.planning/` path.
 
 - **CR-01** — `docs/gates/CONF-SURFACE.md` § "Disclosed bounds", bound (6) narrates the
   deferred-literal ledger's growth history and states a most-recent hop of `182 → 184`, while the
