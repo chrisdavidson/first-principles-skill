@@ -32,7 +32,7 @@ last touches each file.
 | shared/examples/decompose-irreducibility.md | `e91e2bac8d25321aab4620fc688f64e63af291b3b24b2e6041bd805de9e643b2` | 345 | `e91e2bac8d25321aab4620fc688f64e63af291b3b24b2e6041bd805de9e643b2` (unchanged — plan 44-01 Task 2 found nothing to fix) | 345 |
 | shared/examples/estimate-fermi.md | `7215c0c0485991429eeac27a6e2c612de38511a83c62db97b6fcc79bbac6ef67` | 269 | `7215c0c0485991429eeac27a6e2c612de38511a83c62db97b6fcc79bbac6ef67` (unchanged — plan 44-01 Task 2 found nothing to fix) | 269 |
 | shared/examples/ishikawa-fishbone.md | `1e78a18f5f4edfbe601a0b230997ac474ef802b369e64904123581171ee713cb` | 355 | `1e78a18f5f4edfbe601a0b230997ac474ef802b369e64904123581171ee713cb` (unchanged — plan 44-01 Task 2 found nothing to fix) | 355 |
-| shared/examples/personal-general-2.md | `993e00534d49333514865d7222df537b3e8edd6eb0143af5cdd29a900b76767d` | 124 | (pending — plan 44-02) | (pending — plan 44-02) |
+| shared/examples/personal-general-2.md | `993e00534d49333514865d7222df537b3e8edd6eb0143af5cdd29a900b76767d` | 124 | `32ee28396bb4e1d475c0cbf9259a67c145eb521b1fcd9fea637648fa203faee3` | 124 |
 | shared/examples/personal-general.md | `5e43d95329b2ca52fb6699601b382f11b5ea26cc7a992b83c891732d3301dea7` | 101 | (pending — plan 44-03) | (pending — plan 44-03) |
 | shared/examples/product-business-2.md | `052691ec3a851f1d3b8dcb4aa2ff7cd0cad1b58cf22f127ae12c76ee32630935` | 211 | (pending — plan 44-03) | (pending — plan 44-03) |
 | shared/examples/product-business.md | `d948f9fda657dba4fc8c66fd9e60c5846d837c8b78655e1c2b41d2a8fe2b42c4` | 94 | (pending — plan 44-04) | (pending — plan 44-04) |
@@ -84,7 +84,170 @@ INVARIANT-CHECK, FROZEN-EVIDENCE — all `[PASS]`).
 
 ### personal-general-2.md          (plan 44-02)
 
-*(pending - plan 44-02)*
+Four defect origins and five restatement sites, all independently re-derived with `python3 -c`
+in this session (not copied forward from 44-RESEARCH.md's or 44-PATTERNS.md's own first-pass
+figures — every value below was recomputed and, in every case, matched 999.118's and this
+plan's own quoted figures within rounding). Three of the five restatement sites (lines 64, 80,
+122) are named by no row of 999.118's own table (`personal-general-2.md:52,61,62,71-72`); of
+those, line 80 is additionally named by no upstream artifact at all — not 44-RESEARCH.md's
+blast-radius section, not 44-PATTERNS.md's per-file table — and was found while writing plan
+44-02.
+
+**Defect 1 — GT-6 (line 52, origin, self-contained, no downstream chain citation).**
+- Inputs (file's own): $240,000 balance, 27-year (324-month) term, 6.25% APR, one-time $60,000
+  additional principal payment.
+- Operation: standard amortisation. Monthly payment `P × r / (1 − (1+r)^−n)` with
+  `r = 0.0625/12`, `n = 324`. After the prepayment, remaining term
+  `n' = −ln(1 − r·B/pmt) / ln(1+r)` with `B = $180,000`. Interest saved = (lifetime interest at
+  `n`) − (lifetime interest at `n'`). Years-1–10 avoided interest = (interest paid in months
+  1–120 without the prepayment) − (interest paid in months 1–120 with the prepayment, amortising
+  from the $180,000 post-prepayment balance).
+- Result: payment = $1,535.24/mo; remaining term drops from 324 to 182 months (`182 = ceil(181.58)`)
+  — an 11.8-year shortening; lifetime interest saved = $158,644 (recorded as "approximately
+  $158,600"); years-1–10 avoided interest = $51,913 (recorded as "approximately $51,900").
+- Site: line 52 only (GT-6's own bullet). Confirmed isolated: `grep -n "GT-6"` elsewhere in the
+  file returns nothing; no chain cites GT-6 on a head line.
+- Reconciliation added: GT-6 now states explicitly that its amortisation-derived figures measure
+  actual avoided interest over the remaining term, while the chains below use the separate
+  guaranteed-return-equivalent method (`$60,000 × 1.0625^10 = $110,012` at the 10-year horizon,
+  a figure that was already correct in the file) to measure the 10-year mortgage-balance-equivalent
+  value of the same $60,000 — the two answer different questions over different horizons and are
+  not inconsistent.
+- Provenance: 999.118's own table (row `personal-general-2.md:52,61,62,71-72`); 44-RESEARCH.md's
+  "Blast-radius findings" item 1; 44-PATTERNS.md's per-file table, line 52.
+
+**Defect 2 — C1 hop 1 (line 61, origin).**
+- Inputs (file's own): $60,000 deployment, 8.5% nominal expected holding-period return (9%
+  nominal central estimate minus 0.5pp effective annual tax drag), 18% long-term capital-gains
+  rate, 10-year horizon. The file's own stated formula,
+  `$60,000 × (1.085)^10 × (1 − 0.18 × (1 − (1/(1.085)^10)))`, was already correct — only the
+  number it was said to produce was wrong.
+- Operation: `1.085^10 = 2.260983`; gross = `60000 × 2.260983 = $135,659`; `1/1.085^10 =
+  0.442285`; tax-shield factor = `1 − 0.18 × (1 − 0.442285) = 0.899611`; after-tax = `135,659 ×
+  0.899611`.
+- Result: $122,040 (precisely $122,040.39). The file's prior claim of "$113,000–$120,000" was
+  simply arithmetically wrong against its own stated formula.
+- Site: line 61. Formula text left byte-unchanged; only the stated result and the range-vs-point
+  framing were corrected — the sentence now states the point estimate is "exactly what the
+  formula immediately preceding it produces."
+- Provenance: 999.118's own table (row `personal-general-2.md:52,61,62,71-72`); 44-RESEARCH.md's
+  "Blast-radius findings" item 1 (independently re-verified there to $122,041, matching within
+  rounding); 44-PATTERNS.md's per-file table, line 61.
+
+**Defect 3 — C1 hop 2 (line 62, origin — both the gap figure and its own interpretive
+"characterisation" sentence).**
+- Inputs (file's own): corrected C1 hop-1 after-tax terminal value $122,040 (this defect); the
+  paydown branch's $110,012 (`$60,000 × 1.0625^10`, already correct in the file).
+- Operation: gap = `122,040 − 110,012`; percent of principal = `gap / 60,000`.
+- Result: gap = $12,028 (recorded as "$12,030"); 20.0% of principal (recorded as "roughly 20%").
+  The file's prior claim of "$3,000–$10,000" / "roughly 5–9%" no longer matched the corrected
+  hop-1 figure.
+- Sites: line 62 (origin — the gap/percentage numbers) — and, on the same line, the
+  characterisation sentence that followed them ("The two numbers are close enough that the
+  margin is well within the noise of the input assumptions") was itself no longer supportable at
+  a 20%-of-principal gap and was replaced with a claim the file's own chains do support: the
+  central-estimate advantage is smaller than chain C2's worst-decile swing in the opposite
+  direction, so the sign of the comparison is set by the return assumption, not by the size of
+  the gap. This characterisation-sentence repair is the fifth of the plan's five named
+  restatement sites, distinct from the numeric restatements at lines 64, 80, 82 and 122.
+- Provenance: 999.118's own table (row `personal-general-2.md:52,61,62,71-72`);
+  44-RESEARCH.md's "Blast-radius findings" item 1; 44-PATTERNS.md's per-file table, line 62.
+
+**Defect 3, restatement — C1 confidence sensitivity claim (line 64). Named by NO row of
+999.118's own table — found by 44-RESEARCH.md's blast-radius section and confirmed by
+44-PATTERNS.md's per-file table.**
+- Inputs (file's own): the corrected $12,030/20% gap (Defect 3, above); GT-3?'s 6.5% central
+  real-return estimate; the file's own ~2.5% expected-inflation assumption (implicit in its
+  6.5% real ≈ 9% nominal, 8.5% net-of-drag figure at line 60).
+- Operation: recompute C1 hop 1's own formula at reduced real-return assumptions and compare
+  each result to the unchanged $110,012 paydown figure. A 1-point real-return reduction (6.5%→
+  5.5%) takes the nominal holding-period return from 8.5% to 7.5%: `60000 × 1.075^10 × (1 −
+  0.18 × (1 − 1/1.075^10)) = $112,203`. A 2-point reduction (to 4.5% real, 6.5% nominal) gives
+  `60000 × 1.065^10 × (1 − 0.18 × (1 − 1/1.065^10)) = $103,155`. Bisection on the nominal rate
+  between these two endpoints locates the rate at which the formula's output equals $110,012
+  exactly: nominal ≈ 7.265%, an ≈1.23-percentage-point reduction from the 8.5% baseline.
+- Result: 1-point reduction narrows the gap to `112,203 − 110,012 ≈ $2,191` (recorded as
+  "roughly $2,200"), still favouring indexing — the gap narrows but does not close. The gap
+  closes at approximately a 1.2-percentage-point reduction (computed: 1.23 points). A 2-point
+  reduction reverses the recommendation: `110,012 − 103,155 ≈ $6,857` (recorded as "roughly
+  $6,900") now favours paydown. The file's prior sensitivity claim ("a 1-point reduction...
+  closes the gap and a 2-point reduction... reverses the recommendation") was computed against
+  the old, wrong $3,000–$10,000 gap and both of its numeric thresholds were wrong once the gap
+  was corrected.
+- Site: line 64 only. The LOW label, the `GT-3?` dependency clause, and the verification-path
+  sentence were left intact, per the plan's own instruction.
+- Provenance: NOT named by 999.118's own table. Named by 44-RESEARCH.md's "Blast-radius
+  findings" item 1 ("this sentence must be re-derived against the corrected ~$12,030/20% gap,
+  not merely left in place") and confirmed by 44-PATTERNS.md's per-file table (line 64,
+  "Restatement").
+
+**Defect 4 — C2 (lines 71–72, origin).**
+- Inputs (file's own): $60,000 deployment, 2.5% nominal worst-decile annualised return (from
+  GT-3?'s 0–2% real worst-decile plus ~2.5% expected inflation), 18% long-term capital-gains
+  rate, 10-year horizon.
+- Operation: gross = `60000 × 1.025^10`; gain = gross − 60,000; tax = `0.18 × gain`; after-tax =
+  gross − tax. Gap vs. paydown = `110,012 − after-tax`; percent of principal = `gap / 60,000`.
+- Result: `1.025^10 = 1.280085`; gross = $76,805; gain = $16,805; tax = $3,025; after-tax =
+  $73,780. Gap = `110,012 − 73,780 = $36,232` (recorded as "$36,230"); `36,232 / 60,000 = 60.4%`
+  (recorded as "roughly 60%"). The file's prior claim presented $76,000–$78,000 as already an
+  after-tax figure via a hand-waved "× (1 − 0.18 × small fraction)" term and stated the gap as
+  "approximately $32,000... roughly half the principal" — both wrong once the tax step is done
+  explicitly rather than folded into an unexplained fraction.
+- Sites: line 71 (gross and after-tax terminal value, origin — the "small fraction" hand-wave
+  was removed and replaced with the explicit two-step computation), line 72 (gap and percentage
+  characterisation, origin).
+- Provenance: 999.118's own table (row `personal-general-2.md:52,61,62,71-72`); 44-RESEARCH.md's
+  "Blast-radius findings" item 1; 44-PATTERNS.md's per-file table, lines 71–72.
+
+**Defect 4, restatement — C3 hop, terminal-value parenthetical (line 81, cited as "line 80" by
+the plan and by 44-PATTERNS.md — see the off-by-one note below). Named by NO upstream artifact
+— found while writing plan 44-02.**
+- Inputs (file's own): the corrected after-tax terminal value $73,780 (Defect 4, above).
+- Operation: direct substitution — the parenthetical `(≈ $76,000–$78,000 terminal after a
+  10-year flat-real-return period)` restated C2's pre-correction gross-looking figure as the
+  "worst-decile index outcome," which after Defect 4's correction should read the after-tax
+  figure, $73,780.
+- Result: `(≈ $73,780 after-tax terminal after a 10-year flat-real-return period)`. The
+  surrounding hard-floor argument was re-read after the edit and confirmed to still read
+  correctly at the lower figure — a lower terminal value makes the hard-floor concern in the
+  sentence's "if it does not cross any hard floor" clause strictly harder to satisfy, not
+  easier, so the sentence's own logic is unaffected by the correction.
+- Site: line 81 in both the pre-edit and post-edit file (`git show HEAD:shared/examples/
+  personal-general-2.md | sed -n '81p'` confirms the parenthetical sat at line 81 before this
+  plan's edits, not line 80). The plan's own task text and 44-PATTERNS.md's per-file table both
+  cite this site as "line 80" — an off-by-one in the citation, not in the file; recorded here as
+  an additional-site finding on the citation itself, distinct from the content correction. No
+  line was added or removed above this point by the phase's edits, so the line number is
+  unchanged before and after.
+- Provenance: NOT named by 999.118's own table, NOT named by 44-RESEARCH.md's blast-radius
+  section (which lists only lines 62, 64, 71-72, 82 and 122 for this file), NOT named by
+  44-PATTERNS.md's per-file table (which lists only lines 52, 61, 62, 64, 71, 72, 82 and 122).
+  Found at plan-writing, Phase 44 — recorded here rather than attributed to any upstream
+  artifact, per the plan's own instruction not to misattribute this site to 44-PATTERNS.md.
+
+**Defect 4, restatement — C3 hop, worst-decile underperformance (line 82). Named by
+44-RESEARCH.md's blast-radius section and 44-PATTERNS.md's per-file table.**
+- Result: `$32,000` → `$36,230`, matching Defect 4's corrected gap exactly.
+- Provenance: 44-RESEARCH.md's "Blast-radius findings" item 1 ("restated in two further sites:
+  C3 (line 82... )"); 44-PATTERNS.md's per-file table, line 82.
+
+**Defect 3 + Defect 4, restatement — §6 Trade-offs (line 122), one sentence restating both
+corrected gaps. Named by NO row of 999.118's own table — found by 44-RESEARCH.md's
+blast-radius section and confirmed by 44-PATTERNS.md's per-file table.**
+- Result: `$32,000` → `$36,230` (Defect 4's gap) and `$3,000–$10,000` → `$12,030` (Defect 3's
+  gap), both in the same sentence. The sentence was neither split, merged nor deleted — the
+  `conclusion_claims` floor for this file is 7 (CONF-GATE floors, plan interfaces block).
+- Provenance: NOT named by 999.118's own table. Named by 44-RESEARCH.md's "Blast-radius
+  findings" item 1 (both figures explicitly named as restated at line 122) and confirmed by
+  44-PATTERNS.md's per-file table, line 122.
+
+**Summary of the five restatement sites** (999.118 names none of these three by line number;
+the phase's own table cites only the four origin lines 52, 61, 62, 71-72):
+line 64 (C1 confidence sensitivity — 44-RESEARCH.md), line 81 (C3 terminal-value parenthetical,
+cited as "line 80" upstream — found at plan-writing), line 82 (C3 underperformance gap —
+44-RESEARCH.md and 44-PATTERNS.md), line 122 (§6 Trade-offs, both gaps — 44-RESEARCH.md and
+44-PATTERNS.md), and the line-62 characterisation sentence (repaired alongside its own origin
+number, per Defect 3 above).
 
 ### personal-general.md            (plan 44-03)
 
@@ -114,6 +277,47 @@ INVARIANT-CHECK, FROZEN-EVIDENCE — all `[PASS]`).
 
 Per-file sweeps for the seven defective files above are appended by the plan that owns each file
 (44-02 through 44-06).
+
+### personal-general-2.md
+
+Rule, quoted from the interfaces block (`shared/spine/references/output-template.md:114,335`,
+`validation-rubric.md:112-116`): (1) any GT whose own text says unverified/unmeasured/
+preliminary/not-confirmed must carry the `GT-N?` suffix; (2) a chain whose head cites any
+`GT-N?` must end MEDIUM or LOW, never HIGH; (3) the ceiling is transitive — a chain is rated no
+higher than the lowest-rated chain its head cites. Applied to every `**GT-N**` bullet and every
+chain in this file's own `## 3. Ground Truths` and `## 4. Derivation Chains` sections, read live
+after Tasks 1 and 2 of this plan landed. Included in full, including the null result, per the
+same discipline plan 44-01 applied to the untested seven.
+
+**GT-level table:**
+
+| File | GT | Clause deciding ?-required | ?-required | ?-present | Verdict |
+|---|---|---|---|---|---|
+| personal-general-2.md | GT-1 | "source: mortgage note and most recent statement" | no | no | OK |
+| personal-general-2.md | GT-2 | "source: prior-year federal return + current standard-deduction figure... source: GT-1 × (1 − 0) = 6.25%" | no | no | OK |
+| personal-general-2.md | GT-3? | "unverified: this is a central estimate from a historical distribution and is not a forward-looking measurement" | yes | yes | OK |
+| personal-general-2.md | GT-4 | "source: prior-year federal+state return at current income level" | no | no | OK |
+| personal-general-2.md | GT-5 | "source: direct verification of household cash position" | no | no | OK |
+| personal-general-2.md | GT-6 | "source: amortisation arithmetic" — a computation over GT-1's already-verified mortgage terms, not itself an unverified belief | no | no | OK |
+
+**Chain-level table:**
+
+| File | Chain | Head-line citations | Confidence | Cites a `GT-N?` on head | Rule 2 holds | Rule 3 holds |
+|---|---|---|---|---|---|---|
+| personal-general-2.md | C1 | GT-1 + GT-2 + GT-3? + GT-4 | LOW | yes (GT-3?) | yes (not HIGH) | yes (no chain cited) |
+| personal-general-2.md | C2 | GT-1 + GT-2 + GT-3? + GT-4 | LOW | yes (GT-3?) | yes (not HIGH) | yes (no chain cited) |
+| personal-general-2.md | C3 | GT-5 | MEDIUM | no (head names only GT-5; the file's own Confidence prose explicitly ties the MEDIUM rating to the `GT-3?` dependency inherited indirectly from Chains 1 and 2 — "The `GT-3?` dependency from Chains 1 and 2 carries through indirectly") | yes | yes |
+
+**Sweep result for personal-general-2.md: zero violations found.** GT-3? is the file's only
+Ground Truth whose own text states unverified/preliminary language, and it already carries the
+`?` suffix. Both chains whose head cites `GT-3?` (C1, C2) are rated LOW, well under the HIGH
+ceiling rule 2 forbids. C3, which cites no `GT-N?` on its head line, is rated MEDIUM and its own
+Confidence prose correctly discloses the transitive `GT-3?` dependency it inherits from C1/C2
+rather than claiming HIGH — rule 3 holds. The file-level `## 6. Conclusion` Confidence line is
+MEDIUM, consistent with the lowest-rated chain contributing to it. This matches the CONF-GATE
+floors interface block's `high_conf_chains = 0` for this file (C1 LOW, C2 LOW, C3 MEDIUM,
+section 6 MEDIUM) — confirmed unchanged by this plan's edits, since no `**Confidence:**` label
+anywhere in the file was moved by Tasks 1 or 2. No edit was required as a result of this sweep.
 
 ### Untested seven
 
