@@ -889,10 +889,18 @@ Stating that these three denominators moved is the honest reading of this pair; 
 `69/69` against the new `0/77` as though they shared one denominator would not be.
 
 **Three accepted findings ship live and uncorrected.** Per decision D-14
-(`.planning/phases/23-ship-v9-0-0/23-CONTEXT.md`), this release discloses three findings that
-`docs/v9.1-claim-containment-diagnosis.md` § 3 accepted with a stated, falsifiable bound apiece —
-the disposition of record for all three below. None of the three sentences is corrected, deleted,
-or reworded by this release; each ships exactly as found.
+(`.planning/phases/23-ship-v9-0-0/23-CONTEXT.md` — gitignored, and since relocated under
+`.planning/milestones/v9.0.0-phases/`, so a reader of the published repo cannot open it; the
+disposition it records is restated in full in the three bullets below), this release discloses
+three findings that `docs/v9.1-claim-containment-diagnosis.md` § 3 accepted with a stated,
+falsifiable bound apiece — the disposition of record for all three below. None of the three
+sentences is corrected, deleted, or reworded by this release; each ships exactly as found.
+
+**Correction, dated 2026-09-17 (v9.4.0 Phase 43):** as published, the D-14 and CR-02 citations
+above named `.planning/` paths bare, resting two of the three dispositions of record on files a
+reader of the published repo cannot open (backlog 999.59); the gitignore disclosure and the
+tracked-surface pointer are added by this note, and the findings, dispositions and bounds
+themselves are unchanged.
 
 - **CR-01** — `docs/gates/CONF-SURFACE.md` § "Disclosed bounds", bound (6) narrates the
   deferred-literal ledger's growth history and states a most-recent hop of `182 → 184`, while the
@@ -901,10 +909,12 @@ or reworded by this release; each ships exactly as found.
   terminus and a current one are indistinguishable to it. Disposition: accepted, closing at
   Phase 25's chain-terminus arm (CONTAIN-02). See `docs/v9.1-claim-containment-diagnosis.md` § 3.
 - **CR-02** — `CLAUDE.md` § "Review protocol" cites CR-05 as "an edit made in `scripts/` that
-  produced a product-tier defect," but CR-05's own `File:` field in
-  `.planning/phases/21-generate-the-claim-surface/21-REVIEW.md` names only `docs/` prose
-  (`docs/README.md`, `docs/MEASUREMENT-MAP.md`, `docs/COMPONENT-DIAGRAM.md`). Disposition:
-  accepted, dispositioned by routing rather than by fix, filed as backlog 999.55. See
+  produced a product-tier defect," but CR-05's own `File:` field names only `docs/` prose
+  (`docs/README.md`, `docs/MEASUREMENT-MAP.md`, `docs/COMPONENT-DIAGRAM.md`). That field lives in
+  `.planning/phases/21-generate-the-claim-surface/21-REVIEW.md`, which is gitignored and since
+  relocated, so it is unreadable from the published tree; it is reproduced verbatim in
+  `docs/v9.1-claim-containment-diagnosis.md` § 3, which is tracked — read the claim there.
+  Disposition: accepted, dispositioned by routing rather than by fix, filed as backlog 999.55. See
   `docs/v9.1-claim-containment-diagnosis.md` § 3.
 - **CR-03** — `docs/README.md` **stated, in two places**, that `whole-system-remeasure-verdict.md`
   is cited by 13 matrix rows — the § "Standing of the nine milestone documents" row for that
