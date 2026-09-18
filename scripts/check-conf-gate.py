@@ -271,15 +271,21 @@ _D08_TARGET_ID = "personal-general"
 # == 1) before being pinned here. A future edit to this file that removes
 # one of these needles is exactly the "mutation site cannot be located"
 # failure the D-08 arm is required to report rather than silently skip.
-_D08_HOP_NEEDLE = "→ The effective annual compensation gain"
-_D08_HOP_REPLACEMENT = "  The effective annual compensation gain"
+# Re-pinned at Phase 44 plan 44-03 (backlog 999.118): the hop and citation
+# needles previously read "effective"; the exemplar was corrected to call
+# the $54,000 figure "rent-adjusted" instead (it is a pre-tax nominal
+# figure, not an after-tax purchasing-power figure), so both needles were
+# re-transcribed from the corrected text. The Assumptions Table verdict
+# cell the (b) needle targets was not touched by that correction.
+_D08_HOP_NEEDLE = "→ The rent-adjusted annual compensation gain"
+_D08_HOP_REPLACEMENT = "  The rent-adjusted annual compensation gain"
 _D08_CELL_NEEDLE = (
     "Discard — proxies the real question; GT-5 states the actual goal is not "
     "compensation maximization"
 )
 _D08_CELL_REPLACEMENT = "Discard"
-_D08_CITE_NEEDLE = "3. (chain C1) Use the effective compensation figure"
-_D08_CITE_REPLACEMENT = "3. Use the effective compensation figure"
+_D08_CITE_NEEDLE = "3. (chain C1) Use the rent-adjusted compensation figure"
+_D08_CITE_REPLACEMENT = "3. Use the rent-adjusted compensation figure"
 
 # CR-01 (18-VERIFICATION.md blocking gap): `run_live()`'s seven `problems +=`
 # enforcement call sites (widened from six by plan 18-12's BL-03 floor) are

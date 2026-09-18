@@ -33,8 +33,8 @@ last touches each file.
 | shared/examples/estimate-fermi.md | `7215c0c0485991429eeac27a6e2c612de38511a83c62db97b6fcc79bbac6ef67` | 269 | `7215c0c0485991429eeac27a6e2c612de38511a83c62db97b6fcc79bbac6ef67` (unchanged — plan 44-01 Task 2 found nothing to fix) | 269 |
 | shared/examples/ishikawa-fishbone.md | `1e78a18f5f4edfbe601a0b230997ac474ef802b369e64904123581171ee713cb` | 355 | `1e78a18f5f4edfbe601a0b230997ac474ef802b369e64904123581171ee713cb` (unchanged — plan 44-01 Task 2 found nothing to fix) | 355 |
 | shared/examples/personal-general-2.md | `993e00534d49333514865d7222df537b3e8edd6eb0143af5cdd29a900b76767d` | 124 | `32ee28396bb4e1d475c0cbf9259a67c145eb521b1fcd9fea637648fa203faee3` | 124 |
-| shared/examples/personal-general.md | `5e43d95329b2ca52fb6699601b382f11b5ea26cc7a992b83c891732d3301dea7` | 101 | (pending — plan 44-03) | (pending — plan 44-03) |
-| shared/examples/product-business-2.md | `052691ec3a851f1d3b8dcb4aa2ff7cd0cad1b58cf22f127ae12c76ee32630935` | 211 | (pending — plan 44-03) | (pending — plan 44-03) |
+| shared/examples/personal-general.md | `5e43d95329b2ca52fb6699601b382f11b5ea26cc7a992b83c891732d3301dea7` | 101 | `96fc4803c59fb003bf189c5ab16092b64ae97fbee965f41f7d3675d3ea04f1a8` | 101 |
+| shared/examples/product-business-2.md | `052691ec3a851f1d3b8dcb4aa2ff7cd0cad1b58cf22f127ae12c76ee32630935` | 211 | `d23626a775ee5765a97a72c61a5722c84fc70a044da349653399f42c5fd39096` | 216 |
 | shared/examples/product-business.md | `d948f9fda657dba4fc8c66fd9e60c5846d837c8b78655e1c2b41d2a8fe2b42c4` | 94 | (pending — plan 44-04) | (pending — plan 44-04) |
 | shared/examples/science-engineering-2.md | `282db9d21c058c7ed1dd05df45dd328eded851a7bb1d1ae7e38e379f09264aa5` | 218 | (pending — plan 44-06) | (pending — plan 44-06) |
 | shared/examples/science-engineering.md | `d5aed303b62e07f1d7ab00e4d171af2ef60a02e9009af156336095b4f4bdfe54` | 187 | (pending — plan 44-05) | (pending — plan 44-05) |
@@ -251,11 +251,129 @@ number, per Defect 3 above).
 
 ### personal-general.md            (plan 44-03)
 
-*(pending - plan 44-03)*
+One defect origin with six restatement sites, all independently re-derived with `python3 -c`
+in this session. 999.118's own table cites only two lines (`personal-general.md:57,79`);
+44-RESEARCH.md's blast-radius section and 44-PATTERNS.md's per-file table both extend this to
+six sites (53, 57, 59, 79, 93, 99); this plan's own post-edit `effective` sweep (required by its
+own Task 1 action text) found three further sites named by NO upstream artifact (18, 56, 67).
+
+**Defect — C1's pre-tax/after-tax basis mixing and percentage framing (origin: lines 53, 57,
+59; 999.118's own table row `personal-general.md:57,79`).**
+- Inputs (file's own): GT-1 $70,000/year nominal pre-tax compensation increase; GT-2
+  ~$15,600/year San Francisco rent premium; GT-3 ~0 percentage-point CA-vs-OR state marginal
+  tax differential.
+- Operation: `70,000 - 15,600 = 54,400` (the subtraction itself was already correct — it rounds
+  to the file's stated "approximately $54,000"); `15,600 / 70,000 = 0.2229` (the rent
+  adjustment removes ~22% of the nominal figure); `15,600 / 54,400 = 0.2868` (the nominal figure
+  is ~29% larger than the rent-adjusted figure); `(70,000 - 54,400) / 54,400 = 0.2868`, matching
+  999.118's own statement of the same ~29% relation via `(70-54)/54 = 0.2963` (rounding
+  difference is from using the file's rounded "$54,000" vs. the unrounded $54,400 — both round
+  to "roughly 29%").
+- Defect, two parts. (1) The file's prior sentence "roughly 23% less than the nominal headline
+  figure" used neither of the two ratios above correctly: "overstates X by N%" means
+  `N = (nominal - X) / X`, which is 29% (the `15,600 / 54,400` relation), not 23%; the ~22%
+  figure is the OTHER relation (`15,600 / 70,000`, reduction from nominal). (2) More
+  fundamentally, subtracting the after-tax $15,600 rent outlay from the pre-tax $70,000 raise
+  mixes two different tax bases without naming that basis anywhere in the file — the prior text
+  called $54,000 "measured in equivalent purchasing power," which it is not: converting the rent
+  premium to its pre-tax equivalent requires the household's combined marginal tax rate, which
+  no named ground truth in this analysis supplies (GT-3 supplies only the near-zero CA-vs-OR
+  state differential, not a total marginal rate).
+- Result: every site below now calls $54,000 "rent-adjusted" (never "effective" or "purchasing
+  power"); the percentage is stated as "roughly 22% less... ($15,600 / $70,000)" with the
+  denominator named inline; a new sentence discloses the basis-mixing issue explicitly and names
+  the verification that would make an after-tax figure computable (read the household's combined
+  marginal rate off the prior-year tax return).
+- Sites (origin group): heading (line 53) — "effective" replaced with "rent-adjusted"; final hop
+  (line 57) — the percentage re-stated with its denominator, the "measured in equivalent
+  purchasing power" framing removed, and the basis-disclosure sentence appended to the same hop;
+  confidence paragraph (line 59) — narrowed rather than downgraded (see decision below).
+- Sites (restatement group, named by 999.118's table and 44-PATTERNS.md): abandoned-reasoning
+  (line 79) — "the nominal figure overstates the real gain by roughly 23%" replaced with both
+  ratios and their denominators, and "the effective purchasing-power gain" replaced with "the
+  rent-adjusted gain"; section 6 point 3 (line 93) — "the effective compensation figure"
+  replaced with "the rent-adjusted compensation figure"; section 6 Trade-offs (line 99) —
+  "forgoing an effective ~$54,000/year increase" replaced with "forgoing a rent-adjusted
+  ~$54,000/year increase."
+- Sites (restatement group found by this plan's own sweep, named by NO upstream artifact —
+  44-RESEARCH.md's blast-radius section and 44-PATTERNS.md's per-file table list only lines 53,
+  57, 59, 79, 93 and 99):
+  - Line 18 (Problem Essence success criterion): "The effective after-cost-of-living-and-tax
+    compensation change is calculated explicitly from verifiable facts" promised an after-tax
+    purchasing-power computation the corrected chain explicitly states is not computable from
+    the named ground truths; restated to require that the basis (pre-tax nominal vs. after-tax
+    purchasing power) be named explicitly instead, which is exactly what the corrected chain
+    now does.
+  - Line 56 (C1's middle hop): "Combined, these reduce the effective purchasing-power gain by
+    roughly $15,600/year" restated to "reduce the rent-adjusted nominal gain by roughly
+    $15,600/year."
+  - Line 67 (C2's hop, citing Chain 1's result): "the effective ~$54K gain (Chain 1)" restated
+    to "the rent-adjusted ~$54K gain (Chain 1)."
+- Provenance: lines 53/57/59/79/93/99 — 999.118's own table (row `personal-general.md:57,79`)
+  and 44-PATTERNS.md's per-file table (which additionally names 53, 59, 93, 99 as restatement
+  sites). Lines 18/56/67 — found in this plan's own execution via Task 1's own required
+  `/usr/bin/grep -nF 'effective'` sweep; named by no upstream artifact.
+
+**C1 confidence decision: narrowed, kept HIGH (not lowered to MEDIUM).** The plan's Task 1 gave
+an explicit choice: narrow the claim and keep HIGH, or — only if narrowing proved impossible
+without re-authoring the chain — lower to MEDIUM. Narrowing was possible without touching the
+chain's own hop structure or its GT-1/GT-2/GT-3 citations: the corrected confidence paragraph
+states exactly what the chain establishes (the rent-adjusted NOMINAL figure, resting entirely on
+three verified ground truths) and exactly what it does not (the after-tax purchasing-power
+figure, which needs an input — the household's combined marginal rate — that no named ground
+truth supplies). No hop was re-derived, re-ordered or re-authored to reach this narrowing; only
+the confidence paragraph's own prose was rewritten. HIGH is therefore retained.
 
 ### product-business-2.md          (plan 44-03)
 
-*(pending - plan 44-03)*
+**Defect — GT-1's distinct-account inference (origin: lines 52-54; restated at lines 76, 195;
+999.118's own table row `product-business-2.md:52-54,76,195`).**
+- Inputs (file's own): 41 inbound Slack-integration requests, 240 active accounts, both read
+  from GT-1's own stated source (an in-product feedback log + post-cancellation churn-survey
+  instrument).
+- Operation: `41 / 240 = 0.170833...` (≈17%). The division itself is correct arithmetic, but it
+  is the share of ACCOUNTS only if all 41 requests came from 41 DISTINCT accounts — an
+  assumption the file's own stated source never establishes, since a feedback log records
+  requests, not distinct requesters.
+- Result: the 17% figure is re-stated as an upper bound — "at most 41/240, approximately 17%,"
+  with the reasoning (the log records requests, not distinct accounts, so the distinct-account
+  count is bounded above by 41 and unknown below) and the de-duplication verification path
+  (de-duplicate the feedback log by account id) both named inline at the origin site.
+- Sites: GT-1 itself (lines 52-54, origin — the raw counts 41 and 240 and the source clause left
+  byte-unchanged; only the inference drawn from them was corrected), GT-5? (line 76, restated
+  "convert some fraction of the 41 requesting accounts" to "convert some fraction of the
+  accounts behind the 41 requests (at most 41)"), section 6 Trade-offs (line 195, restated "some
+  fraction of the 41 requesting accounts may quietly disengage" to "some fraction of the
+  accounts behind the 41 requests may quietly disengage").
+- No further sites found: confirmed via `/usr/bin/grep -n '41\|17%'` across the full
+  post-edit file — chains C1, C2 and C3 cite GT-1 by name in their head lines, never by number,
+  so no chain hop independently restates the 41/17% figures. This matches 44-RESEARCH.md's own
+  finding ("no further sites found beyond what 999.118 already names").
+- **GT-1 deliberately NOT given a `?` suffix — reasoning recorded per the plan's own
+  instruction.** GT-1's two raw counts (41 requests, 240 accounts) are each read at a named
+  source and are themselves verified measurements; what was wrong was the INFERENCE drawn from
+  them (that all 41 requests came from 41 distinct accounts), not the counts. The corrected text
+  states the derived share as a bound with its assumption named, rather than presenting it as a
+  measured fact — this is a correction to the ANALYSIS drawn from GT-1, not a statement that
+  GT-1's own underlying facts (the counts) are unverified. The `?` suffix under the shipped rule
+  (`output-template.md:114`) marks a ground truth whose own stated fact is unverified,
+  unmeasured, preliminary, or not confirmed; here the two facts GT-1 states (41, 240) remain
+  fully verified at their named source, so no suffix applies.
+- Provenance: 999.118's own table (row `product-business-2.md:52-54,76,195`); 44-RESEARCH.md's
+  "Blast-radius findings" item 6; 44-PATTERNS.md's per-file table.
+
+**Citation/line-wrap discrepancy recorded, not silently absorbed.** The plan's own Task 2
+acceptance criteria assert `/usr/bin/grep -c '41 inbound Slack-integration requests'
+shared/examples/product-business-2.md` returns 1. Read live, this phrase is hard-wrapped across
+two lines in the file ("...show 41" / "inbound Slack-integration requests across 240 active
+accounts...") — confirmed via `git show HEAD:shared/examples/product-business-2.md | sed -n
+'52,54p'` that this wrapping already existed **before** this plan made any edit, so a
+single-line grep for the full phrase returns 0 both pre-edit and post-edit; this is a
+pre-existing plan-checking assumption that does not hold against the file's actual line-wrap
+width, not a defect this plan introduced or a site this plan needed to reflow. The raw counts
+themselves are independently confirmed present and unchanged: `/usr/bin/grep -c '240 active
+accounts'` returns 1, and GT-1's own two numbers (41, 240) are unchanged by direct reading.
+
 
 ### product-business.md            (plan 44-04)
 
@@ -318,6 +436,129 @@ MEDIUM, consistent with the lowest-rated chain contributing to it. This matches 
 floors interface block's `high_conf_chains = 0` for this file (C1 LOW, C2 LOW, C3 MEDIUM,
 section 6 MEDIUM) — confirmed unchanged by this plan's edits, since no `**Confidence:**` label
 anywhere in the file was moved by Tasks 1 or 2. No edit was required as a result of this sweep.
+
+### personal-general.md
+
+Rule, quoted from the interfaces block (`shared/spine/references/output-template.md:114,335`,
+`validation-rubric.md:112-116`): (1) any GT whose own text says unverified/unmeasured/
+preliminary/not-confirmed must carry the `GT-N?` suffix; (2) a chain whose head cites any
+`GT-N?` must end MEDIUM or LOW, never HIGH; (3) the ceiling is transitive — a chain is rated no
+higher than the lowest-rated chain its head cites. Applied to every `**GT-N**` bullet and every
+chain in this file's own `## 3. Ground Truths` and `## 4. Derivation Chains` sections, read live
+after Task 1 of this plan landed. Included in full, including the null result.
+
+**GT-level table:**
+
+| File | GT | Clause deciding ?-required | ?-required | ?-present | Verdict |
+|---|---|---|---|---|---|
+| personal-general.md | GT-1 | "source: offer letter from the prospective employer" | no | no | OK |
+| personal-general.md | GT-2 | "source: rental market listings... approximate figures... illustrative and verifiable" — a sourced, directionally-verifiable estimate, not a stated-unverified claim | no | no | OK |
+| personal-general.md | GT-3 | "source: California Franchise Tax Board and Oregon Department of Revenue published rate schedules (illustrative... the directional effect... is verifiable from current published schedules)" | no | no | OK |
+| personal-general.md | GT-4 | "source: direct statement from the partner (a current constraint; verified by statement, not external data)" | no | no | OK |
+| personal-general.md | GT-5 | "source: direct statement by the person... verified by direct statement, not by external measurement. It is not inferred or assumed" | no | no | OK |
+
+**Chain-level table:**
+
+| File | Chain | Head-line citations | Confidence | Cites a `GT-N?` on head | Rule 2 holds | Rule 3 holds |
+|---|---|---|---|---|---|---|
+| personal-general.md | C1 | GT-1 + GT-2 + GT-3 | HIGH | no (no `GT-N?` exists in this file) | yes (no `GT-N?` cited, so rule 2 imposes no ceiling) | yes (no chain cited on head) |
+| personal-general.md | C2 | GT-5 + GT-4 | MEDIUM | no | yes | yes |
+
+**Sweep result for personal-general.md: zero violations found.** This file has no `GT-N?` at
+all — every Ground Truth is sourced directly (an offer letter, published rental listings,
+published state tax schedules, or a direct statement recorded as verified by statement) and none
+of the five bullets' own text states unverified/unmeasured/preliminary/not-confirmed language.
+Rule 2 therefore imposes no ceiling on either chain, and C1's HIGH rating (kept, narrowed, per
+this plan's Task 1 confidence decision above) is consistent with the rule either way. Rule 3
+holds trivially: neither chain's head line cites the other chain, and section 6's own Confidence
+line (MEDIUM) correctly reflects the lower of the two chains it synthesizes ("(chains C1 and
+C2)"). This matches the CONF-GATE floors interface block's `high_conf_chains = 1` for this file
+(C1 HIGH, C2 MEDIUM, section 6 MEDIUM) — confirmed unchanged by this plan's edits, since the
+narrow-and-keep-HIGH decision did not move any `**Confidence:**` label. No edit was required as
+a result of this sweep.
+
+### product-business-2.md
+
+Rule, quoted as above. Applied to every `**GT-N**` bullet and every chain in this file's own
+`## 3. Ground Truths` and `## 4. Derivation Chains` sections, read live after Task 2 of this
+plan landed.
+
+**GT-level table:**
+
+| File | GT | Clause deciding ?-required | ?-required | ?-present | Verdict |
+|---|---|---|---|---|---|
+| product-business-2.md | GT-1 | "source: in-product feedback log + post-cancellation churn-survey instrument" — the two raw counts (41, 240) are directly sourced and verified; the corrected text states the DERIVED share as a bound, which is a correction to the inference, not a statement that GT-1's own facts are unverified (see the no-suffix reasoning in the re-derivation section above) | no | no | OK |
+| product-business-2.md | GT-2 | "source: support-ticket export tagged `reporting-limitation`, cross-referenced with the account-management ARR roll-up" | no | no | OK |
+| product-business-2.md | GT-3 | "source: signed LOI filed with finance and legal" | no | no | OK |
+| product-business-2.md | GT-4 | "source: engineering manager's capacity plan, derived from headcount × historical sustained ship velocity" | no | no | OK |
+| product-business-2.md | GT-5? | "unverified: no churn-survey reason code attributes departure to the missing integration, and no win/loss instrument isolates Slack-integration absence... The retention-delta and acquisition-uplift magnitudes are unmeasured" | yes | yes | OK |
+
+**Chain-level table:**
+
+| File | Chain | Head-line citations | Confidence | Cites a `GT-N?` on head | Rule 2 holds | Rule 3 holds |
+|---|---|---|---|---|---|---|
+| product-business-2.md | C1 | GT-2 + GT-3 | MEDIUM | no (head cites no `GT-N?`; the file's own Confidence prose explicitly ties the downgrade to `GT-5?`'s unmeasured Slack-side magnitudes even though the head line only names GT-2/GT-3) | yes (not HIGH regardless) | yes (no chain cited on head) |
+| product-business-2.md | C2 | GT-1 + GT-3 | HIGH | no (GT-1 correctly carries no suffix per the reasoning above; GT-3 carries none either) | yes (no `GT-N?` cited, so rule 2 imposes no ceiling) | yes |
+| product-business-2.md | C3 | GT-5? + GT-4 | MEDIUM | yes (`GT-5?`) | yes (not HIGH) | yes |
+
+**Sweep result for product-business-2.md: zero violations found.** GT-5? is the file's only
+Ground Truth whose own text states unverified/unmeasured language, and it already carries the
+`?` suffix — confirmed unchanged by this plan's edits (`GT-5?` count is 9 both pre- and
+post-edit). GT-1 correctly carries no suffix under the reasoning recorded above: its own stated
+facts are sourced and verified; only the inference drawn from them was corrected. C3, whose head
+cites `GT-5?`, is rated MEDIUM, satisfying rule 2. C2, whose head cites GT-1 and GT-3 (neither
+carrying `?`), is rated HIGH — rule 2 imposes no ceiling here since no `GT-N?` is cited, so this
+is consistent with the rule. C1 is rated MEDIUM for a reason its own prose discloses (the GT-5?
+dependency) even though its head line does not name GT-5? directly — the same transitive-
+disclosure pattern the personal-general-2.md sweep recorded for its own C3. Section 6's own
+Confidence line ("(chains C1 and C3)" MEDIUM) correctly reflects the lower of the two chains it
+names. This matches the CONF-GATE floors interface block's `high_conf_chains = 1` for this file
+(C1 MEDIUM, C2 HIGH, C3 MEDIUM, section 6 MEDIUM) — confirmed unchanged by this plan's edits,
+since no `**Confidence:**` label anywhere in the file was moved by Task 2. No edit was required
+as a result of this sweep.
+
+### Pre-registered conformance expectation (plan 44-03, Task 3 Part C)
+
+Written BEFORE running `sync-content.py --write` or `report-conformance.py`, per the plan's own
+instruction that the expected movement be pre-registered ahead of regeneration.
+
+**Pre-registration:** Task 1's C1 confidence decision (personal-general.md) kept HIGH (narrowed,
+not lowered to MEDIUM — see the re-derivation section above). Under the plan's own stated rule,
+this means: no `**Confidence:**` label was moved anywhere in either touched file by Tasks 1 or
+2, so no measured conformance value should move. `docs/conformance-baseline.md`'s and
+`docs/data/conformance.json`'s per-artifact rows for `shared/examples/personal-general.md`,
+`shared/examples/product-business-2.md` and their generated twins are expected to be
+byte-identical before and after regeneration — the regenerated twins should differ from the
+sources by nothing but the `GENERATED_MARKER` header line, and `report-conformance.py --check`
+should report no drift.
+
+**Observed outcome, live:** matched the pre-registration exactly. `python3
+scripts/sync-content.py --write` followed by `--check` (exit 0); `git diff --stat -- 
+docs/conformance-baseline.md docs/data/conformance.json` printed nothing both before and after
+`python3 scripts/report-conformance.py` (regenerate) and `--check` (`report-conformance: PASS —
+no drift`) — zero bytes moved in either conformance artifact. `python3 scripts/check-conf-gate.py`
+initially FAILED with `D-08(a) mutation site not found (or not unique)` and `D-08(c) mutation
+site not found (or not unique)` in `shared/examples/personal-general.md` — this is
+`scripts/check-conf-gate.py`'s own D-08 anti-vacuity arm, which pins three literal substrings
+transcribed from `personal-general.md`'s live text (`_D08_HOP_NEEDLE`, `_D08_CELL_NEEDLE`,
+`_D08_CITE_NEEDLE`) to prove its synthetic-mutation self-check still locates a real site; Task 1's
+edits removed the word "effective" from the two needles the hop (line 57) and the citation
+(line 93) sites depend on, exactly the "a future edit to this file that removes one of these
+needles" case the script's own comment names. Fixed by re-transcribing `_D08_HOP_NEEDLE` and
+`_D08_CITE_NEEDLE` (and their paired `_REPLACEMENT` constants) from the corrected text in
+`scripts/check-conf-gate.py` — a Rule 3 blocking-issue auto-fix on apparatus code, not a product
+content change; `_D08_CELL_NEEDLE` (the Assumptions Table verdict cell) was untouched by Task 1
+and needed no change. Re-run: `check-conf-gate.py --self-test` (`SELF-TEST PASS — 44 controls
+run`) and the live run (`check-conf-gate: PASS`, with all three D-08 arms reporting their
+expected single-defect increment). `python3 scripts/gen-gate-docs.py --check` (harvested 19/19,
+exit 0). `python3 scripts/check-version-stamps.py` (17 stamps, all `9.3.2`, PASS). Both twin
+diffs (`diff <(tail -n +3 <twin>) <source>`) printed nothing. `git diff --quiet HEAD --
+tests/adversarial-corpus-v9.0 shared/examples/self-application.md` exited 0 (both byte-unchanged).
+`bash scripts/check-firewall-battery.sh` printed `FIREWALL: GREEN (23/23)`, reproducing the
+pre-edit baseline exactly (23/23, same gate set). No movement occurred outside the pre-registered
+set — the one deviation (the D-08 needle re-pin) was in apparatus code required to make the
+already-pre-registered "no measured value moves" outcome observable, not a movement of a measured
+conformance value itself.
 
 ### Untested seven
 

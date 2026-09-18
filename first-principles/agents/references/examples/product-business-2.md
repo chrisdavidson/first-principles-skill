@@ -52,9 +52,14 @@ against?
 ## 3. Ground Truths
 
 - **GT-1** The team's last two quarters of customer-feedback data show 41
-  inbound Slack-integration requests across 240 active accounts (~17% of
-  accounts have asked at least once), with no churn-survey reason code
-  attributing departure to the missing integration. — source: in-product
+  inbound Slack-integration requests across 240 active accounts, with no
+  churn-survey reason code attributing departure to the missing
+  integration. The feedback log records requests, not distinct requesting
+  accounts, so the number of distinct accounts behind those 41 requests is
+  at most 41 and unknown below; the share of accounts that have asked at
+  least once is therefore at most 41/240, approximately 17% — an upper
+  bound, not a measured share. The bound would become a measurement by
+  de-duplicating the feedback log by account id. — source: in-product
   feedback log + post-cancellation churn-survey instrument, both queried
   Q-1.
 - **GT-2** The current reporting product surface has a documented enterprise
@@ -75,7 +80,7 @@ against?
   candidate. — source: engineering manager's capacity plan, derived from
   headcount × historical sustained ship velocity over the last four quarters.
 - **GT-5?** The Slack integration, if shipped, would convert some fraction of
-  the 41 requesting accounts from at-risk-of-churn to retained, and would
+  the accounts behind the 41 requests (at most 41) from at-risk-of-churn to retained, and would
   contribute to net new logo acquisition through deal-cycle de-risking. —
   unverified: no churn-survey reason code attributes departure to the missing
   integration, and no win/loss instrument isolates Slack-integration absence
@@ -194,7 +199,7 @@ named account) toward the cognitively-available answer.
 
 **Trade-offs acknowledged:** (chains C1 and C3) The deferral incurs real cost: prospects
 asking sales for Slack continue to hear "on the roadmap"; some fraction
-of the 41 requesting accounts may quietly disengage during the deferral
+of the accounts behind the 41 requests may quietly disengage during the deferral
 window; a competitor closing a deal during the quarter on integration
 strength is a possible but unmeasured loss. The next-quarter
 re-evaluation is contingent on the team actually performing the
