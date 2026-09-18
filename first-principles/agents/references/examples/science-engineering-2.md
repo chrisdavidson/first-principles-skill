@@ -68,13 +68,18 @@ prescribe a counter-intervention different from the operator's first hypothesis
   on metallographic cross-section through the spall — source: metallographic report
   from accredited failure-analysis lab; image set retained.
 
-- **GT-2** Hertzian subsurface shear-stress maximum for this bearing geometry under
+- **GT-2?** Hertzian subsurface shear-stress maximum for this bearing geometry under
   rated HSS load: ~0.35-0.45 mm depth (computed from contact-patch half-width using
-  rated radial load 12 kN, roller diameter 22 mm, race radii, and steel
-  E = 207 GPa, ν = 0.3) — source: Hertz contact-mechanics calculation; consistent with
-  the textbook range 0.78·a for line contact. **The observed crack-origin depth (GT-1)
-  falls inside the predicted Hertz subsurface-stress band — this confirms a subsurface-
-  initiated fatigue mechanism, not a surface-initiated wear mechanism.**
+  rated radial load 12 kN, roller diameter 22 mm, effective roller contact length
+  4.9 mm, inner-race radius 70 mm, and steel E = 207 GPa, ν = 0.3, reduced modulus
+  E* = 113.7 GPa) — source: Hertz contact-mechanics calculation; consistent with
+  the textbook range 0.78·a for line contact. Unverified: the effective roller contact
+  length and race radius are inferred from the bearing's rated-load condition rather
+  than read at a named source; obtain the bearing drawing, confirm the effective
+  roller contact length and race radius against it, and re-run this calculation to
+  remove the `?`. **The observed crack-origin depth (GT-1) falls inside the predicted
+  Hertz subsurface-stress band — this confirms a subsurface-initiated fatigue
+  mechanism, not a surface-initiated wear mechanism.**
 
 - **GT-3** White-etching cracks and butterfly microstructure are present in the
   metallographic sections, distributed in a band coincident with the subsurface
@@ -112,12 +117,19 @@ prescribe a counter-intervention different from the operator's first hypothesis
 
 ### Conclusion C1: The failure is subsurface-initiated rolling-contact damage, not a surface-origin wear mechanism
 
-GT-1 (crack origin ~0.4 mm subsurface) + GT-2 (Hertz subsurface-stress maximum ~0.35-0.45 mm at rated load)
+GT-1 (crack origin ~0.4 mm subsurface) + GT-2? (Hertz subsurface-stress maximum ~0.35-0.45 mm at rated load)
 → The observed origin depth coincides with the depth band where Hertzian subsurface shear stress is maximised under the bearing's actual loading. Neither GT alone fixes the mechanism: GT-1 alone could in principle be a void or inclusion at depth; GT-2 alone is a stress-field prediction without an observed crack. Together they place the observed initiation site exactly where the physical-law model predicts subsurface fatigue cracks would nucleate
 → The failure mechanism is subsurface-initiated, ruling out every surface-origin mechanism (boundary lubrication wear, contamination indentation, mounting damage, electrical pitting on the running surface) as the *primary* cause of the spall.
 
-**Confidence: HIGH** — both inputs are verified ground truths from independent
-sources (metallographic measurement; classical contact-mechanics calculation).
+**Confidence: MEDIUM** — GT-1 is a direct metallographic measurement, but GT-2?'s
+geometry inputs (effective roller contact length, race radius) are inferred from the
+bearing's rated-load condition rather than read at a named source; under the D-07 rule
+a chain citing a `GT-N?` is banded no higher than MEDIUM. The mechanism conclusion
+itself does not depend on the exact band edges, only on the crack origin being
+subsurface rather than surface-initiated, which GT-1 alone already establishes
+independent of GT-2?'s precise range (see §5). Verification path to raise this chain
+back to HIGH: obtain the bearing drawing and confirm the effective roller contact
+length and race radius against it.
 
 ---
 
@@ -211,10 +223,14 @@ wear-morphology mapping) is supported by textbook reference rather than in-house
 controlled test — which is acceptable because GT-1 alone is dispositive against the
 boundary-lubrication attribution; GT-7? is corroborative, not load-bearing.
 
-**Confidence: HIGH** — the primary causal chain rests on GT-1 through GT-6, all of
-which are verified independently. The single unverified item (GT-7?) is not load-
-bearing for the root-cause finding and not load-bearing for the recommended
-counter-intervention. The only residual uncertainty material to the next decision is
+**Confidence: HIGH** — the primary causal chain rests on GT-1 through GT-6, most of
+which are verified independently. Two items carry a `?`: GT-2? (chain C1's Hertz
+geometry — effective roller contact length and race radius are inferred rather than
+read at a named source) and GT-7? (the boundary-lubrication wear-morphology mapping).
+Neither is load-bearing for the root-cause finding or the recommended
+counter-intervention — GT-1 alone already establishes the subsurface-versus-surface
+origin independent of GT-2?'s exact band (§5), and GT-7? is corroborative for the same
+reason (§6 Trade-offs). The only residual uncertainty material to the next decision is
 fleet-scope: whether other turbines in the same site share the same bonding-ring
 degradation pattern — verification path is a one-day fleet-wide bonding-ring
 conductance survey before the next scheduled gearbox inspection cycle.

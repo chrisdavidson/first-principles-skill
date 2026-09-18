@@ -36,7 +36,7 @@ last touches each file.
 | shared/examples/personal-general.md | `5e43d95329b2ca52fb6699601b382f11b5ea26cc7a992b83c891732d3301dea7` | 101 | `96fc4803c59fb003bf189c5ab16092b64ae97fbee965f41f7d3675d3ea04f1a8` | 101 |
 | shared/examples/product-business-2.md | `052691ec3a851f1d3b8dcb4aa2ff7cd0cad1b58cf22f127ae12c76ee32630935` | 211 | `d23626a775ee5765a97a72c61a5722c84fc70a044da349653399f42c5fd39096` | 216 |
 | shared/examples/product-business.md | `d948f9fda657dba4fc8c66fd9e60c5846d837c8b78655e1c2b41d2a8fe2b42c4` | 94 | `a0dc5e9257c13b338052accd3e425603301b2b511a6ecbc362f3a9b8a319d826` | 94 |
-| shared/examples/science-engineering-2.md | `282db9d21c058c7ed1dd05df45dd328eded851a7bb1d1ae7e38e379f09264aa5` | 218 | (pending — plan 44-06) | (pending — plan 44-06) |
+| shared/examples/science-engineering-2.md | `282db9d21c058c7ed1dd05df45dd328eded851a7bb1d1ae7e38e379f09264aa5` | 218 | `7b8a87f2b5d91b4c8cb9e3e04a8b1e552aa9be255cddc3348e613756a47022ba` | 234 |
 | shared/examples/science-engineering.md | `d5aed303b62e07f1d7ab00e4d171af2ef60a02e9009af156336095b4f4bdfe54` | 187 | `9fecf530d5f18622196b5c25e98bf70d9fe9ab324e33d41d4db78d3b771a6e41` | 198 |
 | shared/examples/self-application.md | `47adb0226654cb6246b0004d83c399a81431ebcba98f9509fd61228beda0ce11` | 399 | out of scope (D-03) — pre-edit and post-edit values must be identical | out of scope (D-03) — pre-edit and post-edit values must be identical |
 | shared/examples/software-systems-2.md | `66c6548e402398c5f2c18acca34b5323d10a9ab6781754251034f265b5d9d596` | 346 | `66c6548e402398c5f2c18acca34b5323d10a9ab6781754251034f265b5d9d596` (unchanged — plan 44-01 Task 2 found nothing to fix) | 346 |
@@ -1003,6 +1003,71 @@ found not to trigger a `?` suffix. This matches the CONF-GATE floors interface b
 (`high_conf_chains 0`) and the plan's own pre-registration below: no measured conformance value
 is expected to move for this file.
 
+### science-engineering-2.md
+
+Rule, quoted as above. Applied to every `**GT-N**` bullet and every chain/section-level
+confidence line in this file's own `## 3. Ground Truths`, `## 4. Derivation Chains` and
+`## 6. Conclusion` sections, read live after this plan's Task 3 edits landed.
+
+**GT-level table:**
+
+| File | GT | Clause deciding ?-required | ?-required | ?-present | Verdict |
+|---|---|---|---|---|---|
+| science-engineering-2.md | GT-1 | "source: metallographic report from accredited failure-analysis lab; image set retained" — a direct measurement | no | no | OK |
+| science-engineering-2.md | GT-2? | Post-Task-3 text: "Unverified: the effective roller contact length and race radius are inferred from the bearing's rated-load condition rather than read at a named source" | yes | yes (this plan's Task 3, option-flagged) | OK |
+| science-engineering-2.md | GT-3 | "source: same metallographic report; SEM imagery confirms the characteristic WEC morphology" | no | no | OK |
+| science-engineering-2.md | GT-4 | "source: bearing manufacturer's life calculation per ISO 281; SCADA-derived load spectrum" | no | no | OK |
+| science-engineering-2.md | GT-5 | "source: on-removal electrical-test report from the same failure-analysis lab" | no | no | OK |
+| science-engineering-2.md | GT-6 | "source: turbine OEM data sheet; matches the IEC TS 60034-25 domain of applicability" | no | no | OK |
+| science-engineering-2.md | GT-7? | "unverified: a tribology textbook reference... supports the morphology mapping, but no in-house controlled test has been run" | yes | yes (already suffixed pre-edit) | OK |
+
+**Chain/section-level table:**
+
+| File | Chain/section | Head-line citations | Confidence | Cites a `GT-N?` on head | Rule 2 holds | Rule 3 holds |
+|---|---|---|---|---|---|---|
+| science-engineering-2.md | C1 | GT-1 + GT-2? | MEDIUM (this plan's Task 3, was HIGH) | yes (`GT-2?`) | yes (MEDIUM, not HIGH) | yes (no chain cited on head) |
+| science-engineering-2.md | C2 | GT-3 + GT-4 + GT-5 + GT-6 | HIGH (unchanged) | no (none of C2's four head-line citations carry a `?`) | yes (no `GT-N?` cited, so no ceiling applies) | yes (no chain cited on head) |
+| science-engineering-2.md | §6 Conclusion | Confidence sub-field cites GT numbers directly ("GT-1 through GT-6"), not a chain reference — unlike its three sibling sub-fields (Recommended approach, Key insight, Trade-offs), which each carry an explicit "(chain CN)" annotation | HIGH (unchanged) | n/a (cites GTs directly, not a chain head-line) | n/a — not a formally-cited chain under rule 2's mechanical test | n/a — rule 3 binds on explicit chain-citation, which this sub-field does not carry |
+
+**C2 checked separately per the plan's own instruction, and the transitivity question
+answered explicitly.** C2's head line cites GT-3, GT-4, GT-5, GT-6 only — none of them carry a
+`?`, and C2's head does not cite C1 or any other chain. **The transitivity rule (rule 3) does
+NOT reach C2 from C1**: rule 3 caps a chain "no higher than the lowest-rated chain its head
+cites," and C2's head cites zero chains (only GTs), so C1's MEDIUM rating has no path to C2. C2
+correctly remains HIGH — its root-cause/EIBD argument was never built on GT-2? and does not
+inherit C1's cap.
+
+**Out-of-plan finding, recorded rather than silently absorbed: §6's own Confidence sub-field
+required a correction this plan's PART C/D did not explicitly name, but Task 3's application of
+option-flagged made necessary (Rule 1 — the sentence became factually false, not merely
+stylistically stale).** §6's Confidence sub-field (distinct from §6's "Key insight" sub-field,
+which D-02 explicitly protects and which this plan confirmed byte-unchanged) pre-edit read "the
+primary causal chain rests on GT-1 through GT-6, all of which are verified independently. The
+single unverified item (GT-7?) is not load-bearing..." — once GT-2 became GT-2?, this sentence
+asserted something now false (that all six GTs, including GT-2?, are "verified independently",
+and that GT-7? is "the single" unverified item). Unlike C1 hop 1's adjudication in plan 44-05
+(which examined a SCOPE-completeness claim untouched by its correction and left it unchanged),
+this sentence directly restates a VERIFICATION-STATUS claim about the exact set of GTs whose
+verification status changed — the same test 44-05 applied, applied here, points the other way.
+**Fix applied:** the sentence was corrected to name both `?`-bearing items (GT-2? and GT-7?) and
+state, using the file's own established GT-7?-is-corroborative-not-load-bearing reasoning
+pattern (already present in §6 Trade-offs), that neither is load-bearing for the root-cause
+finding or the recommended intervention — GT-1 alone (§5) already establishes the
+subsurface-versus-surface origin independent of GT-2?'s exact band. **The `HIGH` label itself
+was NOT changed**, because — unlike C1, which is mechanically capped by D-07 rule 2 via its own
+formal head-line citation of GT-2? — §6's Confidence sub-field carries no explicit chain-citation
+of C1 the way its three sibling sub-fields do (see the chain/section-level table above), so
+D-07's mechanical rule 3 does not formally bind it, and the root-cause finding it primarily rests
+on (C2, HIGH, unaffected by GT-2?) remains fully supported. Verified this does not move
+`conclusion_claims`: the sentence was already long and sentence-punctuated pre-edit (already
+counted as 1 of the file's 3 conclusion claims) and remains so post-edit — no claim was added or
+removed.
+
+**Sweep result for science-engineering-2.md: one violation found and fixed (C1, GT-2? cap under
+rule 2), one out-of-plan factual-consistency fix applied (§6's Confidence sub-field, Rule 1), and
+C2 confirmed independently HIGH with no transitivity path from C1.** `high_conf_chains` moves
+**2 → 1** for this file and its twin (pre-registered below).
+
 ### Pre-registered conformance expectation (plan 44-05, Task 3 Part B/C)
 
 Written BEFORE running `sync-content.py --write` or `report-conformance.py`, per the plan's own
@@ -1148,6 +1213,48 @@ pre-edit baseline exactly (23/23, same gate set). No movement occurred outside t
 set — the one deviation (the D-08 needle re-pin) was in apparatus code required to make the
 already-pre-registered "no measured value moves" outcome observable, not a movement of a measured
 conformance value itself.
+
+### Pre-registered conformance expectation (plan 44-06, Task 3 Part E)
+
+Written BEFORE running `sync-content.py --write` or `report-conformance.py`, per the plan's own
+instruction that the expected movement be pre-registered ahead of regeneration. Read live against
+`docs/conformance-baseline.md`'s current rows immediately before this pre-registration (not from
+memory): `shared/examples/science-engineering-2.md` and its generated twin both read
+`heading_chain_blocks=2, conclusion_claims=3, verdict_cells=8, chain_blocks=2, high_conf_chains=2,
+marked_untraced_claims=0` — matching the interfaces block's own stated reading exactly.
+
+**Pre-registration, under option-flagged (the checkpoint's auto-advanced choice):**
+- `shared/examples/science-engineering-2.md` and its generated twin: `high_conf_chains` **2 → 1**
+  (C1 lowered to MEDIUM under the D-07 rule, since its head line now cites `GT-2?`; C2 keeps HIGH,
+  confirmed independently in the D-07 sweep above — no transitivity path from C1 reaches it).
+- No other column is expected to move: not `conclusion_claims` (no hop, chain, or GT bullet was
+  added or removed — GT-2 became GT-2? in place, and §6's Confidence sub-field's out-of-plan fix
+  changed prose length/wording only, confirmed above to remain a single already-long,
+  sentence-punctuated bold-colon claim both before and after), not `verdict_cells` (no Assumptions
+  Table row was added or removed), not `heading_chain_blocks`/`chain_blocks` (no `### Conclusion
+  CN` block was added, removed, or malformed), not `marked_untraced_claims` (this file carries no
+  claim-marker; the project-wide ratchet stays at exactly 4, unmoved). Any movement outside this
+  pre-registered set is a stop-and-investigate per the plan's own instruction.
+
+**Observed outcome, live:** matched the pre-registration exactly. `python3
+scripts/sync-content.py --write` (wrote 48 files) followed by `--check` (exit 0); `diff <(tail -n
++3 first-principles/agents/references/examples/science-engineering-2.md)
+shared/examples/science-engineering-2.md` printed nothing (twin byte-identical below the generated
+header). `python3 scripts/report-conformance.py` (regenerate, `PASS — wrote ... (42 rows)`), then
+`git diff --stat -- docs/conformance-baseline.md docs/data/conformance.json` showed exactly two
+lines changed (one `shared/examples/science-engineering-2.md` row, one generated-twin row), each
+moving only `high_conf_chains` **2 → 1**, matching the pre-registration exactly — confirmed by
+direct reading of the diff, no other column on either row moved. `python3
+scripts/report-conformance.py --check` (`PASS — no drift`). `python3 scripts/check-conf-gate.py`
+passed clean on the first live run (`check-conf-gate: PASS`, COVERAGE 28 artifacts, the three D-08
+self-check lines against `personal-general.md` unrelated to this plan's file) — confirmed by
+direct reading that no literal substring of `science-engineering-2.md`'s prose is transcribed
+anywhere in `scripts/check-conf-gate.py`, so no needle re-pin was needed. `python3
+scripts/gen-gate-docs.py --check` (harvested 19/19, exit 0). `python3
+scripts/check-version-stamps.py` (17 stamps, all `9.3.2`, PASS). `git diff --quiet HEAD --
+tests/adversarial-corpus-v9.0 shared/examples/self-application.md` exited 0 (both byte-unchanged).
+The twin diff (`diff <(tail -n +3 <twin>) <source>`) printed nothing. No movement occurred outside
+the pre-registered set.
 
 ### Untested seven
 
