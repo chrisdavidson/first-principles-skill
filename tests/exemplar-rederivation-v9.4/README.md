@@ -10,6 +10,15 @@ every later plan's in-flight edit to this same file).
 
 - **Repo HEAD SHA at the start of Phase 44:** `f7efc17febdfadc62e682d06f40d98017032828d` (read via
   `git rev-parse HEAD` before this plan's Task 1 made any edit).
+- **Repo HEAD SHA at the end of Phase 44's content corrections:**
+  `bcf8a886d7d066643b30b3a974b7dae81614eeab` (`bcf8a88`) — plan 44-06's `fix(44-06): supply
+  science-engineering-2.md's missing Hertz contact geometry` commit, the last commit to touch a
+  `shared/examples/*.md` source file or its generated twin in this phase, confirmed via `git
+  rev-parse bcf8a88`. This plan (44-07) adds no further edit to any `shared/examples/*.md` file —
+  its own commits (this artifact's completion, the `_FROZEN_PATHS` registration, and the
+  `.planning/ROADMAP.md` plan-list update) are administrative, not content corrections, so
+  `bcf8a88` is the SHA every `git diff --quiet <phase-start-SHA> -- shared/examples/...` and
+  per-file source-hash comparison in this section is checked against.
 - **Plugin version:** `9.3.2`, read live via `python3 scripts/check-version-stamps.py` — all 17
   hand-maintained stamps agree, `check-version-stamps: 17 stamps, all '9.3.2'` /
   `check-version-stamps: PASS`. Expected, and confirmed, unchanged for the whole phase per D-04.
@@ -38,7 +47,7 @@ last touches each file.
 | shared/examples/product-business.md | `d948f9fda657dba4fc8c66fd9e60c5846d837c8b78655e1c2b41d2a8fe2b42c4` | 94 | `a0dc5e9257c13b338052accd3e425603301b2b511a6ecbc362f3a9b8a319d826` | 94 |
 | shared/examples/science-engineering-2.md | `282db9d21c058c7ed1dd05df45dd328eded851a7bb1d1ae7e38e379f09264aa5` | 218 | `7b8a87f2b5d91b4c8cb9e3e04a8b1e552aa9be255cddc3348e613756a47022ba` | 234 |
 | shared/examples/science-engineering.md | `d5aed303b62e07f1d7ab00e4d171af2ef60a02e9009af156336095b4f4bdfe54` | 187 | `9fecf530d5f18622196b5c25e98bf70d9fe9ab324e33d41d4db78d3b771a6e41` | 198 |
-| shared/examples/self-application.md | `47adb0226654cb6246b0004d83c399a81431ebcba98f9509fd61228beda0ce11` | 399 | out of scope (D-03) — pre-edit and post-edit values must be identical | out of scope (D-03) — pre-edit and post-edit values must be identical |
+| shared/examples/self-application.md | `47adb0226654cb6246b0004d83c399a81431ebcba98f9509fd61228beda0ce11` | 399 | `47adb0226654cb6246b0004d83c399a81431ebcba98f9509fd61228beda0ce11` (IDENTICAL to pre-edit — D-03, confirmed by `git diff --quiet HEAD -- shared/examples/self-application.md` exiting 0 at the phase's final HEAD SHA below) | 399 |
 | shared/examples/software-systems-2.md | `66c6548e402398c5f2c18acca34b5323d10a9ab6781754251034f265b5d9d596` | 346 | `66c6548e402398c5f2c18acca34b5323d10a9ab6781754251034f265b5d9d596` (unchanged — plan 44-01 Task 2 found nothing to fix) | 346 |
 | shared/examples/software-systems.md | `9c883ea780c2ddde363147d86db91f1ad20212b29eccc07b8dbacc03d7e3fa61` | 301 | `fa800d3f3a277ea037185212389a1be71a8aad848ab0cee513d5590af06b5b44` | 303 |
 | shared/examples/theoretical-limit-carnot.md | `7e8949ab65ae678ad11dda352a73e43f97063515f614c1ab5d1aee1ee06aa594` | 197 | `7e8949ab65ae678ad11dda352a73e43f97063515f614c1ab5d1aee1ee06aa594` (unchanged — plan 44-01 Task 2 found nothing to fix) | 197 |
@@ -79,6 +88,59 @@ gates `[PASS]` (confirmed by reading the full battery output line by line: DUAL-
 STEP0-06, STEP0-08, VAL-01, VAL-02, VAL-03, VERSION-01, REG-GUARD, GATE-01, BATT-06, TRACE-03,
 QUAL-01, PROV-GUARD, HARN-01, HARN-02, HARN-03, SCAN-GUARD, HC-BOUND, CONF-GATE, CONF-SURFACE,
 INVARIANT-CHECK, FROZEN-EVIDENCE — all `[PASS]`).
+
+## Post-edit gate baseline (plan 44-07, Task 1 Part B)
+
+Every command below was re-run live at the phase's final content-correction HEAD
+(`bcf8a88`, recorded in Chain of custody above), after all six of plans 44-02 through 44-06's
+content-correction commits landed and before this plan's own `_FROZEN_PATHS` registration
+(Task 2) or `.planning/ROADMAP.md` update (Task 3). Verbatim final line of each, placed beside
+the pre-edit baseline above for direct comparison:
+
+```text
+$ python3 scripts/sync-content.py --check
+(no output; exit 0 — shared/ and the generated tree are in sync)
+
+$ python3 scripts/check-conf-gate.py
+check-conf-gate: PASS
+
+$ python3 scripts/report-conformance.py --check
+report-conformance: PASS — no drift
+
+$ python3 scripts/check-version-stamps.py
+check-version-stamps: PASS
+
+$ python3 scripts/gen-gate-docs.py --check
+harvested 19/19 expected script-backed entries (19 total)
+
+$ bash scripts/check-firewall-battery.sh
+FIREWALL: GREEN (23/23)
+```
+
+`check-conf-gate.py`'s post-edit live run printed the same standing COVERAGE line
+(`check-conf-gate: COVERAGE — measured 28 artifacts across shared-examples, generated-twin`) and
+the same three `D-08` synthetic-injection self-check lines against `personal-general.md`, unchanged
+in shape from the pre-edit run (the D-08 needles were re-pinned in-flight by plan 44-03 against
+`personal-general.md`'s corrected text — see that plan's own section above — and pass clean here).
+`check-version-stamps.py`'s post-edit run confirms all 17 stamps still read `9.3.2` (D-04) and
+`git tag -l v9.4.0` (run separately, Task 3 Part B) prints nothing.
+
+**Comparison, read side by side:** every one of the six commands' verbatim final lines is
+byte-identical between the pre-edit baseline above and this post-edit reading — `sync-content.py
+--check` silent/exit-0 both times, `check-conf-gate: PASS` both times, `report-conformance: PASS —
+no drift` both times, `check-version-stamps: PASS` both times (17/17 stamps at `9.3.2`, D-04
+held), `gen-gate-docs.py --check` harvesting 19/19 both times, and `FIREWALL: GREEN (23/23)` both
+times — same verdict, same gate count, same 23 individual `[PASS]` lines (confirmed by reading
+the full post-edit battery output line by line: DUAL-04, GATE-02-v8.5, STEP0-06, STEP0-08, VAL-01,
+VAL-02, VAL-03, VERSION-01, REG-GUARD, GATE-01, BATT-06, TRACE-03, QUAL-01, PROV-GUARD, HARN-01,
+HARN-02, HARN-03, SCAN-GUARD, HC-BOUND, CONF-GATE, CONF-SURFACE, INVARIANT-CHECK, FROZEN-EVIDENCE —
+all `[PASS]`). Six waves of content edits across seven files moved zero gate readings from this
+artifact's own pre-edit baseline — every movement this phase produced is confined to the
+per-file `docs/conformance-baseline.md`/`docs/data/conformance.json` column changes each owning
+plan's own section above pre-registered and reconciled (`high_conf_chains` and one investigated
+`conclusion_claims` movement), none of which this six-command gate chain surfaces as drift, since
+`report-conformance.py --check` and `check-conf-gate.py` both measure structural conformance
+against the currently-committed content, not against a frozen prior reading.
 
 ## Corrected-defect re-derivations (999.118 steps 1-2)
 
@@ -1504,7 +1566,114 @@ where the corpus is next read as a validation set" constraint.
 
 ## Finding
 
-*(pending - plan 44-06)*
+**All eleven rows of backlog 999.118's defect table are corrected**, each independently
+re-derived from the owning exemplar's own stated inputs in this session (not copied forward from
+999.118's, 44-RESEARCH.md's or 44-PATTERNS.md's own first-pass figures), and each verified stale
+zero times over in a post-edit `/usr/bin/grep -F` sweep for its own superseded literal(s):
+`personal-general-2.md`'s GT-6, C1 hop 1, C1 hop 2 and C2 (plan 44-02); `personal-general.md`'s C1
+basis-mixing defect (plan 44-03); `product-business-2.md`'s GT-1 distinct-account inference (plan
+44-03); `product-business.md`'s GT-4 `?`-suffix violation and break-even formula (plan 44-04);
+`software-systems.md`'s GT-3/C1 "mechanically blocked" argument (plan 44-04);
+`science-engineering.md`'s GT-2 derating claim and 1.8 kWh/day threshold (plan 44-05); and
+`science-engineering-2.md`'s GT-2 missing Hertz geometry (plan 44-06, D-02's locked
+supply-the-geometry shape).
+
+**The blast radius extended well beyond 999.118's own eleven line citations, and every additional
+site found was corrected, not merely noted.** Beyond the four sites 999.118's research phase
+pre-named — `personal-general-2.md`'s §6 Trade-offs restatement (line 122) and its C1 confidence
+sensitivity claim (line 64), `software-systems.md`'s Assumption Audit row (line 231), and
+`science-engineering.md`'s line-94 first occurrence of the 1.8/1.6 kWh/day threshold — the
+owning plans' own post-edit restatement sweeps found and fixed a further set no upstream artifact
+had named at all: `personal-general-2.md`'s line-81 C3 terminal-value parenthetical;
+`personal-general.md`'s lines 18, 56 and 67 (found by plan 44-03's own required `effective`
+sweep); `software-systems.md`'s two GT-3 head-line-citation glosses on C1 and C3, plus C1 hop 1's
+own closing clause (found by plan 44-04 re-reading the corrected chain end to end); and
+`science-engineering-2.md`'s §6 file-level Confidence sub-field, which became factually false the
+moment GT-2 carried the `?` suffix (found and fixed by plan 44-06). `software-systems.md`'s
+line-163 site, which 44-PATTERNS.md flagged and explicitly left unresolved for the owning plan to
+adjudicate, was adjudicated by plan 44-04 as requiring correction (written in the analyst's own
+voice, not a preserved restatement of rejected reasoning) and corrected accordingly. Two of the
+seven files' defects were argument-structure problems, not value substitutions —
+`software-systems.md`'s GT-3/C1 claim was the chain's own stated ground for a HIGH confidence
+rating, and `science-engineering-2.md`'s GT-2 range was the coincidence C1's whole diagnostic
+argument depended on matching GT-1's independent 0.4 mm observation — and both were re-examined
+for whether their chain's stated confidence still followed once the false claim was corrected,
+not merely patched at the number level.
+
+**The seven previously-untested exemplars were hand-re-derived (999.118 step 4); six are CONFIRMED
+clean, one carries a disclosed non-arithmetic staleness issue filed out of scope.**
+`estimate-fermi.md`, `theoretical-limit-carnot.md`, `decompose-irreducibility.md`,
+`ishikawa-fishbone.md` and `software-systems-2.md` all re-derive cleanly with zero arithmetic
+disagreements (plan 44-01); `composed-inversion-second-order.md` carries no re-derivable numeric
+content (one grep hit, confirmed a false-positive step-number cross-reference, not a quantity).
+`self-application.md` is arithmetically self-consistent in full (every figure re-derives exactly
+from its own stated inputs) but its Ground Truths describe a repository state that has since
+changed — see the D-03 exclusion below.
+
+**The `?`-suffix / D-07 confidence-ceiling sweep (999.118 step 3) was run across all fourteen
+`shared/examples/*.md` files, not just the one instance 999.118 pre-named.** One violation was
+found and corrected: `product-business.md`'s GT-4, which stated unmeasured/unknown language
+without carrying the required `?` while both chains citing it directly on their heads were rated
+HIGH — corrected to GT-4?, both chains downgraded to MEDIUM with stated reasons, and section 6's
+own synthesizing confidence line downgraded in step (plan 44-04). A second violation surfaced as
+a direct consequence of plan 44-06's own D-02 fix, not as a pre-existing defect: once GT-2 in
+`science-engineering-2.md` was correctly suffixed to GT-2? (because its geometry is inferred, not
+read at a named source), C1's HIGH rating — resting directly on GT-2? in its head-line citation —
+required the same downgrade to MEDIUM, applied by that plan. Every other Ground Truth and chain
+across all fourteen files, including the seven previously-untested exemplars and the six
+remaining defective files, was swept and found already compliant: every unverified GT already
+carried its `?`, and no chain citing a `GT-N?` (directly or transitively) was rated above MEDIUM.
+Zero violations required a fix in `personal-general-2.md`, `personal-general.md`,
+`product-business-2.md`, `software-systems.md`, `science-engineering.md`, or any of the seven
+untested exemplars.
+
+**What this artifact does NOT establish.** Every figure recorded here was re-derived BY HAND —
+`python3 -c` arithmetic checked by a human/executor against each exemplar's own stated inputs, not
+by any automated arithmetic checker, because no such checker exists anywhere in this repository
+and building one is explicitly out of bounds (`.planning/STATE.md` standing instruction 2;
+44-RESEARCH.md's "Don't Hand-Roll" section). The guarantee this artifact offers is therefore only
+as strong as the recorded derivations a skeptical reader can independently re-run — which is
+exactly why every defect and restatement site above states its inputs, its operation, and its
+result inline, rather than asserting a bare corrected value. The gate chain this phase re-ran
+before and after every edit — `sync-content.py --check`, `check-conf-gate.py`,
+`report-conformance.py --check`, `check-version-stamps.py`, `gen-gate-docs.py --check`, and the
+full offline battery — proves only that nothing ELSE broke: that source and generated twin stayed
+in sync, that structural conformance counts moved only where pre-registered and reconciled, that
+version stamps and the frozen corpus stayed untouched, and that no other gate in the battery
+regressed. None of these gates reads arithmetic, checks a dollar figure, or validates a physics
+formula — `docs/conformance-baseline.md`'s own per-exemplar columns count structural elements
+(chain blocks, table rows, claim markers), never a Ground Truth's stated number, confirmed live in
+44-RESEARCH.md's "Gate Impact" section before this phase made any edit. **Do not read this
+artifact, or the phase it records, as a gate-verified guarantee that these exemplars' arithmetic
+is clean — it is a recorded, reproducible hand-verification, with every step shown for a skeptic
+to check, not a certification an automated instrument could reproduce on its own.**
+
+**`self-application.md` is excluded from this phase's corrections (D-03) and is byte-unchanged.**
+Confirmed throughout the phase and again at this artifact's completion:
+`git diff --quiet HEAD -- shared/examples/self-application.md` exits 0, and its pre-edit and
+post-edit sha256 in the chain-of-custody table above are identical
+(`47adb0226654cb6246b0004d83c399a81431ebcba98f9509fd61228beda0ce11`). Its arithmetic is fully
+self-consistent (every figure re-derives exactly from its own stated inputs — see the
+Untested-exemplar re-derivation section above); what is stale is that its Ground Truths describe a
+repository state that has since changed (an 878-line agent body with the Output Template and
+Validation Rubric appendices still inlined, governed by a binding META-Q4 line-count gate — none
+of which is true of the current 807-line, de-inlined, META-Q4-retired tree). This is a
+citation-currency issue, a different defect class from 999.118's "arithmetic, unit or citation
+defect re-derivable as wrong from the file's own stated inputs" scope, and is filed as backlog
+999.124 (plan 44-01, Task 3) rather than fixed in this phase, per the locked decision D-03.
+
+**Eight items in the frozen `tests/adversarial-corpus-v9.0/` corpus are `derived:` copies of the
+seven exemplars this phase touched, and by design still carry the defects this phase corrected in
+their source (D-05).** The corpus is FROZEN-EVIDENCE-registered and was not edited — confirmed by
+`git diff --quiet HEAD -- tests/adversarial-corpus-v9.0` exiting 0 throughout the phase (see the
+Adversarial-corpus inheritance section above for the full eight-item table: T-01, T-02, T-07,
+T-08, T-09, T-11, T-12, T-14). Each of these items now carries an arithmetic/citation defect its
+own catalog entry does not name, layered underneath the deliberately-injected falsehood the
+catalog does name and that each item was constructed to demonstrate. This second, uncatalogued
+layer of wrongness is recorded — never fixed inside the frozen corpus itself — via a
+cross-reference this phase added under backlog 999.4's own entry in `.planning/ROADMAP.md`, so
+anything built on this corpus as a clean-negative validation set (starting with backlog 999.4's
+own semantic claim-to-chain judge) is warned to read this section first.
 
 ## Why registering this path is not a new gate
 
