@@ -1675,6 +1675,45 @@ cross-reference this phase added under backlog 999.4's own entry in `.planning/R
 anything built on this corpus as a clean-negative validation set (starting with backlog 999.4's
 own semantic claim-to-chain judge) is warned to read this section first.
 
+## Erratum (2026-09-18)
+
+The Finding section above is frozen and left byte-unchanged. The numbered corrections below
+supersede the specific sentences they cite; no re-derivation, sha256, line count or sweep reading
+recorded above is affected. Raised by the Phase 44 code review and appended additively per this
+file's own Frozen-evidence discipline section, never as a rewrite of the original text.
+
+1. **"`science-engineering-2.md`'s §6 file-level Confidence sub-field, which became factually
+   false the moment GT-2 carried the `?` suffix (found and fixed by plan 44-06)" (Finding section,
+   Blast-radius paragraph).** Narrowed: plan 44-06 corrected the sub-field's *text*; it did
+   **not** re-band the rating. Verified at this phase's final content-correction HEAD
+   (`git show bcf8a88:shared/examples/science-engineering-2.md`), §6 line 224 still read
+   `**Confidence: HIGH**`, while the same section's `**Recommended approach:**` (line 196) names
+   chain C1 — which that same plan had re-banded to MEDIUM at line 122. A reader of the original
+   sentence would reasonably conclude the §6 banding was resolved; it was not. Filed as
+   code-review finding CR-01 and corrected after this artifact was frozen. The correct reading of
+   the original sentence is "the sub-field's *text* was corrected; its rating was not re-banded."
+
+2. **"no chain citing a `GT-N?` (directly or transitively) was rated above MEDIUM" and "Zero
+   violations required a fix in `personal-general-2.md`, ..." (Finding section, `?`-suffix /
+   D-07 sweep paragraph).** Narrowed: the sweep's subject was **chain-level ratings only**, and
+   at chain level its result stands. `shared/spine/references/validation-rubric.md` Criterion 5
+   also binds the §6 **Conclusion section** rating to the weakest chain that section names — the
+   rule plan 44-04 applied correctly in `product-business.md`, and the rule this sweep did not
+   apply. Under it, two files were non-compliant at `bcf8a88`:
+
+   - `science-engineering-2.md` — §6 rated HIGH while naming chain C1 (MEDIUM). Item 1 above;
+     code-review finding CR-01.
+   - `personal-general-2.md` — §6 rated MEDIUM while naming chains C1 (LOW) and C2 (LOW), both
+     verified LOW at `bcf8a88` lines 64 and 74. Code-review finding WR-06.
+
+   The sweep's scope was therefore narrower than the claim made for it. The claim is restated as:
+   swept at chain level, and clean at chain level; the Criterion 5 section-level rule was not
+   swept, and two files failed it.
+
+Neither correction changes any figure, any re-derivation, any custody-table hash or any gate
+reading recorded above. Both narrow a **closure claim** — what the phase established — rather
+than a measurement.
+
 ## Phase-wide close-out sweep (plan 44-07, Task 3)
 
 Run at the phase's final content-correction HEAD (`bcf8a88`) plus this plan's own two prior
