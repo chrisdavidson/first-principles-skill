@@ -1675,7 +1675,104 @@ cross-reference this phase added under backlog 999.4's own entry in `.planning/R
 anything built on this corpus as a clean-negative validation set (starting with backlog 999.4's
 own semantic claim-to-chain judge) is warned to read this section first.
 
-## Why registering this path is not a new gate
+## Phase-wide close-out sweep (plan 44-07, Task 3)
+
+Run at the phase's final content-correction HEAD (`bcf8a88`) plus this plan's own two prior
+commits (`ddc2663` artifact completion, `6ac123c` `_FROZEN_PATHS` registration), immediately
+before the `.planning/ROADMAP.md` plan-list update (Task 3 Part D, gitignored, not committed).
+
+### Part A — stale-literal sweep, every 44-PATTERNS.md §4 pattern, all seven corrected files
+
+| File | Pattern | Hits | Expected |
+|---|---|---|---|
+| personal-general-2.md | `113,000` | 0 | 0 |
+| personal-general-2.md | `120,000` | 0 | 0 |
+| personal-general-2.md | `$3,000–$10,000` | 0 | 0 |
+| personal-general-2.md | `roughly 5–9%` | 0 | 0 |
+| personal-general-2.md | `$32,000` | 0 | 0 |
+| personal-general-2.md | `76,000–$78,000` | 0 | 0 |
+| personal-general-2.md | `90,000–$110,000` | 0 | 0 |
+| personal-general-2.md | `7–8 years` | 0 | 0 |
+| personal-general-2.md | `30,000–$35,000` | 0 | 0 |
+| personal-general.md | `overstates the real gain by roughly 23%` | 0 | 0 |
+| personal-general.md | `$54,000` (presence, corrected label) | 6 | >0 |
+| science-engineering.md | `consistent with a 0.80` | 0 | 0 |
+| science-engineering.md | `1.8 kWh/day` | 0 | 0 |
+| science-engineering.md | `1.6 kWh/day` (presence, corrected) | 4 | >0 |
+| science-engineering.md | `1.76 kWh/day` (presence, corrected) | 3 | >0 |
+| science-engineering-2.md | `race radii` (bare placeholder) | 0 | 0 |
+| software-systems.md | `mechanically blocked by the 45-minute pipeline` | 0 | 0 |
+| software-systems.md | `sufficient explanation of the 2-deploy/day ceiling` | 0 | 0 |
+| software-systems.md | `ceiling follows from sequential pipeline` | 0 | 0 |
+| software-systems.md | `fully sufficient explanation of the current bottleneck` | 0 | 0 |
+| software-systems.md | `follows directly` | 1 | 0, investigated |
+| product-business.md | `(blended monthly cost per free user) / (average contract value)` | 0 | 0 |
+| product-business.md | `blended monthly cost per free user divided by average contract value` | 0 | 0 |
+| product-business.md | `**GT-4**` (unsuffixed) | 0 | 0 |
+| product-business.md | `**GT-4?**` (presence, corrected) | 1 | 1 |
+| product-business-2.md | `41 requesting accounts` | 0 | 0 |
+
+**`software-systems.md`'s `follows directly` hit, investigated:** the one hit is at line 238, the
+Assumption Audit table's "Min viable" row — "this sequencing follows directly from the cost-risk
+ordering established in Step 1" — an unrelated use of the same three-word phrase describing a
+different claim (test-execution sequencing, not the withdrawn deploy-ceiling causal-sufficiency
+argument). Confirmed by direct reading, matching the same false-positive pattern 44-RESEARCH.md's
+own live sweep found twice elsewhere in the repository for this exact phrase. Not a stale
+restatement; no fix needed.
+
+**Preserved-value assertions, confirmed PRESENT at their expected counts:**
+- `personal-general.md`: `$70,000` present **10** times, `$70K` present **3** times — the
+  intentionally-preserved dead-end nominal-figure references (999.118's own preserved-value
+  exception; confirmed matching `git show f7efc17:shared/examples/personal-general.md` counts).
+- `science-engineering.md`, D-01-protected: `0.80` present **15**, `1,875` present **2**,
+  `341 W` present **2**, `17% margin` present **1**, `417 W` present **1**, `400 W` present
+  **7** — all six literals byte-unchanged from `git show f7efc17:`, confirming D-01's narrow fix
+  held and no cascade shipped.
+- `science-engineering-2.md`, D-02-protected: `0.35-0.45 mm` present **2** times, unchanged from
+  pre-edit — the band itself was never touched; only the previously-bare "race radii" input list
+  was completed with concrete numbers.
+- `science-engineering.md`, unrelated illustrative figure: `2.0 kWh/day` present **1** time,
+  matching its pre-edit count exactly — confirmed this file's C2 what-if example was not
+  conflated with the corrected 1.6/1.76 kWh/day thresholds.
+
+**Twin regeneration check, all seven files:** `diff <(tail -n +3 <twin>) <source>` prints nothing
+for all seven — `personal-general-2.md`, `personal-general.md`, `science-engineering.md`,
+`science-engineering-2.md`, `software-systems.md`, `product-business.md`,
+`product-business-2.md`. Every twin is byte-identical to its source below the generated-marker
+header.
+
+**Sweep result: every pattern returns zero hits except the four preserved-value classes (all
+confirmed present at their expected, unmoved counts) and one investigated false positive
+(`follows directly`, confirmed unrelated by direct reading, not a defect).**
+
+### Part B — locked-decision audit D-01 through D-06
+
+Checked against the phase-start SHA recorded in Chain of custody above
+(`f7efc17febdfadc62e682d06f40d98017032828d`), not `HEAD~n`.
+
+| Decision | Command | Result |
+|---|---|---|
+| D-01 | (Part A above) all six protected literals present, unmoved | HOLDS |
+| D-02 | `/usr/bin/grep -cF '0.35-0.45 mm' shared/examples/science-engineering-2.md` → 2; re-run plan 44-06's recomputation live: `E*=113.736 GPa`, `R=9.506 mm`, `a=0.5105 mm`, `z=0.78×a=0.3982 mm` | HOLDS — `z` recomputes to 0.398 mm from GT-2's own post-edit inputs, inside the unchanged 0.35-0.45 mm band |
+| D-03 | `git diff --quiet f7efc17 -- shared/examples/self-application.md` → exit 0; `/usr/bin/grep -n '999.124' .planning/ROADMAP.md` → two hits (backlog entry heading at line ~7508, cross-reference at line ~587) | HOLDS |
+| D-04 | `python3 scripts/check-version-stamps.py` → `check-version-stamps: PASS` (17/17 at `9.3.2`); `git tag -l v9.4.0` → empty | HOLDS |
+| D-05 | `git diff --quiet f7efc17 -- tests/adversarial-corpus-v9.0` → exit 0; eight-item inheritance table present above | HOLDS |
+| D-06 | `git diff --name-only f7efc17 HEAD -- scripts/` → `scripts/check-conf-gate.py`, `scripts/check-firewall-battery.sh` (both **Modified**, confirmed via `--name-status`: zero files with status `A`) | HOLDS in substance — see discrepancy note below |
+
+**D-06 citation discrepancy, recorded rather than silently reconciled.** This plan's own
+acceptance criteria (44-07-PLAN.md Task 3) state the scripts/ diff "lists at most
+`scripts/check-firewall-battery.sh`." The live diff also lists `scripts/check-conf-gate.py`,
+modified by plan 44-03 to re-transcribe its D-08 anti-vacuity needles after Task 1's edit to
+`personal-general.md` removed the literal substrings those needles pinned — a Rule 3
+blocking-issue auto-fix, recorded in full in plan 44-03's own summary and in this artifact's
+`personal-general.md (plan 44-03)` section above, and explicitly the scenario
+`check-conf-gate.py`'s own source comment names as expected apparatus-code behavior for a future
+content edit. This plan's acceptance-criteria text did not anticipate that earlier plan's
+apparatus fix when it was written. **D-06's actual substance — no NEW checker script was written
+anywhere under `scripts/`** — holds without qualification: `git diff --name-status f7efc17 HEAD
+-- scripts/` shows both files as `M` (Modified), zero as `A` (Added). The "at most one file"
+literal wording is stale against the phase's own recorded history, not a violation of D-06's own
+rule.
 
 `FROZEN-EVIDENCE` in `scripts/check-firewall-battery.sh` (confirmed by direct read of lines
 740-787) is an inline check whose `TOTAL=$((TOTAL + 1))` line fires exactly once, unconditionally,
