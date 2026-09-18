@@ -207,7 +207,7 @@ honesty-not-score, D-01 global):
 
 | Residual | True K/N | BATT-06 Sentinel | Disposition |
 |----------|----------|-----------------|-------------|
-| RR-114-01 (S-P02 inversion) | 1/5 live (v7.13) **[Correction, dated 2026-09-17 (v9.4.0 Phase 43): this cell has read the v7.13-era figure since v8.0; the v8.5 Live Re-Measure Annotation two sections below records a v8.5 re-measure of this same residual at 0/5 (was 1/5 v7.13; −1), and that is the current live reading. The Sentinel cell's `_load_excerpt_v713` is likewise the v8.0-era pointer — `scripts/_battery_core.py`'s own RR-114-01 lineage comment records the sentinel re-pointed v7.13 → v8.5 at Phase 156 MEASURE-03.]** | `_load_excerpt_v713` in `_battery_core.self_test_boundary()` | ACCEPTED-FINAL |
+| RR-114-01 (S-P02 inversion) | 1/5 live (v7.13) **[Correction, dated 2026-09-17 (v9.4.0 Phase 43): this cell has read the v7.13-era figure since v8.0; the [v8.5 Live Re-Measure Annotation](#v85-live-re-measure-annotation-2026-07-20) records a v8.5 re-measure of this same residual at 0/5 (was 1/5 v7.13; −1), and that is the current live reading. The Sentinel cell's `_load_excerpt_v713` is likewise the v8.0-era pointer — `scripts/_battery_core.py`'s own RR-114-01 lineage comment records the sentinel re-pointed v7.13 → v8.5 at Phase 156 MEASURE-03.]** | `_load_excerpt_v713` in `_battery_core.self_test_boundary()` | ACCEPTED-FINAL |
 | RR-108-04 (S-P10 estimate) | 0/5 live (v7.13) | `_load_excerpt_v713` in `_battery_core.self_test_boundary()` | ACCEPTED-FINAL |
 | RR-108-05 (S-P14 theoretical-limit) | 0/5 live (v7.13) | `_load_excerpt_v713` in `_battery_core.self_test_boundary()` | ACCEPTED-FINAL |
 
