@@ -252,10 +252,14 @@ reporter's retirement, needing no replacement hits since the rewrite
 introduced no new non-conforming digit.
 Phase 43 plan 01 lowered it once more, 177 → 175, removing the pair of
 `docs/README.md` frozen-historical permits for the raw-substring
-matrix-row-citation count this plan reworded off both of that page's
-`whole-system-remeasure-verdict.md` rows under backlog 999.54, needing no
-replacement hits since the rewrite states the over-count and its cause
-without carrying a conforming count literal.
+matrix-row-citation count reworded off both of that page's
+`whole-system-remeasure-verdict.md` rows under backlog 999.54. As first
+delivered that rewording still stated both figures as bare digits, which
+the scanner could not see because `citation`/`citations` is outside
+`_LITERAL_NOUNS`' vocabulary; the phase's own code review raised that as
+CR-01, and both rows now send the reader to `docs/data/matrix.json` for
+the figure, so no replacement hits are needed on the same ground as the
+hops above — the rewrite introduced no new non-conforming digit.
 The chain's terminus is
 the figure the Facts fence above publishes as `literal_scan_ledger_max` —
 read it there, not restated here as a bare digit.

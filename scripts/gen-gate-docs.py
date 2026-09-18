@@ -3897,9 +3897,15 @@ _DEFERRED_LEDGER_MAX: int = 175
 # Re-pinned by Phase 43 plan 01 Task 1, in the same commit as backlog
 # 999.54's fix: the pair of docs/README.md frozen-historical permits for
 # the raw-substring matrix-row-citation count removed -- both
-# whole-system-remeasure-verdict.md rows this plan reworded, stating the
-# over-count and its v7.11/RECON-01 double-citation cause instead of a
-# bare digit. 177 -> 175.
+# whole-system-remeasure-verdict.md rows reworded off that count.
+# 177 -> 175. As first delivered that rewording still stated both figures
+# as bare digits which neither a permit nor a fence covered; they passed
+# the scanner only because "citation"/"citations" is outside
+# _LITERAL_NOUNS' vocabulary, so it could not see them at all. The phase's
+# own code review raised that as CR-01 and both rows now state the
+# over-count and its v7.11/RECON-01 double-citation cause and send the
+# reader to docs/data/matrix.json for the figure, so this removal is
+# justified by the delivered text and not merely by the intended text.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
     "sha256:b3f9b6bd29d485df3755830c5a3f041a43db0ce29b1dd021c0403747afc93ff2"
 )
