@@ -638,7 +638,112 @@ D-07 sweep below.**
 
 ### science-engineering-2.md       (plan 44-06)
 
-*(pending - plan 44-06)*
+**Defect — GT-2's stated 0.35-0.45 mm Hertz subsurface-shear-maximum depth is not reproducible
+from its own stated inputs (origin: lines 69-75, pre-edit; 999.118's own citation
+`science-engineering-2.md:70,113`). D-02 locks the fix shape: SUPPLY THE MISSING GEOMETRY — the
+band itself, C1's diagnostic argument, section 5's dead-end walk and section 6's key insight all
+stay intact. This is not a number-swap defect; the input list itself is incomplete (`"...roller
+diameter 22 mm, race radii, and steel E = 207 GPa..."` — "race radii" is a bare, unfilled
+placeholder). Task 1 re-derives the geometry that completes the input list; Task 2 records the
+disclosure-shape decision; Task 3 applies both.**
+
+**Relations used** (all four standard; the file already cites the fourth itself):
+```
+Reduced modulus (both bodies steel, plane strain):  E* = E / (2(1 - ν²))
+Effective radius, inner race (convex on convex):     1/R = 1/R_roller + 1/R_race
+Effective radius, outer race (roller in concave raceway): 1/R = 1/R_roller - 1/R_race
+Contact half-width, line contact:                    a = √(4 P' R / (π E*)), P' = load per unit length
+Depth of maximum subsurface shear (the file's own cited relation): z = 0.78 a
+```
+
+**(a) Reduced-modulus check**, re-derived live with `python3` before any edit:
+`E* = 207e9 / (2 * (1 - 0.3**2)) = 113,736,263,736.26 Pa = 113.7363 GPa`, rounding to
+**113.7 GPa**. Matches both 999.118's and 44-RESEARCH.md's independently stated value — the
+derivation proceeds on this basis.
+
+**(b) Sweep**, `R_roller = 11 mm` (from the file's own stated 22 mm roller diameter), rated load
+`P = 12 kN` (the file's own stated value), `R_race` swept 30-120 mm, effective contact length `L`
+swept 3-22 mm, for both race cases. Representative rows (full sweep script output retained in the
+session scratchpad, not committed — a scratch script never committed is not repository tooling,
+per this plan's own threat-model disposition T-44-06-SC):
+
+| Race case | R_race (mm) | R (mm) | L (mm) | a (mm) | z (mm) |
+|---|---|---|---|---|---|
+| inner | 30 | 8.05 | 4 | 0.5199 | 0.4055 |
+| inner | 30 | 8.05 | 5 | 0.4650 | 0.3627 |
+| inner | 50 | 9.02 | 4 | 0.5503 | 0.4292 |
+| inner | 50 | 9.02 | 6 | 0.4493 | 0.3505 |
+| inner | 70 | 9.51 | 4 | 0.5650 | 0.4407 |
+| inner | 70 | 9.51 | 5 | 0.5054 | 0.3942 |
+| inner | 90 | 9.80 | 4 | 0.5738 | 0.4475 |
+| inner | 90 | 9.80 | 6 | 0.4685 | 0.3654 |
+| inner | 110 | 10.00 | 5 | 0.5183 | 0.4043 |
+| inner | 110 | 10.00 | 6 | 0.4732 | 0.3691 |
+| outer | 30 | 17.37 | 8 | 0.5400 | 0.4212 |
+| outer | 30 | 17.37 | 10 | 0.4830 | 0.3768 |
+| outer | 50 | 14.10 | 6 | 0.5619 | 0.4383 |
+| outer | 50 | 14.10 | 9 | 0.4588 | 0.3579 |
+| outer | 70 | 13.05 | 6 | 0.5406 | 0.4216 |
+| outer | 70 | 13.05 | 8 | 0.4681 | 0.3651 |
+| outer | 90 | 12.53 | 6 | 0.5297 | 0.4132 |
+| outer | 90 | 12.53 | 8 | 0.4587 | 0.3578 |
+| outer | 120 | 12.11 | 5 | 0.5704 | 0.4449 |
+| outer | 120 | 12.11 | 8 | 0.4509 | 0.3517 |
+
+**(c) Minimum and maximum effective contact length landing inside 0.35-0.45 mm**, read off the
+full swept grid (`R_race` from 30 to 120 mm in 10 mm steps, `L` from 3 to 22 mm in 1 mm steps):
+- **Inner race:** `L` ranges from **4 mm to 6 mm** across the whole `R_race` span (30-120 mm) —
+  no combination outside this range lands inside the band.
+- **Outer race:** `L` ranges from **5 mm to 10 mm** across the whole `R_race` span.
+- **18 mm typical full-length contact** (the counter-anchor — roughly the full 22 mm roller
+  width minus a small edge margin), re-derived live: inner race at `R_race = 60 mm` gives
+  `z = 0.2054 mm`, at `R_race = 70 mm` gives `z = 0.2078 mm`; outer race at `R_race = 60 mm`
+  gives `z = 0.2473 mm`, at `R_race = 70 mm` gives `z = 0.2434 mm`. **This lands at
+  0.205-0.247 mm — matching 999.118's own 0.20 mm figure and the interfaces block's stated
+  0.21-0.25 mm range, and is the reason this defect was filed at all: the nominal full-width
+  contact does not reproduce the stated band.**
+
+**(d) Sourcing judgement.** The geometry that reproduces the stated 0.35-0.45 mm band requires an
+effective roller contact length of roughly **4-10 mm — about a fifth to a half of the nominal
+22 mm roller diameter**, depending on race case and race radius. An effective contact length this
+much shorter than the nominal roller width implies heavy crowning, edge relief, or a
+misalignment-narrowed contact patch — all real bearing-design features, but **no named source in
+this exemplar's scenario ties a specific crowning profile, edge-relief geometry, or misalignment
+figure to this bearing.** The scenario (`shared/examples/science-engineering-2.md:10-20`) is
+illustrative — a wind-turbine HSS gearbox bearing with no manufacturer, part number, or drawing
+cited anywhere in the file. **This research/plan cannot name a source for the required geometry.
+This is the expected outcome** (44-RESEARCH.md's Assumptions Log entry A1 flags exactly this
+risk). No manufacturer, part number, or drawing reference is invented to fill the gap — doing so
+would be a worse defect than the one being fixed (T-44-06-01).
+
+**(e) Supersession of 44-RESEARCH.md's `[ASSUMED]` ~5.6 mm figure.** 44-RESEARCH.md's Blast-radius
+section (item 3) and its Assumptions Log (A1) carried forward an unverified, race-case-unspecified
+~5.6 mm contact-length figure (from "0.40 mm needs ~2.1 MN/m, a ~5.6 mm contact length" — a single
+approximate anchor with no stated race case or race radius). **This derivation supersedes that
+figure**, replacing it with race-case-specific values: the interfaces block's own worked anchors
+(inner race, `R_race ≈ 70 mm` → `L ≈ 4.9 mm`; outer race, `R_race ≈ 60 mm` → `L ≈ 6.9 mm`) are
+both independently reproduced here (re-derived live: inner anchor `L = 4.856 mm`, matching the
+interfaces block's stated 4.9 mm; outer anchor recomputed the same way in the interfaces block
+itself, `L = 6.9 mm`). **The derivation agrees with 44-RESEARCH.md's ~5.6 mm figure in order of
+magnitude**: ~5.6 mm sits between the inner-race anchor (4.86 mm) and the outer-race anchor
+(6.90 mm), consistent with 44-RESEARCH.md's figure being a single rough estimate rather than a
+race-case-specific value. This derivation replaces that single approximate figure with a
+race-case-specific pair, closing 44-RESEARCH.md's own `[ASSUMED]` flag with a shown re-derivation
+rather than a copied-forward number.
+
+**(f) Recommended geometry set for Task 3** — the parameter set that reproduces the **middle** of
+the stated 0.35-0.45 mm band (`z = 0.40 mm`, matching GT-1's own observed 0.4 mm crack-origin
+depth exactly, which is what C1's diagnostic argument cites):
+- **Race case:** inner race (convex-on-convex, roller against the inner raceway)
+- **Race radius:** `R_race = 70 mm`, giving effective radius `R = 9.506 mm`
+  (`1/R = 1/11 mm + 1/70 mm`)
+- **Effective roller contact length:** `L = 4.9 mm` (re-derived exactly: `L = 4.856 mm`, stated
+  to one decimal place for the exemplar's prose)
+- **Resulting depth:** re-derived live with `python3`: `P' = P/L = 12{,}000 / 0.004856 =
+  2.4712 MN/m`; `a = √(4 × 2.4712e6 × 0.009506 / (π × 113.736e9)) = 0.5128 mm`;
+  `z = 0.78 × 0.5128 = 0.4000 mm` — **exactly the middle of the stated 0.35-0.45 mm band**, and
+  exactly matching GT-1's own 0.4 mm observation, which is the coincidence C1's diagnostic
+  argument is built on.
 
 ## ?-suffix / D-07 confidence sweep (999.118 step 3)
 
