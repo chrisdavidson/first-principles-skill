@@ -563,15 +563,18 @@ re-run or hand-typed separately per row.
 | failure-record pointer (kept) | Rubric-5 | as, bm | `failure-record pointer` | `(as) correctly failed (1 failure(s))` / `(bm) correctly failed (1 failure(s))` | PASS |
 | downgrade scope | Rubric-6 | w | `downgrade scope` | `(w) correctly failed (1 failure(s))` | PASS |
 | shared reason token | Rubric-6 | at | `shared reason token` | `(at) correctly failed (1 failure(s))` | PASS |
-| Guard "Body-4..9" (kept, structural) | (structural) | none dedicated — sibling-caught by control (i), check ID `Body-2` | n/a | `(i) correctly failed (3 failure(s))` | N/A |
-| Guard "Body-12 table block" (kept, structural) | (structural) | al (duplication), bj (zero-occurrence) | `table block occurs 2 time(s)` / `table block occurs 0 time(s)` | `(al) correctly failed (1 failure(s))` / `(bj) correctly failed (1 failure(s))` | PASS |
-| Guard "Rubric-3/5/6 Fix note" (kept, structural) | (structural) | bl (duplication) — sibling-caught by check ID `Rubric-2` | n/a | `(bl) correctly failed (3 failure(s))` | N/A |
+| Guard "Body-4..9" (kept, structural) | Body-4..9 | none declared against `Body-4..9` by name (no `_check_negative` call names it as `expected_check_id`) — fixture (i) (step-paragraph duplication) exercises it as an undeclared side effect | `step paragraph occurs 2 time(s)` | `(i) correctly failed (3 failure(s))`; the raw failure list under fixture (i) is confirmed (scratchpad re-run) to include `Body-4..9: step paragraph occurs 2 time(s) in the Phase 3 slice, expected exactly 1 — cannot check paragraph contents` alongside the declared `Body-2`/`Body-3` failures — the guard is unconverted, so it still fires on its own message; only its `_check_negative` declaration points at `Body-2` | PASS (fires by its own name in the raw failure list; simply has no dedicated control declaring that name as `expected_check_id`) |
+| Guard "Body-12 table block" (kept, structural) | Body-12 | al (duplication), bj (zero-occurrence) | `table block occurs 2 time(s)` / `table block occurs 0 time(s)` | `(al) correctly failed (1 failure(s))` / `(bj) correctly failed (1 failure(s))` | PASS |
+| Guard "Rubric-3/5/6 Fix note" (kept, structural) | Rubric-3/5/6 | none declared against `Rubric-3/5/6` by name — fixture (bl) (Fix-note duplication) exercises it as an undeclared side effect | `Fix note paragraph occurs 2 time(s)` | `(bl) correctly failed (3 failure(s))`; the raw failure list under fixture (bl) is confirmed (scratchpad re-run) to include `Rubric-3/5/6 (CR-02, block scope): Fix note paragraph occurs 2 time(s) in the Criterion 3 slice, expected exactly 1 — cannot check branches, preference, pointers, or downgrade scope` alongside the declared `Rubric-2` failures | PASS (fires by its own name in the raw failure list; same undeclared-control situation as the Body-4..9 guard) |
 
 **Tally, by direct count of the table above:** 36 rows total (33 sub-assertion rows plus 3
-structural guards, matching the section-scope conversion table's own 36-row count): **34 PASS**
-and **2 N/A** (the two guards with no dedicated originating-defect control of their own — `Body-2`
-and `Rubric-2` catch their duplication fixtures as documented siblings, per the record's own "the
-guard becomes unreachable" disclosure in §3), **0 FAIL**.
+structural guards, matching the section-scope conversion table's own 36-row count): **36 PASS**,
+**0 FAIL**. Both un-declared guard rows (`Body-4..9`, `Rubric-3/5/6`) were confirmed, by a direct
+scratchpad re-run of their existing duplication fixtures ((i), (bl)), to still produce their own
+named failure message in the raw `_check_body_text`/`_check_rubric_text` output — neither guard
+was converted, so neither lost this property; the only gap is that no `_check_negative` control in
+the file declares that check ID as its own `expected_check_id` (both fixtures declare their
+sibling's ID instead), which is a pre-existing coverage gap unrelated to this plan's conversion.
 
 ### Standing instruction 7 spot check
 
