@@ -2373,6 +2373,139 @@ permanent regression tests Phase 37 promotes (D-02). The pre-registered PRE-2 pr
 after-measurement procedure, and the D-04 rule with its no-amendment disposition for Case C — is
 Phase 37's gate.
 
+## Erratum (2026-09-19)
+
+The "## I-1 — primary rows", "## I-1 — follower rows", "## I-1 — finding" and "## Finding"
+sections above stay byte-unchanged; the items below supersede the specific sentences they cite,
+per this file's own Frozen-evidence discipline section — never as a rewrite of the original
+text. Raised by `36-REVIEW.md` CR-01 and `36-VERIFICATION.md` gap 1 (both plain text, not
+links). The findings below are apparatus-tier per `docs/PROCESS.md` §2 — this table is an
+internal working record for Phase 37, not a claim made to a plugin user.
+
+**Method used.** Rule (9) (`:792-797`) is applied row by row, not by transcribing
+36-REVIEW.md's own approximate "at least 6 (i) / 5 (ii)" figure — that figure's own arithmetic
+moves 4 rows from (ii) to (i), which does not reconcile with the original 4/7 split, and is
+itself only a partial re-count (points 1 and 2 of CR-01's four numbered points). For each row,
+four questions are answered from cited evidence:
+
+- **(i-origin):** does the originating commit, a review finding, or an in-code comment naming a
+  control as that finding's regression, name adjacency or block scope as the defect?
+- **(i-ModeB):** does an EXECUTED Mode B run (not an "N/A" cell, and not a cell WR-05 disputes)
+  show "original: own ID fired → S_k: passes entirely"?
+- **Mode C outside-block count**, copied from the row.
+- **(ii):** Mode C > 0 AND (i-origin) is false. (Rule (9)'s own (ii) clause reads "no
+  originating finding names adjacency" — so once (i-origin) holds, (ii) is false by definition,
+  regardless of the Mode C count. This is what makes Body-11 and Rubric-5, both of which recur
+  outside their block, come out (i) rather than (i)+(ii): an origin naming block scope directly
+  is stronger evidence than the structural Mode-B tautology, and rule (9)'s own text asks the
+  (ii) question only "AND no originating finding names adjacency".)
+
+Class is then: **(i)** if (i-origin) or (i-ModeB) holds and (ii) is false; **(i)+(ii)** if
+(i-ModeB) holds (with no (i-origin)) and (ii) is also true — rule (9) states no precedence
+between (i) and (ii) when a row meets both, so the label records both, and the original (ii) tag
+for these rows is stated below to have been an unrecorded choice between two valid readings, not
+a rule outcome; **(ii)** if only (ii) holds; **structural — neither class** if none holds (the
+verdict stays load-bearing regardless, because rule (9) assigns load-bearing independently of the
+reason class).
+
+### Corrected-class table
+
+| row | (i-origin) evidence | (i-ModeB) evidence | Mode C outside-block | (ii) holds? | original tag | corrected class |
+|---|---|---|---|---|---|---|
+| Body-6 not-found branch | No — the originating defect (`:1283`, commit `20cc0c5`) names "the not-found outcome branch's reason token — its absence means the step's branches no longer partition its population"; a partition/coverage defect, not adjacency or block scope. | Yes — `:1283`, executed and undisputed by WR-05: "original: own ID fired → S1: passes entirely." | 1 (`:1283`) | Yes (Mode C=1>0, (i-origin)=false) | (ii) | **(i)+(ii)** |
+| Body-7 read-at-source | No — the originating defect (`:1292`, commit `9673345`) names "ACT-02: success-branch label"; a label defect, not adjacency or block scope. | Yes — `:1292`, executed and undisputed by WR-05: "original: own ID fired → S1: passes entirely." | 1 (`:1292`) | Yes | (ii) | **(i)+(ii)** |
+| Body-7 reported-by-delegate | No — the originating defect (`:1293`, commit `9673345`) names "ACT-02: no-read-branch label"; a label defect, not adjacency or block scope. | Yes — `:1293`, executed and undisputed by WR-05: "original: own ID fired → S1: passes entirely." | 2 (`:1293`) | Yes | (ii) | **(i)+(ii)** |
+| Body-11 Named artifact block | Yes — the originating defect quoted at `:1394` (comment `:836-839`, commit `fe66f4d`): "the plain (unbolded) failure-record string is carried on both surfaces the Exit criterion is checked against — the Named artifact block and the Exit criterion block, not just defined once inside the step paragraph" — names the specific blocks the literal must be carried on, i.e. block scope, directly. | Yes (also, not needed) — `:1394`: "original: own ID fired (Body-11) → S2: passes entirely." | 4 (`:1394`) | No — (i-origin) is true, so rule (9)'s (ii) clause ("no originating finding names adjacency") is false regardless of Mode C. | (ii) | **(i)** |
+| Body-11 Exit criterion block | Yes — same comment as the Named artifact row (`:1395`, "Same comment as above — the same literal, checked against the sibling block"). | Yes (also, not needed) — `:1395`: "original: own ID fired (Body-11) → S2: passes entirely." | 4 (`:1395`) | No — same reasoning as the Named artifact row. | (ii) | **(i)** |
+| Body-12 table-block guard | No — the cited defect (`:1413`, comment `:869-877`) is vacuity avoidance ("provenance table block occurs {N} time(s) ... the `_slice` docstring's stated vacuity-avoidance design applies to this block"), not adjacency or block scope. | No — `:1413` records a documented harness limitation (the sentence-boundary heuristic does not understand table syntax), not an executed "passes entirely" reading; it is not usable as (i-ModeB) evidence either way. | 0 (`:1413`, "section=1, block=1, outside=0") | No (Mode C=0, so `Mode C > 0` is already false) | (i) | **structural — neither class** |
+| Rubric-3 acquire branch | Yes — control x's own in-code comment, `scripts/check-act-limb.py:966-972`: "Rubric-3, Rubric-5 and Rubric-6 all read the SAME Fix-note paragraph block, closing CR-02: the verifier reproduced a false PASS on a gutted-but-relocated Fix note because the required phrases were searched for anywhere in the whole Criterion 3 slice rather than inside the Fix note itself." This names block scope as the defect directly, and is cited at `:1422` as "the SHARED CR-02 finding." | Not relied on — WR-05 shows `is_in_first_sentence(block, _R2_ACQUIRE)` is actually **True** on the live harness, the reverse of what `:1422`'s Mode B cell implies; per this plan's WR-05 caution, no row's corrected class rests on a WR-05-disputed Mode B cell. The class here rests on (i-origin) alone. | 0 (`ao` fixture, `:1422`) | No — (i-origin) is true. | (i) | **(i)** |
+| Rubric-3 downgrade branch | Yes — same control-x comment, `check-act-limb.py:966-972`, cited again at `:1423` as "same shared CR-02 finding as above." | Yes (also, not needed) — `:1423` replicated Mode B (rubric): "original own_id_fired=True (['Rubric-3', 'Rubric-6']) → S4 own_id_fired=**False**", not one of the two rows WR-05 disputes. | 0 (`ap` fixture, `:1423`) | No — (i-origin) is true. | (i) | **(i)** |
+| Rubric-3 stated preference | Yes — same control-x comment, `check-act-limb.py:966-972`, cited again at `:1424` as "same shared CR-02 finding." | Not relied on — WR-05 shows `is_in_first_sentence(block, _R4_PREFERENCE)` is actually **False** on the live harness, the reverse of `:1424`'s "N/A — first sentence" claim; per the WR-05 caution, this row's class does not rest on that disputed cell. The class here rests on (i-origin) alone. | 0 (`l` fixture, `:1424`) | No — (i-origin) is true. | (i) | **(i)** |
+| Rubric-5 step pointer | Yes — control x's live construction (`scripts/check-act-limb.py:1457-1459`) scatters `_R2_ACQUIRE + " " + _R3_DOWNGRADE + " " + _R4_PREFERENCE + " " + _R5_STEP_POINTER + " " + _R5_FAILURE_POINTER` as noise text outside the Fix note, so x is built directly against `_R5_STEP_POINTER`. Combined with the `:966-972` comment naming Rubric-5 as one of the three checks reading the SAME Fix-note block whose block-scope loss closes CR-02, x is a Rubric-5 originating-defect fixture under method step (5)'s second clause ("any control that ... the in-code comment names as the regression for a review finding"). Under S4, x's own Mode A reading (`:1500`, `"x scoped: (x) failed for the WRONG reason (expected check ID 'Rubric-3'; check IDs that DID fire: Rubric-6; ...)"`) fires only Rubric-6 — Rubric-5's own ID never fires under x at S4, so Rubric-5's half of the CR-02 closure is lost exactly as the shared finding predicts. | Not applicable/not needed — `:1445` records the literal as lying in the Fix note's first sentence, so the harness's own separation mutation refuses to move it; the class here rests on (i-origin) alone (control x). | 1 (`:1445`) | No — (i-origin) is true, so rule (9)'s (ii) clause is false regardless of Mode C. | (ii) | **(i)** |
+| Rubric-5 failure-record pointer | Yes — same control-x construction (`scripts/check-act-limb.py:1457-1459`) scatters `_R5_FAILURE_POINTER` as noise text alongside the other four phrases, so x is built directly against this literal too. Same `:966-972` shared-block-scope finding applies. Under S4, x fires only Rubric-6 (`:1500`), so this literal's half of CR-02 is likewise lost. | Yes (also, not needed) — `:1446` replicated Mode B (rubric): "original own_id_fired=True (['Rubric-5', 'Rubric-6']) → S4 own_id_fired=**False**." | 2 (`:1446`) | No — (i-origin) is true. | (ii) | **(i)** |
+
+### Control x as a Rubric-5 originating-defect fixture
+
+Control x's `_check_negative` call (`scripts/check-act-limb.py:1464`) names `"Rubric-3"` as its
+own expected check ID, and the primary-rows table (`:1422-1424`) accordingly lists x only under
+Rubric-3's three sub-assertions. That naming is the mechanism's own expected-ID bookkeeping, not
+a scope limit on what x's *comment* claims x closes. The comment immediately above x's
+construction (`scripts/check-act-limb.py:966-972`, reproduced above) states in its own words that
+"Rubric-3, Rubric-5 and Rubric-6 all read the SAME Fix-note paragraph block, closing CR-02" — a
+claim about all three checks, not one — and x's live noise-scatter construction
+(`scripts/check-act-limb.py:1457-1459`) bears this out mechanically: it interpolates
+`_R5_STEP_POINTER` and `_R5_FAILURE_POINTER` into the relocated noise block exactly as it does
+`_R2_ACQUIRE`, `_R3_DOWNGRADE` and `_R4_PREFERENCE`. Under method step (5)'s second clause, a
+control the in-code comment names as the regression for a review finding is an originating-defect
+fixture for every sub-assertion that finding names — here, Rubric-3's three sub-assertions AND
+Rubric-5's two. x is therefore recorded as a Rubric-5 originating-defect fixture, in addition to
+its recorded role for Rubric-3.
+
+### Corrected reason-class split
+
+Corrected reason-class split: 7 (i), 3 (i)+(ii), 0 (ii), 1 structural — neither class (7+3+0+1 = 11).
+
+The top-line **25 incidental / 11 load-bearing** verdict split (`## I-1 — finding` (a)) is
+**unchanged** by this correction. Rule (9) decides the load-bearing/incidental verdict by Mode A
+(step 6) independently of the reason class assigned at (9)'s second paragraph — the reason class
+only labels *why* an already-load-bearing row is load-bearing, and does not feed back into the
+verdict itself.
+
+### Restated (a)/(b) and the Phase 37 guidance
+
+**(a), restated.** Of the 11 load-bearing rows: **7 are class (i)** (Body-11 Named artifact
+block, Body-11 Exit criterion block, Rubric-3 acquire branch, Rubric-3 downgrade branch, Rubric-3
+stated preference, Rubric-5 step pointer, Rubric-5 failure-record pointer), **3 are class
+(i)+(ii)** (Body-6 not-found branch, Body-7 read-at-source, Body-7 reported-by-delegate), **0 are
+class (ii) alone**, and **1 is structural — neither class** (the Body-12 table-block guard,
+verdict unaffected).
+
+**(b), restated.** The 31%-residual guidance to Phase 37 is corrected as follows:
+
+- The instruction to resolve a row "by lengthening/specializing the literal" is **withdrawn** for
+  Rubric-5 (both rows), because control x's noise block (`scripts/check-act-limb.py:1457-1459`)
+  carries the full, unmodified literal (`_R5_STEP_POINTER` / `_R5_FAILURE_POINTER`) as its noise
+  text — a longer literal is still fully present in the section after x's relocation, so
+  lengthening the literal would not stop x's mutation from passing, and following the withdrawn
+  guidance for these two rows would reintroduce CR-02.
+- The same withdrawal applies to **every row whose corrected class contains (i)**: Body-11 (both
+  rows), Rubric-3 (all three rows), Rubric-5 (both rows) — 7 rows total. Each of these cites an
+  origin that names block scope directly; a longer literal changes nothing about which block the
+  check searches, so it cannot repair an adjacency/block-scope defect.
+- The **3 rows now labelled (i)+(ii)** (Body-6 not-found branch, Body-7 read-at-source, Body-7
+  reported-by-delegate) need **both** halves addressed: the recurrence Mode C already measures
+  AND the Mode-B-demonstrated adjacency (their originating, unscoped check does react to a
+  same-section relocation of the literal) — or an explicit accepted-narrowing disclosure stating
+  which half Phase 37 is choosing not to preserve.
+- **Lengthening the literal remains a candidate only for rows whose corrected class is exactly
+  (ii).** There are **none** — the corrected split has 0 rows in class (ii) alone. Every row that
+  was formerly (ii)-only is now either (i) (origin evidence found) or (i)+(ii) (Mode-B evidence
+  plus recurrence); the "lengthen the literal" escape hatch this table originally offered Phase 37
+  for 7 rows now applies to zero of them.
+- The **structural row** (Body-12 table-block guard) needs a structural replacement for the
+  vacuity guard once section-scoped (its own comment already names this: "a duplication inside the
+  block can never trip it once section-scoped"), not a literal change — restated unchanged from
+  the original finding, since this row's classification did not move.
+
+### Superseded sentences
+
+This erratum supersedes the following sentences (quoted briefly), without editing them in place:
+
+- `## I-1 — finding` (a), the class breakdown: "class (i) — 4: the Body-12 table-block guard
+  ... and all three of Rubric-3's sub-assertions" and "class (ii) — 7: Body-6 not-found branch,
+  Body-7 read-at-source, Body-7 reported-by-delegate, Body-11 Named-artifact block, Body-11
+  Exit-criterion block, Rubric-5 step pointer, Rubric-5 failure-record pointer" (`:1560-1567`).
+- `## I-1 — finding` (b), the residual sentence: "4 class-(i) rows need either a genuinely
+  adjacency-aware replacement check ... and 7 class-(ii) rows can likely be resolved by
+  lengthening/specializing the literal rather than by preserving adjacency" (`:1576-1581`).
+- `## Finding`, the I-1 paragraph's restatement of "4 class (i), 7 class (ii)" (`:2351`).
+
+### Not corrected by this erratum
+
+This erratum corrects only CR-01 (the I-1 reason-class split). It does not correct: WR-03, WR-05,
+WR-06, WR-07 and IN-01..IN-04 from `36-REVIEW.md`, all apparatus-tier and left open; nor WR-01,
+WR-02 and WR-04, which the next erratum (plan 36-07) handles.
+
 ## Frozen-evidence discipline
 
 Once plan 36-05 registers `tests/pin-classification-v9.4` in `scripts/check-firewall-battery.sh`'s
