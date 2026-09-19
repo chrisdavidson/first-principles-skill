@@ -1958,12 +1958,196 @@ docs` after each probe; `git worktree remove --force <wt>` + `git worktree prune
 Task 1's work; confirmed `git worktree list` back to 1 entry and `git status --porcelain -- shared
 first-principles scripts docs` empty in the live repo.
 
-### Summary table (Task 1 partial — Case B, Case C only; 999.78 row added by Task 2)
+### 999.78 replay — definition (D-05)
+
+**RESEARCH.md's suggested recipe does not apply at HEAD, confirmed live.** `git show 949e827 --
+shared/skills/identify-essence/SKILL.md shared/skills/reason-upward/SKILL.md
+shared/skills/validate/SKILL.md > 949.78.diff`, then `git apply -R --check 949.78.diff` at HEAD
+`1d6abc3`, verbatim:
+
+```
+error: patch failed: shared/skills/validate/SKILL.md:20
+error: shared/skills/validate/SKILL.md: patch does not apply
+error: patch failed: shared/skills/identify-essence/SKILL.md:20
+error: shared/skills/identify-essence/SKILL.md: patch does not apply
+```
+
+`reason-upward` is absent from this failure list — its reverse-patch alone succeeds, because (as
+confirmed below) `reason-upward`'s handoff-tail region at HEAD is byte-identical to what `949e827`
+wrote; only `identify-essence` and `validate` were touched again after `949e827`.
+
+**The replay is therefore defined as follows.** For each of the three stubs, the contiguous line
+region `949e827` changed was identified from `git show -U0 949e827` hunk headers (each stub's
+region is lines 23-25 in the `949e827^` file, i.e. the three-line handoff tail immediately after
+the `---` rule). That region was replaced at HEAD with the text the SAME region held at
+`949e827^`, read verbatim with `git show 949e827^:<path>` (never retyped) — confirmed byte-identical
+across all three stubs at `949e827^` by direct python3 string-equality check before use. Every
+other line stays at HEAD; no frontmatter or `version:` line is touched (confirmed:
+`git diff -- shared/ | /usr/bin/grep -c '^[+-].*version:'` → `0`).
+
+**The restored block** (`949e827^`, byte-identical across all three stubs at that commit):
+
+```
+If a fuller analysis is needed afterward, invoke the main `first-principles`
+agent with this output as candidate inputs for Phase 2. Carry the `?` marks
+with it — this run opened no cited source.
+```
+
+**Where c571ccf also rewrote lines inside a region (validate, identify-essence), the restored text
+is the `949e827^` text — so for those two regions the replay also reverses c571ccf's edit.**
+`identify-essence`'s HEAD region (5 lines, 23-27) named an additional "and its success criteria as
+**Key constraints**" clause that `949e827`'s own diff never wrote — a c571ccf addition, now
+reversed by this replay. `validate`'s HEAD region (7 lines, 23-29) named a Criterion-1-Absent
+re-framing clause and a Self-Audit Gate Fix/Repeat-loop clause that `949e827`'s own diff never
+wrote — also c571ccf additions, also reversed. `reason-upward`'s HEAD region (5 lines, 23-27) was
+byte-identical to `949e827`'s own post-fix text, confirmed above by its lone reverse-apply success
+— c571ccf did not touch it.
+
+**Frozen replay diff** (`git -C <wt> diff -- shared/`):
+
+```diff
+diff --git i/shared/skills/identify-essence/SKILL.md w/shared/skills/identify-essence/SKILL.md
+index 9902ff0..13baace 100644
+--- i/shared/skills/identify-essence/SKILL.md
++++ w/shared/skills/identify-essence/SKILL.md
+@@ -20,8 +20,6 @@ command directly.
+ 
+ ---
+ 
+-If a fuller analysis is needed afterward, invoke the main
+-`first-principles` agent with this output as the Input Contract's **Problem
+-statement**, and its success criteria as **Key constraints** — a framing, not
+-a candidate fact for Phase 2. Carry the `?` marks with it — this run opened
+-no cited source.
++If a fuller analysis is needed afterward, invoke the main `first-principles`
++agent with this output as candidate inputs for Phase 2. Carry the `?` marks
++with it — this run opened no cited source.
+diff --git i/shared/skills/reason-upward/SKILL.md w/shared/skills/reason-upward/SKILL.md
+index 70b771a..04115d0 100644
+--- i/shared/skills/reason-upward/SKILL.md
++++ w/shared/skills/reason-upward/SKILL.md
+@@ -20,8 +20,6 @@ command directly.
+ 
+ ---
+ 
+-If a fuller analysis is needed afterward, invoke the main
+-`first-principles` agent with this output as Derivation Chains for Phase 5
+-validation, with the ground truths those chains cite entering Phase 2 as
+-candidates — the chains rest on inputs this run did not verify. Carry the
+-`?` marks with it — this run opened no cited source.
++If a fuller analysis is needed afterward, invoke the main `first-principles`
++agent with this output as candidate inputs for Phase 2. Carry the `?` marks
++with it — this run opened no cited source.
+diff --git i/shared/skills/validate/SKILL.md w/shared/skills/validate/SKILL.md
+index e23fba9..739980f 100644
+--- i/shared/skills/validate/SKILL.md
++++ w/shared/skills/validate/SKILL.md
+@@ -20,10 +20,6 @@ command directly.
+ 
+ ---
+ 
+-If a fuller analysis is needed afterward, invoke the main
+-`first-principles` agent with this output as the Phase 5 verdict to act on
+-— a Criterion 1 Absent verdict returns to Phase 1 to re-frame the Essence
+-Statement, any other Absent verdict is fixed in place under the Self-Audit
+-Gate's Fix/Repeat loop, and each unresolved weak link is carried with the
+-confidence caveat it was flagged with. Carry the `?` marks with it — this
+-run opened no cited source.
++If a fuller analysis is needed afterward, invoke the main `first-principles`
++agent with this output as candidate inputs for Phase 2. Carry the `?` marks
++with it — this run opened no cited source.
+```
+
+**The replay's own product-line count**, `git -C <wt> diff --numstat -- shared/`:
+
+```
+3	5	shared/skills/identify-essence/SKILL.md
+3	5	shared/skills/reason-upward/SKILL.md
+3	7	shared/skills/validate/SKILL.md
+```
+
+Sum = (3+5)+(3+5)+(3+7) = **26 lines**, differing from `949e827`'s own 23 lines by **+3**. Stated
+plainly why: `949e827`'s 23 lines is a symmetric 14 ins/9 del over the immediate post-fix state;
+this replay's 26 lines is asymmetric (9 ins — the byte-identical 3-line restored block × 3 files —
+against 17 del, since two of the three HEAD regions are longer than `949e827`'s own post-fix text
+by exactly the amount c571ccf later added: +1 net line for `identify-essence`, +0 for
+`reason-upward`, +2 net lines for `validate`; 1+0+2 = 3, matching the delta exactly).
+
+**The same frozen replay diff is applied identically at the end of Phase 37 and again for judging
+Phase 38**, per D-05.
+
+### 999.78 replay — measurement (D-03, D-05, C3 relaxed)
+
+Built in a fresh detached worktree, `<scratch>/wt36-04-r778`, `.venv`-symlinked, at HEAD
+`1d6abc307d4422a0e3460f510aa30c0dedf1d950` (the tip after Task 1's measurement commit). The
+restored block's derivation (`git show 949e827^:<path>`, sliced in python3, never retyped) and its
+cross-file byte-equality were asserted programmatically before any file was written.
+
+**Battery line after the product edit, with NO apparatus fix applied yet:**
+
+```
+FIREWALL: GREEN (23/23)
+```
+
+**This is the central finding of this reading, stated plainly because it departs from the plan's
+own stated expectation ("HARN-03 RED is expected").** The battery does **not** go RED. Both the
+live check (`python3 scripts/check-focused-parity.py` → `check-focused-parity: PASS`) and
+`--self-test` (`check-focused-parity --self-test: PASS`, all controls including `(g6)`/`(g7)`/`(g8)`
+"correctly failed" against their OWN synthetic fixtures, none against the replay) confirm this.
+Reading `scripts/check-focused-parity.py`'s own constants explains why: `_HANDOFF_CANDIDATE_TAIL`
+(the "candidate inputs for Phase 2" text) is asserted PRESENT only for the ten stubs **outside**
+`_HANDOFF_ROUTED_SLUGS = {"identify-essence", "reason-upward", "validate"}` (line ~925 —
+`if slug not in _HANDOFF_ROUTED_SLUGS`); `_HANDOFF_NO_SOURCE_CLAUSE` ("Carry the `?` marks with
+it — this run opened no cited source.") is asserted present across all 13 non-launcher stubs, and
+the replay's restored text still carries it verbatim. **No check in the current partition asserts
+PRESENCE of any of the three routed stubs' own routing clause, or ABSENCE of the pre-fix uniform
+tail, for those three specific stubs** — exactly the disclosed limitation `949e827`'s own commit
+message states ("the three routed stubs' own routing clauses carry no presence-literal assertion
+until Phase 30's GUARD-04 partition lands") and exactly what backlog 999.79/999.80/999.81 name and
+defer for later re-evaluation (I-1 finding section (f), above).
+
+**Apparatus fix: none authored, because none is needed.** C1, C2 and C4 are satisfied vacuously —
+the battery is already `FIREWALL: GREEN (23/23)` immediately after the product edit, with zero
+`scripts/`/`docs/gates/` lines changed. C5 (minimality) is trivially satisfied: the empty diff is
+the narrowest possible candidate, and no narrower one exists. **C3 is relaxed for this item, as
+pre-registered** — but the relaxation turns out not to be exercised: there is no re-pin to make,
+because no control regressed. This is itself the finding: the plan anticipated needing to "re-pin
+HARN-03 to the pre-fix text"; the live measurement shows the current partition never pinned the
+routed stubs' text in the first place, so there is nothing to re-pin.
+
+**Apparatus lines: 0. Product lines: 26. Outside-metric lines: 0. Ratio: 0/26 = 0.0.**
+
+Reverted with `git -C <wt> checkout -- .` and `git -C <wt> clean -fd shared first-principles
+scripts docs`; confirmed clean.
+
+### 999.78 replay — scope rules
+
+- **D-05: this reading is an observation, not a kill-switch input.** Its apparatus, when there IS
+  a defect to catch, lives in HARN-03 (`scripts/check-focused-parity.py` +
+  `docs/gates/HARN-03.md`), which Phase 37's HARN-01-only conversion cannot reach. Gating on it
+  would fire the kill switch by construction, before the one phase (38) able to move it. It
+  becomes the gating item for judging Phase 38 itself. The measurement above sharpens WHY it must
+  stay an observation: at HEAD, the reading is 0 apparatus lines not because the defect is cheap to
+  catch, but because the current partition does not catch it for these three stubs at all — a
+  reading of 0 here is not evidence of health, and must not be read as "PRE-2 already at target."
+- **D-06: the 6.8:1 figure stays PRE-2 as pre-registered at `c571ccf` and is not re-derived.** This
+  replay's ratio (0/26 = 0.0, or undefined-as-"no apparatus exists yet" depending on convention) is
+  a measurement protocol for "has it moved" between this reading and Phase 37's/Phase 38's later
+  readings of the SAME frozen diff — not a replacement baseline, even though it differs sharply
+  from 6.8.
+
+### Cleanup
+
+`git worktree remove --force <wt>` then `git worktree prune`; `git worktree list` back to 1 entry.
+`git status --porcelain -- shared first-principles scripts docs` empty in the live repo.
+
+### Summary table (all three items)
 
 | item | product lines | apparatus lines | outside-metric lines | ratio | role |
 |---|---|---|---|---|---|
 | Case B | 4 | 18 | 0 | 4.5 | kill switch |
 | Case C | 2 | 2 | 0 | 1.0 | kill switch |
+| 999.78 replay | 26 | 0 | 0 | 0.0 | observation (gates Phase 38) |
 
 ## PRE-2 — kill-switch protocol (D-03..D-06)
 
@@ -2005,14 +2189,20 @@ plan 36-04) is expected and is **not** C7.
 | 26 | 36-04 | worktree@`wt36-04-bc`, Case C + chosen fix | `bash scripts/check-firewall-battery.sh` | `FIREWALL: GREEN (23/23)` | `[PASS] HARN-03 check-focused-parity.py --self-test` | no (PASS) |
 | 27 | 36-04 | worktree@`wt36-04-bc`, Case B mutation, harness Mode A S1 reachability probe (in-process) | `pin_harness.py mode-a --scope S1` | `(a) scoped: PASS (0 failures)` — Case B reachable by S1 | n/a (not a battery run) | no |
 | 28 | 36-04 | worktree@`wt36-04-bc`, Case C mutation, harness Mode A S1 reachability probe (in-process) | `pin_harness.py mode-a --scope S1` | `(a) scoped: WRONGLY FAILED` (identical to baseline) — Case C NOT reachable by S1 | n/a (not a battery run) | no |
+| 29 | 36-04 | worktree@`wt36-04-r778`, 999.78 replay applied (all three routed stubs' handoff-tail restored to `949e827^` text) | `bash scripts/check-firewall-battery.sh` | `FIREWALL: GREEN (23/23)` | `[PASS] HARN-03 check-focused-parity.py --self-test` | **no — stubs deliberately edited** (C7-class per this section's own definition requires a HEAD-identical `shared/skills/` tree; expected result is a deliberate-edit PASS/RED either way, not C7 sampling) |
+| 30 | 36-04 | worktree@`wt36-04-r778`, 999.78 replay applied | `python3 scripts/check-focused-parity.py --self-test` | `check-focused-parity --self-test: PASS` | n/a (not a full-battery run) | no — stubs deliberately edited |
 
-**Null result, updated:** HARN-03 stayed PASS in every one of the ten battery invocations recorded
-so far across this phase (rows 1, 5, 7, 8, 12, 17, 19, 22, 24, 26). No occurrence of the unexplained
-C7 recurrence was observed in any of the four plans so far — recorded as a null result, not a gap,
-per `36-RESEARCH.md`'s own "I-4 sampling" guidance. Row 11's, rows 14-16's, and rows 20/27-28's
-`FAIL`/scoped-verdict lines are S1-4-scoped harness runs or apparatus-candidate self-tests
-reporting the classification's own induced results (see the primary rows above in each case); none
-is a battery run, and none carries a HARN-03 signal.
+**Null result, updated:** HARN-03 stayed PASS in every one of the eleven battery invocations
+recorded so far across this phase (rows 1, 5, 7, 8, 12, 17, 19, 22, 24, 26, 29). No occurrence of
+the unexplained C7 recurrence was observed in any of the four plans so far — recorded as a null
+result, not a gap, per `36-RESEARCH.md`'s own "I-4 sampling" guidance. Row 11's, rows 14-16's, and
+rows 20/27-28's `FAIL`/scoped-verdict lines are S1-4-scoped harness runs or apparatus-candidate
+self-tests reporting the classification's own induced results (see the primary rows above in each
+case); none is a battery run, and none carries a HARN-03 signal. Row 29's PASS is not a C7 null
+result either way — it is the deliberate-edit case this section's own C7-class definition excludes
+by name, and is the central finding of the 999.78 replay's own measurement above (the current
+HARN-03 partition asserts nothing for the three routed stubs, so a deliberately-reintroduced defect
+there produces an honest, unforced PASS, not a masked one).
 
 ## Finding
 
