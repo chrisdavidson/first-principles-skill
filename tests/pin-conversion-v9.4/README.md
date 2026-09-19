@@ -875,3 +875,82 @@ C7-class HARN-03 FAILs.**
 
 **Null result continues: C7 did not recur in 6 battery runs across this phase so far; this is
 recorded, not a failure.**
+
+## PRE-1 — permanent regression controls
+
+**Plan 37-05, Task 1.** Cases B and C are promoted to permanent positive controls inside
+`scripts/check-act-limb.py`'s existing `--self-test` — `(bw)` for Case B, `(bx)` for Case C, placed
+immediately after `(b)`, both appended to `_CONTROL_IDS`. Both mutation builders
+(`_apply_case_b_split`, `_apply_case_c_inflection`) are derived from existing module anchors only:
+
+- `(bw)` splits the step block at the first `". "` following `_B5_NO_FALLBACK`'s flex match, the
+  space after that period becoming a blank line — the frozen Case B edit.
+- `(bx)` inflects the whitespace-delimited word immediately preceding `_B4_EXCLUSION`'s own flex
+  match (`"do"`, sitting just outside the D-01-trimmed span in the live prose, since D-01 (37-04)
+  already dropped it out of the pinned literal itself) to third-person singular (`"does"`) — the
+  frozen Case C edit.
+
+Both mutations are spliced via the existing `_mutate_body_substituting_in_block` helper (01-06,
+already used for control `(af)`), which floors the target string at exactly one occurrence inside
+the Phase 3 step block. No new mutation-splicing logic was written, and neither builder types a
+new ≥20-character string constant — both build their replacement text at runtime from
+`match.group(0)` / the live-read preceding word.
+
+**Byte-equivalence, both cases** (computed in a scratch script importing the edited module,
+`hashlib.sha256` over the UTF-8-encoded in-memory mutated body — targets pre-registered in
+`tests/pin-classification-v9.4/README.md` "## Erratum 2 (2026-09-19)" Item 2):
+
+| case | expected sha256 | actual sha256 | match |
+|---|---|---|---|
+| Case B | `a931ac9a64b751cce2b10a355d826a4e976f21be88d4496bcf7e873298274ef1` | `a931ac9a64b751cce2b10a355d826a4e976f21be88d4496bcf7e873298274ef1` | yes |
+| Case C | `8a3aef5d54a5f9d003a2cf35c8302a9580494521dd6c443a87da6e4ad61d19f3` | `8a3aef5d54a5f9d003a2cf35c8302a9580494521dd6c443a87da6e4ad61d19f3` | yes |
+
+**Pre-image confirmation** (Erratum 2 Item 2's proviso, re-checked live before this plan's edit):
+`git diff --quiet ccf2523 HEAD -- shared/ first-principles/` → exit 0 — the live emitted body is
+still both hashes' pre-image, so both comparisons above are valid.
+
+**Case C outcome: reached — `bx` added.** `_check_body_text(_apply_case_c_inflection(real_body))`
+returned `[]` (0 failures) against the live body before either builder was wired into the self-test
+(scratch-checked first, per the plan's own gate), so `bx` ships as a passing positive control. No
+rescue edit was needed or made, and no Case-C-specific or Body-5-specific code branch exists
+outside the two named functions above (both are generic derivations over `_B1_STEP_LEAD` /
+`_B5_NO_FALLBACK` / `_B4_EXCLUSION`, not hard-coded to Case C's own wording).
+
+**Self-test after the edit:** `python3 scripts/check-act-limb.py --self-test` → exit 0,
+`(bw) positive control — Case B: PASS (0 failures)`, `(bx) positive control — Case C: PASS (0
+failures)`, `control roster/executed floor: PASS — 80 controls executed, all registered in
+_CONTROL_IDS`, `(describe) describe()-consistency: PASS (16 branches, 80 controls)`,
+`check-act-limb --self-test: PASS`. `python3 scripts/check-act-limb.py` → `check-act-limb: PASS`,
+exit 0.
+
+**PRE-3 census, before and after this plan's edit** (census script sha256
+`292ee46c4af202699c67baab783f0e96988019c6b2dc05c7304ec39e71f53afb`, confirmed live before running
+it, run read-only against the live tree — the same frozen script as the phase-start census above):
+
+| when | distinct pinned literals | total pinned chars |
+|---|---|---|
+| pre-control (before `bw`/`bx` landed) | 225 | 19966 |
+| post-control (after `bw`/`bx` landed) | 225 | 19966 |
+
+Identical — the two new controls introduced no new ≥20-character string constant into
+`scripts/check-act-limb.py`. The two readings' sorted JSON literal-set dumps are byte-identical
+(`diff` empty). The 19966 figure (versus the phase-start reading's 19970, both above) is the D-01
+trims' own effect (plan 37-04), already recorded there — this plan moved neither figure.
+
+**Module-level constant count, before and after this plan's edit** (`/usr/bin/grep -c
+'^_[A-Z][A-Z0-9_]* *[:=]' scripts/check-act-limb.py`): **54 → 54**, unchanged — no new module-level
+`_UPPER_SNAKE` constant was added; the two mutation builders are functions, not constants.
+
+**No hard-coded Case C phrase.** `/usr/bin/grep -c 'do not earn\|does not earn'
+scripts/check-act-limb.py` → `0`, both before and after this plan's edit — `(bx)`'s replacement
+text is built entirely from the live-derived `preceding_word`/`span_text` at runtime, never typed
+as a literal.
+
+## I-4 — HARN-03 sampling tally (continued, plan 37-05)
+
+Continuing the tally opened in plan 37-02 and continued in plans 37-03/37-04. Same C7-class
+definition (a HARN-03 FAIL on a tree where no `shared/skills/` stub differs from HEAD).
+
+| run # | plan | tree | command | verdict line | HARN-03 line | C7-class? |
+|---|---|---|---|---|---|---|
+| 15 | 37-05 | live tree @ this plan's Task 1 commit (`bw`/`bx` landed) | `python3 scripts/check-act-limb.py --self-test` | `check-act-limb --self-test: PASS` | n/a (not a battery run) | no |

@@ -372,8 +372,9 @@ REQUIRED_BRANCHES: frozenset[str] = frozenset({
 
 # D-21-J: a module-level roster of every `--self-test` control id this file
 # runs — the 71 `_check_negative(...)` fixture labels (`a`-`bv`, minus the two
-# reserved for the positive controls below), the two positive controls
-# (`a`, `b`), and the three module-level checks (`coh`, `cov`, `m`). This is
+# reserved for the positive controls below), the positive controls (`a`, `b`,
+# plus PRE-1's permanent Case B/C no-op-refinement regression controls `bw`
+# and `bx`, 37-05), and the module-level checks (`coh`, `cov`, `m`). This is
 # what `--describe`'s `control_count`/`control_ids` derive from (a `len()`
 # read, never the hand-typed "58 controls" this gate's own published row
 # states today — CLAUDE.md's HARN-01 row predates this roster and is
@@ -394,9 +395,9 @@ _CONTROL_IDS: tuple[str, ...] = (
     "al", "am", "an", "ao", "ap", "aq", "ar", "as", "at", "au", "av", "aw",
     "ax", "ay", "az", "ba", "bb", "bc", "bd", "be", "bf", "bg", "bh", "bi",
     "bj", "bk", "bl", "bm", "bn", "bo", "bp", "bq", "br", "bs", "bt", "bu",
-    "bv", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "n", "o", "p",
-    "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "coh", "cov", "m",
-    "roster-floor-missing", "roster-floor-extra",
+    "bv", "bw", "bx", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "n",
+    "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "coh", "cov",
+    "m", "roster-floor-missing", "roster-floor-extra",
 )
 
 
@@ -1215,6 +1216,100 @@ def _mutate_body_substituting_in_block(
     return head + mutated_region + tail
 
 
+def _apply_case_b_split(real_body: str) -> str:
+    """Return a copy of *real_body* reproducing the frozen PRE-1 Case B product
+    edit (`tests/pin-classification-v9.4/README.md`, canonical Case B diff): the
+    Phase 3 step paragraph split into two, immediately after the sentence
+    ending in `_B5_NO_FALLBACK`.
+
+    Derived from the existing `_B5_NO_FALLBACK` anchor alone — never a newly
+    transcribed literal, so PRE-3's census does not rise. Locates `_B5_NO_FALLBACK`'s
+    flex match inside the step block, then the first `". "` following it, and
+    delegates the actual splice to `_mutate_body_substituting_in_block` with a
+    target that starts at the match itself (so the target is unique in the
+    block by construction — the match is already required unique elsewhere in
+    this file). The one space after that period becomes a blank line (`"\n\n"`);
+    the period itself is kept with the first paragraph.
+
+    Raises `AssertionError` if the step block is not unique inside the Phase 3
+    region, if `_B5_NO_FALLBACK` is not found in it, or if no `". "` follows it.
+    """
+    phase3 = _slice(real_body, _PHASE3_START, _PHASE4_START)
+    if phase3 is None:
+        raise AssertionError("Phase 3 section not found while building fixture (bw)")
+    blocks = _paragraph_containing(phase3, _B1_STEP_LEAD)
+    if len(blocks) != 1:
+        raise AssertionError(
+            f"expected exactly one step block containing {_B1_STEP_LEAD!r} inside "
+            f"the Phase 3 region while building fixture (bw), found {len(blocks)}"
+        )
+    step_block = blocks[0]
+    match = _flex_pattern(_B5_NO_FALLBACK).search(step_block)
+    if match is None:
+        raise AssertionError(
+            f"{_B5_NO_FALLBACK!r} not found in the step block while building fixture (bw)"
+        )
+    dot_space_idx = step_block.find(". ", match.end())
+    if dot_space_idx == -1:
+        raise AssertionError(
+            "no '. ' found after _B5_NO_FALLBACK's occurrence while building fixture (bw)"
+        )
+    target = step_block[match.start() : dot_space_idx + 2]
+    replacement = step_block[match.start() : dot_space_idx + 1] + "\n\n"
+    return _mutate_body_substituting_in_block(real_body, _B1_STEP_LEAD, target, replacement)
+
+
+def _apply_case_c_inflection(real_body: str) -> str:
+    """Return a copy of *real_body* reproducing the frozen PRE-1 Case C product
+    edit (`tests/pin-classification-v9.4/README.md`, canonical Case C diff): the
+    agreement-bearing auxiliary immediately preceding `_B4_EXCLUSION`'s own
+    negation token is inflected to third-person singular.
+
+    Derived from `_B4_EXCLUSION`'s own live context, never a hard-coded
+    `"do not"` — the D-01 trim (37-04) already dropped that auxiliary out of
+    the pinned literal itself, so it now sits in the step block's prose,
+    immediately before the span. This locates the word immediately preceding
+    the span's flex match; if the span had NOT been trimmed and still began
+    with that word, it would be the span's own first word instead of an
+    external one. It is inflected by rule (a word ending in "o" gets "es",
+    else "s") and the one occurrence of `<word> <span>` is substituted via
+    `_mutate_body_substituting_in_block`, which floors it at exactly one.
+
+    Raises `AssertionError` if `_B4_EXCLUSION` is not found exactly once in the
+    step block, or if no preceding word exists.
+    """
+    phase3 = _slice(real_body, _PHASE3_START, _PHASE4_START)
+    if phase3 is None:
+        raise AssertionError("Phase 3 section not found while building fixture (bx)")
+    blocks = _paragraph_containing(phase3, _B1_STEP_LEAD)
+    if len(blocks) != 1:
+        raise AssertionError(
+            f"expected exactly one step block containing {_B1_STEP_LEAD!r} inside "
+            f"the Phase 3 region while building fixture (bx), found {len(blocks)}"
+        )
+    step_block = blocks[0]
+    matches = list(_flex_pattern(_B4_EXCLUSION).finditer(step_block))
+    if len(matches) != 1:
+        raise AssertionError(
+            f"expected exactly one occurrence of {_B4_EXCLUSION!r} in the step "
+            f"block while building fixture (bx), found {len(matches)}"
+        )
+    match = matches[0]
+    span_text = match.group(0)
+    before = step_block[: match.start()]
+    word_match = re.search(r"(\S+)\s+$", before)
+    if word_match is None:
+        raise AssertionError(
+            "no preceding word found before _B4_EXCLUSION's span while building "
+            "fixture (bx)"
+        )
+    preceding_word = word_match.group(1)
+    inflected_word = preceding_word + ("es" if preceding_word.endswith("o") else "s")
+    target = f"{preceding_word} {span_text}"
+    replacement = f"{inflected_word} {span_text}"
+    return _mutate_body_substituting_in_block(real_body, _B1_STEP_LEAD, target, replacement)
+
+
 def _mutate_body_duplicating_block(real_body: str, block_anchor: str) -> str:
     """Return a copy of *real_body* with the blank-line-delimited block containing
     *block_anchor* duplicated in place inside the Phase 3 slice.
@@ -1834,6 +1929,36 @@ def _run_self_test() -> int:
         problems.append("(b): unexpected failures against real rubric")
     else:
         print("(b) positive control — rubric: PASS (0 failures)")
+
+    # (bw) Positive control — Case B (PRE-1): the frozen no-op paragraph split
+    # applied in memory to the real emitted body must still pass with 0
+    # failures, proving the refinement changes nothing this gate asserts.
+    executed.append("bw")
+    bw_failures = _check_body_text(_apply_case_b_split(real_body))
+    if bw_failures:
+        print(
+            "(bw) positive control — Case B: WRONGLY FAILED: "
+            f"{'; '.join(bw_failures)}"
+        )
+        problems.append("(bw): unexpected failures against the Case B mutation")
+    else:
+        print("(bw) positive control — Case B: PASS (0 failures)")
+
+    # (bx) Positive control — Case C (PRE-1): the frozen no-op agreement
+    # inflection applied in memory to the real emitted body must still pass
+    # with 0 failures. Added only when this is actually true (D-04: a
+    # known-failing positive control cannot ship) — see
+    # tests/pin-conversion-v9.4/README.md "## PRE-1" for the Case C outcome.
+    executed.append("bx")
+    bx_failures = _check_body_text(_apply_case_c_inflection(real_body))
+    if bx_failures:
+        print(
+            "(bx) positive control — Case C: WRONGLY FAILED: "
+            f"{'; '.join(bx_failures)}"
+        )
+        problems.append("(bx): unexpected failures against the Case C mutation")
+    else:
+        print("(bx) positive control — Case C: PASS (0 failures)")
 
     _self_test_act01_verification_step(_check_negative, real_body)
 
