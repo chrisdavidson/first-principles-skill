@@ -767,6 +767,7 @@ _FROZEN_PATHS=(
     'tests/reference-reads-v9.2.2'
     'tests/confidence-transitivity-v9.4'
     'tests/exemplar-rederivation-v9.4'
+    'tests/pin-classification-v9.4'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null
