@@ -39,9 +39,12 @@ Stated here rather than left for the next maintainer to rediscover, because
 `Body-1..Body-13` as covering the step's MEANING. No sibling gate in this repo
 carries a section like this yet; this one sets the pattern.
 
-- It asserts that named literals are PRESENT, in the right block, at the right
-  count. It does not assert that the surrounding prose *means* what those
-  literals imply.
+- It asserts that named literals are PRESENT, in the right scope — the Phase 3
+  section or Criterion 3 slice for a section-scoped literal, the named block
+  (the step paragraph, the Fix note, the Named artifact / Exit criterion /
+  provenance table block) for a load-bearing, block-scoped literal — and, where
+  stated, at the right count. It does not assert that the surrounding prose
+  *means* what those literals imply.
 - A semantically inverted step that retains every anchored literal passes.
   `_B16_IMPERATIVE` closes the one inversion WR-03 reproduced — replacing
   `attempt to open the cited source directly` with `do not open the cited
@@ -697,14 +700,14 @@ def _check_body_text(text: str) -> list[str]:
         # The imperative half is a PARTIAL fix by construction — see the anchor's
         # own comment and the docstring's "What this gate does not assert".
         missing_instruments: list[str] = []
-        missing_tools = [t for t in _B3_TOOLS if _flex_pattern(t).search(para) is None]
+        missing_tools = [t for t in _B3_TOOLS if _flex_pattern(t).search(phase3) is None]
         if missing_tools:
             missing_instruments.append(f"tool name(s): {', '.join(missing_tools)}")
-        if _flex_pattern(_B16_IMPERATIVE).search(para) is None:
+        if _flex_pattern(_B16_IMPERATIVE).search(phase3) is None:
             missing_instruments.append("operative imperative")
         if missing_instruments:
             failures.append(
-                "Body-4 (ACT-01, instruments and imperative): step paragraph "
+                "Body-4 (ACT-01, instruments and imperative): Phase 3 section "
                 f"missing {'; '.join(missing_instruments)}"
             )
 
@@ -715,20 +718,28 @@ def _check_body_text(text: str) -> list[str]:
         # failure-record termination limb (01-05 gap, CR-01 — without it both
         # failure branches re-earn a read on every future pass forever, which is
         # the turn-budget half of the 01-05 blocking gap).
+        # Population intent stays paragraph-scoped: it recurs once outside the
+        # step paragraph elsewhere in the Phase 3 section (Body-9's own shared
+        # token), so a section-scoped presence test could no longer distinguish
+        # "present in this step's own paragraph" from "present somewhere else in
+        # the section" — converting would make Body-9 fire instead of Body-5
+        # when the intent token is stripped, losing this sub-item's own I-2
+        # (record: `docs/v9.4-source-literal-pin-relaxation.md` §2 Item 2).
+        # Every other sub-item below is section-scoped.
         missing_bound: list[str] = []
         if _flex_pattern(_B2_POPULATION_INTENT).search(para) is None:
-            missing_bound.append("population intent")
-        if _flex_pattern(_B2_POPULATION_ACTION).search(para) is None:
-            missing_bound.append("population action")
-        if _flex_pattern(_B4_EXCLUSION).search(para) is None:
-            missing_bound.append("exclusion clause")
-        if _flex_pattern(_B5B_INCLUSIVE).search(para) is None:
-            missing_bound.append("inclusive clause")
-        if _flex_pattern(_B15_FAILURE_RECORD_EXCLUSION).search(para) is None:
-            missing_bound.append("failure-record exclusion")
+            missing_bound.append("population intent (step paragraph)")
+        if _flex_pattern(_B2_POPULATION_ACTION).search(phase3) is None:
+            missing_bound.append("population action (Phase 3 section)")
+        if _flex_pattern(_B4_EXCLUSION).search(phase3) is None:
+            missing_bound.append("exclusion clause (Phase 3 section)")
+        if _flex_pattern(_B5B_INCLUSIVE).search(phase3) is None:
+            missing_bound.append("inclusive clause (Phase 3 section)")
+        if _flex_pattern(_B15_FAILURE_RECORD_EXCLUSION).search(phase3) is None:
+            missing_bound.append("failure-record exclusion (Phase 3 section)")
         if missing_bound:
             failures.append(
-                "Body-5 (ACT-04, the bound): step paragraph missing "
+                "Body-5 (ACT-04, the bound): missing "
                 f"{', '.join(missing_bound)}"
             )
 
@@ -751,16 +762,16 @@ def _check_body_text(text: str) -> list[str]:
         # read on is a semantic property no literal-anchor gate in this repo can
         # reach; Task 3's recorded entry-path trace is what carries that claim.
         missing_coherence: list[str] = []
-        if _flex_pattern(_B13_POPULATION_GATE).search(para) is None:
+        if _flex_pattern(_B13_POPULATION_GATE).search(phase3) is None:
             missing_coherence.append("population predicate")
-        if _flex_pattern(_B13_EXCLUSION_GATE).search(para) is None:
+        if _flex_pattern(_B13_EXCLUSION_GATE).search(phase3) is None:
             missing_coherence.append("exclusion predicate")
-        shared_count = _count_flex(para, _B13_SHARED_PREDICATE)
+        shared_count = _count_flex(phase3, _B13_SHARED_PREDICATE)
         if shared_count < 2:
             missing_coherence.append(
                 f"shared predicate token ({shared_count} occurrence(s), expected at least 2)"
             )
-        stale = [gate for gate in _B13_STALE_GATES if _flex_pattern(gate).search(para)]
+        stale = [gate for gate in _B13_STALE_GATES if _flex_pattern(gate).search(phase3)]
         if stale:
             missing_coherence.append(
                 "divergent predicate still present: " + ", ".join(repr(g) for g in stale)
@@ -778,27 +789,31 @@ def _check_body_text(text: str) -> list[str]:
         # branch's reason token and its own assignment verb (01-04 gap, CR-01 —
         # a source that opens but does not support the claim satisfied none of
         # the step's original three branches).
+        # The not-found branch stays paragraph-scoped: it recurs once outside
+        # the step paragraph elsewhere in the Phase 3 section (the Named
+        # artifact block's own WR-12 sub-item), so it is one of the 11
+        # load-bearing rows. Every other sub-item below is section-scoped.
         missing_failure: list[str] = []
-        if _flex_pattern(_B5_NO_FALLBACK).search(para) is None:
-            missing_failure.append("no-fallback clause")
-        if _flex_pattern(_B6B_ASSIGNMENT).search(para) is None:
-            missing_failure.append("unreachable assignment verb")
+        if _flex_pattern(_B5_NO_FALLBACK).search(phase3) is None:
+            missing_failure.append("no-fallback clause (Phase 3 section)")
+        if _flex_pattern(_B6B_ASSIGNMENT).search(phase3) is None:
+            missing_failure.append("unreachable assignment verb (Phase 3 section)")
         if _flex_pattern(_B12_NOT_FOUND_BRANCH).search(para) is None:
-            missing_failure.append("not-found branch")
-        if _flex_pattern(_B12B_NOT_FOUND_ASSIGN).search(para) is None:
-            missing_failure.append("not-found assignment verb")
+            missing_failure.append("not-found branch (step paragraph)")
+        if _flex_pattern(_B12B_NOT_FOUND_ASSIGN).search(phase3) is None:
+            missing_failure.append("not-found assignment verb (Phase 3 section)")
         # 01-05 gap (CR-01): the not-found branch must fire on the citation's
         # STATE, not on a read this step performed in this pass, and it must
         # terminate. Without the first, a source opened by Phase 2 or by an
         # earlier Phase 3 pass reaches no branch at all; without the second, the
         # record is re-written and the read re-earned on every future pass.
-        if _flex_pattern(_B12C_NOT_FOUND_STATE).search(para) is None:
-            missing_failure.append("not-found state trigger")
-        if _flex_pattern(_B12D_RECORD_ONCE).search(para) is None:
-            missing_failure.append("record-once termination")
+        if _flex_pattern(_B12C_NOT_FOUND_STATE).search(phase3) is None:
+            missing_failure.append("not-found state trigger (Phase 3 section)")
+        if _flex_pattern(_B12D_RECORD_ONCE).search(phase3) is None:
+            missing_failure.append("record-once termination (Phase 3 section)")
         if missing_failure:
             failures.append(
-                "Body-6 (ACT-03, failure path): step paragraph missing "
+                "Body-6 (ACT-03, failure path): missing "
                 f"{', '.join(missing_failure)}"
             )
 
@@ -815,9 +830,9 @@ def _check_body_text(text: str) -> list[str]:
             )
 
         # Body-8 (T-01-01, injection containment).
-        if _flex_pattern(_B7_EVIDENCE_NOT_INSTRUCTION).search(para) is None:
+        if _flex_pattern(_B7_EVIDENCE_NOT_INSTRUCTION).search(phase3) is None:
             failures.append(
-                "Body-8 (T-01-01, injection containment): step paragraph missing "
+                "Body-8 (T-01-01, injection containment): Phase 3 section missing "
                 f"{_B7_EVIDENCE_NOT_INSTRUCTION!r}"
             )
 
@@ -841,10 +856,10 @@ def _check_body_text(text: str) -> list[str]:
         # than checking it, so the count is gone and containment — the property
         # the check actually needs — is all that remains.
         missing_names: list[str] = []
-        if _flex_pattern(_B10_STEP_NAME).search(para) is None:
-            missing_names.append("step name (not inside the step paragraph)")
-        if _flex_pattern(_B10_FAILURE_RECORD_NAME).search(para) is None:
-            missing_names.append("failure record name (not inside the step paragraph)")
+        if _flex_pattern(_B10_STEP_NAME).search(phase3) is None:
+            missing_names.append("step name (not inside the Phase 3 section)")
+        if _flex_pattern(_B10_FAILURE_RECORD_NAME).search(phase3) is None:
+            missing_names.append("failure record name (not inside the Phase 3 section)")
         if missing_names:
             failures.append(
                 "Body-10 (CR-05, pointer definition): " + "; ".join(missing_names)
@@ -912,10 +927,10 @@ def _check_body_text(text: str) -> list[str]:
             f"occurs {len(table_blocks)} time(s) in the Phase 3 slice, expected "
             "exactly 1 — cannot check table contents"
         )
-    elif _flex_pattern(_B14_TABLE_NOT_FOUND).search(table_blocks[0]) is None:
+    elif _flex_pattern(_B14_TABLE_NOT_FOUND).search(phase3) is None:
         failures.append(
-            "Body-12 (ACT-02/ACT-03, table coverage): provenance table's "
-            "`unverified` row is missing the not-found test"
+            "Body-12 (ACT-02/ACT-03, table coverage): Phase 3 section (the "
+            "provenance table's `unverified` row) is missing the not-found test"
         )
 
     return failures
@@ -1050,13 +1065,13 @@ def _check_rubric_text(text: str) -> list[str]:
         # precondition and the reason token shared with the body's not-found
         # branch.
         missing_scope: list[str] = []
-        if _flex_pattern(_R6_DOWNGRADE_SCOPE).search(fix_note) is None:
+        if _flex_pattern(_R6_DOWNGRADE_SCOPE).search(crit3) is None:
             missing_scope.append("downgrade scope")
-        if _flex_pattern(_R6B_SHARED_REASON).search(fix_note) is None:
+        if _flex_pattern(_R6B_SHARED_REASON).search(crit3) is None:
             missing_scope.append("shared reason token")
         if missing_scope:
             failures.append(
-                "Rubric-6 (ACT-05, downgrade scope): Fix note paragraph missing "
+                "Rubric-6 (ACT-05, downgrade scope): Criterion 3 slice missing "
                 f"{', '.join(missing_scope)}"
             )
 
@@ -1382,7 +1397,7 @@ def _self_test_act01_verification_step(_check_negative, real_body) -> None:
     # The fixture and its declared detail both read the ANCHOR rather than a
     # retyped literal, so re-pointing `_B3_TOOLS` re-points its control too —
     # and so the anchor-control ratchet can see that this control exists.
-    ae_body = _mutate_body_removing_from_step_paragraph(real_body, _B3_TOOLS[-1])
+    ae_body = _mutate_body_removing_from_block(real_body, _B3_TOOLS[-1], _B3_TOOLS[-1])
     _check_negative("ae", _check_body_text(ae_body), "Body-4", _B3_TOOLS[-1], "B-04-tools")
 
 
@@ -1416,7 +1431,7 @@ def _self_test_act03_failure_path(_check_negative, real_body) -> None:
     behaviour-free move (ANCH-01, D-12). Control (f).
     """
     # (f) Negative, failure path stripped (ACT-03).
-    f_body = _mutate_body_removing_from_step_paragraph(real_body, _B5_NO_FALLBACK)
+    f_body = _mutate_body_removing_from_block(real_body, _B5_NO_FALLBACK, _B5_NO_FALLBACK)
     _check_negative("f", _check_body_text(f_body), "Body-6", "no-fallback clause")
 
 
@@ -1436,7 +1451,7 @@ def _self_test_act04_verification_bound(_check_negative, real_body) -> None:
     d_body = _mutate_body_removing_from_step_paragraph(real_body, _B2_POPULATION_INTENT)
     _check_negative("d", _check_body_text(d_body), "Body-5", "population intent")
     # (e) Negative, exclusion clause stripped (ACT-04, second half).
-    e_body = _mutate_body_removing_from_step_paragraph(real_body, _B4_EXCLUSION)
+    e_body = _mutate_body_removing_from_block(real_body, _B4_EXCLUSION, _B4_EXCLUSION)
     _check_negative("e", _check_body_text(e_body), "Body-5", "exclusion clause")
     # (r) Negative, coherence broken — remove the shared population token from
     # the Exit criterion block. Body-9 has had no control until now; this closes
@@ -1821,7 +1836,9 @@ def _run_self_test() -> int:
     _self_test_act03_failure_path(_check_negative, real_body)
 
     # (g) Negative, injection containment stripped (T-01-01).
-    g_body = _mutate_body_removing_from_step_paragraph(real_body, _B7_EVIDENCE_NOT_INSTRUCTION)
+    g_body = _mutate_body_removing_from_block(
+        real_body, _B7_EVIDENCE_NOT_INSTRUCTION, _B7_EVIDENCE_NOT_INSTRUCTION
+    )
     _check_negative("g", _check_body_text(g_body), "Body-8", "injection containment")
 
     # (h) Negative, PLACEMENT — the property the label always claimed: the step
@@ -1878,15 +1895,15 @@ def _run_self_test() -> int:
     # anchor block above had already bound to the not-found branch-exhaustiveness
     # gap, so one ID named two unrelated findings in one file (`01-REVIEW.md`
     # WR-15). Every review ID in this file now names exactly one finding.
-    n_body = _mutate_body_removing_from_step_paragraph(real_body, _B5B_INCLUSIVE)
+    n_body = _mutate_body_removing_from_block(real_body, _B5B_INCLUSIVE, _B5B_INCLUSIVE)
     _check_negative("n", _check_body_text(n_body), "Body-5", "inclusive clause")
 
     # (o) Negative, assignment verb stripped (gap 2 / CR-03 regression control).
-    o_body = _mutate_body_removing_from_step_paragraph(real_body, _B6B_ASSIGNMENT)
+    o_body = _mutate_body_removing_from_block(real_body, _B6B_ASSIGNMENT, _B6B_ASSIGNMENT)
     _check_negative("o", _check_body_text(o_body), "Body-6", "unreachable assignment verb")
 
     # (p) Negative, step name stripped (CR-05, pointer definition).
-    p_body = _mutate_body_removing_from_step_paragraph(real_body, _B10_STEP_NAME)
+    p_body = _mutate_body_removing_from_block(real_body, _B10_STEP_NAME, _B10_STEP_NAME)
     _check_negative("p", _check_body_text(p_body), "Body-10", "step name")
 
     # (q) Negative, failure-record name stripped from the Named artifact block —
@@ -1914,7 +1931,7 @@ def _run_self_test() -> int:
     # the 01-05 gap, and it has been retired. It now fails if a future edit removes
     # the termination clause, which is what would re-open the unbounded-re-read
     # half of this gap.
-    u_body = _mutate_body_removing_from_step_paragraph(real_body, _B12D_RECORD_ONCE)
+    u_body = _mutate_body_removing_from_block(real_body, _B12D_RECORD_ONCE, _B12D_RECORD_ONCE)
     _check_negative("u", _check_body_text(u_body), "Body-6", "record-once termination")
 
     _self_test_act02_provenance_labels(_check_negative, real_body)
@@ -1936,26 +1953,30 @@ def _run_self_test() -> int:
     # (z) Negative, the exclusion clause's polarity of the shared predicate
     # stripped — fails if a future edit re-keys the exclusion off the predicate
     # the population is keyed on.
-    z_body = _mutate_body_removing_from_step_paragraph(real_body, _B13_EXCLUSION_GATE)
+    z_body = _mutate_body_removing_from_block(real_body, _B13_EXCLUSION_GATE, _B13_EXCLUSION_GATE)
     _check_negative("z", _check_body_text(z_body), "Body-13", "exclusion predicate")
 
     # (aa) Negative, the population clause's polarity of the shared predicate
     # stripped — the mirror of (z).
-    aa_body = _mutate_body_removing_from_step_paragraph(real_body, _B13_POPULATION_GATE)
+    aa_body = _mutate_body_removing_from_block(
+        real_body, _B13_POPULATION_GATE, _B13_POPULATION_GATE
+    )
     _check_negative("aa", _check_body_text(aa_body), "Body-13", "population predicate")
 
     # (ab) Negative, the exclusion's failure-record termination limb stripped —
     # the turn-budget half of the 01-05 gap (T-01-02). Without this limb both
     # failure branches re-earn a read on every future pass forever.
-    ab_body = _mutate_body_removing_from_step_paragraph(
-        real_body, _B15_FAILURE_RECORD_EXCLUSION
+    ab_body = _mutate_body_removing_from_block(
+        real_body, _B15_FAILURE_RECORD_EXCLUSION, _B15_FAILURE_RECORD_EXCLUSION
     )
     _check_negative("ab", _check_body_text(ab_body), "Body-5", "failure-record exclusion", "B-05-termination")
 
     # (ac) Negative, the not-found branch's STATE-keyed trigger stripped — fails
     # if a future edit re-keys the branch back onto an act this step performed
     # in this pass, which is the shape the defect took at 01-04.
-    ac_body = _mutate_body_removing_from_step_paragraph(real_body, _B12C_NOT_FOUND_STATE)
+    ac_body = _mutate_body_removing_from_block(
+        real_body, _B12C_NOT_FOUND_STATE, _B12C_NOT_FOUND_STATE
+    )
     _check_negative("ac", _check_body_text(ac_body), "Body-6", "not-found state trigger")
 
     # (ad) Negative, WR-12: the generalized reason phrase stripped from the
@@ -1984,7 +2005,9 @@ def _run_self_test() -> int:
 
     # (ag) Negative, the not-found branch's assignment verb stripped — one of the
     # five constants WR-02 named as asserted but never mutated by any control.
-    ag_body = _mutate_body_removing_from_step_paragraph(real_body, _B12B_NOT_FOUND_ASSIGN)
+    ag_body = _mutate_body_removing_from_block(
+        real_body, _B12B_NOT_FOUND_ASSIGN, _B12B_NOT_FOUND_ASSIGN
+    )
     _check_negative(
         "ag", _check_body_text(ag_body), "Body-6", "not-found assignment verb", "B-06-not-found-assign"
     )
@@ -2005,7 +2028,9 @@ def _run_self_test() -> int:
     # same token — but (aa) declares Body-13 / population predicate, which left
     # Body-5's `population action` sub-item with no control of its own. Same
     # fixture, different declared assertion, and both are live.
-    aw_body = _mutate_body_removing_from_step_paragraph(real_body, _B2_POPULATION_ACTION)
+    aw_body = _mutate_body_removing_from_block(
+        real_body, _B2_POPULATION_ACTION, _B2_POPULATION_ACTION
+    )
     _check_negative("aw", _check_body_text(aw_body), "Body-5", "population action")
 
     # --- (am)-(au), (ax), (ay): the rubric-side assertions `01-REVIEW.md` WR-02
@@ -2060,8 +2085,8 @@ def _run_self_test() -> int:
     # paragraph. Body-10's failure-record sub-check has never had a control:
     # `01-REVIEW.md` WR-02 measured all four of its pre-01-06 sub-checks as
     # individually deletable with `--self-test` green.
-    aj_body = _mutate_body_removing_from_step_paragraph(
-        real_body, _B10_FAILURE_RECORD_NAME
+    aj_body = _mutate_body_removing_from_block(
+        real_body, _B10_FAILURE_RECORD_NAME, _B10_FAILURE_RECORD_NAME
     )
     _check_negative("aj", _check_body_text(aj_body), "Body-10", "failure record name")
 
@@ -2156,7 +2181,9 @@ def _run_self_test() -> int:
     # polarity gates, because both occurrences of the shared token live inside
     # them — but declared against the count sub-item, which (aa) and (z) leave
     # uncontrolled by declaring the polarity sub-items instead.
-    bd_body = _mutate_body_removing_from_step_paragraph(real_body, _B13_POPULATION_GATE)
+    bd_body = _mutate_body_removing_from_block(
+        real_body, _B13_POPULATION_GATE, _B13_POPULATION_GATE
+    )
     _check_negative(
         "bd", _check_body_text(bd_body), "Body-13", "shared predicate token"
     )
@@ -2245,7 +2272,7 @@ def _run_self_test() -> int:
     # step paragraph. Fixture (ae) also removes a tool; (bg) ensures the scope is
     # paragraph-only and proves Body-4 fires on any missing tool, not just the
     # last one. Targets branch B-04-tools-variant / scripts/check-act-limb-branches.md.
-    bg_body = _mutate_body_removing_from_step_paragraph(real_body, _B3_TOOLS[2])
+    bg_body = _mutate_body_removing_from_block(real_body, _B3_TOOLS[2], _B3_TOOLS[2])
     _check_negative("bg", _check_body_text(bg_body), "Body-4", "WebFetch")
 
     # (bh) Negative, Body-5 termination scope — remove the failure-record
@@ -2253,8 +2280,8 @@ def _run_self_test() -> int:
     # Fixture (ab) removes it globally; (bh) isolates the step-paragraph scope
     # and proves the gate checks at that level. Targets branch
     # B-05-termination-variant / scripts/check-act-limb-branches.md.
-    bh_body = _mutate_body_removing_from_step_paragraph(
-        real_body, _B15_FAILURE_RECORD_EXCLUSION
+    bh_body = _mutate_body_removing_from_block(
+        real_body, _B15_FAILURE_RECORD_EXCLUSION, _B15_FAILURE_RECORD_EXCLUSION
     )
     _check_negative("bh", _check_body_text(bh_body), "Body-5", "failure-record exclusion")
 
@@ -2264,7 +2291,7 @@ def _run_self_test() -> int:
     # already controls this; (bi) ensures the correct check fires when no fallback
     # is missing. Targets branch B-06-failure-path-isolation /
     # scripts/check-act-limb-branches.md.
-    bi_body = _mutate_body_removing_from_step_paragraph(real_body, _B5_NO_FALLBACK)
+    bi_body = _mutate_body_removing_from_block(real_body, _B5_NO_FALLBACK, _B5_NO_FALLBACK)
     _check_negative("bi", _check_body_text(bi_body), "Body-6", "no-fallback clause")
 
     # (bj) Negative, Body-12 table block completely removed from Phase 3 slice.
