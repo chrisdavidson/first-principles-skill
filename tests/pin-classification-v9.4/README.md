@@ -2151,7 +2151,26 @@ scripts docs`; confirmed clean.
 
 ## PRE-2 — kill-switch protocol (D-03..D-06)
 
-*(pending — plan 36-05)*
+### Developer decision (2026-09-19)
+
+**Answered by the developer at a blocking checkpoint, not auto-advanced.** Presented: the
+before-readings summary table from plan 36-04 (Case B 4/18/4.5, Case C 2/2/1.0, 999.78 replay
+26/0/0.0), the reachability probe's two conclusions (Case B reachable under S1; Case C fails
+byte-identically — not reachable by §7.1's two named changes), the I-1 Case B compatibility
+result (zero load-bearing literal conflicts), and the Case C grammar observation.
+
+- **Question 1: `measured-minimal`** — before = the frozen minimal-fix reading from plan 36-04.
+  Date: 2026-09-19. No reasoning sentence was given by the developer; the option's stated
+  rationale adopted by selection was: "Consistent with D-03's wording (\"lines needed ...
+  measured before (HEAD)\") and with D-04's \"strict fall\", because the before-reading is a
+  real non-zero number. The fix diffs and candidate lists are frozen, so the baseline is
+  auditable and re-derivable. The after-measurement uses the same C1-C5 procedure, so both
+  sides are measured the same way."
+- **Question 2 (asked because plan 36-04's probe found Case C unreachable by §7.1's two named
+  changes): `d04-stands`** — D-04 stands as locked for Case C; no amendment. Date: 2026-09-19.
+  No reasoning sentence was given by the developer; the option's stated rationale adopted by
+  selection was: "No goalpost moves. Phase 37 must find a change that reaches the item, or the
+  switch fires and Phase 38 does not start, which is the switch working as designed."
 
 ## I-4 — HARN-03 sampling tally
 
