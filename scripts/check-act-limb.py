@@ -222,12 +222,15 @@ _B15_FAILURE_RECORD_EXCLUSION = (
 # every future pass forever — including the unreachable branch, whose source
 # was never "opened" and so was never excluded at all before 01-05.
 _B12C_NOT_FOUND_STATE = (
-    "been opened — by this step or earlier in this analysis "
+    "has been opened — by this step or earlier in this analysis "
     "— and the asserted figure or wording was not located in it"
 )  # CR-01 (01-05): the not-found branch's STATE-keyed trigger. D-01 trim
-# (37-04): the edge auxiliary "has" dropped
-# (docs/v9.4-source-literal-pin-relaxation.md §2 Item 3;
-# tests/pin-conversion-v9.4/README.md "## D-01" row 37, "## D-03" outcome).
+# (37-04) dropped the leading "has", then REVERTED (37-07, WR-05): kept —
+# trim admits adjacent negation. The dropped auxiliary is where a negation
+# attaches ("has never/not been opened"), a defect class D-03's two-clause
+# bar cannot see — reproduced independently (37-VERIFICATION.md gap 3):
+# substituting "has never been opened" for the trimmed literal returned no
+# failure. Control `(ca)` is the regression guard.
 # The pre-05 trigger fired on an act this step performed in this pass, so it could only
 # ever reach ground truths that act reached; keyed on the citation's state it
 # covers every history that produced that state (Phase 2's `Verify, or flag as
@@ -371,10 +374,11 @@ REQUIRED_BRANCHES: frozenset[str] = frozenset({
 })
 
 # D-21-J: a module-level roster of every `--self-test` control id this file
-# runs — the 71 `_check_negative(...)` fixture labels (`a`-`bv`, minus the two
-# reserved for the positive controls below), the positive controls (`a`, `b`,
-# plus PRE-1's permanent Case B/C no-op-refinement regression controls `bw`
-# and `bx`, 37-05), and the module-level checks (`coh`, `cov`, `m`). This is
+# runs — the 72 `_check_negative(...)` fixture labels (`a`-`bv` plus `ca`,
+# minus the two reserved for the positive controls below), the positive
+# controls (`a`, `b`, plus PRE-1's permanent Case B/C no-op-refinement
+# regression controls `bw` and `bx`, 37-05, and the idempotence control `by`,
+# 37-07) and the module-level checks (`coh`, `cov`, `m`). This is
 # what `--describe`'s `control_count`/`control_ids` derive from (a `len()`
 # read, never the hand-typed "58 controls" this gate's own published row
 # states today — CLAUDE.md's HARN-01 row predates this roster and is
@@ -383,9 +387,9 @@ REQUIRED_BRANCHES: frozenset[str] = frozenset({
 # Phase 21-15 (CR-05): every id above used to be validated against itself —
 # nothing recorded which ids actually ran. `_run_self_test()` now appends
 # each control's own id to a local `executed` list as its first action
-# (`_check_negative`'s appends cover the 71 fixture labels in one call site;
-# `a`, `b`, `coh`, `cov` and `m` each append individually), and
-# `_control_roster_problems()` floors `set(executed) == set(_CONTROL_IDS)`
+# (`_check_negative`'s appends cover the 72 fixture labels in one call site;
+# `a`, `b`, `bw`, `bx`, `by`, `coh`, `cov` and `m` each append individually),
+# and `_control_roster_problems()` floors `set(executed) == set(_CONTROL_IDS)`
 # in both directions before the verdict. `roster-floor-missing` and
 # `roster-floor-extra` are permanent negative-arm controls proving that
 # floor fires, driven against a synthetic executed/registered pair through
@@ -395,9 +399,9 @@ _CONTROL_IDS: tuple[str, ...] = (
     "al", "am", "an", "ao", "ap", "aq", "ar", "as", "at", "au", "av", "aw",
     "ax", "ay", "az", "ba", "bb", "bc", "bd", "be", "bf", "bg", "bh", "bi",
     "bj", "bk", "bl", "bm", "bn", "bo", "bp", "bq", "br", "bs", "bt", "bu",
-    "bv", "bw", "bx", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "n",
-    "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "coh", "cov",
-    "m", "roster-floor-missing", "roster-floor-extra",
+    "bv", "bw", "bx", "by", "ca", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
+    "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "coh",
+    "cov", "m", "roster-floor-missing", "roster-floor-extra",
 )
 
 
@@ -936,8 +940,7 @@ def _check_body_text(text: str) -> list[str]:
         )
     elif _flex_pattern(_B14_TABLE_NOT_FOUND).search(phase3) is None:
         failures.append(
-            "Body-12 (ACT-02/ACT-03, table coverage): Phase 3 section (the "
-            "provenance table's `unverified` row) is missing the not-found test"
+            "Body-12 (ACT-02/ACT-03, table coverage): Phase 3 section missing the not-found test"
         )
 
     return failures
@@ -1232,7 +1235,11 @@ def _apply_case_b_split(real_body: str) -> str:
     the period itself is kept with the first paragraph.
 
     Raises `AssertionError` if the step block is not unique inside the Phase 3
-    region, if `_B5_NO_FALLBACK` is not found in it, or if no `". "` follows it.
+    region, or if `_B5_NO_FALLBACK` is not found in it. If no sentence break
+    follows the match, the split has already landed — the sentence containing
+    `_B5_NO_FALLBACK` is already the last in its block, which is the property
+    `(bw)` exists to protect — so this returns *real_body* unchanged and `(bw)`
+    degenerates to `(a)` (CR-01, 37-VERIFICATION.md gap 1).
     """
     phase3 = _slice(real_body, _PHASE3_START, _PHASE4_START)
     if phase3 is None:
@@ -1249,13 +1256,11 @@ def _apply_case_b_split(real_body: str) -> str:
         raise AssertionError(
             f"{_B5_NO_FALLBACK!r} not found in the step block while building fixture (bw)"
         )
-    dot_space_idx = step_block.find(". ", match.end())
-    if dot_space_idx == -1:
-        raise AssertionError(
-            "no '. ' found after _B5_NO_FALLBACK's occurrence while building fixture (bw)"
-        )
-    target = step_block[match.start() : dot_space_idx + 2]
-    replacement = step_block[match.start() : dot_space_idx + 1] + "\n\n"
+    sentence_break = re.compile(r"\.\s+").search(step_block, match.end())
+    if sentence_break is None:
+        return real_body
+    target = step_block[match.start() : sentence_break.end()]
+    replacement = step_block[match.start() : sentence_break.start() + 1] + "\n\n"
     return _mutate_body_substituting_in_block(real_body, _B1_STEP_LEAD, target, replacement)
 
 
@@ -1305,8 +1310,8 @@ def _apply_case_c_inflection(real_body: str) -> str:
         )
     preceding_word = word_match.group(1)
     inflected_word = preceding_word + ("es" if preceding_word.endswith("o") else "s")
-    target = f"{preceding_word} {span_text}"
-    replacement = f"{inflected_word} {span_text}"
+    target = step_block[word_match.start(1) : match.end()]
+    replacement = inflected_word + step_block[word_match.end(1) : match.end()]
     return _mutate_body_substituting_in_block(real_body, _B1_STEP_LEAD, target, replacement)
 
 
@@ -1933,16 +1938,24 @@ def _run_self_test() -> int:
     # (bw) Positive control — Case B (PRE-1): the frozen no-op paragraph split
     # applied in memory to the real emitted body must still pass with 0
     # failures, proving the refinement changes nothing this gate asserts.
+    # CR-01 (37-VERIFICATION.md gap 1): a fixture-builder AssertionError is
+    # trapped and reported as a named problem rather than aborting the roster.
     executed.append("bw")
-    bw_failures = _check_body_text(_apply_case_b_split(real_body))
-    if bw_failures:
-        print(
-            "(bw) positive control — Case B: WRONGLY FAILED: "
-            f"{'; '.join(bw_failures)}"
-        )
-        problems.append("(bw): unexpected failures against the Case B mutation")
+    try:
+        bw_body = _apply_case_b_split(real_body)
+    except AssertionError as exc:
+        print(f"(bw) positive control — Case B: FIXTURE BUILD FAILED: {exc}")
+        problems.append(f"(bw): fixture builder raised: {exc}")
     else:
-        print("(bw) positive control — Case B: PASS (0 failures)")
+        bw_failures = _check_body_text(bw_body)
+        if bw_failures:
+            print(
+                "(bw) positive control — Case B: WRONGLY FAILED: "
+                f"{'; '.join(bw_failures)}"
+            )
+            problems.append("(bw): unexpected failures against the Case B mutation")
+        else:
+            print("(bw) positive control — Case B: PASS (0 failures)")
 
     # (bx) Positive control — Case C (PRE-1): the frozen no-op agreement
     # inflection applied in memory to the real emitted body must still pass
@@ -1950,15 +1963,51 @@ def _run_self_test() -> int:
     # known-failing positive control cannot ship) — see
     # tests/pin-conversion-v9.4/README.md "## PRE-1" for the Case C outcome.
     executed.append("bx")
-    bx_failures = _check_body_text(_apply_case_c_inflection(real_body))
-    if bx_failures:
-        print(
-            "(bx) positive control — Case C: WRONGLY FAILED: "
-            f"{'; '.join(bx_failures)}"
-        )
-        problems.append("(bx): unexpected failures against the Case C mutation")
+    try:
+        bx_body = _apply_case_c_inflection(real_body)
+    except AssertionError as exc:
+        print(f"(bx) positive control — Case C: FIXTURE BUILD FAILED: {exc}")
+        problems.append(f"(bx): fixture builder raised: {exc}")
     else:
-        print("(bx) positive control — Case C: PASS (0 failures)")
+        bx_failures = _check_body_text(bx_body)
+        if bx_failures:
+            print(
+                "(bx) positive control — Case C: WRONGLY FAILED: "
+                f"{'; '.join(bx_failures)}"
+            )
+            problems.append("(bx): unexpected failures against the Case C mutation")
+        else:
+            print("(bx) positive control — Case C: PASS (0 failures)")
+
+    # (by) Positive control — Case B idempotence (PRE-1, CR-01,
+    # 37-VERIFICATION.md gap 1): proves `(bw)`'s property holds on a body the
+    # split has ALREADY landed in, not just on today's unsplit tree.
+    # `by_once` is byte-identical to the frozen canonical Case B emitted twin
+    # (sha256 a931ac9a64b751cce2b10a355d826a4e976f21be88d4496bcf7e873298274ef1,
+    # tests/pin-conversion-v9.4/README.md "## PRE-1"), so this runs against a
+    # genuinely split body, not a no-op.
+    executed.append("by")
+    try:
+        by_once = _apply_case_b_split(real_body)
+        by_twice = _apply_case_b_split(by_once)
+    except AssertionError as exc:
+        print(f"(by) positive control — Case B idempotence: FIXTURE BUILD FAILED: {exc}")
+        problems.append(f"(by): fixture builder raised: {exc}")
+    else:
+        if by_twice != by_once:
+            problems.append("(by): _apply_case_b_split is not idempotent on an already-split body")
+        by_failures = _check_body_text(by_twice)
+        if by_failures:
+            problems.append(
+                "(by): unexpected failures against the twice-split Case B mutation: "
+                f"{'; '.join(by_failures)}"
+            )
+        if by_twice == by_once and not by_failures:
+            print("(by) positive control — Case B idempotence: PASS (0 failures)")
+        else:
+            print(
+                "(by) positive control — Case B idempotence: WRONGLY FAILED"
+            )
 
     _self_test_act01_verification_step(_check_negative, real_body)
 
@@ -2109,6 +2158,19 @@ def _run_self_test() -> int:
         real_body, _B12C_NOT_FOUND_STATE, _B12C_NOT_FOUND_STATE
     )
     _check_negative("ac", _check_body_text(ac_body), "Body-6", "not-found state trigger")
+
+    # (ca) Negative, WR-05 regression guard (37-07): the not-found state
+    # trigger's ADJACENT-NEGATION variant must still fail by name. The D-01
+    # trim this literal once carried (37-04, reverted 37-07) admitted "has
+    # never been opened" / "has not been opened" — the exact defect class
+    # (01-04/01-05, a branch keyed on the wrong state) this anchor exists to
+    # hold. The negated form is derived from the constant, never transcribed:
+    # "never " is inserted after its first word.
+    ca_negated = _B12C_NOT_FOUND_STATE.replace(" ", " never ", 1)
+    ca_body = _mutate_body_substituting_in_block(
+        real_body, _B12C_NOT_FOUND_STATE, _B12C_NOT_FOUND_STATE, ca_negated
+    )
+    _check_negative("ca", _check_body_text(ca_body), "Body-6", "not-found state trigger")
 
     # (ad) Negative, WR-12: the generalized reason phrase stripped from the
     # Named artifact block, so the artifact's own definition no longer admits
