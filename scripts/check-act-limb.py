@@ -401,7 +401,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "bj", "bk", "bl", "bm", "bn", "bo", "bp", "bq", "br", "bs", "bt", "bu",
     "bv", "bw", "bx", "by", "ca", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
     "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "coh",
-    "cov", "m", "roster-floor-missing", "roster-floor-extra",
+    "cov", "m", "bz", "cb", "roster-floor-missing", "roster-floor-extra",
 )
 
 
@@ -500,6 +500,43 @@ def _flex_pattern(target: str) -> re.Pattern[str]:
 def _count_flex(text: str, literal: str) -> int:
     """Whitespace-insensitive occurrence count of *literal* in *text*."""
     return len(_flex_pattern(literal).findall(text))
+
+
+def _flex_replace(
+    text: str, literal: str, replacement: str, *, expected: int = 1, context: str
+) -> str:
+    """Whitespace-insensitive locate-and-replace of *literal* inside *text*,
+    guarded on an exact expected match count (closes CR-02, 37-VERIFICATION.md
+    gap 2).
+
+    Every fixture builder that locates, counts, removes or substitutes a
+    pinned literal goes through this, rather than a raw `str.replace`/
+    `str.count` pair — those never tolerate the same non-semantic reflow the
+    detection path (`_check_body_text`/`_check_rubric_text`, both already
+    `_flex_pattern`-based) tolerates, so a genuinely reflowed pinned literal
+    would silently leave the negative control mutating nothing and reporting
+    `WRONGLY PASSED`.
+
+    *expected* must be a positive int (never an unbounded/None mode — a
+    fixture that could match zero-or-more times can never prove non-vacuity).
+    Raises `AssertionError` naming *context*, `literal!r`, the expected count
+    and the found count when the match count does not equal *expected* —
+    a fixture that mutates nothing tests nothing. Uses a lambda replacement
+    function (not a raw string) so backslashes inside *replacement* are never
+    interpreted as regex backreferences/escapes.
+    """
+    if not isinstance(expected, int) or expected < 1:
+        raise AssertionError(
+            f"_flex_replace({context}): expected must be a positive int, got {expected!r}"
+        )
+    pattern = _flex_pattern(literal)
+    found = len(pattern.findall(text))
+    if found != expected:
+        raise AssertionError(
+            f"{context}: expected {literal!r} to occur {expected} time(s), found "
+            f"{found} — a fixture that mutates nothing tests nothing"
+        )
+    return pattern.sub(lambda _m: replacement, text, count=expected)
 
 
 def _check_anchor_coherence() -> list[str]:
@@ -1115,7 +1152,9 @@ def _validate_files() -> int:
     return 0
 
 
-def _mutate_body_removing_from_block(real_body: str, block_anchor: str, target: str) -> str:
+def _mutate_body_removing_from_block(
+    real_body: str, block_anchor: str, target: str, *, expected: int = 1
+) -> str:
     """Return a copy of *real_body* with *target* removed only from the
     blank-line-delimited block containing *block_anchor* (within the Phase 3
     slice), leaving any other occurrence of *target* elsewhere in the file
@@ -1131,6 +1170,10 @@ def _mutate_body_removing_from_block(real_body: str, block_anchor: str, target: 
     this file's existing fixture-guard idiom) when the located block is not
     unique inside the Phase 3 region, rather than silently mutating the first
     whole-file match.
+
+    *target* is flex-located and exactly-*expected*-guarded inside the block
+    via `_flex_replace` (CR-02) — a genuine whitespace reflow of *target* is
+    still found and removed, rather than silently leaving the block unchanged.
     """
     region_start = real_body.find(_PHASE3_START)
     if region_start == -1:
@@ -1158,7 +1201,13 @@ def _mutate_body_removing_from_block(real_body: str, block_anchor: str, target: 
             f"once inside the Phase 3 region while building a fixture, found "
             f"{region_occurrences}"
         )
-    mutated_block = original_block.replace(target, "")
+    mutated_block = _flex_replace(
+        original_block,
+        target,
+        "",
+        expected=expected,
+        context=f"_mutate_body_removing_from_block({block_anchor!r})",
+    )
     mutated_region = region.replace(original_block, mutated_block, 1)
     return head + mutated_region + tail
 
@@ -1178,6 +1227,10 @@ def _mutate_body_substituting_in_block(
 
     Positionally anchored to the Phase 3 byte range, and raising on a non-unique
     block, for the WR-08 reason documented on the remover below.
+
+    *target* is flex-located and exactly-once-guarded via `_flex_replace`
+    (CR-02) in place of the previous raw `str.count`/`str.replace` pair — a
+    genuine whitespace reflow of *target* is still found and substituted.
     """
     region_start = real_body.find(_PHASE3_START)
     if region_start == -1:
@@ -1205,16 +1258,12 @@ def _mutate_body_substituting_in_block(
             f"once inside the Phase 3 region while building a fixture, found "
             f"{region_occurrences}"
         )
-    target_occurrences = original_block.count(target)
-    if target_occurrences != 1:
-        raise AssertionError(
-            f"expected exactly one occurrence of {target!r} inside the block "
-            f"containing {block_anchor!r} while building a fixture, found "
-            f"{target_occurrences} — a substitution that matches nothing is a "
-            "no-op fixture, and a no-op fixture reports `correctly failed` while "
-            "testing nothing"
-        )
-    mutated_block = original_block.replace(target, replacement, 1)
+    mutated_block = _flex_replace(
+        original_block,
+        target,
+        replacement,
+        context=f"_mutate_body_substituting_in_block({block_anchor!r})",
+    )
     mutated_region = region.replace(original_block, mutated_block, 1)
     return head + mutated_region + tail
 
@@ -1392,16 +1441,22 @@ def _split_criterion3_region(real_rubric: str) -> tuple[str, str, str]:
     return real_rubric[:start], real_rubric[start:end], real_rubric[end:]
 
 
-def _mutate_rubric_removing_from_fix_note(real_rubric: str, target: str) -> str:
+def _mutate_rubric_removing_from_fix_note(
+    real_rubric: str, target: str, *, expected: int = 1
+) -> str:
     """Return a copy of *real_rubric* with *target* removed only from the Fix-note
     block inside the Criterion 3 region.
 
     The rubric counterpart of `_mutate_body_removing_from_block`, with the same
     guards: the Fix-note block must be unique inside the Criterion 3 region, and
-    *target* must actually occur inside it. A substitution that matches nothing
-    is a no-op fixture, and a no-op fixture returns the unmutated rubric — which
-    `_check_rubric_text` passes, so the control would report `correctly failed`
-    while testing nothing.
+    *target* must actually occur inside it exactly *expected* times. A fixture
+    that mutates nothing tests nothing, so a mismatched count raises rather than
+    returning the unmutated rubric — which `_check_rubric_text` would pass,
+    reporting `correctly failed` while testing nothing.
+
+    *target* is flex-located and removed via `_flex_replace` (CR-02) rather than
+    the previous raw `str.count`/`str.replace` pair, so a genuine whitespace
+    reflow of *target* is still found and removed.
     """
     head, region, tail = _split_criterion3_region(real_rubric)
     blocks = _paragraph_containing(region, _R1_FIX_LEAD)
@@ -1418,15 +1473,134 @@ def _mutate_rubric_removing_from_fix_note(real_rubric: str, target: str) -> str:
             f"Criterion 3 region while building a rubric fixture, found "
             f"{region_occurrences}"
         )
-    target_occurrences = original_block.count(target)
-    if target_occurrences < 1:
-        raise AssertionError(
-            f"expected {target!r} to occur inside the Fix note block while "
-            "building a rubric fixture, found none — a fixture that removes "
-            "nothing tests nothing"
-        )
-    mutated_block = original_block.replace(target, "")
+    mutated_block = _flex_replace(
+        original_block,
+        target,
+        "",
+        expected=expected,
+        context="_mutate_rubric_removing_from_fix_note",
+    )
     return head + region.replace(original_block, mutated_block, 1) + tail
+
+
+def _reflow_candidate_literals() -> list[str]:
+    """Derive `(bz)`'s reflow candidates from module globals, never a hand
+    list — the same `_UPPER_SNAKE` enumeration `_check_anchor_control_coverage`
+    applies to this file's own source, applied here to `globals()` instead.
+
+    A `str`-valued global is a candidate outright; a `tuple`-valued global
+    contributes its `str` members UNLESS the tuple is nested (any member is
+    itself a tuple, e.g. `_PRE05_REGRESSION_SUBSTITUTIONS`, a tuple of pairs)
+    — a nested tuple is skipped entirely, per the M3 record's Item 3 forced
+    keep on those pair values. Only values containing a space and not
+    starting with `#` (a heading fragment) are kept, deduplicated.
+
+    `_C3_HANDWAVY_START`/`_C3_ABSENT_START` are additionally excluded: they
+    are structural section-boundary markers consumed via a raw (non-flex)
+    `_slice()` call inside Rubric-7's OWN detection logic (`_check_rubric_text`)
+    — unlike every ATX heading (`_PHASE3_START`/`_CRIT*_START`, already
+    excluded by the `#`-prefix rule above), these two are Markdown list
+    items, not headings, so that rule alone does not catch them. CR-02's
+    scope is the self-test's own fixture-mutation surface (already routed
+    through `_flex_replace` in Task 1); `_slice`'s raw find lives inside the
+    checker itself, which this plan does not touch. Reflowing either would
+    fail baseline positive control `(b)` on this pre-existing checker-scoping
+    bound — discovered during 37-08, and disclosed rather than silently
+    routed around by weakening `(bz)`'s floor or vacuity check.
+    """
+    structural_exempt = {_C3_HANDWAVY_START, _C3_ABSENT_START}
+    name_re = re.compile(r"^_[A-Z][A-Z0-9_]*$")
+    seen: set[str] = set()
+    candidates: list[str] = []
+    for name, value in vars(sys.modules[__name__]).items():
+        if not name_re.match(name):
+            continue
+        if isinstance(value, str):
+            values: list[str] = [value]
+        elif isinstance(value, tuple):
+            if any(isinstance(item, tuple) for item in value):
+                continue
+            values = [item for item in value if isinstance(item, str)]
+        else:
+            continue
+        for v in values:
+            if not v or v in seen or " " not in v or v.startswith("#") or v in structural_exempt:
+                continue
+            seen.add(v)
+            candidates.append(v)
+    return candidates
+
+
+def _reflow_pinned_literals(text: str, start_heading: str, end_heading: str) -> tuple[str, int]:
+    """Return `(reflowed_text, n_spaces_replaced)`: a whitespace-ONLY reflow of
+    every eligible pinned-literal occurrence between *start_heading* and
+    *end_heading* in *text*, proving Item 1's flex tolerance on `--self-test`
+    itself — the gated surface (control `(bz)`, CR-02, 37-VERIFICATION.md gap 2).
+
+    For each `_reflow_candidate_literals()` candidate, every flex match inside
+    the slice contributes exactly one reflowed space: the inter-word gap
+    (already required to be exactly one literal space, never a run of two or
+    a newline) nearest the match's own midpoint, skipped and the next-nearest
+    tried instead if that exact index was already claimed by an earlier
+    candidate. A match whose containing line already starts with `|` (a table
+    row) or `#` (a heading) is skipped outright, and a chosen space is never
+    used if the token immediately following it starts with `-`, `*`, `+`,
+    `>`, `|`, `#` or a digit — so the reflow can never manufacture a list
+    item, table row, blockquote or heading. Every substitution is exactly one
+    character for one character, so no offset bookkeeping is needed across
+    literals or matches.
+    """
+    region_start = text.find(start_heading)
+    if region_start == -1:
+        raise AssertionError(f"{start_heading!r} not found while building the reflow control")
+    content_start = region_start + len(start_heading)
+    region_end = text.find(end_heading, content_start)
+    if region_end == -1:
+        raise AssertionError(
+            f"{end_heading!r} not found after {start_heading!r} while building the reflow control"
+        )
+    head = text[:content_start]
+    region = text[content_start:region_end]
+    tail = text[region_end:]
+
+    chars = list(region)
+    reflowed_indices: set[int] = set()
+
+    def _line_lead(idx: int) -> str:
+        line_start = region.rfind("\n", 0, idx) + 1
+        line_end = region.find("\n", idx)
+        if line_end == -1:
+            line_end = len(region)
+        return region[line_start:line_end].lstrip()
+
+    for literal in _reflow_candidate_literals():
+        pattern = _flex_pattern(literal)
+        for match in pattern.finditer(region):
+            match_text = match.group(0)
+            gaps = [
+                match.start() + tok.start()
+                for tok in re.finditer(r"\s+", match_text)
+                if tok.group(0) == " "
+            ]
+            if not gaps:
+                continue
+            midpoint = (match.start() + match.end()) / 2
+            gaps.sort(key=lambda g: abs(g - midpoint))
+            for gap in gaps:
+                if gap in reflowed_indices:
+                    continue
+                if _line_lead(gap).startswith(("|", "#")):
+                    continue
+                next_idx = gap + 1
+                next_char = region[next_idx] if next_idx < len(region) else ""
+                if next_char and (next_char.isdigit() or next_char in "-*+>|#"):
+                    continue
+                chars[gap] = "\n"
+                reflowed_indices.add(gap)
+                break
+
+    reflowed_region = "".join(chars)
+    return head + reflowed_region + tail, len(reflowed_indices)
 
 
 def _build_pre05_regression_body(real_body: str) -> str:
@@ -1473,15 +1647,16 @@ def _build_pre05_regression_body(real_body: str) -> str:
 
     mutated_block = original_block
     for repaired, pre_01_05 in _PRE05_REGRESSION_SUBSTITUTIONS:
-        occurrences = mutated_block.count(repaired)
-        if occurrences != 1:
-            raise AssertionError(
-                "frozen pre-01-05 regression fixture is stale: expected exactly one "
-                f"occurrence of {repaired!r} in the step paragraph, found "
-                f"{occurrences} — the prose moved out from under the fixture. ADD a "
-                "new substitution pair; do not rewrite the frozen ones."
-            )
-        mutated_block = mutated_block.replace(repaired, pre_01_05, 1)
+        mutated_block = _flex_replace(
+            mutated_block,
+            repaired,
+            pre_01_05,
+            context=(
+                "frozen pre-01-05 regression fixture is stale: the prose moved out "
+                "from under the fixture. ADD a new substitution pair; do not "
+                "rewrite the frozen ones"
+            ),
+        )
 
     mutated_region = region.replace(original_block, mutated_block, 1)
     return head + mutated_region + tail
@@ -1494,7 +1669,7 @@ def _self_test_act01_verification_step(_check_negative, real_body) -> None:
     v8.18/ACT-01 at this function by literal name. Controls (c), (ae).
     """
     # (c) Negative, step missing (ACT-01).
-    c_body = real_body.replace(_B1_STEP_LEAD, "REMOVED")
+    c_body = _flex_replace(real_body, _B1_STEP_LEAD, "REMOVED", context="c")
     _check_negative(
         "c", _check_body_text(c_body), "Body-2", "lead occurs 0 time(s) in the Phase 3 slice"
     )
@@ -1576,7 +1751,7 @@ def _self_test_act05_fix_note(_check_negative, real_body, real_rubric) -> None:
     (ay), (bk), (bl), (bn), (bt).
     """
     # (k) Negative, rubric Fix note stripped (ACT-05).
-    k_rubric = real_rubric.replace(_R1_FIX_LEAD, "REMOVED")
+    k_rubric = _flex_replace(real_rubric, _R1_FIX_LEAD, "REMOVED", context="k")
     _check_negative(
         "k",
         _check_rubric_text(k_rubric),
@@ -1628,12 +1803,7 @@ def _self_test_act05_fix_note(_check_negative, real_body, real_rubric) -> None:
     # the lead entirely, so BOTH halves of Rubric-2 fire; (am) reaches the case
     # (k) cannot — the slice half firing while the whole-file half passes.
     am_head, am_region, am_tail = _split_criterion3_region(real_rubric)
-    am_region_moved = am_region.replace(_R1_FIX_LEAD, "", 1)
-    if am_region_moved == am_region:
-        raise AssertionError(
-            "Fix note lead not found in the Criterion 3 region while building "
-            "fixture (am)"
-        )
+    am_region_moved = _flex_replace(am_region, _R1_FIX_LEAD, "", context="am")
     am_rubric = (am_head + am_region_moved + am_tail).replace(
         _CRIT6_START,
         _CRIT6_START + "\n\n" + _R1_FIX_LEAD + " (relocated by fixture (am))",
@@ -1692,9 +1862,17 @@ def _self_test_act05_fix_note(_check_negative, real_body, real_rubric) -> None:
     # lead and the Hand-wavy band's lead. Without this, a future prose reorder
     # could leave the note where it started and (au) would report `correctly
     # failed` on some unrelated defect.
-    au_sound_at = au_region_new.find(_C3_SOUND_START)
-    au_note_at = au_region_new.find(_R1_FIX_LEAD)
-    au_handwavy_at = au_region_new.find(_C3_HANDWAVY_START)
+    # Flex-located (CR-02, discovered by control (bz)): a raw `.find()` here
+    # would silently read -1 (found nothing) rather than the relocated
+    # position, once any of the three anchors is reflowed — turning a
+    # positional ordering check into a false "not found" failure unrelated to
+    # the property this self-check exists to guard.
+    au_sound_match = _flex_pattern(_C3_SOUND_START).search(au_region_new)
+    au_note_match = _flex_pattern(_R1_FIX_LEAD).search(au_region_new)
+    au_handwavy_match = _flex_pattern(_C3_HANDWAVY_START).search(au_region_new)
+    au_sound_at = au_sound_match.start() if au_sound_match else -1
+    au_note_at = au_note_match.start() if au_note_match else -1
+    au_handwavy_at = au_handwavy_match.start() if au_handwavy_match else -1
     if not 0 <= au_sound_at < au_note_at < au_handwavy_at:
         raise AssertionError(
             "fixture (au) did not land the Fix note inside the Sound band "
@@ -1707,14 +1885,14 @@ def _self_test_act05_fix_note(_check_negative, real_body, real_rubric) -> None:
     # (ax) Negative, the Hand-wavy band lead removed — Rubric-7's loud-on-vanish
     # branch. A silent skip here is exactly the vacuity hole WR-10 records for
     # Rubric-4.
-    ax_rubric = real_rubric.replace(_C3_HANDWAVY_START, "")
+    ax_rubric = _flex_replace(real_rubric, _C3_HANDWAVY_START, "", context="ax")
     _check_negative(
         "ax", _check_rubric_text(ax_rubric), "Rubric-7", "Hand-wavy band lead"
     )
     # (ay) Negative, the Absent band lead removed — the other boundary of the
     # same slice, reported by its own name so the two controls are
     # distinguishable rather than two fixtures sharing one message.
-    ay_rubric = real_rubric.replace(_C3_ABSENT_START, "")
+    ay_rubric = _flex_replace(real_rubric, _C3_ABSENT_START, "", context="ay")
     _check_negative("ay", _check_rubric_text(ay_rubric), "Rubric-7", "Absent band lead", "R-07-band")
     # (bk) Negative, Rubric-2 whole-file count isolation — append the fix-note
     # lead to Criterion 6 (outside Criterion 3), keeping the Criterion 3 copy
@@ -1768,11 +1946,9 @@ def _self_test_act05_fix_note(_check_negative, real_body, real_rubric) -> None:
     # scripts/check-act-limb-branches.md.
     bn_head, bn_region, bn_tail = _split_criterion3_region(real_rubric)
     _BN_PLACEHOLDER = "<<07-01 fixture (bn) band swap>>"
-    bn_swapped = (
-        bn_region.replace(_C3_HANDWAVY_START, _BN_PLACEHOLDER, 1)
-        .replace(_C3_ABSENT_START, _C3_HANDWAVY_START, 1)
-        .replace(_BN_PLACEHOLDER, _C3_ABSENT_START, 1)
-    )
+    bn_step1 = _flex_replace(bn_region, _C3_HANDWAVY_START, _BN_PLACEHOLDER, context="bn (handwavy leg)")
+    bn_step2 = _flex_replace(bn_step1, _C3_ABSENT_START, _C3_HANDWAVY_START, context="bn (absent leg)")
+    bn_swapped = bn_step2.replace(_BN_PLACEHOLDER, _C3_ABSENT_START, 1)
     if _BN_PLACEHOLDER in bn_swapped or bn_swapped == bn_region:
         raise AssertionError(
             "band swap did not complete while building fixture (bn) — the two "
@@ -1795,26 +1971,32 @@ def _self_test_act05_fix_note(_check_negative, real_body, real_rubric) -> None:
     # Isolates the slice-count half from the whole-file half. Targets branch
     # R-02-slice / scripts/check-act-limb-branches.md.
     bt_head, bt_region, bt_tail = _split_criterion3_region(real_rubric)
-    bt_region_removed = bt_region.replace(_R1_FIX_LEAD, "", 1)
-    if bt_region_removed == bt_region:
-        raise AssertionError("Fix note lead not found in Criterion 3 while building fixture (bt)")
+    bt_region_removed = _flex_replace(bt_region, _R1_FIX_LEAD, "", context="bt")
     bt_rubric = bt_head + bt_region_removed + bt_tail
     _check_negative(
         "bt", _check_rubric_text(bt_rubric), "Rubric-2", "lead occurs 0 time(s) in the Criterion 3 slice", "R-02-slice"
     )
 
 
-def _run_self_test() -> int:
-    """Run the offline control battery (controls a-s). Returns 0 on all-pass, 1 on any failure."""
-    if not AGENT_FILE.exists() or not RUBRIC_FILE.exists():
-        sys.stderr.write(
-            "check-act-limb --self-test: cannot derive fixtures — "
-            f"{AGENT_FILE} or {RUBRIC_FILE} not found\n"
-        )
-        return 2
+def _run_self_test(real_body: str | None = None, real_rubric: str | None = None) -> int:
+    """Run the offline control battery (controls a-s). Returns 0 on all-pass, 1 on any failure.
 
-    real_body = AGENT_FILE.read_text(encoding="utf-8")
-    real_rubric = RUBRIC_FILE.read_text(encoding="utf-8")
+    When *real_body*/*real_rubric* are both omitted (the `main()` call site),
+    behaviour is unchanged: the file-existence check runs, then both files are
+    read from disk. When both are supplied (control `(bz)`'s nested reflow
+    run), those texts are used directly and no file is read — this is what
+    lets `(bz)` re-run the WHOLE battery against an in-memory, whitespace-only
+    reflowed copy of the live tree without writing anything to disk.
+    """
+    if real_body is None and real_rubric is None:
+        if not AGENT_FILE.exists() or not RUBRIC_FILE.exists():
+            sys.stderr.write(
+                "check-act-limb --self-test: cannot derive fixtures — "
+                f"{AGENT_FILE} or {RUBRIC_FILE} not found\n"
+            )
+            return 2
+        real_body = AGENT_FILE.read_text(encoding="utf-8")
+        real_rubric = RUBRIC_FILE.read_text(encoding="utf-8")
 
     problems: list[str] = []
     covered_branches: set[str] = set()
@@ -2278,8 +2460,12 @@ def _run_self_test() -> int:
     # paragraph. Body-10's failure-record sub-check has never had a control:
     # `01-REVIEW.md` WR-02 measured all four of its pre-01-06 sub-checks as
     # individually deletable with `--self-test` green.
+    # `_B10_FAILURE_RECORD_NAME` occurs twice in the step paragraph (the
+    # citation-already-opened branch and the source-unreachable branch), so
+    # `expected=2` (measured live, 37-08) — both must be removed for this
+    # fixture to reproduce "no failure record written by either branch".
     aj_body = _mutate_body_removing_from_block(
-        real_body, _B10_FAILURE_RECORD_NAME, _B10_FAILURE_RECORD_NAME
+        real_body, _B10_FAILURE_RECORD_NAME, _B10_FAILURE_RECORD_NAME, expected=2
     )
     _check_negative("aj", _check_body_text(aj_body), "Body-10", "failure record name")
 
@@ -2397,11 +2583,9 @@ def _run_self_test() -> int:
     # reach is indistinguishable from one that is not there.
     bf_head, bf_region, bf_tail = _split_criterion3_region(real_rubric)
     _BF_PLACEHOLDER = "<<01-06 fixture (bf) band swap>>"
-    bf_swapped = (
-        bf_region.replace(_C3_HANDWAVY_START, _BF_PLACEHOLDER, 1)
-        .replace(_C3_ABSENT_START, _C3_HANDWAVY_START, 1)
-        .replace(_BF_PLACEHOLDER, _C3_ABSENT_START, 1)
-    )
+    bf_step1 = _flex_replace(bf_region, _C3_HANDWAVY_START, _BF_PLACEHOLDER, context="bf (handwavy leg)")
+    bf_step2 = _flex_replace(bf_step1, _C3_ABSENT_START, _C3_HANDWAVY_START, context="bf (absent leg)")
+    bf_swapped = bf_step2.replace(_BF_PLACEHOLDER, _C3_ABSENT_START, 1)
     if _BF_PLACEHOLDER in bf_swapped or bf_swapped == bf_region:
         raise AssertionError(
             "band swap did not complete while building fixture (bf) — the two "
@@ -2529,9 +2713,7 @@ def _run_self_test() -> int:
     bp_phase3 = _slice(real_body, _PHASE3_START, _PHASE4_START)
     if bp_phase3 is None:
         raise AssertionError("Phase 3 slice not found while building fixture (bp)")
-    bp_phase3_removed = bp_phase3.replace(_B1_STEP_LEAD, "", 1)
-    if bp_phase3_removed == bp_phase3:
-        raise AssertionError("step lead not found in Phase 3 while building fixture (bp)")
+    bp_phase3_removed = _flex_replace(bp_phase3, _B1_STEP_LEAD, "", context="bp")
     bp_start_idx = real_body.find(_PHASE3_START)
     bp_end_idx = real_body.find(_PHASE4_START, bp_start_idx)
     bp_body = real_body[:bp_start_idx] + _PHASE3_START + bp_phase3_removed + real_body[bp_end_idx:]
@@ -2663,6 +2845,104 @@ def _run_self_test() -> int:
             _this_module._HARN01_DISPATCH_REENTRANT = False
     else:
         print("(m) dispatch control: skipped (nested self-test run)")
+
+    # (bz) Reflow control (CR-02, 37-VERIFICATION.md gap 2): re-run the WHOLE
+    # self-test battery against a whitespace-ONLY reflowed copy of the live
+    # body and rubric, and require 0 problems — proving the M3 record's Item 1
+    # "reformatting ... permitted by default" grant holds for `--self-test`
+    # itself, the surface CI and the battery actually run, not merely for the
+    # live leg (which was already flex-tolerant before this plan). Shares the
+    # `_HARN01_DISPATCH_REENTRANT` sentinel with (m), so a nested run skips
+    # both this control and (m) rather than recursing.
+    executed.append("bz")
+    if _this_module._HARN01_DISPATCH_REENTRANT:
+        print("(bz) reflow control: skipped (nested self-test run)")
+    else:
+        bz_reflowed_body, bz_n_body = _reflow_pinned_literals(
+            real_body, _PHASE3_START, _PHASE4_START
+        )
+        bz_reflowed_rubric, bz_n_rubric = _reflow_pinned_literals(
+            real_rubric, _CRIT3_START, _CRIT4_START
+        )
+        bz_total = bz_n_body + bz_n_rubric
+        if _flat(bz_reflowed_body) != _flat(real_body):
+            print(
+                "(bz) reflow control: WRONGLY FAILED — reflowed body is not "
+                "whitespace-equivalent to the original"
+            )
+            problems.append("(bz): reflowed body changed non-whitespace content")
+        elif _flat(bz_reflowed_rubric) != _flat(real_rubric):
+            print(
+                "(bz) reflow control: WRONGLY FAILED — reflowed rubric is not "
+                "whitespace-equivalent to the original"
+            )
+            problems.append("(bz): reflowed rubric changed non-whitespace content")
+        elif bz_total < 10:
+            print(
+                f"(bz) reflow control: WRONGLY FAILED — only {bz_total} pinned-literal "
+                "spaces reflowed, expected >= 10 (non-vacuity floor)"
+            )
+            problems.append(f"(bz): only {bz_total} pinned-literal spaces reflowed, expected >= 10")
+        elif bz_reflowed_body == real_body and bz_reflowed_rubric == real_rubric:
+            print("(bz) reflow control: WRONGLY FAILED — reflow made no change to either file")
+            problems.append("(bz): reflow was a no-op on both files")
+        else:
+            bz_out, bz_err = io.StringIO(), io.StringIO()
+            _this_module._HARN01_DISPATCH_REENTRANT = True
+            try:
+                with contextlib.redirect_stdout(bz_out), contextlib.redirect_stderr(bz_err):
+                    bz_rc = _run_self_test(real_body=bz_reflowed_body, real_rubric=bz_reflowed_rubric)
+            except Exception as exc:  # noqa: BLE001 - self-test must report, not crash
+                bz_rc = -1
+                bz_err.write(f"(bz): unexpected exception in nested run: {exc!r}\n")
+            finally:
+                _this_module._HARN01_DISPATCH_REENTRANT = False
+            bz_text = bz_out.getvalue() + bz_err.getvalue()
+            if bz_rc != 0:
+                bz_diagnostic_lines = [
+                    line
+                    for line in bz_text.splitlines()
+                    if "WRONGLY" in line
+                    or "WRONG reason" in line
+                    or "FIXTURE BUILD FAILED" in line
+                    or "FAIL" in line
+                ]
+                print(
+                    "(bz) reflow control: WRONGLY FAILED — nested --self-test against "
+                    f"the reflowed tree returned {bz_rc}:\n" + "\n".join(bz_diagnostic_lines)
+                )
+                problems.append(
+                    f"(bz): nested --self-test against the reflowed tree returned {bz_rc}, expected 0"
+                )
+            else:
+                print(
+                    f"(bz) reflow control: PASS — {bz_total} pinned-literal spaces "
+                    "reflowed; nested --self-test 0 problems"
+                )
+
+    # (cb) Uniqueness-guard negative control (CR-02): `_flex_replace`'s exact-
+    # count guard must fire on a target derived (never transcribed) to be
+    # ABSENT — proving a fixture builder cannot silently mutate nothing.
+    executed.append("cb")
+    cb_absent_target = _B1_STEP_LEAD + _B1_STEP_LEAD
+    cb_raised = False
+    cb_message = ""
+    try:
+        _mutate_body_removing_from_block(real_body, _B1_STEP_LEAD, cb_absent_target)
+    except AssertionError as exc:
+        cb_raised = True
+        cb_message = str(exc)
+    if not cb_raised:
+        print("(cb) uniqueness guard: WRONGLY FAILED — did not fire on an absent target")
+        problems.append("(cb): uniqueness guard did not fire on an absent target")
+    elif repr(cb_absent_target) not in cb_message and "mutates nothing" not in cb_message:
+        print(
+            "(cb) uniqueness guard: WRONGLY FAILED — raised but named neither the "
+            f"absent target nor 'mutates nothing': {cb_message!r}"
+        )
+        problems.append("(cb): guard raised without naming the absent target or the vacuity phrase")
+    else:
+        print("(cb) uniqueness guard: PASS — _flex_replace raised on an absent target")
 
     # (roster-floor-missing / roster-floor-extra) Negative arms (permanent
     # registered controls, Phase 21-15, CR-05): prove `_control_roster_problems`
