@@ -672,7 +672,537 @@ docs` empty in the live repo.
 
 ## I-1 — method (pre-registered)
 
-*(pending — plan 36-02)*
+This section is committed BEFORE any classification result exists (Task 1's own commit precedes
+Task 2's). The verdict rule at (9) is fixed here and not revisited after seeing results — a rule
+changed after seeing results would make the table a judgement rather than evidence (T-36-05).
+
+**(1) The procedure.** Pivot §4 I-1, restated: trace the originating defect, construct its
+mutation, re-scope the assertion to the section with whitespace-flexible matching, re-run. If it
+still fails, the row is incidental. If it now passes, the row is load-bearing and gets a named
+argument.
+
+**(2) Section scope.** For body rows, the section is the Phase 3 slice `_slice(text,
+_PHASE3_START, _PHASE4_START)`. For rubric rows, it is the Criterion 3 slice `_slice(text,
+_CRIT3_START, _CRIT4_START)`. These are the same slices the gate already computes, and §7.1 names
+the Phase 3 slice. The Hand-wavy band is not used as a scope: Rubric-7 already asserts band
+placement and is not paragraph-scoped.
+
+**(3) Whitespace-flexible matching.** Normalize with `re.sub(r"\s+", " ", s)` applied to the
+section text (`flex_norm` in the harness below). This equals `_flex_pattern`'s (`scripts/check-focused-parity.py`
+~:155) matching power for any literal whose internal whitespace is already single spaces. The
+harness asserts that property for every constant it reads (`flex_norm(c) == c`) and stops if any
+constant fails it (`assert_constants_flex_safe`).
+
+**(4) The re-scoped variant.** The harness replaces `_paragraph_containing` only while
+`_check_body_text` or `_check_rubric_text` executes: it wraps each checker in a function
+(`rescoped_checkers`) that swaps the module attribute and restores it in a `finally` block. This
+is deliberately narrower than wrapping a whole `_run_self_test()` call — the mutation builders
+(`_mutate_body_removing_from_block` and its siblings) also call `_paragraph_containing`, and they
+run BEFORE the checker call that consumes their fixture, so wrapping only the checker itself
+leaves fixture construction unaffected. T-36-06 verifies this empirically: the harness's baseline
+(no re-scope) run must reproduce the live `--self-test` output line-for-line.
+
+For a target anchor set S_k, the replacement works as follows:
+- For an anchor in S_k, it returns `[flex_norm(slice_text)]` when `flex_norm(anchor)` is in
+  `flex_norm(slice_text)`, and `[]` otherwise.
+- For any other anchor, it calls the original `_paragraph_containing`.
+
+The four scopes (`scope_sets` in the harness), each value taken from the module or the literal at
+its own call site, re-derived rather than retyped:
+- S1 = {`_B1_STEP_LEAD`}
+- S2 = {`"**Named artifact:**"`, `"**Exit criterion:**"`}
+- S3 = {`"| **unverified** |"`}
+- S4 = {`_R1_FIX_LEAD`}
+
+**(5) Originating-defect fixture per sub-assertion.** There are two kinds:
+- The gate's own `_check_negative` control(s) whose detail names that sub-assertion (the control
+  map in `36-02-PLAN.md`'s interfaces block, re-derived against the live `_check_negative(` call
+  sites before use).
+- Any control that the originating commit's message or the in-code comment names as the
+  regression for a review finding (e.g. control (y), the frozen pre-01-05 regression fixture).
+
+Where the trace names a defect no existing control encodes, the harness builds that mutation and
+the row describes it in one sentence (this arose once, for the Body-4..9 guard — see its row).
+
+**(6) Mode A: roster sweep.** `cmd_mode_a(mod, scope)` runs `_run_self_test()` once with no
+re-scope (the baseline) and once under the given scope, capturing stdout with
+`contextlib.redirect_stdout`. It parses each verdict line into `{label: line}` and records every
+label whose verdict line differs between the two runs (`changed`). A positive control ((a)/(b))
+that newly fails under S_k is a section-scope false positive, and would appear in `changed` like
+any other label.
+
+**(7) Mode B: separation mutation.** For each sub-assertion literal L in block B
+(`separate_sentence`):
+- If L lies in B's first sentence, the harness returns `na` with the reason: separating it would
+  move the block's own anchor.
+- Otherwise, the sentence containing L is cut out of B and inserted as a standalone paragraph
+  immediately after B, inside the same section (Phase 3 region). The sentence runs from just after
+  the last `". "` before L to the first `". "` at or after L's end, or to block end, whichever
+  comes first (`sentence_span`).
+- The harness asserts the whole text's `.split()` word multiset is unchanged, and that the
+  section's flex-normalized occurrence count of L is unchanged (both raise `AssertionError` on
+  violation, matching this file's own fixture-guard idiom).
+- The checker is evaluated on the separated text under the original (unscoped) call and under the
+  S_k-scoped call, and the harness records whether the sub-assertion's own check ID fired under
+  each (`cmd_mode_b`).
+
+**Structural finding, stated here because it governs how every Mode B row below reads.** Because
+the S_k-scoped variant treats presence ANYWHERE in the section as sufficient (step 4's `[]` /
+`[flex_norm(slice_text)]` shape), and Mode B never removes L from the section — it only relocates
+the sentence to an adjacent paragraph within the same section — the S_k-scoped checker call
+**cannot** detect a Mode B separation for any literal it applies to: the literal is still present
+in `flex_norm(slice_text)` after relocation. This is a structural property of the method as
+pre-registered, not a per-row finding, and it is exactly why CONTEXT.md's own design intent for
+Mode B is preserved by naming it evidence rather than the verdict criterion at (9) below: were
+Mode B allowed to drive the verdict directly, this structural tautology would make every
+literal-bearing row load-bearing regardless of its content, which would defeat the classification.
+Mode B is retained because it independently confirms (or, for the guard, explains) what the
+ORIGINAL (unscoped) checker call does on a same-section relocation — i.e., whether the current
+paragraph-scoped gate additionally enforces same-paragraph adjacency, a property section-scoping
+gives up regardless of which specific literal is asked about.
+
+Body-12's table row is out of this plan's S1 scope; when plan 36-03 reaches it, its separation is
+a blank line inserted immediately before the `| **unverified** |` row, stated there.
+
+**(8) Mode C: occurrence census.** `cmd_mode_c` records each literal's flex-normalized occurrence
+count in the section and in its block. `section_count - block_count` (`outside_block_count`) is
+the number of occurrences section scope cannot tell apart from the one inside the block.
+
+**(9) Verdict rule.** Fixed now, not revisited after results.
+
+A sub-assertion is:
+- **incidental** if every originating-defect fixture (step 5 — the gate's own control roster, Mode
+  A) still fails under S_k, with the sub-assertion's OWN check ID. This is the `_check_negative`
+  fail-by-name contract.
+- **incidental (sibling-caught: ID)** if a fixture no longer fires its own ID under S_k but still
+  fails via a check that is NOT paragraph-scoped. Those checks are Body-1, Body-2, Body-3, Body-9,
+  Rubric-1, Rubric-2, Rubric-4 and Rubric-7; Phase 37 leaves them untouched, so the defect stays
+  caught.
+- **load-bearing** in every other case, including:
+  - any fixture passing entirely;
+  - any fixture caught only by another paragraph-scoped check;
+  - fixtures (plural, among the step-5 originating-defect fixtures for one sub-assertion)
+    disagreeing;
+  - evidence that cannot be produced.
+
+The last two are the CONTEXT.md "ambiguous → load-bearing" rule.
+
+A row (a named check) is load-bearing if any of its sub-assertions is. Each load-bearing
+sub-assertion names a reason class:
+- (i) the originating commit or review finding names adjacency or block scope as the defect, OR
+  Mode B's separation mutation is itself the direct demonstration that the paragraph-scoped check
+  enforces same-paragraph adjacency beyond mere section presence (CONTEXT.md's own stated purpose
+  for Mode B — "the direct test of whether adjacency is what the assertion protects");
+- (ii) section scope loses the defect only because the literal recurs elsewhere in the section
+  (Mode C > 0), and no originating finding names adjacency.
+
+Class (ii) is recorded as "ambiguous, classified load-bearing (conservative)". Phase 37 must know
+the difference, because class (ii) can be answered by a longer literal rather than by adjacency;
+class (i) cannot.
+
+**The separation mutation (Mode B) is recorded evidence, not the verdict criterion** — the
+step-5 originating-defect fixtures (Mode A) are what decide incidental vs. load-bearing. Given the
+structural finding above (Mode B cannot detect a same-section relocation for ANY literal it
+applies to), applying it as a co-equal verdict criterion would make every row load-bearing
+trivially. Mode B is pasted per-row because it is what distinguishes reason class (i) from a bare
+assertion of adjacency: it demonstrates, for that specific literal, that the CURRENT (unscoped)
+check does react to relocation, which is the property Phase 37's conversion would give up. When a
+row's originating defect IS itself shaped like a separation (none arose in the S1 scope), the
+named argument would need to say why that separation is a defect and not a no-op.
+
+**(10) The harness.** Written as one Python 3 file in this session's scratchpad, never in the repo
+and never in the worktree's tracked tree. It:
+- loads `<wt>/scripts/check-act-limb.py` via `importlib.util.spec_from_file_location` (the
+  filename is hyphenated) and registers it in `sys.modules` under its own name (`_run_self_test`
+  does `sys.modules[__name__]` as a re-entrancy sentinel guard, so the module must be registered
+  before `exec_module` runs, or the dispatch control raises `KeyError` — found and fixed while
+  smoke-testing the harness, before it was frozen);
+- asserts that the module's `REPO_ROOT` resolves to the worktree path, which proves every read
+  hits the worktree;
+- implements Modes A, B and C over a `--scope` argument (S1..S4);
+- implements an `apply-case-b` subcommand that inserts `"\n\n"` in place of the single space
+  before `"The read is an extraction, not an instruction:"` in the emitted body text in memory,
+  runs `_check_body_text` on it, and prints the failures;
+- writes machine-readable results (`--json-out`) plus human-readable lines.
+
+It imports only the standard library (`argparse`, `contextlib`, `importlib.util`, `io`, `json`,
+`re`, `sys`, `pathlib` — confirmed by reading its own import block below). sha256:
+
+```
+211244e968a210ad04b5111451b5a6f185d35fb8ff3b50980d421df310b2b2b3
+```
+
+```python
+#!/usr/bin/env python3
+"""Pin-classification harness (Phase 36, I-1). Standard library only.
+
+Loads a worktree's scripts/check-act-limb.py by absolute path, asserts its
+REPO_ROOT resolves to that worktree, and re-scopes _paragraph_containing to a
+section-scoped, whitespace-flexible variant for the duration of a single
+_check_body_text/_check_rubric_text call (never for the duration of a whole
+_run_self_test() call, so the mutation builders that run before the checker
+they feed are unaffected).
+
+Modes:
+  mode-a          roster sweep: baseline vs one re-scope, over _run_self_test()
+  mode-b          separation mutation for one sub-assertion literal
+  mode-c          occurrence census for one literal
+  apply-case-b    in-memory equivalence check against plan 36-01's on-disk
+                  Case B fixture
+"""
+from __future__ import annotations
+
+import argparse
+import contextlib
+import importlib.util
+import io
+import json
+import re
+import sys
+from pathlib import Path
+
+
+def load_module(repo_root: Path):
+    path = repo_root / "scripts" / "check-act-limb.py"
+    spec = importlib.util.spec_from_file_location("check_act_limb", path)
+    mod = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    # _run_self_test does `sys.modules[__name__]` (a re-entrancy sentinel guard),
+    # so the module must be registered in sys.modules under its own __name__
+    # before exec_module runs.
+    sys.modules[spec.name] = mod
+    spec.loader.exec_module(mod)
+    if mod.REPO_ROOT != repo_root:
+        raise AssertionError(
+            f"REPO_ROOT mismatch: module resolved {mod.REPO_ROOT!r}, "
+            f"expected {repo_root!r} -- every read must hit the worktree"
+        )
+    return mod
+
+
+def flex_norm(s: str) -> str:
+    """Collapse every whitespace run to one space. Equals `_flex_pattern`'s
+    matching power for any literal whose own internal whitespace is already
+    single spaces -- the property `assert_constants_flex_safe` checks."""
+    return re.sub(r"\s+", " ", s)
+
+
+def assert_constants_flex_safe(mod) -> None:
+    """Every module-level string/tuple-of-strings constant this harness reads
+    must satisfy flex_norm(c) == c, or the re-scoped variant's substring test
+    would silently diverge from `_flex_pattern`'s whitespace-run matching."""
+    for name, val in vars(mod).items():
+        if not name.isupper():
+            continue
+        if isinstance(val, str):
+            if flex_norm(val) != val:
+                raise AssertionError(f"constant {name!r} fails flex_norm(c) == c")
+        elif isinstance(val, (tuple, list)):
+            for item in val:
+                if isinstance(item, str) and flex_norm(item) != item:
+                    raise AssertionError(
+                        f"constant {name!r} member {item!r} fails flex_norm(c) == c"
+                    )
+
+
+def scope_sets(mod) -> dict[str, set[str]]:
+    """The four re-scope anchor sets S1..S4, read from the module / call-site
+    literals at run time -- never retyped by hand."""
+    return {
+        "S1": {mod._B1_STEP_LEAD},
+        "S2": {"**Named artifact:**", "**Exit criterion:**"},
+        "S3": {"| **unverified** |"},
+        "S4": {mod._R1_FIX_LEAD},
+    }
+
+
+def make_rescoped_paragraph_containing(anchors_in_scope: set[str], original):
+    def wrapper(slice_text: str, anchor: str):
+        if anchor in anchors_in_scope:
+            norm = flex_norm(slice_text)
+            if flex_norm(anchor) in norm:
+                return [norm]
+            return []
+        return original(slice_text, anchor)
+
+    return wrapper
+
+
+@contextlib.contextmanager
+def rescoped_checkers(mod, anchors_in_scope: set[str]):
+    """Monkeypatch mod._check_body_text and mod._check_rubric_text so that,
+    for the duration of EACH call (not for the duration of any caller such as
+    _run_self_test), _paragraph_containing is swapped to the section-scoped,
+    whitespace-flexible variant. Restored in a finally block on every path."""
+    orig_body = mod._check_body_text
+    orig_rubric = mod._check_rubric_text
+    orig_pc = mod._paragraph_containing
+    rescoped_fn = make_rescoped_paragraph_containing(anchors_in_scope, orig_pc)
+
+    def wrapped_body(text):
+        mod._paragraph_containing = rescoped_fn
+        try:
+            return orig_body(text)
+        finally:
+            mod._paragraph_containing = orig_pc
+
+    def wrapped_rubric(text):
+        mod._paragraph_containing = rescoped_fn
+        try:
+            return orig_rubric(text)
+        finally:
+            mod._paragraph_containing = orig_pc
+
+    mod._check_body_text = wrapped_body
+    mod._check_rubric_text = wrapped_rubric
+    try:
+        yield
+    finally:
+        mod._check_body_text = orig_body
+        mod._check_rubric_text = orig_rubric
+        mod._paragraph_containing = orig_pc
+
+
+def run_self_test_capture(mod):
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        exit_code = mod._run_self_test()
+    return exit_code, buf.getvalue()
+
+
+def parse_verdict_lines(output: str) -> dict[str, str]:
+    verdicts: dict[str, str] = {}
+    for line in output.splitlines():
+        m = re.match(r"^\(([^)]+)\)\s", line)
+        if m:
+            verdicts[m.group(1)] = line
+    return verdicts
+
+
+def id_fired(msg: str, check_id: str) -> bool:
+    """Mirrors `_check_negative`'s own `_id_matches` boundary-anchored ID
+    match: `Body-1` must not match `Body-10` or `Body-4..9`."""
+    if not msg.startswith(check_id):
+        return False
+    rest = msg[len(check_id):]
+    return rest[:1] in (" ", ":")
+
+
+def fired_ids(msgs: list[str]) -> list[str]:
+    return sorted({m.split(" ", 1)[0].rstrip(":") for m in msgs})
+
+
+def cmd_mode_a(mod, scope_name: str) -> dict:
+    base_exit, base_out = run_self_test_capture(mod)
+    base_verdicts = parse_verdict_lines(base_out)
+    anchors = scope_sets(mod)[scope_name]
+    with rescoped_checkers(mod, anchors):
+        s_exit, s_out = run_self_test_capture(mod)
+    s_verdicts = parse_verdict_lines(s_out)
+    changed = {}
+    for label in sorted(set(base_verdicts) | set(s_verdicts)):
+        b = base_verdicts.get(label)
+        s = s_verdicts.get(label)
+        if b != s:
+            changed[label] = {"baseline": b, "scoped": s}
+    return {
+        "scope": scope_name,
+        "baseline_exit": base_exit,
+        "scoped_exit": s_exit,
+        "baseline_output": base_out,
+        "scoped_output": s_out,
+        "changed": changed,
+    }
+
+
+def is_in_first_sentence(block: str, literal: str) -> bool:
+    lit_idx = block.index(literal)
+    first_period = block.find(". ")
+    if first_period == -1:
+        return True
+    return lit_idx < first_period
+
+
+def sentence_span(block: str, literal: str) -> tuple[int, int]:
+    lit_idx = block.index(literal)
+    lit_end = lit_idx + len(literal)
+    prefix = block[:lit_idx]
+    last_period = prefix.rfind(". ")
+    start = last_period + 2 if last_period != -1 else 0
+    rest = block[lit_end:]
+    m = re.search(r"\. ", rest)
+    end = lit_end + m.end() if m else len(block)
+    return start, end
+
+
+def locate_block(mod, region: str, block_anchor: str) -> str:
+    blocks = mod._paragraph_containing(region, block_anchor)
+    if len(blocks) != 1:
+        raise AssertionError(
+            f"expected exactly one block for anchor {block_anchor!r}, found {len(blocks)}"
+        )
+    return blocks[0]
+
+
+def separate_sentence(mod, real_body: str, block_anchor: str, literal: str):
+    """Mode B. Cuts the sentence containing *literal* out of the block anchored
+    by *block_anchor* (inside the Phase 3 region) and inserts it as a
+    standalone paragraph immediately after that block. Returns
+    (mutated_text, na_reason); na_reason is None on success."""
+    region_start = real_body.find(mod._PHASE3_START)
+    region_end = real_body.find(mod._PHASE4_START, region_start)
+    head, region, tail = (
+        real_body[:region_start],
+        real_body[region_start:region_end],
+        real_body[region_end:],
+    )
+    block = locate_block(mod, region, block_anchor)
+    if literal not in block:
+        return None, f"literal not found in the block anchored by {block_anchor!r}"
+    if is_in_first_sentence(block, literal):
+        return None, (
+            "literal lies in the block's own first sentence -- separating it "
+            "would move the block's own anchor"
+        )
+    start, end = sentence_span(block, literal)
+    sentence = block[start:end]
+    new_block = block[:start] + block[end:]
+    mutated_region = region.replace(block, new_block + "\n\n" + sentence.strip(), 1)
+    mutated_text = head + mutated_region + tail
+
+    if sorted(real_body.split()) != sorted(mutated_text.split()):
+        raise AssertionError("separation mutation changed the whole text's word multiset")
+    before_count = flex_norm(region).count(flex_norm(literal))
+    after_count = flex_norm(mutated_region).count(flex_norm(literal))
+    if before_count != after_count:
+        raise AssertionError(
+            f"separation mutation changed the section's occurrence count of "
+            f"{literal!r}: {before_count} -> {after_count}"
+        )
+    return mutated_text, None
+
+
+def cmd_mode_b(mod, real_body: str, scope_name: str, block_anchor: str, literal: str,
+                expected_check_id: str, checker_name: str) -> dict:
+    mutated_text, na_reason = separate_sentence(mod, real_body, block_anchor, literal)
+    if na_reason:
+        return {"na": na_reason}
+
+    checker = getattr(mod, checker_name)
+    orig_failures = checker(mutated_text)
+    anchors = scope_sets(mod)[scope_name]
+    with rescoped_checkers(mod, anchors):
+        checker = getattr(mod, checker_name)
+        scoped_failures = checker(mutated_text)
+
+    return {
+        "original_scope_failures": orig_failures,
+        "original_scope_own_id_fired": any(id_fired(f, expected_check_id) for f in orig_failures),
+        "original_scope_fired_ids": fired_ids(orig_failures),
+        "scoped_failures": scoped_failures,
+        "scoped_own_id_fired": any(id_fired(f, expected_check_id) for f in scoped_failures),
+        "scoped_fired_ids": fired_ids(scoped_failures),
+    }
+
+
+def cmd_mode_c(mod, real_body: str, literal: str, block_anchor: str) -> dict:
+    phase3 = mod._slice(real_body, mod._PHASE3_START, mod._PHASE4_START)
+    section_count = flex_norm(phase3).count(flex_norm(literal))
+    block = locate_block(mod, phase3, block_anchor)
+    block_count = flex_norm(block).count(flex_norm(literal))
+    return {
+        "section_count": section_count,
+        "block_count": block_count,
+        "outside_block_count": section_count - block_count,
+    }
+
+
+def cmd_apply_case_b(mod, real_body: str) -> dict:
+    anchor = "The read is an extraction, not an instruction:"
+    idx = real_body.index(anchor)
+    if real_body[idx - 1] != " ":
+        raise AssertionError("expected a single space before the Case B anchor")
+    mutated = real_body[: idx - 1] + "\n\n" + real_body[idx:]
+    failures = mod._check_body_text(mutated)
+    body8 = next((f for f in failures if id_fired(f, "Body-8")), None)
+    return {"failures": failures, "body8_failure": body8}
+
+
+def resolve_literal(mod, name: str) -> str:
+    if not name.startswith("_"):
+        return name  # a bare literal string, passed through verbatim
+    val = getattr(mod, name)
+    if isinstance(val, (list, tuple)):
+        return val[-1]
+    return val
+
+
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--repo-root", required=True)
+    parser.add_argument("--json-out")
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    p_a = sub.add_parser("mode-a")
+    p_a.add_argument("--scope", required=True, choices=["S1", "S2", "S3", "S4"])
+
+    p_b = sub.add_parser("mode-b")
+    p_b.add_argument("--scope", required=True, choices=["S1", "S2", "S3", "S4"])
+    p_b.add_argument("--block-anchor", required=True)
+    p_b.add_argument("--literal", required=True)
+    p_b.add_argument("--check-id", required=True)
+    p_b.add_argument("--checker", default="_check_body_text")
+
+    p_c = sub.add_parser("mode-c")
+    p_c.add_argument("--block-anchor", required=True)
+    p_c.add_argument("--literal", required=True)
+
+    sub.add_parser("apply-case-b")
+
+    args = parser.parse_args(argv)
+    repo_root = Path(args.repo_root).resolve()
+    mod = load_module(repo_root)
+    assert_constants_flex_safe(mod)
+    real_body = mod.AGENT_FILE.read_text(encoding="utf-8")
+
+    if args.cmd == "mode-a":
+        result = cmd_mode_a(mod, args.scope)
+        print(f"=== Mode A: {args.scope} ===")
+        print(f"baseline exit={result['baseline_exit']} scoped exit={result['scoped_exit']}")
+        for label, delta in result["changed"].items():
+            print(f"  ({label}) baseline: {delta['baseline']}")
+            print(f"  ({label}) scoped:   {delta['scoped']}")
+    elif args.cmd == "mode-b":
+        block_anchor = resolve_literal(mod, args.block_anchor)
+        literal = resolve_literal(mod, args.literal)
+        result = cmd_mode_b(
+            mod, real_body, args.scope, block_anchor, literal, args.check_id, args.checker
+        )
+        print(f"=== Mode B: {args.literal} under {args.scope} ===")
+        print(json.dumps(result, indent=2))
+    elif args.cmd == "mode-c":
+        block_anchor = resolve_literal(mod, args.block_anchor)
+        literal = resolve_literal(mod, args.literal)
+        result = cmd_mode_c(mod, real_body, literal, block_anchor)
+        print(f"=== Mode C: {args.literal} ===")
+        print(json.dumps(result, indent=2))
+    elif args.cmd == "apply-case-b":
+        result = cmd_apply_case_b(mod, real_body)
+        print("=== apply-case-b ===")
+        print(json.dumps(result, indent=2))
+    else:  # pragma: no cover
+        raise AssertionError(f"unknown cmd {args.cmd!r}")
+
+    if args.json_out:
+        Path(args.json_out).write_text(json.dumps(result, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+```
+
+Plan 36-03 re-creates this file from the fenced block above and must reproduce the sha256.
 
 ## I-1 — primary rows
 
