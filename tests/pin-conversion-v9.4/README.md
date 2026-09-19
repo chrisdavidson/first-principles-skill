@@ -1189,3 +1189,136 @@ runs** (rows 18, 19, 21), none a full-battery run. **Running total across plans 
 
 **Null result continues: C7 did not recur in 11 battery runs across this phase so far; this is
 recorded, not a failure.**
+
+## PRE-3 — after-reading
+
+**Plan 37-06, Task 2.** Method: the same frozen census script as the phase-start reading above
+(sha256 `292ee46c4af202699c67baab783f0e96988019c6b2dc05c7304ec39e71f53afb`, re-confirmed live
+before running), run read-only against the live repo tree at the measurement SHA
+`53c0005f368368799954117fa553a176ed24cb59` (unchanged since only the fixture and, in throwaway
+worktrees only, the PRE-2 after-reading's candidates moved since Task 1 — none of which touched
+the live tree, confirmed by `git status --porcelain` after Task 1's worktree removals).
+
+**Top-line output, verbatim:**
+
+```
+agent body           paragraphs= 219 pinned=  70 (32%)
+validation-rubric    paragraphs= 102 pinned=  43 (42%)
+output-template      paragraphs= 173 pinned=  73 (42%)
+distinct pinned literals: 225
+total pinned chars: 19966
+scripts holding them: 17
+skipped scripts (SyntaxError): []
+```
+
+**Reading: 225 distinct pinned literals, 19966 total pinned chars.**
+
+**Delta against 225 (the phase-start reading): 0.** Delta against 19970 (the phase-start total
+chars): **-4**. Both readings are unchanged from plan 37-05's own post-`(bw)`/`(bx)` readings
+(225/19966), confirming Task 1's worktree-only measurement work moved neither figure in the live
+tree.
+
+**Per-literal attribution — JSON set difference against plan 37-02's phase-start census**, run
+fresh in a throwaway worktree at plan 37-02's own recorded phase-start SHA
+(`b8d562bea8eb6a4669e993f9e803ead4290ed164`) with the same frozen script, one output JSON per SHA,
+diffed by Python set difference over the two dumps' keys (never a per-script sum, per WR-03):
+
+| direction | literal | holder(s) | chars |
+|---|---|---|---|
+| left | `has been opened — by this step or earlier in this analysis — and the asserted figure or wording was not located in it` | `check-act-limb.py` | 117 |
+| entered | `been opened — by this step or earlier in this analysis — and the asserted figure or wording was not located in it` | `check-act-limb.py` | 113 |
+
+**Exactly one literal changed identity — the D-01 trim of `_B12C_NOT_FOUND_STATE` (D-03 row 37,
+"applied").** The distinct-literal count is unchanged (225 → 225): this is a rename inside the
+census, not an addition or a removal. Total chars fell by exactly 117 - 113 = **4**, matching the
+top-line delta exactly.
+
+**`_B4_EXCLUSION`'s trim (D-03 row 20, "applied") produces no entry in this table — recorded here
+as the count falling, never as "a pin removed" (per this plan's own instruction).** Its before
+value, `"do not earn a read"`, is **18 characters** — already below the census's own `len(v) >= 20`
+threshold, confirmed live: `python3 -c "print(len('do not earn a read'))"` → `18`. Its after value,
+`"not earn a read"`, is **15 characters** — also below threshold. Neither the old nor the new text
+was ever counted by this census, before or after the trim: the constant it pins was already too
+short to appear in the 225-literal population, so trimming it moves nothing in either the count or
+the chars sum. This is the concrete instance of the plan's own warning: a trim that drops a literal
+under 20 characters is recorded as the census population never having included it, not as a
+literal being removed from a population it belonged to.
+
+**The pre-registered PRE-3 baseline stays 223 at `c571ccf` and is not re-derived here.** 225 is the
+Phase 36/37 phase-start reading (HEAD at Phase 36's own start); this section's 225-after reading is
+compared against that 225 phase-start figure, per this plan's own instruction, not against the
+223-at-`c571ccf` pre-registration.
+
+### Closing tally
+
+**Direct count over the 23 numbered I-4 rows above** (plans 37-02 through 37-06 Task 1):
+**11 total battery runs** (the rows whose command is exactly `bash
+scripts/check-firewall-battery.sh`), **0 HARN-03 FAILs** across all 11 (every one reads `[PASS]
+HARN-03 check-focused-parity.py --self-test`), so **0 C7-class HARN-03 FAILs**, and **12 further
+non-battery self-test/harness runs** (the remaining rows), none of which is a full-battery run and
+none of which carries a HARN-03 signal.
+
+**C7 recurred 0/11.** **Null result: C7 did not recur in 11 battery runs across this entire phase;
+this is recorded, not a gap.** A confirmatory battery run at the true final (post-registration) SHA
+is recorded in `37-06-SUMMARY.md`, not in this file, per this fixture's own freeze discipline
+(this file is committed as final by Task 3, below).
+
+## Finding
+
+**I-2** (source: "## I-2 — conversion evidence"). Every converted site's originating-defect control
+still fails by name, with the same check ID, after conversion — confirmed per-site in that section
+for all 21 converted sub-assertion rows.
+
+**PRE-1** (source: "## PRE-1 — permanent regression controls"). Cases B and C are promoted to
+permanent positive controls `(bw)`/`(bx)` inside HARN-01's existing `--self-test`, both derived
+from existing module anchors, both proven byte-identical to the pre-registered canonical
+emitted-twin hashes, and both `PASS (0 failures)` in-memory. Case C was found reachable with no
+rescue edit — `bx` ships as a passing control.
+
+**PRE-2** (source: "## PRE-2 — after-reading", the after-column table and the rule's mechanical
+application). Case B's after-reading is **4** apparatus lines (flat against its own before-reading
+of 4, and non-zero — both clauses of D-04's rule fail). Case C's after-reading is **0** apparatus
+lines (a strict fall from 2, satisfying its clause). **Verdict: STOP — do not start Phase 38.**
+The STOP fires on Case B alone: a newly-surfaced interaction between the PRE-1 `(bw)` permanent
+regression control and the actually-landed product edit, not the original Case C reachability
+question D-04 was written to gate (Case C's own clause is independently satisfied).
+
+**PRE-3** (source: "## PRE-3 — after-reading", above). The census reads **225 distinct pinned
+literals / 19966 total chars** at the measurement SHA — 0 delta in count, -4 delta in chars against
+the phase-start reading (225/19970), fully attributed to one literal renamed by the D-01 trim of
+`_B12C_NOT_FOUND_STATE`; the `_B4_EXCLUSION` trim never touched the census (both its before and
+after values sit below the 20-character threshold).
+
+**I-4** (source: "## I-4 — HARN-03 sampling tally", closing tally). **C7 recurred 0/11** across 11
+full battery runs and 12 further non-battery self-test/harness runs spanning all five plans of this
+phase — a null result, not a gap.
+
+**The four self-referential tests (STATE.md standing instruction 3):**
+
+1. **Capability not correction.** The gate now tolerates non-semantic rewording and reflow by
+   mechanism (whitespace-flexible matching, the D-01 anchor-trimming rule applied uniformly to
+   every eligible HARN-01 literal), not by a fix aimed at Case B or Case C specifically — D-01's
+   own text states the rule is applied to every literal, and Case B/Case C fall out of it (or, in
+   Case B's case, do not, per the PRE-2 after-reading) as a consequence, never as the target.
+2. **Sibling site named first.** HARN-03's `_flat`/`_flex_pattern`/`_count_flex` matcher
+   (`scripts/check-focused-parity.py:136-167`) was the sibling, adopted by mirroring (with
+   attribution), not reinvented — stated in `docs/v9.4-source-literal-pin-relaxation.md` §2 Item 1
+   before any HARN-01 literal was converted.
+3. **REACH-or-LEVEL in writing.** REACH, `docs/PROCESS.md` §1.1 — stated in
+   `docs/v9.4-source-literal-pin-relaxation.md` §1 before the conversion landed: the change points
+   an existing product guard at the same product surface it already reads, more accurately; it adds
+   no guard whose subject is another guard.
+4. **Recurrence not compliance.** Cases B and C are now permanent regression controls
+   (`(bw)`/`(bx)`) inside HARN-01's own `--self-test`, not a one-time fix verified once and
+   forgotten; the three D-02 held-outs were measured (as far as their diffs would apply — see the
+   "## PRE-2 — after-reading" section's HO-1/HO-2/HO-3 disclosure) as a further, independent
+   tolerance check beyond the two named cases.
+
+**Exit count (standing instruction 1): 12 HARN-01 sub-assertions still read a block variable, by
+direct count of the "## Section-scope conversion table" above (rows whose `converts?` column reads
+`**no**`, excluding the 3 structural guards, which read a block-derived count rather than test a
+literal), against 36 before this phase (33 sub-assertion rows plus 3 structural guards, all
+block-scoped, per the table's own before-state and the I-1 primary table's row count). 21 of the
+33 sub-assertion rows converted to section scope; 12 stayed block-scoped (11 load-bearing plus the
+1 outside-block-rule keep, Body-5's population intent); the 3 structural guards are unconverted
+regardless of scope, per Claude's Discretion.**
