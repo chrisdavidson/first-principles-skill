@@ -455,7 +455,37 @@ def _slice(text: str, start_heading: str, end_heading: str) -> str | None:
 def _paragraph_containing(slice_text: str, anchor: str) -> list[str]:
     """Return every blank-line-delimited block in *slice_text* that contains *anchor*."""
     blocks = re.split(r"\n\s*\n", slice_text)
-    return [block for block in blocks if anchor in block]
+    return [block for block in blocks if _flex_pattern(anchor).search(block)]
+
+
+# --- Whitespace-flexible matching, mirrored — not imported — from
+# scripts/check-focused-parity.py:136-167 (`_flat`/`_flex_pattern`/`_count_flex`).
+# No check-*.py script in this repo imports another; copy-with-attribution is
+# the established convention (that script's own docstrings credit
+# scripts/check-loop-closure.py the same way). Every literal-presence and
+# literal-count test in `_check_body_text`/`_check_rubric_text`, and the
+# anchor-membership test in `_paragraph_containing` above, goes through this
+# layer — a raw `in`/`.count()` test against a multi-word literal is forbidden
+# from this point on, so a pinned phrase that straddles a hard-wrap line break
+# no longer reads as two different characters (space vs. newline) to a naive
+# substring test. `_slice`'s own `.find()` calls on the ATX heading constants
+# stay exact — a heading is not reflowable prose, and the heading constants are
+# structural locators rather than asserted literals (the M3 record's Item 1
+# named exception, `docs/v9.4-source-literal-pin-relaxation.md` §2).
+def _flat(text: str) -> str:
+    """Collapse every whitespace run to a single space."""
+    return re.sub(r"\s+", " ", text)
+
+
+def _flex_pattern(target: str) -> re.Pattern[str]:
+    """A pattern matching *target* with any whitespace run standing in for
+    each of its spaces."""
+    return re.compile(r"\s+".join(re.escape(w) for w in _flat(target).strip().split(" ")))
+
+
+def _count_flex(text: str, literal: str) -> int:
+    """Whitespace-insensitive occurrence count of *literal* in *text*."""
+    return len(_flex_pattern(literal).findall(text))
 
 
 def _check_anchor_coherence() -> list[str]:
@@ -637,7 +667,7 @@ def _check_body_text(text: str) -> list[str]:
         return failures
 
     # Body-2: the step lead occurs exactly once in the Phase 3 slice.
-    count_in_slice = phase3.count(_B1_STEP_LEAD)
+    count_in_slice = _count_flex(phase3, _B1_STEP_LEAD)
     if count_in_slice != 1:
         failures.append(
             f"Body-2 (ACT-01, presence): step lead occurs {count_in_slice} time(s) "
@@ -646,7 +676,7 @@ def _check_body_text(text: str) -> list[str]:
 
     # Body-3: the step lead occurs exactly once in the whole file (proves placement
     # together with Body-2 — present in Phase 3, and nowhere else).
-    count_whole = text.count(_B1_STEP_LEAD)
+    count_whole = _count_flex(text, _B1_STEP_LEAD)
     if count_whole != 1:
         failures.append(
             f"Body-3 (ACT-01, placement): step lead occurs {count_whole} time(s) "
@@ -667,10 +697,10 @@ def _check_body_text(text: str) -> list[str]:
         # The imperative half is a PARTIAL fix by construction — see the anchor's
         # own comment and the docstring's "What this gate does not assert".
         missing_instruments: list[str] = []
-        missing_tools = [t for t in _B3_TOOLS if t not in para]
+        missing_tools = [t for t in _B3_TOOLS if _flex_pattern(t).search(para) is None]
         if missing_tools:
             missing_instruments.append(f"tool name(s): {', '.join(missing_tools)}")
-        if _B16_IMPERATIVE not in para:
+        if _flex_pattern(_B16_IMPERATIVE).search(para) is None:
             missing_instruments.append("operative imperative")
         if missing_instruments:
             failures.append(
@@ -686,15 +716,15 @@ def _check_body_text(text: str) -> list[str]:
         # failure branches re-earn a read on every future pass forever, which is
         # the turn-budget half of the 01-05 blocking gap).
         missing_bound: list[str] = []
-        if _B2_POPULATION_INTENT not in para:
+        if _flex_pattern(_B2_POPULATION_INTENT).search(para) is None:
             missing_bound.append("population intent")
-        if _B2_POPULATION_ACTION not in para:
+        if _flex_pattern(_B2_POPULATION_ACTION).search(para) is None:
             missing_bound.append("population action")
-        if _B4_EXCLUSION not in para:
+        if _flex_pattern(_B4_EXCLUSION).search(para) is None:
             missing_bound.append("exclusion clause")
-        if _B5B_INCLUSIVE not in para:
+        if _flex_pattern(_B5B_INCLUSIVE).search(para) is None:
             missing_bound.append("inclusive clause")
-        if _B15_FAILURE_RECORD_EXCLUSION not in para:
+        if _flex_pattern(_B15_FAILURE_RECORD_EXCLUSION).search(para) is None:
             missing_bound.append("failure-record exclusion")
         if missing_bound:
             failures.append(
@@ -721,16 +751,16 @@ def _check_body_text(text: str) -> list[str]:
         # read on is a semantic property no literal-anchor gate in this repo can
         # reach; Task 3's recorded entry-path trace is what carries that claim.
         missing_coherence: list[str] = []
-        if _B13_POPULATION_GATE not in para:
+        if _flex_pattern(_B13_POPULATION_GATE).search(para) is None:
             missing_coherence.append("population predicate")
-        if _B13_EXCLUSION_GATE not in para:
+        if _flex_pattern(_B13_EXCLUSION_GATE).search(para) is None:
             missing_coherence.append("exclusion predicate")
-        shared_count = para.count(_B13_SHARED_PREDICATE)
+        shared_count = _count_flex(para, _B13_SHARED_PREDICATE)
         if shared_count < 2:
             missing_coherence.append(
                 f"shared predicate token ({shared_count} occurrence(s), expected at least 2)"
             )
-        stale = [gate for gate in _B13_STALE_GATES if gate in para]
+        stale = [gate for gate in _B13_STALE_GATES if _flex_pattern(gate).search(para)]
         if stale:
             missing_coherence.append(
                 "divergent predicate still present: " + ", ".join(repr(g) for g in stale)
@@ -749,22 +779,22 @@ def _check_body_text(text: str) -> list[str]:
         # a source that opens but does not support the claim satisfied none of
         # the step's original three branches).
         missing_failure: list[str] = []
-        if _B5_NO_FALLBACK not in para:
+        if _flex_pattern(_B5_NO_FALLBACK).search(para) is None:
             missing_failure.append("no-fallback clause")
-        if _B6B_ASSIGNMENT not in para:
+        if _flex_pattern(_B6B_ASSIGNMENT).search(para) is None:
             missing_failure.append("unreachable assignment verb")
-        if _B12_NOT_FOUND_BRANCH not in para:
+        if _flex_pattern(_B12_NOT_FOUND_BRANCH).search(para) is None:
             missing_failure.append("not-found branch")
-        if _B12B_NOT_FOUND_ASSIGN not in para:
+        if _flex_pattern(_B12B_NOT_FOUND_ASSIGN).search(para) is None:
             missing_failure.append("not-found assignment verb")
         # 01-05 gap (CR-01): the not-found branch must fire on the citation's
         # STATE, not on a read this step performed in this pass, and it must
         # terminate. Without the first, a source opened by Phase 2 or by an
         # earlier Phase 3 pass reaches no branch at all; without the second, the
         # record is re-written and the read re-earned on every future pass.
-        if _B12C_NOT_FOUND_STATE not in para:
+        if _flex_pattern(_B12C_NOT_FOUND_STATE).search(para) is None:
             missing_failure.append("not-found state trigger")
-        if _B12D_RECORD_ONCE not in para:
+        if _flex_pattern(_B12D_RECORD_ONCE).search(para) is None:
             missing_failure.append("record-once termination")
         if missing_failure:
             failures.append(
@@ -776,7 +806,7 @@ def _check_body_text(text: str) -> list[str]:
         missing_labels = [
             label
             for label in (_B6_READ_AT_SOURCE, _B6_REPORTED_BY_DELEGATE)
-            if label not in para
+            if _flex_pattern(label).search(para) is None
         ]
         if missing_labels:
             failures.append(
@@ -785,7 +815,7 @@ def _check_body_text(text: str) -> list[str]:
             )
 
         # Body-8 (T-01-01, injection containment).
-        if _B7_EVIDENCE_NOT_INSTRUCTION not in para:
+        if _flex_pattern(_B7_EVIDENCE_NOT_INSTRUCTION).search(para) is None:
             failures.append(
                 "Body-8 (T-01-01, injection containment): step paragraph missing "
                 f"{_B7_EVIDENCE_NOT_INSTRUCTION!r}"
@@ -811,9 +841,9 @@ def _check_body_text(text: str) -> list[str]:
         # than checking it, so the count is gone and containment — the property
         # the check actually needs — is all that remains.
         missing_names: list[str] = []
-        if _B10_STEP_NAME not in para:
+        if _flex_pattern(_B10_STEP_NAME).search(para) is None:
             missing_names.append("step name (not inside the step paragraph)")
-        if _B10_FAILURE_RECORD_NAME not in para:
+        if _flex_pattern(_B10_FAILURE_RECORD_NAME).search(para) is None:
             missing_names.append("failure record name (not inside the step paragraph)")
         if missing_names:
             failures.append(
@@ -825,7 +855,7 @@ def _check_body_text(text: str) -> list[str]:
     # what stops the step and the Exit criterion from drifting into naming
     # different populations. Reads the shared token, not the step's full (longer,
     # repaired) population bound, since 01-03 split the two apart.
-    population_count = phase3.count(_B9_SHARED_POPULATION)
+    population_count = _count_flex(phase3, _B9_SHARED_POPULATION)
     if population_count < 2:
         failures.append(
             "Body-9 (cross-file coherence, ACT-04): population bound occurs "
@@ -841,11 +871,13 @@ def _check_body_text(text: str) -> list[str]:
     exit_criterion_blocks = _paragraph_containing(phase3, "**Exit criterion:**")
     missing_artifact: list[str] = []
     if not named_artifact_blocks or not any(
-        _B11_FAILURE_RECORD_PLAIN in block for block in named_artifact_blocks
+        _flex_pattern(_B11_FAILURE_RECORD_PLAIN).search(block)
+        for block in named_artifact_blocks
     ):
         missing_artifact.append("Named artifact block (plain name)")
     if not exit_criterion_blocks or not any(
-        _B11_FAILURE_RECORD_PLAIN in block for block in exit_criterion_blocks
+        _flex_pattern(_B11_FAILURE_RECORD_PLAIN).search(block)
+        for block in exit_criterion_blocks
     ):
         missing_artifact.append("Exit criterion block (plain name)")
     # WR-12 (01-05) gate half, scoped to the Named artifact block ONLY: the
@@ -856,7 +888,8 @@ def _check_body_text(text: str) -> list[str]:
     # block is what ties the definition to the branch — a slice-wide membership
     # test would pass on the branch's own sentence and assert nothing.
     if not named_artifact_blocks or not any(
-        _B17_NAMED_ARTIFACT_REASON in block and _B12_NOT_FOUND_BRANCH in block
+        _flex_pattern(_B17_NAMED_ARTIFACT_REASON).search(block)
+        and _flex_pattern(_B12_NOT_FOUND_BRANCH).search(block)
         for block in named_artifact_blocks
     ):
         missing_artifact.append("Named artifact block failure reasons")
@@ -879,7 +912,7 @@ def _check_body_text(text: str) -> list[str]:
             f"occurs {len(table_blocks)} time(s) in the Phase 3 slice, expected "
             "exactly 1 — cannot check table contents"
         )
-    elif _B14_TABLE_NOT_FOUND not in table_blocks[0]:
+    elif _flex_pattern(_B14_TABLE_NOT_FOUND).search(table_blocks[0]) is None:
         failures.append(
             "Body-12 (ACT-02/ACT-03, table coverage): provenance table's "
             "`unverified` row is missing the not-found test"
@@ -902,13 +935,13 @@ def _check_rubric_text(text: str) -> list[str]:
 
     # Rubric-2 (ACT-05): the Fix note lead occurs exactly once in the slice and
     # exactly once in the whole file.
-    count_in_slice = crit3.count(_R1_FIX_LEAD)
+    count_in_slice = _count_flex(crit3, _R1_FIX_LEAD)
     if count_in_slice != 1:
         failures.append(
             f"Rubric-2 (ACT-05): Fix note lead occurs {count_in_slice} time(s) in "
             "the Criterion 3 slice, expected exactly 1"
         )
-    count_whole = text.count(_R1_FIX_LEAD)
+    count_whole = _count_flex(text, _R1_FIX_LEAD)
     if count_whole != 1:
         failures.append(
             f"Rubric-2 (ACT-05): Fix note lead occurs {count_whole} time(s) in the "
@@ -918,13 +951,13 @@ def _check_rubric_text(text: str) -> list[str]:
     # Rubric-4 (Pitfall 5, scope discipline): the Fix note must not have been
     # duplicated into a neighbouring criterion.
     crit2 = _slice(text, _CRIT2_START, _CRIT3_START)
-    if crit2 is not None and _R1_FIX_LEAD in crit2:
+    if crit2 is not None and _flex_pattern(_R1_FIX_LEAD).search(crit2):
         failures.append(
             "Rubric-4 (Pitfall 5, scope discipline): Fix note lead found in the "
             "Criterion 2 slice — must be Criterion-3-local"
         )
     crit5 = _slice(text, _CRIT5_START, _CRIT6_START)
-    if crit5 is not None and _R1_FIX_LEAD in crit5:
+    if crit5 is not None and _flex_pattern(_R1_FIX_LEAD).search(crit5):
         failures.append(
             "Rubric-4 (Pitfall 5, scope discipline): Fix note lead found in the "
             "Criterion 5 slice — must be Criterion-3-local"
@@ -948,9 +981,9 @@ def _check_rubric_text(text: str) -> list[str]:
     handwavy = _slice(crit3, _C3_HANDWAVY_START, _C3_ABSENT_START)
     if handwavy is None:
         missing_bands: list[str] = []
-        if _C3_HANDWAVY_START not in crit3:
+        if _flex_pattern(_C3_HANDWAVY_START).search(crit3) is None:
             missing_bands.append("Hand-wavy band lead")
-        if _C3_ABSENT_START not in crit3:
+        if _flex_pattern(_C3_ABSENT_START).search(crit3) is None:
             missing_bands.append("Absent band lead")
         if not missing_bands:
             missing_bands.append("both band leads present but out of order")
@@ -958,7 +991,7 @@ def _check_rubric_text(text: str) -> list[str]:
             "Rubric-7 (ACT-05, band placement): Criterion 3 Hand-wavy band slice "
             f"not found — {', '.join(missing_bands)}"
         )
-    elif _R1_FIX_LEAD not in handwavy:
+    elif _flex_pattern(_R1_FIX_LEAD).search(handwavy) is None:
         failures.append(
             "Rubric-7 (ACT-05, band placement): Fix note is inside Criterion 3 but "
             "not inside its Hand-wavy band"
@@ -985,11 +1018,11 @@ def _check_rubric_text(text: str) -> list[str]:
         # Rubric-3 (ACT-05, both branches and the preference) — paragraph-scoped
         # (CR-02 closure).
         missing: list[str] = []
-        if _R2_ACQUIRE not in fix_note:
+        if _flex_pattern(_R2_ACQUIRE).search(fix_note) is None:
             missing.append("acquire branch")
-        if _R3_DOWNGRADE not in fix_note:
+        if _flex_pattern(_R3_DOWNGRADE).search(fix_note) is None:
             missing.append("downgrade branch")
-        if _R4_PREFERENCE not in fix_note:
+        if _flex_pattern(_R4_PREFERENCE).search(fix_note) is None:
             missing.append("stated preference")
         if missing:
             failures.append(
@@ -1002,9 +1035,9 @@ def _check_rubric_text(text: str) -> list[str]:
         # asserts the definitions; this asserts the pointer). Neither half
         # alone catches a dangling cross-reference.
         missing_pointers: list[str] = []
-        if _R5_STEP_POINTER not in fix_note:
+        if _flex_pattern(_R5_STEP_POINTER).search(fix_note) is None:
             missing_pointers.append("step pointer")
-        if _R5_FAILURE_POINTER not in fix_note:
+        if _flex_pattern(_R5_FAILURE_POINTER).search(fix_note) is None:
             missing_pointers.append("failure-record pointer")
         if missing_pointers:
             failures.append(
@@ -1017,9 +1050,9 @@ def _check_rubric_text(text: str) -> list[str]:
         # precondition and the reason token shared with the body's not-found
         # branch.
         missing_scope: list[str] = []
-        if _R6_DOWNGRADE_SCOPE not in fix_note:
+        if _flex_pattern(_R6_DOWNGRADE_SCOPE).search(fix_note) is None:
             missing_scope.append("downgrade scope")
-        if _R6B_SHARED_REASON not in fix_note:
+        if _flex_pattern(_R6B_SHARED_REASON).search(fix_note) is None:
             missing_scope.append("shared reason token")
         if missing_scope:
             failures.append(
