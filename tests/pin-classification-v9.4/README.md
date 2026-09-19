@@ -1,10 +1,10 @@
 # v9.4 Pin Classification Fixture — Phase 36 (I-1, PRE-1, PRE-2, PRE-3, I-4)
 
-**Captured:** 2026-09-19. **Status:** this file is a frozen investigation record, appended to
-(never rewritten) across plans 36-01 through 36-05. It is deliberately **NOT** yet registered in
-`scripts/check-firewall-battery.sh`'s `_FROZEN_PATHS` array — plan 36-05 adds that registration
-once the content is final, because registering earlier would make `FROZEN-EVIDENCE` fail on every
-later plan's in-flight edit to this same file. Every mutation this file records ran in a detached
+**Captured:** 2026-09-19. **Status:** this file's content is final as of this commit (plan 36-05
+Task 2) — appended to across plans 36-01 through 36-05, never rewritten. Registration in
+`scripts/check-firewall-battery.sh`'s `_FROZEN_PATHS` array follows in plan 36-05 Task 3, once this
+commit lands; registering any earlier would have made `FROZEN-EVIDENCE` fail on every prior plan's
+in-flight edit to this same file. Every mutation this file records ran in a detached
 throwaway git worktree, never in the live tree. It is self-sufficient: every claim cites a commit
 SHA, a command, or output pasted verbatim into this file. Paths under the gitignored `.planning/`
 are named only as supplementary plain text, never as the evidence for a claim — the Phase 44 IN-04
@@ -2172,6 +2172,101 @@ result (zero load-bearing literal conflicts), and the Case C grammar observation
   selection was: "No goalpost moves. Phase 37 must find a change that reaches the item, or the
   switch fires and Phase 38 does not start, which is the switch working as designed."
 
+### (a) The replay set
+
+**Case B and Case C are the kill-switch items.** Case B's frozen diff and before-reading are in
+"### Case B — apparatus-line before-reading" above (PRE-2 before-readings section); Case C's are
+in "### Case C — apparatus-line before-reading" above. **The 999.78 replay is an observation**,
+not a kill-switch input — its frozen diff and before-reading are in "### 999.78 replay —
+definition (D-05)" and "### 999.78 replay — measurement (D-03, D-05, C3 relaxed)" above. It
+becomes the gating item for judging Phase 38 itself (D-05).
+
+### (b) The scoring rule
+
+**Scoring commands, run inside the worktree against its own HEAD**, verbatim (also stated in
+"### Constraints on a minimal apparatus fix" above):
+
+- `git -C <wt> diff --numstat -- scripts/ docs/gates/` — summed insertions + deletions gives the
+  **apparatus lines**.
+- `git -C <wt> diff --numstat -- shared/` — summed insertions + deletions gives the **product
+  lines**.
+
+**Constraints C1-C5** are given in full in "### Constraints on a minimal apparatus fix" above and
+are referenced here by name, not restated: C1 (only `scripts/`/`docs/gates/` count; outside-metric
+lines disclosed separately), C2 (`--self-test` exits 0, control roster unchanged), C3 (every
+originating-defect fixture still `correctly failed`, relaxed only for the 999.78 replay), C4
+(`bash <wt>/scripts/check-firewall-battery.sh` ends `FIREWALL: GREEN (23/23)`), C5 (minimality —
+narrowest candidate first, every candidate recorded with its numstat).
+
+### (c) The before column, under the developer-chosen `measured-minimal` convention
+
+| item | apparatus lines (before) | product lines | ratio | role |
+|---|---|---|---|---|
+| Case B | 18 | 4 | 4.5 | kill switch |
+| Case C | 2 | 2 | 1.0 | kill switch |
+| 999.78 replay | 0 | 26 | 0.0 | observation (gates Phase 38, not a Phase 37 kill-switch input) |
+
+Each figure is the frozen minimal-fix reading from plan 36-04 (`### Case B — apparatus-line
+before-reading`, `### Case C — apparatus-line before-reading`, `### 999.78 replay —
+measurement`), matching the Summary table above exactly, under the convention the developer chose
+in Task 1 (`measured-minimal`).
+
+### (d) The after-measurement procedure, for the end of Phase 37
+
+1. Create a fresh detached worktree at Phase 37's final commit (`git worktree add --detach
+   <scratch>/wt37-after <phase-37-final-sha>`), with the `.venv` symlink so VAL-03 runs fully
+   `PASS` rather than `[PREREQ]`.
+2. `git apply` the byte-identical frozen product diff for the item (Case B's or Case C's diff from
+   the PRE-2 before-readings section above; the 999.78 replay's diff from its own section). If it
+   no longer applies because Phase 37 changed `shared/` (Phase 37 is apparatus work and should
+   not), **stop and record that** rather than re-typing the edit.
+3. Run `python3 scripts/sync-content.py --write`, then `bash <wt>/scripts/check-firewall-battery.sh`.
+4. If the battery is `FIREWALL: GREEN (23/23)` unaided, the after-reading is **0** apparatus
+   lines. Otherwise, author the minimal fix under C1-C5 (narrowest candidate first, every
+   candidate tried recorded with its numstat and which constraint it failed) and record its
+   `git -C <wt> diff --numstat -- scripts/ docs/gates/` reading exactly as plan 36-04 did for the
+   before-readings.
+
+### (e) The rule, verbatim (D-04)
+
+> "strict fall on each of Case B and Case C; Case B must reach zero apparatus lines; if either is
+> flat or worse at the end of Phase 37, STOP — do not start Phase 38"
+
+**No amendment.** Per Task 1's Question 2 answer (`d04-stands`, 2026-09-19), D-04 stands as
+locked for Case C — the item the reachability probe found unreachable by §7.1's two named changes
+alone. The developer declined to amend it; Phase 37 must find a change that reaches Case C, or the
+switch fires as designed.
+
+### (f) D-06
+
+**The 6.8:1 figure stays PRE-2 as pre-registered at `c571ccf` and is not re-derived here.** The
+replay set (Case B, Case C, and the 999.78 observation) is a **measurement protocol** for "has it
+moved" between this phase's readings and Phase 37's/Phase 38's later readings of the same frozen
+diffs — it is not a replacement baseline for the 6.8:1 figure.
+
+### (g) The 999.78 replay
+
+**Measured by the same procedure at the end of Phase 37 and again when Phase 38 is judged; never a
+Phase 37 kill-switch input (D-05).** The same frozen replay diff (`### 999.78 replay —
+definition`) is applied identically both times. Its Phase 36 before-reading is 0 apparatus lines /
+26 product lines / ratio 0.0 — recorded above as a measurement of the current HARN-03 partition's
+reach for the three routed stubs, not as evidence the item is already at target (see "### 999.78
+replay — scope rules" above).
+
+### (h) Known conflicts carried into Phase 37, with the developer's disposition
+
+- **Case C — unreachable by §7.1's two named changes alone (I-1 finding + reachability probe).**
+  The reachability probe (`### Reachability probe` above) found Case C's `(a)` control
+  byte-identical under baseline and S1-scoped — whitespace-flexible matching plus section scope do
+  not absorb a changed word. **Disposition (Task 1, Question 2, `d04-stands`):** D-04 stands as
+  locked; no amendment. Phase 37 must reach Case C by a further change (e.g. a grammar-invariant
+  anchoring span, or a later §7.2-style derivation) or the kill switch fires on Case C at the end
+  of Phase 37.
+- **Case B — no conflict.** The I-1 finding's Case B compatibility test (`## I-1 — finding` (c)
+  above) found zero body-side load-bearing literals present in Case B's moved text, and the
+  reachability probe confirmed Case B reaches zero failures under S1 alone. Case B is reachable by
+  §7.1's two named changes with no load-bearing conflict to resolve first.
+
 ## I-4 — HARN-03 sampling tally
 
 **C7-class definition:** a HARN-03 FAIL on a tree where no `shared/skills/` stub differs from
@@ -2223,10 +2318,73 @@ by name, and is the central finding of the 999.78 replay's own measurement above
 HARN-03 partition asserts nothing for the three routed stubs, so a deliberately-reintroduced defect
 there produces an honest, unforced PASS, not a masked one).
 
+**Closing tally.** Direct count over the 30 rows above: **11 total battery runs** (rows 1, 5, 7, 8,
+12, 17, 19, 22, 24, 26, 29 — the only rows whose command is `bash scripts/check-firewall-battery.sh`),
+**0 HARN-03 FAILs** across all 11 (every one reads `[PASS] HARN-03 check-focused-parity.py
+--self-test`), so **0 C7-class HARN-03 FAILs**, and **19 total non-battery self-test and harness
+runs** (the remaining rows: 2, 3, 4, 6, 9, 10, 11, 13, 14, 15, 16, 18, 20, 21, 23, 25, 27, 28, 30 —
+`check-version-stamps.py`, `check-act-limb.py --self-test`, `pin_harness.py mode-a`, and
+`check-focused-parity.py --self-test` invocations, none of which is a full-battery run and none of
+which carries a HARN-03 signal).
+
+**C7 recurred 0/11.** **Null result: C7 did not recur in 11 battery runs; this is recorded, not a
+failure.** The post-registration phase-close battery run in plan 36-05's Task 3 is recorded in the
+plan summary (`36-05-SUMMARY.md`), not in this file, because this file is frozen by then.
+
 ## Finding
 
-*(pending — plan 36-05)*
+**PRE-3** (source: "## PRE-3 — pin census before-reading (D-01)"). The census stays pre-registered
+at **223 @ `c571ccf`** and is not re-derived; Phase 36 recorded **225 @ HEAD** as its own
+before-reading. The +2 drift is two heading-shaped literals, `'Criterion 1: Identify Essence'` and
+`'Criterion 2: Challenge Assumptions'`, both introduced into the census by commit `3c0fed0`
+(`fix(34): WR-02 re-tier RIGOR-01/02/08 audit-only; heading presence re-reads no section content`)
+in `scripts/check-traceability.py` — not `check-quality-harness.py`, correcting D-01's own holder
+attribution.
+
+**PRE-1** (source: "## PRE-1 — Cases B and C at HEAD (D-02)"). Both cases reproduce their
+analysis-recorded failure at HEAD, character-for-character. Case B fails **Body-8** (`T-01-01,
+injection containment`); Case C fails **Body-5** (`ACT-04, the bound`). In both cases HARN-01 is
+the only battery gate that moves against the unmutated baseline.
+
+**I-1** (source: "## I-1 — finding"). Unit hierarchy: 16 call sites → 5 live scopes → 12 named
+checks + 3 structural guards → **36 sub-assertion rows**, of which **25 are incidental (69%)** and
+**11 are load-bearing (31%)** — 4 class (i), 7 class (ii). The pivot §4 hypothesis ("most will be
+incidental") is confirmed as stated: most of this gate's paragraph-scoping is a byproduct of the
+M3 mechanism's whole-slice-vs-block choice, not a considered adjacency decision, though §7.1's
+conversion still carries a 31% residual it cannot simply widen away.
+
+**PRE-2** (source: "## PRE-2 — kill-switch protocol (D-03..D-06)", parts (c) and (e)). Under the
+developer-chosen `measured-minimal` convention, the before-readings are Case B 18 apparatus / 4
+product lines (ratio 4.5) and Case C 2 apparatus / 2 product lines (ratio 1.0); the 999.78 replay
+is 0 apparatus / 26 product lines (ratio 0.0, observation only). The rule, verbatim (D-04): "strict
+fall on each of Case B and Case C; Case B must reach zero apparatus lines; if either is flat or
+worse at the end of Phase 37, STOP — do not start Phase 38." No amendment — D-04 stands as locked
+for Case C per the developer's Task 1 Question 2 answer (`d04-stands`).
+
+**I-4** (source: "## I-4 — HARN-03 sampling tally", closing tally). **C7 recurred 0/11** across 11
+full battery runs and 19 further non-battery self-test/harness runs spanning all five plans of this
+phase — a null result, not a gap.
+
+**What Phase 37 receives.** The "## I-1 — primary rows" / "## I-1 — follower rows" table is both
+§7.1's conversion specification (which sites may widen to section scope, and which must keep
+adjacency) and its §7.3 evidence section. Case B and Case C's frozen diffs (PRE-1 section) are the
+permanent regression tests Phase 37 promotes (D-02). The pre-registered PRE-2 protocol above
+("## PRE-2 — kill-switch protocol") — the replay set, the scoring rule, the before-readings, the
+after-measurement procedure, and the D-04 rule with its no-amendment disposition for Case C — is
+Phase 37's gate.
 
 ## Frozen-evidence discipline
 
-*(pending — plan 36-05)*
+Once plan 36-05 registers `tests/pin-classification-v9.4` in `scripts/check-firewall-battery.sh`'s
+`_FROZEN_PATHS` array (Task 3, below), this file (and any sibling file placed in
+`tests/pin-classification-v9.4/`) is committed as-is and never regenerated or silently hand-edited
+to match a later result. A correction to something already committed here is recorded as a dated,
+additive erratum appended below the point of error — following the pattern
+`tests/exemplar-rederivation-v9.4/README.md`'s own "## Erratum" sections use — never as a rewrite
+of the original text.
+
+`FROZEN-EVIDENCE`'s protection has a documented gap, carried forward from that same precedent: it
+is a `git diff --quiet HEAD` over the registered pathspec plus a separate untracked-files sweep. It
+catches an edit to a file already tracked at HEAD, and it catches an untracked file appearing
+inside the directory — but a committed `git rm` of one of these files passes it clean. It is
+tamper-evidence for modification, not a deletion guard.
