@@ -970,3 +970,222 @@ recorded, not a failure.**
 `name: validation`): **21 gate/gate_prereq IDs, 19 CI job keys** — both unchanged from this
 plan's start. No new registered gate was added; the new `bw`/`bx` controls live inside HARN-01's
 existing `--self-test`, per PRE-1's own design (no new gate).
+
+## PRE-2 — after-reading (measurement SHA 53c0005f368368799954117fa553a176ed24cb59)
+
+**Plan 37-06, Task 1.** Measurement SHA: `git rev-parse HEAD` at the start of this plan reads
+`53c0005f368368799954117fa553a176ed24cb59`. This equals the SHA plan 37-05 named as "the last
+Phase 37 commit that may change any gate's behaviour" (`37-05-SUMMARY.md`, Next Phase Readiness).
+No commit intervenes. No developer checkpoint precedes any reading below — every reading is taken
+and recorded before any verdict is drawn.
+
+**Procedure, per protocol (d) exactly, one fresh detached worktree per item**
+(`git worktree add --detach <scratch>/wt37-after-<item> 53c0005`, `.venv`-symlinked): extract the
+canonical fenced diff byte-exact into the scratchpad (never retyped), `git apply --check`, if OK
+`git apply` then `python3 scripts/sync-content.py --write`, then
+`bash <wt>/scripts/check-firewall-battery.sh`. If RED, author the minimal fix under C1-C5 in the
+worktree only, re-run, remove the worktree.
+
+### Case B
+
+- **`git apply --check`** (canonical diff, Erratum 2 Item 2, `tests/pin-classification-v9.4/README.md:2576-2590`): `OK` (empty output, exit 0).
+- **Applied.** `git -C <wt> diff --numstat -- shared/`: `3	1	shared/spine/SKILL-body.md` = **4 product lines**, matching the before-reading's product count exactly.
+- **Post-sync emitted-twin sha256** (`first-principles/agents/first-principles.md`):
+  `a931ac9a64b751cce2b10a355d826a4e976f21be88d4496bcf7e873298274ef1` — byte-identical to PRE-1's
+  and PRE-2's own recorded target for Case B, confirming this worktree reproduces the exact
+  pre-registered mutation, not an approximation.
+- **Battery, unaided (candidate 0 — no apparatus change):**
+  ```
+  [FAIL] HARN-01         check-act-limb.py --self-test
+  FIREWALL: RED (1 gate(s) failed; 22/23 passed)
+  ```
+  `python3 scripts/check-act-limb.py --self-test` raises before printing a verdict line:
+  ```
+  Traceback (most recent call last):
+    ...
+    File ".../scripts/check-act-limb.py", line 1937, in _run_self_test
+      bw_failures = _check_body_text(_apply_case_b_split(real_body))
+    File ".../scripts/check-act-limb.py", line 1254, in _apply_case_b_split
+      raise AssertionError(
+          "no '. ' found after _B5_NO_FALLBACK's occurrence while building fixture (bw)"
+      )
+  AssertionError: no '. ' found after _B5_NO_FALLBACK's occurrence while building fixture (bw)
+  ```
+  **Root cause, read from the live worktree text.** Once Case B's product diff is genuinely
+  applied (not merely held as an in-memory mutation, as PRE-1's own `(bw)` control does), the step
+  block already ends immediately after `_B5_NO_FALLBACK`'s own sentence — the paragraph break the
+  product edit inserts. `(bw)`'s fixture-builder (`_apply_case_b_split`, `scripts/check-act-limb.py:1219`)
+  re-derives a fresh split from `real_body` by searching for `". "` *inside the same block* after
+  that anchor; once the block already ends there (because the split has already happened for
+  real), no further `". "` exists in that block and the builder raises rather than treating the
+  already-split state as already satisfying the property `(bw)` exists to test. This is a genuine
+  interaction this after-reading is designed to surface: `(bw)` was proved byte-equivalent
+  in-memory (plan 37-05) against the *unsplit* real body; this is the first time the actual product
+  edit has been landed on top of it.
+  This gate is the only one that moves against the unmutated worktree baseline (all 22 others
+  PASS, including `HARN-03`).
+- **Candidates tried (C5):**
+
+  | # | Description | numstat (scripts/) | Result |
+  |---|---|---|---|
+  | 1 | No apparatus change (candidate 0) | 0 | **Fails C4** — `FIREWALL: RED`, `(bw)`'s fixture-builder raises before any verdict line, per the traceback above |
+  | 2 | `_apply_case_b_split`: when no `". "` follows `_B5_NO_FALLBACK`'s match inside the step block (i.e., the split has already landed in `real_body`), return `real_body` unchanged instead of raising — the narrowest single-branch change that treats an already-satisfied precondition as already-satisfied rather than as an error | 1 ins / 3 del = **4** | **Satisfies C1-C4** — chosen, no narrower candidate found (a call-site `try`/`except AssertionError` wrapper at the `bw_failures = ...` call, considered and rejected, costs 1 del / 4 ins = 5, strictly larger) |
+
+  **Chosen fix** (`git -C <wt> diff -- scripts/`):
+  ```diff
+  diff --git i/scripts/check-act-limb.py w/scripts/check-act-limb.py
+  index 3b42611..172017f 100644
+  --- i/scripts/check-act-limb.py
+  +++ w/scripts/check-act-limb.py
+  @@ -1251,9 +1251,7 @@ def _apply_case_b_split(real_body: str) -> str:
+           )
+       dot_space_idx = step_block.find(". ", match.end())
+       if dot_space_idx == -1:
+  -        raise AssertionError(
+  -            "no '. ' found after _B5_NO_FALLBACK's occurrence while building fixture (bw)"
+  -        )
+  +        return real_body
+       target = step_block[match.start() : dot_space_idx + 2]
+       replacement = step_block[match.start() : dot_space_idx + 1] + "\n\n"
+       return _mutate_body_substituting_in_block(real_body, _B1_STEP_LEAD, target, replacement)
+  ```
+  - **C1** (outside-metric lines): `git -C <wt> diff --numstat -- . ':!shared' ':!scripts' ':!docs/gates' ':!first-principles'` — empty. No `docs/gates/HARN-01.md` change needed (control roster and `describe()` counts are unchanged — the fix edits a helper's control-flow, not the roster).
+  - **C2** (`--self-test` exits 0, roster unchanged): `control roster/executed floor: PASS — 80 controls executed, all registered in _CONTROL_IDS`; `(describe) describe()-consistency: PASS (16 branches, 80 controls)`; `check-act-limb --self-test: PASS`.
+  - **C3** (originating-defect fixture still correctly failed): `(a) positive control — body: PASS (0 failures)`; `(bw) positive control — Case B: PASS (0 failures)`; `(bx) positive control — Case C: PASS (0 failures)`; `(g) correctly failed (1 failure(s))` — Body-8's own negative control (the original before-reading's defect) still fires correctly.
+  - **C4** (full battery): `FIREWALL: GREEN (23/23)`.
+  - **Apparatus lines: 1 ins + 3 del = 4. Product lines: 3 ins + 1 del = 4. Ratio (apparatus/product): 4/4 = 1.0.**
+- **Worktree removed** (`git worktree remove --force`); the fix exists only in the removed
+  worktree, never committed or left in the live tree (confirmed: `git status --porcelain --
+  shared/ first-principles/ scripts/ docs/` empty in the live repo after removal).
+
+### Case C
+
+- **`git apply --check`** (canonical diff, Erratum 2 Item 2, `tests/pin-classification-v9.4/README.md:2596-2608`): `OK` (empty output, exit 0).
+- **Applied.** `git -C <wt> diff --numstat -- shared/`: `1	1	shared/spine/SKILL-body.md` = **2 product lines**, matching the before-reading's product count exactly.
+- **Post-sync emitted-twin sha256:** `8a3aef5d54a5f9d003a2cf35c8302a9580494521dd6c443a87da6e4ad61d19f3` — byte-identical to PRE-1's/PRE-2's own recorded target for Case C.
+- **Battery, unaided (candidate 0 — no apparatus change):**
+  ```
+  FIREWALL: GREEN (23/23)
+  ```
+  `python3 scripts/check-act-limb.py --self-test` (run first, before the battery): `check-act-limb --self-test: PASS`; `(a) positive control — body: PASS (0 failures)`; `(bw) positive control — Case B: PASS (0 failures)`; `(bx) positive control — Case C: PASS (0 failures)`; `(e) correctly failed (1 failure(s))` — Body-5's own negative control (the original before-reading's defect) still fires correctly, unaided. This is the direct, expected consequence of the D-01 trim (plan 37-04, `_B4_EXCLUSION`: `"do not earn a read"` → `"not earn a read"`) plus the PRE-1 `(bx)` control (plan 37-05) already having proved this exact mutated body passes with 0 failures — landing the real product edit changes nothing further because the checker's own literal no longer contains the changed word.
+- **No candidate needed — GREEN unaided.** Per protocol (d) step 4, the after-reading is **0** apparatus lines with no fix authored.
+- **Apparatus lines: 0. Product lines: 1 ins + 1 del = 2. Ratio: 0/2 = 0.0.**
+- **Worktree removed**, confirmed clean.
+
+### HO-1, HO-2, HO-3 (D-02 held-outs — observations only)
+
+- **`git apply --check`, all three** (extracted byte-exact from `tests/pin-conversion-v9.4/README.md`'s own "## D-02 — held-out edits" section, this file, lines 209-218 / 275-286 / 337-349 respectively, 2-space list-item indent stripped, never retyped):
+  ```
+  HO-1: error: corrupt patch at <scratch>/HO1.diff:11
+  HO-2: error: corrupt patch at <scratch>/HO2.diff:13
+  HO-3: error: corrupt patch at <scratch>/HO3.diff:14
+  ```
+  All three exit 128. **Not applicable — stop per protocol (d)2 for each of the three.** Per the
+  plan's own interfaces block ("Never re-type an edit"), no fix was attempted and no worktree was
+  built for these three items.
+- **Root cause, read directly from the fenced blocks.** Each of the three D-02 diff blocks carries
+  a hunk header claiming more old/new lines than the fenced body actually contains after the
+  closing fence (e.g. HO-1's `@@ -351,7 +351,7 @@` claims 7 old / 7 new lines; the fenced body
+  contains 3 context + 1 removed + 1 added = 5) — the identical WR-02-shaped transcription defect
+  Erratum 2 Item 2 found and corrected for the Phase 36 fixture's PRE-1/PRE-2 Case B/C diffs (a
+  dropped trailing context line, silently accepted by `git apply --check`'s own declared-count
+  trust when the diff *does* apply, but rejected outright as `corrupt patch` when it does not
+  cross-validate against the file's own trailing content). This defect is disclosed here as found,
+  in the plan 37-02 fixture's own D-02 diffs, and is not corrected in place — per this file's own
+  append-only discipline, a correction would be a dated erratum in a future plan, not a rewrite.
+  D-02's held-outs are observations, never a kill-switch input (D-02), so this finding does not
+  change PRE-2's verdict below.
+- **Role:** observation (D-02). **Before:** n/a — pre-conversion observation recorded in the
+  "## D-02 — held-out edits" section above. **After: not applicable (diff transcription defect,
+  stop per protocol (d)2).**
+
+### 999.78 replay (observation only, D-05)
+
+- **`git apply --check`** (frozen diff, `tests/pin-classification-v9.4/README.md:2009-2058`): `OK` (empty output, exit 0).
+- **Applied.** `git -C <wt> diff --numstat -- shared/`:
+  ```
+  3	5	shared/skills/identify-essence/SKILL.md
+  3	5	shared/skills/reason-upward/SKILL.md
+  3	7	shared/skills/validate/SKILL.md
+  ```
+  Sum = 8+8+10 = **26 product lines**, matching the frozen before-reading exactly.
+- **Battery, unaided (candidate 0 — no apparatus change):**
+  ```
+  FIREWALL: GREEN (23/23)
+  ```
+  Confirms Phase 36's own finding continues to hold at Phase 37's close: the current HARN-03
+  partition still asserts nothing for the three routed stubs' own routing clause, so
+  re-introducing the pre-fix uniform tail still produces an honest, unforced `GREEN`, not a masked
+  one. No apparatus fix authored or needed; C3's relaxation for this item is not exercised (there
+  is nothing to re-pin).
+- **Apparatus lines: 0. Product lines: 26. Ratio: 0/26 = 0.0.** Identical to the Phase 36
+  before-reading (0/26/0.0) — flat, but this item is an observation, never a kill-switch input
+  (D-05), so flatness here does not fire D-04.
+- **Worktree removed**, confirmed clean.
+
+### After-column table
+
+| item | apparatus lines (before) | apparatus lines (after) | product lines | ratio after | role |
+|---|---|---|---|---|---|
+| Case B | 4 | **4** | 4 | **1.0** | kill switch |
+| Case C | 2 | **0** | 2 | **0.0** | kill switch |
+| HO-1 | n/a — pre-conversion observation recorded in D-02 section | not applicable (protocol (d)2 — diff transcription defect) | n/a | n/a | observation (D-02) |
+| HO-2 | n/a — pre-conversion observation recorded in D-02 section | not applicable (protocol (d)2 — diff transcription defect) | n/a | n/a | observation (D-02) |
+| HO-3 | n/a — pre-conversion observation recorded in D-02 section | not applicable (protocol (d)2 — diff transcription defect) | n/a | n/a | observation (D-02) |
+| 999.78 replay | 0 | **0** | 26 | **0.0** | observation (D-05) |
+
+### The rule, quoted verbatim, and its mechanical application
+
+> "strict fall on each of Case B and Case C; Case B must reach zero apparatus lines; if either is
+> flat or worse at the end of Phase 37, STOP — do not start Phase 38"
+
+**Case B clauses:** after < 4 AND after == 0. Measured after = **4**. `4 < 4` is **false**; `4 == 0`
+is **false**. **Both clauses fail — flat, not a fall (4 → 4), and not zero.**
+
+**Case C clause:** after < 2. Measured after = **0**. `0 < 2` is **true**. **Clause satisfied.**
+
+Since a GO verdict requires Case B after == 0 AND Case C after < 2, and Case B's after-reading is
+4 (not 0), the arithmetic is: **GO requires (4 == 0) AND (0 < 2) → False AND True → False.**
+
+**Verdict: STOP — do not start Phase 38.**
+
+The firing clause is Case B's: `4 < 4` is false and `4 == 0` is false, so Case B is flat against
+its own before-reading and does not reach zero. Case C's clause is independently satisfied
+(`0 < 2` is true) — Case C alone would have produced a GO reading, and the D-04 dispute this plan's
+CONTEXT.md recorded (whether Case C is reachable at all) is resolved in the affirmative: `(bx)`
+ships as a passing control (plan 37-05) and the after-reading confirms it holds under the real
+product edit too, with zero apparatus cost. **The STOP is fired by a different, newly-surfaced
+apparatus cost on Case B — not by the Case C reachability question D-04 was originally written to
+gate.** Landing PRE-1's own `(bw)` permanent regression control (plan 37-05) introduced a
+dependency that the actual, once-landed Case B product edit itself breaks: `(bw)`'s
+fixture-builder assumes it is always splicing an as-yet-unsplit body, and raises rather than
+recognizing an already-satisfied precondition once the split is genuinely in the tree. This is
+recorded as found, per D-04's "no rescue after it" — no attempt was made to argue the 4-line fix
+should not count, to change the scoring rule, or to exempt `(bw)` from C1-C5.
+
+The HARN-01 conversion ships regardless of this verdict (D-04); it is truthful REACH under
+`docs/PROCESS.md` §1.1.
+
+### I-4 — HARN-03 sampling tally (continued, plan 37-06 Task 1)
+
+Continuing the tally opened in plan 37-02 and continued in plans 37-03/37-04/37-05. Same C7-class
+definition (a HARN-03 FAIL on a tree where no `shared/skills/` stub differs from HEAD; the 999.78
+replay's stub edits are excluded from C7-class by this same definition).
+
+| run # | plan | tree | command | verdict line | HARN-03 line | C7-class? |
+|---|---|---|---|---|---|---|
+| 17 | 37-06 | worktree@`wt37-after-caseB`@`53c0005`, Case B product diff applied, no apparatus fix | `bash scripts/check-firewall-battery.sh` | `FIREWALL: RED (1 gate(s) failed; 22/23 passed)` | `[PASS] HARN-03 check-focused-parity.py --self-test` | no (PASS — HARN-01 is the only fail) |
+| 18 | 37-06 | worktree@`wt37-after-caseB`, Case B product diff, `(bw)`-builder crash | `python3 scripts/check-act-limb.py --self-test` | unhandled `AssertionError` in `_apply_case_b_split` | n/a (not a battery run) | no |
+| 19 | 37-06 | worktree@`wt37-after-caseB`, Case B product diff + apparatus candidate 2 (chosen fix) | `python3 scripts/check-act-limb.py --self-test` | `check-act-limb --self-test: PASS` | n/a (not a battery run) | no |
+| 20 | 37-06 | worktree@`wt37-after-caseB`, Case B product diff + chosen fix | `bash scripts/check-firewall-battery.sh` | `FIREWALL: GREEN (23/23)` | `[PASS] HARN-03 check-focused-parity.py --self-test` | no (PASS) |
+| 21 | 37-06 | worktree@`wt37-after-caseC`@`53c0005`, Case C product diff applied | `python3 scripts/check-act-limb.py --self-test` | `check-act-limb --self-test: PASS` | n/a (not a battery run) | no |
+| 22 | 37-06 | worktree@`wt37-after-caseC`, Case C product diff applied | `bash scripts/check-firewall-battery.sh` | `FIREWALL: GREEN (23/23)` | `[PASS] HARN-03 check-focused-parity.py --self-test` | no (PASS) |
+| 23 | 37-06 | worktree@`wt37-after-r778`@`53c0005`, 999.78 replay diff applied | `bash scripts/check-firewall-battery.sh` | `FIREWALL: GREEN (23/23)` | `[PASS] HARN-03 check-focused-parity.py --self-test` | no — stubs deliberately edited (999.78's own definition excludes it from C7-class, per row 29 of the Phase 36 tally) |
+
+**Closing tally, this task.** **4 total battery runs** (rows 17, 20, 22, 23), **0 HARN-03 FAILs**
+across all 4, so **0 C7-class HARN-03 FAILs this task**, and **3 further non-battery self-test
+runs** (rows 18, 19, 21), none a full-battery run. **Running total across plans 37-02 through
+37-06 Task 1: 11 battery runs, 0 C7-class HARN-03 FAILs.**
+
+**Null result continues: C7 did not recur in 11 battery runs across this phase so far; this is
+recorded, not a failure.**
