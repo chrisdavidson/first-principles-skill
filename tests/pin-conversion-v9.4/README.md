@@ -954,3 +954,19 @@ definition (a HARN-03 FAIL on a tree where no `shared/skills/` stub differs from
 | run # | plan | tree | command | verdict line | HARN-03 line | C7-class? |
 |---|---|---|---|---|---|---|
 | 15 | 37-05 | live tree @ this plan's Task 1 commit (`bw`/`bx` landed) | `python3 scripts/check-act-limb.py --self-test` | `check-act-limb --self-test: PASS` | n/a (not a battery run) | no |
+| 16 | 37-05 | live tree @ `fe66ca328b793476ca716e0ad8d8b708c1e40d35` (Task 1 commit, `bw`/`bx` + regenerated gate docs) | `bash scripts/check-firewall-battery.sh` | `FIREWALL: GREEN (23/23)` | `[PASS] HARN-03 check-focused-parity.py --self-test` | no (PASS) |
+
+**Closing tally, this plan.** **1 further battery run** (row 16), **0 HARN-03 FAILs**, so **0
+C7-class HARN-03 FAILs this plan**, and **1 further non-battery self-test run** (row 15), not a
+full-battery run. **Running total across plans 37-02 through 37-05: 7 battery runs, 0 C7-class
+HARN-03 FAILs.**
+
+**Null result continues: C7 did not recur in 7 battery runs across this phase so far; this is
+recorded, not a failure.**
+
+**Standing-instruction-2 direct count, this plan's final state** (`/usr/bin/grep -c` over
+`scripts/check-firewall-battery.sh`'s own `gate`/`gate_prereq` call sites, unique by name, and
+`.github/workflows/validation.yml`'s per-job `name:` lines, excluding the workflow's own top-level
+`name: validation`): **21 gate/gate_prereq IDs, 19 CI job keys** — both unchanged from this
+plan's start. No new registered gate was added; the new `bw`/`bx` controls live inside HARN-01's
+existing `--self-test`, per PRE-1's own design (no new gate).
