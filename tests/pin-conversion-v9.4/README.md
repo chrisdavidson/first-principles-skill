@@ -378,6 +378,9 @@ wording, never a change to which fact, branch, or instrument the sentence names.
 These three held-outs are observations beside Cases B and C, scored at phase end by PRE-2 (b)'s
 rule using the same procedure; they are not kill-switch inputs and D-04 is not amended (D-02).
 
+**Held-out freeze commit:** `4efbccffd3f6afa8a3c95d994b86bb9ae9e36c61` — committed before any
+HARN-01 literal was trimmed; plan 37-04 trims only after this commit.
+
 ## I-4 — HARN-03 sampling tally
 
 **C7-class definition:** a HARN-03 FAIL on a tree where no `shared/skills/` stub differs from
