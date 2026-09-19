@@ -1322,3 +1322,20 @@ block-scoped, per the table's own before-state and the I-1 primary table's row c
 33 sub-assertion rows converted to section scope; 12 stayed block-scoped (11 load-bearing plus the
 1 outside-block-rule keep, Body-5's population intent); the 3 structural guards are unconverted
 regardless of scope, per Claude's Discretion.**
+
+## Frozen-evidence discipline (closing, plan 37-06)
+
+**This file's content is now final.** Registration in `scripts/check-firewall-battery.sh`'s
+`_FROZEN_PATHS` array follows this commit, per the "## Frozen-evidence discipline" section above
+(plan 37-02) — that section's own forward-looking wording ("once plan 37-06 registers...") now
+applies: once registered, this file (and any sibling file placed in `tests/pin-conversion-v9.4/`)
+is never regenerated or silently hand-edited to match a later result. A correction to something
+already committed here is recorded as a dated, additive erratum appended below the point of error,
+never as a rewrite of the original text — the `tests/pin-classification-v9.4/README.md` pattern,
+carried forward unchanged.
+
+`FROZEN-EVIDENCE`'s protection has the same documented gap as its analog: it is a `git diff
+--quiet HEAD` over the registered pathspec plus a separate untracked-files sweep. It catches an
+edit to a file already tracked at HEAD, and it catches an untracked file appearing inside the
+directory — but a committed `git rm` of one of these files passes it clean. It is tamper-evidence
+for modification, not a deletion guard.
