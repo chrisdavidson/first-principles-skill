@@ -143,7 +143,10 @@ _B16_IMPERATIVE = "attempt to open the cited source directly"
 # PASS on a step that instructed the opposite of what it was added to require.
 # Anchoring the literal catches THAT inversion and no other; the module
 # docstring's "What this gate does not assert" section states the residual.
-_B4_EXCLUSION = "do not earn a read"  # ACT-04: the exclusion clause (the other half of the bound)
+_B4_EXCLUSION = "not earn a read"  # ACT-04: the exclusion clause (the other half of the bound).
+# D-01 trim (37-04): the smallest span carrying this property, with the edge
+# auxiliary "do" dropped (docs/v9.4-source-literal-pin-relaxation.md §2 Item 3;
+# tests/pin-conversion-v9.4/README.md "## D-01" row 20, "## D-03" outcome).
 _B5_NO_FALLBACK = "no silent fallback to an unmarked ground truth"  # ACT-03: the failure path
 _B6B_ASSIGNMENT = (
     "mark that ground truth `?`"
@@ -219,10 +222,13 @@ _B15_FAILURE_RECORD_EXCLUSION = (
 # every future pass forever — including the unreachable branch, whose source
 # was never "opened" and so was never excluded at all before 01-05.
 _B12C_NOT_FOUND_STATE = (
-    "has been opened — by this step or earlier in this analysis "
+    "been opened — by this step or earlier in this analysis "
     "— and the asserted figure or wording was not located in it"
-)  # CR-01 (01-05): the not-found branch's STATE-keyed trigger. The pre-05
-# trigger fired on an act this step performed in this pass, so it could only
+)  # CR-01 (01-05): the not-found branch's STATE-keyed trigger. D-01 trim
+# (37-04): the edge auxiliary "has" dropped
+# (docs/v9.4-source-literal-pin-relaxation.md §2 Item 3;
+# tests/pin-conversion-v9.4/README.md "## D-01" row 37, "## D-03" outcome).
+# The pre-05 trigger fired on an act this step performed in this pass, so it could only
 # ever reach ground truths that act reached; keyed on the citation's state it
 # covers every history that produced that state (Phase 2's `Verify, or flag as
 # unverified` treatment, an earlier Phase 3 pass, a read earned but not
