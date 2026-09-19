@@ -421,3 +421,96 @@ is a `git diff --quiet HEAD` over the registered pathspec plus a separate untrac
 catches an edit to a file already tracked at HEAD, and it catches an untracked file appearing
 inside the directory — but a committed `git rm` of one of these files passes it clean. It is
 tamper-evidence for modification, not a deletion guard.
+
+## Section-scope conversion table (measured before conversion)
+
+**Plan 37-03, Task 2 Step A.** Measured at HEAD `c009f415dea8186b7d2e860bec0a4fcf111225ef` (plan
+37-03's own Task 1 commit — flex matching landed, no scope variable changed yet). All 17 version
+stamps read `9.3.3` (`check-version-stamps: PASS`). Measurement helper: a scratchpad-only Python
+script (never committed) that `importlib`-loads `scripts/check-act-limb.py` read-only, extracts the
+live `phase3`/`crit3` slices and the five named blocks (`para`, `named_artifact`,
+`exit_criterion`, `table_block`, `fix_note`) via the module's own `_slice`/`_paragraph_containing`,
+and applies the module's own (now-flex) `_count_flex` to every literal named below — the identical
+matcher the converted checker will use, not a re-implementation.
+
+**The rule applied, verbatim from the record** (`docs/v9.4-source-literal-pin-relaxation.md` §2
+Item 2): each incidental sub-assertion converts from block scope to section scope only if every
+literal it tests has zero occurrences, flex-counted, in the section outside its own block on the
+live emitted tree. Otherwise it keeps block scope, and the row, the count, and the control whose
+I-2 it would lose are recorded. The 11 load-bearing rows (Body-6 not-found branch; both Body-7
+labels; Body-11's two plain-name tests; Body-12's table-block guard; Rubric-3's three
+sub-assertions; both Rubric-5 sub-assertions) keep block scope unconditionally, per Claude's
+Discretion, regardless of their own outside count.
+
+36 rows total: 33 sub-assertions (matching `tests/pin-classification-v9.4/README.md`'s I-1 primary
+table) plus the 3 structural block-count guards, which carry no literal of their own (`constant`
+column reads `none`) and are never converted — Claude's Discretion states the guards stay as-is
+whenever the block they guard stays block-scoped, and all three still guard at least one
+load-bearing or kept row in this phase's own conversion.
+
+| row | check ID | constant | section | block | outside | load-bearing? | converts? | reason if kept |
+|---|---|---|---|---|---|---|---|---|
+| tools | Body-4 | `_B3_TOOLS` (Read / Grep / WebFetch) | 1 / 1 / 1 | 1 / 1 / 1 | 0 / 0 / 0 | no | **yes** | — |
+| operative imperative | Body-4 | `_B16_IMPERATIVE` | 1 | 1 | 0 | no | **yes** | — |
+| population intent | Body-5 | `_B2_POPULATION_INTENT` | 2 | 1 | **1** | no | **no** | outside > 0 — converting would make Body-9 fire instead of Body-5 when the intent token is stripped, losing Body-5's own I-2 (control d). Departs from CONTEXT.md's "block-only on load-bearing rows"; named in the record §2 Item 2 as the known instance. |
+| population action | Body-5 | `_B2_POPULATION_ACTION` | 1 | 1 | 0 | no | **yes** | — |
+| exclusion clause | Body-5 | `_B4_EXCLUSION` | 1 | 1 | 0 | no | **yes** | — |
+| inclusive clause | Body-5 | `_B5B_INCLUSIVE` | 1 | 1 | 0 | no | **yes** | — |
+| failure-record exclusion | Body-5 | `_B15_FAILURE_RECORD_EXCLUSION` | 1 | 1 | 0 | no | **yes** | — |
+| divergent predicate | Body-13 | `_B13_STALE_GATES` (absence test) | `"has not yet opened"`=0, `"has already opened"`=0 | n/a | n/a | no | **yes** | section count is 0 for both stale gates — converts per the plan's own absence-test rule |
+| exclusion predicate | Body-13 | `_B13_EXCLUSION_GATE` | 1 | 1 | 0 | no | **yes** | — |
+| population predicate | Body-13 | `_B13_POPULATION_GATE` | 1 | 1 | 0 | no | **yes** | — |
+| shared predicate token | Body-13 | `_B13_SHARED_PREDICATE` (count ≥ 2) | 2 | 2 | 0 | no | **yes** | section count equals block count — converts per the plan's own count-based rule |
+| no-fallback clause | Body-6 | `_B5_NO_FALLBACK` | 1 | 1 | 0 | no | **yes** | — |
+| unreachable assignment verb | Body-6 | `_B6B_ASSIGNMENT` | 1 | 1 | 0 | no | **yes** | — |
+| not-found branch | Body-6 | `_B12_NOT_FOUND_BRANCH` | 2 | 1 | **1** | **yes** | **no** | load-bearing (11-row list) — kept block-scoped per Claude's Discretion |
+| not-found assignment verb | Body-6 | `_B12B_NOT_FOUND_ASSIGN` | 1 | 1 | 0 | no | **yes** | — |
+| not-found state trigger | Body-6 | `_B12C_NOT_FOUND_STATE` | 1 | 1 | 0 | no | **yes** | — |
+| record-once | Body-6 | `_B12D_RECORD_ONCE` | 1 | 1 | 0 | no | **yes** | — |
+| read-at-source | Body-7 | `_B6_READ_AT_SOURCE` | 2 | 1 | **1** | **yes** | **no** | load-bearing (11-row list) |
+| reported-by-delegate | Body-7 | `_B6_REPORTED_BY_DELEGATE` | 3 | 1 | **2** | **yes** | **no** | load-bearing (11-row list) |
+| injection containment | Body-8 | `_B7_EVIDENCE_NOT_INSTRUCTION` | 1 | 1 | 0 | no | **yes** | Case B's own row — the Erratum 2 candidate-4 template |
+| step name | Body-10 | `_B10_STEP_NAME` | 1 | 1 | 0 | no | **yes** | — |
+| failure record name | Body-10 | `_B10_FAILURE_RECORD_NAME` | 2 | 2 | 0 | no | **yes** | both block occurrences are inside the one block; section equals block |
+| Named artifact block (plain name) | Body-11 | `_B11_FAILURE_RECORD_PLAIN` | 5 | 1 | **4** | **yes** | **no** | load-bearing (11-row list) |
+| Exit criterion block (plain name) | Body-11 | `_B11_FAILURE_RECORD_PLAIN` | 5 | 1 | **4** | **yes** | **no** | load-bearing (11-row list) |
+| Named artifact block failure reasons (WR-12) | Body-11 | `_B17_NAMED_ARTIFACT_REASON` AND `_B12_NOT_FOUND_BRANCH` | 1 / 2 | 1 / 1 | 0 / **1** | no (compound) | **no** | one of the two co-required literals (`_B12_NOT_FOUND_BRANCH`) has outside 1 — the compound cannot satisfy "every literal it tests has zero occurrences outside its own block"; control (ad) would lose I-2 |
+| unverified row missing the not-found test | Body-12 | `_B14_TABLE_NOT_FOUND` | 1 | 1 | 0 | no | **yes** | — |
+| acquire branch | Rubric-3 | `_R2_ACQUIRE` | 1 | 1 | 0 | **yes** | **no** | load-bearing (11-row list) — control (x), the CR-02 regression, is the decisive originating-defect fixture despite this literal's own outside count being 0 |
+| downgrade branch | Rubric-3 | `_R3_DOWNGRADE` | 1 | 1 | 0 | **yes** | **no** | load-bearing (11-row list) — same control (x) argument |
+| stated preference | Rubric-3 | `_R4_PREFERENCE` | 1 | 1 | 0 | **yes** | **no** | load-bearing (11-row list) — same control (x) argument |
+| step pointer | Rubric-5 | `_R5_STEP_POINTER` | 2 | 1 | **1** | **yes** | **no** | load-bearing (11-row list) |
+| failure-record pointer | Rubric-5 | `_R5_FAILURE_POINTER` | 3 | 1 | **2** | **yes** | **no** | load-bearing (11-row list) |
+| downgrade scope | Rubric-6 | `_R6_DOWNGRADE_SCOPE` | 1 | 1 | 0 | no | **yes** | — |
+| shared reason token | Rubric-6 | `_R6B_SHARED_REASON` | 1 | 1 | 0 | no | **yes** | — |
+| Guard "Body-4..9" (`len(paragraphs) != 1`) | (structural) | none | n/a | n/a | n/a | **yes** (structural) | **no** | still guards Body-5's kept row and Body-6/Body-7's load-bearing rows; unconverted per Claude's Discretion ("Body-12's table-block guard is structural... stays as-is") applied uniformly to all three guards |
+| Guard "Body-12 table block" (`len(table_blocks) != 1`) | (structural) | none | n/a | n/a | n/a | **yes** (structural) | **no** | Body-12's own guard; Body-12's sub-assertion converts but the guard itself is not a literal presence test |
+| Guard "Rubric-3/5/6 Fix note" (`len(fix_note_blocks) != 1`) | (structural) | none | n/a | n/a | n/a | **yes** (structural) | **no** | still guards Rubric-3 and Rubric-5, both load-bearing |
+
+**Tally, by direct count of the table above:** 21 sub-assertion rows convert (Body-4 ×2, Body-5 ×4,
+Body-13 ×4, Body-6 ×4, Body-8 ×1, Body-10 ×2, Body-12 ×1, Rubric-6 ×2), 12 sub-assertion rows are
+kept (Body-5 ×1 for the outside-block rule, the 11 load-bearing rows named in the plan's own
+interfaces block), and 3 structural guards are unconverted regardless. 21 + 12 + 3 = 36, matching
+the I-1 primary table's own row count.
+
+### Step B — RED check (split-robustness prediction)
+
+For every converting row, the existing control that already builds its fixture via
+`_mutate_body_removing_from_step_paragraph` (anchored on `_B1_STEP_LEAD`, the paragraph's lead
+sentence) stays `correctly failed` against the **current, unmutated** live body regardless of
+conversion, because the literal is unique in its section today (outside = 0) — the checker finds it
+absent in `phase3` exactly as it previously found it absent in `para`. This is not the property the
+Erratum-2 re-pointing exists to prove.
+
+The property it exists to prove is **resilience to a future paragraph split** (the Case B shape):
+if the step paragraph is later split so that a converting literal's own sentence moves into a
+*second* block still inside the Phase 3 section, a control still anchored on `_B1_STEP_LEAD` would
+build its fixture from the **wrong** (now-literal-free) block and become a no-op — removing nothing,
+so the mutated body is byte-identical to the real one and the control would report `correctly
+failed` for the wrong reason, or not at all, on the very next unrelated paragraph edit. Re-pointing
+each converting row's control to `_mutate_body_removing_from_block(real_body, X, X)` (Erratum 2's
+candidate-4 shape) anchors the fixture on the literal's own text instead, so it keeps finding and
+removing the right span regardless of which block it currently lives in. This is asserted here as
+the reason the re-point is needed for correctness under a future split, not for today's tree — Step
+D's `--self-test` run (Task 2's own verification) is the direct evidence that every re-pointed
+control still fires today.
