@@ -1638,7 +1638,33 @@ later re-evaluation.
 
 ## PRE-2 — before-readings (D-03, D-05)
 
-*(pending — plan 36-04)*
+### Constraints on a minimal apparatus fix
+
+Recorded before any fix is authored, per plan `36-04-PLAN.md`'s interfaces block, copied verbatim
+so the constraints are fixed before the readings exist (T-36-09):
+
+- **C1:** only files under `scripts/` and `docs/gates/` may change, and only those count. If the
+  battery also requires a generated file elsewhere to change (for example `CLAUDE.md`'s gate table
+  via `gen-gate-docs`), make that change, count it separately as "outside-metric lines", and
+  disclose it. Never drop it silently.
+- **C2:** every edited gate's `--self-test` exits 0, and its control roster membership is
+  unchanged. No control id is added or removed. A control's fixture construction MAY change.
+- **C3:** every originating-defect fixture the I-1 table names for the affected check(s) still
+  reports `correctly failed` with its own check ID. No guarantee is weakened. There is one
+  exception, the 999.78 replay: that product edit re-introduces the defect HARN-03 was
+  re-partitioned to catch, so the fix necessarily re-pins HARN-03 to the pre-fix text. C3 is
+  relaxed for that item only, and the relaxation is stated. It is also part of why 999.78 is an
+  observation.
+- **C4:** `bash <wt>/scripts/check-firewall-battery.sh` ends `FIREWALL: GREEN (23/23)`, or the
+  PREREQ-equivalent reading plan 36-01 established for worktrees.
+- **C5:** minimality. Try the narrowest candidate first and record every candidate tried with its
+  numstat. The reading is the smallest candidate that satisfies C1-C4.
+
+**Scoring commands**, run inside the worktree against its own HEAD:
+- `git -C <wt> diff --numstat -- scripts/ docs/gates/`, summed as insertions + deletions.
+- `git -C <wt> diff --numstat -- shared/` for product lines.
+
+*(readings — pending, this section continues below)*
 
 ## PRE-2 — kill-switch protocol (D-03..D-06)
 
