@@ -1339,3 +1339,152 @@ carried forward unchanged.
 edit to a file already tracked at HEAD, and it catches an untracked file appearing inside the
 directory — but a committed `git rm` of one of these files passes it clean. It is tamper-evidence
 for modification, not a deletion guard.
+
+## Erratum (2026-09-19, post-fix — plans 37-07/37-08)
+
+**Scope.** This is a dated, additive erratum per this file's own "Frozen-evidence discipline"
+section above (plan 37-02: "A correction to something already committed here is recorded as a
+dated, additive erratum appended below the point of error, never as a rewrite of the original
+text"). No existing line above is edited. It records the apparatus repairs plans 37-07 and 37-08
+made after this file's PRE-2 after-reading was measured and frozen, the corrected D-03 disposition
+for row 37, the re-measured PRE-3 census, and the I-4 continuation for plans 37-07/37-08.
+
+### 1. CR-01 — `(bw)`/`(bx)` fixed to survive their own target edit
+
+`(bw)`'s fixture builder (`_apply_case_b_split`) was fixed after this file's PRE-2 after-reading
+was measured and recorded, at plan 37-07's commit `3e9c086`. What changed:
+
+- `_apply_case_b_split` now returns `real_body` unchanged, instead of raising, when no further
+  `". "` follows `_B5_NO_FALLBACK`'s match inside the step block — the case where Case B's split
+  has already landed for real. `(bw)` degenerates to `(a)`, which is the property it exists to
+  protect.
+- `_apply_case_c_inflection` now builds its `target`/`replacement` from the real slice bytes
+  (`step_block[word_match.start(1):match.end()]`) rather than a hard-joined
+  `f"{preceding_word} {span_text}"`, so a non-space separator between the auxiliary and the span no
+  longer breaks the uniqueness guard — the real-bytes sentence break this item's own opening
+  sentence names.
+- Both `(bw)`'s and `(bx)`'s call sites now wrap the builder call in `try`/`except AssertionError`
+  and append a named `problems` entry (`FIXTURE BUILD FAILED: <exc>`) instead of letting an
+  uncaught traceback abort the self-test roster before any `correctly failed` diagnostic line
+  prints — builder errors are now named problems.
+
+Control `(by)` (new, plan 37-07) proves idempotence: it applies `_apply_case_b_split` twice and
+asserts the twice-split body equals the once-split body and still reads `[]` from
+`_check_body_text` — this is byte-identical, independently confirmed, to the frozen canonical Case
+B emitted-twin hash `a931ac9a64b751cce2b10a355d826a4e976f21be88d4496bcf7e873298274ef1` recorded
+above in "## PRE-2 — after-reading".
+
+### 2. PRE-2 verdict stands
+
+The PRE-2 STOP reading above was measured against the code as shipped at `53c0005` (the
+measurement SHA this file's "## PRE-2 — after-reading" section names) and confirmed unchanged at
+the phase's true final commit, `746ddf1` (`37-06-SUMMARY.md`'s confirmatory re-check). **That
+reading is not revisited.** D-04's "no rescue" rule applies: the developer decided on 2026-09-19
+not to re-take the Case B after-reading once CR-01's fix was disclosed and diagnosed. The CR-01 fix
+recorded in item 1 above is not a rescue and is not a kill-switch input — it lands after the STOP
+verdict was recorded, on code the STOP reading had already scored. The recorded Case B
+after-reading (**4** apparatus lines, flat against its own before-reading) and the verdict line
+above ("**Verdict: STOP — do not start Phase 38.**") are unchanged by this erratum.
+
+### 3. CR-02 — self-test fixture mutators routed through `_flex_pattern`
+
+The self-test's own negative-control mutators (`_mutate_body_removing_from_block`,
+`_mutate_body_substituting_in_block`, `_mutate_rubric_removing_from_fix_note`, and every inline
+pinned-literal locate/remove/substitute site in the fixture/control range) now locate and
+remove/substitute their pinned-literal targets through a new `_flex_replace` helper —
+whitespace-flex-located, behind an exact-count uniqueness guard — instead of raw
+`str.replace`/`str.count`, at plan 37-08's commit `effc63d`.
+
+- New permanent positive control `(bz)` builds an in-memory, whitespace-only reflow of every
+  eligible pinned literal in the Phase 3 region (body) and the Criterion 3 region (rubric) — 47
+  spaces reflowed in total (30 body, 17 rubric after excluding `_C3_HANDWAVY_START`/
+  `_C3_ABSENT_START`, whose own detection path reads them via a raw, non-flex `_slice()` call this
+  plan's scope did not permit editing) — then re-runs the full `--self-test` battery in-process
+  against the reflowed texts and requires it to report 0 problems.
+- New permanent negative control `(cb)` proves `_flex_replace`'s uniqueness guard fires: asking it
+  to remove a target derived to be absent from the text raises `AssertionError` naming the target.
+- The three D-02 held-out diffs (HO-1/HO-2/HO-3, above) remain unscored — each still fails `git
+  apply --check` with the corrupt-patch transcription defect this file's own "## PRE-2 —
+  after-reading" section discloses. They were never re-typed, per this milestone's own "never
+  re-type an edit" discipline, and CR-02's fix does not change that disposition.
+
+### 4. WR-05 — D-03 row 37 corrected
+
+**`_B12C_NOT_FOUND_STATE`'s disposition (row 37 of "## D-03 — outcomes", above) changes from
+"applied" to "kept — trim admits adjacent negation"** (D-03's fallback). The literal was reverted
+to its untrimmed, pre-D-01 form (the leading `"has "` restored) at plan 37-07's commit `3e9c086`.
+New permanent negative control `(ca)` derives a "has never been opened" variant from the reverted
+constant itself and asserts `Body-6` fails by name with detail `not-found state trigger` — the
+regression guard this reversion needed.
+
+The corrected D-03 tally: **55 rows total. Applied: 1** (row 20, `_B4_EXCLUSION`, unchanged).
+**Kept: 54** — not unique in scope: 7; already minimal: 29; derived: 12; forced: 5; **trim admits
+adjacent negation: 1** (row 37, this correction). `kept — I-2 lost`: 0. 1 + 54 = 55, matching the
+D-01 table's own row count exactly, and 7 + 29 + 12 + 5 + 1 = 54, matching the corrected kept
+total.
+
+D-03's two-clause acceptance bar (uniqueness in scope, plus the originating control still failing)
+cannot see this class of loss by construction — an adjacent-negation variant is a text this file's
+own control roster never exercised before `(ca)` existed, so the bar's second clause read "still
+passes" for a trim that had, in fact, lost detection power. This is recorded here as a finding
+about the bar's own reach, not amended in place in "## D-03 — outcomes" or in the D-01 rule
+itself.
+
+### 5. PRE-3 re-measure
+
+Re-run of the frozen census script (sha256
+`292ee46c4af202699c67baab783f0e96988019c6b2dc05c7304ec39e71f53afb`, re-confirmed live before
+running) at plan 37-09's start, HEAD `effc63d` (the 37-08 fix commit; unchanged since, confirmed by
+a clean `git status --porcelain` before this section was written).
+
+**Top-line output, verbatim:**
+
+```
+agent body           paragraphs= 219 pinned=  70 (32%)
+validation-rubric    paragraphs= 102 pinned=  43 (42%)
+output-template      paragraphs= 173 pinned=  73 (42%)
+distinct pinned literals: 225
+total pinned chars: 19970
+scripts holding them: 17
+skipped scripts (SyntaxError): []
+```
+
+**Reading: 225 distinct pinned literals, 19970 total pinned chars.**
+
+Also re-run in a fresh detached throwaway worktree at the phase-start SHA `b8d562b` (removed after
+use; `git worktree list` confirmed back to 1 entry): identical top-line output, **225 / 19970**.
+
+**Set difference of the two JSON dumps' key sets, both directions** (computed in Python, never a
+per-script sum): **empty in both directions** — 0 literals left, 0 literals entered. **Delta
+against the phase-start reading (225/19970): 0 count / 0 chars.**
+
+**Delta against the 53c0005 reading (225/19966, this file's own "## PRE-3 — after-reading" section,
+above): 0 count / +4 chars.** This is exactly the mirror image of that section's own -4 delta,
+attributed the same way: the 37-07 revert of `_B12C_NOT_FOUND_STATE` (item 4 above) restores the
+literal's pre-trim, 117-character form, replacing the 113-character trimmed form that entered the
+census at `53c0005`. No new 20-plus-character literal was added by either fix; the census
+population is unchanged in every other respect.
+
+### 6. I-4 continuation
+
+Continuing the tally closed in "## PRE-3 — after-reading" § Closing tally, above (row 23, 11
+battery runs, 0 C7-class HARN-03 FAILs). Same C7-class definition (a HARN-03 FAIL on a tree where
+no `shared/skills/` stub differs from HEAD).
+
+| row # | plan | tree/SHA | command | verdict line | HARN-03 line | C7-class? |
+|---|---|---|---|---|---|---|
+| 24 | 37-07 | `3e9c086` (post-commit HEAD) | `bash scripts/check-firewall-battery.sh` | `FIREWALL: GREEN (23/23)` | `[PASS] HARN-03 check-focused-parity.py --self-test` | No — HARN-03 PASSED, not a FAIL |
+| 25 | 37-08 | `effc63d` (post-commit HEAD) | `bash scripts/check-firewall-battery.sh` | `FIREWALL: GREEN (23/23)` | `[PASS] HARN-03 check-focused-parity.py --self-test` | No — HARN-03 PASSED, not a FAIL |
+
+**2 further battery runs this item, 0 HARN-03 FAILs, so 0 C7-class HARN-03 FAILs.** **Running total
+across plans 37-02 through 37-08: 13 battery runs, 0 C7-class HARN-03 FAILs.** The final
+confirmatory run of plan 37-09 Task 2 is recorded in `37-09-SUMMARY.md`, not here, per this file's
+own plan-37-06 freeze precedent.
+
+### 7. Tiering
+
+Per `docs/PROCESS.md` §2 (claim-audience): items 1, 3 and 4 above (CR-01, CR-02, WR-05) are
+**apparatus-tier** — they are corrections to `scripts/` and to this `--self-test`-scoped fixture.
+The corresponding items in `docs/v9.4-source-literal-pin-relaxation.md`'s own "## Post-fix readings
+(2026-09-19)" section (WR-01, WR-02) are **product-tier** — they correct the governing record's own
+prose.
