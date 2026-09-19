@@ -1362,6 +1362,162 @@ the guard row's own evidence, tabulated above.
 Both positive controls stay PASS under S1 — no section-scope false positive was introduced against
 the real, unmutated body or rubric.
 
+**Chain-of-custody re-check for this plan's Task 1 run.** Harness re-created from this README's own
+"I-1 — method" fenced block, byte-for-byte, into this session's scratchpad — sha256
+`211244e968a210ad04b5111451b5a6f185d35fb8ff3b50980d421df310b2b2b3`, matching the frozen value
+exactly (the harness reproduces from the tracked fixture alone). Worktree `wt36-03` created
+detached at `4ebadeed91b5cb93c5b90eada0df28f1c4d28c4e` (this plan's own starting HEAD — plan 36-02's
+classification commit). `scripts/check-act-limb.py` sha256
+`85be29d260b930a13292c6df825e1643a94ea97f9df92d58bcccdc90df5311ac` and
+`shared/spine/SKILL-body.md` sha256 `1616e5249825d843f3bfad4f58c9114dd8828fdcb90de7309f0ac3f468f30aaf`
+both matched the Chain of custody table above exactly.
+
+**Part A — setup.** `python3 sync-content.py --check` on the unmutated worktree: exit 0.
+`python3 scripts/check-act-limb.py --self-test` on the unmutated worktree: `check-act-limb
+--self-test: PASS`. `bash <wt>/scripts/check-firewall-battery.sh` (I-4 tally row):
+`FIREWALL: GREEN (23/23)`, all 23 gates `[PASS]` — the harness's Mode A baseline equals this
+`--self-test` reading exactly (both `PASS`), confirmed line-for-line the same way plan 36-02's
+T-36-06 leak check established.
+
+**Part C — commit tracing.** Every constant below was traced with `git log --format='%h %ad %s'
+--date=short -S'<CONSTANT_NAME>' -- scripts/check-act-limb.py`, read oldest-first, cross-checked
+against this plan's own five-commit `git show --stat` read (`20cc0c5`, `03fa674`, `c677788`,
+`9985c60`, `26f64c7`).
+
+### Body-11 (CR-05, artifact promotion)
+
+Two scope call sites (`:840` Named artifact, `:841` Exit criterion) feed one named check with three
+sub-assertions.
+
+| sub-assertion | constant(s) | scope call site | originating commit | originating defect | control(s) | Mode A: baseline → S2 | Mode B: original → S2 (own ID) | Mode C outside-block | verdict | reason |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Named artifact block (plain name) | `_B11_FAILURE_RECORD_PLAIN` (`= _FAILURE_RECORD_PLAIN`, `"Phase 3 failure record"`) | `:840` | `fe66f4d` (01-03, re-anchor HARN-01 onto the repaired Act-limb prose) | "Body-11 (CR-05, artifact promotion): the plain (unbolded) failure-record string is carried on both surfaces the Exit criterion is checked against — the Named artifact block and the Exit criterion block, not just defined once inside the step paragraph" (`:836-839`) | q | **CHANGED**: baseline `(q) correctly failed (1 failure(s))` → S2 `(q) WRONGLY PASSED (expected failure)` | original: own ID fired (Body-11) → **S2: passes entirely** (`scoped_own_id_fired: false`) | **4** (section count 5, block count 1 — the literal recurs in the Exit criterion block and elsewhere in the Phase 3 slice) | **load-bearing** | **(ii)**, ambiguous, classified load-bearing (conservative): Mode C outside-block count 4, and no originating finding names adjacency for this half. |
+| Exit criterion block (plain name) | `_B11_FAILURE_RECORD_PLAIN` | `:841` | `fe66f4d` (01-03) | Same comment as above — the same literal, checked against the sibling block | ak | **CHANGED**: baseline `(ak) correctly failed (1 failure(s))` → S2 `(ak) WRONGLY PASSED (expected failure)` | original: own ID fired (Body-11) → **S2: passes entirely** (`scoped_own_id_fired: false`) | **4** (same census as the Named artifact row — one shared literal, two blocks) | **load-bearing** | **(ii)**, ambiguous, classified load-bearing (conservative): same Mode C reading as the Named artifact row — this literal recurs 4 times outside whichever single block a control targets. |
+| Named artifact block failure reasons (WR-12) | `_B17_NAMED_ARTIFACT_REASON` (`"why the read failed"`) AND `_B12_NOT_FOUND_BRANCH` (`= _SHARED_NOT_FOUND_REASON`, `"citation does not support the claim"`) | `:840` | `c677788` (01-05, re-anchor onto one predicate, add Body-13) | "WR-12 (01-05) gate half, scoped to the Named artifact block ONLY: the artifact's own definition must admit the reason the not-found branch writes into it... a slice-wide membership test would pass on the branch's own sentence and assert nothing" (`:851-857`) | ad | unchanged: baseline and S2 both `(ad) correctly failed (1 failure(s))` | not run for this compound predicate — Mode A alone is decisive, see reason | `_B17_NAMED_ARTIFACT_REASON`: section=1, block=1, **outside=0** | **incidental** | Mode A shows control ad still correctly fires under S2 for its own ID. Mode C confirms why: `_B17_NAMED_ARTIFACT_REASON` occurs only once in the whole Phase 3 section (inside the Named artifact block itself), so removing it from that block removes it from the whole section too — S2's "anywhere in section" test still finds it absent. This is the row the CONTEXT.md "WR-12... a slice-wide membership test would pass on the branch's own sentence and assert nothing" comment names directly, and the outcome here demonstrates the opposite is also true: for a literal with zero recurrence, section scope loses nothing. |
+
+Body-11's WR-12 sub-assertion cites commit `c677788` (`feat(01-05): re-anchor HARN-01 onto one
+predicate and add the Body-13 coherence check`) — the `git log -S'_B17_NAMED_ARTIFACT_REASON'`
+trace returns exactly this one commit, matching the in-code comment's own line citation
+(`:851-857`) and its "assert nothing" phrase quoted above.
+
+### Body-12 (ACT-02/ACT-03, table coverage)
+
+| sub-assertion | constant(s) | scope call site | originating commit | originating defect | control(s) | Mode A: baseline → S3 | Mode B: original → S3 (own ID) | Mode C outside-block | verdict | reason |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `unverified` row missing the not-found test | `_B14_TABLE_NOT_FOUND` | `:875` | `20cc0c5` (01-04, re-anchor HARN-01's body checks onto the exhaustive partition) | "Body-12 (ACT-02/ACT-03, table coverage, 01-04 gap CR-01): the provenance table's `unverified` row must admit the not-found branch's end state — the branch's label must be a label the table actually defines" (`:869-874`) | v | unchanged: baseline and S3 both `(v) correctly failed (1 failure(s))` | **N/A — documented harness limitation, not adjacency evidence.** The frozen `separate_sentence` sentence-boundary algorithm (period-plus-space heuristic) does not understand Markdown table-cell syntax: applied to this literal it locates a "sentence" that spans backward into the PRECEDING table row and forward past the anchor `\| **unverified** \|` itself, so the relocated chunk carries the block anchor AND the literal together. The resulting mutated text still satisfies the harness's own word-multiset/occurrence-count safety asserts (no `AssertionError`), but `_check_body_text` (both original and S3-scoped) then locates the RELOCATED paragraph as "the table block" (it still contains the anchor) and finds the literal inside it — `original_scope_failures: []`, `scoped_failures: []`, both vacuously empty. This is the same class of honest, documented harness limitation plan 36-02 recorded for Body-10's doubly-occurring literal, one level worse: here the anchor itself, not just the tested literal, gets swept into the moved span. | section=1, block=1, **outside=0** | **incidental** | Verdict rests on Mode A (control v), which is unaffected by the Mode B limitation above; Mode C confirms the literal has zero recurrence outside its own block, consistent with Mode A staying unchanged. |
+
+### Guard "Body-12 table block" (`len(table_blocks) != 1`)
+
+| sub-assertion | constant(s) | scope call site | originating commit | originating defect | control(s) | Mode A / direct test: baseline → S3 | Mode B | Mode C | verdict | reason |
+|---|---|---|---|---|---|---|---|---|---|---|
+| table-block count guard | none (structural: `len(_paragraph_containing(phase3, "\| **unverified** \|")) != 1`) | `:875-881` | `20cc0c5` (01-04) — the guard's own message strings (`"table block occurs {len(table_blocks)} time(s)"`) are present from Body-12's first commit | "Body-12 (ACT-02/ACT-03, table coverage): provenance table block occurs {N} time(s) in the Phase 3 slice, expected exactly 1 — cannot check table contents... the `_slice` docstring's stated vacuity-avoidance design applies to this block just as to the step paragraph" (`:869-877`) | al (duplicated, "table block occurs 2 time(s)"), bj (removed, "table block occurs 0 time(s)") | **al CHANGED**: baseline `(al) correctly failed (1 failure(s))` → S3 `(al) WRONGLY PASSED (expected failure)`. **bj unchanged**: baseline and S3 both `(bj) correctly failed (1 failure(s))`. | N/A (structural guard, not a single literal to separate) | `\| **unverified** \|` (the anchor itself): section=1, block=1, outside=0 — confirms bj's total-removal fixture leaves the anchor absent from the whole section too, so `len(table_blocks) != 1` (0 != 1) still fires correctly under S3. al's duplication fixture is not an occurrence-census case: S3's re-scoped variant always returns a single-element (or empty) list by construction (see the method's Structural finding), so `len(table_blocks) != 1` can only ever be true when the anchor is entirely absent — a duplication inside the block can never trip it once section-scoped, independent of any Mode C reading. | **load-bearing** | **(i)**: the in-code comment names the guard as the "vacuity-avoidance design" (`:869-877`) — this is the same "vacuity guard 01-04 added and never controlled" language the `al` control's own comment uses (`:1467-1469`) — and no other, non-paragraph-scoped check catches this duplication (confirmed: `/usr/bin/grep -n 'unverified'` over the whole file finds no whole-slice/whole-file count check on this anchor analogous to Body-1/2/3's `_B1_STEP_LEAD` counts; the Mode A run above shows only `al` and `(m)` changed, no sibling label). This is a direct structural demonstration that S3 loses the vacuity guard for ANY duplication shape, not merely the one al happens to test. |
+
+### Rubric-3 (ACT-05, branches and preference) — the CR-02 row
+
+Three sub-assertions, each with TWO originating-defect fixtures: its own single-literal removal
+control, and the shared CR-02 regression control (x), which relocates the whole Fix note at once.
+
+| sub-assertion | constant(s) | scope call site | originating commit | originating defect | control(s) | Mode A: baseline → S4 | Mode B: original → S4 (own ID) | Mode C outside-block | verdict | reason |
+|---|---|---|---|---|---|---|---|---|---|---|
+| acquire branch | `_R2_ACQUIRE` | `:974` | `9673345` (01-02, add HARN-01 offline gate) | "(ao) Negative, the acquire branch stripped from the Fix-note block" (`:1494-1496`); the SHARED CR-02 finding: "closing CR-02: the verifier reproduced a false PASS on a gutted-but-relocated Fix note because the required phrases were searched for anywhere in the whole Criterion 3 slice rather than inside the Fix note itself" (`:966-972`) | ao (simple removal); **x (CR-02 regression, decisive)** | **ao unchanged**: baseline and S4 both `(ao) correctly failed (1 failure(s))`. **x CHANGED**: baseline `(x) correctly failed (3 failure(s))` → S4 `(x) failed for the WRONG reason (expected check ID 'Rubric-3'; check IDs that DID fire: Rubric-6; got: Rubric-6 (ACT-05, downgrade scope): Fix note paragraph missing downgrade scope, shared reason token)`. | original: own ID fired (Rubric-3, Rubric-6) → **S4: passes entirely** (`scoped own_id_fired: false`, replicated against the rubric region using the harness's own `flex_norm`/`locate_block`/`sentence_span` functions, since the frozen CLI's `mode-b` subcommand is hardcoded to the body region — see the harness-limitation note below the table) | section=1, block=1, outside=0 (for the plain `ao` removal fixture; the `x` fixture's own scattered-noise mutation is a different mutation shape entirely, not an occurrence-census case) | **load-bearing** | **(i)**: control x's own comment IS the originating finding naming block scope as the defect, quoted above verbatim — this is the decisive evidence the plan's own interfaces block names. Also independently ambiguous per rule (9)'s "fixtures disagreeing" clause: `ao` (simple removal) stays correctly failed under S4 while `x` (CR-02 regression, same sub-assertion) wrongly fails for the WRONG reason — two originating-defect fixtures for one sub-assertion disagreeing is itself sufficient for load-bearing. |
+| downgrade branch | `_R3_DOWNGRADE` | `:974` | `9673345` (01-02) | "(ap) Negative, the downgrade branch stripped from the Fix-note block" (`:1498-1499`); same shared CR-02 finding as above | ap (simple removal); **x (CR-02 regression, decisive)** | **ap unchanged**: baseline and S4 both `(ap) correctly failed (1 failure(s))`. **x CHANGED** (same x reading as above — one fixture covers all three Rubric-3 sub-assertions at once). | replicated Mode B (rubric, via harness functions): original own_id_fired=True (`['Rubric-3', 'Rubric-6']`) → S4 own_id_fired=**False** (`[]`) | section=1, block=1, outside=0 (for `ap`'s plain removal) | **load-bearing** | **(i)**, same argument as "acquire branch" — control x's own comment names block scope as the CR-02 defect, and `ap`/`x` disagree for the same sub-assertion. |
+| stated preference | `_R4_PREFERENCE` | `:974` | `9673345` (01-02) | "(l) Negative, rubric preference stripped (ACT-05)... closing the WR-08 defect class on the rubric surface" (`:1432-1435`); same shared CR-02 finding | l (simple removal); **x (CR-02 regression, decisive)** | **l unchanged**: baseline and S4 both `(l) correctly failed (1 failure(s))`. **x CHANGED** (same x reading). | not separately replicated — `_R4_PREFERENCE` lies in the Fix note's first sentence (`is_in_first_sentence` returns True for it when tried), so Mode B's own separation mutation refuses this literal (would move the block's own anchor); the `x` fixture (which relocates the whole note, not a single sentence) is the operative Mode A evidence for this row regardless | section=1, block=1, outside=0 (for `l`'s plain removal) | **load-bearing** | **(i)**, same argument as the two rows above — control x's comment names block scope as the CR-02 defect, and `l`/`x` disagree for the same sub-assertion. |
+
+**Harness limitation note (rubric-side Mode B).** The frozen `pin_harness.py`'s `mode-b` CLI
+subcommand hardcodes `real_body = mod.AGENT_FILE.read_text(...)` and `separate_sentence`'s region
+bounds to `mod._PHASE3_START`/`mod._PHASE4_START` — it cannot locate a rubric-side (Criterion 3)
+block through the CLI at all (confirmed: every `mode-b` invocation against a rubric literal raised
+`AssertionError: expected exactly one block for anchor '**Fix — acquire before you downgrade.**',
+found 0`, since it was searching the wrong file's wrong region). This is a genuine gap in the
+frozen harness's own coverage, not a per-row finding. Rather than modify the sha256-pinned harness
+file (forbidden — T-36-07), the S4 rubric-side Mode B readings above were produced by a
+session-scratchpad script that imports and reuses the harness's own unmodified `flex_norm`,
+`locate_block`, `is_in_first_sentence`, `sentence_span`, `rescoped_checkers`, `id_fired` and
+`fired_ids` functions verbatim, applied to `RUBRIC_FILE`/`_CRIT3_START`/`_CRIT4_START` instead of
+`AGENT_FILE`/`_PHASE3_START`/`_PHASE4_START` — the identical algorithm, a different input file. No
+byte of `pin_harness.py` was changed; its sha256 was re-checked after this session and still reads
+`211244e968a210ad04b5111451b5a6f185d35fb8ff3b50980d421df310b2b2b3`.
+
+### Rubric-5 (CR-05, pointer use)
+
+| sub-assertion | constant(s) | scope call site | originating commit | originating defect | control(s) | Mode A: baseline → S4 | Mode B: original → S4 (own ID) | Mode C outside-block | verdict | reason |
+|---|---|---|---|---|---|---|---|---|---|---|
+| step pointer | `_R5_STEP_POINTER` | `:974` | `fe66f4d` (01-03, re-anchor HARN-01 onto the repaired Act-limb prose) | "(s) Negative, rubric pointer stripped (CR-05, pointer use)" (`:1868-1871`) | s | **CHANGED**: baseline `(s) correctly failed (1 failure(s))` → S4 `(s) WRONGLY PASSED (expected failure)` | N/A — `_R5_STEP_POINTER` lies in the Fix note's first sentence; the separation mutation refuses to move it (would relocate the block's own anchor) | section=2, block=1, **outside=1** | **load-bearing** | **(ii)**, ambiguous, classified load-bearing (conservative): Mode C confirms the literal recurs once outside the Fix-note block elsewhere in the Criterion 3 slice. No originating finding names adjacency for this sub-assertion specifically (contrast Rubric-3's control x, which does). |
+| failure-record pointer | `_R5_FAILURE_POINTER` | `:974` | `fe66f4d` (01-03) | "(as) Negative, the failure-record pointer stripped from the Fix-note block. Control (s) covers the step pointer; WR-02 measured this half as separately deletable" (`:2018-2020`) | as, bm (duplicate isolation control, same literal) | **as CHANGED**: baseline `(as) correctly failed (1 failure(s))` → S4 `(as) WRONGLY PASSED (expected failure)`. **bm CHANGED** identically: baseline `(bm) correctly failed (1 failure(s))` → S4 `(bm) WRONGLY PASSED (expected failure)`. | replicated Mode B (rubric, harness functions): original own_id_fired=True (`['Rubric-5', 'Rubric-6']`) → S4 own_id_fired=**False** (`[]`) | section=3, block=1, **outside=2** | **load-bearing** | **(ii)**, ambiguous, classified load-bearing (conservative): Mode C confirms the literal recurs twice outside the block. No originating finding names adjacency. |
+
+### Rubric-6 (ACT-05, downgrade scope)
+
+| sub-assertion | constant(s) | scope call site | originating commit | originating defect | control(s) | Mode A: baseline → S4 | Mode B: original → S4 (own ID) | Mode C outside-block | verdict | reason |
+|---|---|---|---|---|---|---|---|---|---|---|
+| downgrade scope | `_R6_DOWNGRADE_SCOPE` | `:974` | `03fa674` (01-04, re-anchor HARN-01's rubric checks and close CR-02) | "Rubric-6, paragraph-scoped from the start, asserting the downgrade branch's widened precondition and the reason token it shares with the body's not-found branch" (commit message); "(w) Negative, rubric downgrade scope stripped (01-04 gap, CR-01)" (`:1438-1440`) | w | unchanged: baseline and S4 both `(w) correctly failed (1 failure(s))` | replicated Mode B (rubric, harness functions): original own_id_fired=True (`['Rubric-3', 'Rubric-6']`) → S4 own_id_fired=**False** (`[]`) | section=1, block=1, **outside=0** | **incidental** | Mode A shows control w still correctly fires under S4 (unchanged). Mode C confirms zero recurrence outside the block, consistent with the unchanged Mode A reading. Mode B note: the original (unscoped) check does react to relocation (own ID fires before scoping), but per rule (9) Mode B is recorded evidence, not the verdict criterion — Mode A alone decides, and it stays incidental. |
+| shared reason token | `_R6B_SHARED_REASON` | `:974` | `03fa674` (01-04) | "(at) Negative, the shared not-found reason token stripped from the Fix-note block — the fifth of the five constants WR-02 named as asserted but never mutated by any control" (`:1502-1505`) | at | unchanged: baseline and S4 both `(at) correctly failed (1 failure(s))` | replicated Mode B (rubric, harness functions): original own_id_fired=True (`['Rubric-5', 'Rubric-6']`) → S4 own_id_fired=**False** (`[]`) | section=1, block=1, **outside=0** | **incidental** | Same pattern as "downgrade scope" — Mode A unchanged, Mode C zero recurrence, Mode B note recorded but not verdict-determinative. |
+
+### Guard "Rubric-3/5/6 Fix note" (`len(fix_note_blocks) != 1`, the CR-02 block guard)
+
+| sub-assertion | constant(s) | scope call site | originating commit | originating defect | control(s) | Mode A / direct test: baseline → S4 | Mode B | Mode C | verdict | reason |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Fix-note block count guard | none (structural: `len(_paragraph_containing(crit3, _R1_FIX_LEAD)) != 1`) | `:974-980` | `03fa674` (01-04) — the guard message ("Fix note paragraph occurs {N} time(s)...") ships with the CR-02 narrowing this same commit performs | "Rubric-3, Rubric-5 and Rubric-6 all read the SAME Fix-note paragraph block, closing CR-02: the verifier reproduced a false PASS on a gutted-but-relocated Fix note because the required phrases were searched for anywhere in the whole Criterion 3 slice rather than inside the Fix note itself. Locating the block once means all three checks share one scope" (`:966-980`) | bl (duplicated, "Fix note paragraph occurs 2 time(s)", introduced at `8251ddd`, 07-01) | **CHANGED, but for a DIFFERENT reason than al's**: baseline `(bl) correctly failed (3 failure(s))` → S4 `(bl) failed for the WRONG reason (expected check ID 'Rubric-3/5/6'; check IDs that DID fire: Rubric-2; got: Rubric-2 (ACT-05): Fix note lead occurs 2 time(s) in the Criterion 3 slice, expected exactly 1; Rubric-2 (ACT-05): Fix note lead occurs 2 time(s) in the whole file, expected exactly 1)` | N/A (structural guard) | `_R1_FIX_LEAD` (the anchor itself): duplicated by construction under this fixture, not an occurrence-census case | **incidental (sibling-caught: Rubric-2)** | Rubric-2 is explicitly one of the non-paragraph-scoped checks this README's own "Scope and count correction" section excludes from I-1 (`phase3.count`/whole-file `count` on `_R1_FIX_LEAD`, both halves). Rubric-2 fires under S4 on the SAME duplication fixture, unaffected by scoping — Phase 37 leaves Rubric-2 untouched, so the duplication defect the guard was built to catch stays caught via its sibling, exactly the Guard "Body-4..9" pattern plan 36-02 established for the step paragraph. |
+
+### S2/S3/S4 harness output (verbatim)
+
+```
+check-act-limb --self-test: FAIL — q: no failures produced; ak: no failures produced; (m): main(['--self-test']) returned 1, expected 0
+=== Mode A: S2 ===
+baseline exit=0 scoped exit=1
+  (ak) baseline: (ak) correctly failed (1 failure(s))
+  (ak) scoped:   (ak) WRONGLY PASSED (expected failure)
+  (m) baseline: (m) dispatch control: PASS — main(['--self-test']) reaches this block end-to-end
+  (m) scoped:   (m) dispatch control: WRONGLY FAILED — main(['--self-test']) returned 1, expected 0
+  (q) baseline: (q) correctly failed (1 failure(s))
+  (q) scoped:   (q) WRONGLY PASSED (expected failure)
+```
+
+```
+check-act-limb --self-test: FAIL — al: no failures produced; (m): main(['--self-test']) returned 1, expected 0
+=== Mode A: S3 ===
+baseline exit=0 scoped exit=1
+  (al) baseline: (al) correctly failed (1 failure(s))
+  (al) scoped:   (al) WRONGLY PASSED (expected failure)
+  (m) baseline: (m) dispatch control: PASS — main(['--self-test']) reaches this block end-to-end
+  (m) scoped:   (m) dispatch control: WRONGLY FAILED — main(['--self-test']) returned 1, expected 0
+```
+
+```
+check-act-limb --self-test: FAIL — x: wrong-reason failure; bl: wrong-reason failure; s: no failures produced; as: no failures produced; bm: no failures produced; Anti-masking: 2 branches uncovered; (m): main(['--self-test']) returned 1, expected 0
+=== Mode A: S4 ===
+baseline exit=0 scoped exit=1
+  (as) baseline: (as) correctly failed (1 failure(s))
+  (as) scoped:   (as) WRONGLY PASSED (expected failure)
+  (bl) baseline: (bl) correctly failed (3 failure(s))
+  (bl) scoped:   (bl) failed for the WRONG reason (expected check ID 'Rubric-3/5/6'; check IDs that DID fire: Rubric-2; got: Rubric-2 (ACT-05): Fix note lead occurs 2 time(s) in the Criterion 3 slice, expected exactly 1; Rubric-2 (ACT-05): Fix note lead occurs 2 time(s) in the whole file, expected exactly 1)
+  (bm) baseline: (bm) correctly failed (1 failure(s))
+  (bm) scoped:   (bm) WRONGLY PASSED (expected failure)
+  (m) baseline: (m) dispatch control: PASS — main(['--self-test']) reaches this block end-to-end
+  (m) scoped:   (m) dispatch control: WRONGLY FAILED — main(['--self-test']) returned 1, expected 0
+  (s) baseline: (s) correctly failed (1 failure(s))
+  (s) scoped:   (s) WRONGLY PASSED (expected failure)
+  (x) baseline: (x) correctly failed (3 failure(s))
+  (x) scoped:   (x) failed for the WRONG reason (expected check ID 'Rubric-3'; check IDs that DID fire: Rubric-6; got: Rubric-6 (ACT-05, downgrade scope): Fix note paragraph missing downgrade scope, shared reason token)
+```
+
+### (a)/(b) lines under S2, S3 and S4 (verbatim)
+
+```
+--- S2 ---
+(a) positive control — body: PASS (0 failures)
+(b) positive control — rubric: PASS (0 failures)
+--- S3 ---
+(a) positive control — body: PASS (0 failures)
+(b) positive control — rubric: PASS (0 failures)
+--- S4 ---
+(a) positive control — body: PASS (0 failures)
+(b) positive control — rubric: PASS (0 failures)
+```
+
+All three positive controls stay PASS under S2, S3 and S4 — no section-scope false positive was
+introduced against the real, unmutated body or rubric under any of the five scopes classified
+across plans 36-02 and 36-03.
+
 ## I-1 — follower rows
 
 *(pending — plan 36-03)*
@@ -1397,13 +1553,19 @@ plan 36-04) is expected and is **not** C7.
 | 9 | 36-02 | worktree@`f13d086` (unmutated, smoke test) | `python3 scripts/check-act-limb.py --self-test` | `check-act-limb --self-test: PASS` | n/a (not a battery run) | no |
 | 10 | 36-02 | worktree@`f13d086`, harness Mode A S1 — baseline leg (in-process `_run_self_test()`, no re-scope) | `pin_harness.py mode-a --scope S1` | `check-act-limb --self-test: PASS` | n/a (not a battery run) | no |
 | 11 | 36-02 | worktree@`f13d086`, harness Mode A S1 — scoped leg (in-process `_run_self_test()`, `_paragraph_containing` re-scoped to S1 for the duration of each `_check_body_text`/`_check_rubric_text` call) | `pin_harness.py mode-a --scope S1` | `check-act-limb --self-test: FAIL — d: wrong-reason failure; t: no failures produced; ah: no failures produced; ai: no failures produced; (m): main(['--self-test']) returned 1, expected 0` | n/a (not a battery run) | no |
+| 12 | 36-03 | worktree@`wt36-03`@`4ebadee` (unmutated, Task 1 Part A) | `bash scripts/check-firewall-battery.sh` | `FIREWALL: GREEN (23/23)` | `[PASS] HARN-03 check-focused-parity.py --self-test` | no (PASS) |
+| 13 | 36-03 | worktree@`wt36-03`@`4ebadee` (unmutated, smoke test) | `python3 scripts/check-act-limb.py --self-test` | `check-act-limb --self-test: PASS` | n/a (not a battery run) | no |
+| 14 | 36-03 | worktree@`wt36-03`, harness Mode A S2 (baseline + scoped legs, in-process) | `pin_harness.py mode-a --scope S2` | `check-act-limb --self-test: FAIL — q: no failures produced; ak: no failures produced; (m): main(['--self-test']) returned 1, expected 0` | n/a (not a battery run) | no |
+| 15 | 36-03 | worktree@`wt36-03`, harness Mode A S3 (baseline + scoped legs, in-process) | `pin_harness.py mode-a --scope S3` | `check-act-limb --self-test: FAIL — al: no failures produced; (m): main(['--self-test']) returned 1, expected 0` | n/a (not a battery run) | no |
+| 16 | 36-03 | worktree@`wt36-03`, harness Mode A S4 (baseline + scoped legs, in-process) | `pin_harness.py mode-a --scope S4` | `check-act-limb --self-test: FAIL — x: wrong-reason failure; bl: wrong-reason failure; s: no failures produced; as: no failures produced; bm: no failures produced; Anti-masking: 2 branches uncovered; (m): main(['--self-test']) returned 1, expected 0` | n/a (not a battery run) | no |
 
-**Null result for this plan's runs:** HARN-03 stayed PASS in every one of the four battery
-invocations recorded so far across this phase (rows 1, 5, 7, 8). No occurrence of the unexplained
-C7 recurrence was observed in either plan — recorded as a null result, not a gap, per
-`36-RESEARCH.md`'s own "I-4 sampling" guidance. Row 11's `FAIL` line is the S1-scoped harness run
-reporting the classification's own induced failures (`d`, `t`, `ah`, `ai`, `m` — see the primary
-rows above); it is not a battery run and carries no HARN-03 signal.
+**Null result for this plan's runs:** HARN-03 stayed PASS in every one of the five battery
+invocations recorded so far across this phase (rows 1, 5, 7, 8, 12). No occurrence of the
+unexplained C7 recurrence was observed in any of the three plans so far — recorded as a null
+result, not a gap, per `36-RESEARCH.md`'s own "I-4 sampling" guidance. Row 11's and rows 14-16's
+`FAIL` lines are S1/S2/S3/S4-scoped harness runs reporting the classification's own induced
+failures (see the primary rows above in each case); none is a battery run, and none carries a
+HARN-03 signal.
 
 ## Finding
 
