@@ -2449,3 +2449,65 @@ firing) at every commit, with all five pre-commit gates passing on each and `--n
 used. As in Erratum 3 and Erratum 4, no gate here takes the truth of these sentences as its
 subject — every finding this erratum records came from reading prose and re-running the files' own
 stated commands.
+
+---
+
+## Erratum 6 (2026-09-20)
+
+Every section above, Erratum 5 included, is frozen and left byte-unchanged. The single numbered item
+below supersedes only the specific sentences it cites; no re-derivation, sha256, line count or sweep
+reading recorded above is affected. Raised not by a code review but by Phase 46's own UAT (test 7),
+run after both `/bm:code-review --fix` rounds had closed, which re-read the shipped GT-2? bullet
+against IN-03's stated symptom and re-derived its Hertz figures independently. Appended additively
+per this file's own Frozen-evidence discipline section, never as a rewrite of the original text.
+
+1. **Erratum 5 item 2's IN-03 fix introduced a referential defect of its own
+   (README.md:2415-2437, quoting the text `580db0f` shipped).** IN-03 (product). The unnesting
+   succeeded and is not withdrawn: the bullet's nine sentences carry no aside between a subject and
+   its verb, which is what IN-03 asked for. What the unnesting lost is the binding of the
+   calculation's only quantitative input to its role.
+
+   The text `580db0f` shipped read: "Take instead a nominal full-width contact: at the stated 70 mm
+   inner-race radius the same model gives about 0.21 mm (0.208 mm), which does NOT contain GT-1's
+   observed depth. **That full-width figure is** the Scenario's observed 18 mm axial spall length
+   (§Scenario), used as an inference rather than a measurement". The first sentence computes 0.21 mm
+   without naming the 18 mm at all, and the second then predicates the 18 mm of "that full-width
+   figure" — whose only available referent in the preceding sentence is `0.21 mm`, a *depth*. On a
+   literal reading it asserts that a depth is a length; the following sentence's "it" chains off the
+   same ambiguous referent. So a reader cannot determine from the bullet what role 18 mm plays in the
+   calculation, in a file whose declared purpose is modelling legible reasoning.
+
+   The pre-`580db0f` text did not have this defect. Its 45-word aside was the unreadable one IN-03
+   correctly named, but it bound the referent at the point of use: "at a nominal full-width contact
+   **taken as** the Scenario's observed 18 mm axial spall length (§Scenario)". The fix traded a
+   readability defect for a referential one rather than removing both.
+
+   Corrected to bind the input before the result, without re-nesting: "Take instead a nominal
+   full-width **contact length of 18 mm** — the Scenario's observed axial spall length (§Scenario):
+   at the stated 70 mm inner-race radius the same model gives about 0.21 mm (0.208 mm), which does
+   NOT contain GT-1's observed depth. **That 18 mm contact length** is used as an inference rather
+   than a measurement". The interposed clause is seven words and follows a complete main clause, so
+   it does not reintroduce IN-03's symptom; sentences (5) and (6) now have an explicit antecedent.
+
+   Both Hertz figures were re-derived independently at this UAT, from the file's own stated inputs
+   (F = 12 kN, R = 9.506 mm, E* = 113.7 GPa, z = 0.78·a), and both reproduce: at L = 18 mm,
+   a = 0.2664 mm and z = 0.2078 mm (the file's "about 0.21 mm (0.208 mm)"); at L = 4.9 mm,
+   a = 0.5106 mm and z = 0.3983 mm, inside GT-2?'s stated 0.35-0.45 mm band and reproducing GT-1's
+   observed 0.4 mm depth, which is the fit the bullet discloses. No figure in the bullet changed and
+   no conclusion or confidence label moved; `GT-2?` keeps its `?`, and chain C1 keeps MEDIUM.
+   `fix(46-23)` — see this file's git history for the commit SHA, since this erratum is written in
+   the same commit as the fix it records.
+
+   The general lesson, recorded because it is the third instance of the same class in this phase and
+   the first raised outside a code review: a fix verified only against the finding's own prescription
+   is not verified. IN-03's prescription was applied, its symptom was removed, and a new defect
+   entered the same sentence — which only re-reading the shipped prose on its own terms surfaces.
+   Erratum 5 item 2 recorded that a delegated closure claim needs its own re-reading; this item
+   extends it to a direct one.
+
+This erratum records a UAT finding, not a review finding, so `46-REVIEW.md`'s population is
+unchanged: its 20 findings remain 20, all fixed, none skipped. `46-UAT.md` carries this as test 7's
+issue and its resolution. Every gate was GREEN after the fix: `sync-content.py --check` exit 0,
+`FIREWALL: GREEN (23/23)`, `report-conformance.py --check` reporting no drift, and
+`check-conf-gate.py` PASS, with all five pre-commit gates passing and `--no-verify` never used. As
+in every erratum above, no gate takes the truth of these sentences as its subject.

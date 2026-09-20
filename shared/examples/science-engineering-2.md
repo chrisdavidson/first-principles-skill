@@ -77,13 +77,13 @@ prescribe a counter-intervention different from the operator's first hypothesis
   values read from a bearing drawing. The required 4.9 mm effective length is about a
   fifth of the 22 mm roller diameter, which implies heavy crowning, edge relief or a
   misalignment-narrowed contact patch that no named source in this scenario
-  establishes. Take instead a nominal full-width contact: at the stated 70 mm inner-race
+  establishes. Take instead a nominal full-width contact length of 18 mm — the
+  Scenario's observed axial spall length (§Scenario): at the stated 70 mm inner-race
   radius the same model gives about 0.21 mm (0.208 mm), which does NOT contain GT-1's
-  observed depth. That full-width figure is the Scenario's observed 18 mm axial spall
-  length (§Scenario), used as an inference rather than a measurement — it assumes the
-  spall spans the full contact width, which no named source in this scenario supplies.
-  Unlike the 4.9 mm effective length and the 70 mm inner-race radius, it is not
-  back-solved from GT-1; it is simply unconfirmed. Verification that would
+  observed depth. That 18 mm contact length is used as an inference rather than a
+  measurement — it assumes the spall spans the full contact width, which no named source
+  in this scenario supplies. Unlike the 4.9 mm effective length and the 70 mm inner-race
+  radius, it is not back-solved from GT-1; it is simply unconfirmed. Verification that would
   make this a prediction rather than a fit, and remove the `?`: obtain the bearing
   drawing, read the effective roller contact length, the nominal full contact width and
   the race radius off it, and re-run
