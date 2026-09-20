@@ -206,8 +206,9 @@ pipeline already admits roughly five times the observed 2/day rate (GT-3), so a 
 raises deploy frequency only if profiling shows runtime is what binds.
 
 **Why abandoned:** Runner substitution alone does not address the structural constraint in GT-2:
-every deploy requires a full pipeline pass. Even reducing the test suite to 30 minutes does not
-change the constraint that the full suite must run before every deploy. The larger lever on
+every deploy requires a full pipeline pass. Even reducing the pipeline to approximately 40.5
+minutes — the floor the 5–10% bound above allows (45 × 0.90 = 40.5) — does not change the
+constraint that the full suite must run before every deploy. The larger lever on
 pipeline time is not the test runner — it is the pipeline architecture:
 
 - **Test suite parallelization** (running test shards concurrently across multiple CI workers)
