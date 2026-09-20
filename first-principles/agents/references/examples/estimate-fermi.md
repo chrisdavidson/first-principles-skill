@@ -224,15 +224,16 @@ and introduces no new untested belief of its own to classify.
 ### Conclusion C1: Molten-salt TES is cost-competitive with lithium-ion under all bracket scenarios
 
 GT-4 (Solar Salt stable 290–565 °C; c_p ≈ 1.52 kJ/(kg·°C) — direct measurement) + GT-5 (molten-salt TES installed capital ≈ $20–50/kWh — NREL direct measurement) + GT-6 (lithium-ion storage ≈ $150–300/kWh installed — BloombergNEF direct measurement)
-→ The unit-factor rebuild (material_mass 8.6 kg/kWh × cost_per_kg $0.40–0.80/kg × system_factor 3.5–5×, plus an O&M reserve of $5–10/kWh, GT-4-anchored) reconstructs the installed-capital bracket from first principles — Lower ~$17/kWh, Central ~$28/kWh, Upper ~$44/kWh — consistent with the GT-5 range this rebuild explains rather than merely assumes
+→ The unit-factor rebuild (material_mass 8.6 kg/kWh × cost_per_kg $0.40–0.80/kg × system_factor 3.5–5×, plus an O&M reserve of $5–10/kWh, GT-4-anchored) reconstructs the installed-capital bracket from first principles — Lower ~$17/kWh, Central ~$28/kWh, Upper ~$44/kWh — overlapping the GT-5 range this rebuild explains rather than merely assumes, with the lower bound falling below GT-5's $20/kWh floor; that direction is conservative for the cost-competitiveness conclusion below, since a lower installed-cost estimate only widens the margin against lithium-ion's $150/kWh floor (GT-6)
 → Amortising the installed-capital bracket over cycle life (8,000–12,000 cycles) converts one-time capital into levelised cost per kWh delivered — Lower ~$0.0014/kWh, Central ~$0.0028/kWh, Upper ~$0.0055/kWh
 → Molten-salt TES is cost-competitive with lithium-ion (GT-6) under every combination of factor uncertainty in the bracket — even the installed upper bound ($44/kWh) is still ~3.4× below the lithium-ion installed lower bound ($150/kWh), and the levelised gap is larger still.
 
 **Confidence:** HIGH — the installed upper bound is well below the lithium-ion installed
 lower bound across the full width of the estimate bracket. If a future lithium-ion installed
 quote reached ~$40/kWh (emerging cost trajectory), the installed brackets would straddle the
-threshold and confidence would drop to MEDIUM — at that point, tighten `cost_per_kg` and the
-`system_factor` with current procurement and engineering quotes before drawing the conclusion.
+threshold and confidence would drop to MEDIUM — at that point, tighten `cost_per_kg`, the
+`system_factor`, and the O&M reserve with current procurement and engineering quotes before
+drawing the conclusion.
 
 ---
 
@@ -259,13 +260,13 @@ cost-competitiveness gap further at the levelised-cost level than at the install
 level alone.
 
 - The installed bracket width [$17–$44/kWh] (chain C1) reflects the uncertainty in
-  salt-procurement cost and the system multiple; cycle life additionally drives the
-  levelised spread.
+  salt-procurement cost, the system multiple, and the O&M reserve; cycle life additionally
+  drives the levelised spread.
 - Cross-technique continuity (chain C1): the five-whys reduce-to-primitives drill produced
   GT-4, which anchored the Solar Salt specific heat and operating window that chain C1's
   `material_mass` factor derives from.
 
 **Confidence:** HIGH — matches chain C1. Raising the bracket's precision further would
-require tightening `cost_per_kg` and the `system_factor` with current procurement and
-engineering quotes, but the cost-competitiveness conclusion itself does not depend on that
-tightening.
+require tightening `cost_per_kg`, the `system_factor`, and the O&M reserve with current
+procurement and engineering quotes, but the cost-competitiveness conclusion itself does not
+depend on that tightening.
