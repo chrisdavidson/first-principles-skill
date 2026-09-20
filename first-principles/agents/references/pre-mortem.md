@@ -40,11 +40,20 @@ the mechanism.
 
 2. **Write independently.** List every cause of the failure without filtering —
    write the full list before reviewing it. Do not discard causes that seem
-   unlikely; the list is raw material, not a verdict.
+   unlikely; the list is raw material, not a verdict. Generate from at least
+   three named viewpoints — for example the implementer, the person who has to
+   live with the result, whoever pays for it, and a competitor who benefits
+   from the failure. One generator asked once returns one perspective's
+   failures, and the causes it misses are systematically the ones outside the
+   frame it was asked in.
 
-3. **Interrogate the list adversarially.** Re-read each item and ask: "Would I
-   have suppressed this in a group?" Items flagged by that question are often
-   the highest-signal findings.
+3. **Interrogate the list adversarially.** Re-read each item and ask which ones
+   contradict the plan's own stated premise, or the recommendation the analysis
+   is about to make. A cause that would embarrass the conclusion is higher
+   signal than one that merely adds risk to it. In a facilitated session these
+   are the items a junior participant suppresses; written by a single analyst
+   they are the items that get hedged into vagueness rather than dropped, so
+   look for the softened ones, not the missing ones.
 
 4. **Identify recurring patterns.** Look for failure causes that cluster — the
    same root (over-optimistic timeline, single point of dependency, assumption
@@ -60,6 +69,39 @@ are written from that stance, causes are clustered into structural weaknesses, a
 every cluster has either a named plan change or an explicitly accepted risk with a
 named mitigation. A pre-mortem that ends without one of those two outcomes per
 cluster is box-ticking, not a finding.
+
+---
+
+## Output contract
+
+The exit criterion above names four things the pre-mortem must produce. This is
+what they look like on the page, in this order:
+
+**Premise** — one line, past tense, stating the failure as accomplished fact.
+Not "the plan might fail"; the grammatical shift is the mechanism, and a premise
+written in the conditional has already lost it.
+
+**Causes** — the unfiltered list, one per line, written before any grouping
+appears. The viewpoints from step 2 are visible in it: if every cause is a
+technical one, step 2 was run once rather than three times. Writing the clusters
+first and back-filling causes into them inverts the procedure and produces the
+generic risk list the whole framing exists to avoid.
+
+**Clusters** — the structural weaknesses the causes fall into, each named, and
+each naming the causes it absorbs. A cluster is a claim that several causes share
+one root; a heading with one cause under it is a cause, not a cluster. When the
+pre-mortem runs inside a first-principles analysis, each cluster also cites the
+chain ids (`Cn`) or ground-truth ids (`GT-N`) it bears on, so the finding lands
+somewhere a reader can check it against.
+
+**Disposition** — per cluster, one of exactly two things: a named plan change, or
+an explicitly accepted risk with a named mitigation. "Worth watching", "we should
+keep this in mind" and "a risk we accept" with nothing named after it are none of
+the above. A cluster whose disposition is an accepted risk still names what makes
+the risk survivable; that is what distinguishes accepting a risk from noticing one.
+
+A pre-mortem missing any of the four has not run. A pre-mortem whose causes list
+is shorter than its cluster list ran backwards.
 
 ---
 

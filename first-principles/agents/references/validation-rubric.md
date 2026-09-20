@@ -450,6 +450,16 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
   satisfying evidence, and the chain may remain MEDIUM because it establishes what does not
   follow rather than what does.
 
+  The adversarial pass Phase 5 prescribes has run and its record is complete: a premise stated
+  in the past tense, an unfiltered cause list written before any grouping, clusters each naming
+  the chain ids or ground-truth ids the weakness bears on, and per cluster a named plan change
+  or an explicitly accepted risk with a named mitigation. Each structural weakness the pass
+  returned has landed somewhere a reader can find it — as a named weak link on a chain, or as
+  an explicit confidence caveat on the conclusion it threatens. An analysis whose conclusion is
+  neither a plan nor a claim satisfies this by carrying the `adversarial pass not applicable —
+  [reason]` line with its reason named; an analysis that does carry a plan or a claim cannot
+  satisfy it that way, and the reason given is what makes the two cases distinguishable.
+
   **A conclusion without a HIGH chain is a banding matter, not a gate failure.** A conclusion
   resting on no HIGH-confidence chain, uncovered by either EXCEPT clause above, bands this
   criterion below Rigorous rather than failing the gate — one such conclusion bands Sound;
@@ -479,13 +489,22 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
 - **Hand-wavy** — confidence ratings appear on the overall Conclusion section but are absent
   from individual derivation chains; OR weak links are described in general terms ("some
   assumptions remain uncertain") without naming the specific chain step or GT-N? input that
-  caused the concern.
+  caused the concern; OR an adversarial pass record is present but no cluster carries a
+  disposition — neither a named plan change nor an explicitly accepted risk with a named
+  mitigation — so the pass named structural weaknesses and acted on none of them; OR the record
+  states its clusters without the cause list they were drawn from, which is the generic risk
+  list the pass exists to replace rather than a pass that produced one.
 
 - **Absent** — no confidence ratings appear anywhere in the derivation chains; OR GT-N? inputs
   are used in load-bearing chains without any confidence caveat anywhere in the document; OR
   — covering the case the first two clauses miss — confidence ratings exist but no weak-link
   identification or chain inspection was performed at all, so there is no evidence that
-  Phase 5's stress-test operation was executed.
+  Phase 5's stress-test operation was executed; OR neither an adversarial pass record nor an
+  `adversarial pass not applicable — [reason]` line appears anywhere in the response, so there
+  is no evidence that Phase 5's adversarial pass was executed at all. These two clauses are
+  separate readings: a weakest-link paragraph written by the same reasoning that built the
+  chains satisfies the first and not the second, and an analysis scoring above Absent on the
+  strength of that paragraph alone is what this clause exists to catch.
 
 ### Criterion 6: Conclusion-to-Ground-Truth Traceability
 
