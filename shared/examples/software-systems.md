@@ -256,17 +256,23 @@ that was not already in the Assumptions Table has been added there before this t
 
 ## 6. Conclusion
 
-**Recommended approach:** (chains C1 and C3) Profile first, then take whichever of the following
-branches profiling indicates, stopping when deploy frequency reaches the target:
+**Recommended approach:** (chains C1 and C3) Profile first, then take whichever branch profiling
+indicates, stopping when deploy frequency reaches the target.
 
-1. **Profile the pipeline and the release process** (chain C3; approximately 1 day): instrument the CI/CD
-   pipeline to measure the wall-clock contribution of each stage — test suite execution, artifact
-   build, deployment and restart, health-check wait — and read, from the deployment records GT-3 is
-   measured from, the gap between one pipeline completion and the next deploy start, where an approval
-   gate, deploy window or batching policy would show. Identify which stage or gap binds the 2/day
-   ceiling. Within the pipeline, the test suite runtime (GT-1) is usually the dominant stage for a
-   codebase of this profile; profiling confirms or refutes this. If the binding factor lies outside the
-   pipeline, change that release process first — it is cheaper than either step below.
+**Step 0 — profile the pipeline and the release process** (chain C3; approximately 1 day):
+instrument the CI/CD
+pipeline to measure the wall-clock contribution of each stage — test suite execution, artifact
+build, deployment and restart, health-check wait — and read, from the deployment records GT-3 is
+measured from, the gap between one pipeline completion and the next deploy start, where an approval
+gate, deploy window or batching policy would show. Identify which stage or gap binds the 2/day
+ceiling. Within the pipeline, the test suite runtime (GT-1) is usually the dominant stage for a
+codebase of this profile; profiling confirms or refutes this. This step is unconditional — it is
+the precondition for choosing between the branches below, not one of them.
+
+Then take exactly one of:
+
+1. **If the binding factor lies outside the pipeline** (chain C3) — an approval gate, deploy window
+   or batching policy: change that release process. It is cheaper than either branch below.
 
 2. **If profiling identifies a pipeline stage as binding, parallelize the test suite and decouple the restart** (chain C3; days to 2 weeks): split the test suite into shards and run them
    concurrently across multiple CI workers; introduce a blue-green or rolling deploy strategy
@@ -281,7 +287,8 @@ branches profiling indicates, stopping when deploy frequency reaches the target:
    boundaries). This step delivers the coupling reduction that enables genuinely independent
    deploys — and it does not require splitting the application into separately-deployed services.
 
-Revisit the microservices question as a separate analysis after whichever of steps 1–3 fired have completed. If,
+Revisit the microservices question as a separate analysis once the branch profiling selected has
+completed. If,
 after removing whatever constraint profiling identified as binding and decoupling the schema, the team's deploy frequency
 still does not meet business needs — or if the team's real goal is independent team ownership
 and feature velocity rather than deploy speed — that is a different problem and warrants a
