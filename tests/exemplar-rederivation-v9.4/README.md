@@ -2343,3 +2343,109 @@ Every gate this repository runs was GREEN before and after: `FIREWALL: GREEN`, w
 `report-conformance.py --check` reporting no drift and `check-conf-gate.py` PASS at every commit.
 As in Erratum 3, no gate here takes the truth of these sentences as its subject — every finding
 this erratum records came from reading prose and re-running the files' own stated commands.
+
+## Erratum 5 (2026-09-20)
+
+Every section above, Erratum 4 included, is frozen and left byte-unchanged. The two numbered items
+below supersede only the specific sentences they cite; no re-derivation, sha256, line count or
+sweep reading recorded above is affected. Raised by a second `/bm:code-review --fix` round on the
+same `46-REVIEW.md`, run at `--all` scope rather than the first round's `critical_warning` scope,
+which widened the population by exactly the three Info findings Erratum 4 left open or claimed
+closed: IN-01, IN-02 and IN-03. Three fixes landed as commits `4761058`, `2384ca6` and `580db0f`;
+this erratum is written last, so every quotation below is of the corrected prose as it now stands.
+Appended additively per this file's own Frozen-evidence discipline section, never as a rewrite of
+the original text.
+
+1. **Erratum 4's closing paragraph — "Not fixed, and recorded as open: the review's IN-01 ... and
+   IN-02 ..." (README.md:2334-2339).** IN-01 and IN-02 (both product). Superseded: both are now
+   fixed, so neither is open. The paragraph was accurate when written — the first round ran at
+   `critical_warning` scope — and is superseded only as to disposition, not as to its description
+   of either finding.
+
+   (a) IN-01. `shared/examples/software-systems.md`'s runner dead end read "Even reducing the test
+   suite to 30 minutes does not change the constraint that the full suite must run before every
+   deploy." Valid a fortiori, but 30 minutes was reachable only under the pre-RF-05 10-30% band;
+   under the 5-10% bound stated six lines earlier the floor is ~40.5 minutes, so the leftover
+   figure invited a reader to think runner substitution could reach 30. The review's suggested
+   wording kept "the test suite" as the sentence's subject, which is no longer available: CR-02's
+   fix rescoped GT-1's 45 minutes to the whole pipeline and made the per-stage test-suite share
+   explicitly unmeasured, so "reducing the test suite to 40 minutes" would have reintroduced
+   exactly the conflation CR-02 removed. The sentence therefore names the pipeline — what the
+   5-10% bound bounds and what 40.5 derives from — and shows its arithmetic inline: "Even reducing
+   the pipeline to approximately 40.5 minutes — the floor the 5-10% bound above allows
+   (45 x 0.90 = 40.5) — does not change the constraint that the full suite must run before every
+   deploy." Re-measured live on 2026-09-20: `python3 -c "print(45*0.90)"` -> `40.5`, matching the
+   "~40.5-42.75 minutes" already stated in the comparison bullet below it, and
+   `/usr/bin/grep -n '30 minutes' shared/examples/software-systems.md` -> exit 1 (no match).
+   `fix(46-19)` commit `4761058655ea8e08d6ed7dff650e3ec8eba80d5a` (short `4761058`).
+
+   (b) IN-02. `shared/examples/self-application.md`'s Outcome check 3 described its grep as reading
+   "**8** live reference-link occurrences". The review's counts were re-run here rather than taken
+   from it, and they hold: against the current 807-line body,
+   `/usr/bin/grep -c 'output-template.md\|validation-rubric.md' first-principles/agents/first-principles.md`
+   -> `8`; the same pattern under `-o | wc -l` -> `8`; the link-target form
+   `/usr/bin/grep -o '](${CLAUDE_PLUGIN_ROOT}/agents/references/\(output-template\|validation-rubric\)\.md)' ... | wc -l`
+   -> `7`; and `sed -n '325p'` reads "Ledger form (cite the chain's assigned ID from
+   output-template.md §4's numbering", a bare prose mention inside a ledger-form instruction with
+   no bracket-paren link form. So the count of 8 was right and the characterisation was not: seven
+   are links, one is a prose citation. Check 3 now states 8 occurrences of the two reference
+   filenames, seven of them live links, and names the eighth's location and text. It also carries
+   a second command so the seven is itself re-runnable rather than asserted — the same discipline
+   CR-01's fix applied to check 2 — published in the plain `.md)` link-target form rather than the
+   plugin-root-anchored one, so no `${CLAUDE_PLUGIN_ROOT}` token and no bracket-paren sequence
+   enters an example file. `python3 scripts/check-links.py` -> `PASS (351 markdown links + 6
+   namespace refs across 160 files)`. This is a corrected count inside prose, not a gate: no
+   checker script, gate or CI job was added (D-10).
+   `fix(46-20)` commit `2384ca66f6746e394f2aaee8a58012a02a715cb2` (short `2384ca6`).
+
+2. **Erratum 4 item 10's IN-03 closure claim — "Taken together these two fixes also close the
+   review's IN-03 readability note, whose own Fix block prescribed exactly them"
+   (README.md:2298-2300).** IN-03 (product). Superseded: they did not close it. The claim was
+   inherited from IN-03's own Fix block ("apply WR-06's and WR-07's replacements, which cut the
+   clause to two sentences and move the third input into the verification path where it belongs"),
+   and the second half of that prediction came true while the first did not. WR-06's prescribed
+   replacement is itself a long nested aside, so composing it with WR-07's produced a clause no
+   shorter than the one it replaced. As shipped by `fix(46-17)`, `shared/examples/science-engineering-2.md`
+   read:
+
+   > ...at a nominal full-width contact taken as the Scenario's observed 18 mm axial spall length
+   > (§Scenario) — an inference, not a measurement: it assumes the spall spans the full contact
+   > width, which no named source in this scenario supplies, and unlike the 4.9 mm effective length
+   > and the 70 mm inner-race radius it is not back-solved from GT-1; it is simply unconfirmed —
+   > the same model, at the stated 70 mm inner-race radius, gives about 0.21 mm (0.208 mm)...
+
+   That is a 45-word em-dash aside carrying three independent claims, interposed between "at a
+   nominal full-width contact" and "the same model ... gives" — verbatim the defect IN-03 named
+   ("a reader must re-read the sentence to find what 'the same model ... gives about 0.21 mm'
+   attaches to"). The `GT-2?` bullet had also grown from the 23 lines IN-03 measured to 25. The
+   passage is now three sentences with no nesting, and no claim is added, dropped or weakened: the
+   counter-figure leads with its subject adjacent to its verb ("at the stated 70 mm inner-race
+   radius the same model gives about 0.21 mm (0.208 mm), which does NOT contain GT-1's observed
+   depth"); WR-06's disclosure stands as its own sentence (the figure is the Scenario's observed
+   18 mm axial spall length, used as an inference rather than a measurement, assuming the spall
+   spans the full contact width, which no named source supplies); WR-07's non-equivalence stands as
+   its own sentence (unlike the 4.9 mm effective length and the 70 mm inner-race radius it is not
+   back-solved from GT-1, merely unconfirmed); and WR-07's extended verification path — effective
+   roller contact length, nominal full contact width, race radius — is untouched. Re-measured live
+   on 2026-09-20: `/usr/bin/grep -n '18 mm' shared/examples/science-engineering-2.md` still returns
+   exactly two sites, and the Hertz counter-figures re-derive independently at F = 12 kN,
+   R = 9.506 mm, E* = 113.7 GPa — L = 18 mm gives `a = 0.2664 mm` and `z = 0.78a = 0.2078 mm`, so
+   the file's `0.208 mm` stands, and L = 4.9 mm gives `0.3983 mm`.
+   `fix(46-21)` commit `580db0fa0ddde327599e9024d97b64ce7efcd345` (short `580db0f`).
+
+   The general lesson, recorded because it is the second time this review round produced it: a
+   finding whose Fix block delegates to other findings' fixes is not closed by those fixes landing.
+   Erratum 4 item 2 narrowed a closure claim of exactly that shape (Erratum 3 item 9's, for RF-10),
+   and this item narrows another. Delegated closure needs its own re-reading of the shipped text
+   against the finding's own stated symptom, not a note that the prescribed edits were applied.
+
+With IN-01, IN-02 and IN-03 closed, every finding in `46-REVIEW.md` — 2 critical, 11 warnings and
+7 info across both tiers, 20 in total — is fixed, and none is skipped. No conclusion and no
+confidence label moved in any of the three exemplars edited in this round either, and no `GT-n` or
+`C-n` marker was added, changed or removed. Every gate this repository runs was GREEN before and
+after: `sync-content.py --check` exit 0, `FIREWALL: GREEN (23/23)`, `report-conformance.py --check`
+reporting no drift, and `check-conf-gate.py` PASS (COVERAGE 28 artifacts, three D-08 self-checks
+firing) at every commit, with all five pre-commit gates passing on each and `--no-verify` never
+used. As in Erratum 3 and Erratum 4, no gate here takes the truth of these sentences as its
+subject — every finding this erratum records came from reading prose and re-running the files' own
+stated commands.
