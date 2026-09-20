@@ -1966,3 +1966,143 @@ begins to apply once `_FROZEN_PATHS` names it.
 catches an edit to a file already tracked at HEAD, and it catches an untracked file appearing
 inside the directory — but a committed `git rm` of one of these files passes it clean. It is
 tamper-evidence for modification, not a deletion guard.
+
+## Erratum 3 (2026-09-19)
+
+The Finding, Untested-exemplar re-derivation, chain-of-custody table, Frozen-evidence discipline,
+Erratum (2026-09-18) and Erratum 2 (2026-09-18) sections above are frozen and left byte-unchanged.
+The numbered items below supersede only the specific sentences they cite; no re-derivation, sha256,
+line count or sweep reading recorded above is affected. Raised by Phase 46, backlog 999.124 and
+999.126, residual findings RF-05 through RF-13 from `44-VERIFICATION.md`, and appended additively
+per this file's own Frozen-evidence discipline section, never as a rewrite of the original text.
+
+1. **"`8.6*0.40*3.5+5 = 17.0` (lower bound), `8.6*0.60*4+7.5 = 28.0` (central, at the O&M midpoint
+   `$7.5`, published `~$28/kWh`), `8.6*0.80*5+10 = 44.0` (upper bound)" (Erratum 2, item 2,
+   README.md:1775-1776).** RF-09 (apparatus). Confirmed by re-running the cited expression live:
+   `python3 -c "print(8.6*0.40*3.5+5, 8.6*0.60*4+7.5, 8.6*0.80*5+10)"` prints
+   `17.04 28.139999999999997 44.4` — not `17.0`, `28.0`, `44.0`. Narrowed: the three cited values
+   are the published, rounded display figures shown elsewhere in `estimate-fermi.md`
+   ($17/$28/$44/kWh and their levelised derivatives), not the raw `python3` expression's own
+   stdout; the two are consistent at the displayed rounding. The published figures and every
+   levelised figure derived from them are unaffected — this is a transcription defect in this
+   artifact's own Erratum 2, not a defect in the exemplar.
+
+2. **"All eleven P-sites (P1-P11) were preserved with their voice adjudication recorded" (Erratum
+   2, item 1, README.md:1758-1759).** RF-13 (apparatus). Narrowed: only P2 is individually named
+   in this tracked file (the fenced abandoned-reasoning block quoted two sentences later); P1 and
+   P3-P11, and the reason for each, live only in `.planning/44-08-SUMMARY.md`, which has never
+   been tracked in this repository and is therefore unavailable to a reader of the public repo.
+   All eleven were in fact preserved and adjudicated — plan 44-08's own execution record is the
+   source of the original claim — but only P2's adjudication is **recorded in this tracked
+   artifact**; a reader of this file alone cannot audit the other ten.
+
+3. **Backlog 999.124 disposition — `shared/examples/self-application.md`'s stale Ground Truths
+   premises.** Plan 46-01 chose D-01's dated as-of disclosure (999.124's named option 1) plus an
+   outcome postscript, not option 2 (re-authoring against the live tree) — rejected because the
+   conclusion's substance is already confirmed rather than recommended, which makes for a worse
+   teaching exemplar, and because re-authoring would have moved the file's GT and chain counts in
+   both conformance rows for no gain in truth. All 18 pre-existing `878` sites were left in place
+   and no `GT-n` or `C-n` marker was added, changed or removed (D-02). The as-of stamp names
+   provenance anchor `e5063b3` (`feat(32-02): add self-application worked example`) and
+   measurement date `2026-05-24` (D-03); GT-7's citation of the untracked
+   `.planning/REQUIREMENTS.md` was disclosed as unverifiable to a public-repo reader, the quote
+   itself preserved verbatim without a `?` suffix (D-06). Plan 46-01's live re-measurements,
+   carried verbatim from `46-01-SUMMARY.md`, each with the command that produced it and dated
+   `2026-09-19`:
+   - `wc -l first-principles/agents/first-principles.md` → `807`
+   - `/usr/bin/grep -n '^## How to Use This Template' first-principles/agents/first-principles.md`
+     → exit 1 (no match)
+   - `/usr/bin/grep -n '^## Self-Audit Gate' first-principles/agents/first-principles.md` → exit 1
+     (no match)
+   - `/usr/bin/grep -c 'output-template.md\|validation-rubric.md' first-principles/agents/first-principles.md`
+     → `8`
+
+   `fix(46-01)` commit: `a477cdedb6b098c9caf42ae471b43ba128212367` (short `a477cde`).
+
+4. **`README.md:67`'s description of `self-application.md`.** Checked by plan 46-01 against the
+   post-postscript file and deliberately left unedited: the line names the topic (agent body
+   length vs. scope) and the reasoning shape (a design decision worked through), not a
+   resolved-or-unresolved status, so the Outcome postscript does not falsify it. This was an open
+   question at plan time; it is closed here on the record, not skipped.
+
+5. **RF-05 — "software-systems.md's runner-substitution reasoning is internally consistent"**
+   (`44-VERIFICATION.md`, `shared/examples/software-systems.md:192-195,216,224`). Line `:189-199`
+   (pre-edit numbering) now reads: "Switching from a slower runner to a faster one might reduce
+   total runtime by 5–10%, matching the overhead bound above — removing all of the runner overhead
+   cannot reduce total runtime by more than the overhead itself accounts for. For a 45-minute
+   suite, an 8% improvement yields approximately 41.4 minutes (45 × 0.92 = 41.4)."; and `:216-225`
+   now reads in relevant part: "...versus runner substitution's 5–10% (from 45 minutes to
+   ~40.5–42.75 minutes)." Both `python3` re-derivations, re-run and confirmed:
+   `python3 -c "print(45*0.92)"` → `41.4`; `python3 -c "print(45*0.90)"` → `40.5`;
+   `python3 -c "print(45*0.95)"` → `42.75`. `fix(46-02)` commit
+   `4c01d67b85ebf9ec6242b98e9db9afee4a80088a` (short `4c01d67`).
+
+6. **RF-06 — "software-systems.md distinguishes test-suite time from whole-pipeline time"**
+   (`44-VERIFICATION.md`, `shared/examples/software-systems.md:93,216,223,257-258`). Line `:93`
+   (chain C1 hop 1) now reads: "A monolith running a fully-parallelized test suite in 8 minutes
+   with a blue-green deploy strategy contributes only 8 minutes of test-suite time to each
+   deploy — the remaining pipeline stages (artifact build, deploy/restart, health-check) are
+   additive on top of that figure and are not quantified here; the test-suite contribution to
+   per-deploy time is set by pipeline structure, and no architectural change is needed to shorten
+   it...". `:223`'s "cuts pipeline time 5.6–7.5×" now reads "cuts test-suite time 5.6–7.5×".
+   `fix(46-02)` commit `4c01d67` (SHA as in item 5).
+
+7. **RF-07 — "estimate-fermi.md's bracket claim against GT-5 is accurate at both ends"**
+   (`44-VERIFICATION.md`, `shared/examples/estimate-fermi.md:210,225` — GT-5's actual site is
+   `:211`, not `:210`, per `46-CONTEXT.md`'s flagged correction). Chain C1 hop 1 (pre-edit `:225`)
+   now reads: "...reconstructs the installed-capital bracket from first principles — Lower
+   ~$17/kWh, Central ~$28/kWh, Upper ~$44/kWh — overlapping the GT-5 range this rebuild explains
+   rather than merely assumes, with the lower bound falling below GT-5's $20/kWh floor; that
+   direction is conservative for the cost-competitiveness conclusion below, since a lower
+   installed-cost estimate only widens the margin against lithium-ion's $150/kWh floor (GT-6)."
+   The three bracket figures and GT-5's $20–50/kWh range are byte-unchanged at every site.
+   `fix(46-03)` commit `1b34f6d9590726fe1c61d8cb4bf5597e26a244bc` (short `1b34f6d`).
+
+8. **RF-08 — "Every site that lists estimate-fermi.md's bracket-width drivers includes the O&M
+   reserve"** (`44-VERIFICATION.md`, `shared/examples/estimate-fermi.md:232-233,259-261,267`). All
+   three sibling restatements now name the O&M reserve alongside `cost_per_kg` and
+   `system_factor`: C1's own Confidence paragraph ("...tighten `cost_per_kg`, the `system_factor`,
+   and the O&M reserve with current procurement and engineering quotes before drawing the
+   conclusion."); the §6 driver bullet ("...reflects the uncertainty in salt-procurement cost, the
+   system multiple, and the O&M reserve; cycle life additionally drives the levelised spread.");
+   and §6's own Confidence paragraph ("...require tightening `cost_per_kg`, the `system_factor`,
+   and the O&M reserve with current procurement and engineering quotes, but the
+   cost-competitiveness conclusion itself does not depend on that tightening."). `fix(46-03)`
+   commit `1b34f6d` (SHA as in item 7).
+
+9. **RF-10 — "software-systems.md's runner dead end does not presuppose an outcome not yet
+   established"** (`44-VERIFICATION.md`, `shared/examples/software-systems.md:220-222`). The dead
+   end's abandonment reason (pre-edit `:220-222`) now reads: "...is not worth investing time in
+   before profiling identifies pipeline parallelization as the binding fix." — conditional on
+   profiling rather than presupposing parallelization will happen. `fix(46-02)` commit `4c01d67`
+   (SHA as in item 5).
+
+10. **RF-11 — "software-systems.md §6's step numbering and framing matches its post-fix
+    conditional content"** (`44-VERIFICATION.md`,
+    `shared/examples/software-systems.md:249-259,274,281-283`). Structural choice: kept section 6
+    as three numbered items and dropped the "in order" claim, rather than promoting the
+    release-process branch embedded in step 1 to a fourth numbered item — the simpler of the two
+    options offered, since it required no renumbering of steps 2/3 and no reordering of the Key
+    insight paragraph's cause list. Section 6's opening (pre-edit `:249`) now reads: "Profile
+    first, then take whichever of the following branches profiling indicates, stopping when
+    deploy frequency reaches the target:"; step 1's title (pre-edit `:252`) now reads "**Profile
+    the pipeline and the release process**"; the post-steps sentence (pre-edit `:274`) now reads
+    "Revisit the microservices question as a separate analysis after whichever of steps 1–3 fired
+    have completed." `fix(46-02)` commit `4c01d67` (SHA as in item 5).
+
+11. **RF-12 — "science-engineering-2.md's 18 mm nominal-contact input is itself sourced"**
+    (`44-VERIFICATION.md`, `shared/examples/science-engineering-2.md:77-81`). The disclosing-clause
+    route was taken, not the literal `?`-suffix route — unavailable because the affected sentence
+    sits inside the existing `GT-2?` caveat block, which already carries the one `?` its own
+    identifier permits; there is no free `GT-N` identifier at that site to suffix a second time.
+    The `GT-2?` block's comparison sentence (pre-edit `:80`) now reads in relevant part: "...at a
+    nominal full-width 18 mm contact — itself illustrative and not read from any named source in
+    this scenario, the same status this caveat already assigns to the 4.9 mm effective length and
+    the 70 mm inner-race radius, and sourced by the same bearing drawing named below as the
+    verification that would remove the `?` — the same model, at the stated 70 mm inner-race
+    radius, gives about 0.21 mm (0.208 mm), which does NOT contain GT-1's observed depth."
+    `fix(46-03)` commit `1b34f6d` (SHA as in item 7).
+
+No conclusion and no confidence label moved in any of the four edited exemplars
+(`self-application.md`, `software-systems.md`, `estimate-fermi.md`, `science-engineering-2.md`),
+and no fix above restates VG-01's withdrawn "the pipeline binds the ceiling" claim (D-07).
