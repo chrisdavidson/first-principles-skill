@@ -48,13 +48,26 @@ Pre-mortem is not absent from output. It is **discretionary and shapeless**:
 
 | Surface | Runs with some pre-mortem content | Runs with none |
 |---|---|---|
-| `tests/live-conformance-v9.0/*.md` (9 captures) | 5 (`PR-P1`, `PR-P1-R2`, `Q-P1`, `Q-P2`, plus a citation in `PR-P1`'s Criterion 4 justification) | 4 (`PR-N1`, `PR-N2`, `PR-P2`, `Q-P3`) |
+| `tests/live-conformance-v9.0/*.md` (8 captures) | 4 (`PR-P1`, `PR-P1-R2`, `Q-P1`, `Q-P2`) | 4 (`PR-N1`, `PR-N2`, `PR-P2`, `Q-P3`) |
 | Root demos (2) | 2 (`DEMO-…-multiregion-latency.md:394`, `DEMO-…-ticket-triage.md:591`) | 0 |
 
 Where it appears, its shape varies from a full sub-section with premise, causes, clusters and
 per-cluster dispositions (`DEMO-…-multiregion-latency.md:394-420`) down to a single italic
 sentence folded into another paragraph (`Q-P1.md:230`). Nothing requires either form, so nothing
 distinguishes them.
+
+**Erratum, 2026-09-20, found by Phase 48 research.** The row above originally read *"(9 captures)"*
+and *"5 … plus a citation in `PR-P1`'s Criterion 4 justification"*. Both were wrong. There are **8**
+`.md` captures under `tests/live-conformance-v9.0/` (`ls` excluding `README.md`; the catalog states 8
+rows), and the "5" double-counted `PR-P1` — once as a capture carrying a pre-mortem, and again as a
+citation *inside that same file*. The correct split is 4 present / 4 absent.
+
+The headline is unaffected and was independently correct: **6/10 present** is 4 captures plus the 2
+root demos, over a population of 8 + 2 = 10, which is the `N = 10` the baseline table in §3 states
+and the number MEAS-05's like-for-like check re-asserts. What was wrong was the breakdown offered in
+support of it — a defect in the evidence, not in the reading. It is recorded rather than silently
+corrected because a miscount inside a document arguing for better provenance is the same class of
+error this milestone exists to fix.
 
 **This is the sharpest statement of the defect:** the agent is currently *rewarded identically*
 for a rigorous pre-mortem, a one-line gesture at one, and silence. Criterion 5's `Absent` band
@@ -130,7 +143,15 @@ that demonstrates the gap, and the next run is a different prompt.
 
 - **pre-mortem content present: 6/10**
 - **all three shape columns satisfied: 3/10**
-- cause count where present: 0, 0, 3, 6, 9, 9, 15
+- cause count where present: 0, 3, 6, 9, 9, 15 *(six values, one per present row)*
+
+**Erratum, 2026-09-20, found by Phase 48 planning.** The bullet above originally read
+*"0, 0, 3, 6, 9, 9, 15"* — **seven** values for **six** present rows, with a spurious extra `0`. The
+table's own cells are the authority and read 3, 9, 6, 0, 15, 9; the `6/10` and `3/10` aggregates
+derive from the table, not from this bullet, and §1.2's erratum independently corroborates them, so
+MEAS-05's like-for-like check is unaffected. Recorded rather than silently rewritten, in the same
+form §1.2 uses: this is the second miscount found in this document's own evidence, both in summaries
+of a table that was itself correct.
 
 `Q-P2`'s `causes = 0` is a true reading, not an extractor miss: its clusters are written inline as
 `**(i)** … **(v)**` inside a single italic paragraph, with no enumerated cause list before the
@@ -146,6 +167,60 @@ hundreds of lines later under its own heading, whose body blocks never repeat th
 on *every* match with a 30-line window fixed it, and the strongest capture in the set then scored
 strongest. A baseline that had been taken with the first-anchor version would have understated the
 present rate as 4/10 and the shape rate as 1/10.
+
+**MEAS-05 like-for-like reading, taken 2026-09-20 (Phase 48 plan 48-01), instrument:
+`scripts/measure-adversarial-pass.py --score`.** The extractor above existed only as prose in this
+document until now; `scripts/measure-adversarial-pass.py` is a tracked, re-runnable script
+implementing both corrections named above (anchor on every match, not the first; anchor on both
+`pre-mortem` and the `Adversarial pass` heading). Re-scoring the same ten named files:
+
+| file | present | premise | causes | clusters | disposition |
+|---|---|---|---|---|---|
+| `PR-N1.md` | no | - | - | - | - |
+| `PR-N2.md` | no | - | - | - | - |
+| `PR-P1.md` | yes | yes | 9 | yes | yes |
+| `PR-P1-R2.md` | yes | yes | 3 | yes | yes |
+| `PR-P2.md` | no | - | - | - | - |
+| `Q-P1.md` | yes | yes | **0** | yes | no |
+| `Q-P2.md` | yes | no | 0 | yes | yes |
+| `Q-P3.md` | no | - | - | - | - |
+| `DEMO-…-multiregion-latency.md` | yes | yes | **5** | yes | yes |
+| `DEMO-…-ticket-triage.md` | yes | yes | **4** | no | yes |
+
+- **present: 6/10** — reproduces the table above row for row on this column.
+- **all three shape columns satisfied: 3/10** — the same three rows (`PR-P1.md`, `PR-P1-R2.md`,
+  `DEMO-…-multiregion-latency.md`) satisfy premise AND clusters AND disposition, and every
+  present/premise/clusters/disposition cell above reproduces the corresponding cell in the Phase 0
+  table exactly.
+
+**Differing `causes` cells, recorded rather than tuned away.** `causes` is a count, not a shape
+column — it feeds neither aggregate above — and three of the six present rows differ from the
+hand-read table:
+
+- `Q-P1.md`: table reads 6, instrument reads **0**. The instrument's window carries no literal
+  `cause`/`causes`/`caused` token at all — the file's pre-mortem sentence names "three clusters" by
+  label (`deferral-without-a-deadline`, `ownership vacuum`, `political cost`) without using the
+  word "cause" anywhere nearby, so the instrument's cause-keyword anchor never fires. Zero is an
+  honest miss, not a tuned answer.
+- `DEMO-…-multiregion-latency.md`: table reads 15, instrument reads **5**. The instrument counts
+  the first enumerated list immediately following the first `cause`/`caused` mention in its 30-line
+  window — the five "Plan A … What caused it?" bullets — and does not also fold in the four
+  numbered structural-weakness labels, the three Plan B causes, or the three nested `Mitigation:`
+  lines a human reader evidently also counted toward 15.
+- `DEMO-…-ticket-triage.md`: table reads 9, instrument reads **4** — the four `Pre-mortem findings`
+  bullets, each already paired with its own disposition; the table's 9 counted a wider span than
+  this instrument's window reaches.
+
+None of these three differences moves `present` or `shape-complete`, which is what MEAS-05
+requires. They are recorded, per this plan's own governing rule, because tuning the extractor until
+the `causes` numbers matched the hand-read table would be exactly the failure mode this requirement
+exists to prevent — an instrument corrected against its target reading is not a correction.
+
+**Reproducibility bound.** Two of these ten files — `DEMO-first-principles-multiregion-latency.md`
+and `DEMO-first-principles-ticket-triage.md` — are untracked at the repository root by deliberate
+decision (`.planning/STATE.md`; neither EVID-01 nor the roadmap's Phase 47 Success Criterion 5
+names them). This reading therefore re-runs on this working tree but not on a fresh clone; D-48-C
+accepts and discloses that bound rather than closing it by tracking the two files.
 
 **Exit:** a recorded baseline table, N stated, nothing in `shared/` modified.
 
@@ -306,6 +381,34 @@ widened anchor returns **6/10 and 3/10 unchanged**: the old captures never use t
 the widening is a no-op on them and the before/after comparison is like-for-like. Had the reading
 been taken without this correction, the wiring's own output would have scored worse than the
 baseline it improves on.
+
+**The baseline side of the MEAS-04 classifier reading, taken 2026-09-20 (Phase 48 plan 48-01),
+instrument: `scripts/measure-adversarial-pass.py --classify`.** Before any live usage is spent on a
+fresh capture, the same frozen chain (`_battery_core._technique_hits` →
+`MIN_HEADER_HITS`-derived `fired` → `_composer_structure_hits` → `classify`) is run over the same
+ten named baseline files, proving the feeder works on real capture text and putting the "before"
+column of the drift reading on the record. Same reproducibility bound as the MEAS-05 reading in
+Phase 0: two of these ten files are untracked at the repository root by deliberate decision, so
+this reading re-runs on this working tree but not on a fresh clone.
+
+| file | fired | len(fired) | composer_structure_hits | verdict |
+|---|---|---|---|---|
+| `PR-N1.md` | `[]` | 0 | 13 | `full-composer` |
+| `PR-N2.md` | `['fishbone', 'trade-off']` | 2 | 11 | `full-composer` |
+| `PR-P1.md` | `['fishbone', 'inversion', 'trade-off']` | 3 | 14 | `full-composer` |
+| `PR-P1-R2.md` | `['fishbone']` | 1 | 11 | `full-composer` |
+| `PR-P2.md` | `[]` | 0 | 20 | `full-composer` |
+| `Q-P1.md` | `['fishbone']` | 1 | 17 | `full-composer` |
+| `Q-P2.md` | `[]` | 0 | 16 | `full-composer` |
+| `Q-P3.md` | `[]` | 0 | 10 | `full-composer` |
+| `DEMO-…-multiregion-latency.md` | `['pre-mortem', 'trade-off']` | 2 | 26 | `full-composer` |
+| `DEMO-…-ticket-triage.md` | `['trade-off']` | 1 | 25 | `full-composer` |
+
+All ten verdicts are `full-composer`, at `composer_structure_hits` ranging 10-26 against
+`_COMPOSER_FOCUS_CEILING = 4` — the frozen composer-structure override wins every row, including
+the two rows where `len(fired) == 1` (`PR-P1-R2.md`, `Q-P1.md`), because both carry
+`composer_structure_hits` far above the ceiling. This is the "before" reading a fresh wired-body
+capture's verdict is compared against once plan 48-03 takes the "after" side.
 
 **Not done: the routing-classifier drift check.** `_battery_core.classify()`'s `n == 1` /
 `_COMPOSER_FOCUS_CEILING` interaction remains a prediction. BATT-06 and INVARIANT-CHECK pass, and
