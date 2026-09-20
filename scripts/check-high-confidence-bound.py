@@ -976,8 +976,13 @@ def _run_self_test() -> int:
 
     # HC-9: Remove "at least one HIGH-confidence" from C5
     try:
-        o_mutated = canonical.replace("Every claim in the Conclusion section rests on at least one HIGH-confidence chain",
-                                     "Every claim in the Conclusion section rests on one chain")
+        # Phase 2 of PLAN-confidence-level-definitions.md re-based Criterion 5 Rigorous
+        # on calibration, so the sentence carrying this phrase moved. What HC-9 asserts
+        # is unchanged — the phrase must be present in the C5 Rigorous region, and its
+        # removal must be detected. Only the surrounding words moved. A stale literal
+        # here would make .replace() a no-op and the control would silently stop testing.
+        o_mutated = canonical.replace("at least one HIGH-confidence chain may be presented at HIGH",
+                                     "one chain may be presented at HIGH")
         o_failures = _check_criterion5(o_mutated, "test")
         _check_negative("o", o_failures, "HC-9")
     except Exception as e:

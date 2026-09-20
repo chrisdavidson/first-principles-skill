@@ -323,6 +323,30 @@ GT-N → first-order conclusion →[2nd] [2nd-order effect] →[3rd] [3rd-order 
 
 Example: `GT-1 → first-order conclusion →[2nd] flag-config surface grows →[3rd] flag debt accumulates (contradicts GT-4 → back to P2)`. The order marks (`[2nd]`, `[3rd]`) make the extension's sequence legible. A contradicting effect routes the conclusion back to Phase 2 — never directly to Phase 3 or past Phase 2. A pass that surfaces no non-contradicting downstream effect leaves the parent chain unextended — a clean no-op, not an error.
 
+### Confidence levels, defined
+
+`HIGH`, `MEDIUM` and `LOW` name how much of a chain is **outstanding** — not how strongly the analysis believes its conclusion. Three axes decide the band, each answerable by inspecting what the chain already carries on the page:
+
+- **Inputs** — the provenance of every identifier on the head line: an unsuffixed `GT-N` with a named read-at-source location, a `?`-marked ground truth, or a `Cn` carrying its own band.
+- **Inference** — whether each hop the chain's endpoint depends on follows from the line above it, or needs a premise supplied by an `[Assumes: A-N]` annotation.
+- **Rivals** — whether a competing conclusion from the same ground truths survives, and what rules it out. Section 5 is where the ruling-out is written down, so a chain answers this axis by pointing at its own Abandoned Reasoning entry as readily as by carrying the rival on its confidence line.
+
+**The band is the lowest the three axes license.** A chain is not HIGH because two of them are clean.
+
+**HIGH — nothing on this chain is outstanding.** Every identifier on the head line is an unsuffixed `GT-N` whose read-at-source location is named, or a `Cn` itself rated HIGH; every hop the endpoint depends on follows from the line above it by deduction, by arithmetic that recomputes when redone independently of the chain text, or by a regularity cited to an unsuffixed ground truth; and the strongest rival conclusion the analysis considered is named — on this confidence line or in a section 5 entry this chain points to — together with the ground truth or chain that rules it out, that ruling-out input itself unsuffixed. A chain whose endpoint a live alternative still contests is unexamined, not certain: it is MEDIUM at best.
+
+An `[Assumes: A-N]` annotation on a hop shorts the Inference axis **unless** the confidence line says what becomes of the endpoint when that assumption fails and the endpoint still stands — *"A2 is that the CDN'd assets are versioned; if they were not, the CDN result would be weaker evidence still, so the conclusion is unaffected"*. An annotation on a hop that only qualifies a second-order extension, and not the endpoint, is outside this axis and the chain says which case it is. Stating the sensitivity is the work; an unexamined assumption is not the same thing as one whose falsity has been priced.
+
+The Rivals axis is answered when a section 5 entry names a competing conclusion to this chain's endpoint and the chain or ground truth that ruled it out, or when the endpoint is itself a ruling-out — a chain establishing that some option does not work has already done the rival's work and does not need a rival of its own. It is short when a competing conclusion has been raised anywhere in the analysis and nothing settles it, and when the analysis reaches a positive recommendation with no section 5 content bearing on it at all.
+
+**MEDIUM — exactly one axis is short, and the shortfall is named and bounded.** One of: an identifier on the head line is `?`-marked or is a `Cn` rated MEDIUM; or at most one hop the endpoint depends on rests on a stated `[Assumes: A-N]` premise whose failure the chain has not priced; or a rival to the endpoint is live and nothing in the analysis settles it. The confidence line names which axis is short, names the specific input, hop or rival, and states what would close it — the verification that would remove an input as a cause of the downgrade, the evidence that would establish an assumed premise, or the observation that would settle between this conclusion and its rival. A MEDIUM chain is one whose weakness a reader can point at.
+
+**LOW — the shortfall is unbounded, or more than one axis is short.** Two or more axes short at once; or an input is `?` with no verification path available; or a hop's missing premise cannot be stated as an assumption at all, so the analysis cannot say what would make the step valid; or a rival survives that no available observation would settle. A LOW chain is reportable, and a conclusion resting on it alone is not actionable.
+
+**Calibration rule.** Each rating is the highest its inputs, hops and rivals license, **and no higher**. Rating above what the axes license over-claims. Rating below it is a defect of the same kind: a chain meeting HIGH on all three axes and written MEDIUM misreports the analysis's own strength, and a document whose every chain carries the same defensive band tells a reader nothing about which parts to trust. Criterion 5 scores calibration, not altitude — an analysis whose every band is the one its axes license is Rigorous whether its conclusion is HIGH, MEDIUM or LOW.
+
+**The caps are consequences, not extra rules.** The unverified-input rule (D-07) below and the ceiling at the lowest-rated chain a head cites are what the Inputs axis says, restated for the two cases that occur most often; they are the fast check, and these definitions are what they check for. A cap never licenses a band on its own — it bounds from above, and the band is still the lowest any of the three axes licenses.
+
 ### Conclusion C1: [Conclusion text]
 
 GT-N ([brief fact label, source]) + GT-M ([brief fact label, source])

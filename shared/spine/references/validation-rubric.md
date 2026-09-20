@@ -432,8 +432,13 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
   this same descriptor; no chain that consumes a GT-N? input is rated HIGH confidence; every
   chain is rated no higher than the lowest-rated chain its head cites, a ceiling that holds
   even when a cited chain is rated MEDIUM under an EXCEPT clause below.
-  Every claim in the Conclusion section rests on at least one HIGH-confidence chain, so that
-  this aggregation yields HIGH. EXCEPT: a chain is explicitly marked speculative — for
+  Every rating is calibrated: each chain carries the band its inputs, hops and rivals
+  license under the three-axis definition in `output-template.md` — no chain rated above
+  what those axes permit, and none rated below it. A Conclusion claim supported by
+  at least one HIGH-confidence chain may be presented at HIGH; a claim with no such
+  chain is presented at the band its weakest contributing chain licenses, and presenting
+  it so is Rigorous rather than a shortfall. Under-rating is a defect of the same kind
+  as over-rating, and this criterion scores calibration, not altitude. EXCEPT: a chain is explicitly marked speculative — for
   example `[Speculative]` — and the analysis states, in the same place, that the claim it
   supports is not load-bearing and is offered for exploration only; that mark plus that
   statement is the satisfying evidence, and the chain may remain MEDIUM, though its confidence
@@ -458,14 +463,16 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
   [reason]` line with its reason named; an analysis that does carry a plan or a claim cannot
   satisfy it that way, and the reason given is what makes the two cases distinguishable.
 
-  **A conclusion without a HIGH chain is a banding matter, not a gate failure.** A conclusion
-  resting on no HIGH-confidence chain, uncovered by either EXCEPT clause above, bands this
-  criterion below Rigorous rather than failing the gate — one such conclusion bands Sound;
-  the same shortfall across multiple conclusions bands Hand-wavy. A MEDIUM or LOW overall
+  **A conclusion without a HIGH chain is not a shortfall.** A conclusion resting on no
+  HIGH-confidence chain, uncovered by either EXCEPT clause above, is Rigorous on this
+  criterion when every band it rests on is the band that chain's axes license and the
+  Conclusion's own rating equals its weakest contributing chain's. A MEDIUM or LOW overall
   Conclusion rating remains a legitimate, honestly-caveated analysis — `output-template.md`
-  permits it and this criterion does not forbid it; what such an analysis is not is Rigorous
-  on Criterion 5, and its verdict block must say so rather than reporting Rigorous alongside
-  a MEDIUM rating. An exception is claimed, not assumed: an analysis relying on one of the
+  permits it and this criterion now scores it Rigorous when it is calibrated. What bands
+  this criterion below Rigorous is a band that does not match its axes in either direction,
+  never a band that is merely low, and a verdict block reporting Rigorous alongside a
+  MEDIUM overall rating is the expected shape of an honest analysis rather than a
+  contradiction. An exception is claimed, not assumed: an analysis relying on one of the
   two EXCEPT clauses above names it in the Criterion 5 verdict block and cites the evidence
   that clause requires; an unclaimed exception is not applied on the analysis's behalf.
 
@@ -482,7 +489,10 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
   or any clause other than the absent-fails one; OR a chain's head cites a chain marked
   speculative that has no verification path; OR a chain is rated HIGH confidence while consuming
   a GT-N? input (the rating does not match the unverified-input rule); OR a chain is rated above
-  the lowest-rated chain its head cites.
+  the lowest-rated chain its head cites; OR a single chain's band does not match what its
+  three axes license, in either direction — a chain rated HIGH whose head carries a `?` or
+  whose hops rest on a stated `[Assumes: A-N]` premise, or a chain meeting all three axes
+  rated MEDIUM — while every other chain in the analysis is correctly banded.
 
 - **Hand-wavy** — confidence ratings appear on the overall Conclusion section but are absent
   from individual derivation chains; OR weak links are described in general terms ("some
@@ -491,7 +501,11 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
   disposition — neither a named plan change nor an explicitly accepted risk with a named
   mitigation — so the pass named structural weaknesses and acted on none of them; OR the record
   states its clusters without the cause list they were drawn from, which is the generic risk
-  list the pass exists to replace rather than a pass that produced one.
+  list the pass exists to replace rather than a pass that produced one; OR two or more
+  chains carry bands their axes do not license, so the miscalibration is a pattern rather
+  than an isolated entry; OR every chain in the analysis carries the same band and no
+  confidence line names which axis produced it, which is a default setting rather than a
+  rating.
 
 - **Absent** — no confidence ratings appear anywhere in the derivation chains; OR GT-N? inputs
   are used in load-bearing chains without any confidence caveat anywhere in the document; OR
