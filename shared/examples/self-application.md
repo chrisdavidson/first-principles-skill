@@ -2,14 +2,25 @@
 
 A complete first-principles analysis applied to a live, contested design decision
 *about the agent that performs first-principles analyses*. The triggering observation
-is that `first-principles/agents/first-principles.md` is currently 878 lines while
-META-Q4 records a budget of "~500 lines / ~5,000 tokens." Authored in Phase 32 as a
-dogfooding example: the methodology turned on the artifact it ships from.
+is that `first-principles/agents/first-principles.md` was 878 lines at the time of
+this analysis, while META-Q4 records a budget of "~500 lines / ~5,000 tokens."
+Authored in Phase 32 as a dogfooding example: the methodology turned on the artifact
+it ships from.
+
+**As of this analysis:** the Ground Truths below were measured on 2026-05-24 against
+the tree at commit `e5063b3` (`feat(32-02): add self-application worked example`),
+which recorded three premises this analysis reasons from: the agent body was 878
+lines, the Output Template and Validation Rubric appendices were inlined into that
+body, and the META-Q4 budget gate was binding on every change. A reader can check
+out `e5063b3` and re-run `wc -l first-principles/agents/first-principles.md` to
+confirm the 878 figure directly, rather than take this stamp's word for it. The tree
+has since changed; see the dated Outcome section at the end of this file for what
+happened.
 
 **Scenario.** The single-agent surface shipped in v3.0 inlined the methodology body,
 the six companion-tool procedures, the canonical output template, and the validation
 rubric into one file at `first-principles/agents/first-principles.md`. Two milestones
-later the file measures 878 lines. The recorded budget — `~500 lines / ~5,000
+later the file measured 878 lines. The recorded budget — `~500 lines / ~5,000
 tokens`, encoded as regression gate META-Q4 in `.planning/REQUIREMENTS.md` — is
 nominally violated by roughly 75%. Engineering convention reaches reflexively for
 the response *"split it"* (extract content into `references/` files). This analysis
@@ -125,7 +136,11 @@ question is whether the budget tracks anything the agent actually depends on.
   independent observable property (token-cost-per-invocation, attention-budget,
   context-window competition, agent-self-test latency) is cited as the
   consequence the budget is sized to prevent — source: direct read of the
-  requirements file.
+  requirements file. That file, `.planning/REQUIREMENTS.md`, has never been
+  tracked in this repository — including at the `e5063b3` snapshot this
+  analysis cites (`git cat-file -e e5063b3:.planning/REQUIREMENTS.md` fails) —
+  so the quote above is preserved verbatim but is not independently checkable
+  by a reader of the public repository.
 
 - **GT-8** The regression gates that the agent surface is *actually* checked
   against on every change are `scripts/check-agent.py --self-test` (Checks 1–8,
@@ -397,3 +412,37 @@ proceeds at MEDIUM because the GT-9? verification step is named, scoped,
 and executable rather than open-ended. Confidence rises to HIGH once the
 A/B rigor measurement is performed and either confirms a rigor improvement
 or confirms no regression on the de-inlined body.
+
+---
+
+## Outcome (verified 2026-09-19)
+
+The recommended intervention (chain C3: de-inline the Output Template and Validation
+Rubric appendices) shipped. Four checks were re-run against the current tree on the
+date above, each with the command that produced it:
+
+1. `wc -l first-principles/agents/first-principles.md` reads **807** lines — down
+   from the 878 lines the Ground Truths above measured at `e5063b3`.
+2. `/usr/bin/grep -n '^## How to Use This Template' first-principles/agents/first-principles.md`
+   and `/usr/bin/grep -n '^## Self-Audit Gate' first-principles/agents/first-principles.md`
+   both return zero matches against that same file — the two appendices are no longer
+   inlined in the agent body.
+3. `/usr/bin/grep -c 'output-template.md\|validation-rubric.md' first-principles/agents/first-principles.md`
+   reads **8** live reference-link occurrences — the appendices are now reached by a
+   reference link rather than duplicated inline.
+4. `CLAUDE.md`'s Key Invariants section, at the line currently numbered 434, now
+   states: "The agent body's line count is **not** an invariant: the 644-line gate
+   was retired under TEARDOWN-01, and nothing reports or gates it." The ~500-line
+   figure this analysis examined is no longer even the binding convention chain C1
+   found it to be.
+
+These four readings are a dated snapshot of the tree on the date above, not a
+standing property; a future reader should re-run the commands rather than trust
+this paragraph. Against them: the premises this analysis reasons from (878 lines,
+inlined appendices, a binding META-Q4 gate — see the as-of stamp at the top of this
+file) are a dated snapshot too, and the arithmetic built on those premises in chains
+C1 through C3 is unchanged and self-consistent; nothing above required
+re-derivation. What changes is the conclusion's status: the de-inlining intervention
+chain C3 recommended is now historically confirmed rather than recommended. The
+GT-9? measurement chain C1 called for remains open, and its MEDIUM confidence label
+is unchanged by this postscript.
