@@ -119,13 +119,17 @@ Using central values:
                     = 8.6 kg/kWh × $0.60/kg × 4
                     = $20.6 / kWh of capacity
 
-This is the installed salt-plus-system capital. Adding an O&M reserve (≈ $5–10/kWh of capacity
-over the plant life, from NREL CSP O&M data):
+This is the installed salt-plus-system capital — the figure directly comparable to GT-5's and
+GT-6's installed ranges. A lifetime O&M reserve (≈ $5–10/kWh of capacity over the plant life,
+from NREL CSP O&M data) is a separate term, carried here because Step 6's levelised cost needs
+it; it is NOT part of any "installed" comparison:
 
-    central installed capital ≈ $25.6–30.6/kWh of capacity (take the midpoint, ~$28/kWh)
+    installed capital           ≈ $20.6/kWh          (comparable to GT-5, GT-6)
+    installed + lifetime O&M    ≈ $25.6–30.6/kWh     (the Step 6 amortisation basis, ~$28/kWh)
 
-This is consistent with NREL's published TES installed-cost range of $20–50/kWh and confirms
-the GT-5 anchor from the five-whys (reduce-to-primitives) example. The unit-factor rebuild explains the range.
+The installed-only figure sits inside NREL's published TES installed-cost range of $20–50/kWh and
+confirms the GT-5 anchor from the five-whys (reduce-to-primitives) example. The unit-factor rebuild
+explains the range.
 
 ---
 
@@ -142,13 +146,17 @@ the GT-5 anchor from the five-whys (reduce-to-primitives) example. The unit-fact
 Every factor in the bracket is load-bearing — there is no canceling term. The spread is driven
 by salt-procurement cost, the system multiple, and the O&M reserve.
 
-**Explicit bracket (installed capital):**
+**Explicit bracket (installed capital, with and without the lifetime O&M reserve):**
 
-| Bound | Installed capital | Dominant driver |
-|-------|-------------------|-----------------|
-| **Lower bound** | ~$17/kWh | Low salt cost, lean 3.5× system, low O&M ($5) |
-| **Central estimate** | ~$28/kWh | Mid salt cost ($0.60/kg), 4× system, mid O&M ($7.5) |
-| **Upper bound** | ~$44/kWh | High salt cost, full 5× system, high O&M ($10) |
+| Bound | Installed capital | Installed + lifetime O&M | Dominant driver |
+|-------|-------------------|--------------------------|-----------------|
+| **Lower bound** | ~$12.0/kWh | ~$17/kWh | Low salt cost, lean 3.5× system, low O&M ($5) |
+| **Central estimate** | ~$20.6/kWh | ~$28/kWh | Mid salt cost ($0.60/kg), 4× system, mid O&M ($7.5) |
+| **Upper bound** | ~$34.4/kWh | ~$44/kWh | High salt cost, full 5× system, high O&M ($10) |
+
+Only the **Installed capital** column is like-for-like with GT-5's and GT-6's installed ranges.
+The **Installed + lifetime O&M** column is the Step 6 amortisation basis and carries a scope those
+cited sources do not.
 
 ---
 
@@ -164,18 +172,22 @@ are mature, low-stress designs that also run longest, so the bounds compound. Un
 the cycle term does **not** cancel — it is the divisor that converts one-time capital into cost
 per delivered kWh.
 
-| Bound | Installed | Cycle life | Levelised cost |
-|-------|-----------|-----------|----------------|
+| Bound | Installed + lifetime O&M | Cycle life | Levelised cost |
+|-------|-------------------------|-----------|----------------|
 | **Lower** | ~$17/kWh | 12,000 cycles | ~$0.0014/kWh delivered |
 | **Central** | ~$28/kWh | 10,000 cycles | ~$0.0028/kWh delivered |
 | **Upper** | ~$44/kWh | 8,000 cycles | ~$0.0055/kWh delivered |
 
 The ~4× spread in levelised cost is driven jointly by installed capital and cycle life.
 
-**Decision-resolution check:** The installed-capital bracket [$17–$44/kWh] vs. utility-scale
-lithium-ion [$150–$300/kWh] installed (GT-6) keeps the cost-competitiveness conclusion stable
-across the entire width of the estimate bracket — even the upper bound ($44/kWh) is ~3.4×
-below the lithium-ion lower bound. Amortised, the gap only widens: molten-salt's long cycle
+**Decision-resolution check:** Like for like, the **installed-only** bracket [$12.0–$34.4/kWh] vs.
+utility-scale lithium-ion [$150–$300/kWh] installed (GT-6) keeps the cost-competitiveness
+conclusion stable across the entire width of the estimate bracket — even the installed upper bound
+($34.4/kWh) is ~4.4× below the lithium-ion lower bound (150 ÷ 34.4 = 4.4). Adding the lifetime
+O&M reserve to the molten-salt side — a scope GT-6's installed figure does not carry — still
+leaves that upper bound ~3.4× below it (150 ÷ 44 = 3.4). Both arms clear the threshold, so the
+conclusion does not turn on which scope is used.
+Amortised, the gap only widens: molten-salt's long cycle
 life drives its levelised cost to ~$0.0014–0.0055/kWh delivered. Molten-salt TES is
 cost-competitive under all combinations of factor uncertainty. The estimate is decision-grade.
 
@@ -226,12 +238,13 @@ and introduces no new untested belief of its own to classify.
 GT-4 (Solar Salt stable 290–565 °C; c_p ≈ 1.52 kJ/(kg·°C) — direct measurement) + GT-5 (molten-salt TES installed capital ≈ $20–50/kWh — NREL direct measurement) + GT-6 (lithium-ion storage ≈ $150–300/kWh installed — BloombergNEF direct measurement)
 → The unit-factor rebuild (material_mass 8.6 kg/kWh × cost_per_kg $0.40–0.80/kg × system_factor 3.5–5×, plus an O&M reserve of $5–10/kWh, GT-4-anchored) reconstructs the installed-capital bracket from first principles — Lower ~$17/kWh, Central ~$28/kWh, Upper ~$44/kWh — overlapping the GT-5 range this rebuild explains rather than merely assumes, with the lower bound falling below GT-5's $20/kWh floor; that direction is conservative for the cost-competitiveness conclusion below, since a lower installed-cost estimate only widens the margin against lithium-ion's $150/kWh floor (GT-6)
 → Amortising the installed-capital bracket over cycle life (8,000–12,000 cycles) converts one-time capital into levelised cost per kWh delivered — Lower ~$0.0014/kWh, Central ~$0.0028/kWh, Upper ~$0.0055/kWh
-→ Molten-salt TES is cost-competitive with lithium-ion (GT-6) under every combination of factor uncertainty in the bracket — even the installed upper bound ($44/kWh) is still ~3.4× below the lithium-ion installed lower bound ($150/kWh), and the levelised gap is larger still.
+→ Molten-salt TES is cost-competitive with lithium-ion (GT-6) under every combination of factor uncertainty in the bracket — on the like-for-like installed-only comparison the upper bound ($34.4/kWh) is ~4.4× below the lithium-ion installed lower bound ($150/kWh), and adding the lifetime O&M reserve to the molten-salt side alone still leaves it ~3.4× below ($44/kWh vs $150/kWh); the levelised gap is larger still.
 
 **Confidence:** HIGH — the installed upper bound is well below the lithium-ion installed
 lower bound across the full width of the estimate bracket. If a future lithium-ion installed
-quote reached ~$40/kWh (emerging cost trajectory), the installed brackets would straddle the
-threshold and confidence would drop to MEDIUM — at that point, tighten `cost_per_kg`, the
+quote reached ~$40/kWh (emerging cost trajectory), the two would nearly meet — $34.4/kWh
+installed, $44/kWh once the lifetime O&M reserve is added, so the O&M-inclusive band would
+straddle that threshold — and confidence would drop to MEDIUM. At that point, tighten `cost_per_kg`, the
 `system_factor`, and the O&M reserve with current procurement and engineering quotes before
 drawing the conclusion.
 
@@ -249,8 +262,9 @@ was tried and discarded.
 ## 6. Conclusion
 
 **Recommended approach:** Treat the molten-salt TES installed-cost figure (chain C1) as
-decision-grade for the cost-competitiveness question — the rebuilt bracket [$17–$44/kWh]
-holds under every combination of factor uncertainty, so no further estimate refinement is
+decision-grade for the cost-competitiveness question — the rebuilt installed-only bracket
+[$12.0–$34.4/kWh], and the [$17–$44/kWh] band that adds the lifetime O&M reserve,
+both hold under every combination of factor uncertainty, so no further estimate refinement is
 required before comparing against lithium-ion.
 
 **Key insight:** The unit-factor rebuild (chain C1) explains *why* the GT-5 installed-cost
@@ -259,8 +273,9 @@ life (8,000–12,000 cycles) shows that molten-salt's long cycle life widens the
 cost-competitiveness gap further at the levelised-cost level than at the installed-capital
 level alone.
 
-- The installed bracket width [$17–$44/kWh] (chain C1) reflects the uncertainty in
-  salt-procurement cost, the system multiple, and the O&M reserve; cycle life additionally
+- The bracket width (chain C1) reflects the uncertainty in
+  salt-procurement cost, the system multiple, and the O&M reserve: [$12.0–$34.4/kWh] installed,
+  [$17–$44/kWh] once the lifetime O&M reserve is added; cycle life additionally
   drives the levelised spread.
 - Cross-technique continuity (chain C1): the five-whys reduce-to-primitives drill produced
   GT-4, which anchored the Solar Salt specific heat and operating window that chain C1's
