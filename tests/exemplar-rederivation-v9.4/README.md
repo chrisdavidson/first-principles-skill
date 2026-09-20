@@ -2106,3 +2106,240 @@ per this file's own Frozen-evidence discipline section, never as a rewrite of th
 No conclusion and no confidence label moved in any of the four edited exemplars
 (`self-application.md`, `software-systems.md`, `estimate-fermi.md`, `science-engineering-2.md`),
 and no fix above restates VG-01's withdrawn "the pipeline binds the ceiling" claim (D-07).
+
+## Erratum 4 (2026-09-19)
+
+Every section above, Erratum 3 included, is frozen and left byte-unchanged. The numbered items
+below supersede only the specific sentences they cite; no re-derivation, sha256, line count or
+sweep reading recorded above is affected. Raised by Phase 46's own `/bm:code-review --fix` round
+(`46-REVIEW.md`: findings CR-01, CR-02, WR-01 through WR-11, WR-A1, WR-A2, IN-A1, IN-A2) and
+appended additively per this file's own Frozen-evidence discipline section, never as a rewrite of
+the original text. Thirteen fixes landed as commits `a433580` through `3d5dec4`; this erratum is
+written last, so every quotation below is of the corrected prose as it now stands.
+
+Erratum 3's items 5, 6, 7, 8, 10 and 11 each quoted the prose as plans 46-01 through 46-03 left
+it. Six of those quotations are superseded below because the review found the quoted edits
+incomplete or wrong. Erratum 3 items 2 and 4 are unaffected.
+
+1. **Erratum 3 item 3's third bullet — "`/usr/bin/grep -n '^## Self-Audit Gate'
+   first-principles/agents/first-principles.md` → exit 1 (no match)" (README.md:2015-2016).**
+   WR-A2 (apparatus) / CR-01 (product). Superseded: that reading is not evidence of anything. The
+   pattern returns zero against the *pre*-intervention body too, so its zero cannot distinguish
+   "the rubric appendix was removed" from "the rubric appendix is still inlined under its actual
+   heading". Re-measured live on 2026-09-19:
+   - `git show e5063b3:first-principles/agents/first-principles.md | /usr/bin/grep -c '^## Self-Audit Gate'` → `0`
+   - `git show e5063b3:first-principles/agents/first-principles.md | /usr/bin/grep -n '^# Validation Rubric'` → `559:# Validation Rubric`
+
+   The appendix inlined in the body this analysis measured was headed `# Validation Rubric` at H1,
+   line 559 — not `## Self-Audit Gate`. The heading level was wrong independently of the rename:
+   the shipped rubric's own top heading is `# Self-Audit Gate` (H1) at
+   `shared/spine/references/validation-rubric.md:1`, so `^## ` would not match even a present-day
+   re-inlining. `shared/examples/self-application.md`'s Outcome check 2 now runs a probe with a
+   falsifiable non-zero arm; its readings against both trees, re-measured 2026-09-19:
+   - `git show e5063b3:first-principles/agents/first-principles.md | /usr/bin/grep -n '^## How to Use This Template'` → `415:## How to Use This Template`
+   - `git show e5063b3:first-principles/agents/first-principles.md | /usr/bin/grep -nE '^# (Validation Rubric|Self-Audit Gate)'` → `559:# Validation Rubric`
+   - `/usr/bin/grep -n '^## How to Use This Template' first-principles/agents/first-principles.md` → exit 1 (no match)
+   - `/usr/bin/grep -nE '^# (Validation Rubric|Self-Audit Gate)' first-principles/agents/first-principles.md` → exit 1 (no match)
+
+   The postscript's substantive conclusion is unchanged and was independently confirmed: the rubric
+   is de-inlined and reached by links at body lines 222, 364 and 497. `fix(46-05)` commit
+   `a433580f7467563bfa106dc889d4021cd6c649ec` (short `a433580`). As in Erratum 3, this erratum's own
+   commit cannot self-cite.
+
+2. **Erratum 3 item 9's characterisation — "conditional on profiling rather than presupposing
+   parallelization will happen" (README.md:2076-2077).** WR-A1 (apparatus) / WR-10 (product).
+   Narrowed: the sentence item 9 quotes still presupposed it. "not worth investing time in
+   **before** profiling identifies pipeline parallelization as the binding fix" makes the *timing*
+   conditional on profiling while keeping the *outcome* — that profiling will name parallelization
+   — as a given, which is why the next sentence in the file stated the same relation a second time,
+   correctly, as "If profiling shows test-suite time is what binds...". RF-10's `truth:` line was
+   therefore not met by the plan 46-02 edit, and item 9's closure claim overstated what that edit
+   achieved — the same class Erratum 1 and Erratum 2 were themselves written to narrow.
+   `shared/examples/software-systems.md`'s dead end now reads: "...is not worth investing time in
+   before profiling has identified what actually binds." `fix(46-08)` commit `a0e085e`.
+
+3. **Erratum 3 item 3's `878` accounting — "All 18 pre-existing `878` sites were left in place"
+   (README.md:2004-2005).** IN-A1 (apparatus). True as stated, and not withdrawn. Extended: the
+   file's *total* `878` count moved 18 → 22. Re-measured live on 2026-09-19:
+   `git show 66e6d24:shared/examples/self-application.md | /usr/bin/grep -c '878'` → `18`;
+   `git show 465f870:shared/examples/self-application.md | /usr/bin/grep -c '878'` → `22`; and the
+   post-review-fix working tree also reads `22`. The four additions are the as-of stamp (×2) and
+   the Outcome postscript (×2), each of which names 878 as the *historical* measurement rather than
+   a current one. `46-CONTEXT.md`'s `<specifics>` treats 18 as a tracked census figure, so a reader
+   of Erratum 3 alone would otherwise carry a stale number forward.
+
+4. **Erratum 3 item 1's narrowing — "the three cited values are the published, rounded display
+   figures shown elsewhere in `estimate-fermi.md` ... the two are consistent at the displayed
+   rounding" (README.md:1983-1986).** IN-A2 (apparatus). Restated, because the narrowing was
+   itself imprecise about the precision it was narrowing. It holds at *integer* rounding, but
+   Erratum 2 printed the values to one decimal place, and at one decimal only `17.0` matches
+   (`28.14 → 28.1`, `44.4 → 44.4`). The published figures carry no decimal at all — `~$17`, `~$28`,
+   `~$44`. Restated: the three values are the published integer-rounded figures
+   (`~$17`/`~$28`/`~$44`); Erratum 2's one-decimal rendering (`17.0`/`28.0`/`44.0`) matches neither
+   the raw expression nor the published form, and should be read as `17.04`/`28.14`/`44.4`. The
+   expression re-run live on 2026-09-19:
+   `python3 -c "print(8.6*0.40*3.5+5, 8.6*0.60*4+7.5, 8.6*0.80*5+10)"` → `17.04
+   28.139999999999997 44.4`.
+
+5. **Erratum 3 item 6's RF-06 quotation (README.md:2042-2047).** CR-02 (product, blocking).
+   Superseded: the quoted edit removed one conflation by asserting another. Declaring the non-test
+   pipeline stages "additive on top of that figure and are not quantified here" is incompatible
+   with the two clauses preceding it in the same sentence, which set the deploy floor by "the test
+   suite wall-clock duration" and computed `480 ÷ 45 ≈ 10.7` on the premise that 45 minutes is the
+   whole pipeline. The `~10/day` figure is the sole support for the "roughly five times the observed
+   2/day rate" claim — chain C1's entire corrected conclusion, restated at seven further sites — so
+   that conclusion rested on a quantity the same sentence called unmeasured. The review's second
+   option was taken (carry the distinction through), not the first (withdraw the additivity clause
+   alone): GT-1 now reads "The full CI/CD pipeline runs end-to-end in approximately 45 minutes —
+   test suite execution plus artifact build, deploy/restart and health-check wait; the per-stage
+   split is not measured (that is exactly what chain C3's profiling step would read)"; C1 hop 1's
+   floor clause now reads "The deploy cycle floor is set by the whole-pipeline wall-clock duration,
+   of which the test suite is the largest unmeasured share"; and the additivity caveat is dropped.
+   The C1 and C3 chain heads, the Assumption Audit row, the runner dead end's framing and the
+   parallelization bullet were rescoped in the same commit so that nothing states the unmeasured
+   suite duration as 45 minutes; the 6–8 minute and 5.6–7.5× figures are now explicitly conditional
+   on test execution dominating the pipeline. Every arithmetic reading re-derives unchanged:
+   `python3 -c "print(480/45, 45*0.92, 45*0.90, 45*0.95, 45/8, 45/6)"` →
+   `10.666666666666666 41.4 40.5 42.75 5.625 7.5`. `fix(46-06)` commit `1e49250`.
+
+6. **Erratum 3 item 5's RF-05 quotation (README.md:2030-2033).** WR-08 (product). Superseded in
+   part: the sentence item 5 quotes bought internal consistency by smuggling in a premise. The file
+   defines runner overhead narrowly — "the time to load the runner, discover tests, and report
+   results" — and the quoted clause then applied that 5–10% figure as a cap on the benefit of
+   runner *substitution*, which is only true if test execution time is identical across runners.
+   The file never stated that, and in-process parallelism, fixture machinery and assertion cost all
+   cut against it; the pre-edit unsourced "10–30%" hid no premise. The clause now reads:
+   "Switching from a slower runner to a faster one reduces the overhead component by at most that
+   5–10% — removing all of the runner overhead cannot reduce total runtime by more than the
+   overhead itself accounts for. A faster runner could in principle also shorten test execution
+   (in-process parallelism, cheaper fixtures), but nothing here measures that, so 5–10% is the only
+   bound this analysis can defend. For the 45-minute pipeline, an 8% improvement yields
+   approximately 41.4 minutes (45 × 0.92 = 41.4)." Item 5's three `python3` re-derivations
+   (`41.4`, `40.5`, `42.75`) are unaffected and were re-confirmed. `fix(46-07)` commit `479e701`.
+
+7. **Erratum 3 item 7's RF-07 quotation (README.md:2053-2057).** WR-02 (product). Superseded: the
+   quoted wording was accurate about the shortfall but its added reassurance was a non sequitur on
+   two counts. "That direction is conservative ... since a lower installed-cost estimate only
+   widens the margin" inverts the term — in estimation practice a conservative bias errs *against*
+   the conclusion, and "only widens the margin" is the definition of a favourable one. And it
+   answered about the lower bound when the cost-competitiveness conclusion is binding at the
+   **upper** bound, so a rebuild running low at one end — evidence its factor values may run low
+   systematically — was presented as resolved without the binding end ever being stressed. Chain C1
+   hop 1 now discloses the shortfall, states it is unresolved, says the same optimism would
+   understate the upper bound, and stress-tests that bound. The percentages were re-derived on the
+   installed-only basis that item 8's successor established, NOT the O&M-inclusive basis the review
+   itself computed 15% against: `(20 - 8.6*0.40*3.5)/20` → `0.398`, so the installed lower bound is
+   40% below GT-5's $20/kWh floor; `150/34.4` → `4.36`; `34.4/0.602` → `57.1` and `150/57.1` →
+   `2.63`. GT-5's $20–50/kWh range and the bracket figures themselves are unchanged. `fix(46-12)`
+   commit `094fefd`.
+
+8. **Erratum 3 item 8's RF-08 record (README.md:2061-2071).** WR-01 and WR-03 (product).
+   Item 8's truth condition still holds — all three sibling restatements still name the O&M reserve
+   — and it is not withdrawn. What is superseded is the label those sites carried. Step 4 had added
+   a lifetime O&M reserve to `capital_per_kWh = $20.6/kWh` and relabelled the sum "central
+   installed capital ≈ $25.6–30.6/kWh", which was then compared to two sources that are explicitly
+   installed-only: GT-5 (`≈ $20–50/kWh installed`) and GT-6 (`≈ $150–300/kWh installed`). RF-08
+   propagated the O&M reserve to three further sites as a named bracket-width driver, which
+   entrenched the mislabel rather than surfacing it. The number is kept and the label is split:
+   Step 4 now states `installed capital ≈ $20.6/kWh` and `installed + lifetime O&M ≈
+   $25.6–30.6/kWh` as two terms with separate uses; the Step 5 and Step 6 tables carry an explicit
+   "Installed + lifetime O&M" heading, with the installed-only column alongside in Step 5; and the
+   decision-resolution check, chain C1's third hop, section 6's recommendation and its
+   bracket-width bullet lead with the installed-only comparison. Of item 8's three quoted
+   sentences, the C1 Confidence and section 6 Confidence quotations remain byte-present; the
+   section 6 driver bullet now reads "...and the O&M reserve: [$12.0–$34.4/kWh] installed,
+   [$17–$44/kWh] once the lifetime O&M reserve is added; cycle life additionally drives the
+   levelised spread." Re-derived live:
+   `python3 -c "print(8.6*0.40*3.5, 8.6*0.60*4, 8.6*0.80*5, 150/34.4, 150/44)"` →
+   `12.04 20.639999999999997 34.4 4.3604651162790695 3.409090909090909`. Both comparison arms clear
+   the threshold, so no conclusion moved.
+
+   Section 2's blanket disclaimer was the same defect one level up: it said the drill "introduces
+   no new untested belief of its own to classify" while `cost_per_kg` ($0.40–0.80/kg),
+   `system_factor` (3.5–5×) and the O&M reserve ($5–10/kWh) are each new to the drill and covered
+   by no ground truth. Section 2 now names what is consumed and what is newly introduced.
+   `fix(46-11)` commit `8c18059`; `fix(46-13)` commit `c58bca7`.
+
+9. **Erratum 3 item 10's RF-11 structural choice (README.md:2082-2091).** WR-09 (product).
+   Superseded: the simpler of the two options was recorded as a deliberate choice, and it left the
+   list-versus-lead-in mismatch unresolved. The lead-in promised "whichever of the following
+   branches profiling indicates", but item 1 of that list was the profiling itself —
+   unconditional, and the precondition for the others rather than one of them; item 1 also
+   contained a fourth, unnumbered branch (the release-process change), and the closing sentence
+   enumerated "steps 1–3" when step 1 always fires and the release-process branch was not among
+   1–3. Profiling is now "**Step 0**", stated as unconditional; the release-process change is
+   numbered branch 1 with its own chain citation; the pipeline-stage and schema branches keep their
+   text as 2 and 3; and the closing sentence now reads "Revisit the microservices question as a
+   separate analysis once the branch profiling selected has completed", which also fixes its
+   ungrammatical "whichever ... fired have completed". No chain marker was dropped:
+   `docs/data/conformance.json` reads `conclusion_claims` 8 for `software-systems` on both gated
+   surfaces against its pinned floor of 8, with `silent_untraced_claims` 0. `fix(46-09)` commit
+   `3bde500`.
+
+10. **Erratum 3 item 11's RF-12 quotation (README.md:2098-2103).** WR-06 and WR-07 (product).
+    Superseded on all three of its clauses. (a) "itself illustrative and not read from any named
+    source in this scenario" is false of the file: the Scenario states an 18 mm figure sixteen
+    lines earlier ("the inner race shows axial-aligned spalling roughly 18 mm long"), and
+    `/usr/bin/grep -n '18 mm' shared/examples/science-engineering-2.md` returns exactly those two
+    sites. An axially-aligned spall on the inner race runs along the roller contact line, so the
+    real undisclosed step is the inference from observed spall length to nominal Hertzian contact
+    width. (b) "the same status this caveat already assigns to the 4.9 mm effective length and the
+    70 mm inner-race radius" equated an unconfirmed value with a value fitted to the data: the
+    caveat calls those two "the values that REPRODUCE the observed 0.4 mm origin depth (GT-1)",
+    which is the specific flaw the whole `GT-2?` block exists to disclose. (c) "sourced by the same
+    bearing drawing named below as the verification that would remove the `?`" claimed coverage the
+    cited path did not provide — that sentence named two quantities, the effective roller contact
+    length and the race radius, and plan 46-03 did not extend it. The block now names the Scenario
+    as the 18 mm figure's origin, discloses the spall-spans-the-contact inference, says the figure
+    is unlike the other two in not being back-solved from GT-1, and reads the nominal full contact
+    width off the drawing in the verification path. The Hertz counter-figures re-derive
+    independently and are unchanged: at L = 18 mm, R = 9.506 mm, E* = 113.7 GPa, F = 12 kN,
+    `a = 0.2664 mm` and `z = 0.78a = 0.2078 mm`, so the file's `0.208 mm` stands, as does
+    `0.398 mm` at L = 4.9 mm. Taken together these two fixes also close the review's IN-03
+    readability note, whose own Fix block prescribed exactly them. `fix(46-16)` commit `e1bf7e3`;
+    `fix(46-17)` commit `3d5dec4`.
+
+11. **Erratum 3 item 3's D-03 record — the as-of stamp "names provenance anchor `e5063b3` ... and
+    measurement date `2026-05-24`" (README.md:2005-2007).** WR-05 (product). Narrowed: the stamp
+    asserted that one anchor for *every* Ground Truth below it, and GT-6 carries two. GT-6's
+    "Described rather than reproduced" note and its link-form parenthetical were added on
+    2026-08-16 by commit `9e11072`, which rewrote GT-6's evidence sentence and attached a dated
+    observation about a later (v8.17.3) tree. Confirmed live on 2026-09-19:
+    `git show e5063b3:shared/examples/self-application.md` carries the verbatim
+    `[Assumption Taxonomy](references/assumption-taxonomy.md)` link and neither added sentence, and
+    `git log -1 --format='%h %ad' --date=short 9e11072` reads `9e11072 2026-08-16`. D-03's
+    supporting reasoning — that the later commits "only retargeted links and C-numbered chain
+    headings; they did not re-measure anything" — inherits the same error for `9e11072` and is
+    narrowed with it. The stamp now names the exception and says a reader who checks out `e5063b3`
+    will find GT-6's wording there differs. `fix(46-10)` commit `a65b825`.
+
+12. **Two findings predating this phase, fixed in the same round rather than filed.** WR-04 and
+    WR-11 (product). Neither is a supersession of anything recorded above; both are new record.
+    (a) The cycle-life bracket was wider than the design-life source it cites: `25 × 365 = 9,125`
+    and `30 × 365 = 10,950` support 9,125–10,950 cycles, while the file used 8,000–12,000 with
+    parentheticals (22 years, 33 years) falling outside the range stated one sentence above them,
+    and that bracket is the divisor for every levelised figure in Step 6. The cited range and its
+    arithmetic are now stated, and the widening is disclosed as a judgement covering
+    early-retirement and life-extension cases; the bracket values are unchanged, so no levelised
+    figure moves. `fix(46-14)` commit `e2b6f68`. (b) Step 6's bound-pairing rested on an unsourced
+    correlation asserted as fact — "the cheapest installs are mature, low-stress designs that also
+    run longest" — carrying no source, no GT and no assumption-table row. It is now labelled an
+    assumption, stated as unverified, and the counter-case quantified:
+    `python3 -c "print(44/12000, 17/8000, (44/12000)/(17/8000), (44/8000)/(17/12000))"` →
+    `0.0036666666666666666 0.002125 1.7254901960784312 3.88235294117647`, i.e. the opposite pairing
+    narrows the levelised spread to ~1.7× against the ~4× shown. The conclusion is stated as
+    independent of the pairing, since every combination clears GT-6 by more than 3×.
+    `fix(46-15)` commit `06b95b6`.
+
+Not fixed, and recorded as open: the review's IN-01 (`30 minutes` is unreachable under the file's
+own 5–10% bound, so the leftover figure invites a reader to think runner substitution could reach
+it) and IN-02 (one of the eight `output-template.md`/`validation-rubric.md` grep hits is a prose
+citation at body line 325, not a link — the count of 8 is right, seven are links). Both are
+product-tier Info findings outside the `critical_warning` fix scope this round ran under. IN-03 and
+the two apparatus Info findings IN-A1 and IN-A2 were folded into items 10, 3 and 4 above.
+
+No conclusion and no confidence label moved in any of the four exemplars in this round either.
+Every gate this repository runs was GREEN before and after: `FIREWALL: GREEN`, with
+`report-conformance.py --check` reporting no drift and `check-conf-gate.py` PASS at every commit.
+As in Erratum 3, no gate here takes the truth of these sentences as its subject — every finding
+this erratum records came from reading prose and re-running the files' own stated commands.
