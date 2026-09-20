@@ -195,9 +195,11 @@ overhead versus test
 count. For a 6-year-old, 350 KLOC codebase, accumulated test suites typically contain thousands
 of individual test cases. Runner framework overhead (the time to load the runner, discover tests,
 and report results) is typically 5–10% of total runtime for large suites — the dominant cost is
-test execution time, not runner overhead. Switching from a slower runner to a faster one might
-reduce total runtime by 5–10%, matching the overhead bound above — removing all of the runner
-overhead cannot reduce total runtime by more than the overhead itself accounts for. For the
+test execution time, not runner overhead. Switching from a slower runner to a faster one reduces
+the overhead component by at most that 5–10% — removing all of the runner overhead cannot reduce
+total runtime by more than the overhead itself accounts for. A faster runner could in principle
+also shorten test execution (in-process parallelism, cheaper fixtures), but nothing here measures
+that, so 5–10% is the only bound this analysis can defend. For the
 45-minute pipeline, an 8% improvement yields approximately 41.4 minutes (45 × 0.92 = 41.4). No
 pipeline-time threshold for raising deploy frequency is established here: at 45 minutes the
 pipeline already admits roughly five times the observed 2/day rate (GT-3), so a shorter runtime
