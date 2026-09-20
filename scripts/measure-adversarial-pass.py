@@ -43,7 +43,31 @@ REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 # never contains the literal "pre-mortem").
 _ANCHOR_RE = re.compile(r"pre-mortem|adversarial pass", re.IGNORECASE)
 
-WINDOW_LINES = 30
+WINDOW_LINES = 30  # retained only as the fallback bound; see _window_lines().
+
+# A record's window ends at the next top-level heading, not at a fixed line
+# count -- the THIRD documented instrument correction, found by the Phase 48
+# live reading (MEAS-03) rather than by inspection.
+#
+# The fixed 30-line span was wrong in both directions, and the same constant
+# caused both failures:
+#
+#   too long  -- `Q-P1.md`'s baseline pre-mortem is a single sentence, and the
+#                30 lines after it hold 12 list items belonging to output
+#                section 6. Those were counted as causes, giving a spurious
+#                baseline reading of 6 where the correct answer is 0.
+#   too short -- the fresh `Q-P3` capture emits 15 causes and 6 clusters before
+#                its `**Dispositions:**` block, which therefore begins ~40
+#                lines past the anchor. The window never reached it and the
+#                record scored `disposition: no` -- a false negative on a
+#                record that satisfies the contract in full, verified by
+#                reading it.
+#
+# Scoping to the section the contract itself defines removes both. Confirmed
+# invariant: the ten frozen baseline files still return present 6/10 and
+# shape-complete 3/10 under this window, the same aggregates the two earlier
+# and differently-windowed instruments produced.
+_SECTION_BREAK_RE = re.compile(r"^#{1,2}\s+\S")
 
 # Bare "cluster"/"clusters" as a noun, or the "structural weakness(es)"
 # phrase -- deliberately excludes the adjective "clustered" standing alone,
@@ -76,9 +100,24 @@ def _anchor_line_numbers(lines: list[str]) -> list[int]:
 
 
 def _window_lines(lines: list[str], anchor_line: int, span: int = WINDOW_LINES) -> list[str]:
+    """The record's own section: anchor line to the next top-level heading.
+
+    `span` bounds the scan so a document with no subsequent heading cannot
+    make the window the whole file; it is a backstop, not the boundary.
+    A heading that itself mentions the record is not a break, so the
+    `## Adversarial pass (process output)` anchor does not terminate its
+    own section.
+    """
     start = anchor_line - 1
-    end = min(len(lines), start + span)
-    return lines[start:end]
+    hard_end = min(len(lines), start + max(span, 200))
+    out: list[str] = []
+    for i in range(start, hard_end):
+        stripped = lines[i].strip()
+        if i > start and _SECTION_BREAK_RE.match(stripped):
+            if "adversarial" not in stripped.lower() and "pre-mortem" not in stripped.lower():
+                break
+        out.append(lines[i])
+    return out
 
 
 def _count_causes(window: list[str]) -> int:

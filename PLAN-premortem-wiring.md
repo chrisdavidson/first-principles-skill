@@ -211,6 +211,30 @@ hand-read table:
   bullets, each already paired with its own disposition; the table's 9 counted a wider span than
   this instrument's window reaches.
 
+**Assessment of those three, added 2026-09-20 after independent re-reading.** The record above is
+accurate on the mechanism and slightly too hard on the new instrument. Two corrections:
+
+**`Q-P1`'s `0` is correct, not "an honest miss."** That file's pre-mortem is a single italic
+sentence naming three clusters by label; it enumerates **no** causes at all. Zero is the right
+reading of "enumerated causes written before grouping". What needs explaining is not the new `0` but
+the **old `6`** — and the explanation is window bleed: the original instrument counted line-start
+bullets in a fixed 30-line window after the anchor, and the 30 lines following `Q-P1`'s pre-mortem
+sentence contain 12 bullets belonging to **section 6's Conclusion**, not to the pre-mortem. Verified
+by direct read of `Q-P1.md:230-260`.
+
+**The old counts conflated categories the contract separates.** `DEMO-…-multiregion-latency.md`'s
+`15` is 5 Plan A causes + 4 structural weaknesses + 3 Plan B causes + 3 `Mitigation:` lines — that is
+causes *plus clusters plus dispositions*, three of the contract's four parts summed into one number.
+The new instrument's `5` counts causes only. So the corrected range is **0 to 9**, and the old
+"0 to 15" was never a range of cause counts.
+
+**What this strengthens, and it is worth being explicit.** Every boolean column — `present`,
+`premise`, `clusters`, `disposition` — and both aggregates (`6/10`, `3/10`) now agree across **two
+independently written instruments**, one of which bled its window and one of which does not. That
+agreement is stronger evidence for the baseline than the original single reading was. The column
+that diverged is the one no aggregate depends on, and it diverged because the first instrument was
+measuring something looser than it claimed.
+
 None of these three differences moves `present` or `shape-complete`, which is what MEAS-05
 requires. They are recorded, per this plan's own governing rule, because tuning the extractor until
 the `causes` numbers matched the hand-read table would be exactly the failure mode this requirement
@@ -366,6 +390,26 @@ from five viewpoints written before grouping, and five clusters each citing chai
 carrying a plan change or an accepted risk with a named mitigation" — and then bands the criterion
 **below Rigorous anyway**, on the pre-existing no-HIGH-chain clause. The new clause is being
 evaluated as one input among several rather than read as a pass.
+
+**SUPERSEDED 2026-09-20 by the Phase 48 K-of-5 reading — the paragraph below stands as the honest
+statement it was at the time, and its own caveat was correct.** MEAS-03 has since taken the reading
+it called for: **N = 5, present 5/5, shape-complete 5/5**, over the five distinct plan-shaped catalog
+rows (`Q-P1`, `Q-P2`, `Q-P3`, `PR-P1`, `PR-P2`) against the committed wired body, captured under
+`tests/adversarial-firing-v9.5/` with its own provenance README. It remains a recorded observation
+and gates nothing. MEAS-04's companion reading found **no classifier drift** — all five classify
+`full-composer` — but found the *mechanism* differs from the prediction: `pre-mortem` never fires as
+a technique at all (1 of 9 markers, below `MIN_HEADER_HITS=2`), so the CR-02 ceiling never had to
+act for it, though it was exercised on `PR-P2`'s lone `fishbone` hit.
+
+**A third instrument correction, found by that reading rather than by inspection.** `Q-P3`'s fresh
+record scored `disposition: no` — a false negative on a record carrying 15 causes, 6 clusters and 6
+dispositions, verified by reading it. Cause: `WINDOW_LINES = 30`. The same arbitrary constant caused
+both of this instrument's failures in opposite directions — too long it bled into output section 6
+(the spurious baseline `6` for `Q-P1`), too short it missed a dispositions block beginning ~40 lines
+past the anchor. The window is now bounded by the next top-level heading, the boundary the output
+contract itself defines. The ten frozen baseline files still return **6/10 present and 3/10
+shape-complete** under it — the same aggregates two earlier, differently-windowed instruments
+produced, which makes those aggregates considerably better evidenced than a single reading could.
 
 **N = 1.** This is a recorded observation, not a rate, and it is subject to the same K-of-5 noise
 discipline as every other live reading in this repository (`docs/v8.7-constraint-teardown.md` §2
