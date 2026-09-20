@@ -99,11 +99,14 @@ cost** for large-scale plants; mid ≈ 4×.
 
 Molten salt has no electrochemical degradation mechanism at 290–565 °C. Design life is
 governed by tank and piping mechanical fatigue, not chemical degradation. Commercial CSP
-plants document design lives of 25–30 years at ~365 cycles/year:
+plants document design lives of 25–30 years at ~365 cycles/year — approximately 9,100–11,000
+cycles (25 × 365 = 9,125; 30 × 365 = 10,950). The bracket below widens that in both directions
+to cover early-retirement and life-extension cases the design-life figure does not model; the
+widening is a judgement, not a reading of the cited source:
 
-- Low estimate: 8,000 cycles (22 years × 365, conservative)
-- Central estimate: 10,000 cycles (27 years × 365)
-- High estimate: 12,000 cycles (33 years × 365, optimistic)
+- Low estimate: 8,000 cycles (22 years × 365 — below documented design life, early retirement)
+- Central estimate: 10,000 cycles (27 years × 365 — inside the documented range)
+- High estimate: 12,000 cycles (33 years × 365 — above documented design life, life extension)
 
 *Source:* inorganic salt chemistry (physical law: no redox mechanism at these temperatures,
 GT-4 domain); commercial CSP plant operating records (direct measurement). Cycle life is
