@@ -6062,5 +6062,276 @@
     ],
     "statement": "The agent body's failure-path instructions name only things that exist and say why a step did not complete, and the released CHANGELOG entries this phase touches are auditable from the tracked tree (backlog 999.101, IN-01..IN-03). Exit: `/usr/bin/grep -c \"section summaries\" shared/spine/SKILL-body.md` reads 0; the backstop sentence names a cause for each step that did not complete; `.planning/` reads 0 in every CHANGELOG entry this phase touches, with before and after counts recorded. Only presence is checked \u2014 obedience stays with backlog 999.89.",
     "rerun_by": "none"
+  },
+  {
+    "key": "v9.5/PASS-01",
+    "bare_id": "PASS-01",
+    "milestone": "v9.5",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "no registered gate's literal set includes Phase 5's technique-choice sentence (\"Apply a structured adversarial technique to the conclusion, chosen by what the conclusion is\") or its citation of the inversion procedure's own decision rule \u2014 confirmed by grep across every scripts/*.py file in this tree, zero hits. DUAL-04 (sync-content.py --check) re-runs byte-parity between shared/ and the generated tree only; it goes red if the generated copy drifts from source, never if the source's own prescription is wrong, absent, or miscites the decision rule it points at.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Phase 5's Operation prescribes a structured adversarial technique against the conclusion, chosen by what the conclusion is \u2014 pre-mortem for a plan or recommendation, headline inversion for a claim \u2014 citing the decision rule the two procedures already state rather than re-authoring it.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.5/PASS-02",
+    "bare_id": "PASS-02",
+    "milestone": "v9.5",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "no registered gate's literal set includes the anchored-Read opening pattern (\"open the Pre-Mortem procedure ... with Read\") or the {{TOOL:pre-mortem}} token this requirement forbids using in its place \u2014 zero hits by grep. The defect this closes (the token substitutes \"the inlined pre-mortem procedure\" for a procedure that is not inlined, per docs/ARCHITECTURE.md#token-substitution) is caught by no registered gate either; DUAL-04 proves shared/ and the generated tree agree, never that the agreed text opens the right way.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The prescription opens the procedure by anchored Read (${CLAUDE_PLUGIN_ROOT}/agents/references/\u2026), not by the {{TOOL:}} token, because that token substitutes \"the inlined pre-mortem procedure\" and the procedure is not inlined \u2014 instructing the agent to apply an inlined procedure that does not exist is an instruction to work from recollection, which is the defect being fixed.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.5/PASS-03",
+    "bare_id": "PASS-03",
+    "milestone": "v9.5",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "no registered gate's literal set includes the placement sentence (\"Emit the pass as process output before the Phase 5 verdict blocks\") or the \"not a seventh output section\" constraint \u2014 zero hits by grep. SCAN-GUARD's own placement literal anchors a textually distinct sibling heading (`## Self-audit scan (process output)`), not the `## Adversarial pass (process output)` heading this requirement introduces; SCAN-GUARD's dispatcher never opens or inspects the latter.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The pass emits a contracted record \u2014 premise in the past tense, unfiltered cause list written before grouping, named clusters, per-cluster disposition \u2014 as process output before the Phase 5 verdict blocks, following the Assumption Audit scan table's precedent and creating no seventh output section.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.5/PASS-04",
+    "bare_id": "PASS-04",
+    "milestone": "v9.5",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "no registered gate's literal set includes the chain/ground-truth citation clause (\"citing the chain ids (Cn) or ground-truth ids (GT-N) it bears on\") as applied to the adversarial-pass record \u2014 zero hits by grep across scripts/*.py.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Every cluster in the record cites the chain ids (Cn) or ground-truth ids (GT-N) it bears on, so the finding joins the analysis's traceability surface instead of sitting beside it.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.5/PASS-05",
+    "bare_id": "PASS-05",
+    "milestone": "v9.5",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "no registered gate's literal set includes the disposition clause (\"a named plan change or an explicitly accepted risk with a named mitigation\") as applied to the adversarial-pass record \u2014 zero hits by grep. The same phrase recurs verbatim in shared/references/pre-mortem.md's own pre-existing exit criterion (PASS-06's surface), and no gate reads that occurrence either.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Each cluster carries a named plan change or an explicitly accepted risk with a named mitigation; a cluster carrying neither does not satisfy the exit criterion.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.5/PASS-06",
+    "bare_id": "PASS-06",
+    "milestone": "v9.5",
+    "capability": "Methodology",
+    "deliverable_path": "shared/references/pre-mortem.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "shared/references/pre-mortem.md's Output contract section feeds three surfaces; DUAL-04 re-runs byte-parity for two of them (the generated agent reference sibling and the skill stub via {{PROCEDURE:pre-mortem}}), so a drift between source and either generated copy is caught. But DUAL-04 proves propagation, not correctness: deleting the Output contract section from the source and re-running sync-content.py --write leaves both generated copies (now also missing it) in sync, and DUAL-04 green. The third surface this requirement names \u2014 the body's own emission instruction referencing the contract \u2014 is separate hand-authored prose no sync check compares against the reference file at all. One clause gate-adjacent-but-unproven plus two clauses entirely untouched is sufficient to keep this audit-only, the same rule v9.3's SCHEMA-01/STMT-01/TIER-04 rows state.",
+    "surfaces": [
+      "agent",
+      "pre-mortem"
+    ],
+    "statement": "shared/references/pre-mortem.md states the output contract, and states it on all three surfaces it feeds \u2014 the agent reference sibling, the /pre-mortem skill stub via {{PROCEDURE:pre-mortem}}, and the body's emission instruction.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.5/PASS-07",
+    "bare_id": "PASS-07",
+    "milestone": "v9.5",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "no registered gate's literal set includes \"at least three named viewpoints\" or the group-facilitation phrase (\"would I have suppressed this in a group?\") it replaces \u2014 zero hits by grep across scripts/*.py.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The cause-generation step requires at least three named viewpoints, replacing the group-facilitation guidance (\"would I have suppressed this in a group?\") that costs a single model context and returns nothing.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.5/PASS-08",
+    "bare_id": "PASS-08",
+    "milestone": "v9.5",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "no registered gate's literal set includes the exit-criterion's adversarial-pass clause (\"A silently-skipped adversarial pass, or a record whose clusters carry no disposition, does not satisfy this criterion\") \u2014 zero hits by grep. HC-BOUND reads the same Phase 5 exit-criterion neighbourhood for a different property (the HIGH-confidence bound on Criteria 3 and 5), never this clause.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Phase 5's exit criterion admits neither a silently-skipped adversarial pass nor a record whose clusters carry no disposition.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.5/PASS-09",
+    "bare_id": "PASS-09",
+    "milestone": "v9.5",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "no registered gate's literal set includes the not-applicable line (\"adversarial pass not applicable \u2014 [reason]\") or the rule for when it may be written \u2014 zero hits by grep across scripts/*.py.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "An analysis whose conclusion is neither a plan nor a claim records the single line `adversarial pass not applicable \u2014 [reason]` with its reason named \u2014 the honest-depth escape that prevents this milestone from becoming the mandatory padding REVIEW-technique-improvement-analysis.md \u00a7A2 objects to elsewhere.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.5/PASS-10",
+    "bare_id": "PASS-10",
+    "milestone": "v9.5",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "no registered gate's literal set includes Criterion 5's three-way Absent/Hand-wavy/Rigorous distinction for the adversarial pass specifically. HC-BOUND's Criterion 5 coverage (_check_criterion5_rigorous_bounds, HC-7..HC-12) is confined to the Sound band's HIGH-confidence EXCEPT clauses (speculative chains, absent-fails derivations); it never opens the Absent or Hand-wavy bands this requirement adds or tightens, and no other registered gate opens this rubric section at all.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Criterion 5 can distinguish three cases \u2014 Absent when neither a record nor the not-applicable line appears anywhere, Hand-wavy when a record is present but no cluster carries a disposition, Rigorous only when the record is complete and every weakness has landed as a named weak link or an explicit confidence caveat.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.5/PASS-11",
+    "bare_id": "PASS-11",
+    "milestone": "v9.5",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "no registered gate's literal set includes the \"separate reading\" sentence distinguishing the new Absent clause from the pre-existing stress-test clause, or the worked contrast it gives (a free-form weakest-link paragraph satisfying the old clause while failing the new one) \u2014 zero hits by grep, and HC-BOUND's Criterion 5 coverage does not reach the Absent band at all (PASS-10's own finding).",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Criterion 5's new Absent clause states explicitly that it is a separate reading from the existing stress-test clause, because a free-form weakest-link paragraph satisfies that one and is exactly what the new clause exists to catch.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.5/PASS-12",
+    "bare_id": "PASS-12",
+    "milestone": "v9.5",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "no registered gate's literal set includes Phase 4's trade-off-prescription sentence (\"When two or more viable options survive the ground truths ... open the Trade-off procedure\") or the note that Phase 4's exit criterion is unchanged by this requirement \u2014 zero hits by grep across scripts/*.py.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Phase 4's Operation prescribes trade-off when two or more viable options survive the ground truths, collapsing the result into a chain per output-template.md \u00a74; Phase 4's exit criterion is deliberately unchanged, because surviving options are conditional in a way an adversarial pass is not.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.5/MEAS-03",
+    "bare_id": "MEAS-03",
+    "milestone": "v9.5",
+    "capability": "Test-Network",
+    "deliverable_path": "PLAN-premortem-wiring.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "barred from gating by its own statement text and by the governing K-of-5 discipline (docs/v8.7-constraint-teardown.md \u00a72 item 3); 48-VALIDATION.md's own verification map marks this row 'OBSERVATIONAL \u2014 never gated'. The reading is recorded in PLAN-premortem-wiring.md with its N and instrument, a tracked prose record no script re-reads or re-derives.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "The adversarial pass's live firing rate is recorded as a K-of-5 reading across the plan-shaped catalog rows, replacing the current N=1 observation. Stated with its N, as a recorded observation, never a gate (docs/v8.7-constraint-teardown.md \u00a72 item 3).",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.5/MEAS-04",
+    "bare_id": "MEAS-04",
+    "milestone": "v9.5",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/_battery_core.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "also marked 'OBSERVATIONAL \u2014 never gated' by 48-VALIDATION.md's own table. scripts/_battery_core.py's classify() is re-run informally on each capture, but no script stores the phase-48-01 baseline hit counts and automatically diffs them against a later capture \u2014 the before/after comparison is read and typed by a person, not asserted by a gate.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The routing classifier is confirmed not to drift against a body that now emits pre-mortem markers on every applicable analysis \u2014 specifically _battery_core.classify()'s n == 1 / _COMPOSER_FOCUS_CEILING interaction, which is currently a prediction rather than a measurement. Plan 48-01 recorded the baseline (\"before\") side of this reading over the ten frozen files (all full-composer, hits 10-26 against ceiling 4); the drift comparison itself needs a fresh wired-body capture and is not complete until plan 48-03's \"after\" reading lands.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.5/MEAS-05",
+    "bare_id": "MEAS-05",
+    "milestone": "v9.5",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/measure-adversarial-pass.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "scripts/measure-adversarial-pass.py --self-test is deterministic and offline, but the script is registered nowhere \u2014 absent from scripts/check-firewall-battery.sh and from scripts/_gate_registry.ENTRIES (confirmed by grep for the filename in both), matching 48-VALIDATION.md's own description ('this phase adds one new UNGATED script'). Two of its ten like-for-like input fixtures are untracked (D-48-C: DEMO-first-principles-multiregion-latency.md, DEMO-first-principles-ticket-triage.md), so the reading does not reproduce from a fresh clone even though the instrument itself is deterministic on whatever tree it is run against.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "The before/after extractor anchors on both pre-mortem and the prescribed heading vocabulary, so a capture written entirely in the new vocabulary is not scored as carrying no pass. Recorded because the instrument under-reported twice during the pre-milestone build, the second time scoring the wiring's own output worse than the baseline it improves on.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.5/EVID-01",
+    "bare_id": "EVID-01",
+    "milestone": "v9.5",
+    "capability": "Test-Network",
+    "deliverable_path": "PLAN-premortem-wiring.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "no registered gate enumerates the five named filenames (REVIEW-technique-improvement-analysis.md, REVIEW-agent-improvement-opportunities.md, PLAN-PRAOR-loop-backlog.md, the two grok-*.md files, and PLAN-premortem-wiring.md) or asserts they remain tracked. VAL-03 (check-links.py) would only catch their removal if some tracked file linked to them by relative path; grepping docs/*.md, CLAUDE.md and CHANGELOG.md for a markdown link to any of the five returns zero, so nothing currently links them and their tracked status rests on direct git ls-files inspection alone, confirmed at this phase's execution time, never a re-run check.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "The four analysis documents this milestone derives from (REVIEW-technique-improvement-analysis.md, REVIEW-agent-improvement-opportunities.md, PLAN-PRAOR-loop-backlog.md, grok-*.md) plus PLAN-premortem-wiring.md are tracked in-repo so the requirements above can cite them by path.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.5/REL-25",
+    "bare_id": "REL-25",
+    "milestone": "v9.5",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-version-stamps.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "bundles three clauses, none of which a registered gate re-checks in full. VERSION-01 (check-version-stamps.py) re-runs the lockstep clause only in the weaker sense v9.3's own REL-19 row already disclosed: it asserts the 17 stamps agree with each other and with shared/, never that they equal the literal 9.5.0 \u2014 a uniform wrong value stays green on both the live check and sync-content.py --check (the break v9.3/REL-19 recorded, not independently re-run here). No gate re-reads CHANGELOG.md's prose for a [9.5.0] entry (precedent REL-08, REL-11, REL-13, REL-16, REL-18, REL-22). And the FIREWALL: GREEN battery run this requirement names is a fresh count taken once at bump time, never stored and compared automatically against a prior run \u2014 it corroborates the claim, it is not the evidence for it (precedent v9.3/REL-21).",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "v9.5.0 ships with all 17 hand-maintained version stamps in lockstep, a [9.5.0] CHANGELOG entry, and FIREWALL: GREEN re-run after the bump.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.5/REL-26",
+    "bare_id": "REL-26",
+    "milestone": "v9.5",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-traceability.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "this row's own statement describes an act this very commit performs (registering these eighteen rows and moving the headline), not a standing property a later gate re-derives. TRACE-03's ROW-FIELDS live leg and HEADLINE-LOCK re-check that the registered rows are well-formed and that the headline stays internally consistent going forward \u2014 they do not re-run whether this registration event happened correctly. v9.3's own REL-20 break test found exactly this shape: deleting a headline-history row left check-traceability.py --self-test green; only the row-registration, headline-sweep-across-covered-surfaces and both-regenerated-artifacts clauses are independently gate-checked.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "This milestone's requirements are registered as matrix rows and the published coverage headline is updated, per the TRACE-03 HEADLINE-LOCK discipline.",
+    "rerun_by": "none"
   }
 ]

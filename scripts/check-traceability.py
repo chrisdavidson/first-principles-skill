@@ -5901,6 +5901,383 @@ def _rows_v93() -> list[MatrixRow]:
     ]
 
 
+def _rows_v95() -> list[MatrixRow]:
+    """v9.5.0 milestone rows -- 18 requirements, 0 reproducible + 18 audit-only
+    (Phase 49 / REL-26).
+
+    All rows carry milestone="v9.5". Keys use the milestone-qualified form "v9.5/<bare_id>".
+
+    Tiering method, stated once rather than per row: for each requirement, its statement was
+    reduced to the literal phrase(s) that would have to survive a mutation for the claim to
+    hold, and that phrase (or its nearest paraphrase) was grepped against every `scripts/*.py`
+    file in this tree. Zero hits, for every one of the eighteen requirements below -- this
+    batch registers no `reproducible` row, and that is reported plainly rather than manufactured.
+    This is a lighter-weight method than the mutate-and-re-run break tests v9.3's `_rows_v93()`
+    ran per row (no phase-local break-test record backs this batch), so where a row's
+    tiering is close, it is resolved to `audit-only` per this phase's own instruction to prefer
+    the lower tier under genuine ambiguity -- disclosed here rather than overclaimed as a break
+    test that was not run.
+
+    Twelve requirements (PASS-01..PASS-12) are prose changes to `shared/spine/SKILL-body.md`
+    (Phase 4's trade-off prescription, Phase 5's adversarial-pass prescription and exit
+    criterion) or `shared/spine/references/validation-rubric.md` (Criterion 5's Absent /
+    Hand-wavy / Rigorous bands) or `shared/references/pre-mortem.md` (the output contract).
+    Three gates read adjacent text in these same files for a DIFFERENT property than any PASS
+    requirement states, and naming the distinction is the point of this docstring rather than
+    a footnote: HC-BOUND's Criterion 5 checks (`_check_criterion5_rigorous_bounds`, HC-7..HC-12)
+    are confined to the **Sound** band's HIGH-confidence EXCEPT clauses (speculative chains,
+    absent-fails derivations) — they never touch the **Absent** or **Hand-wavy** bands PASS-08,
+    PASS-10 and PASS-11 add or tighten. SCAN-GUARD's placement literal ("process output before
+    the Phase 5 verdict blocks") anchors the self-audit scan's own heading
+    (`## Self-audit scan (process output)`), a textually distinct sibling of the
+    `## Adversarial pass (process output)` heading PASS-03 introduces; SCAN-GUARD's dispatcher
+    never opens or inspects the latter. DUAL-04 (`sync-content.py --check`) re-runs
+    byte-parity between `shared/` and the generated tree — it goes red if the generated copy
+    drifts from source, never if the source's own prescription is wrong, absent, or miscites a
+    decision rule; deleting any PASS-0N sentence from `shared/spine/SKILL-body.md` and
+    re-running `sync-content.py --write` would leave DUAL-04 green, because both copies would
+    agree on the (now missing) text. No other registered gate's literal set overlaps any of the
+    twelve PASS requirements' own wording — confirmed by grep, not by a recorded break test,
+    per the method note above. Capability is Methodology for all twelve, per
+    `.planning/REQUIREMENTS.md`'s own framing ("Each PASS requirement changes the methodology
+    the agent executes") and the discriminator every prior milestone's rows() function states.
+
+      - PASS-01: no registered gate's literal set includes Phase 5's technique-choice sentence
+        ("Apply a structured adversarial technique to the conclusion, chosen by what the
+        conclusion is") or its citation of the inversion procedure's own decision rule.
+
+      - PASS-02: no registered gate's literal set includes the anchored-Read opening pattern
+        ("open the Pre-Mortem procedure ... with Read") or the `{{TOOL:pre-mortem}}` token this
+        requirement forbids using in its place; the defect this closes (a token that substitutes
+        "the inlined pre-mortem procedure" for a procedure that is not inlined,
+        `docs/ARCHITECTURE.md#token-substitution`) is caught by no gate either.
+
+      - PASS-03: no registered gate's literal set includes the placement sentence ("Emit the
+        pass as process output before the Phase 5 verdict blocks") or the "not a seventh output
+        section" constraint; SCAN-GUARD's own placement check is scoped to a different heading
+        (see the batch-level paragraph above).
+
+      - PASS-04: no registered gate's literal set includes the chain/ground-truth citation
+        clause ("citing the chain ids (`Cn`) or ground-truth ids (`GT-N`) it bears on").
+
+      - PASS-05: no registered gate's literal set includes the disposition clause ("a named plan
+        change or an explicitly accepted risk with a named mitigation") as applied to the
+        adversarial-pass record specifically (the phrase recurs in `shared/references/
+        pre-mortem.md`'s own pre-existing exit criterion, which PASS-06 covers separately, but
+        no gate reads either occurrence).
+
+      - PASS-06: `shared/references/pre-mortem.md`'s Output contract section states the four-
+        part contract, and DUAL-04 re-runs byte-parity for two of its three feeding surfaces —
+        the generated agent reference sibling and the skill stub via `{{PROCEDURE:pre-mortem}}`
+        — so a drift between the source and either generated copy is caught. But DUAL-04 proves
+        propagation, not correctness: deleting the Output contract section from the *source*
+        file and re-running `sync-content.py --write` leaves both generated copies (now also
+        missing it) in sync, and DUAL-04 green. The third surface this requirement names — "the
+        body's emission instruction" (the Phase 5 prescription's own reference to the contract)
+        — is separate hand-authored prose no sync check compares against the reference file at
+        all. One clause (propagation correctness) is gate-adjacent but not gate-proven, and two
+        clauses (source correctness, cross-file consistency with the body) are untouched by any
+        registered gate — audit-only under the same "one unchecked clause is sufficient" rule
+        v9.3's SCHEMA-01/STMT-01/TIER-04 rows state.
+
+      - PASS-07: no registered gate's literal set includes "at least three named viewpoints" or
+        the group-facilitation phrase it replaces.
+
+      - PASS-08: no registered gate's literal set includes the exit-criterion's adversarial-pass
+        clause ("A silently-skipped adversarial pass, or a record whose clusters carry no
+        disposition, does not satisfy this criterion").
+
+      - PASS-09: no registered gate's literal set includes the not-applicable line
+        ("adversarial pass not applicable — [reason]") or the rule for when it may be written.
+
+      - PASS-10: no registered gate's literal set includes Criterion 5's three-way Absent /
+        Hand-wavy / Rigorous distinction for the adversarial pass specifically — HC-BOUND's
+        Criterion 5 coverage is confined to the Sound band's HIGH-confidence EXCEPT clauses (see
+        the batch-level paragraph above), and no other gate opens this rubric section at all.
+
+      - PASS-11: no registered gate's literal set includes the "separate reading" sentence
+        distinguishing the new Absent clause from the pre-existing stress-test clause, or the
+        worked contrast it gives (a free-form weakest-link paragraph satisfying the old clause
+        while failing the new one).
+
+      - PASS-12: no registered gate's literal set includes Phase 4's trade-off-prescription
+        sentence ("When two or more viable options survive the ground truths ... open the
+        Trade-off procedure") or notes that Phase 4's exit criterion is unchanged by this
+        requirement.
+
+    Three requirements (MEAS-03, MEAS-04, MEAS-05) are apparatus-tier measurement debt
+    (`.planning/REQUIREMENTS.md`'s own apparatus/product split), Capability Test-Network per the
+    harness-and-release-apparatus discriminator:
+
+      - MEAS-03: barred from gating by its own statement and by the governing K-of-5 discipline
+        (`docs/v8.7-constraint-teardown.md` §2 item 3); `48-VALIDATION.md`'s own verification
+        map marks the row "OBSERVATIONAL — never gated". The reading is recorded in
+        `PLAN-premortem-wiring.md` with its N and instrument, a tracked prose record no script
+        re-reads or re-derives.
+
+      - MEAS-04: also marked "OBSERVATIONAL — never gated" by `48-VALIDATION.md`'s own table.
+        `scripts/_battery_core.py#classify` is re-run informally each capture, but no script
+        stores the phase-48-01 baseline hit counts and automatically diffs them against a later
+        capture — the before/after comparison is read and typed by a person, not asserted by a
+        gate. Deliverable path `scripts/_battery_core.py` names `agent` under P-AGENT-SUBJECT
+        (Step 0 / focused-output classification is this file's stated subject).
+
+      - MEAS-05: `scripts/measure-adversarial-pass.py --self-test` is deterministic and offline,
+        but the script is registered nowhere — absent from `scripts/check-firewall-battery.sh`
+        and from `scripts/_gate_registry.ENTRIES` (confirmed by grep for the filename in both),
+        matching the phase's own `48-VALIDATION.md` ("this phase adds one new **ungated**
+        script"). Two of its ten like-for-like input fixtures are untracked (D-48-C,
+        `DEMO-first-principles-multiregion-latency.md` and
+        `DEMO-first-principles-ticket-triage.md`), so the reading does not reproduce from a
+        fresh clone even though the instrument itself is deterministic on whatever tree it is
+        run against.
+
+    Three requirements are release/registration apparatus, Capability Test-Network:
+
+      - EVID-01: no registered gate enumerates the five named filenames
+        (`REVIEW-technique-improvement-analysis.md`, `REVIEW-agent-improvement-
+        opportunities.md`, `PLAN-PRAOR-loop-backlog.md`, the two `grok-*.md` files, and
+        `PLAN-premortem-wiring.md`) or asserts they remain tracked. VAL-03 (`check-links.py`)
+        would only catch their removal if some tracked file linked to them by relative path;
+        grepping `docs/*.md`, `CLAUDE.md` and `CHANGELOG.md` for a markdown link to any of the
+        five returns zero, so nothing currently links them and their tracked status rests on
+        direct `git ls-files` inspection alone, confirmed at this phase's execution time, never
+        a re-run check.
+
+      - REL-25: bundles three clauses, none of which a registered gate re-checks in full.
+        VERSION-01 (`check-version-stamps.py`) re-runs the lockstep clause only in the weaker
+        sense v9.3's own REL-19 row already disclosed: it asserts the 17 stamps agree with each
+        other and with `shared/`, never that they equal the literal `9.5.0` — a uniform wrong
+        value stays green on both the live check and `sync-content.py --check` (the same break
+        v9.3/REL-19 recorded, not independently re-run here). No gate re-reads `CHANGELOG.md`'s
+        prose for a `[9.5.0]` entry (precedent REL-08, REL-11, REL-13, REL-16, REL-18, REL-22).
+        And the `FIREWALL: GREEN` battery run this requirement names is a fresh count taken
+        once at bump time, never stored and compared automatically against a prior run — it
+        corroborates the claim, it is not the evidence for it (precedent v9.3/REL-21).
+
+      - REL-26: this row's own statement describes an act this very commit performs (registering
+        these eighteen rows and moving the headline), not a standing property a later gate
+        re-derives. TRACE-03's ROW-FIELDS live leg and HEADLINE-LOCK re-check that the
+        registered rows are well-formed and that the headline stays internally consistent going
+        forward — they do not re-run whether *this* registration event happened correctly.
+        v9.3's own REL-20 break test found exactly this: deleting a headline-history row left
+        `check-traceability.py --self-test` green; only the row-registration, headline-sweep-
+        across-covered-surfaces and both-regenerated-artifacts clauses are independently
+        gate-checked, matching this row's own artifact-link precedent.
+        (`scripts/check-traceability.py#_self_test_headline_lock`).
+
+    DISCLOSED BOUNDARY. Every row in this batch reads `rerun_by="none"` — none is drafted
+    `reproducible`, so D-02's "a reproducible or scheduled row never reads none" rule does not
+    apply, and there is no row in this batch for D-03's `ci` acceptance test to examine.
+
+    No new -ROWS sentinel, for the same four reasons `_rows_v93()`'s docstring already gives
+    (999.83, 999.85, the count-not-sentinel shape of the success criterion, and this
+    milestone's own REACH-or-LEVEL admission that `_rows_v95()` and any row sentinel it carries
+    stay inside TRACE-03). `_rows_v95()` is re-run by TRACE-03's existing ROW-FIELDS live leg and
+    by HEADLINE-LOCK; no new control or registration is added.
+    """
+    _audit_pass01_technique_choice_v95 = (
+        "no registered gate's literal set includes Phase 5's technique-choice sentence (\"Apply a structured adversarial technique to the conclusion, chosen by what the conclusion is\") or its citation of the inversion procedure's own decision rule — confirmed by grep across every scripts/*.py file in this tree, zero hits. DUAL-04 (sync-content.py --check) re-runs byte-parity between shared/ and the generated tree only; it goes red if the generated copy drifts from source, never if the source's own prescription is wrong, absent, or miscites the decision rule it points at."
+    )
+    _audit_pass02_anchored_read_v95 = (
+        "no registered gate's literal set includes the anchored-Read opening pattern (\"open the Pre-Mortem procedure ... with Read\") or the {{TOOL:pre-mortem}} token this requirement forbids using in its place — zero hits by grep. The defect this closes (the token substitutes \"the inlined pre-mortem procedure\" for a procedure that is not inlined, per docs/ARCHITECTURE.md#token-substitution) is caught by no registered gate either; DUAL-04 proves shared/ and the generated tree agree, never that the agreed text opens the right way."
+    )
+    _audit_pass03_record_placement_v95 = (
+        "no registered gate's literal set includes the placement sentence (\"Emit the pass as process output before the Phase 5 verdict blocks\") or the \"not a seventh output section\" constraint — zero hits by grep. SCAN-GUARD's own placement literal anchors a textually distinct sibling heading (`## Self-audit scan (process output)`), not the `## Adversarial pass (process output)` heading this requirement introduces; SCAN-GUARD's dispatcher never opens or inspects the latter."
+    )
+    _audit_pass04_chain_citation_v95 = (
+        "no registered gate's literal set includes the chain/ground-truth citation clause (\"citing the chain ids (Cn) or ground-truth ids (GT-N) it bears on\") as applied to the adversarial-pass record — zero hits by grep across scripts/*.py."
+    )
+    _audit_pass05_disposition_v95 = (
+        "no registered gate's literal set includes the disposition clause (\"a named plan change or an explicitly accepted risk with a named mitigation\") as applied to the adversarial-pass record — zero hits by grep. The same phrase recurs verbatim in shared/references/pre-mortem.md's own pre-existing exit criterion (PASS-06's surface), and no gate reads that occurrence either."
+    )
+    _audit_pass06_output_contract_v95 = (
+        "shared/references/pre-mortem.md's Output contract section feeds three surfaces; DUAL-04 re-runs byte-parity for two of them (the generated agent reference sibling and the skill stub via {{PROCEDURE:pre-mortem}}), so a drift between source and either generated copy is caught. But DUAL-04 proves propagation, not correctness: deleting the Output contract section from the source and re-running sync-content.py --write leaves both generated copies (now also missing it) in sync, and DUAL-04 green. The third surface this requirement names — the body's own emission instruction referencing the contract — is separate hand-authored prose no sync check compares against the reference file at all. One clause gate-adjacent-but-unproven plus two clauses entirely untouched is sufficient to keep this audit-only, the same rule v9.3's SCHEMA-01/STMT-01/TIER-04 rows state."
+    )
+    _audit_pass07_three_viewpoints_v95 = (
+        "no registered gate's literal set includes \"at least three named viewpoints\" or the group-facilitation phrase (\"would I have suppressed this in a group?\") it replaces — zero hits by grep across scripts/*.py."
+    )
+    _audit_pass08_exit_criterion_v95 = (
+        "no registered gate's literal set includes the exit-criterion's adversarial-pass clause (\"A silently-skipped adversarial pass, or a record whose clusters carry no disposition, does not satisfy this criterion\") — zero hits by grep. HC-BOUND reads the same Phase 5 exit-criterion neighbourhood for a different property (the HIGH-confidence bound on Criteria 3 and 5), never this clause."
+    )
+    _audit_pass09_not_applicable_line_v95 = (
+        "no registered gate's literal set includes the not-applicable line (\"adversarial pass not applicable — [reason]\") or the rule for when it may be written — zero hits by grep across scripts/*.py."
+    )
+    _audit_pass10_criterion5_bands_v95 = (
+        "no registered gate's literal set includes Criterion 5's three-way Absent/Hand-wavy/Rigorous distinction for the adversarial pass specifically. HC-BOUND's Criterion 5 coverage (_check_criterion5_rigorous_bounds, HC-7..HC-12) is confined to the Sound band's HIGH-confidence EXCEPT clauses (speculative chains, absent-fails derivations); it never opens the Absent or Hand-wavy bands this requirement adds or tightens, and no other registered gate opens this rubric section at all."
+    )
+    _audit_pass11_separate_reading_v95 = (
+        "no registered gate's literal set includes the \"separate reading\" sentence distinguishing the new Absent clause from the pre-existing stress-test clause, or the worked contrast it gives (a free-form weakest-link paragraph satisfying the old clause while failing the new one) — zero hits by grep, and HC-BOUND's Criterion 5 coverage does not reach the Absent band at all (PASS-10's own finding)."
+    )
+    _audit_pass12_tradeoff_prescription_v95 = (
+        "no registered gate's literal set includes Phase 4's trade-off-prescription sentence (\"When two or more viable options survive the ground truths ... open the Trade-off procedure\") or the note that Phase 4's exit criterion is unchanged by this requirement — zero hits by grep across scripts/*.py."
+    )
+    _audit_meas03_firing_rate_v95 = (
+        "barred from gating by its own statement text and by the governing K-of-5 discipline (docs/v8.7-constraint-teardown.md §2 item 3); 48-VALIDATION.md's own verification map marks this row 'OBSERVATIONAL — never gated'. The reading is recorded in PLAN-premortem-wiring.md with its N and instrument, a tracked prose record no script re-reads or re-derives."
+    )
+    _audit_meas04_classifier_drift_v95 = (
+        "also marked 'OBSERVATIONAL — never gated' by 48-VALIDATION.md's own table. scripts/_battery_core.py's classify() is re-run informally on each capture, but no script stores the phase-48-01 baseline hit counts and automatically diffs them against a later capture — the before/after comparison is read and typed by a person, not asserted by a gate."
+    )
+    _audit_meas05_extractor_anchor_v95 = (
+        "scripts/measure-adversarial-pass.py --self-test is deterministic and offline, but the script is registered nowhere — absent from scripts/check-firewall-battery.sh and from scripts/_gate_registry.ENTRIES (confirmed by grep for the filename in both), matching 48-VALIDATION.md's own description ('this phase adds one new UNGATED script'). Two of its ten like-for-like input fixtures are untracked (D-48-C: DEMO-first-principles-multiregion-latency.md, DEMO-first-principles-ticket-triage.md), so the reading does not reproduce from a fresh clone even though the instrument itself is deterministic on whatever tree it is run against."
+    )
+    _audit_evid01_tracked_docs_v95 = (
+        "no registered gate enumerates the five named filenames (REVIEW-technique-improvement-analysis.md, REVIEW-agent-improvement-opportunities.md, PLAN-PRAOR-loop-backlog.md, the two grok-*.md files, and PLAN-premortem-wiring.md) or asserts they remain tracked. VAL-03 (check-links.py) would only catch their removal if some tracked file linked to them by relative path; grepping docs/*.md, CLAUDE.md and CHANGELOG.md for a markdown link to any of the five returns zero, so nothing currently links them and their tracked status rests on direct git ls-files inspection alone, confirmed at this phase's execution time, never a re-run check."
+    )
+    _audit_rel25_release_bundle_v95 = (
+        "bundles three clauses, none of which a registered gate re-checks in full. VERSION-01 (check-version-stamps.py) re-runs the lockstep clause only in the weaker sense v9.3's own REL-19 row already disclosed: it asserts the 17 stamps agree with each other and with shared/, never that they equal the literal 9.5.0 — a uniform wrong value stays green on both the live check and sync-content.py --check (the break v9.3/REL-19 recorded, not independently re-run here). No gate re-reads CHANGELOG.md's prose for a [9.5.0] entry (precedent REL-08, REL-11, REL-13, REL-16, REL-18, REL-22). And the FIREWALL: GREEN battery run this requirement names is a fresh count taken once at bump time, never stored and compared automatically against a prior run — it corroborates the claim, it is not the evidence for it (precedent v9.3/REL-21)."
+    )
+    _audit_rel26_matrix_registration_v95 = (
+        "this row's own statement describes an act this very commit performs (registering these eighteen rows and moving the headline), not a standing property a later gate re-derives. TRACE-03's ROW-FIELDS live leg and HEADLINE-LOCK re-check that the registered rows are well-formed and that the headline stays internally consistent going forward — they do not re-run whether this registration event happened correctly. v9.3's own REL-20 break test found exactly this shape: deleting a headline-history row left check-traceability.py --self-test green; only the row-registration, headline-sweep-across-covered-surfaces and both-regenerated-artifacts clauses are independently gate-checked."
+    )
+    return [
+        MatrixRow('v9.5/PASS-01', 'PASS-01', 'v9.5', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_pass01_technique_choice_v95,
+                  surfaces=('agent',),
+                  statement=(
+                      "Phase 5's Operation prescribes a structured adversarial technique against the conclusion, chosen by what the conclusion is — pre-mortem for a plan or recommendation, headline inversion for a claim — citing the decision rule the two procedures already state rather than re-authoring it."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.5/PASS-02', 'PASS-02', 'v9.5', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_pass02_anchored_read_v95,
+                  surfaces=('agent',),
+                  statement=(
+                      "The prescription opens the procedure by anchored Read (${CLAUDE_PLUGIN_ROOT}/agents/references/…), not by the {{TOOL:}} token, because that token substitutes \"the inlined pre-mortem procedure\" and the procedure is not inlined — instructing the agent to apply an inlined procedure that does not exist is an instruction to work from recollection, which is the defect being fixed."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.5/PASS-03', 'PASS-03', 'v9.5', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_pass03_record_placement_v95,
+                  surfaces=('agent',),
+                  statement=(
+                      "The pass emits a contracted record — premise in the past tense, unfiltered cause list written before grouping, named clusters, per-cluster disposition — as process output before the Phase 5 verdict blocks, following the Assumption Audit scan table's precedent and creating no seventh output section."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.5/PASS-04', 'PASS-04', 'v9.5', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_pass04_chain_citation_v95,
+                  surfaces=('agent',),
+                  statement=(
+                      "Every cluster in the record cites the chain ids (Cn) or ground-truth ids (GT-N) it bears on, so the finding joins the analysis's traceability surface instead of sitting beside it."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.5/PASS-05', 'PASS-05', 'v9.5', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_pass05_disposition_v95,
+                  surfaces=('agent',),
+                  statement=(
+                      "Each cluster carries a named plan change or an explicitly accepted risk with a named mitigation; a cluster carrying neither does not satisfy the exit criterion."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.5/PASS-06', 'PASS-06', 'v9.5', 'Methodology',
+                  'shared/references/pre-mortem.md',
+                  'audit-only', '', _audit_pass06_output_contract_v95,
+                  surfaces=('agent', 'pre-mortem'),
+                  statement=(
+                      "shared/references/pre-mortem.md states the output contract, and states it on all three surfaces it feeds — the agent reference sibling, the /pre-mortem skill stub via {{PROCEDURE:pre-mortem}}, and the body's emission instruction."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.5/PASS-07', 'PASS-07', 'v9.5', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_pass07_three_viewpoints_v95,
+                  surfaces=('agent',),
+                  statement=(
+                      "The cause-generation step requires at least three named viewpoints, replacing the group-facilitation guidance (\"would I have suppressed this in a group?\") that costs a single model context and returns nothing."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.5/PASS-08', 'PASS-08', 'v9.5', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_pass08_exit_criterion_v95,
+                  surfaces=('agent',),
+                  statement=(
+                      "Phase 5's exit criterion admits neither a silently-skipped adversarial pass nor a record whose clusters carry no disposition."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.5/PASS-09', 'PASS-09', 'v9.5', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_pass09_not_applicable_line_v95,
+                  surfaces=('agent',),
+                  statement=(
+                      "An analysis whose conclusion is neither a plan nor a claim records the single line `adversarial pass not applicable — [reason]` with its reason named — the honest-depth escape that prevents this milestone from becoming the mandatory padding REVIEW-technique-improvement-analysis.md §A2 objects to elsewhere."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.5/PASS-10', 'PASS-10', 'v9.5', 'Methodology',
+                  'shared/spine/references/validation-rubric.md',
+                  'audit-only', '', _audit_pass10_criterion5_bands_v95,
+                  surfaces=('agent',),
+                  statement=(
+                      "Criterion 5 can distinguish three cases — Absent when neither a record nor the not-applicable line appears anywhere, Hand-wavy when a record is present but no cluster carries a disposition, Rigorous only when the record is complete and every weakness has landed as a named weak link or an explicit confidence caveat."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.5/PASS-11', 'PASS-11', 'v9.5', 'Methodology',
+                  'shared/spine/references/validation-rubric.md',
+                  'audit-only', '', _audit_pass11_separate_reading_v95,
+                  surfaces=('agent',),
+                  statement=(
+                      "Criterion 5's new Absent clause states explicitly that it is a separate reading from the existing stress-test clause, because a free-form weakest-link paragraph satisfies that one and is exactly what the new clause exists to catch."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.5/PASS-12', 'PASS-12', 'v9.5', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_pass12_tradeoff_prescription_v95,
+                  surfaces=('agent',),
+                  statement=(
+                      "Phase 4's Operation prescribes trade-off when two or more viable options survive the ground truths, collapsing the result into a chain per output-template.md §4; Phase 4's exit criterion is deliberately unchanged, because surviving options are conditional in a way an adversarial pass is not."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.5/MEAS-03', 'MEAS-03', 'v9.5', 'Test-Network',
+                  'PLAN-premortem-wiring.md',
+                  'audit-only', '', _audit_meas03_firing_rate_v95,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "The adversarial pass's live firing rate is recorded as a K-of-5 reading across the plan-shaped catalog rows, replacing the current N=1 observation. Stated with its N, as a recorded observation, never a gate (docs/v8.7-constraint-teardown.md §2 item 3)."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.5/MEAS-04', 'MEAS-04', 'v9.5', 'Test-Network',
+                  'scripts/_battery_core.py',
+                  'audit-only', '', _audit_meas04_classifier_drift_v95,
+                  surfaces=('agent',),
+                  statement=(
+                      "The routing classifier is confirmed not to drift against a body that now emits pre-mortem markers on every applicable analysis — specifically _battery_core.classify()'s n == 1 / _COMPOSER_FOCUS_CEILING interaction, which is currently a prediction rather than a measurement. Plan 48-01 recorded the baseline (\"before\") side of this reading over the ten frozen files (all full-composer, hits 10-26 against ceiling 4); the drift comparison itself needs a fresh wired-body capture and is not complete until plan 48-03's \"after\" reading lands."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.5/MEAS-05', 'MEAS-05', 'v9.5', 'Test-Network',
+                  'scripts/measure-adversarial-pass.py',
+                  'audit-only', '', _audit_meas05_extractor_anchor_v95,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "The before/after extractor anchors on both pre-mortem and the prescribed heading vocabulary, so a capture written entirely in the new vocabulary is not scored as carrying no pass. Recorded because the instrument under-reported twice during the pre-milestone build, the second time scoring the wiring's own output worse than the baseline it improves on."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.5/EVID-01', 'EVID-01', 'v9.5', 'Test-Network',
+                  'PLAN-premortem-wiring.md',
+                  'audit-only', '', _audit_evid01_tracked_docs_v95,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "The four analysis documents this milestone derives from (REVIEW-technique-improvement-analysis.md, REVIEW-agent-improvement-opportunities.md, PLAN-PRAOR-loop-backlog.md, grok-*.md) plus PLAN-premortem-wiring.md are tracked in-repo so the requirements above can cite them by path."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.5/REL-25', 'REL-25', 'v9.5', 'Test-Network',
+                  'scripts/check-version-stamps.py',
+                  'audit-only', '', _audit_rel25_release_bundle_v95,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "v9.5.0 ships with all 17 hand-maintained version stamps in lockstep, a [9.5.0] CHANGELOG entry, and FIREWALL: GREEN re-run after the bump."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.5/REL-26', 'REL-26', 'v9.5', 'Test-Network',
+                  'scripts/check-traceability.py',
+                  'audit-only', '', _audit_rel26_matrix_registration_v95,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "This milestone's requirements are registered as matrix rows and the published coverage headline is updated, per the TRACE-03 HEADLINE-LOCK discipline."
+                  ),
+                  rerun_by='none'),
+    ]
+
+
 def build_matrix_rows() -> list[MatrixRow]:
     """Return the curated list of MatrixRow objects (Plan 02 — fully populated).
 
@@ -6106,6 +6483,8 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v921())
     # --- v9.3.0 milestone (Phase 35 / REL-20, CR-02, WR-01) — 1 reproducible + 23 audit-only ---
     rows.extend(_rows_v93())
+    # --- v9.5.0 milestone (Phase 49 / REL-26) — 0 reproducible + 18 audit-only ---
+    rows.extend(_rows_v95())
     return rows
 
 
