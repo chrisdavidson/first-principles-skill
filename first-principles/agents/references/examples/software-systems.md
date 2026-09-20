@@ -57,9 +57,10 @@ preventing faster deploys, and what is the cheapest intervention that removes th
 
 ## 3. Ground Truths
 
-- **GT-1** The full test suite runs end-to-end in approximately 45 minutes on the current CI/CD
-  pipeline — source: measured pipeline execution time (CI dashboard logs; 30-day average of
-  successful pipeline runs)
+- **GT-1** The full CI/CD pipeline runs end-to-end in approximately 45 minutes — test suite
+  execution plus artifact build, deploy/restart and health-check wait; the per-stage split is
+  not measured (that is exactly what chain C3's profiling step would read) — source: measured
+  pipeline execution time (CI dashboard logs; 30-day average of successful pipeline runs)
 
 - **GT-2** A deploy requires a full pipeline pass — a complete test suite run plus a coordinated
   application restart across all app server instances — before traffic is cut over; no partial-
@@ -91,8 +92,8 @@ preventing faster deploys, and what is the cheapest intervention that removes th
 
 ### Conclusion C1: Architecture is not demonstrably the primary bottleneck
 
-GT-1 (45-minute full test suite runtime) + GT-2 (every deploy requires a full pipeline pass including a complete test suite run) + GT-3 (2 deploys/day measured ceiling, not explained by the 45-minute pipeline alone)
-→ The deploy cycle floor is set by the test suite wall-clock duration; the 45-minute pipeline bounds sequential deploys at roughly 10 per working day (480 minutes ÷ 45 minutes ≈ 10.7), well above the observed 2-deploy/day ceiling, so the floor constrains cadence without explaining the observed ceiling — the gap between the two is not accounted for by any named ground truth. A monolith running a fully-parallelized test suite in 8 minutes with a blue-green deploy strategy contributes only 8 minutes of test-suite time to each deploy — the remaining pipeline stages (artifact build, deploy/restart, health-check) are additive on top of that figure and are not quantified here; the test-suite contribution to per-deploy time is set by pipeline structure, and no architectural change is needed to shorten it; architecture determines whether services can deploy independently, but whether the pipeline structure (sequential execution + full-suite requirement), the monolithic architecture itself, or some other unmeasured factor is what actually binds the observed 2-deploy/day ceiling has not been established
+GT-1 (45-minute full pipeline runtime) + GT-2 (every deploy requires a full pipeline pass including a complete test suite run) + GT-3 (2 deploys/day measured ceiling, not explained by the 45-minute pipeline alone)
+→ The deploy cycle floor is set by the whole-pipeline wall-clock duration, of which the test suite is the largest unmeasured share; the 45-minute pipeline bounds sequential deploys at roughly 10 per working day (480 minutes ÷ 45 minutes ≈ 10.7), well above the observed 2-deploy/day ceiling, so the floor constrains cadence without explaining the observed ceiling — the gap between the two is not accounted for by any named ground truth. A monolith running a fully-parallelized test suite in 8 minutes with a blue-green deploy strategy contributes only 8 minutes of test-suite time to each deploy; the test-suite contribution to per-deploy time is set by pipeline structure, and no architectural change is needed to shorten it; architecture determines whether services can deploy independently, but whether the pipeline structure (sequential execution + full-suite requirement), the monolithic architecture itself, or some other unmeasured factor is what actually binds the observed 2-deploy/day ceiling has not been established
 → Architecture cannot be concluded to be the primary deploy bottleneck until the test suite runtime, pipeline step serialization, and deployment restart time have been profiled and ruled out as the dominant cause. The 45-minute pipeline is a NECESSARY constraint on deploy cadence — no deploy can complete faster than one pipeline run — but it is not a SUFFICIENT explanation of the 2-deploy/day ceiling, since it bounds deploys at roughly five times the observed rate; neither the pipeline runtime nor the architecture has been shown to be the binding constraint, and the unexplained factor — deploy windows, approval gates, release batching policy, or something else entirely — has not been measured.
 
 **Confidence:** HIGH — this chain's conclusion is a negative claim (architecture cannot yet be concluded to be the primary bottleneck), directly supported by GT-1 and GT-2 plus the documented absence of profiling data; the chain's head cites no `GT-N?`, so the D-07 ceiling rule does not reach it. This rating does not rest on the withdrawn sufficient-explanation claim: the corrected hops establish only that the 45-minute pipeline is a necessary but not sufficient constraint on cadence, and the conclusion — that architecture's role is unestablished pending profiling — holds independently of that withdrawn claim.
@@ -111,7 +112,7 @@ GT-5 (single shared relational database schema with no service-boundary ownershi
 
 ### Conclusion C3: The minimum viable intervention is to profile the bottleneck and apply the lowest-cost fix
 
-GT-1 (45-minute test suite) + GT-3 (2 deploys/day ceiling, not explained by the 45-minute pipeline alone) + GT-4 (microservices estate multiplies per-service ops overhead that a 12-engineer team must absorb)
+GT-1 (45-minute pipeline, per-stage split unmeasured) + GT-3 (2 deploys/day ceiling, not explained by the 45-minute pipeline alone) + GT-4 (microservices estate multiplies per-service ops overhead that a 12-engineer team must absorb)
 → The cost-risk profile of available interventions varies by orders of magnitude; the pipeline has four measurable stages: test suite execution, artifact build, deployment and restart, and health-check wait; profiling these stages, together with the gap between one pipeline completion and the next deploy start (readable from the same CI/CD deployment records GT-3 is measured from, and where the approval gates, deploy windows or release batching that GT-3 leaves unexplained would show up), is a configuration-level instrumentation taking approximately 1 day that identifies which stage or gap is the dominant cost without requiring any code change; pipeline parallelization (splitting the test suite across concurrent CI workers) is a configuration-level change achievable in days to 2 weeks with no architectural risk and is fully reversible; schema decomposition along bounded-context lines is weeks-to-months of careful migration work with moderate risk and is largely reversible; a full monolith-to-microservices migration is months-to-years of architectural work with high risk and is not easily reversible, and it introduces the full GT-4 operational overhead before delivering any deploy-speed benefit; committing to the highest-cost option before ruling out lower-cost options is not consistent with minimum viable intervention principles
 → The rational sequencing is: profile the deploy cycle to identify the specific bottleneck, apply the lowest-cost intervention that removes it (parallelization first if profiling identifies a pipeline stage as binding; a release-process change first if the binding factor is an approval gate, deploy window or batching policy), and revisit microservices only after profiling demonstrates that the bottleneck is architectural and schema decoupling alone is insufficient.
 
@@ -145,7 +146,8 @@ belief for this team and codebase, not a verified fact. Phase 2 classification a
 Verdict: Challenge, meaning it cannot anchor a derivation chain without being verified first.
 Probing the premise reveals why it fails here:
 
-1. The 45-minute pipeline is driven by the test suite runtime (GT-1) and the full-pipeline-per-
+1. The 45-minute pipeline is driven principally by test execution — its largest but unmeasured
+   stage (GT-1) — and by the full-pipeline-per-
    deploy requirement (GT-2). Neither of these is caused by the monolithic architecture. A
    monolith with a parallelized 8-minute test suite and a blue-green deploy strategy deploys
    faster than many microservices systems. Architecture has not been shown to be the cause of
@@ -182,21 +184,23 @@ not independent services.
 
 ### Dead End: Move the test suite to a faster test runner
 
-**What was tried:** Reduce the 45-minute test suite runtime by switching to a faster test runner
+**What was tried:** Reduce the 45-minute pipeline runtime — whose largest but unmeasured stage is
+test execution (GT-1) — by switching to a faster test runner
 or test execution framework. The motivation was GT-1 (45-minute runtime) combined with the
 observation that test runner performance varies significantly across frameworks, and some runners
 can execute the same test suite in a fraction of the time of others. This path was lower-cost
 than architectural changes and seemed to directly address the measured 45-minute runtime (GT-1).
 
 **Research conducted on this path:** The test runner substitution approach was evaluated by
-examining what fraction of the 45-minute runtime is attributable to runner overhead versus test
+examining what fraction of the 45-minute pipeline runtime (GT-1) is attributable to runner
+overhead versus test
 count. For a 6-year-old, 350 KLOC codebase, accumulated test suites typically contain thousands
 of individual test cases. Runner framework overhead (the time to load the runner, discover tests,
 and report results) is typically 5–10% of total runtime for large suites — the dominant cost is
 test execution time, not runner overhead. Switching from a slower runner to a faster one might
 reduce total runtime by 5–10%, matching the overhead bound above — removing all of the runner
-overhead cannot reduce total runtime by more than the overhead itself accounts for. For a
-45-minute suite, an 8% improvement yields approximately 41.4 minutes (45 × 0.92 = 41.4). No
+overhead cannot reduce total runtime by more than the overhead itself accounts for. For the
+45-minute pipeline, an 8% improvement yields approximately 41.4 minutes (45 × 0.92 = 41.4). No
 pipeline-time threshold for raising deploy frequency is established here: at 45 minutes the
 pipeline already admits roughly five times the observed 2/day rate (GT-3), so a shorter runtime
 raises deploy frequency only if profiling shows runtime is what binds.
@@ -207,8 +211,10 @@ change the constraint that the full suite must run before every deploy. The larg
 pipeline time is not the test runner — it is the pipeline architecture:
 
 - **Test suite parallelization** (running test shards concurrently across multiple CI workers)
-  addresses GT-1 directly: a 45-minute suite split across 8 parallel workers runs in
-  approximately 6–8 minutes of wall-clock time, without changing any test or application code.
+  addresses GT-1's dominant stage directly: if test execution is essentially all of the 45
+  minutes — the per-stage split GT-1 leaves unmeasured and profiling would read — splitting it
+  across 8 parallel workers brings that stage to approximately 6–8 minutes of wall-clock time,
+  without changing any test or application code.
   This is a configuration change in the CI system, not a framework substitution.
 
 - **Blue-green or rolling deployment** addresses GT-2 directly: by pre-building a new application
@@ -223,7 +229,8 @@ intact.
 **What it ruled out:** This dead end establishes that "replace the test runner" is not a viable
 standalone solution and is not worth investing time in before profiling identifies pipeline
 parallelization as the binding fix. If profiling shows test-suite time is what binds, the
-stronger intervention is parallelization, which cuts test-suite time 5.6–7.5× (from 45 minutes to
+stronger intervention is parallelization, which cuts test-suite time 5.6–7.5× (from the 45
+minutes GT-1 measures for the whole pipeline, if test execution dominates it, to
 6–8 minutes) versus runner substitution's 5–10% (from 45 minutes to ~40.5–42.75 minutes). Runner-level optimization may be worthwhile
 as a follow-on after parallelization, but it is not the primary intervention.
 
@@ -238,7 +245,7 @@ that was not already in the Assumptions Table has been added there before this t
 
 | Chain | Step | Step Text (brief) | Assumption surfaced? | Added to Table? |
 |-------|------|-------------------|----------------------|-----------------|
-| Bottleneck | 1 | GT-1 + GT-2 + GT-3 → test-suite wall-clock sets the deploy-cycle floor (~10 deploys per working day at 45 min); the observed 2/day ceiling is not explained by that floor | the cause of the gap between the ~10/day pipeline bound and the observed 2/day ceiling is unnamed — surfaced here as an open measurement gap, not resolvable from the named GTs | not added — carried as an open measurement gap in chain C1's second hop, not a classified assumption |
+| Bottleneck | 1 | GT-1 + GT-2 + GT-3 → whole-pipeline wall-clock sets the deploy-cycle floor (~10 deploys per working day at 45 min); the observed 2/day ceiling is not explained by that floor | the cause of the gap between the ~10/day pipeline bound and the observed 2/day ceiling is unnamed — surfaced here as an open measurement gap, not resolvable from the named GTs | not added — carried as an open measurement gap in chain C1's second hop, not a classified assumption |
 | Bottleneck | 2 | → Architecture cannot be concluded as primary bottleneck until pipeline stages are profiled | none — this is a logical negation step: without profiling data, the architectural claim is unestablished; no additional bridging fact required | n/a |
 | DB coupling | 1 | GT-5 + GT-4 → retaining shared schema after app split produces a distributed monolith; schema decomposition is a prerequisite of migration | Schema-level coupling blocks truly independent releases in the same way application-level coupling does | already present (added above in this audit) |
 | DB coupling | 2 | → Schema decomposition is executable incrementally on the monolith without splitting into separate services | none — this step follows from the separability claim in Step 1 and the existing Discard verdict on the big-bang assumption | n/a |
