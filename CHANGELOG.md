@@ -13,6 +13,136 @@ installed session.
 
 ## [Unreleased]
 
+## [9.5.0] — 2026-09-20
+
+Milestone release: **v9.5.0 PRAOR Adversarial Pass**. Phase 5 — the phase whose own text calls
+itself *"the adversarial pass"* — now runs one, emits it in a contracted shape, and the Self-Audit
+Gate can score it. Two phases: 47 registered and committed the wiring, 48 took the two readings it
+left owing.
+
+### The defect this closes
+
+`{{TOOL:pre-mortem}}` appeared exactly twice in `shared/spine/SKILL-body.md` — the Step 0 routing
+table, which routes *away* from the composer, and the Companion tools summary, which describes when
+the technique would apply. No phase Operation, no exit criterion, no rubric criterion invoked it. So
+Phase 5's adversarial pass was free-form weakest-link inspection by the same reasoning that built
+the chains.
+
+Measured before any edit, across 8 frozen live captures plus 2 root demos: **6/10 carried some
+pre-mortem content and 3/10 satisfied all three shape columns**. A rigorous pre-mortem, a one-line
+gesture and total silence scored identically, because Criterion 5's `Absent` band fires only when no
+weak-link inspection happened at all — and a free-form paragraph satisfies it.
+
+### Added
+
+- **Phase 5 prescribes a structured adversarial technique**, chosen by what the conclusion is:
+  pre-mortem for a plan or recommendation, headline inversion for a claim. The procedure is opened
+  by a `${CLAUDE_PLUGIN_ROOT}`-anchored **Read**, not named through the `{{TOOL:}}` token — that
+  token substitutes "the inlined pre-mortem procedure" and the procedure is not inlined, so the
+  token would have instructed the agent to work from recollection, which is the defect being fixed.
+- **A contracted adversarial-pass record** — past-tense premise, unfiltered cause list written
+  before grouping, named clusters each citing the `Cn` or `GT-N` ids it bears on, and per cluster a
+  named plan change or an explicitly accepted risk with a named mitigation. Emitted as process
+  output before the Phase 5 verdict blocks, on the Assumption Audit scan table's precedent. **No
+  seventh output section** — the fixed six-section shape is unchanged.
+- **Criterion 5 can now band the three cases apart**: `Absent` when neither a record nor the
+  `adversarial pass not applicable — [reason]` line appears, `Hand-wavy` when a record's clusters
+  carry no disposition, `Rigorous` only when the record is complete. The `Absent` clause states in
+  its own words that it is a *separate reading* from the existing stress-test clause, because a
+  free-form weakest-link paragraph satisfies that one.
+- **Phase 4 prescribes trade-off** when two or more viable options survive the ground truths,
+  collapsing the result into a chain per `output-template.md` §4. Phase 4's exit criterion is
+  deliberately unchanged — surviving options are conditional in a way an adversarial pass is not.
+- **Three named viewpoints** required in cause generation, replacing pre-mortem step 3's
+  group-facilitation question ("would I have suppressed this in a group?"), which costs a single
+  model context and returns nothing.
+- `scripts/measure-adversarial-pass.py` — an **unregistered** measurement tool. No battery `gate`
+  line, no CI job; the battery stays at 23 by direct count.
+- `tests/adversarial-firing-v9.5/` — five live captures of the wired body, with a provenance README.
+  Deliberately **not** registered in `_FROZEN_PATHS` (D-20-C: registering before the readings are
+  reviewed makes the first correction a frozen-evidence violation).
+
+### Readings taken — observations, not gates
+
+- **Firing rate, N = 5: present 5/5, shape-complete 5/5** over the five distinct plan-shaped
+  catalog rows against the committed wired body. Per `docs/v8.7-constraint-teardown.md` §2 item 3
+  this value gates nothing: at N=5 noise equals effect, evidenced by the S-P04 vector swinging
+  2/5 → 0/5 → 2/5 with no source change. **Read it as "the prescription fired on every plan-shaped
+  row in this sample", never as a rate that will hold.** It replaces an earlier N=1 result.
+- **Routing-classifier drift: none** — all five classify `full-composer`. The predicted *outcome*
+  held; the predicted *mechanism* did not. The CR-02 `_COMPOSER_FOCUS_CEILING` never had to act for
+  pre-mortem, because `pre-mortem` does not fire as a technique at all: each capture matches 1 of
+  its 9 markers, below `MIN_HEADER_HITS=2`. The barrier is that anti-masking constant. The ceiling
+  *was* exercised, on `PR-P2`'s lone `fishbone` hit at 13 composer hits.
+
+### Fixed
+
+- The Phase 5 prescription's own citation claimed *"the two procedures state this same rule
+  themselves"*. Only `inversion.md` does; `pre-mortem.md` contains zero occurrences of "inversion".
+  A false claim about provenance, inside the clause asserting the rule was cited rather than
+  authored. Corrected to name the one procedure that carries it. The residual it exposed —
+  `pre-mortem.md` stating no inversion boundary while stating a trade-off and a five-whys one — is
+  filed as backlog **999.130**, not fixed here.
+- Three miscounts in this milestone's own evidence, each recorded as a dated erratum rather than
+  silently patched: the capture population (`9` → `8`, with `PR-P1` double-counted), the cause-count
+  list (seven values for six rows), and `PROJECT.md`'s self-contradictory "9 captures plus 2 demos"
+  introducing a figure out of 10. All three were in *summaries* of tables that were themselves
+  correct.
+- The measurement instrument was corrected three times, the third found by the live reading rather
+  than by inspection: `WINDOW_LINES = 30` produced a false negative on a fully compliant record
+  whose dispositions began ~40 lines past the anchor, and in the other direction bled into output
+  section 6 and counted its list items as causes. The window is now bounded by the next top-level
+  heading — the boundary the output contract itself defines. The ten frozen baseline files still
+  return **6/10 and 3/10** under it, unchanged across three differently-windowed instruments.
+
+### Costs this release does not pay, and a ceiling it does not raise
+
+Stated here rather than discovered later.
+
+- **The turn budget is unpaid.** This release net-adds prescribed work to Phase 5, immediately
+  upstream of the gate that `SKILL-body.md` says runs last and is therefore what gets dropped when
+  the budget runs out. Backlog **B2/999.133** — cutting Step 0's "enumerate all eight" padding — is
+  the intended payment and is deliberately out of scope. If gate truncation rises, B2 becomes a
+  prerequisite rather than a neighbour.
+- **Self-grading remains self-grading.** The same model runs the adversarial pass and scores it.
+  This release raises the floor — the gate can now fail an omitted pass and a dispositionless one —
+  and does **not** make the gate adversarial. No second grader was added.
+- **Nothing here measures whether the pass produces useful findings when it fires.** Both readings
+  measure whether it fires and whether an instrument still classifies correctly. Usefulness is not
+  in this milestone's scope and no figure in it should be read as answering that.
+- **Part of the no-drift result is luck.** The record is emitted under
+  `## Adversarial pass (process output)`, which contains no literal "pre-mortem", so the heading
+  marker never matches. A naming choice made for readability is doing load-bearing work it was not
+  designed for, and renaming that heading could change the drift answer.
+
+### Coverage: this release adds 18 requirements and zero reproducible rows
+
+The headline moves `228 reproducible / 167 audit-only / 0 gap / 395 total` →
+`228 reproducible / 185 audit-only / 0 gap / 413 total`. Every one of the 18 new rows is
+**audit-only**. The reproducible count does not move at all, so the reproducible *fraction* falls
+from 57.7% to 55.2%.
+
+That is the honest state and it is worth naming rather than leaving in a tier column. Verified by
+scanning every `scripts/*.py`: no registered gate asserts any of these 18 properties. The only hits
+for their distinguishing literals are `check-traceability.py`, which merely quotes the requirement
+text in the row itself, and `scripts/measure-adversarial-pass.py`, which is deliberately
+unregistered — no battery entry, no CI job. HC-BOUND and HARN-01 read the Criterion 5 slice but
+assert the Sound band's HIGH-confidence EXCEPT clauses, never the Absent and Hand-wavy bands this
+release added. DUAL-04 enforces `shared/`↔generated byte-parity, never source-content correctness.
+
+So the methodology change this release ships is guarded by **one-off audits, not by re-runnable
+gates**. Phase 47 verified all 13 of its requirements by literal assertion against the emitted tree;
+that is an audit, and it does not re-run. A future release that wanted these properties gated would
+have to add controls for them — and this entry exists so that work is visible as outstanding rather
+than assumed done.
+
+### Accepted limitation
+
+Two of the ten baseline files scored by the like-for-like check are untracked at the repository root
+by a deliberate, committed decision (EVID-01, commit `707923c`). That reading therefore re-runs on a
+tree holding them and **not on a fresh clone**. Recorded under D-48-C rather than closed, because
+closing it would overturn a researched, cited and verified decision.
+
 ## [9.4.0] — 2026-09-20
 
 Milestone release: **v9.4.0 Claim Correction and Gate Relaxation**. The milestone opened as
