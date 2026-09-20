@@ -77,8 +77,10 @@ prescribe a counter-intervention different from the operator's first hypothesis
   values read from a bearing drawing. The required 4.9 mm effective length is about a
   fifth of the 22 mm roller diameter, which implies heavy crowning, edge relief or a
   misalignment-narrowed contact patch that no named source in this scenario
-  establishes; at a nominal full-width 18 mm contact — itself illustrative and not read
-  from any named source in this scenario, the same status this caveat already assigns
+  establishes; at a nominal full-width contact taken as the Scenario's observed 18 mm
+  axial spall length (§Scenario) — an inference, not a measurement: it assumes the spall
+  spans the full contact width, which no named source in this scenario
+  supplies; the same status this caveat already assigns
   to the 4.9 mm effective length and the 70 mm inner-race radius, and sourced by the
   same bearing drawing named below as the verification that would remove the `?` —
   the same model, at the stated 70 mm inner-race radius, gives about
