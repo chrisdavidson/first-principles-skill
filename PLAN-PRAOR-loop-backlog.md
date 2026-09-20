@@ -1,8 +1,14 @@
 # Working plan: making Perceive → Reason → Act → Observe → React the real control loop
 
-**Status.** Planning summary only. Nothing in `shared/`, `first-principles/`, `docs/`,
-`.planning/` or any script was modified to produce this file, and no backlog item below has been
-filed. Proposed IDs are reservations, not registrations.
+**Status.** Planning summary only when drafted (2026-09-19): nothing in `shared/`,
+`first-principles/`, `docs/`, `.planning/` or any script was modified to produce this file.
+Proposed IDs are reservations, not registrations — see the corrected numbering note in §3.
+
+**Two items have since shipped out of this document**, each promoted to its own phased plan:
+**D3 / 999.141** (wire pre-mortem and trade-off) as `PLAN-premortem-wiring.md`, shipped in
+v9.5.0 Phase 47 (`4667c1c`); and **C3 / 999.137** (define the confidence bands) as
+`PLAN-confidence-level-definitions.md`, landed at `d7dd5b9`. Both are marked in the tables
+below. The rest of the backlog is unfiled.
 
 **Inputs compared**
 
@@ -114,7 +120,16 @@ sequencing constraint is repo-specific.
 - **MEAS-01/MEAS-02 exist as backlog 999.12/999.13**, promoted to v9.0.0 Phase 20 and carried with
   an explicit note (`ROADMAP.md:1082`) that MEAS-01 may be **materially smaller than filed**
   because stored captures already answer part of it. Re-derive scope before scoping work.
-- **Backlog numbering** currently runs to `999.127`. Proposed items below start at `999.128`.
+- **Backlog numbering.** This line read "currently runs to `999.127`, proposed items start at
+  `999.128`" when drafted, and was already stale: `.planning/ROADMAP.md` registers `999.128`
+  (runner-overhead bound) and `999.129` (Phase 46 verification residuals) from v9.4.0, and
+  `999.130` (pre-mortem's missing inversion boundary) was filed by `PLAN-premortem-wiring.md`
+  on 2026-09-20. **The real boundary is `999.131`.** Rather than shift seventeen ids and
+  invalidate the `B2/999.133` reference already published in the v9.5.0 release commit, only
+  the three colliding items move, to the tail of the block: A1 → `999.148`, A2 → `999.149`,
+  A3 → `999.150`. Every id from A4 / `999.131` onward is unchanged and free. A 999.x id is an
+  identifier, not a sequence position, so the instrument items keeping the highest numbers
+  while running first costs nothing.
 - **The milestone is held.** v9.4.0 close was attempted twice and held; Phase 37 closed
   `halted-for-root-replan` with a standing PRE-2 STOP (D-04) and open findings carried to
   `999.127`. Battery is GREEN 23/23 at `66e6d24`. **This work is a next-milestone candidate
@@ -147,16 +162,16 @@ Falsifiable definition, so the milestone can be audited rather than asserted:
 Five workstreams. Tier per `docs/PROCESS.md` §2 (product = changes the shipped methodology the
 agent executes; apparatus = changes the instrument). Effort is relative, not estimated in time.
 
-### A — Instrument first (apparatus). Proposed 999.128–999.131
+### A — Instrument first (apparatus). Proposed 999.148–999.150 and 999.131
 
 The demo review's ordering caution applies at milestone scale: every item in workstreams B–D
 edits `shared/`, and editing the body first destroys the artifact that demonstrates the gap.
 
 | ID | Item | Closes | Effort |
 |---|---|---|---|
-| A1 / 999.128 | `reference_reads` census over captures — did the run open the rubric, the template, any technique file? | Demo H5; PRAOR root cause 1 (Act half); partially answers 999.12/MEAS-01 offline | ~20 lines + fixtures |
-| A2 / 999.129 | `detect_defects` confidence columns: `high_conf_chains`, `high_conf_unverified_head`, `confidence_inversions` | Demo H1; makes P1/P2 mechanically visible; technique §D3 | one function + 3 columns + self-test fixtures |
-| A3 / 999.130 | `selfaudit_bands_parsed` column; widen the criterion-head regex; non-vocabulary verdict counts as a finding | Demo H3 (anti-masking: `0 disagreements` currently indistinguishable from `0 parsed`) | small, same module |
+| A1 / 999.148 | `reference_reads` census over captures — did the run open the rubric, the template, any technique file? | Demo H5; PRAOR root cause 1 (Act half); partially answers 999.12/MEAS-01 offline | ~20 lines + fixtures |
+| A2 / 999.149 | `detect_defects` confidence columns: `high_conf_chains`, `high_conf_unverified_head`, `confidence_inversions` | Demo H1; makes P1/P2 mechanically visible; technique §D3 | one function + 3 columns + self-test fixtures |
+| A3 / 999.150 | `selfaudit_bands_parsed` column; widen the criterion-head regex; non-vocabulary verdict counts as a finding | Demo H3 (anti-masking: `0 disagreements` currently indistinguishable from `0 parsed`) | small, same module |
 | A4 / 999.131 | `5:` entry in `_SELFAUDIT_CONTRADICTIONS` pointing at A2's fields | Demo H2 (Criterion 5 structurally invisible today) | one line, after A2 |
 
 **Then take a baseline reading** on the existing captures plus a fresh set, before any `shared/`
@@ -179,7 +194,7 @@ This is where the two documents combine, and where the demo review says the real
 |---|---|---|---|
 | C1 / 999.135 | Confidence pre-check immediately before every `**Confidence:**` line: list the head's identifiers, contains `GT-N?` y/n, label forced accordingly | `grok-recommendation-confidence-levels.md` tip 1; demo P1 | Local just-in-time checklist beats a distant global rule; this is the single highest-ROI product item |
 | C2 / 999.136 | D-07 transitivity clause in `output-template.md` + Criterion 5 Rigorous descriptor: a chain is capped by the lowest band in its head, chains included | Demo P2; technique §D3 | Specification gap, not a slip — P2 is currently *legal* under the written rule |
-| C3 / 999.137 | Define HIGH/MEDIUM/LOW positively in `output-template.md`; re-base Criterion 5 Rigorous on **calibration** ("each rating is the highest its inputs and hops license, and no higher"), keeping the caps | Technique §D3 | Removes the structural incentive to inflate. An honest MEDIUM becomes Rigorous |
+| C3 / 999.137 — **LANDED** 2026-09-20 (`d7dd5b9`), see `PLAN-confidence-level-definitions.md` | Define HIGH/MEDIUM/LOW positively in `output-template.md`; re-base Criterion 5 Rigorous on **calibration** ("each rating is the highest its inputs and hops license, and no higher"), keeping the caps | Technique §D3 | Removes the structural incentive to inflate. An honest MEDIUM becomes Rigorous |
 | C4 / 999.138 | Phase 5 method: recompute → sensitivity (which GT flips it, is it `?`) → rival conclusion → adversarial technique → falsification condition; plus a **hop-validity + arithmetic** limb on Criterion 4 | Technique §D1–D2; PRAOR "Observe" | Gives Criterion 5's Absent band something observable to score. Needs no new tooling — scored like Criterion 6's Key-Insight limb |
 
 Also in scope here and cheap: add the D-07 compliance column to the existing self-audit scan
@@ -195,7 +210,7 @@ The PRAOR doc does not see these; they are what the Reason limb is actually made
 |---|---|---|---|
 | D1 / 999.139 | Rebuild the estimate worked example in one consistent unit; flag the balance-of-system multiplier as `Assumed` with a range; convert to kWh_e before the Li-ion comparison | Technique §B7 | small — **highest priority in D**: an LLM copies examples more readily than prose |
 | D2 / 999.140 | Theoretical-limit: require the **tightest** applicable bound; three-tier bracket (ideal → practical/demonstrated → conventional); generalise "physical law" to "governing hard constraint"; rewrite the CSP example and add a software example (speed-of-light latency floor) | Technique §B8 | small–medium |
-| D3 / 999.141 | Wire pre-mortem + inversion-of-headline into Phase 5's Operation; wire trade-off into Phase 4's | Technique §A1 | small — Phase 5 currently has *no* adversarial technique attached |
+| D3 / 999.141 — **SHIPPED** v9.5.0 Phase 47 (`4667c1c`), see `PLAN-premortem-wiring.md` | Wire pre-mortem + inversion-of-headline into Phase 5's Operation; wire trade-off into Phase 4's | Technique §A1 | small — Phase 5 currently has *no* adversarial technique attached |
 | D4 / 999.142 | Trade-off hardening: must-have knock-outs, 1-and-5 scoring anchors, scores cite GT-IDs (a `GT-N?` score caps the chain at MEDIUM), always report the smallest weight flip, include the status-quo option | Technique §B5 | small |
 | D5 / 999.143 | Per-technique gaps: five-whys counterfactual + depth guard + verdict format; fishbone discriminating observation + measurement category; inversion step-4 rewrite + verdict + `load-bearing` tag; pre-mortem triage/tripwires/output contract; second-order actor + time lenses and success-criteria contradiction check; quotas → coverage lenses | Technique §A4, §B1–B4, §B6 | medium, splittable per technique |
 

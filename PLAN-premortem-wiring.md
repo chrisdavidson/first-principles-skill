@@ -9,8 +9,16 @@ promotes it to its own sequence because it is the one item that both closes a wi
 delivers the requested increase in the agent's output verbosity — the missing content *is* the
 verbose content.
 
-**Backlog numbering.** `.planning/ROADMAP.md` currently runs to `999.129`. IDs proposed here start
-at `999.130`. Reservations, not registrations.
+**Backlog numbering — corrected 2026-09-20.** The per-phase ids `999.130`–`999.135` proposed
+below were **never registered and are now retired**: this work shipped as v9.5.0 Phase 47
+(`4667c1c`, discharging PASS-01..PASS-12), not as backlog items, and `999.131`–`999.135` are
+claimed by `PLAN-PRAOR-loop-backlog.md`'s A4/B1/B2/B3/C1. The phase headings below keep their
+numbers as historical labels only; do not file against them.
+
+The one genuine registration from this plan is **`999.130`**, the pre-mortem inversion-boundary
+residual filed in Phase 1 (see that phase's note) and now live in `.planning/ROADMAP.md`. It is
+a different item from the Phase 0 label that shares the number, which is the collision this
+correction resolves. In this document, `999.130` means the filed residual.
 
 **Milestone context.** v9.4.0 shipped 2026-09-20 at `172db6e`; `.planning/STATE.md` reports
 `status: shipped`, no milestone open, battery `FIREWALL: GREEN (23/23)`, coverage `228/167/0/395`.
@@ -112,7 +120,7 @@ needs. Doing it in the same sequence costs one extra sentence and one extra rubr
 
 ## 3. Phases
 
-### Phase 0 — Baseline before touching `shared/` (apparatus). 999.130
+### Phase 0 — Baseline before touching `shared/` (apparatus). ~~999.130~~ (retired label — not the filed residual of the same number; see Backlog numbering above)
 
 `PLAN-PRAOR-loop-backlog.md` §6 ordering constraint 1: editing the body first destroys the artifact
 that demonstrates the gap, and the next run is a different prompt.

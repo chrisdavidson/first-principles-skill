@@ -1,6 +1,7 @@
 # Phased plan: define HIGH / MEDIUM / LOW positively, and re-base Criterion 5 on calibration
 
-**Status.** Phases 0–3 executed 2026-09-20 in `shared/`, synced, battery re-run. Per-phase
+**Status.** Phases 0–3 executed 2026-09-20 in `shared/`, synced, battery re-run, committed
+at `d7dd5b9` (captures at `31fca79`). Per-phase
 execution notes are recorded inline under each phase heading. Phase 4's live re-measurement is
 the remaining leg.
 
@@ -23,8 +24,17 @@ readings of it:
 | §4, target 4 | "Confidence is calibrated, not maximised. HIGH/MEDIUM/LOW defined positively; D-07 made transitive; Criterion 5 Rigorous re-based on calibration so an honest MEDIUM can be Rigorous" |
 | §5, C3 / 999.137 | The operative item (quoted above) |
 
-**Backlog numbering.** `.planning/ROADMAP.md` runs to `999.135` after `PLAN-premortem-wiring.md`.
-IDs proposed here start at `999.136`. These are reservations, not registrations.
+**Backlog numbering — corrected 2026-09-20.** This line first read "`.planning/ROADMAP.md` runs
+to `999.135`, ids proposed here start at `999.136`". Both halves were wrong: the ROADMAP's
+registered backlog runs to **`999.130`**, and `PLAN-premortem-wiring.md`'s `999.131`–`999.135`
+were never registered. `999.136`–`999.140` would also have collided with PRAOR's C2, C4, D1
+and D2.
+
+**This whole plan is one backlog item: PRAOR C3 / `999.137`**, which covers both halves of the
+work — "define HIGH/MEDIUM/LOW positively" *and* "re-base Criterion 5 Rigorous on
+calibration". The five phases below are steps within that one item, not five ids; their
+per-phase numbers are withdrawn. Phase 4's live re-measurement rides with PRAOR F / `999.147`
+rather than taking an id of its own.
 
 ---
 
@@ -172,7 +182,7 @@ The exact wording landed in the tree is in Phase 1 below.
 
 ## 4. Phases
 
-### Phase 0 — Record the before-state (apparatus). 999.136
+### Phase 0 — Record the before-state (apparatus)
 
 `PLAN-PRAOR-loop-backlog.md` §6 constraint 1 says instrument before editing `shared/`, because
 editing the body first destroys the artifact that demonstrates the gap. The full A1–A4 instrument
@@ -183,7 +193,7 @@ already exist in the working tree.
 5 verdict text from both captures, taken before any edit. Both files are untracked; Phase 4
 should commit them, or this plan's before-state is unreproducible.
 
-### Phase 1 — Define the levels (product). 999.137
+### Phase 1 — Define the levels (product)
 
 `shared/spine/references/output-template.md`: new `### Confidence levels, defined` subsection in
 §4, placed immediately before the `### Conclusion C1:` chain template so the definition is in
@@ -197,7 +207,7 @@ it is salient at the moment of writing and drifts when it is not.
 
 **Executed.** See §5 for the landed text.
 
-### Phase 2 — Re-base Criterion 5 on calibration (product). 999.138
+### Phase 2 — Re-base Criterion 5 on calibration (product)
 
 `shared/spine/references/validation-rubric.md`, Criterion 5:
 
@@ -213,7 +223,7 @@ it is salient at the moment of writing and drifts when it is not.
 
 **Executed.** See §5.
 
-### Phase 3 — Reconcile the gates (apparatus). 999.139
+### Phase 3 — Reconcile the gates (apparatus)
 
 One literal in `scripts/check-high-confidence-bound.py` tracks the edited sentence. HC-9's
 negative control mutates the canonical rubric by replacing the old sentence; once that sentence
@@ -228,7 +238,7 @@ Then `python3 scripts/sync-content.py --write` and `bash scripts/check-firewall-
 
 **Executed.** See §6 for the result.
 
-### Phase 4 — Re-measure (apparatus). 999.140 — **not executed**
+### Phase 4 — Re-measure (apparatus) — **not executed**
 
 1. Re-score both captures by hand against the landed Criterion 5 text (target state item 6).
 2. Commit the two `DEMO-*.md` captures so the before-state is reproducible.
@@ -342,7 +352,7 @@ Sound gains one clause; Hand-wavy gains two. The exact text is in the file.
 | **SCAN-GUARD** | Pins Phase 15 scan prescription text, not Criterion 5 band prose | Untouched |
 | **HARN-01** | Pins `"HIGH-confidence derivation chain"` as the Phase 3 read population | **Untouched, and now better founded** — the definition makes "feeds a HIGH-confidence chain" mean "every input read at source", which is exactly the population the Phase 3 step already reads for |
 | **CONF-GATE / CONF-SURFACE** | Conformance targets and generated tables | See §7 |
-| **QUAL-01** | `_selfaudit_calibration_defects` already exists in `check-quality-harness.py` | Unchanged by this plan; it is the natural home for A2 / 999.129's confidence columns later |
+| **QUAL-01** | `_selfaudit_calibration_defects` already exists in `check-quality-harness.py` | Unchanged by this plan; it is the natural home for A2 / 999.149's confidence columns later |
 
 ---
 
