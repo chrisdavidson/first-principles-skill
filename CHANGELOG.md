@@ -13,6 +13,63 @@ installed session.
 
 ## [Unreleased]
 
+## [9.4.0] — 2026-09-20
+
+Milestone release: **v9.4.0 Claim Correction and Gate Relaxation**. The milestone opened as
+*Source-Literal Pinning* and was renamed at close. Its own pre-registered kill switch — PRE-2, the
+marginal apparatus cost of a product edit, fixed at 6.8:1 at `c571ccf` before the first edit — read
+**STOP** at the end of Phase 37, so Phase 38 (Anchor Derivation) never started and the verdict was
+not re-taken to rescue it. Phase 39 was not started and returns to the backlog. The name now
+describes what shipped rather than what was attempted; `docs/v9.4-source-literal-pin-relaxation.md`
+holds the M3 record and its landing readings, including the STOP.
+
+Phases 40–45 already shipped inside `[9.3.1]`, `[9.3.2]` and `[9.3.3]`. New in this release: Phase
+46's exemplar corrections, and the Phase 36/37 apparatus work.
+
+Closes backlog **999.124** and **999.126** as a **product change**: the shipped worked exemplars
+(`shared/examples/*.md`, emitted to `first-principles/agents/references/examples/`) are brought
+current and their Phase 44 gap-closure residuals corrected. Every figure was re-derived by hand
+before it was written, and each restatement site moved with its origin.
+
+Names the edited surfaces:
+
+- [`self-application.md`](first-principles/agents/references/examples/self-application.md) — dated
+  rather than re-authored (999.124). It now opens with an **As of this analysis** stamp naming
+  2026-05-24 and commit `e5063b3`, disclosing that GT-6's wording was added later and describes a
+  v8.17.3 tree, and closes with a re-measured Outcome postscript. All eighteen `878`-line sites and
+  every chain are kept intact, so the analysis still reproduces against the tree it was written
+  against; `git show e5063b3:first-principles/agents/first-principles.md | wc -l` returns 878, which
+  makes the stamp's falsifiability offer real rather than decorative. Outcome check 2 states that
+  both of its heading patterns matched **at `e5063b3`**, so its zero result against the current body
+  reads as a measurement rather than a pattern that never matched; Outcome check 3 separates the
+  seven live links from the one prose citation at body line 325 and publishes a second re-runnable
+  command. GT-7's `.planning/REQUIREMENTS.md` citation is disclosed as never-trackable.
+- [`software-systems.md`](first-principles/agents/references/examples/software-systems.md) — the
+  runner reduction is bounded to its stated overhead, test-suite time is no longer called pipeline
+  time, and the dead end and section 6 are made conditional (RF-05, RF-06, RF-10, RF-11). Section
+  6's profiling precondition is separated from the branches it selects between, and the premise the
+  5–10% runner cap silently assumed is named.
+- [`estimate-fermi.md`](first-principles/agents/references/examples/estimate-fermi.md) — the
+  "consistent with GT-5" claim is narrowed to what the figures support, the O&M reserve is
+  propagated to every driver site, the installed-capital label is split from its O&M-inclusive
+  figure, and the basis for widening the cycle-life bracket past its cited source is named
+  (RF-07, RF-08, WR-01, WR-02, WR-04).
+- [`science-engineering-2.md`](first-principles/agents/references/examples/science-engineering-2.md)
+  — the 18 mm contact figure's actual origin is named instead of disclaimed, the figure is bound to
+  its role in the GT-2? counter-figure, and the counter-figure sentence is unnested so its subject
+  reaches its verb (RF-12, WR-06, IN-03).
+
+**Apparatus.** `scripts/check-act-limb.py` now matches whitespace-flexibly throughout, and 21 of its
+33 incidental sub-assertions are section-scoped rather than paragraph-scoped — every converted site's
+originating defect proven to still fail by name, and the 11 sub-assertions that mutation testing
+measured load-bearing kept on block scope. All 36 sub-assertions were classified by mutation
+evidence, not judgement (25 incidental / 11 load-bearing), recorded in
+`tests/pin-classification-v9.4/` and `tests/pin-conversion-v9.4/`. Refining the prose that carries
+the methodology is correspondingly cheaper, though by how much is not claimed: PRE-2 read STOP.
+
+The registered gate set is unchanged in this release — battery **23**, CI **19**, both by direct
+count. The retirements that moved those totals from 26 and 23 shipped in `[9.3.1]`.
+
 ## [9.3.3] — 2026-09-18
 
 Released as a patch ahead of milestone v9.4.0 (Source-Literal Pinning): it ships Phase 43 (backlog
