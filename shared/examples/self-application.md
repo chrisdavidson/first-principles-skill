@@ -433,7 +433,10 @@ date above, each with the command that produced it:
    the agent body. Both patterns match at `e5063b3` (lines 415 and 559 respectively), so a zero
    here is a measurement, not a pattern that never matched.
 3. `/usr/bin/grep -c 'output-template.md\|validation-rubric.md' first-principles/agents/first-principles.md`
-   reads **8** live reference-link occurrences — the appendices are now reached by a
+   reads **8** occurrences of the two reference filenames, of which **seven** are live links:
+   `/usr/bin/grep -o 'output-template\.md)\|validation-rubric\.md)' first-principles/agents/first-principles.md | wc -l`
+   reads **7**. The eighth is a prose citation at body line 325 ("cite the chain's assigned ID
+   from output-template.md §4's numbering"), not a link. The appendices are now reached by a
    reference link rather than duplicated inline.
 4. `CLAUDE.md`'s Key Invariants section, at the line currently numbered 434, now
    states: "The agent body's line count is **not** an invariant: the 644-line gate
