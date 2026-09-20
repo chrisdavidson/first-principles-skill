@@ -454,11 +454,25 @@ the two rows where `len(fired) == 1` (`PR-P1-R2.md`, `Q-P1.md`), because both ca
 `composer_structure_hits` far above the ceiling. This is the "before" reading a fresh wired-body
 capture's verdict is compared against once plan 48-03 takes the "after" side.
 
-**Not done: the routing-classifier drift check.** `_battery_core.classify()`'s `n == 1` /
-`_COMPOSER_FOCUS_CEILING` interaction remains a prediction. BATT-06 and INVARIANT-CHECK pass, and
-the frozen sentinels are byte-frozen and unaffected, but no fresh live routing-battery run has
-been taken against a body that now emits pre-mortem markers on every applicable analysis. That
-check belongs with the K-of-5 reading above.
+**DONE 2026-09-20 (MEAS-04) — the routing-classifier drift check is no longer a prediction.** It
+was taken against five fresh captures of the wired body under `tests/adversarial-firing-v9.5/`:
+**no drift — all five classify `full-composer`.**
+
+The outcome is what this paragraph predicted. The mechanism is not, and the difference is worth
+keeping. The prediction was that `_COMPOSER_FOCUS_CEILING` (4) would hold because a full-composer
+run carries at least four scaffold headers. For pre-mortem the ceiling never had to act at all:
+`pre-mortem` does not fire as a technique on any of the five captures, because each matches exactly
+**1 of its 9 markers** (`\bhas\s+failed\b`) and `MIN_HEADER_HITS` is 2. The barrier that actually
+prevents the over-route is that anti-masking constant — the one INVARIANT-CHECK pins by value — not
+the ceiling. The ceiling *was* exercised, on `PR-P2`, where `fishbone` fired alone at 13 composer
+hits and the `n == 1` early return was correctly suppressed.
+
+One contributing cause was not designed: the record is emitted under
+`## Adversarial pass (process output)`, which contains no literal "pre-mortem", so the
+`#\s*(focused\s+)?pre[-\s]?mortem\b` heading marker never matches. A Phase 2 naming choice made
+for readability is part of why the classifier does not drift. That is luck rather than design, and
+renaming that heading could change this answer — which is the reason to write it down here rather
+than treat the no-drift result as robust.
 
 
 - `python3 scripts/sync-content.py --write`, then `bash scripts/check-firewall-battery.sh`.
