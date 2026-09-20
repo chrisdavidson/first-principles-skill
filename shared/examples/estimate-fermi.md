@@ -206,10 +206,12 @@ cost-competitiveness question actually turns on.
 
 ## 2. Assumptions Table
 
-Nothing material here — this is a single-technique Fermi-estimation drill rebuilding an
-installed-cost figure from unit-factors; it consumes ground truths already classified and
-verified in the five-whys (reduce-to-primitives) example it hands off from (Step 3 above)
-and introduces no new untested belief of its own to classify.
+The GT-4/GT-5/GT-6 anchors are consumed unchanged from the five-whys (reduce-to-primitives)
+example this drill hands off from (Step 3 above). Three inputs are NEW to this drill and are not
+covered by any ground truth above: `cost_per_kg` ($0.40–0.80/kg), `system_factor` (3.5–5×) and the
+lifetime O&M reserve ($5–10/kWh). Each is cited to NREL engineering cost data (Step 3, Step 4) and
+each is carried as a range rather than a point precisely because none is verified here; together
+they are what the Step 5 bracket's width measures.
 
 ---
 
