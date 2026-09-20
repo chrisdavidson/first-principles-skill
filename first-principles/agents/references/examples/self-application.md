@@ -426,9 +426,10 @@ date above, each with the command that produced it:
 1. `wc -l first-principles/agents/first-principles.md` reads **807** lines — down
    from the 878 lines the Ground Truths above measured at `e5063b3`.
 2. `/usr/bin/grep -n '^## How to Use This Template' first-principles/agents/first-principles.md`
-   and `/usr/bin/grep -n '^## Self-Audit Gate' first-principles/agents/first-principles.md`
-   both return zero matches against that same file — the two appendices are no longer
-   inlined in the agent body.
+   and `/usr/bin/grep -nE '^# (Validation Rubric|Self-Audit Gate)' first-principles/agents/first-principles.md`
+   both return zero matches against that same file — the two appendices are no longer inlined in
+   the agent body. Both patterns match at `e5063b3` (lines 415 and 559 respectively), so a zero
+   here is a measurement, not a pattern that never matched.
 3. `/usr/bin/grep -c 'output-template.md\|validation-rubric.md' first-principles/agents/first-principles.md`
    reads **8** live reference-link occurrences — the appendices are now reached by a
    reference link rather than duplicated inline.
