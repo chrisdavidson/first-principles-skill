@@ -170,8 +170,12 @@ across the energy the system delivers over its life — one capacity-kWh deliver
 
     LCOS = installed_capital / cycle_life     [$/kWh capacity ÷ cycles = $/kWh delivered]
 
-Cycle life is load-bearing here, and it pairs with the installed bound: the cheapest installs
-are mature, low-stress designs that also run longest, so the bounds compound. Unlike Steps 4–5,
+Cycle life is load-bearing here. The table below pairs the cheapest install with the longest life
+and the dearest with the shortest — an assumption, not a measurement: it presumes lean, mature
+designs also run longest. Nothing in this drill verifies that correlation; the opposite pairing
+would narrow the levelised spread to roughly 1.7× rather than the ~4× shown. The conclusion below
+does not depend on which pairing holds, since every combination clears GT-6 by more than 3×.
+Unlike Steps 4–5,
 the cycle term does **not** cancel — it is the divisor that converts one-time capital into cost
 per delivered kWh.
 
