@@ -229,8 +229,8 @@ above while leaving the pipeline's structure — sequential and full-suite-requi
 intact.
 
 **What it ruled out:** This dead end establishes that "replace the test runner" is not a viable
-standalone solution and is not worth investing time in before profiling identifies pipeline
-parallelization as the binding fix. If profiling shows test-suite time is what binds, the
+standalone solution and is not worth investing time in before profiling has identified what
+actually binds. If profiling shows test-suite time is what binds, the
 stronger intervention is parallelization, which cuts test-suite time 5.6–7.5× (from the 45
 minutes GT-1 measures for the whole pipeline, if test execution dominates it, to
 6–8 minutes) versus runner substitution's 5–10% (from 45 minutes to ~40.5–42.75 minutes). Runner-level optimization may be worthwhile
