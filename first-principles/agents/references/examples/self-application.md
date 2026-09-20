@@ -11,7 +11,11 @@ it ships from.
 
 **As of this analysis:** the Ground Truths below were measured on 2026-05-24 against
 the tree at commit `e5063b3` (`feat(32-02): add self-application worked example`),
-which recorded three premises this analysis reasons from: the agent body was 878
+with one exception noted in GT-6 itself: its "Described rather than reproduced" note
+and its link-form parenthetical were added on 2026-08-16 by commit `9e11072` and
+describe a v8.17.3 tree, not the `e5063b3` one, so a reader who checks out `e5063b3`
+will find GT-6's wording there differs. That anchor commit
+recorded three premises this analysis reasons from: the agent body was 878
 lines, the Output Template and Validation Rubric appendices were inlined into that
 body, and the META-Q4 budget gate was binding on every change. A reader can check
 out `e5063b3` and re-run `wc -l first-principles/agents/first-principles.md` to
