@@ -82,13 +82,13 @@ prescribe a counter-intervention different from the operator's first hypothesis
   establishes; at a nominal full-width contact taken as the Scenario's observed 18 mm
   axial spall length (§Scenario) — an inference, not a measurement: it assumes the spall
   spans the full contact width, which no named source in this scenario
-  supplies; the same status this caveat already assigns
-  to the 4.9 mm effective length and the 70 mm inner-race radius, and sourced by the
-  same bearing drawing named below as the verification that would remove the `?` —
+  supplies, and unlike the 4.9 mm effective length and the 70 mm inner-race radius it is
+  not back-solved from GT-1; it is simply unconfirmed —
   the same model, at the stated 70 mm inner-race radius, gives about
   0.21 mm (0.208 mm), which does NOT contain GT-1's observed depth. Verification that would
   make this a prediction rather than a fit, and remove the `?`: obtain the bearing
-  drawing, read the effective roller contact length and race radius off it, and re-run
+  drawing, read the effective roller contact length, the nominal full contact width and
+  the race radius off it, and re-run
   this calculation. **Because the geometry was fitted to GT-1, GT-1 cannot be cited as
   confirming this band — the band is consistent with GT-1 by construction. What GT-1
   establishes on its own, and what chain C1 actually rests on, is that the crack origin
