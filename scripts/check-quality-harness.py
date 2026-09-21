@@ -5461,6 +5461,15 @@ _DEFECT_RECORD_FIELDS = (
     # narrower file keeps parsing.
     "selfaudit_bands_parsed",
     "selfaudit_offvocab_bands",
+    # Phase 52 (OBS-02, D-04): three more appended, same discipline —
+    # `read_defect_incidence` maps by header name, so every committed
+    # narrower file keeps parsing. `prechecks_parsed`/`precheck_unparsed`
+    # are parse-accounting companions (INSTR-01); `precheck_disagreements`
+    # is the D-04 defect column and the only one of the three entering
+    # `_SELFAUDIT_CONTRADICTIONS`.
+    "prechecks_parsed",
+    "precheck_unparsed",
+    "precheck_disagreements",
 )
 
 
@@ -5763,6 +5772,212 @@ def _confidence_defects(chain_ids: list[str], blocks: list[str]) -> dict:
     }
 
 
+# --- Phase 52 (OBS-02, D-04): the confidence pre-check dimension ---------
+
+# T-52-07 (ReDoS): a single-level pattern, no nested quantifiers, anchored
+# per line and matched with `.match()` against one line at a time — never
+# `re.MULTILINE` over a whole section, and never alternation-heavy. Field
+# splitting is done with `str.split`, not a second regex.
+_PRECHECK_LINE_RE = re.compile(r"^[ \t]*\*\*Pre-check:\*\*[ \t]*(?P<body>[^\n]*)$")
+
+# D-07's exact separator, `output-template.md:357` ("Four fields, separated
+# by ` · `").
+_PRECHECK_SEP = " · "
+
+# A single `head` item carrying its own band: `C2 (MEDIUM)`. Single level,
+# no nested quantifiers — the same ReDoS discipline as `_PRECHECK_LINE_RE`.
+_PRECHECK_HEAD_ITEM_RE = re.compile(r"(?P<id>[^\s()]+)\s*\((?P<band>[A-Za-z]+)\)")
+
+# Reverse of `_CONFIDENCE_RANK`, for rendering a derived rank back to a band
+# word in a disagreement record.
+_CONFIDENCE_BAND_BY_RANK = {rank: band for band, rank in _CONFIDENCE_RANK.items()}
+
+
+def _precheck_defects(section_texts: dict[int, str]) -> dict:
+    """D-04: pre-check/label disagreements over the sections in `section_texts`.
+
+    For every unfenced line matching `_PRECHECK_LINE_RE` in each given
+    section body, pairs it with the next non-blank line (blank lines
+    tolerated; any other content between the two means no pair) and reads
+    that paired line as the `**Confidence:**` label via `_CONFIDENCE_LINE_RE`.
+    An unpairable or unparsable pre-check line is recorded in `unparsed`,
+    never silently skipped (D-04 anti-masking; the INSTR-01 lesson: a
+    document with no pre-check at all must read 0 parsed, not be
+    indistinguishable from 0 disagreements).
+
+    A parsed pre-check's `head` items are read for their own confidence
+    bands and `?` suffixes, and combined with the `?-marked` and
+    `lowest cited` fields into a derived Inputs ceiling — never trusting the
+    stated `Inputs ceiling` field over what the `head` itself supports (the
+    head is authoritative over the summary fields). Two disagreement kinds,
+    never mutually exclusive, are reported on the SAME site record rather
+    than as two separate entries:
+
+    - `label_above_ceiling` — the paired `**Confidence:**` label ranks above
+      the pre-check's own STATED `Inputs ceiling` (D-10: a label at or below
+      the ceiling never flags).
+    - `ceiling_above_head` — the pre-check's STATED `Inputs ceiling` ranks
+      above what its own `head` (its `?`-marked identifiers and its lowest
+      cited `Cn` band) supports — the pre-check is internally inconsistent
+      with its own listed head.
+
+    Returns `{"parsed": [...], "unparsed": [...], "disagreements": [...]}`,
+    each a list of dicts, in document order across the given sections.
+    """
+    parsed: list[dict] = []
+    unparsed: list[dict] = []
+    disagreements: list[dict] = []
+
+    for num in sorted(section_texts):
+        lines = section_texts[num].split("\n")
+        fenced = _fenced_code_flags(lines)
+        for i, raw_line in enumerate(lines):
+            if fenced[i]:
+                continue
+            m = _PRECHECK_LINE_RE.match(raw_line)
+            if m is None:
+                continue
+            stripped_line = raw_line.strip()
+
+            j = i + 1
+            while j < len(lines) and lines[j].strip() == "":
+                j += 1
+            conf_m = None
+            if j < len(lines) and not fenced[j]:
+                conf_m = _CONFIDENCE_LINE_RE.match(lines[j])
+            if conf_m is None:
+                unparsed.append(
+                    {
+                        "section": num,
+                        "line": stripped_line,
+                        "reason": "no paired Confidence label",
+                    }
+                )
+                continue
+            label = conf_m.group("word").upper()
+            if label not in _CONFIDENCE_RANK:
+                unparsed.append(
+                    {
+                        "section": num,
+                        "line": stripped_line,
+                        "reason": "no paired Confidence label",
+                    }
+                )
+                continue
+
+            parts = m.group("body").split(_PRECHECK_SEP)
+            if len(parts) != 4:
+                unparsed.append(
+                    {"section": num, "line": stripped_line, "reason": "field shape"}
+                )
+                continue
+            head_part, qmark_part, lowest_part, ceiling_part = parts
+            if (
+                not head_part.startswith("head ")
+                or not qmark_part.startswith("?-marked:")
+                or not lowest_part.startswith("lowest cited:")
+                or not ceiling_part.startswith("Inputs ceiling:")
+            ):
+                unparsed.append(
+                    {"section": num, "line": stripped_line, "reason": "field shape"}
+                )
+                continue
+
+            head_str = head_part[len("head ") :].strip()
+            qmark_str = qmark_part[len("?-marked:") :].strip()
+            lowest_str = lowest_part[len("lowest cited:") :].strip()
+            ceiling_str = ceiling_part[len("Inputs ceiling:") :].strip()
+
+            head_items = [h.strip() for h in head_str.split(",") if h.strip()]
+            head_bands: list[int] = []
+            head_has_qmark = False
+            bad_head = False
+            for item in head_items:
+                if "(" in item or ")" in item:
+                    im = _PRECHECK_HEAD_ITEM_RE.fullmatch(item)
+                    if im is None:
+                        unparsed.append(
+                            {
+                                "section": num,
+                                "line": stripped_line,
+                                "reason": "head band",
+                            }
+                        )
+                        bad_head = True
+                        break
+                    band = im.group("band").upper()
+                    if band not in _CONFIDENCE_RANK:
+                        unparsed.append(
+                            {
+                                "section": num,
+                                "line": stripped_line,
+                                "reason": "band vocabulary",
+                            }
+                        )
+                        bad_head = True
+                        break
+                    head_bands.append(_CONFIDENCE_RANK[band])
+                    if im.group("id").endswith("?"):
+                        head_has_qmark = True
+                elif item.endswith("?"):
+                    head_has_qmark = True
+            if bad_head:
+                continue
+
+            qmark_field_set = qmark_str.casefold() != "none"
+
+            if lowest_str.casefold() == "none":
+                lowest_rank: int | None = None
+            else:
+                lowest_band = lowest_str.upper()
+                if lowest_band not in _CONFIDENCE_RANK:
+                    unparsed.append(
+                        {
+                            "section": num,
+                            "line": stripped_line,
+                            "reason": "band vocabulary",
+                        }
+                    )
+                    continue
+                lowest_rank = _CONFIDENCE_RANK[lowest_band]
+
+            ceiling_band = ceiling_str.upper()
+            if ceiling_band not in _CONFIDENCE_RANK:
+                unparsed.append(
+                    {"section": num, "line": stripped_line, "reason": "band vocabulary"}
+                )
+                continue
+            ceiling_rank = _CONFIDENCE_RANK[ceiling_band]
+
+            derived_candidates = [_CONFIDENCE_RANK["HIGH"]]
+            if head_has_qmark or qmark_field_set:
+                derived_candidates.append(_CONFIDENCE_RANK["MEDIUM"])
+            derived_candidates.extend(head_bands)
+            if lowest_rank is not None:
+                derived_candidates.append(lowest_rank)
+            derived_rank = min(derived_candidates)
+
+            label_rank = _CONFIDENCE_RANK[label]
+            kinds: list[str] = []
+            if label_rank > ceiling_rank:
+                kinds.append("label_above_ceiling")
+            if ceiling_rank > derived_rank:
+                kinds.append("ceiling_above_head")
+
+            entry = {
+                "section": num,
+                "line": stripped_line,
+                "label": label,
+                "ceiling": ceiling_band,
+                "derived_ceiling": _CONFIDENCE_BAND_BY_RANK[derived_rank],
+            }
+            parsed.append(entry)
+            if kinds:
+                disagreements.append({**entry, "kinds": kinds})
+
+    return {"parsed": parsed, "unparsed": unparsed, "disagreements": disagreements}
+
+
 # Self-Audit Gate verdict blocks, emitted as PROCESS output rather than as one
 # of the six template sections, so these are matched against the whole
 # analysis text and not against a slice.
@@ -5824,11 +6039,13 @@ _SELFAUDIT_TRAILING_VERDICT_RE = re.compile(
 # alongside malformed chains is the CORRECT self-report, not a disagreement.
 # Criterion 5 Rigorous is contradicted by a HIGH chain resting on an
 # unverified ground truth, or by a chain rated above the chains it cites
-# (999.120 H2, D-05).
+# (999.120 H2, D-05). Phase 52 (OBS-02, D-05) adds `precheck_disagreements`:
+# a Criterion 5 Rigorous verdict over a pre-check/label disagreement — in
+# either §4 or the §6 roll-up — is the same kind of contradiction.
 _SELFAUDIT_CONTRADICTIONS: dict[int, tuple[str, ...]] = {
     2: ("nonconforming_verdict_cells",),
     4: ("malformed_chain_blocks", "_dependency_cycles"),
-    5: ("high_conf_unverified_head", "confidence_inversions"),
+    5: ("high_conf_unverified_head", "confidence_inversions", "precheck_disagreements"),
     6: ("untraced_claims",),
 }
 
@@ -5977,6 +6194,7 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
 
     dependency = _chain_dependency_defects(section4)
     confidence = _confidence_defects(chain_ids, blocks)
+    precheck = _precheck_defects({4: section4, 6: section6})
     claims = _conclusion_claims(section6, chain_ids)
     ledger = _closure_ledger_fragments(section6, chain_ids)
     untraced = [
@@ -6040,6 +6258,18 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
         "_confidence_unparsed": confidence["unparsed"],
         "_confidence_inversions_partial": confidence["inversions_partial"],
         "_confidence_unpairable": confidence["unpairable"],
+    })
+    # Phase 52 (OBS-02, D-04/D-05): the pre-check dimension, computed above
+    # alongside `dependency`/`confidence`. Placed before the self-audit
+    # reconciliation call below so the widened `_SELFAUDIT_CONTRADICTIONS[5]`
+    # sees `precheck_disagreements` in `record`.
+    record.update({
+        "prechecks_parsed": len(precheck["parsed"]),
+        "precheck_unparsed": len(precheck["unparsed"]),
+        "precheck_disagreements": len(precheck["disagreements"]),
+        "_prechecks_parsed": precheck["parsed"],
+        "_precheck_unparsed": precheck["unparsed"],
+        "_precheck_disagreements": precheck["disagreements"],
     })
     disagreements = _selfaudit_calibration_defects(analysis_text, record)
     record["selfaudit_disagreements"] = len(disagreements)
@@ -6115,6 +6345,9 @@ _EXPECTED_CONFORMANT_RECORD = {
     "confidence_unparsed": 0,
     "selfaudit_bands_parsed": 0,
     "selfaudit_offvocab_bands": 0,
+    "prechecks_parsed": 0,
+    "precheck_unparsed": 0,
+    "precheck_disagreements": 0,
 }
 _EXPECTED_DEFECTIVE_RECORD = {
     "conclusion_claims": 3,
@@ -6135,6 +6368,9 @@ _EXPECTED_DEFECTIVE_RECORD = {
     "confidence_unparsed": 1,
     "selfaudit_bands_parsed": 0,
     "selfaudit_offvocab_bands": 0,
+    "prechecks_parsed": 0,
+    "precheck_unparsed": 0,
+    "precheck_disagreements": 0,
 }
 
 # D-19 pinned observed calibration vector: the detector's OBSERVED per-
@@ -6427,6 +6663,13 @@ def _selftest_defects() -> bool:
     `run_detect_defects` itself, not `detect_defects` directly, over a real
     two-file fixture directory, asserting one TSV data row per input file in
     sorted-filename order, each keyed by that file's own stem.
+
+    Controls (P15)-(P19) (Phase 52, OBS-02) pin the pre-check/label
+    disagreement detector: (P15) label-above-ceiling trip/no-trip/below-
+    ceiling, (P16) internal head inconsistency, (P17) the §6 roll-up reach
+    a bare `confidence_inversions` reading cannot see, (P18) anti-masking
+    over unparsable pre-check shapes, and (P19) the end-to-end Criterion 5
+    join (D-05).
     """
     ok = True
 
@@ -6643,6 +6886,36 @@ Nothing material here.
 # 6. Conclusion
 
 **Recommended approach:** the first conclusion.
+"""
+
+    def _confidence_test_doc_s6(section4_body: str, section6_body: str) -> str:
+        return f"""# 1. Problem Essence
+
+**Core problem:** whether the confidence dimension parses correctly.
+
+# 2. Assumptions Table
+
+| Assumption | Type | Treatment | Verdict | Verification |
+|---|---|---|---|---|
+| An assumption | convention | Challenge before use | Accept — survives challenge | source |
+
+# 3. Ground Truths
+
+- **GT-1** a fact — source: a source
+- **GT-2** a fact — source: a source
+- **GT-3?** an unverified fact — source: a source (unverified)
+
+# 4. Derivation Chains
+
+{section4_body}
+
+# 5. Abandoned Reasoning
+
+Nothing material here.
+
+# 6. Conclusion
+
+{section6_body}
 """
 
     # (P1) DEMO-TRIAGE-shaped bold labels, one HIGH and one MEDIUM (the
@@ -7128,6 +7401,288 @@ Nothing material here.
                 ok = False
     finally:
         shutil.rmtree(p14_tmp, ignore_errors=True)
+
+    # Phase 52 (OBS-02, D-04/D-05): inline controls (P15)-(P19) for the
+    # pre-check/label disagreement detector, built with `_confidence_test_
+    # doc`/`_confidence_test_doc_s6` the same way (P1)-(P14) are, above.
+
+    # (P15) §4 trip/no-trip: a pre-check whose stated Inputs ceiling sits
+    # below the paired label is a disagreement; at or below the ceiling
+    # never flags (D-10).
+    def _p15_doc(label: str) -> str:
+        return _confidence_test_doc(
+            "### Chain C1 — first\n\n"
+            "GT-1 → intermediate → conclusion one.\n\n"
+            "**Pre-check:** head GT-1 · ?-marked: none · lowest cited: none · "
+            "Inputs ceiling: MEDIUM\n"
+            f"**Confidence:** {label}"
+        )
+
+    p15_high_rec = detect_defects(_p15_doc("HIGH"), "precheck-p15-high")
+    if (
+        p15_high_rec["precheck_disagreements"] != 1
+        or p15_high_rec["prechecks_parsed"] != 1
+        or p15_high_rec["_precheck_disagreements"][0]["kinds"] != ["label_above_ceiling"]
+    ):
+        print(
+            f"self-test FAIL: defects precheck (P15) label above stated "
+            f"ceiling expected precheck_disagreements=1, prechecks_parsed=1, "
+            f"kinds=['label_above_ceiling'], got precheck_disagreements="
+            f"{p15_high_rec['precheck_disagreements']!r}, prechecks_parsed="
+            f"{p15_high_rec['prechecks_parsed']!r}, _precheck_disagreements="
+            f"{p15_high_rec['_precheck_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p15_medium_rec = detect_defects(_p15_doc("MEDIUM"), "precheck-p15-medium")
+    if p15_medium_rec["precheck_disagreements"] != 0:
+        print(
+            f"self-test FAIL: defects precheck (P15) label at ceiling "
+            f"wrongly flagged: precheck_disagreements="
+            f"{p15_medium_rec['precheck_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p15_low_rec = detect_defects(_p15_doc("LOW"), "precheck-p15-low")
+    if p15_low_rec["precheck_disagreements"] != 0:
+        print(
+            f"self-test FAIL: defects precheck (P15) label below ceiling "
+            f"wrongly flagged (D-10): precheck_disagreements="
+            f"{p15_low_rec['precheck_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P16) internal inconsistency: a stated Inputs ceiling above what the
+    # pre-check's own head supports is flagged even when the label matches
+    # the stated ceiling — the head is authoritative over the summary
+    # fields.
+    p16a_doc = _confidence_test_doc(
+        "### Chain C1 — first\n\n"
+        "GT-1 → intermediate → conclusion one.\n\n"
+        "**Pre-check:** head GT-1, GT-3? · ?-marked: GT-3? · lowest cited: none · "
+        "Inputs ceiling: HIGH\n"
+        "**Confidence:** HIGH"
+    )
+    p16a_rec = detect_defects(p16a_doc, "precheck-p16a")
+    if (
+        p16a_rec["precheck_disagreements"] != 1
+        or "ceiling_above_head" not in p16a_rec["_precheck_disagreements"][0]["kinds"]
+    ):
+        print(
+            f"self-test FAIL: defects precheck (P16) a `?`-marked head item "
+            f"expected ceiling_above_head, got "
+            f"{p16a_rec['_precheck_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p16b_doc = _confidence_test_doc(
+        "### Chain C1 — first\n\n"
+        "GT-1 → intermediate → conclusion one.\n\n"
+        "**Pre-check:** head GT-1, C2 (LOW) · ?-marked: none · lowest cited: LOW · "
+        "Inputs ceiling: MEDIUM\n"
+        "**Confidence:** MEDIUM"
+    )
+    p16b_rec = detect_defects(p16b_doc, "precheck-p16b")
+    if (
+        p16b_rec["precheck_disagreements"] != 1
+        or p16b_rec["_precheck_disagreements"][0]["kinds"] != ["ceiling_above_head"]
+    ):
+        print(
+            f"self-test FAIL: defects precheck (P16) a cited LOW chain "
+            f"expected kinds=['ceiling_above_head'], got "
+            f"{p16b_rec['_precheck_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p16c_doc = _confidence_test_doc(
+        "### Chain C1 — first\n\n"
+        "GT-1? → intermediate → conclusion one.\n\n"
+        "**Pre-check:** head GT-1? · ?-marked: none · lowest cited: none · "
+        "Inputs ceiling: HIGH\n"
+        "**Confidence:** HIGH"
+    )
+    p16c_rec = detect_defects(p16c_doc, "precheck-p16c")
+    if (
+        p16c_rec["precheck_disagreements"] != 1
+        or "ceiling_above_head" not in p16c_rec["_precheck_disagreements"][0]["kinds"]
+    ):
+        print(
+            f"self-test FAIL: defects precheck (P16) a `?`-marked head item "
+            f"with ?-marked field wrongly stated none still expected "
+            f"ceiling_above_head, got {p16c_rec['_precheck_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P17) §6 reach: two consistent §4 MEDIUM chains, plus a §6 roll-up
+    # pre-check whose stated Inputs ceiling MEDIUM sits below the roll-up's
+    # own HIGH label — a disagreement `confidence_inversions` cannot see in
+    # a roll-up (the 52-01 §7 finding this plan closes).
+    p17_doc = _confidence_test_doc_s6(
+        "### Chain C1 — first\n\n"
+        "GT-1 → intermediate → conclusion one.\n\n"
+        "**Pre-check:** head GT-1 · ?-marked: none · lowest cited: none · "
+        "Inputs ceiling: MEDIUM\n"
+        "**Confidence:** MEDIUM\n\n"
+        "### Chain C2 — second\n\n"
+        "GT-2 → intermediate → conclusion two.\n\n"
+        "**Pre-check:** head GT-2 · ?-marked: none · lowest cited: none · "
+        "Inputs ceiling: MEDIUM\n"
+        "**Confidence:** MEDIUM",
+        "**Recommended approach:** the roll-up conclusion.\n\n"
+        "**Pre-check:** head C1 (MEDIUM), C2 (MEDIUM) · ?-marked: none · "
+        "lowest cited: MEDIUM · Inputs ceiling: MEDIUM\n"
+        "**Confidence:** (chains C1 and C2) HIGH",
+    )
+    p17_rec = detect_defects(p17_doc, "precheck-p17")
+    if (
+        p17_rec["precheck_disagreements"] != 1
+        or p17_rec["_precheck_disagreements"][0]["section"] != 6
+        or p17_rec["prechecks_parsed"] != 3
+        or p17_rec["confidence_inversions"] != 0
+    ):
+        print(
+            f"self-test FAIL: defects precheck (P17) §6 roll-up reach "
+            f"expected precheck_disagreements=1 (section 6), "
+            f"prechecks_parsed=3, confidence_inversions=0, got "
+            f"precheck_disagreements={p17_rec['precheck_disagreements']!r}, "
+            f"_precheck_disagreements={p17_rec['_precheck_disagreements']!r}, "
+            f"prechecks_parsed={p17_rec['prechecks_parsed']!r}, "
+            f"confidence_inversions={p17_rec['confidence_inversions']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P18) anti-masking: four unparsable pre-check shapes plus one inside a
+    # fenced block (ignored entirely, not even counted as unparsed); a
+    # document with no pre-check at all reads all three columns 0 (INSTR-01
+    # anti-masking — 0 disagreements is never confusable with nothing
+    # parsed).
+    p18_section4 = (
+        "### Chain C1 — anti-masking\n\n"
+        "GT-1 → intermediate → conclusion one.\n\n"
+        "**Pre-check:** head GT-1 · ?-marked: none · lowest cited: none\n"
+        "**Confidence:** MEDIUM\n\n"
+        "**Pre-check:** head GT-1 · ?-marked: none · lowest cited: none · "
+        "Inputs ceiling: CERTAIN\n"
+        "**Confidence:** MEDIUM\n\n"
+        "**Pre-check:** head C2 (SURE) · ?-marked: none · lowest cited: none · "
+        "Inputs ceiling: MEDIUM\n"
+        "**Confidence:** MEDIUM\n\n"
+        "**Pre-check:** head GT-1 · ?-marked: none · lowest cited: none · "
+        "Inputs ceiling: MEDIUM\n"
+        "Not a confidence line.\n\n"
+        "```text\n"
+        "**Pre-check:** head GT-1 · ?-marked: none · lowest cited: none · "
+        "Inputs ceiling: MEDIUM\n"
+        "**Confidence:** MEDIUM\n"
+        "```"
+    )
+    p18_doc = _confidence_test_doc(p18_section4)
+    p18_rec = detect_defects(p18_doc, "precheck-p18")
+    if (
+        p18_rec["precheck_unparsed"] != 4
+        or p18_rec["prechecks_parsed"] != 0
+        or p18_rec["precheck_disagreements"] != 0
+    ):
+        print(
+            f"self-test FAIL: defects precheck (P18) anti-masking expected "
+            f"precheck_unparsed=4, prechecks_parsed=0, "
+            f"precheck_disagreements=0, got precheck_unparsed="
+            f"{p18_rec['precheck_unparsed']!r}, prechecks_parsed="
+            f"{p18_rec['prechecks_parsed']!r}, precheck_disagreements="
+            f"{p18_rec['precheck_disagreements']!r}, _precheck_unparsed="
+            f"{p18_rec['_precheck_unparsed']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p18_none_rec = detect_defects(
+        _confidence_test_doc(
+            "### Chain C1 — no precheck\n\n"
+            "GT-1 → intermediate → conclusion one.\n\n"
+            "**Confidence:** MEDIUM"
+        ),
+        "precheck-p18-none",
+    )
+    if (
+        p18_none_rec["prechecks_parsed"] != 0
+        or p18_none_rec["precheck_unparsed"] != 0
+        or p18_none_rec["precheck_disagreements"] != 0
+    ):
+        print(
+            f"self-test FAIL: defects precheck (P18) a document with no "
+            f"pre-check at all expected all three columns 0, got "
+            f"prechecks_parsed={p18_none_rec['prechecks_parsed']!r}, "
+            f"precheck_unparsed={p18_none_rec['precheck_unparsed']!r}, "
+            f"precheck_disagreements={p18_none_rec['precheck_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P7) discipline extended to the pre-check trio (Phase 52): each
+    # emitted precheck count equals the length of its own audit list, on
+    # every (P15)/(P16)/(P18) trip record above.
+    for rec, rec_label in (
+        (p15_high_rec, "P15"),
+        (p16a_rec, "P16"),
+        (p16b_rec, "P16"),
+        (p16c_rec, "P16"),
+        (p18_rec, "P18"),
+    ):
+        for scalar, listed in (
+            ("prechecks_parsed", "_prechecks_parsed"),
+            ("precheck_unparsed", "_precheck_unparsed"),
+            ("precheck_disagreements", "_precheck_disagreements"),
+        ):
+            if rec[scalar] != len(rec[listed]):
+                print(
+                    f"self-test FAIL: defects precheck ({rec_label}) "
+                    f"{scalar}={rec[scalar]!r} disagrees with len({listed})="
+                    f"{len(rec[listed])}",
+                    file=sys.stderr,
+                )
+                ok = False
+
+    # (P19) end to end (D-05, P8's shape): a Rigorous Criterion 5 verdict
+    # next to a (P15) pre-check/label disagreement reconciles into a
+    # criterion-5 selfaudit_disagreement; a conceded Sound band does not.
+    p19_rigorous_rec = detect_defects(
+        _p15_doc("HIGH") + p8_selfaudit.format(band="Rigorous"),
+        "precheck-p19-rigorous",
+    )
+    if (
+        p19_rigorous_rec["selfaudit_disagreements"] != 1
+        or p19_rigorous_rec["_selfaudit_disagreements"][0]["criterion"] != 5
+        or p19_rigorous_rec["_selfaudit_disagreements"][0]["contradicted_by"]
+        != "precheck_disagreements"
+    ):
+        print(
+            f"self-test FAIL: defects precheck (P19) a Rigorous Criterion 5 "
+            f"next to a pre-check/label disagreement did not reconcile: "
+            f"selfaudit_disagreements={p19_rigorous_rec['selfaudit_disagreements']!r}, "
+            f"_selfaudit_disagreements={p19_rigorous_rec['_selfaudit_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p19_sound_rec = detect_defects(
+        _p15_doc("HIGH") + p8_selfaudit.format(band="Sound"),
+        "precheck-p19-sound",
+    )
+    if p19_sound_rec["selfaudit_disagreements"] != 0:
+        print(
+            f"self-test FAIL: defects precheck (P19) a conceded Sound "
+            f"Criterion 5 band wrongly reconciled: selfaudit_disagreements="
+            f"{p19_sound_rec['selfaudit_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
 
     return ok
 

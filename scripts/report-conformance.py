@@ -3493,13 +3493,14 @@ def _control_partial_row_not_dropped() -> None:
 
 def _control_agreement_field_scope() -> None:
     # D-06a widened this from 15 to 17; Phase 41 (999.120) H1 widened it again, 17 to 21;
-    # H3 widens it a third time, 21 to 23: confirming (not assuming) that appending the
-    # four H1 confidence columns, then the two H3 band-census columns, after
+    # H3 widens it a third time, 21 to 23; Phase 52 (OBS-02, D-04) widens it a fourth time,
+    # 23 to 26: confirming (not assuming) that appending the four H1 confidence columns,
+    # then the two H3 band-census columns, then the three Phase 52 pre-check columns, after
     # `provenance_flag` lands them in MEASURED_SCHEMA_FIELDS via the name-range derivation
     # above, not silently excluded or folded into PROVENANCE_FIELDS. The arithmetic is
     # 12 (pre-existing measured schema fields) + 4 (H1 columns) + 2 (H3 columns) +
-    # 5 (report-added columns) = 23.
-    assert len(AGREEMENT_FIELDS) == 23, len(AGREEMENT_FIELDS)
+    # 3 (Phase 52 OBS-02 pre-check columns) + 5 (report-added columns) = 26.
+    assert len(AGREEMENT_FIELDS) == 26, len(AGREEMENT_FIELDS)
     assert "analysis_id" not in AGREEMENT_FIELDS
     for field in PROVENANCE_FIELDS:
         assert field not in AGREEMENT_FIELDS, field
@@ -3520,7 +3521,9 @@ def _control_agreement_field_scope() -> None:
     ), PROVENANCE_FIELDS
     for field in ("high_conf_chains", "high_conf_unverified_head",
                   "confidence_inversions", "confidence_unparsed",
-                  "selfaudit_bands_parsed", "selfaudit_offvocab_bands"):
+                  "selfaudit_bands_parsed", "selfaudit_offvocab_bands",
+                  "prechecks_parsed", "precheck_unparsed",
+                  "precheck_disagreements"):
         assert field in MEASURED_SCHEMA_FIELDS, field
         assert field not in PROVENANCE_FIELDS, field
 
