@@ -841,6 +841,46 @@ def _reference_reads_census(capture_id: str, jsonl_path: Path) -> dict:
     }
 
 
+_REFERENCE_READS_SKIP_STEMS = frozenset({"README"})
+
+
+def _reference_reads_capture_ids(captures_dir: Path) -> list[str]:
+    """Discover capture ids in captures_dir via the D-07 sibling-path convention.
+
+    Returns the sorted union of `*.md` and `*.jsonl` stems, minus
+    _REFERENCE_READS_SKIP_STEMS. The union, not the `.md` glob alone, because
+    D-07's convention has a verified exception: tests/quality-fixtures-v8.7/'s
+    four `.jsonl` files (gen-internal-tools, gen-multi-dispatch,
+    gen-single-dispatch, gen-stub-only) have no same-stem `.md` sibling, and a
+    `.md`-only walk would make them invisible -- reintroducing, one layer up,
+    the exact "invisible because nothing was parsed" failure INSTR-01 exists
+    to prevent. The `.md` sibling is not needed to census a transcript; it
+    only supplies the capture id when the `.jsonl` is the orphan. `README` is
+    skipped by name because --detect-defects's own `*.md` glob already
+    demonstrates the noise a README row adds -- a named, controlled rule, not
+    a silent filter.
+    """
+    stems = {p.stem for p in captures_dir.glob("*.md")} | {
+        p.stem for p in captures_dir.glob("*.jsonl")
+    }
+    return sorted(stems - _REFERENCE_READS_SKIP_STEMS)
+
+
+def _reference_reads_tsv(rows: list[dict]) -> str:
+    """Render reference_reads census rows as TSV (D-08), header row first.
+
+    Same `"\\t".join(...)` discipline as run_detect_defects
+    (scripts/check-quality-harness.py:5791-5801), but this string is printed
+    to stdout by run_reference_reads rather than written to --out, so
+    Phase 51/54 can pipe it directly into a reading document.
+    """
+    lines = ["\t".join(_REFERENCE_READS_FIELDS)]
+    lines.extend(
+        "\t".join(str(row[field]) for field in _REFERENCE_READS_FIELDS) for row in rows
+    )
+    return "\n".join(lines)
+
+
 def _read_top_level_result(jsonl_path: Path) -> str:
     """Return a capture's top-level `result`/`result` field text (Guardrail A fixture helper).
 
@@ -5988,6 +6028,22 @@ def run_detect_defects(analyses_dir: Path, out_path: Path) -> None:
         record = detect_defects(f.read_text(encoding="utf-8"), f.stem)
         lines.append("\t".join(str(record[field]) for field in _DEFECT_RECORD_FIELDS))
     Path(out_path).write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def run_reference_reads(captures_dir: Path) -> None:
+    """`--reference-reads` CLI body: census every capture in captures_dir, print TSV.
+
+    Offline dispatch class: calls no function reaching _run_prompt_to, so
+    main() dispatches this ahead of _ensure_claude_available() entirely.
+    Nothing is written to disk -- the TSV goes to stdout via print() so
+    Phase 51/54 can pipe it directly.
+    """
+    captures_dir = Path(captures_dir)
+    rows = [
+        _reference_reads_census(capture_id, captures_dir / f"{capture_id}.jsonl")
+        for capture_id in _reference_reads_capture_ids(captures_dir)
+    ]
+    print(_reference_reads_tsv(rows))
 
 
 _DEFECT_FIXTURE_CONFORMANT = FIXTURES_DIR / "analyses-conformant.md"
@@ -18229,7 +18285,7 @@ def _selftest_reference_reads() -> bool:
     synthetic in-test transcripts, all offline, none written under any
     _FROZEN_PATHS directory.
 
-    Ten independently-failable controls:
+    Eighteen independently-failable controls:
 
     (a) POSITIVE — a dispatched subagent reading the rubric and a
         technique reference yields "ok", read_rubric and
@@ -18273,6 +18329,45 @@ def _selftest_reference_reads() -> bool:
         catching both a reference file a future sync-content.py --write
         adds that no bucket claims, and a tail left in the constant after
         its file is deleted.
+    (k) D-13 MUTATION 1 — control (a)'s own object list, rebuilt with the
+        rubric Read's "name" flipped from "Read" to "Grep" and censused
+        again: read_rubric moves "true" -> "false" and
+        reference_reads_total drops by exactly 1. "Grep" is unmapped in
+        _CAPTURE_TOOL_TARGET_KEYS, so the flipped call is simply not
+        matched by tool_names=("Read",) — it does not raise, which is
+        precisely why the silent drop must be pinned here.
+    (l) D-13 MUTATION 2 — control (a)'s own object list, rebuilt with the
+        Agent dispatch object removed: capture_state flips "ok" ->
+        "never_dispatched" and every read field becomes "n/a" (not 0, not
+        "false").
+    (m) D-13 MUTATION 3 — two arms on the same well-formed list: corrupting
+        only the dispatch line flips "ok" -> "never_dispatched" with
+        transcript_objects still > 0; corrupting every line flips it to
+        "unparseable" with transcript_objects == 0 — the two corruption
+        granularities produce two different, asserted-unequal states.
+    (n) FROZEN-FIXTURE ANCHOR — tests/reference-reads-v9.2.1/DEMO-TRIAGE.jsonl,
+        opened read-only, reads capture_state "ok", transcript_objects 66,
+        subagent_read_calls 0, all three booleans "false", and
+        reference_reads_total 0 — the pre-registered row, asserted
+        field-for-field.
+    (o) TSV CONTRACT — _reference_reads_tsv's header equals
+        "\t".join(_REFERENCE_READS_FIELDS), the emitted string has
+        1 + len(rows) lines, and no rendered cell value contains a tab or
+        a newline.
+    (p) DISPATCH-ORDERING SOURCE ASSERTION — inspect.getsource(main) places
+        the first "args.reference_reads" occurrence before the first
+        "_ensure_claude_available" occurrence, making the interfaces
+        block's offline-siting rule a control, not just a comment.
+    (q) D-07 DISCOVERY RULE — a directory holding only-md.md (no sibling),
+        pair.md + pair.jsonl, orphan.jsonl (no sibling .md) and README.md
+        yields _reference_reads_capture_ids == ["only-md", "orphan",
+        "pair"], and censusing "only-md" yields "no_transcript".
+    (r) ANTI-OVERREACH on (n) — the frozen capture's three WebFetch calls,
+        read via _capture_subagent_tool_calls(..., tool_names=("WebFetch",)),
+        number 3, while the census's own reference_reads_total for the same
+        file stays 0 — proving the Read-only bound in
+        _reference_reads_census is doing work, not that the capture is
+        merely empty of subagent tool calls altogether.
     """
     ok = True
 
@@ -18519,6 +18614,112 @@ def _selftest_reference_reads() -> bool:
             print(f"self-test FAIL: reference_reads control (i) — got {r}", file=sys.stderr)
             ok = False
 
+        # Baseline row for the D-13 mutation controls below: control (a)'s
+        # own fixture, censused fresh (not the possibly-stale `r` left over
+        # from control (i)'s own reuse of that name).
+        r_a_baseline = _reference_reads_census("a", path_a)
+
+        # (k) D-13 mutation 1: flip the rubric Read's "name" from "Read" to
+        # "Grep" in control (a)'s object list, and re-census. "Grep" is
+        # unmapped in _CAPTURE_TOOL_TARGET_KEYS, so the flipped call is
+        # simply not matched by tool_names=("Read",) in
+        # _reference_reads_census -- it does not raise, which is precisely
+        # why this silent drop must be pinned.
+        objs_k = [
+            _dispatch_event("d-k"),
+            _subagent_call_event(
+                "d-k", "c-k1", "Grep",
+                "${CLAUDE_PLUGIN_ROOT}/agents/references/validation-rubric.md",
+            ),
+            _subagent_call_event(
+                "d-k", "c-k2", "Read", "first-principles/agents/references/fishbone.md"
+            ),
+            _tool_result_event("c-k1", "rubric text"),
+            _tool_result_event("c-k2", "fishbone text"),
+        ]
+        path_k = _write_jsonl(tmp_path, "k.jsonl", objs_k)
+        r_k = _reference_reads_census("k", path_k)
+        if not (
+            r_k["read_rubric"] == "false"
+            and r_k["reference_reads_total"] == r_a_baseline["reference_reads_total"] - 1
+        ):
+            print(
+                f"self-test FAIL: reference_reads control (k) — baseline "
+                f"{r_a_baseline} mutated {r_k}",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # (l) D-13 mutation 2: the same object list with the Agent dispatch
+        # object removed.
+        path_l = _write_jsonl(tmp_path, "l.jsonl", objs_a[1:])
+        state_l, _n_l = _reference_reads_capture_state(path_l)
+        r_l = _reference_reads_census("l", path_l)
+        if not (
+            state_l == "never_dispatched"
+            and r_l["read_rubric"] == "n/a"
+            and r_l["read_output_template"] == "n/a"
+            and r_l["read_any_technique_ref"] == "n/a"
+            and r_l["reference_reads_total"] == "n/a"
+            and r_l["subagent_read_calls"] == "n/a"
+        ):
+            print(f"self-test FAIL: reference_reads control (l) — got {r_l}", file=sys.stderr)
+            ok = False
+
+        # (m) D-13 mutation 3: two arms on the same well-formed list --
+        # corrupt only the dispatch line, then corrupt every line.
+        lines_full = [json.dumps(o) for o in objs_a]
+        path_m1 = tmp_path / "m1.jsonl"
+        path_m1.write_text(
+            "\n".join(["{ not json"] + lines_full[1:]) + "\n", encoding="utf-8"
+        )
+        state_m1, n_m1 = _reference_reads_capture_state(path_m1)
+        path_m2 = tmp_path / "m2.jsonl"
+        path_m2.write_text(
+            "\n".join("{ not json" for _line in lines_full) + "\n", encoding="utf-8"
+        )
+        state_m2, n_m2 = _reference_reads_capture_state(path_m2)
+        if not (
+            state_m1 == "never_dispatched"
+            and n_m1 > 0
+            and state_m2 == "unparseable"
+            and n_m2 == 0
+            and state_m1 != state_m2
+        ):
+            print(
+                f"self-test FAIL: reference_reads control (m) — dispatch-line-"
+                f"only corruption gave state={state_m1!r} n={n_m1!r}; "
+                f"every-line corruption gave state={state_m2!r} n={n_m2!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # (o) TSV contract: header shape, line count, and a no-tab/no-newline
+        # cell-value sweep across both an "ok" row and a non-"ok" ("n/a")
+        # row, using the census rows already computed above.
+        tsv_rows = [r_a_baseline, r_l]
+        tsv_text = _reference_reads_tsv(tsv_rows)
+        tsv_lines = tsv_text.split("\n")
+        bad_cells = [
+            (row["capture_id"], field)
+            for row in tsv_rows
+            for field in _REFERENCE_READS_FIELDS
+            if "\t" in str(row[field]) or "\n" in str(row[field])
+        ]
+        if not (
+            tsv_lines[0] == "\t".join(_REFERENCE_READS_FIELDS)
+            and len(tsv_lines) == 1 + len(tsv_rows)
+            and not bad_cells
+            and _reference_reads_tsv([]) == "\t".join(_REFERENCE_READS_FIELDS)
+        ):
+            print(
+                f"self-test FAIL: reference_reads control (o) — header "
+                f"{tsv_lines[0]!r}, {len(tsv_lines)} lines for "
+                f"{len(tsv_rows)} rows, bad_cells={bad_cells}",
+                file=sys.stderr,
+            )
+            ok = False
+
     # (j) two-sided anti-drift floor over the live shipped reference tree.
     ref_dir = REPO_ROOT / "first-principles" / "agents" / "references"
     seen_buckets: dict[str, list[str]] = {
@@ -18564,6 +18765,80 @@ def _selftest_reference_reads() -> bool:
             print(
                 f"self-test FAIL: reference_reads control (j) — excluded tail "
                 f"{excluded_tail!r} matches no file on disk",
+                file=sys.stderr,
+            )
+            ok = False
+
+    # (n) frozen-fixture anchor: tests/reference-reads-v9.2.1/DEMO-TRIAGE.jsonl,
+    # opened read-only, is never written by this or any control.
+    frozen_path = REPO_ROOT / "tests" / "reference-reads-v9.2.1" / "DEMO-TRIAGE.jsonl"
+    r_n = _reference_reads_census("DEMO-TRIAGE", frozen_path)
+    if not (
+        r_n["capture_state"] == "ok"
+        and r_n["transcript_objects"] == 66
+        and r_n["subagent_read_calls"] == 0
+        and r_n["read_rubric"] == "false"
+        and r_n["read_output_template"] == "false"
+        and r_n["read_any_technique_ref"] == "false"
+        and r_n["reference_reads_total"] == 0
+    ):
+        print(f"self-test FAIL: reference_reads control (n) — got {r_n}", file=sys.stderr)
+        ok = False
+
+    # (r) anti-overreach on (n): the frozen capture's three WebFetch calls
+    # do not raise reference_reads_total above 0 -- tool_names=("Read",) in
+    # _reference_reads_census is a real bound, not incidental.
+    webfetch_calls = _capture_subagent_tool_calls(
+        frozen_path, _REFERENCE_READS_SUBAGENT_TYPE, tool_names=("WebFetch",)
+    )
+    if not (len(webfetch_calls) == 3 and r_n["reference_reads_total"] == 0):
+        print(
+            f"self-test FAIL: reference_reads control (r) — {len(webfetch_calls)} "
+            f"WebFetch calls, reference_reads_total={r_n['reference_reads_total']}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (p) dispatch-ordering source assertion: main()'s own offline-siting
+    # rule (interfaces block) proven as a control, not just a comment.
+    main_src = inspect.getsource(main)
+    try:
+        dispatch_idx = main_src.index("args.reference_reads")
+        guard_idx = main_src.index("_ensure_claude_available")
+        if not (dispatch_idx < guard_idx):
+            print(
+                f"self-test FAIL: reference_reads control (p) — "
+                f"args.reference_reads at {dispatch_idx}, "
+                f"_ensure_claude_available at {guard_idx} (must precede)",
+                file=sys.stderr,
+            )
+            ok = False
+    except ValueError as exc:
+        print(f"self-test FAIL: reference_reads control (p) — {exc}", file=sys.stderr)
+        ok = False
+
+    # (q) D-07 discovery rule: only-md.md (no sibling), pair.md + pair.jsonl,
+    # orphan.jsonl (no sibling .md), and README.md.
+    with tempfile.TemporaryDirectory() as tmp_q:
+        tmp_q_path = Path(tmp_q)
+        (tmp_q_path / "only-md.md").write_text("stub", encoding="utf-8")
+        (tmp_q_path / "pair.md").write_text("stub", encoding="utf-8")
+        _write_jsonl(tmp_q_path, "pair.jsonl", objs_a)
+        _write_jsonl(tmp_q_path, "orphan.jsonl", objs_a)
+        (tmp_q_path / "README.md").write_text("stub", encoding="utf-8")
+        ids_q = _reference_reads_capture_ids(tmp_q_path)
+        if ids_q != ["only-md", "orphan", "pair"]:
+            print(
+                f"self-test FAIL: reference_reads control (q) — discovery "
+                f"gave {ids_q}, want ['only-md', 'orphan', 'pair']",
+                file=sys.stderr,
+            )
+            ok = False
+        r_q = _reference_reads_census("only-md", tmp_q_path / "only-md.jsonl")
+        if r_q["capture_state"] != "no_transcript":
+            print(
+                f"self-test FAIL: reference_reads control (q) — 'only-md' "
+                f"(no sibling .jsonl) censused as {r_q!r}, want 'no_transcript'",
                 file=sys.stderr,
             )
             ok = False
@@ -18651,6 +18926,19 @@ def build_parser() -> argparse.ArgumentParser:
             "Run the D-18 mechanical defect detector over a directory of "
             "analysis .md files and write the ten-column TSV to --out. "
             "Fully offline — no `claude` invoked."
+        ),
+    )
+    p.add_argument(
+        "--reference-reads",
+        dest="reference_reads",
+        type=Path,
+        default=None,
+        metavar="CAPTURES_DIR",
+        help=(
+            "Emit the reference_reads census (INSTR-04) as TSV on stdout, "
+            "one row per capture in CAPTURES_DIR, joined by the <id>.md <-> "
+            "<id>.jsonl sibling-path convention (D-07). Fully offline -- no "
+            "`claude` invoked."
         ),
     )
     p.add_argument(
@@ -18747,10 +19035,21 @@ def main(argv: list[str] | None = None) -> int:
             parser.error("--dry-run requires --run and/or --rejudge")
         return run_dry_run(args)
 
+    # --reference-reads MUST be checked before any live-path branch and
+    # calls no function reaching `_run_prompt_to` -- the same offline class
+    # as --detect-defects and --compare, sited ahead of both so a
+    # literal-text scan for the first live-path environment-guard call in
+    # this function's source also sees `args.reference_reads` first.
+    if args.reference_reads is not None:
+        if not args.reference_reads.is_dir():
+            parser.error(f"--reference-reads directory not found: {args.reference_reads}")
+        run_reference_reads(args.reference_reads)
+        return 0
+
     # --compare MUST be checked before any live-path branch and calls no
     # function reaching `_run_prompt_to` — same offline class as
-    # --detect-defects, mirrored here so it sits ahead of
-    # `_ensure_claude_available()` entirely (D-04).
+    # --detect-defects, mirrored here so it sits ahead of the live-path
+    # environment guard entirely (D-04).
     if args.compare is not None:
         if not args.baseline:
             parser.error("--baseline is required with --compare")
@@ -18872,7 +19171,8 @@ def main(argv: list[str] | None = None) -> int:
 
     parser.error(
         "no action specified — pass --self-test, --probe, --single, "
-        "--detect-defects, --compare, --run, --rejudge, or --dry-run"
+        "--detect-defects, --reference-reads, --compare, --run, --rejudge, "
+        "or --dry-run"
     )
     return 2  # unreachable — parser.error exits
 
