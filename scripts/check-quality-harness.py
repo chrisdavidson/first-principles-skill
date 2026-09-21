@@ -653,6 +653,194 @@ def _capture_subagent_tool_calls(
     )
 
 
+# --- reference_reads census (INSTR-04, 999.89, Phase 50 plan 50-02) -------
+#
+# The census this section builds composes the .jsonl machinery above
+# (_iter_jsonl_objects, _find_agent_dispatch_ids, _capture_subagent_tool_calls)
+# rather than reimplementing any of it (D-05, D-11). It answers, per stored
+# capture: did the run open the validation rubric, the output template, or
+# any technique reference file -- and, critically, keeps "parsed nothing"
+# visible rather than printing the same zeros a clean capture prints (D-12).
+
+_REFERENCE_READS_SUBAGENT_TYPE = "first-principles:first-principles"
+
+# The four transcript-structural types treated as evidence a .jsonl holds a
+# genuine, at-least-minimally-parseable capture. Derived live 2026-09-20
+# from the frozen tests/reference-reads-v9.2.1/DEMO-TRIAGE.jsonl's own type
+# census (66 objects total): system 28, tool_progress 15, assistant 10,
+# user 8, rate_limit_event 4, result 1. tool_progress and rate_limit_event
+# are deliberately excluded -- they are transport noise a truncated capture
+# can carry alone, with no assistant/user/result/system event ever present;
+# a file holding only those two types reads "unparseable", not "ok".
+_CAPTURE_RECOGNIZED_TYPES = frozenset({"assistant", "user", "result", "system"})
+
+_REFERENCE_READS_STATES = ("ok", "never_dispatched", "no_transcript", "unparseable")
+
+# The "n/a"-never-"0" sentinel (copied from detect_defects's PROV-05
+# comment, scripts/check-quality-harness.py:5745-5752 at Phase 50 base):
+# "no capture available"/"nothing to open" and "checked, found clean" must
+# never print the same value.
+_REFERENCE_READS_NA = "n/a"
+
+# D-09/D-11: three read buckets, keyed by the "references/<name>.md" tail a
+# normalized (backslash -> forward slash) Read target must end with. The
+# read_any_technique_ref tails were re-derived live 2026-09-20 by listing
+# first-principles/agents/references/*.md and removing the rubric, the
+# output template, and everything under examples/ -- thirteen tails,
+# unchanged from 50-02-PLAN.md's interfaces block.
+_REFERENCE_READ_TARGETS: dict[str, tuple[str, ...]] = {
+    "read_rubric": ("references/validation-rubric.md",),
+    "read_output_template": ("references/output-template.md",),
+    "read_any_technique_ref": (
+        "references/assumption-taxonomy.md",
+        "references/estimate-detail.md",
+        "references/estimate.md",
+        "references/fishbone-detail.md",
+        "references/fishbone.md",
+        "references/five-whys-detail.md",
+        "references/five-whys.md",
+        "references/inversion.md",
+        "references/pre-mortem.md",
+        "references/second-order.md",
+        "references/theoretical-limit-detail.md",
+        "references/theoretical-limit.md",
+        "references/trade-off.md",
+    ),
+}
+
+# A worked example is not a reference procedure (D-09): named, not silently
+# omitted, and excluded from every bucket above and from
+# reference_reads_total.
+_REFERENCE_READ_EXCLUDED_TAILS = ("references/examples/",)
+
+_REFERENCE_READS_FIELDS = (
+    "capture_id",
+    "capture_state",
+    "transcript_objects",
+    "subagent_read_calls",
+    "read_rubric",
+    "read_output_template",
+    "read_any_technique_ref",
+    "reference_reads_total",
+)
+
+
+def _reference_read_bucket(target) -> str | None:
+    """Classify a Read target's normalized tail into a reference bucket.
+
+    Returns the bucket name ("read_rubric", "read_output_template" or
+    "read_any_technique_ref"), "excluded" (a references/examples/ tail --
+    a worked example is not a reference procedure, D-09), or None (no
+    references/ tail matched at all). Normalizes backslashes to forward
+    slashes before matching, so an expanded ${CLAUDE_PLUGIN_ROOT} absolute
+    path, a first-principles/agents/references/... path and a bare
+    references/<name>.md path all resolve identically (D-11). This is the
+    one call site for the suffix-matching rule -- every bucket decision in
+    this file goes through here.
+    """
+    normalized = str(target).replace("\\", "/")
+    for excluded_tail in _REFERENCE_READ_EXCLUDED_TAILS:
+        if excluded_tail in normalized:
+            return "excluded"
+    for bucket, tails in _REFERENCE_READ_TARGETS.items():
+        for tail in tails:
+            if normalized.endswith(tail):
+                return bucket
+    return None
+
+
+def _reference_reads_capture_state(jsonl_path: Path) -> tuple[str, int | str]:
+    """Classify a capture's reference_reads state (D-12's four states).
+
+    Returns (state, transcript_objects). This is the ONLY place a state is
+    decided -- _reference_reads_census below never re-derives it.
+
+    Named property: this function never derives a state from
+    _capture_subagent_tool_calls's ValueError. _iter_jsonl_objects itself
+    never raises -- it silently skips every undecodable line -- so
+    _capture_subagent_tool_calls raises the IDENTICAL ValueError whether
+    the .jsonl held many well-formed, non-dispatching events ("never_
+    dispatched") or zero decodable objects at all ("unparseable"), because
+    both make _find_agent_dispatch_ids return []. A try/except ValueError
+    census would silently collapse the two. This function probes
+    _iter_jsonl_objects directly, upstream of that collision, so the two
+    states stay told apart by a real, tested mutation rather than by
+    catching the same exception twice.
+
+    1. jsonl_path does not exist -> ("no_transcript", "n/a").
+    2. No object in _iter_jsonl_objects(jsonl_path) carries a "type" value
+       in _CAPTURE_RECOGNIZED_TYPES -> ("unparseable", len(objs)). Covers
+       the empty file, the fully garbled file, and a well-formed-JSON-but-
+       not-a-capture file alike -- all read zero recognized-type objects.
+    3. _find_agent_dispatch_ids(objs, _REFERENCE_READS_SUBAGENT_TYPE) is
+       empty -> ("never_dispatched", len(objs)).
+    4. Otherwise -> ("ok", len(objs)).
+    """
+    if not jsonl_path.exists():
+        return ("no_transcript", _REFERENCE_READS_NA)
+    objs = _iter_jsonl_objects(jsonl_path)
+    if not any(obj.get("type") in _CAPTURE_RECOGNIZED_TYPES for obj in objs):
+        return ("unparseable", len(objs))
+    ids = _find_agent_dispatch_ids(objs, _REFERENCE_READS_SUBAGENT_TYPE)
+    if not ids:
+        return ("never_dispatched", len(objs))
+    return ("ok", len(objs))
+
+
+def _reference_reads_census(capture_id: str, jsonl_path: Path) -> dict:
+    """Per-capture reference_reads census: D-09's four fields, D-12's four
+    states, one row keyed exactly by _REFERENCE_READS_FIELDS.
+
+    Security property: reads only the tool name and the read target off
+    each subagent Read call -- the retrieved tool-result text is never
+    consulted -- and opens no path drawn from a capture -- it classifies a
+    Read's file_path as a string by suffix match only
+    (_reference_read_bucket), inheriting _iter_capture_tool_calls's own
+    stated property (b) that it never opens the path a Read names.
+
+    Cell-value contract (D-12): a non-"ok" state reports "n/a" for every
+    read-count field below, never 0 and never "false" -- a "0" means
+    "opened it, found nothing"; "n/a" means "there was nothing to open."
+    """
+    state, transcript_objects = _reference_reads_capture_state(jsonl_path)
+    if state != "ok":
+        return {
+            "capture_id": capture_id,
+            "capture_state": state,
+            "transcript_objects": transcript_objects,
+            "subagent_read_calls": _REFERENCE_READS_NA,
+            "read_rubric": _REFERENCE_READS_NA,
+            "read_output_template": _REFERENCE_READS_NA,
+            "read_any_technique_ref": _REFERENCE_READS_NA,
+            "reference_reads_total": _REFERENCE_READS_NA,
+        }
+
+    # state == "ok": _capture_subagent_tool_calls raising ValueError here
+    # would be a programming error in _reference_reads_capture_state, not a
+    # capture state -- deliberately not caught. Swallowing it would rebuild
+    # the exact never_dispatched/unparseable conflation this design breaks.
+    calls = _capture_subagent_tool_calls(
+        jsonl_path, _REFERENCE_READS_SUBAGENT_TYPE, tool_names=("Read",)
+    )
+    hit = {"read_rubric": False, "read_output_template": False, "read_any_technique_ref": False}
+    total = 0
+    for _tool_name, target, _unused_text in calls:
+        bucket = _reference_read_bucket(target)
+        if bucket in hit:
+            hit[bucket] = True
+            total += 1
+    return {
+        "capture_id": capture_id,
+        "capture_state": state,
+        "transcript_objects": transcript_objects,
+        "subagent_read_calls": len(calls),
+        "read_rubric": "true" if hit["read_rubric"] else "false",
+        "read_output_template": "true" if hit["read_output_template"] else "false",
+        "read_any_technique_ref": "true" if hit["read_any_technique_ref"] else "false",
+        "reference_reads_total": total,
+    }
+
+
 def _read_top_level_result(jsonl_path: Path) -> str:
     """Return a capture's top-level `result`/`result` field text (Guardrail A fixture helper).
 
@@ -18000,6 +18188,15 @@ def self_test() -> int:
     else:
         print("self-test: describe sub-check PASSED")
 
+    # INSTR-04 (999.89, Phase 50 plan 50-02): the reference_reads census's
+    # own ten lettered controls, including the state-2-vs-state-4
+    # anti-masking discriminator (g).
+    if not _selftest_reference_reads():
+        all_passed = False
+        print("self-test: reference_reads sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: reference_reads sub-check PASSED")
+
     return 0 if all_passed else 1
 
 
@@ -18025,6 +18222,353 @@ def _selftest_describe_consistency() -> bool:
     if desc["contract_pins"]["_slice_sections"]["digest"] != _SLICE_SECTIONS_PINNED_DIGEST:
         return False
     return True
+
+
+def _selftest_reference_reads() -> bool:
+    """The reference_reads census (INSTR-04, 999.89) proven against
+    synthetic in-test transcripts, all offline, none written under any
+    _FROZEN_PATHS directory.
+
+    Ten independently-failable controls:
+
+    (a) POSITIVE — a dispatched subagent reading the rubric and a
+        technique reference yields "ok", read_rubric and
+        read_any_technique_ref "true", read_output_template "false",
+        reference_reads_total 2, subagent_read_calls 2.
+    (b) ANTI-OVERREACH — a dispatched subagent reading only a
+        non-reference path yields "ok", all three booleans "false",
+        reference_reads_total 0, subagent_read_calls 1 — distinguishable
+        from every non-"ok" state, which reports "n/a" rather than
+        "false"/0.
+    (c) A well-formed transcript with no matching Agent dispatch yields
+        "never_dispatched" with transcript_objects > 0 and every read
+        field "n/a".
+    (d) A missing sibling .jsonl yields "no_transcript" with
+        transcript_objects "n/a".
+    (e) A file of garbled (undecodable) lines yields "unparseable" with
+        transcript_objects 0.
+    (f) A zero-byte file yields "unparseable" with transcript_objects 0 —
+        not "no_transcript".
+    (g) ANTI-MASKING DISCRIMINATOR — control (c)'s own fixture, rewritten
+        with every line replaced by garbled text, flips the reported
+        state from "never_dispatched" to "unparseable"; both readings are
+        recorded and asserted unequal, and neither is "ok". A census
+        built on a bare try/except ValueError around
+        _capture_subagent_tool_calls would report the SAME state for both
+        readings — this control fails such a census by name.
+    (h) ANTI-OVERREACH — a transcript whose tool_result text carries
+        "Rigorous", "Sound", "Hand-wavy", "Band:" and "Quoted span", but
+        whose subagent issued no Read call at all, yields all three
+        booleans "false" — verdict-block vocabulary in retrieved text is
+        never evidence of a reference read (D-10).
+    (i) ANTI-OVERREACH — a parent-session Read of the rubric, alongside a
+        dispatched subagent that itself read nothing, yields read_rubric
+        "false" and subagent_read_calls 0 — a parent-session read is the
+        developer's, not the run's (D-11).
+    (j) TWO-SIDED ANTI-DRIFT FLOOR — every *.md file under
+        first-principles/agents/references/ classifies into exactly one
+        of the four buckets (rubric / output_template / technique /
+        excluded), and every tail named in _REFERENCE_READ_TARGETS and
+        _REFERENCE_READ_EXCLUDED_TAILS matches at least one file on disk —
+        catching both a reference file a future sync-content.py --write
+        adds that no bucket claims, and a tail left in the constant after
+        its file is deleted.
+    """
+    ok = True
+
+    def _write_jsonl(directory: Path, name: str, objects: list[dict]) -> Path:
+        path = directory / name
+        path.write_text(
+            "\n".join(json.dumps(obj) for obj in objects) + "\n", encoding="utf-8"
+        )
+        return path
+
+    def _dispatch_event(dispatch_id: str) -> dict:
+        return {
+            "type": "assistant",
+            "message": {
+                "content": [
+                    {
+                        "type": "tool_use",
+                        "id": dispatch_id,
+                        "name": "Agent",
+                        "input": {"subagent_type": _REFERENCE_READS_SUBAGENT_TYPE},
+                    }
+                ]
+            },
+        }
+
+    def _subagent_call_event(parent_id: str, call_id: str, tool_name: str, target: str) -> dict:
+        inp = {"file_path": target} if tool_name == "Read" else {"command": target}
+        return {
+            "type": "assistant",
+            "parent_tool_use_id": parent_id,
+            "message": {
+                "content": [
+                    {"type": "tool_use", "id": call_id, "name": tool_name, "input": inp}
+                ]
+            },
+        }
+
+    def _parent_call_event(call_id: str, tool_name: str, target: str) -> dict:
+        inp = {"file_path": target} if tool_name == "Read" else {"command": target}
+        return {
+            "type": "assistant",
+            "message": {
+                "content": [
+                    {"type": "tool_use", "id": call_id, "name": tool_name, "input": inp}
+                ]
+            },
+        }
+
+    def _tool_result_event(call_id: str, text: str) -> dict:
+        return {
+            "type": "user",
+            "message": {
+                "content": [
+                    {"type": "tool_result", "tool_use_id": call_id, "content": text}
+                ]
+            },
+        }
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+
+        # (a) positive: rubric + technique reference read.
+        objs_a = [
+            _dispatch_event("d-a"),
+            _subagent_call_event(
+                "d-a", "c-a1", "Read",
+                "${CLAUDE_PLUGIN_ROOT}/agents/references/validation-rubric.md",
+            ),
+            _subagent_call_event(
+                "d-a", "c-a2", "Read", "first-principles/agents/references/fishbone.md"
+            ),
+            _tool_result_event("c-a1", "rubric text"),
+            _tool_result_event("c-a2", "fishbone text"),
+        ]
+        path_a = _write_jsonl(tmp_path, "a.jsonl", objs_a)
+        r = _reference_reads_census("a", path_a)
+        if not (
+            r["capture_state"] == "ok"
+            and r["read_rubric"] == "true"
+            and r["read_any_technique_ref"] == "true"
+            and r["read_output_template"] == "false"
+            and r["reference_reads_total"] == 2
+            and r["subagent_read_calls"] == 2
+        ):
+            print(f"self-test FAIL: reference_reads control (a) — got {r}", file=sys.stderr)
+            ok = False
+
+        # (b) anti-overreach: non-reference Read only.
+        objs_b = [
+            _dispatch_event("d-b"),
+            _subagent_call_event("d-b", "c-b1", "Read", "/some/other/file.py"),
+        ]
+        path_b = _write_jsonl(tmp_path, "b.jsonl", objs_b)
+        r = _reference_reads_census("b", path_b)
+        if not (
+            r["capture_state"] == "ok"
+            and r["read_rubric"] == "false"
+            and r["read_output_template"] == "false"
+            and r["read_any_technique_ref"] == "false"
+            and r["reference_reads_total"] == 0
+            and r["subagent_read_calls"] == 1
+        ):
+            print(f"self-test FAIL: reference_reads control (b) — got {r}", file=sys.stderr)
+            ok = False
+
+        # (c) never_dispatched: well-formed, no matching dispatch.
+        objs_c = [
+            {"type": "assistant", "message": {"content": [{"type": "text", "text": "hello"}]}},
+            {"type": "user", "message": {"content": [{"type": "text", "text": "hi"}]}},
+        ]
+        path_c = _write_jsonl(tmp_path, "c.jsonl", objs_c)
+        state_c, n_c = _reference_reads_capture_state(path_c)
+        r = _reference_reads_census("c", path_c)
+        if not (
+            state_c == "never_dispatched"
+            and n_c > 0
+            and r["read_rubric"] == "n/a"
+            and r["read_output_template"] == "n/a"
+            and r["read_any_technique_ref"] == "n/a"
+            and r["reference_reads_total"] == "n/a"
+            and r["subagent_read_calls"] == "n/a"
+        ):
+            print(
+                f"self-test FAIL: reference_reads control (c) — got state="
+                f"{state_c!r} n={n_c!r} record={r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # (d) no_transcript: missing sibling.
+        missing_path = tmp_path / "missing.jsonl"
+        state_d, n_d = _reference_reads_capture_state(missing_path)
+        if not (state_d == "no_transcript" and n_d == _REFERENCE_READS_NA):
+            print(
+                f"self-test FAIL: reference_reads control (d) — got "
+                f"state={state_d!r} n={n_d!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # (e) unparseable: garbled lines.
+        path_e = tmp_path / "e.jsonl"
+        path_e.write_text("{ not json\n{ also not json\n", encoding="utf-8")
+        state_e, n_e = _reference_reads_capture_state(path_e)
+        if not (state_e == "unparseable" and n_e == 0):
+            print(
+                f"self-test FAIL: reference_reads control (e) — got "
+                f"state={state_e!r} n={n_e!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # (e) ANTI-VACUITY, transport-noise-only half: a well-formed .jsonl
+        # holding ONLY tool_progress/rate_limit_event objects -- the exact
+        # shape a truncated capture carries alone -- also reads
+        # "unparseable", proving _CAPTURE_RECOGNIZED_TYPES's exclusion of
+        # both is load-bearing rather than decorative. Both lines decode
+        # cleanly, so transcript_objects is 2 (not 0) -- "unparseable" means
+        # "no object of a recognized type," not "nothing decoded"; control
+        # (e)'s garbled-line half above is the "nothing decoded" case. A
+        # mutation that adds either type back to _CAPTURE_RECOGNIZED_TYPES
+        # turns this fixture "never_dispatched" instead, failing here.
+        objs_e2 = [
+            {"type": "tool_progress", "message": {"content": []}},
+            {"type": "rate_limit_event"},
+        ]
+        path_e2 = _write_jsonl(tmp_path, "e2.jsonl", objs_e2)
+        state_e2, n_e2 = _reference_reads_capture_state(path_e2)
+        if not (state_e2 == "unparseable" and n_e2 == len(objs_e2)):
+            print(
+                f"self-test FAIL: reference_reads control (e), transport-noise "
+                f"half — got state={state_e2!r} n={n_e2!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # (f) unparseable: zero-byte file.
+        path_f = tmp_path / "f.jsonl"
+        path_f.write_text("", encoding="utf-8")
+        state_f, n_f = _reference_reads_capture_state(path_f)
+        if not (state_f == "unparseable" and n_f == 0):
+            print(
+                f"self-test FAIL: reference_reads control (f) — got "
+                f"state={state_f!r} n={n_f!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # (g) anti-masking discriminator: mutate (c)'s own fixture into
+        # garbled text and confirm the reported state flips.
+        path_g = _write_jsonl(tmp_path, "g.jsonl", objs_c)
+        state_g1, _n_g1 = _reference_reads_capture_state(path_g)
+        garbled_lines = "\n".join("{ not json" for _obj in objs_c)
+        path_g.write_text(garbled_lines + "\n", encoding="utf-8")
+        state_g2, _n_g2 = _reference_reads_capture_state(path_g)
+        if not (
+            state_g1 == "never_dispatched"
+            and state_g2 == "unparseable"
+            and state_g1 != state_g2
+            and "ok" not in (state_g1, state_g2)
+        ):
+            print(
+                f"self-test FAIL: reference_reads control (g) — before-mutation "
+                f"state {state_g1!r}, after-mutation state {state_g2!r} (must "
+                f"differ, neither may be 'ok')",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # (h) anti-overreach: verdict-block vocabulary in tool_result text,
+        # no Read call at all.
+        objs_h = [
+            _dispatch_event("d-h"),
+            _subagent_call_event("d-h", "c-h1", "Bash", "echo hi"),
+            _tool_result_event(
+                "c-h1",
+                'Rigorous Sound Hand-wavy Band: **HIGH** Quoted span: "..."',
+            ),
+        ]
+        path_h = _write_jsonl(tmp_path, "h.jsonl", objs_h)
+        r = _reference_reads_census("h", path_h)
+        if not (
+            r["capture_state"] == "ok"
+            and r["read_rubric"] == "false"
+            and r["read_output_template"] == "false"
+            and r["read_any_technique_ref"] == "false"
+        ):
+            print(f"self-test FAIL: reference_reads control (h) — got {r}", file=sys.stderr)
+            ok = False
+
+        # (i) anti-overreach: parent-session Read of the rubric; the
+        # dispatched subagent itself reads nothing.
+        objs_i = [
+            _dispatch_event("d-i"),
+            _parent_call_event("c-i1", "Read", "references/validation-rubric.md"),
+        ]
+        path_i = _write_jsonl(tmp_path, "i.jsonl", objs_i)
+        r = _reference_reads_census("i", path_i)
+        if not (
+            r["capture_state"] == "ok"
+            and r["read_rubric"] == "false"
+            and r["subagent_read_calls"] == 0
+        ):
+            print(f"self-test FAIL: reference_reads control (i) — got {r}", file=sys.stderr)
+            ok = False
+
+    # (j) two-sided anti-drift floor over the live shipped reference tree.
+    ref_dir = REPO_ROOT / "first-principles" / "agents" / "references"
+    seen_buckets: dict[str, list[str]] = {
+        "read_rubric": [],
+        "read_output_template": [],
+        "read_any_technique_ref": [],
+        "excluded": [],
+    }
+    unclassified: list[str] = []
+    for md_path in sorted(ref_dir.rglob("*.md")):
+        bucket = _reference_read_bucket(str(md_path))
+        if bucket is None:
+            unclassified.append(str(md_path))
+        else:
+            seen_buckets[bucket].append(str(md_path))
+    if unclassified:
+        print(
+            f"self-test FAIL: reference_reads control (j) — unclassified files: "
+            f"{unclassified}",
+            file=sys.stderr,
+        )
+        ok = False
+    all_named_tails = (
+        _REFERENCE_READ_TARGETS["read_rubric"]
+        + _REFERENCE_READ_TARGETS["read_output_template"]
+        + _REFERENCE_READ_TARGETS["read_any_technique_ref"]
+    )
+    classified_paths = (
+        seen_buckets["read_rubric"]
+        + seen_buckets["read_output_template"]
+        + seen_buckets["read_any_technique_ref"]
+    )
+    for tail in all_named_tails:
+        if not any(seen.endswith(tail) for seen in classified_paths):
+            print(
+                f"self-test FAIL: reference_reads control (j) — tail {tail!r} "
+                f"matches no file on disk",
+                file=sys.stderr,
+            )
+            ok = False
+    for excluded_tail in _REFERENCE_READ_EXCLUDED_TAILS:
+        if not any(excluded_tail in seen for seen in seen_buckets["excluded"]):
+            print(
+                f"self-test FAIL: reference_reads control (j) — excluded tail "
+                f"{excluded_tail!r} matches no file on disk",
+                file=sys.stderr,
+            )
+            ok = False
+
+    return ok
 
 
 # ---------------------------------------------------------------------------
