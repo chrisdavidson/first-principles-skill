@@ -896,11 +896,32 @@ def _reference_reads_tsv(rows: list[dict]) -> str:
     (scripts/check-quality-harness.py:5791-5801), but this string is printed
     to stdout by run_reference_reads rather than written to --out, so
     Phase 51/54 can pipe it directly into a reading document.
+
+    `capture_id` is a filesystem stem taken from an operator-chosen
+    directory, and a tab, newline or carriage return is a legal POSIX
+    filename character (CR-02, 50-VERIFICATION.md gap 2): rendered without
+    a guard, such a cell silently shifts every column after it for that
+    row, so a downstream TSV consumer reads the wrong field under the
+    wrong header with no indication anything went wrong. This function
+    refuses instead of escaping: escaping would turn the format Phase 51
+    consumes into one requiring an unescaper, and a silently shifted row
+    is worse than a refusal. The raised ValueError propagates out of
+    run_reference_reads uncaught -- refusal is the specified behaviour,
+    not an oversight.
     """
     lines = ["\t".join(_REFERENCE_READS_FIELDS)]
-    lines.extend(
-        "\t".join(str(row[field]) for field in _REFERENCE_READS_FIELDS) for row in rows
-    )
+    for row in rows:
+        cells = [str(row[field]) for field in _REFERENCE_READS_FIELDS]
+        bad_cells_rendered = [
+            c for c in cells if "\t" in c or "\n" in c or "\r" in c
+        ]
+        if bad_cells_rendered:
+            raise ValueError(
+                f"_reference_reads_tsv: cell value {bad_cells_rendered[0]!r} "
+                f"contains a TSV delimiter; a silently shifted row is worse "
+                f"than a refusal"
+            )
+        lines.append("\t".join(cells))
     return "\n".join(lines)
 
 
@@ -18436,12 +18457,24 @@ def _selftest_reference_reads() -> bool:
         field-for-field.
     (o) TSV CONTRACT — _reference_reads_tsv's header equals
         "\t".join(_REFERENCE_READS_FIELDS), the emitted string has
-        1 + len(rows) lines, and no rendered cell value contains a tab or
-        a newline.
-    (p) DISPATCH-ORDERING SOURCE ASSERTION — inspect.getsource(main) places
-        the first "args.reference_reads" occurrence before the first
-        "_ensure_claude_available" occurrence, making the interfaces
-        block's offline-siting rule a control, not just a comment.
+        1 + len(rows) lines, and the delimiter guard lives in the
+        renderer itself, not merely in this control's own sweep: this
+        control exercises that guard directly by constructing a
+        capture_id carrying a tab (o-raise-tab) or a newline
+        (o-raise-newline) and asserting _reference_reads_tsv raises
+        ValueError naming it, while (o-no-overfire) asserts the guard
+        does not fire on the unmodified, benign [r_a_baseline, r_l] rows
+        (CR-02, 50-VERIFICATION.md gap 2).
+    (p) DISPATCH-ORDERING SOURCE ASSERTION — inspect.getsource(main) locates
+        the literal statement "if args.reference_reads is not None:",
+        asserts that statement's text occurs exactly once, asserts the
+        matched line — not a bare identifier that also appears inside the
+        comment documenting this rule — starts with "if args.reference_reads"
+        and is not a comment line, and asserts it precedes the first
+        "        _ensure_claude_available()" call statement — making the
+        interfaces block's offline-siting rule a control that fails under
+        WR-01's dispatch-relocation regression rather than one that
+        matches prose (50-VERIFICATION.md gap 2).
     (q) D-19 DISCOVERY RULE — capture ids are evidenced by a transcript,
         never a directory listing (CR-01). Four arms: (q1) a synthetic
         directory holding only-md.md (no sibling), pair.md + pair.jsonl,
@@ -18791,31 +18824,68 @@ def _selftest_reference_reads() -> bool:
             )
             ok = False
 
-        # (o) TSV contract: header shape, line count, and a no-tab/no-newline
-        # cell-value sweep across both an "ok" row and a non-"ok" ("n/a")
-        # row, using the census rows already computed above.
+        # (o) TSV CONTRACT — header shape, line count, and the CR-02
+        # delimiter guard exercised directly with a corrupting capture_id,
+        # not merely swept over benign rows this control built itself
+        # (50-VERIFICATION.md gap 2). (o-no-overfire): the unmodified
+        # [r_a_baseline, r_l] render must still succeed -- the guard must
+        # not fire on benign rows. bad_cells is this control's own
+        # historical sweep over its self-built rows, kept for continuity
+        # and distinct from _reference_reads_tsv's own bad_cells_rendered
+        # binding, which is what actually guards the renderer now.
         tsv_rows = [r_a_baseline, r_l]
-        tsv_text = _reference_reads_tsv(tsv_rows)
-        tsv_lines = tsv_text.split("\n")
-        bad_cells = [
-            (row["capture_id"], field)
-            for row in tsv_rows
-            for field in _REFERENCE_READS_FIELDS
-            if "\t" in str(row[field]) or "\n" in str(row[field])
-        ]
-        if not (
-            tsv_lines[0] == "\t".join(_REFERENCE_READS_FIELDS)
-            and len(tsv_lines) == 1 + len(tsv_rows)
-            and not bad_cells
-            and _reference_reads_tsv([]) == "\t".join(_REFERENCE_READS_FIELDS)
-        ):
+        try:
+            tsv_text = _reference_reads_tsv(tsv_rows)
+        except ValueError as exc:
             print(
-                f"self-test FAIL: reference_reads control (o) — header "
-                f"{tsv_lines[0]!r}, {len(tsv_lines)} lines for "
-                f"{len(tsv_rows)} rows, bad_cells={bad_cells}",
+                f"self-test FAIL: reference_reads control (o) — "
+                f"(o-no-overfire) the unmodified benign rows raised "
+                f"unexpectedly: {exc}",
                 file=sys.stderr,
             )
             ok = False
+            tsv_text = ""
+        if tsv_text:
+            tsv_lines = tsv_text.split("\n")
+            bad_cells = [
+                (row["capture_id"], field)
+                for row in tsv_rows
+                for field in _REFERENCE_READS_FIELDS
+                if "\t" in str(row[field]) or "\n" in str(row[field])
+            ]
+            if not (
+                tsv_lines[0] == "\t".join(_REFERENCE_READS_FIELDS)
+                and len(tsv_lines) == 1 + len(tsv_rows)
+                and not bad_cells
+                and _reference_reads_tsv([]) == "\t".join(_REFERENCE_READS_FIELDS)
+            ):
+                print(
+                    f"self-test FAIL: reference_reads control (o) — header "
+                    f"{tsv_lines[0]!r}, {len(tsv_lines)} lines for "
+                    f"{len(tsv_rows)} rows, bad_cells={bad_cells}",
+                    file=sys.stderr,
+                )
+                ok = False
+
+        # (o-raise-tab) / (o-raise-newline): a capture_id carrying the
+        # named delimiter must make _reference_reads_tsv raise ValueError
+        # naming the offending cell -- a control that fails if the
+        # renderer's guard is removed or narrowed to only one delimiter.
+        for bad_char, arm_name in (("\t", "o-raise-tab"), ("\n", "o-raise-newline")):
+            try:
+                _reference_reads_tsv(
+                    [{**r_a_baseline, "capture_id": f"bad{bad_char}name"}]
+                )
+            except ValueError:
+                pass
+            else:
+                print(
+                    f"self-test FAIL: reference_reads control (o) — "
+                    f"({arm_name}) a capture_id containing {bad_char!r} "
+                    f"did not raise",
+                    file=sys.stderr,
+                )
+                ok = False
 
     # (j) two-sided anti-drift floor over the live shipped reference tree.
     ref_dir = REPO_ROOT / "first-principles" / "agents" / "references"
@@ -18896,17 +18966,35 @@ def _selftest_reference_reads() -> bool:
         )
         ok = False
 
-    # (p) dispatch-ordering source assertion: main()'s own offline-siting
-    # rule (interfaces block) proven as a control, not just a comment.
+    # (p) DISPATCH-ORDERING SOURCE ASSERTION -- anchored on the dispatch
+    # STATEMENT, not a bare identifier (WR-01, 50-VERIFICATION.md gap 2).
+    # At HEAD, the bare identifier "args.reference_reads" first occurs 33
+    # characters early, inside the comment at
+    # scripts/check-quality-harness.py:19103 that documents this very
+    # ordering rule -- a bare-identifier anchor therefore proves a comment
+    # precedes the guard, not that the offline dispatch does. The comment
+    # stays in place; only the anchor changes. These offsets are evidence
+    # for the choice of anchor, not asserted values.
     main_src = inspect.getsource(main)
     try:
-        dispatch_idx = main_src.index("args.reference_reads")
-        guard_idx = main_src.index("_ensure_claude_available")
-        if not (dispatch_idx < guard_idx):
+        dispatch_idx = main_src.index("if args.reference_reads is not None:")
+        dispatch_count = main_src.count("if args.reference_reads is not None:")
+        line_start = main_src.rfind("\n", 0, dispatch_idx) + 1
+        line_end = main_src.find("\n", dispatch_idx)
+        dispatch_line = main_src[line_start:line_end].lstrip()
+        guard_idx = main_src.index("        _ensure_claude_available()")
+        if not (
+            dispatch_count == 1
+            and dispatch_line.startswith("if args.reference_reads")
+            and not dispatch_line.startswith("#")
+            and dispatch_idx < guard_idx
+        ):
             print(
-                f"self-test FAIL: reference_reads control (p) — "
-                f"args.reference_reads at {dispatch_idx}, "
-                f"_ensure_claude_available at {guard_idx} (must precede)",
+                f"self-test FAIL: reference_reads control (p) — dispatch "
+                f"statement occurs {dispatch_count} time(s) (want 1), "
+                f"matched line {dispatch_line!r} at offset {dispatch_idx}, "
+                f"guard at offset {guard_idx} (must be a code statement, "
+                f"not a comment, and must precede the guard)",
                 file=sys.stderr,
             )
             ok = False
