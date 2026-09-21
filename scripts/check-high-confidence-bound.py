@@ -976,7 +976,7 @@ def _run_self_test() -> int:
 
     # HC-9: Remove "at least one HIGH-confidence" from C5
     try:
-        # Phase 2 of PLAN-confidence-level-definitions.md re-based Criterion 5 Rigorous
+        # Backlog 999.137 re-based Criterion 5 Rigorous
         # on calibration, so the sentence carrying this phrase moved. What HC-9 asserts
         # is unchanged — the phrase must be present in the C5 Rigorous region, and its
         # removal must be detected. Only the surrounding words moved. A stale literal

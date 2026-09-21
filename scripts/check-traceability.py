@@ -6011,9 +6011,9 @@ def _rows_v95() -> list[MatrixRow]:
 
       - MEAS-03: barred from gating by its own statement and by the governing K-of-5 discipline
         (`docs/v8.7-constraint-teardown.md` §2 item 3); `48-VALIDATION.md`'s own verification
-        map marks the row "OBSERVATIONAL — never gated". The reading is recorded in
-        `PLAN-premortem-wiring.md` with its N and instrument, a tracked prose record no script
-        re-reads or re-derives.
+        map marks the row "OBSERVATIONAL — never gated". The reading rests on the five live
+        captures under `tests/adversarial-firing-v9.5/`, a tracked record no script re-reads or
+        re-derives.
 
       - MEAS-04: also marked "OBSERVATIONAL — never gated" by `48-VALIDATION.md`'s own table.
         `scripts/_battery_core.py#classify` is re-run informally each capture, but no script
@@ -6026,23 +6026,16 @@ def _rows_v95() -> list[MatrixRow]:
         but the script is registered nowhere — absent from `scripts/check-firewall-battery.sh`
         and from `scripts/_gate_registry.ENTRIES` (confirmed by grep for the filename in both),
         matching the phase's own `48-VALIDATION.md` ("this phase adds one new **ungated**
-        script"). Two of its ten like-for-like input fixtures are untracked (D-48-C,
-        `DEMO-first-principles-multiregion-latency.md` and
-        `DEMO-first-principles-ticket-triage.md`), so the reading does not reproduce from a
-        fresh clone even though the instrument itself is deterministic on whatever tree it is
-        run against.
+        script"). Two of its ten like-for-like input fixtures are untracked (D-48-C), so the
+        reading does not reproduce from a fresh clone even though the instrument itself is
+        deterministic on whatever tree it is run against.
 
     Three requirements are release/registration apparatus, Capability Test-Network:
 
-      - EVID-01: no registered gate enumerates the five named filenames
-        (`REVIEW-technique-improvement-analysis.md`, `REVIEW-agent-improvement-
-        opportunities.md`, `PLAN-PRAOR-loop-backlog.md`, the two `grok-*.md` files, and
-        `PLAN-premortem-wiring.md`) or asserts they remain tracked. VAL-03 (`check-links.py`)
-        would only catch their removal if some tracked file linked to them by relative path;
-        grepping `docs/*.md`, `CLAUDE.md` and `CHANGELOG.md` for a markdown link to any of the
-        five returns zero, so nothing currently links them and their tracked status rests on
-        direct `git ls-files` inspection alone, confirmed at this phase's execution time, never
-        a re-run check.
+      - EVID-01: the milestone's source analyses were point-in-time working drafts, removed
+        from the tracked tree; the requirements above cite tracked artifacts only. No registered
+        gate asserts that absence — it rests on direct `git ls-files` inspection alone, never a
+        re-run check.
 
       - REL-25: bundles three clauses, none of which a registered gate re-checks in full.
         VERSION-01 (`check-version-stamps.py`) re-runs the lockstep clause only in the weaker
@@ -6113,16 +6106,16 @@ def _rows_v95() -> list[MatrixRow]:
         "no registered gate's literal set includes Phase 4's trade-off-prescription sentence (\"When two or more viable options survive the ground truths ... open the Trade-off procedure\") or the note that Phase 4's exit criterion is unchanged by this requirement — zero hits by grep across scripts/*.py."
     )
     _audit_meas03_firing_rate_v95 = (
-        "barred from gating by its own statement text and by the governing K-of-5 discipline (docs/v8.7-constraint-teardown.md §2 item 3); 48-VALIDATION.md's own verification map marks this row 'OBSERVATIONAL — never gated'. The reading is recorded in PLAN-premortem-wiring.md with its N and instrument, a tracked prose record no script re-reads or re-derives."
+        "barred from gating by its own statement text and by the governing K-of-5 discipline (docs/v8.7-constraint-teardown.md §2 item 3); 48-VALIDATION.md's own verification map marks this row 'OBSERVATIONAL — never gated'. The reading rests on the five live captures under tests/adversarial-firing-v9.5/, a tracked record no script re-reads or re-derives."
     )
     _audit_meas04_classifier_drift_v95 = (
         "also marked 'OBSERVATIONAL — never gated' by 48-VALIDATION.md's own table. scripts/_battery_core.py's classify() is re-run informally on each capture, but no script stores the phase-48-01 baseline hit counts and automatically diffs them against a later capture — the before/after comparison is read and typed by a person, not asserted by a gate."
     )
     _audit_meas05_extractor_anchor_v95 = (
-        "scripts/measure-adversarial-pass.py --self-test is deterministic and offline, but the script is registered nowhere — absent from scripts/check-firewall-battery.sh and from scripts/_gate_registry.ENTRIES (confirmed by grep for the filename in both), matching 48-VALIDATION.md's own description ('this phase adds one new UNGATED script'). Two of its ten like-for-like input fixtures are untracked (D-48-C: DEMO-first-principles-multiregion-latency.md, DEMO-first-principles-ticket-triage.md), so the reading does not reproduce from a fresh clone even though the instrument itself is deterministic on whatever tree it is run against."
+        "scripts/measure-adversarial-pass.py --self-test is deterministic and offline, but the script is registered nowhere — absent from scripts/check-firewall-battery.sh and from scripts/_gate_registry.ENTRIES (confirmed by grep for the filename in both), matching 48-VALIDATION.md's own description ('this phase adds one new UNGATED script'). Two of its ten like-for-like input fixtures are untracked (D-48-C), so the reading does not reproduce from a fresh clone even though the instrument itself is deterministic on whatever tree it is run against."
     )
     _audit_evid01_tracked_docs_v95 = (
-        "no registered gate enumerates the five named filenames (REVIEW-technique-improvement-analysis.md, REVIEW-agent-improvement-opportunities.md, PLAN-PRAOR-loop-backlog.md, the two grok-*.md files, and PLAN-premortem-wiring.md) or asserts they remain tracked. VAL-03 (check-links.py) would only catch their removal if some tracked file linked to them by relative path; grepping docs/*.md, CLAUDE.md and CHANGELOG.md for a markdown link to any of the five returns zero, so nothing currently links them and their tracked status rests on direct git ls-files inspection alone, confirmed at this phase's execution time, never a re-run check."
+        "the milestone's source analyses were point-in-time working drafts, removed from the tracked tree; the requirements above cite tracked artifacts only. No registered gate asserts that absence — it rests on direct git ls-files inspection alone, never a re-run check."
     )
     _audit_rel25_release_bundle_v95 = (
         "bundles three clauses, none of which a registered gate re-checks in full. VERSION-01 (check-version-stamps.py) re-runs the lockstep clause only in the weaker sense v9.3's own REL-19 row already disclosed: it asserts the 17 stamps agree with each other and with shared/, never that they equal the literal 9.5.0 — a uniform wrong value stays green on both the live check and sync-content.py --check (the break v9.3/REL-19 recorded, not independently re-run here). No gate re-reads CHANGELOG.md's prose for a [9.5.0] entry (precedent REL-08, REL-11, REL-13, REL-16, REL-18, REL-22). And the FIREWALL: GREEN battery run this requirement names is a fresh count taken once at bump time, never stored and compared automatically against a prior run — it corroborates the claim, it is not the evidence for it (precedent v9.3/REL-21)."
@@ -6200,7 +6193,7 @@ def _rows_v95() -> list[MatrixRow]:
                   'audit-only', '', _audit_pass09_not_applicable_line_v95,
                   surfaces=('agent',),
                   statement=(
-                      "An analysis whose conclusion is neither a plan nor a claim records the single line `adversarial pass not applicable — [reason]` with its reason named — the honest-depth escape that prevents this milestone from becoming the mandatory padding REVIEW-technique-improvement-analysis.md §A2 objects to elsewhere."
+                      "An analysis whose conclusion is neither a plan nor a claim records the single line `adversarial pass not applicable — [reason]` with its reason named — the honest-depth escape that prevents this milestone from becoming mandatory padding."
                   ),
                   rerun_by='none'),
         MatrixRow('v9.5/PASS-10', 'PASS-10', 'v9.5', 'Methodology',
@@ -6228,7 +6221,7 @@ def _rows_v95() -> list[MatrixRow]:
                   ),
                   rerun_by='none'),
         MatrixRow('v9.5/MEAS-03', 'MEAS-03', 'v9.5', 'Test-Network',
-                  'PLAN-premortem-wiring.md',
+                  'tests/adversarial-firing-v9.5',
                   'audit-only', '', _audit_meas03_firing_rate_v95,
                   surfaces=('apparatus',),
                   statement=(
@@ -6252,11 +6245,11 @@ def _rows_v95() -> list[MatrixRow]:
                   ),
                   rerun_by='none'),
         MatrixRow('v9.5/EVID-01', 'EVID-01', 'v9.5', 'Test-Network',
-                  'PLAN-premortem-wiring.md',
+                  'docs/requirements-matrix.md',
                   'audit-only', '', _audit_evid01_tracked_docs_v95,
                   surfaces=('apparatus',),
                   statement=(
-                      "The four analysis documents this milestone derives from (REVIEW-technique-improvement-analysis.md, REVIEW-agent-improvement-opportunities.md, PLAN-PRAOR-loop-backlog.md, grok-*.md) plus PLAN-premortem-wiring.md are tracked in-repo so the requirements above can cite them by path."
+                      "The requirements above cite tracked artifacts only; the point-in-time working drafts this milestone was derived from are not part of the tracked tree."
                   ),
                   rerun_by='none'),
         MatrixRow('v9.5/REL-25', 'REL-25', 'v9.5', 'Test-Network',

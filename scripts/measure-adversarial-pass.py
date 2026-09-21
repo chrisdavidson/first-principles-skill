@@ -2,7 +2,7 @@
 """Re-derives the pre-mortem/adversarial-pass shape reading over a set of
 Markdown captures, and separately feeds the same text through the frozen
 `_battery_core` classifier. Rebuilds two corrections that previously existed
-only as prose in `PLAN-premortem-wiring.md`: it anchors on every occurrence
+only as prose in a working draft: it anchors on every occurrence
 of the case-insensitive `pre-mortem`/`adversarial pass` marker rather than
 only the first, and it anchors on both spellings rather than only the older
 one. A window drawn forward from each anchor line is scored for a

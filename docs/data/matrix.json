@@ -6196,7 +6196,7 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "An analysis whose conclusion is neither a plan nor a claim records the single line `adversarial pass not applicable \u2014 [reason]` with its reason named \u2014 the honest-depth escape that prevents this milestone from becoming the mandatory padding REVIEW-technique-improvement-analysis.md \u00a7A2 objects to elsewhere.",
+    "statement": "An analysis whose conclusion is neither a plan nor a claim records the single line `adversarial pass not applicable \u2014 [reason]` with its reason named \u2014 the honest-depth escape that prevents this milestone from becoming mandatory padding.",
     "rerun_by": "none"
   },
   {
@@ -6249,10 +6249,10 @@
     "bare_id": "MEAS-03",
     "milestone": "v9.5",
     "capability": "Test-Network",
-    "deliverable_path": "PLAN-premortem-wiring.md",
+    "deliverable_path": "tests/adversarial-firing-v9.5",
     "coverage_tier": "audit-only",
     "artifact_link": "",
-    "gap_rationale": "barred from gating by its own statement text and by the governing K-of-5 discipline (docs/v8.7-constraint-teardown.md \u00a72 item 3); 48-VALIDATION.md's own verification map marks this row 'OBSERVATIONAL \u2014 never gated'. The reading is recorded in PLAN-premortem-wiring.md with its N and instrument, a tracked prose record no script re-reads or re-derives.",
+    "gap_rationale": "barred from gating by its own statement text and by the governing K-of-5 discipline (docs/v8.7-constraint-teardown.md \u00a72 item 3); 48-VALIDATION.md's own verification map marks this row 'OBSERVATIONAL \u2014 never gated'. The reading rests on the five live captures under tests/adversarial-firing-v9.5/, a tracked record no script re-reads or re-derives.",
     "surfaces": [
       "apparatus"
     ],
@@ -6282,7 +6282,7 @@
     "deliverable_path": "scripts/measure-adversarial-pass.py",
     "coverage_tier": "audit-only",
     "artifact_link": "",
-    "gap_rationale": "scripts/measure-adversarial-pass.py --self-test is deterministic and offline, but the script is registered nowhere \u2014 absent from scripts/check-firewall-battery.sh and from scripts/_gate_registry.ENTRIES (confirmed by grep for the filename in both), matching 48-VALIDATION.md's own description ('this phase adds one new UNGATED script'). Two of its ten like-for-like input fixtures are untracked (D-48-C: DEMO-first-principles-multiregion-latency.md, DEMO-first-principles-ticket-triage.md), so the reading does not reproduce from a fresh clone even though the instrument itself is deterministic on whatever tree it is run against.",
+    "gap_rationale": "scripts/measure-adversarial-pass.py --self-test is deterministic and offline, but the script is registered nowhere \u2014 absent from scripts/check-firewall-battery.sh and from scripts/_gate_registry.ENTRIES (confirmed by grep for the filename in both), matching 48-VALIDATION.md's own description ('this phase adds one new UNGATED script'). Two of its ten like-for-like input fixtures are untracked (D-48-C), so the reading does not reproduce from a fresh clone even though the instrument itself is deterministic on whatever tree it is run against.",
     "surfaces": [
       "apparatus"
     ],
@@ -6294,14 +6294,14 @@
     "bare_id": "EVID-01",
     "milestone": "v9.5",
     "capability": "Test-Network",
-    "deliverable_path": "PLAN-premortem-wiring.md",
+    "deliverable_path": "docs/requirements-matrix.md",
     "coverage_tier": "audit-only",
     "artifact_link": "",
-    "gap_rationale": "no registered gate enumerates the five named filenames (REVIEW-technique-improvement-analysis.md, REVIEW-agent-improvement-opportunities.md, PLAN-PRAOR-loop-backlog.md, the two grok-*.md files, and PLAN-premortem-wiring.md) or asserts they remain tracked. VAL-03 (check-links.py) would only catch their removal if some tracked file linked to them by relative path; grepping docs/*.md, CLAUDE.md and CHANGELOG.md for a markdown link to any of the five returns zero, so nothing currently links them and their tracked status rests on direct git ls-files inspection alone, confirmed at this phase's execution time, never a re-run check.",
+    "gap_rationale": "the milestone's source analyses were point-in-time working drafts, removed from the tracked tree; the requirements above cite tracked artifacts only. No registered gate asserts that absence \u2014 it rests on direct git ls-files inspection alone, never a re-run check.",
     "surfaces": [
       "apparatus"
     ],
-    "statement": "The four analysis documents this milestone derives from (REVIEW-technique-improvement-analysis.md, REVIEW-agent-improvement-opportunities.md, PLAN-PRAOR-loop-backlog.md, grok-*.md) plus PLAN-premortem-wiring.md are tracked in-repo so the requirements above can cite them by path.",
+    "statement": "The requirements above cite tracked artifacts only; the point-in-time working drafts this milestone was derived from are not part of the tracked tree.",
     "rerun_by": "none"
   },
   {
