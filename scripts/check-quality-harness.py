@@ -845,25 +845,48 @@ _REFERENCE_READS_SKIP_STEMS = frozenset({"README"})
 
 
 def _reference_reads_capture_ids(captures_dir: Path) -> list[str]:
-    """Discover capture ids in captures_dir via the D-07 sibling-path convention.
+    """Discover capture ids in captures_dir from a positive capture property
+    -- evidence of a transcript file -- never from a directory listing
+    (CR-01, D-19).
 
-    Returns the sorted union of `*.md` and `*.jsonl` stems, minus
-    _REFERENCE_READS_SKIP_STEMS. The union, not the `.md` glob alone, because
-    D-07's convention has a verified exception: tests/quality-fixtures-v8.7/'s
-    four `.jsonl` files (gen-internal-tools, gen-multi-dispatch,
-    gen-single-dispatch, gen-stub-only) have no same-stem `.md` sibling, and a
-    `.md`-only walk would make them invisible -- reintroducing, one layer up,
-    the exact "invisible because nothing was parsed" failure INSTR-01 exists
-    to prevent. The `.md` sibling is not needed to census a transcript; it
-    only supplies the capture id when the `.jsonl` is the orphan. `README` is
-    skipped by name because --detect-defects's own `*.md` glob already
-    demonstrates the noise a README row adds -- a named, controlled rule, not
-    a silent filter.
+    A capture id is evidenced by a `*.jsonl` transcript; a bare `*.md` stem
+    is never, by itself, evidence a capture existed. `md_stems` is a subset
+    of `jsonl_stems` by construction, so the union `jsonl_stems | md_stems`
+    adds nothing over `jsonl_stems` alone -- it is retained anyway as an
+    executable statement of the rule, not a widening of it.
+
+    Only the orphan-`.jsonl` half of D-07 continues to hold: `jsonl_stems`
+    is the base set, so tests/quality-fixtures-v8.7/'s four `gen-*.jsonl`
+    files (gen-internal-tools, gen-multi-dispatch, gen-single-dispatch,
+    gen-stub-only), which have no same-stem `.md` sibling, are still
+    discovered. The other half does not: this fix narrows D-07 (see D-19).
+    Its precise scope: a .md with no sibling .jsonl is not a capture id and receives no row --
+    a third outcome D-07 did not contemplate (D-07 forbade a row of
+    zeroes and mandated a `no_transcript` row instead). D-19 supersedes
+    that second clause; an unqualified claim that D-07 continues to hold in
+    full would be the overclaim this revision removes.
+
+    Cost (D-12): `_reference_reads_capture_state`'s state 3 (`no_transcript`)
+    is no longer reachable through `run_reference_reads`'s discovery. It
+    remains a live state of `_reference_reads_capture_state` (controls (d),
+    (q4)) for a caller that supplies capture ids from a manifest -- no such
+    caller exists today and building one is out of scope (D-05, D-14).
+    Discovery may not manufacture such a row itself: the claim "this
+    capture's transcript is missing" requires independent evidence the
+    capture existed, which a directory listing cannot supply.
+
+    `_REFERENCE_READS_SKIP_STEMS` now fires only on a hypothetical
+    `README.jsonl` -- a bare `README.md` is no longer discovered at all, so
+    it never reaches the skip rule. Control (q) creates a `README.jsonl`
+    sibling for exactly this reason, so the skip rule stays exercised
+    rather than becoming a rule no control can fail on.
     """
-    stems = {p.stem for p in captures_dir.glob("*.md")} | {
-        p.stem for p in captures_dir.glob("*.jsonl")
-    }
-    return sorted(stems - _REFERENCE_READS_SKIP_STEMS)
+    jsonl_stems = {p.stem for p in captures_dir.glob("*.jsonl")}
+    # A bare *.md is only a capture id when it is a capture's own sibling
+    # document; a probe corpus, a catalog or a detector fixture is not a
+    # capture whose transcript went missing (CR-01).
+    md_stems = {p.stem for p in captures_dir.glob("*.md")} & jsonl_stems
+    return sorted((jsonl_stems | md_stems) - _REFERENCE_READS_SKIP_STEMS)
 
 
 def _reference_reads_tsv(rows: list[dict]) -> str:
@@ -18419,10 +18442,23 @@ def _selftest_reference_reads() -> bool:
         the first "args.reference_reads" occurrence before the first
         "_ensure_claude_available" occurrence, making the interfaces
         block's offline-siting rule a control, not just a comment.
-    (q) D-07 DISCOVERY RULE — a directory holding only-md.md (no sibling),
-        pair.md + pair.jsonl, orphan.jsonl (no sibling .md) and README.md
-        yields _reference_reads_capture_ids == ["only-md", "orphan",
-        "pair"], and censusing "only-md" yields "no_transcript".
+    (q) D-19 DISCOVERY RULE — capture ids are evidenced by a transcript,
+        never a directory listing (CR-01). Four arms: (q1) a synthetic
+        directory holding only-md.md (no sibling), pair.md + pair.jsonl,
+        orphan.jsonl (no sibling .md), README.md and README.jsonl yields
+        _reference_reads_capture_ids == ["orphan", "pair"] -- "only-md" is
+        excluded BY DECISION D-19 (a .md with no sibling .jsonl is not a
+        capture id and receives no row), "orphan" is included (D-07's
+        orphan-.jsonl half still censused), and "README" is excluded
+        although README.jsonl exists (the skip rule fires and is
+        exercised); (q2) the gap's own reproducer,
+        tests/reference-reads-v9.2.1, read-only, discovers exactly
+        ["DEMO-TRIAGE"] with "catalog" asserted absent; (q3)
+        tests/adversarial-corpus-v9.0, read-only, discovers [] where HEAD
+        printed fourteen no_transcript rows; (q4) state 3 (no_transcript)
+        stays a live, directly-reachable state of
+        _reference_reads_capture_state even though discovery no longer
+        manufactures it.
     (r) ANTI-OVERREACH on (n) — the frozen capture's three WebFetch calls,
         read via _capture_subagent_tool_calls(..., tool_names=("WebFetch",)),
         number 3, while the census's own reference_reads_total for the same
@@ -18878,8 +18914,10 @@ def _selftest_reference_reads() -> bool:
         print(f"self-test FAIL: reference_reads control (p) — {exc}", file=sys.stderr)
         ok = False
 
-    # (q) D-07 discovery rule: only-md.md (no sibling), pair.md + pair.jsonl,
-    # orphan.jsonl (no sibling .md), and README.md.
+    # (q) D-19 discovery rule: capture ids are evidenced by a transcript,
+    # never by a directory listing (CR-01). Four arms: (q1) synthetic
+    # discovery rules; (q2)/(q3) the real, registered fixture directories
+    # where the phantom rows were observed; (q4) state 3 stays live.
     with tempfile.TemporaryDirectory() as tmp_q:
         tmp_q_path = Path(tmp_q)
         (tmp_q_path / "only-md.md").write_text("stub", encoding="utf-8")
@@ -18887,22 +18925,74 @@ def _selftest_reference_reads() -> bool:
         _write_jsonl(tmp_q_path, "pair.jsonl", objs_a)
         _write_jsonl(tmp_q_path, "orphan.jsonl", objs_a)
         (tmp_q_path / "README.md").write_text("stub", encoding="utf-8")
-        ids_q = _reference_reads_capture_ids(tmp_q_path)
-        if ids_q != ["only-md", "orphan", "pair"]:
+        _write_jsonl(tmp_q_path, "README.jsonl", objs_a)
+
+        # (q1) synthetic discovery rules.
+        ids_q1 = _reference_reads_capture_ids(tmp_q_path)
+        if ids_q1 != ["orphan", "pair"]:
             print(
-                f"self-test FAIL: reference_reads control (q) — discovery "
-                f"gave {ids_q}, want ['only-md', 'orphan', 'pair']",
+                f"self-test FAIL: reference_reads control (q) — (q1) discovery "
+                f"gave {ids_q1}, want ['orphan', 'pair'] -- 'only-md' must "
+                f"be absent BY DECISION D-19 (a .md with no transcript is "
+                f"not evidence a capture existed, so it is not a capture "
+                f"id and receives no row), 'orphan' must be present "
+                f"(D-07's orphan .jsonl half still censused), and 'README' "
+                f"must be absent although README.jsonl exists (the skip "
+                f"rule fires and is therefore exercised)",
                 file=sys.stderr,
             )
             ok = False
-        r_q = _reference_reads_census("only-md", tmp_q_path / "only-md.jsonl")
-        if r_q["capture_state"] != "no_transcript":
+
+        # (q4) state 3 stays live: discovery no longer manufactures it, but
+        # _reference_reads_capture_state still reports it for a caller that
+        # supplies an id from elsewhere (D-19's COST clause).
+        state_q4, _transcript_q4 = _reference_reads_capture_state(
+            tmp_q_path / "only-md.jsonl"
+        )
+        if state_q4 != "no_transcript":
             print(
-                f"self-test FAIL: reference_reads control (q) — 'only-md' "
-                f"(no sibling .jsonl) censused as {r_q!r}, want 'no_transcript'",
+                f"self-test FAIL: reference_reads control (q) — (q4) "
+                f"'only-md.jsonl' (does not exist) censused as state "
+                f"{state_q4!r}, want 'no_transcript' -- D-19 narrows "
+                f"discovery, it does not delete a D-12 state",
                 file=sys.stderr,
             )
             ok = False
+
+    # (q2)/(q3) read tests/reference-reads-v9.2.1 and
+    # tests/adversarial-corpus-v9.0, both _FROZEN_PATHS-registered, READ
+    # ONLY -- neither is written by this or any control.
+
+    # (q2) the gap's own reproducer.
+    ids_q2 = _reference_reads_capture_ids(REPO_ROOT / "tests" / "reference-reads-v9.2.1")
+    if ids_q2 != ["DEMO-TRIAGE"]:
+        print(
+            f"self-test FAIL: reference_reads control (q) — (q2) discovery "
+            f"over tests/reference-reads-v9.2.1 gave {ids_q2}, want "
+            f"['DEMO-TRIAGE']",
+            file=sys.stderr,
+        )
+        ok = False
+    if "catalog" in ids_q2:
+        print(
+            f"self-test FAIL: reference_reads control (q) — (q2) 'catalog' "
+            f"(catalog.md, never a capture) present in {ids_q2}; the "
+            f"50-VERIFICATION.md phantom row must be asserted ABSENT, not "
+            f"merely unobserved",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (q3) a real corpus with no transcripts at all.
+    ids_q3 = _reference_reads_capture_ids(REPO_ROOT / "tests" / "adversarial-corpus-v9.0")
+    if ids_q3 != []:
+        print(
+            f"self-test FAIL: reference_reads control (q) — (q3) discovery "
+            f"over tests/adversarial-corpus-v9.0 gave {ids_q3}, want [] "
+            f"-- HEAD printed fourteen no_transcript rows here",
+            file=sys.stderr,
+        )
+        ok = False
 
     return ok
 
