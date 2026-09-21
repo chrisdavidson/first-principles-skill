@@ -6451,6 +6451,12 @@ def run_reference_reads(captures_dir: Path) -> None:
 
 _DEFECT_FIXTURE_CONFORMANT = FIXTURES_DIR / "analyses-conformant.md"
 _DEFECT_FIXTURE_DEFECTIVE = FIXTURES_DIR / "analyses-defective.md"
+# Phase 52 (OBS-02 SC3, D-06 second evidence leg): the committed frozen
+# fixture the pre-Phase-52 harness reads clean and this harness trips — see
+# tests/precheck-rollup-v9.6/README.md for both readings, taken live.
+_PRECHECK_ROLLUP_FIXTURE = (
+    REPO_ROOT / "tests" / "precheck-rollup-v9.6" / "analyses" / "PC-ROLLUP.md"
+)
 
 # Expected records (every numeric field, not just the flags — a flags-only
 # assertion would pass while the per-claim counts D-20 depends on drifted
@@ -6808,7 +6814,11 @@ def _selftest_defects() -> bool:
     chains trips with no pre-check present, (P21) no-trip at or below the
     cited minimum, (P22) anti-masking over an unnamed-chain roll-up, an
     off-vocabulary roll-up word, a fenced roll-up line, and a §4-only
-    document, and (P23) the end-to-end Criterion 5 join.
+    document, and (P23) the end-to-end Criterion 5 join. Control (P24)
+    (Phase 52, OBS-02 SC3, D-06 second evidence leg) reads the committed
+    frozen fixture tests/precheck-rollup-v9.6/analyses/PC-ROLLUP.md and pins
+    its exact defect-record reading, so the fixture's own trip cannot
+    silently regress.
     """
     ok = True
 
@@ -8056,6 +8066,53 @@ Nothing material here.
             f"len(_rollups_checked)={len(p20_rec['_rollups_checked'])}, or "
             f"rollup_inversions={p20_rec['rollup_inversions']!r} disagrees "
             f"with len(_rollup_inversions)={len(p20_rec['_rollup_inversions'])}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P24) OBS-02 SC3 (D-06 second evidence leg): the committed frozen
+    # fixture tests/precheck-rollup-v9.6/analyses/PC-ROLLUP.md — a §6
+    # roll-up rated HIGH over two MEDIUM §4 chains, every chain and the
+    # roll-up itself carrying a well-formed pre-check. Pins the exact
+    # readings recorded in tests/precheck-rollup-v9.6/README.md's
+    # "New-harness reading" TSV, plus the disagreement's own section and
+    # kind, so the trip cannot silently regress.
+    p24_text = _PRECHECK_ROLLUP_FIXTURE.read_text(encoding="utf-8")
+    p24_rec = detect_defects(p24_text, "PC-ROLLUP")
+    p24_expected = {
+        "untraced_claims": 0,
+        "malformed_chain_blocks": 0,
+        "nonconforming_verdict_cells": 0,
+        "confidence_inversions": 0,
+        "high_conf_unverified_head": 0,
+        "confidence_unparsed": 0,
+        "prechecks_parsed": 3,
+        "precheck_unparsed": 0,
+        "precheck_disagreements": 1,
+        "selfaudit_disagreements": 2,
+        "rollups_checked": 1,
+        "rollup_inversions": 1,
+    }
+    for field, expected in p24_expected.items():
+        if p24_rec[field] != expected:
+            print(
+                f"self-test FAIL: defects precheck fixture (P24) field "
+                f"{field!r} expected {expected!r}, got {p24_rec[field]!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+    p24_precheck_disagreements = p24_rec["_precheck_disagreements"]
+    if (
+        len(p24_precheck_disagreements) != 1
+        or p24_precheck_disagreements[0]["section"] != 6
+        or p24_precheck_disagreements[0]["kinds"] != ["label_above_ceiling"]
+    ):
+        print(
+            f"self-test FAIL: defects precheck fixture (P24) expected one "
+            f"pre-check disagreement, section 6, kinds "
+            f"['label_above_ceiling'], got "
+            f"{p24_precheck_disagreements!r}",
             file=sys.stderr,
         )
         ok = False

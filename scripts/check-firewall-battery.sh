@@ -769,6 +769,7 @@ _FROZEN_PATHS=(
     'tests/exemplar-rederivation-v9.4'
     'tests/pin-classification-v9.4'
     'tests/pin-conversion-v9.4'
+    'tests/precheck-rollup-v9.6'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null
