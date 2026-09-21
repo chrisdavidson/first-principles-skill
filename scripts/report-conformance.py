@@ -3494,13 +3494,15 @@ def _control_partial_row_not_dropped() -> None:
 def _control_agreement_field_scope() -> None:
     # D-06a widened this from 15 to 17; Phase 41 (999.120) H1 widened it again, 17 to 21;
     # H3 widens it a third time, 21 to 23; Phase 52 (OBS-02, D-04) widens it a fourth time,
-    # 23 to 26: confirming (not assuming) that appending the four H1 confidence columns,
-    # then the two H3 band-census columns, then the three Phase 52 pre-check columns, after
-    # `provenance_flag` lands them in MEASURED_SCHEMA_FIELDS via the name-range derivation
-    # above, not silently excluded or folded into PROVENANCE_FIELDS. The arithmetic is
-    # 12 (pre-existing measured schema fields) + 4 (H1 columns) + 2 (H3 columns) +
-    # 3 (Phase 52 OBS-02 pre-check columns) + 5 (report-added columns) = 26.
-    assert len(AGREEMENT_FIELDS) == 26, len(AGREEMENT_FIELDS)
+    # 23 to 26; Phase 52 residue R-52-01 (D-03) widens it a fifth time, 26 to 28:
+    # confirming (not assuming) that appending the four H1 confidence columns, then the two
+    # H3 band-census columns, then the three Phase 52 pre-check columns, then the two Phase
+    # 52 residue R-52-01 roll-up columns, after `provenance_flag` lands them in
+    # MEASURED_SCHEMA_FIELDS via the name-range derivation above, not silently excluded or
+    # folded into PROVENANCE_FIELDS. The arithmetic is 12 (pre-existing measured schema
+    # fields) + 4 (H1 columns) + 2 (H3 columns) + 3 (Phase 52 OBS-02 pre-check columns)
+    # + 2 (Phase 52 residue R-52-01 roll-up columns) + 5 (report-added columns) = 28.
+    assert len(AGREEMENT_FIELDS) == 28, len(AGREEMENT_FIELDS)
     assert "analysis_id" not in AGREEMENT_FIELDS
     for field in PROVENANCE_FIELDS:
         assert field not in AGREEMENT_FIELDS, field
@@ -3523,7 +3525,8 @@ def _control_agreement_field_scope() -> None:
                   "confidence_inversions", "confidence_unparsed",
                   "selfaudit_bands_parsed", "selfaudit_offvocab_bands",
                   "prechecks_parsed", "precheck_unparsed",
-                  "precheck_disagreements"):
+                  "precheck_disagreements", "rollups_checked",
+                  "rollup_inversions"):
         assert field in MEASURED_SCHEMA_FIELDS, field
         assert field not in PROVENANCE_FIELDS, field
 

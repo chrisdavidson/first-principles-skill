@@ -5470,6 +5470,14 @@ _DEFECT_RECORD_FIELDS = (
     "prechecks_parsed",
     "precheck_unparsed",
     "precheck_disagreements",
+    # Phase 52 (OBS-02 residue R-52-01, D-03): two more appended, same
+    # discipline — `read_defect_incidence` maps by header name, so every
+    # committed narrower file keeps parsing. Closes the §6 Confidence
+    # roll-up composition case `confidence_inversions` cannot reach — a
+    # roll-up is never in section4, so it never reaches that function's
+    # §4-only `chain_ids`/`blocks` (docs/v9.6-instrument-rederivation.md §7).
+    "rollups_checked",
+    "rollup_inversions",
 )
 
 
@@ -5978,6 +5986,111 @@ def _precheck_defects(section_texts: dict[int, str]) -> dict:
     return {"parsed": parsed, "unparsed": unparsed, "disagreements": disagreements}
 
 
+# --- Phase 52 (OBS-02 residue R-52-01, D-03): the §6 roll-up dimension ----
+#
+# docs/v9.6-instrument-rederivation.md §7 found that `_confidence_defects`
+# (above) is called on §4-only `chain_ids`/`blocks` and `section6` reaches
+# only `_conclusion_claims`/`_closure_ledger_fragments` — a §6 Conclusion
+# roll-up rated above the lowest-rated chain it cites is structurally
+# invisible to `confidence_inversions`, with or without a pre-check (the
+# 52-03 pre-check detector only reaches a roll-up that itself carries a
+# `**Pre-check:**` line stating its own ceiling truthfully). This closes
+# that residue as its own column, never by widening `_confidence_defects`'s
+# signature or changing `confidence_inversions`' own meaning (BASE-01's
+# N=32 reading in docs/v9.6-baseline-reading.md §3.2 must stay comparable).
+
+
+def _rollup_inversion_defects(
+    section6: str, chain_ids: list[str], blocks: list[str]
+) -> dict:
+    """R-52-01: §6 Confidence roll-ups rated above their own cited §4 chains.
+
+    Builds the same per-chain labels map `_confidence_defects` builds
+    (`_chain_confidence_label` per block, keyed by `_normalize_chain_id`),
+    then walks every unfenced §6 line matching `_CONFIDENCE_LINE_RE`. The
+    roll-up label is the matched word, upper-cased; a word outside
+    `_CONFIDENCE_RANK` is `unparsed`. The roll-up's cited chains are every
+    id in `chain_ids` that `_cites_chain(paragraph, [cid])` finds in the
+    paragraph running from that Confidence line through the line before the
+    next blank line (a `**Pre-check:**` line sitting directly above it is
+    not itself a Confidence line and is never part of the paragraph, since
+    the paragraph starts at the Confidence line's own index, not the line
+    above it). A cited chain whose §4 label is `None` is dropped from the
+    minimum by never entering the `cited` map in the first place; no cited
+    chain with a parsable label at all is `unpairable` rather than silently
+    scored clean.
+
+    Disclosed bound: the cited set is every chain the Confidence paragraph
+    names; a paragraph naming a chain only to set it aside would
+    over-constrain the minimum.
+
+    Returns `{"checked": [...], "inversions": [...], "unpairable": [...],
+    "unparsed": [...]}`, each a list of dicts, in document order. `checked`
+    and `inversions` entries carry `{"line", "label", "cited", "min_cited"}`
+    (`cited` maps normalized chain id -> its own §4 label).
+    """
+    names = [_normalize_chain_id(i) for i in chain_ids]
+    labels: dict[str, str | None] = {
+        name: _chain_confidence_label(block) for name, block in zip(names, blocks)
+    }
+
+    checked: list[dict] = []
+    inversions: list[dict] = []
+    unpairable: list[dict] = []
+    unparsed: list[dict] = []
+
+    lines = section6.split("\n")
+    fenced = _fenced_code_flags(lines)
+    for i, raw_line in enumerate(lines):
+        if fenced[i]:
+            continue
+        m = _CONFIDENCE_LINE_RE.match(raw_line)
+        if m is None:
+            continue
+        stripped_line = raw_line.strip()
+        word = m.group("word").upper()
+
+        j = i + 1
+        while j < len(lines) and lines[j].strip() != "":
+            j += 1
+        paragraph = "\n".join(lines[i:j])
+
+        cited: dict[str, str] = {}
+        for cid in chain_ids:
+            name = _normalize_chain_id(cid)
+            if name in cited or not _cites_chain(paragraph, [cid]):
+                continue
+            label = labels.get(name)
+            if label is not None:
+                cited[name] = label
+
+        if word not in _CONFIDENCE_RANK:
+            unparsed.append({"line": stripped_line, "reason": "band vocabulary"})
+            continue
+
+        if not cited:
+            unpairable.append({"line": stripped_line, "label": word})
+            continue
+
+        min_cited = min(cited.values(), key=lambda b: _CONFIDENCE_RANK[b])
+        entry = {
+            "line": stripped_line,
+            "label": word,
+            "cited": cited,
+            "min_cited": min_cited,
+        }
+        checked.append(entry)
+        if _CONFIDENCE_RANK[word] > _CONFIDENCE_RANK[min_cited]:
+            inversions.append(entry)
+
+    return {
+        "checked": checked,
+        "inversions": inversions,
+        "unpairable": unpairable,
+        "unparsed": unparsed,
+    }
+
+
 # Self-Audit Gate verdict blocks, emitted as PROCESS output rather than as one
 # of the six template sections, so these are matched against the whole
 # analysis text and not against a slice.
@@ -6041,11 +6154,14 @@ _SELFAUDIT_TRAILING_VERDICT_RE = re.compile(
 # unverified ground truth, or by a chain rated above the chains it cites
 # (999.120 H2, D-05). Phase 52 (OBS-02, D-05) adds `precheck_disagreements`:
 # a Criterion 5 Rigorous verdict over a pre-check/label disagreement — in
-# either §4 or the §6 roll-up — is the same kind of contradiction.
+# either §4 or the §6 roll-up — is the same kind of contradiction. Phase 52
+# (OBS-02 residue R-52-01, D-03) adds `rollup_inversions`: a Criterion 5
+# Rigorous verdict over a §6 roll-up rated above its own cited §4 chains is
+# the same kind of contradiction, whether or not a pre-check was emitted.
 _SELFAUDIT_CONTRADICTIONS: dict[int, tuple[str, ...]] = {
     2: ("nonconforming_verdict_cells",),
     4: ("malformed_chain_blocks", "_dependency_cycles"),
-    5: ("high_conf_unverified_head", "confidence_inversions", "precheck_disagreements"),
+    5: ("high_conf_unverified_head", "confidence_inversions", "precheck_disagreements", "rollup_inversions"),
     6: ("untraced_claims",),
 }
 
@@ -6195,6 +6311,7 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
     dependency = _chain_dependency_defects(section4)
     confidence = _confidence_defects(chain_ids, blocks)
     precheck = _precheck_defects({4: section4, 6: section6})
+    rollup = _rollup_inversion_defects(section6, chain_ids, blocks)
     claims = _conclusion_claims(section6, chain_ids)
     ledger = _closure_ledger_fragments(section6, chain_ids)
     untraced = [
@@ -6270,6 +6387,18 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
         "_prechecks_parsed": precheck["parsed"],
         "_precheck_unparsed": precheck["unparsed"],
         "_precheck_disagreements": precheck["disagreements"],
+    })
+    # Phase 52 (OBS-02 residue R-52-01, D-03): the §6 roll-up dimension,
+    # computed above alongside `dependency`/`confidence`/`precheck`. Placed
+    # before the self-audit reconciliation call below so the widened
+    # `_SELFAUDIT_CONTRADICTIONS[5]` sees `rollup_inversions` in `record`.
+    record.update({
+        "rollups_checked": len(rollup["checked"]),
+        "rollup_inversions": len(rollup["inversions"]),
+        "_rollups_checked": rollup["checked"],
+        "_rollup_inversions": rollup["inversions"],
+        "_rollup_unpairable": rollup["unpairable"],
+        "_rollup_unparsed": rollup["unparsed"],
     })
     disagreements = _selfaudit_calibration_defects(analysis_text, record)
     record["selfaudit_disagreements"] = len(disagreements)
@@ -6348,6 +6477,8 @@ _EXPECTED_CONFORMANT_RECORD = {
     "prechecks_parsed": 0,
     "precheck_unparsed": 0,
     "precheck_disagreements": 0,
+    "rollups_checked": 0,
+    "rollup_inversions": 0,
 }
 _EXPECTED_DEFECTIVE_RECORD = {
     "conclusion_claims": 3,
@@ -6371,6 +6502,8 @@ _EXPECTED_DEFECTIVE_RECORD = {
     "prechecks_parsed": 0,
     "precheck_unparsed": 0,
     "precheck_disagreements": 0,
+    "rollups_checked": 0,
+    "rollup_inversions": 0,
 }
 
 # D-19 pinned observed calibration vector: the detector's OBSERVED per-
@@ -6669,7 +6802,13 @@ def _selftest_defects() -> bool:
     ceiling, (P16) internal head inconsistency, (P17) the §6 roll-up reach
     a bare `confidence_inversions` reading cannot see, (P18) anti-masking
     over unparsable pre-check shapes, and (P19) the end-to-end Criterion 5
-    join (D-05).
+    join (D-05). Controls (P20)-(P23) (Phase 52, OBS-02 residue R-52-01,
+    docs/v9.6-instrument-rederivation.md §7) pin
+    `_rollup_inversion_defects`: (P20) a §6 roll-up rated above its cited §4
+    chains trips with no pre-check present, (P21) no-trip at or below the
+    cited minimum, (P22) anti-masking over an unnamed-chain roll-up, an
+    off-vocabulary roll-up word, a fenced roll-up line, and a §4-only
+    document, and (P23) the end-to-end Criterion 5 join.
     """
     ok = True
 
@@ -7680,6 +7819,243 @@ Nothing material here.
             f"self-test FAIL: defects precheck (P19) a conceded Sound "
             f"Criterion 5 band wrongly reconciled: selfaudit_disagreements="
             f"{p19_sound_rec['selfaudit_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # Phase 52 (OBS-02 residue R-52-01, D-03): inline controls (P20)-(P23)
+    # for `_rollup_inversion_defects`, built with `_confidence_test_doc_s6`
+    # the same way (P17) is, above.
+
+    # (P20) trip: two consistent §4 MEDIUM chains, NO pre-checks anywhere, a
+    # §6 roll-up rated HIGH over both — the R-52-01 gap: `confidence_
+    # inversions` cannot see it (a roll-up is never in section4), and there
+    # is no pre-check here for `_precheck_defects` to reach either.
+    p20_doc = _confidence_test_doc_s6(
+        "### Chain C1 — first\n\n"
+        "GT-1 → intermediate → conclusion one.\n\n"
+        "**Confidence: MEDIUM**\n\n"
+        "### Chain C2 — second\n\n"
+        "GT-2 → intermediate → conclusion two.\n\n"
+        "**Confidence: MEDIUM**",
+        "**Recommended approach:** the roll-up conclusion.\n\n"
+        "**Confidence:** (chains C1 and C2) HIGH",
+    )
+    p20_rec = detect_defects(p20_doc, "rollup-p20")
+    if (
+        p20_rec["rollup_inversions"] != 1
+        or p20_rec["rollups_checked"] != 1
+        or p20_rec["confidence_inversions"] != 0
+        or p20_rec["precheck_disagreements"] != 0
+    ):
+        print(
+            f"self-test FAIL: defects rollup (P20) a §6 roll-up rated above "
+            f"its cited §4 chains, no pre-check present, expected "
+            f"rollup_inversions=1, rollups_checked=1, confidence_"
+            f"inversions=0, precheck_disagreements=0, got rollup_inversions="
+            f"{p20_rec['rollup_inversions']!r}, rollups_checked="
+            f"{p20_rec['rollups_checked']!r}, confidence_inversions="
+            f"{p20_rec['confidence_inversions']!r}, precheck_disagreements="
+            f"{p20_rec['precheck_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P21) no-trip: the same roll-up rated MEDIUM (equal to both cited
+    # chains) or LOW (below both) is not an inversion; a HIGH roll-up citing
+    # only a HIGH chain is not an inversion either.
+    def _p21_doc(rollup_label: str, cited: str) -> str:
+        return _confidence_test_doc_s6(
+            "### Chain C1 — first\n\n"
+            "GT-1 → intermediate → conclusion one.\n\n"
+            "**Confidence: MEDIUM**\n\n"
+            "### Chain C2 — second\n\n"
+            "GT-2 → intermediate → conclusion two.\n\n"
+            "**Confidence: MEDIUM**",
+            "**Recommended approach:** the roll-up conclusion.\n\n"
+            f"**Confidence:** ({cited}) {rollup_label}",
+        )
+
+    p21_medium_rec = detect_defects(
+        _p21_doc("MEDIUM", "chains C1 and C2"), "rollup-p21-medium"
+    )
+    if p21_medium_rec["rollup_inversions"] != 0 or p21_medium_rec["rollups_checked"] != 1:
+        print(
+            f"self-test FAIL: defects rollup (P21) a roll-up at MEDIUM over "
+            f"two MEDIUM chains wrongly flagged: rollup_inversions="
+            f"{p21_medium_rec['rollup_inversions']!r}, rollups_checked="
+            f"{p21_medium_rec['rollups_checked']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p21_low_rec = detect_defects(_p21_doc("LOW", "chains C1 and C2"), "rollup-p21-low")
+    if p21_low_rec["rollup_inversions"] != 0 or p21_low_rec["rollups_checked"] != 1:
+        print(
+            f"self-test FAIL: defects rollup (P21) a roll-up at LOW over "
+            f"two MEDIUM chains wrongly flagged: rollup_inversions="
+            f"{p21_low_rec['rollup_inversions']!r}, rollups_checked="
+            f"{p21_low_rec['rollups_checked']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p21_highonly_doc = _confidence_test_doc_s6(
+        "### Chain C1 — first\n\n"
+        "GT-1 → intermediate → conclusion one.\n\n"
+        "**Confidence: HIGH**\n\n"
+        "### Chain C2 — second\n\n"
+        "GT-2 → intermediate → conclusion two.\n\n"
+        "**Confidence: MEDIUM**",
+        "**Recommended approach:** the roll-up conclusion.\n\n"
+        "**Confidence:** (chain C1) HIGH",
+    )
+    p21_highonly_rec = detect_defects(p21_highonly_doc, "rollup-p21-highonly")
+    if (
+        p21_highonly_rec["rollup_inversions"] != 0
+        or p21_highonly_rec["rollups_checked"] != 1
+    ):
+        print(
+            f"self-test FAIL: defects rollup (P21) a HIGH roll-up citing "
+            f"only a HIGH chain wrongly flagged: rollup_inversions="
+            f"{p21_highonly_rec['rollup_inversions']!r}, rollups_checked="
+            f"{p21_highonly_rec['rollups_checked']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P22) anti-masking: a roll-up naming no chain is unpairable, never
+    # silently read as zero-checked-and-clean; an off-vocabulary roll-up
+    # word is unparsed, never counted checked; a Confidence line inside a
+    # fenced §6 code block is ignored entirely, not even counted unparsed;
+    # a §4-only document (no §6 Confidence line at all) reads
+    # rollups_checked=0.
+    p22_nochain_doc = _confidence_test_doc_s6(
+        "### Chain C1 — first\n\n"
+        "GT-1 → intermediate → conclusion one.\n\n"
+        "**Confidence: MEDIUM**",
+        "**Recommended approach:** names no chain at all.\n\n"
+        "**Confidence:** HIGH",
+    )
+    p22_nochain_rec = detect_defects(p22_nochain_doc, "rollup-p22-nochain")
+    if (
+        p22_nochain_rec["rollups_checked"] != 0
+        or len(p22_nochain_rec["_rollup_unpairable"]) != 1
+        or p22_nochain_rec["rollup_inversions"] != 0
+    ):
+        print(
+            f"self-test FAIL: defects rollup (P22) a roll-up naming no "
+            f"chain expected rollups_checked=0, one _rollup_unpairable "
+            f"entry, rollup_inversions=0, got rollups_checked="
+            f"{p22_nochain_rec['rollups_checked']!r}, _rollup_unpairable="
+            f"{p22_nochain_rec['_rollup_unpairable']!r}, rollup_inversions="
+            f"{p22_nochain_rec['rollup_inversions']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p22_offvocab_doc = _confidence_test_doc_s6(
+        "### Chain C1 — first\n\n"
+        "GT-1 → intermediate → conclusion one.\n\n"
+        "**Confidence: MEDIUM**",
+        "**Recommended approach:** the roll-up conclusion.\n\n"
+        "**Confidence:** (chains C1) SURE",
+    )
+    p22_offvocab_rec = detect_defects(p22_offvocab_doc, "rollup-p22-offvocab")
+    if (
+        len(p22_offvocab_rec["_rollup_unparsed"]) != 1
+        or p22_offvocab_rec["rollups_checked"] != 0
+    ):
+        print(
+            f"self-test FAIL: defects rollup (P22) an off-vocabulary "
+            f"roll-up word expected one _rollup_unparsed entry, "
+            f"rollups_checked=0, got _rollup_unparsed="
+            f"{p22_offvocab_rec['_rollup_unparsed']!r}, rollups_checked="
+            f"{p22_offvocab_rec['rollups_checked']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p22_fenced_doc = _confidence_test_doc_s6(
+        "### Chain C1 — first\n\n"
+        "GT-1 → intermediate → conclusion one.\n\n"
+        "**Confidence: MEDIUM**",
+        "**Recommended approach:** the roll-up conclusion.\n\n"
+        "```text\n"
+        "**Confidence:** (chains C1) HIGH\n"
+        "```",
+    )
+    p22_fenced_rec = detect_defects(p22_fenced_doc, "rollup-p22-fenced")
+    if (
+        p22_fenced_rec["rollups_checked"] != 0
+        or len(p22_fenced_rec["_rollup_unpairable"]) != 0
+        or len(p22_fenced_rec["_rollup_unparsed"]) != 0
+    ):
+        print(
+            f"self-test FAIL: defects rollup (P22) a fenced §6 Confidence "
+            f"line was wrongly read: rollups_checked="
+            f"{p22_fenced_rec['rollups_checked']!r}, _rollup_unpairable="
+            f"{p22_fenced_rec['_rollup_unpairable']!r}, _rollup_unparsed="
+            f"{p22_fenced_rec['_rollup_unparsed']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p22_s4only_rec = detect_defects(p1_doc, "rollup-p22-s4only")
+    if p22_s4only_rec["rollups_checked"] != 0:
+        print(
+            f"self-test FAIL: defects rollup (P22) a §4-only document "
+            f"expected rollups_checked=0, got "
+            f"{p22_s4only_rec['rollups_checked']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P23) end to end (D-05): a Rigorous Criterion 5 verdict next to a
+    # trip-case roll-up inversion reconciles into a criterion-5 selfaudit_
+    # disagreement contradicted_by "rollup_inversions"; a conceded Sound
+    # band does not. Plus P7 discipline extended to the roll-up pair: each
+    # emitted count equals the length of its own audit list, on the same
+    # trip record.
+    p23_rigorous_rec = detect_defects(
+        p20_doc + p8_selfaudit.format(band="Rigorous"), "rollup-p23-rigorous"
+    )
+    if (
+        p23_rigorous_rec["selfaudit_disagreements"] != 1
+        or p23_rigorous_rec["_selfaudit_disagreements"][0]["criterion"] != 5
+        or p23_rigorous_rec["_selfaudit_disagreements"][0]["contradicted_by"]
+        != "rollup_inversions"
+    ):
+        print(
+            f"self-test FAIL: defects rollup (P23) a Rigorous Criterion 5 "
+            f"next to a roll-up inversion did not reconcile: "
+            f"selfaudit_disagreements={p23_rigorous_rec['selfaudit_disagreements']!r}, "
+            f"_selfaudit_disagreements={p23_rigorous_rec['_selfaudit_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p23_sound_rec = detect_defects(
+        p20_doc + p8_selfaudit.format(band="Sound"), "rollup-p23-sound"
+    )
+    if p23_sound_rec["selfaudit_disagreements"] != 0:
+        print(
+            f"self-test FAIL: defects rollup (P23) a conceded Sound "
+            f"Criterion 5 band wrongly reconciled: selfaudit_disagreements="
+            f"{p23_sound_rec['selfaudit_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    if p20_rec["rollups_checked"] != len(p20_rec["_rollups_checked"]) or p20_rec[
+        "rollup_inversions"
+    ] != len(p20_rec["_rollup_inversions"]):
+        print(
+            f"self-test FAIL: defects rollup (P23) rollups_checked="
+            f"{p20_rec['rollups_checked']!r} disagrees with "
+            f"len(_rollups_checked)={len(p20_rec['_rollups_checked'])}, or "
+            f"rollup_inversions={p20_rec['rollup_inversions']!r} disagrees "
+            f"with len(_rollup_inversions)={len(p20_rec['_rollup_inversions'])}",
             file=sys.stderr,
         )
         ok = False
