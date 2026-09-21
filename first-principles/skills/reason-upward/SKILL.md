@@ -54,10 +54,21 @@ step or an absent-fails derivation — it states what would remove it as a cause
 stated reason no verification path exists: for an absent-fails derivation, the absent-fails
 exception, or an explicit account of why no available evidence settles that cause. The absent-fails
 exception covers a chain showing that a conclusion does not follow because an assumption it needs is
-false, and it is the only exception that can stand in for a verification path. The chain's
-`**Confidence:**` line is preceded by a `**Pre-check:**` line naming `head`, `?-marked`,
-`lowest cited` and `Inputs ceiling`, fields separated by ` · `, and the label never sits above the
-`Inputs ceiling`.
+false, and it is the only exception that can stand in for a verification path. Directly above every
+`**Confidence:**` line, write one `**Pre-check:**` line naming `head` (every head identifier, each
+`Cn` with its own band), `?-marked` (the `?` identifiers on `head`, or `none`), `lowest cited` (the
+lowest `Cn` band in `head`, or `none`) and `Inputs ceiling` (LOW if a cited chain is LOW, else
+MEDIUM if anything is `?`-marked or a cited chain is MEDIUM, else HIGH), fields separated by ` · `;
+the label never sits above that ceiling. The Conclusion's `**Confidence:**` line gets a pre-check
+too, its `head` being the chains it rests on.
+
+`head` is followed by a space and no colon; `?-marked`, `lowest cited` and `Inputs ceiling` each
+carry a colon, as in this worked pair:
+
+```text
+**Pre-check:** head GT-1, GT-3?, C2 (MEDIUM) · ?-marked: GT-3? · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
+**Confidence:** MEDIUM — GT-3? is unverified; …
+```
 
 **Chain form:**
 
