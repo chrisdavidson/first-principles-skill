@@ -6378,7 +6378,11 @@ def _selftest_defects() -> bool:
     line plus precedence when line 0 itself carries a band, (P12) the two
     inline line-0 shapes, and (P13) the anti-overreach half — a caveat gloss,
     a "Confidence caveat:" near-miss, and the unfilled placeholder must all
-    still return `None`.
+    still return `None`. Control (P14) (R-50-01,
+    docs/v9.6-instrument-rederivation.md §2.2 INSTR-02 C-02-4) runs
+    `run_detect_defects` itself, not `detect_defects` directly, over a real
+    two-file fixture directory, asserting one TSV data row per input file in
+    sorted-filename order, each keyed by that file's own stem.
     """
     ok = True
 
@@ -7023,6 +7027,63 @@ Nothing material here.
             file=sys.stderr,
         )
         ok = False
+
+    # (P14) R-50-01 (docs/v9.6-instrument-rederivation.md §2.2, INSTR-02
+    # C-02-4): every (P1)-(P13) control above calls `detect_defects` directly
+    # on one in-memory document; none calls `run_detect_defects` itself, so
+    # nothing proves the directory-glob, one-row-per-file, filename-keyed
+    # behaviour the clause names. This control runs `run_detect_defects` over
+    # a real two-file fixture directory and asserts the written TSV carries
+    # exactly one data row per input file, in sorted-filename order, each
+    # keyed by that file's own stem -- not merged, not mis-keyed.
+    p14_tmp = Path(tempfile.mkdtemp(prefix="qh-selftest-rundefects-"))
+    try:
+        (p14_tmp / "alpha-capture.md").write_text(
+            _confidence_test_doc(
+                "**C1 — fixture chain one** *(HIGH)*\n\n"
+                "GT-1 → intermediate one → conclusion one."
+            ),
+            encoding="utf-8",
+        )
+        (p14_tmp / "beta-capture.md").write_text(
+            _confidence_test_doc(
+                "**C1 — fixture chain one** *(MEDIUM)*\n\n"
+                "GT-2 → intermediate one → conclusion one."
+            ),
+            encoding="utf-8",
+        )
+        p14_out = p14_tmp / "defect-incidence.tsv"
+        run_detect_defects(p14_tmp, p14_out)
+        p14_lines = p14_out.read_text(encoding="utf-8").splitlines()
+        p14_header = p14_lines[0].split("\t") if p14_lines else []
+        p14_data_rows = [line.split("\t") for line in p14_lines[1:]]
+        if p14_header != list(_DEFECT_RECORD_FIELDS):
+            print(
+                f"self-test FAIL: defects run_detect_defects (P14) header "
+                f"mismatch, got {p14_header!r}",
+                file=sys.stderr,
+            )
+            ok = False
+        elif len(p14_data_rows) != 2:
+            print(
+                f"self-test FAIL: defects run_detect_defects (P14) expected "
+                f"exactly 2 data rows for 2 input files, got "
+                f"{len(p14_data_rows)!r}: {p14_data_rows!r}",
+                file=sys.stderr,
+            )
+            ok = False
+        else:
+            p14_ids = [row[0] for row in p14_data_rows]
+            if p14_ids != ["alpha-capture", "beta-capture"]:
+                print(
+                    f"self-test FAIL: defects run_detect_defects (P14) "
+                    f"expected rows keyed ['alpha-capture', 'beta-capture'] "
+                    f"in sorted-filename order, got {p14_ids!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+    finally:
+        shutil.rmtree(p14_tmp, ignore_errors=True)
 
     return ok
 
