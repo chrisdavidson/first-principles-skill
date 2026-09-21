@@ -43,7 +43,10 @@ step or an absent-fails derivation — it states what would remove it as a cause
 stated reason no verification path exists: for an absent-fails derivation, the absent-fails
 exception, or an explicit account of why no available evidence settles that cause. The absent-fails
 exception covers a chain showing that a conclusion does not follow because an assumption it needs is
-false, and it is the only exception that can stand in for a verification path.
+false, and it is the only exception that can stand in for a verification path. The chain's
+`**Confidence:**` line is preceded by a `**Pre-check:**` line naming `head`, `?-marked`,
+`lowest cited` and `Inputs ceiling`, fields separated by ` · `, and the label never sits above the
+`Inputs ceiling`.
 
 **Chain form:**
 

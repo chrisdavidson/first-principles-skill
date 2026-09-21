@@ -349,12 +349,24 @@ The Rivals axis is answered when a section 5 entry names a competing conclusion 
 
 **The caps are consequences, not extra rules.** The unverified-input rule (D-07) below and the ceiling at the lowest-rated chain a head cites are what the Inputs axis says, restated for the two cases that occur most often; they are the fast check, and these definitions are what they check for. A cap never licenses a band on its own — it bounds from above, and the band is still the lowest any of the three axes licenses.
 
+**Confidence pre-check (Inputs axis).** Directly above every `**Confidence:**` line — each §4 chain's and the §6 Conclusion's — write one `**Pre-check:**` line, with nothing between it and the `**Confidence:**` line it checks:
+
+```text
+**Pre-check:** head GT-1, GT-3?, C2 (MEDIUM) · ?-marked: GT-3? · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
+**Confidence:** MEDIUM — GT-3? is unverified; …
+```
+
+Four fields, separated by ` · `: `head` lists every identifier on the chain's head line (the part before the first `→`), in order, comma-separated, a `?` suffix kept (`GT-3?`), each `Cn` followed by its own stated band in parentheses (`C2 (MEDIUM)`) — for the §6 roll-up, `head` is every chain the Conclusion rests on, each with its band, plus any `GT-N?` the Conclusion rests on directly. `?-marked` lists the `?`-suffixed identifiers from `head`, comma-separated, or the token `none`. `lowest cited` is the lowest band among the `Cn` in `head`, or `none` when `head` cites no chain. `Inputs ceiling` is the Inputs axis's bound: `LOW` if `lowest cited` is LOW; otherwise `MEDIUM` if `?-marked` is not `none` or `lowest cited` is MEDIUM; otherwise `HIGH`.
+
+This is the Inputs axis of "Confidence levels, defined" made procedural — Inference and Rivals are not scored on this line, and can only lower the band further. The ceiling bounds from above, as the caps-are-consequences paragraph above states; the `**Confidence:**` label may equal it or sit below it, and never above it — a below-ceiling label is explained by the Confidence line itself, not by the pre-check. In §6, the pre-check line is itself a Conclusion-section claim under the Claim inventory rule below, and it is cited by the chains its own `head` names.
+
 ### Conclusion C1: [Conclusion text]
 
 GT-N ([brief fact label, source]) + GT-M ([brief fact label, source])
 → [intermediate claim — a new inference statable from combining GT-N and GT-M but from neither alone]
 → [conclusion — the claim this chain establishes]
 
+**Pre-check:** head [every head identifier; each Cn with its band, e.g. C2 (MEDIUM)] · ?-marked: [the GT-N? identifiers, or none] · lowest cited: [lowest Cn band, or none] · Inputs ceiling: [HIGH / MEDIUM / LOW]
 **Confidence:** [HIGH / MEDIUM / LOW]
 [If MEDIUM or LOW: name each GT-N? input with the verification that would remove it as a cause of the downgrade; name each Cn on this chain's head rated below HIGH, which need not be re-explained here; and give each downgrade cause belonging to this chain itself — for example a weak inference step or an absent-fails derivation — with what would remove it as a cause of the downgrade or a stated reason no verification path exists (the validation-rubric absent-fails EXCEPT clause, for an absent-fails derivation, or an explicit account of why no available evidence settles that cause).]
 
@@ -392,6 +404,7 @@ Summarize the analysis result. The Conclusion section synthesizes what the Deriv
 
 **Trade-offs acknowledged:** [What is being accepted, deprioritized, or deferred as a result of this recommendation. No recommendation is free of trade-offs.]
 
+**Pre-check:** head [each chain the Conclusion rests on with its band, e.g. C1 (MEDIUM), C3 (HIGH); plus any GT-N? it rests on directly] · ?-marked: [ids, or none] · lowest cited: [lowest band, or none] · Inputs ceiling: [HIGH / MEDIUM / LOW]
 **Confidence:** [HIGH / MEDIUM / LOW]
 
 If Confidence is MEDIUM or LOW: name each chain contributing to the Conclusion that is rated below HIGH, and each `GT-N?` input the Conclusion rests on directly with the verification that would remove it as a cause of the downgrade. The line need not restate a named chain's verification path or no-path reason; the named chain's own §4 confidence line carries it. Give any downgrade cause belonging to the Conclusion itself with what would remove it as a cause of the downgrade or a stated reason no verification path exists, as §4 defines. A MEDIUM or LOW conclusion without this explanation does not satisfy D-07.

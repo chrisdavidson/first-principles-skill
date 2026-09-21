@@ -7268,13 +7268,20 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
             "GT-N ([brief fact label, source]) + GT-M ([brief fact label, source])\n"
             "→ [intermediate claim — a new inference statable from combining "
             "GT-N and GT-M but from neither alone]\n"
-            "→ [conclusion — the claim this chain establishes]"
+            "→ [conclusion — the claim this chain establishes]\n"
+            "\n"
+            "**Pre-check:** head [every head identifier; each Cn with its band, "
+            "e.g. C2 (MEDIUM)] · ?-marked: [the GT-N? identifiers, or none] · "
+            "lowest cited: [lowest Cn band, or none] · Inputs ceiling: "
+            "[HIGH / MEDIUM / LOW]"
         ),
         expected=True,
         owner="DETECT-03",
         source=(
-            "output-template.md lines 133-137, verbatim — the template's own "
-            "canonical worked example (criterion 3). Guarded by DETECT-06 "
+            "output-template.md lines 361-367, verbatim — the template's own "
+            "canonical worked example (criterion 3), including the OBS-01 "
+            "(Phase 52) confidence pre-check line the template now shows "
+            "directly above the chain's Confidence line. Guarded by DETECT-06 "
             "(Phase 187) runtime extraction (habitat mode heading-block), "
             "which checks this literal against the live template at "
             "self-test time rather than trusting it as a static copy."

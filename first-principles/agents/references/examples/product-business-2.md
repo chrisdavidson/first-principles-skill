@@ -97,6 +97,7 @@ GT-2 (three top-ten accounts cite reporting limitations as renewal risk) + GT-3 
 → The reporting-rewrite value chain rests on a named, signed, quantified customer commitment with a contractually-observable falsification trigger (expansion order signed or not by quarter-end); the Slack-side value chain rests on GT-1's inbound request volume plus GT-5?'s unmeasured retention hypothesis, neither of which is contractually anchored
 → At equivalent engineering cost (GT-4), the reporting rewrite returns a defined, verifiable $180K expansion ARR plus reduced renewal risk on two other named top-ten accounts; the Slack integration returns a hypothesized retention and acquisition uplift with no instrumented anchor
 
+**Pre-check:** head GT-2, GT-3 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
 **Confidence:** MEDIUM. The downgrade is driven by GT-5? (Slack-side retention
 and acquisition magnitudes are unmeasured). Raising the Slack-side case to a
 comparable level would require either (a) a churn-survey reason code
@@ -124,6 +125,7 @@ GT-5? (Slack-side retention and acquisition effects unmeasured) + GT-4 (capacity
 → The decision is contingent on the Slack-side evidence story remaining anecdotal; if before planning lock the churn-survey instrument is re-coded and surfaces a Slack-attributed reason code on a material fraction of exits, or if a win/loss audit isolates Slack-integration absence as a deal-deciding factor on multiple lost deals, the Slack candidate gains the kind of contractual-equivalent evidence the reporting candidate has
 → Until that evidence appears, the reporting rewrite dominates on verified-value-per-engineer-quarter; if it appears, the analysis must be re-run with the new GT promoted from GT-5? to a verified GT
 
+**Pre-check:** head GT-5?, GT-4 · ?-marked: GT-5? · lowest cited: none · Inputs ceiling: MEDIUM
 **Confidence:** MEDIUM. The downgrade is again driven by GT-5?; the chain's
 own conclusion is that the recommendation is conditional on GT-5?'s
 verification status.
@@ -207,6 +209,7 @@ instrumentation work named above; if that work slips, the Slack
 candidate stays in the same evidence position next planning cycle and
 the deferral compounds.
 
+**Pre-check:** head C1 (MEDIUM), C3 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
 **Confidence:** (chains C1 and C3) MEDIUM. The downgrade is driven by GT-5? (Slack-side
 retention and acquisition magnitudes are unmeasured) and by the
 challenged methodology assumption on cost estimation (top-down estimates
