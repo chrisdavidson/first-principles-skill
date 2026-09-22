@@ -68,7 +68,7 @@ Before scoring either criterion, confirm the block `## Self-audit scan (process 
 | [span, brief] | [bold lead-in / list item / prose] | [yes / no] | [clause applied] | [chain id or "none — untraced" or "n/a"] |
 | [span, brief] | [bold lead-in / list item / prose] | [yes / no] | [clause applied] | [chain id or "none — untraced" or "n/a"] |
 
-Neither table's columns reach every limb its criterion bands on: Criterion 4 also bands on the Abandoned Reasoning section, the no-analogies-as-direct-evidence ban and a missing `[Assumes: X]` declaration, and Criterion 6 also bands on whether the Key Insight is a restatement of the recommended approach — none of which either table carries a column for. For those limbs the criterion quotes the analysis text directly; the scan is quoted only where the band is determined by what its columns cover.
+Neither table's columns reach every limb its criterion bands on: Criterion 4 also bands on the Abandoned Reasoning section, the no-analogies-as-direct-evidence ban, a missing `[Assumes: X]` declaration and hop validity and arithmetic, and Criterion 6 also bands on whether the Key Insight is a restatement of the recommended approach — none of which either table carries a column for. For those limbs the criterion quotes the analysis text directly; the scan is quoted only where the band is determined by what its columns cover.
 
 The §6→§4 closure ledger is not admissible as Criterion 4 or Criterion 6 evidence: it is a drafting artifact that ran before the Fix/Repeat loop, and the scan derives its rows from the emitted text of sections 4 and 6 without consulting it.
 
@@ -363,10 +363,9 @@ what the analysis did, not against how well-formed the citation looks.
 Scores **both** the **Derivation Chains** (output section 4) — one chain per conclusion,
 formatted as `GT-N + GT-M → [intermediate claim] → [conclusion]` with at least one
 intermediate step — **and** the **Abandoned Reasoning** section (output section 5).
-Both sections are in scope for this criterion. Quoted span: where the band is determined by chain form or chain dependency, it must be drawn from the self-audit scan's chain-form table row or rows that determine the band, not from the Derivation Chains prose directly. Where the band is determined by the Abandoned Reasoning section, the no-analogies-as-direct-evidence ban, or a missing `[Assumes: X]` declaration — none of which the chain-form table carries a column for — quote the analysis text directly. Folds in:
-dead-end honesty
-and the no-analogies-as-direct-evidence ban (D-07), and escape-valve policing for Abandoned
-Reasoning (D-03). The one-line form is the degenerate case, used only when the whole chain fits on one physical line; a chain that does not fit uses the head-plus-arrow-led form, and a hop is split rather than continued on a second line.
+Both sections are in scope for this criterion. Quoted span: where the band is determined by chain form or chain dependency, it must be drawn from the self-audit scan's chain-form table row or rows that determine the band, not from the Derivation Chains prose directly. Where the band is determined by the Abandoned Reasoning section, the no-analogies-as-direct-evidence ban, a missing `[Assumes: X]` declaration, or hop validity and arithmetic — none of which the chain-form table carries a column for — quote the analysis text directly. Folds in:
+dead-end honesty, the no-analogies-as-direct-evidence ban (D-07), escape-valve policing for Abandoned
+Reasoning (D-03), and hop validity and arithmetic. The one-line form is the degenerate case, used only when the whole chain fits on one physical line; a chain that does not fit uses the head-plus-arrow-led form, and a hop is split rather than continued on a second line.
 
 - **Rigorous** — every conclusion stated anywhere in the document (in section 4 or section 6)
   has exactly one derivation chain in section 4; each chain names the inputs it consumes — ground truths, upstream conclusions, or both — in the prescribed head form (`GT-1? ([brief fact label]) + C2 ([brief fact label])`),
@@ -380,7 +379,16 @@ Reasoning (D-03). The one-line form is the degenerate case, used only when the w
   in a named GT about their situation, not offered as standalone justification);
   each chain step that introduces an assumption not already in the Assumptions Table
   declares that assumption inline using `[Assumes: X]` appended to the step text —
-  a reviewer applies this check by scanning each chain step for the `[Assumes:` token.
+  a reviewer applies this check by scanning each chain step for the `[Assumes:` token;
+  and every hop the endpoint depends on follows from the line above it by deduction, by
+  arithmetic that recomputes when redone independently of the chain text, or by a regularity
+  cited to an unsuffixed ground truth — the test `output-template.md` states for the HIGH
+  band under "Confidence levels, defined", shared here rather than restated. A hop that
+  follows once the `[Assumes: X]` premise declared on that hop is granted counts as following
+  for this criterion — whether that premise is priced is Criterion 5's Inference axis, and a
+  missing declaration is already this criterion's own `[Assumes: X]` limb above; a hop citing
+  a regularity to a `GT-N?` ground truth is an Inputs-axis matter Criterion 3/5 scores, not a
+  failure to follow.
 
 - **Sound** — chains exist for all conclusions, but one or more chains lack a genuine
   intermediate step (the chain goes directly from its head inputs to conclusion, or the stated
@@ -393,7 +401,9 @@ Reasoning (D-03). The one-line form is the degenerate case, used only when the w
   one or more chains render their hops as an ordered list (`1.`, `2.`, `3.`) instead of the
   prescribed arrow-led hop form, OR break a single hop across physical lines rather than
   splitting it into two hops, which splits one chain into disconnected
-  fragments even where every hop is individually sound — **this clause is why the criterion
+  fragments even where every hop is individually sound; OR a hop fails to follow, or its
+  arithmetic does not recompute, where the endpoint does not depend on that hop or the error
+  does not change the endpoint — **this clause is why the criterion
   cannot be scored on reasoning quality alone.** A chain that names its inputs, carries a
   genuine intermediate and reaches a conclusion satisfies every other Rigorous requirement
   while still failing the prescribed form; scoring only the semantics is what lets a
@@ -404,7 +414,11 @@ Reasoning (D-03). The one-line form is the degenerate case, used only when the w
   ("others have solved it this way," "industry standard is X") without grounding in a named
   GT about that other situation; OR the Abandoned Reasoning section uses the honest-depth
   escape valve with a reason that is generic and would apply equally to any analysis (e.g.,
-  "no dead ends were encountered," "all reasoning paths worked").
+  "no dead ends were encountered," "all reasoning paths worked"); OR a hop the endpoint
+  depends on does not follow (a non-sequitur), or an arithmetic error changes the conclusion —
+  **this clause is why the criterion cannot be scored on form alone either.** A chain can name
+  its inputs, carry a genuine intermediate, render every hop in the prescribed form and reach
+  a conclusion while a hop the endpoint depends on does not follow.
 
 - **Absent** — no derivation chains exist in the document; OR the Derivation Chains section
   is absent or empty; OR conclusions appear in section 6 with no corresponding chains in
@@ -453,10 +467,13 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
   satisfying evidence, and the chain may remain MEDIUM because it establishes what does not
   follow rather than what does.
 
-  The adversarial pass Phase 5 prescribes has run and its record is complete: a premise stated
-  in the past tense, an unfiltered cause list written before any grouping, clusters each naming
-  the chain ids or ground-truth ids the weakness bears on, and per cluster a named plan change
-  or an explicitly accepted risk with a named mitigation. Each structural weakness the pass
+  The adversarial pass Phase 5 prescribes has run and its record is complete: each computed
+  figure's recompute, the sensitivity ground truth and whether it is `?`-marked, the rival and
+  where it is ruled out or carried live, a premise stated in the past tense, an unfiltered
+  cause list written before any grouping, clusters each naming the chain ids or ground-truth
+  ids the weakness bears on, per cluster a named plan change or an explicitly accepted risk
+  with a named mitigation, and the falsification condition — each part present or carrying its
+  step's not-applicable line. Each structural weakness the pass
   returned has landed somewhere a reader can find it — as a named weak link on a chain, or as
   an explicit confidence caveat on the conclusion it threatens. An analysis whose conclusion is
   neither a plan nor a claim satisfies this by carrying the `adversarial pass not applicable —

@@ -529,9 +529,10 @@ _RUBRIC_QUOTED_SPAN_C4 = (
 )
 _RUBRIC_QUOTED_SPAN_C4_DIRECT = (
     "Where the band is determined by the Abandoned Reasoning section, the "
-    "no-analogies-as-direct-evidence ban, or a missing `[Assumes: X]` "
-    "declaration — none of which the chain-form table carries a column for "
-    "— quote the analysis text directly."
+    "no-analogies-as-direct-evidence ban, a missing `[Assumes: X]` "
+    "declaration, or hop validity and arithmetic — none of which the "
+    "chain-form table carries a column for — quote the analysis text "
+    "directly."
 )
 _RUBRIC_QUOTED_SPAN_C6 = (
     "Quoted span: where the band is determined by whether a section-6 "
@@ -601,12 +602,13 @@ _RUBRIC_C2_AA_ARTIFACT = (
 _TABLE_COVERAGE_BOUND = (
     "Neither table's columns reach every limb its criterion bands on: "
     "Criterion 4 also bands on the Abandoned Reasoning section, the "
-    "no-analogies-as-direct-evidence ban and a missing `[Assumes: X]` "
-    "declaration, and Criterion 6 also bands on whether the Key Insight "
-    "is a restatement of the recommended approach — none of which either "
-    "table carries a column for. For those limbs the criterion quotes the "
-    "analysis text directly; the scan is quoted only where the band is "
-    "determined by what its columns cover."
+    "no-analogies-as-direct-evidence ban, a missing `[Assumes: X]` "
+    "declaration and hop validity and arithmetic, and Criterion 6 also "
+    "bands on whether the Key Insight is a restatement of the recommended "
+    "approach — none of which either table carries a column for. For "
+    "those limbs the criterion quotes the analysis text directly; the "
+    "scan is quoted only where the band is determined by what its "
+    "columns cover."
 )
 _RUBRIC_HALT_SENTENCE = "Do not proceed to verdict blocks until this is confirmed."
 _BAND_RIGOROUS = "- **Rigorous**"
