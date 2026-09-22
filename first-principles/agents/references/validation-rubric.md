@@ -404,8 +404,11 @@ Reasoning (D-03), and hop validity and arithmetic. The one-line form is the dege
   prescribed arrow-led hop form, OR break a single hop across physical lines rather than
   splitting it into two hops, which splits one chain into disconnected
   fragments even where every hop is individually sound; OR a hop fails to follow, or its
-  arithmetic does not recompute, where the endpoint does not depend on that hop or the error
-  does not change the endpoint — **this clause is why the criterion
+  arithmetic does not recompute, where the endpoint does not depend on that hop; OR a hop the
+  endpoint depends on carries an arithmetic error that leaves the endpoint unchanged — the
+  only case of a hop the endpoint depends on that this band admits, and it covers arithmetic
+  only: a hop the endpoint depends on that does not follow by deduction or cited regularity is
+  Hand-wavy, whatever the grader judges its effect on the endpoint — **this clause is why the criterion
   cannot be scored on reasoning quality alone.** A chain that names its inputs, carries a
   genuine intermediate and reaches a conclusion satisfies every other Rigorous requirement
   while still failing the prescribed form; scoring only the semantics is what lets a
@@ -417,8 +420,10 @@ Reasoning (D-03), and hop validity and arithmetic. The one-line form is the dege
   GT about that other situation; OR the Abandoned Reasoning section uses the honest-depth
   escape valve with a reason that is generic and would apply equally to any analysis (e.g.,
   "no dead ends were encountered," "all reasoning paths worked"); OR a hop the endpoint
-  depends on does not follow (a non-sequitur), or an arithmetic error changes the conclusion —
-  **this clause is why the criterion cannot be scored on form alone either.** A chain can name
+  depends on does not follow by deduction or cited regularity (a non-sequitur), or an
+  arithmetic error changes the endpoint; an arithmetic error that leaves the endpoint unchanged
+  is the Sound clause above, not this one — **this clause is why the criterion cannot be scored
+  on form alone either.** A chain can name
   its inputs, carry a genuine intermediate, render every hop in the prescribed form and reach
   a conclusion while a hop the endpoint depends on does not follow.
 
