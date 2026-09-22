@@ -3494,15 +3494,17 @@ def _control_partial_row_not_dropped() -> None:
 def _control_agreement_field_scope() -> None:
     # D-06a widened this from 15 to 17; Phase 41 (999.120) H1 widened it again, 17 to 21;
     # H3 widens it a third time, 21 to 23; Phase 52 (OBS-02, D-04) widens it a fourth time,
-    # 23 to 26; Phase 52 residue R-52-01 (D-03) widens it a fifth time, 26 to 28:
-    # confirming (not assuming) that appending the four H1 confidence columns, then the two
-    # H3 band-census columns, then the three Phase 52 pre-check columns, then the two Phase
-    # 52 residue R-52-01 roll-up columns, after `provenance_flag` lands them in
-    # MEASURED_SCHEMA_FIELDS via the name-range derivation above, not silently excluded or
-    # folded into PROVENANCE_FIELDS. The arithmetic is 12 (pre-existing measured schema
-    # fields) + 4 (H1 columns) + 2 (H3 columns) + 3 (Phase 52 OBS-02 pre-check columns)
-    # + 2 (Phase 52 residue R-52-01 roll-up columns) + 5 (report-added columns) = 28.
-    assert len(AGREEMENT_FIELDS) == 28, len(AGREEMENT_FIELDS)
+    # 23 to 26; Phase 52 residue R-52-01 (D-03) widens it a fifth time, 26 to 28; Phase 53
+    # (OBS-03, D-01/D-02) widens it a sixth time, 28 to 31: confirming (not assuming) that
+    # appending the four H1 confidence columns, then the two H3 band-census columns, then
+    # the three Phase 52 pre-check columns, then the two Phase 52 residue R-52-01 roll-up
+    # columns, then the three Phase 53 hop-arithmetic columns, after `provenance_flag`
+    # lands them in MEASURED_SCHEMA_FIELDS via the name-range derivation above, not
+    # silently excluded or folded into PROVENANCE_FIELDS. The arithmetic is 12
+    # (pre-existing measured schema fields) + 4 (H1 columns) + 2 (H3 columns) + 3 (Phase 52
+    # OBS-02 pre-check columns) + 2 (Phase 52 residue R-52-01 roll-up columns) + 3 (Phase 53
+    # OBS-03 hop-arithmetic columns) + 5 (report-added columns) = 31.
+    assert len(AGREEMENT_FIELDS) == 31, len(AGREEMENT_FIELDS)
     assert "analysis_id" not in AGREEMENT_FIELDS
     for field in PROVENANCE_FIELDS:
         assert field not in AGREEMENT_FIELDS, field
@@ -3526,7 +3528,8 @@ def _control_agreement_field_scope() -> None:
                   "selfaudit_bands_parsed", "selfaudit_offvocab_bands",
                   "prechecks_parsed", "precheck_unparsed",
                   "precheck_disagreements", "rollups_checked",
-                  "rollup_inversions"):
+                  "rollup_inversions", "hop_arithmetic_checked",
+                  "hop_arithmetic_unparsed", "hop_arithmetic_mismatches"):
         assert field in MEASURED_SCHEMA_FIELDS, field
         assert field not in PROVENANCE_FIELDS, field
 

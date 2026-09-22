@@ -115,6 +115,7 @@ import hashlib
 import inspect
 import io
 import json
+import math
 import random
 import re
 import shutil
@@ -5478,6 +5479,15 @@ _DEFECT_RECORD_FIELDS = (
     # §4-only `chain_ids`/`blocks` (docs/v9.6-instrument-rederivation.md §7).
     "rollups_checked",
     "rollup_inversions",
+    # Phase 53 (OBS-03, D-01/D-02): three more appended, same discipline —
+    # `read_defect_incidence` maps by header name, so every committed
+    # narrower file keeps parsing. `hop_arithmetic_checked`/`hop_arithmetic_
+    # unparsed` are parse-accounting companions (INSTR-01);
+    # `hop_arithmetic_mismatches` is the D-01 defect column and the only
+    # one of the three entering `_SELFAUDIT_CONTRADICTIONS`.
+    "hop_arithmetic_checked",
+    "hop_arithmetic_unparsed",
+    "hop_arithmetic_mismatches",
 )
 
 
@@ -6091,6 +6101,306 @@ def _rollup_inversion_defects(
     }
 
 
+# --- Phase 53 (OBS-03, D-01/D-02): the hop-arithmetic dimension -----------
+#
+# Criterion 4's hop-validity and arithmetic limb (53-02) requires every
+# endpoint-dependent hop's arithmetic to recompute when redone independently
+# of the chain text. This recomputes explicit BINARY arithmetic stated in a
+# §4 chain hop only (D-03) — never widening reach beyond D-02's disclosed
+# bound: a single operator, after stripping units and thousands separators,
+# with a stated `=`/`≈` tolerance. Every expression this narrow parser
+# cannot evaluate — chained/multi-operator, a percentage, an exponent or
+# parenthesised form, or division by zero — is counted as UNPARSED, never
+# silently folded into a zero mismatch count (the INSTR-01 parse-accounting
+# discipline `_precheck_defects` already applies). A genuine arithmetic
+# error that happens to be off by exactly a power of 1,000 also reads as
+# unit scale, not a defect — a disclosed miss, not a claimed catch.
+
+_HOP_CURRENCY = "$£€"
+# Number token: optional currency, digits with optional comma thousands
+# groups, optional decimal part. Bounded quantifiers only, no nested
+# repetition — the T-53-08 ReDoS discipline, `_PRECHECK_LINE_RE`'s
+# convention (patterns are applied only to <=80/<=40-character windows).
+_HOP_NUM_SRC = (
+    r"(?:[" + re.escape(_HOP_CURRENCY) + r"])?"
+    r"(?:\d{1,3}(?:,\d{3}){1,5}|\d{1,15})(?:\.\d{1,6})?"
+)
+# Unit token: at most one optional run of 1-15 characters from letters,
+# `/`, `°`, `µ`, `²`, `³`, with at most one leading space — `%` is
+# deliberately excluded (never a unit: a `%` on any operand or the result
+# makes the expression unparsed with reason "percentage", D-02).
+_HOP_UNIT_SRC = r"(?:[ \t]?[A-Za-z/°µ²³]{1,15})?"
+# Operators: the four symbolic forms (optional surrounding spaces), plus
+# ASCII `x`, `-` and `*` ONLY when flanked by required whitespace. `*` is
+# Claude's discretion (D-02 names `x`/`-`; `*` is the third ASCII
+# multiplication glyph analysts also write, and P25's own trip case needs
+# it recognised, not silently excluded from the candidate scan).
+_HOP_OP_SRC = (
+    r"(?:[ \t]*[×÷/+−][ \t]*|[ \t]x[ \t]|[ \t]-[ \t]|[ \t]\*[ \t])"
+)
+_HOP_EXPR_RE = re.compile(
+    r"(?P<num1>" + _HOP_NUM_SRC + r")" + _HOP_UNIT_SRC +
+    r"(?P<op>" + _HOP_OP_SRC + r")"
+    r"(?P<num2>" + _HOP_NUM_SRC + r")" + _HOP_UNIT_SRC + r"[ \t]*$"
+)
+_HOP_OP_AT_END_RE = re.compile(
+    r"(?:[ \t]*[×÷/+−][ \t]*|[ \t]x[ \t]|[ \t]-[ \t]|[ \t]\*[ \t])$"
+)
+# Result sign: `=` (never `==`, `<=`, `>=`, `!=`, `=>`) or `≈`.
+_HOP_RESULT_SIGN_RE = re.compile(r"(?<![=<>!])=(?![=>])|≈")
+_HOP_OPERATOR_ANYWHERE_RE = re.compile(
+    r"[×÷/+−]|[ \t]x[ \t]|[ \t]-[ \t]|[ \t]\*[ \t]"
+)
+_HOP_PERCENT_RE = re.compile(r"\d[ \t]{0,2}%")
+_HOP_EXP_PAREN_RE = re.compile(r"[()^]")
+_HOP_LEFT_END_RE = re.compile(r"[0-9)%]$")
+_HOP_TILDE_LEAD_RE = re.compile(r"^[ \t]{0,3}~")
+_HOP_TRAILING_UNIT_RE = re.compile(r"(?:[ \t]?[A-Za-z/°µ²³]{1,15})$")
+_HOP_RIGHT_NUM_RE = re.compile(_HOP_NUM_SRC)
+
+
+def _hop_strip_trailing_unit(text: str) -> str:
+    """Strip at most one trailing unit token, only when it follows a number.
+
+    Never strips a trailing run of letters that is not itself preceded by a
+    digit, `)`, `%` or currency — a hop ending in an ordinary word (e.g.
+    "burn is") must not be misread as ending in a unit.
+    """
+    m = _HOP_TRAILING_UNIT_RE.search(text)
+    if m is None:
+        return text
+    prefix = text[: m.start()]
+    if prefix and (prefix[-1].isdigit() or prefix[-1] in ")%" + _HOP_CURRENCY):
+        return prefix
+    return text
+
+
+def _hop_parse_num(text: str) -> float:
+    cleaned = text.strip()
+    if cleaned[:1] in _HOP_CURRENCY:
+        cleaned = cleaned[1:]
+    return float(cleaned.replace(",", ""))
+
+
+def _hop_decimal_places(text: str) -> int:
+    m = re.search(r"\.(\d+)", text)
+    return len(m.group(1)) if m else 0
+
+
+def _hop_sig_figs(text: str) -> int:
+    digits = re.sub(r"[^0-9]", "", text).lstrip("0") or "0"
+    return max(1, len(digits))
+
+
+def _hop_round_sig_figs(value: float, sig: int) -> float:
+    if value == 0:
+        return 0.0
+    d = sig - int(math.floor(math.log10(abs(value)))) - 1
+    return round(value, d)
+
+
+def _hop_apply_op(a: float, op: str, b: float) -> float | None:
+    """Apply the (already-stripped) operator `op` to `a`, `b`.
+
+    Returns `None` to signal division by zero (`/` or `÷` with `b == 0`).
+    """
+    if op in ("×", "x", "*"):
+        return a * b
+    if op in ("÷", "/"):
+        return None if b == 0 else a / b
+    if op == "+":
+        return a + b
+    return a - b  # "−" (U+2212) or ASCII "-"
+
+
+def _hop_arithmetic_defects(blocks: list[str]) -> dict:
+    """D-01/D-02: recompute explicit binary arithmetic stated in §4 chain hops.
+
+    Scope (D-03): only text belonging to a chain hop is scanned. For each
+    unfenced line in a chain block that contains an arrow, everything up to
+    and including the first arrow (the chain's head) is dropped, and the
+    remainder is split on the arrow into per-hop segments — a head citation
+    is never read as a hop, and §3/§5/§6, a fenced §4 block, and a
+    `**Confidence:**`/`**Pre-check:**` line (neither of which contains an
+    arrow) are never reached.
+
+    Reach (D-02, the disclosed bound). A candidate is a `=`/`≈` sign whose
+    left side (<=80 characters, trailing whitespace and one trailing unit
+    token stripped) ends in a digit, `)` or `%`, whose right side begins
+    (after <=3 spaces, an optional `~`, optional currency) with a digit,
+    and whose left window carries at least one operator; a sign not meeting
+    this shape is a non-candidate and contributes nothing to any column
+    (e.g. "for ≈9 months", "η = 1 − T_cold/T_hot"). Every candidate this
+    narrow parser cannot reduce to exactly `NUM [UNIT] OP NUM [UNIT]` —
+    chained/multi-operator, a percentage, an exponent or parenthesised
+    form, or division by zero — is counted in `unparsed`, never silently
+    read as zero mismatches (INSTR-01's parse-accounting discipline). A
+    failing expression whose computed/stated ratio sits within 1% of a
+    power of 1,000 (a unit-scale conversion the stripped units cannot see)
+    is also counted `unparsed` (reason `"unit scale"`) rather than a
+    mismatch — a disclosed miss, not a claimed catch. Every other
+    candidate is counted in `checked` (both passing and failing, matching
+    `_rollup_inversion_defects`'s "checked includes the inversions" shape),
+    and a failing one is also appended to `mismatches`.
+
+    `=` passes when `|computed - stated| <= 0.5 * 10 ** -d + 1e-9 *
+    |stated|` (`d` = decimal places written in the stated result). `≈`
+    (and `=` followed by `~`) passes under the `=` rule, OR when
+    `|computed - stated| <= 0.10 * |stated|`, OR when `computed` rounded to
+    the stated result's significant figures equals it.
+
+    Returns `{"checked": [...], "unparsed": [...], "mismatches": [...]}`,
+    each a list of dicts in document order, carrying at least `expr` (the
+    stripped hop text); a `reason` for `unparsed`, `computed`/`stated` for
+    `checked`/`mismatches`.
+    """
+    checked: list[dict] = []
+    unparsed: list[dict] = []
+    mismatches: list[dict] = []
+
+    for block in blocks:
+        lines = block.split("\n")
+        fenced = _fenced_code_flags(lines)
+        for i, raw_line in enumerate(lines):
+            if fenced[i]:
+                continue
+            first = re.search(_ARROW, raw_line)
+            if first is None:
+                continue
+            after = raw_line[first.end() :]
+            for hop in re.split(_ARROW, after):
+                _hop_scan_segment(hop, checked, unparsed, mismatches)
+
+    return {"checked": checked, "unparsed": unparsed, "mismatches": mismatches}
+
+
+def _hop_scan_segment(
+    seg: str,
+    checked: list[dict],
+    unparsed: list[dict],
+    mismatches: list[dict],
+) -> None:
+    """Scan one hop segment for candidate arithmetic and classify each."""
+    expr = seg.strip()
+    for m in _HOP_RESULT_SIGN_RE.finditer(seg):
+        sign_start, sign_end = m.start(), m.end()
+        left_raw = seg[max(0, sign_start - 80) : sign_start]
+        left_stripped = left_raw.rstrip(" \t")
+        left_end_check = _hop_strip_trailing_unit(left_stripped)
+        if not left_end_check or _HOP_LEFT_END_RE.search(left_end_check) is None:
+            continue
+        if _HOP_OPERATOR_ANYWHERE_RE.search(left_raw) is None:
+            continue
+
+        after_sign = seg[sign_end : sign_end + 40]
+        is_approx = m.group(0) == "≈"
+        tilde_m = _HOP_TILDE_LEAD_RE.match(after_sign)
+        right_window = after_sign
+        if tilde_m is not None:
+            is_approx = True
+            right_window = after_sign[tilde_m.end() :]
+        right_stripped = right_window.lstrip(" \t")
+        right_nocur = (
+            right_stripped[1:]
+            if right_stripped[:1] in _HOP_CURRENCY
+            else right_stripped
+        )
+        if not right_nocur[:1].isdigit():
+            continue
+
+        # Candidate confirmed — classify. Try the structural match FIRST, anchored at the end of the (up to
+        # 80-character) left window. `.search()` finds the LATEST valid
+        # `NUM [UNIT] OP NUM [UNIT]` position, so unrelated prose or a
+        # parenthetical gloss earlier in the same window (e.g. "Applying
+        # GT-1 (5.5 PSH annual average) to ... = 1,875 Wh ÷ 5.5 PSH") never
+        # disqualifies a clean trailing expression — only content ADJACENT
+        # to the matched numbers does (checked via `prefix`/the stated-
+        # result lookahead below).
+        expr_m = _HOP_EXPR_RE.search(left_stripped)
+        if expr_m is not None:
+            prefix = left_stripped[: expr_m.start()]
+            prefix_trimmed = prefix.rstrip(" \t")
+            if _HOP_OP_AT_END_RE.search(prefix) or (
+                prefix_trimmed and prefix_trimmed[-1] in "0123456789)^"
+            ):
+                unparsed.append({"expr": expr, "reason": "chained"})
+                continue
+        else:
+            # No clean trailing expression anywhere in the window — classify
+            # the failure narrowly, over the window's own text (already
+            # bounded to <=80 characters), rather than the padded original.
+            if _HOP_PERCENT_RE.search(left_stripped):
+                unparsed.append({"expr": expr, "reason": "percentage"})
+            elif _HOP_EXP_PAREN_RE.search(left_stripped):
+                unparsed.append(
+                    {"expr": expr, "reason": "exponent or parentheses"}
+                )
+            else:
+                unparsed.append({"expr": expr, "reason": "chained"})
+            continue
+
+        try:
+            num1 = _hop_parse_num(expr_m.group("num1"))
+            num2 = _hop_parse_num(expr_m.group("num2"))
+        except ValueError:
+            unparsed.append({"expr": expr, "reason": "chained"})
+            continue
+        op = expr_m.group("op").strip()
+        computed = _hop_apply_op(num1, op, num2)
+        if computed is None:
+            unparsed.append({"expr": expr, "reason": "division by zero"})
+            continue
+
+        stated_m = _HOP_RIGHT_NUM_RE.match(right_nocur)
+        if stated_m is None:
+            unparsed.append({"expr": expr, "reason": "chained"})
+            continue
+        # The stated result's own trailing `%` disqualifies (D-02).
+        if right_nocur[stated_m.end() : stated_m.end() + 2].lstrip(" \t")[
+            :1
+        ] == "%":
+            unparsed.append({"expr": expr, "reason": "percentage"})
+            continue
+        stated_text = stated_m.group(0)
+        try:
+            stated = _hop_parse_num(stated_text)
+        except ValueError:
+            unparsed.append({"expr": expr, "reason": "chained"})
+            continue
+
+        d = _hop_decimal_places(stated_text)
+        eq_tol = 0.5 * (10**-d) + 1e-9 * abs(stated)
+        passes = abs(computed - stated) <= eq_tol
+        if is_approx and not passes:
+            if abs(computed - stated) <= 0.10 * abs(stated):
+                passes = True
+            else:
+                sig = _hop_sig_figs(stated_text)
+                if _hop_round_sig_figs(computed, sig) == _hop_round_sig_figs(
+                    stated, sig
+                ):
+                    passes = True
+
+        entry = {"expr": expr, "computed": computed, "stated": stated}
+        if passes:
+            checked.append(entry)
+            continue
+
+        if stated != 0 and computed / stated > 0:
+            ratio = computed / stated
+            for k in (1, 2, 3, -1, -2, -3):
+                target = 10 ** (3 * k)
+                if abs(ratio - target) <= 0.01 * target:
+                    unparsed.append({"expr": expr, "reason": "unit scale"})
+                    break
+            else:
+                checked.append(entry)
+                mismatches.append(entry)
+        else:
+            checked.append(entry)
+            mismatches.append(entry)
+
+
 # Self-Audit Gate verdict blocks, emitted as PROCESS output rather than as one
 # of the six template sections, so these are matched against the whole
 # analysis text and not against a slice.
@@ -6158,9 +6468,15 @@ _SELFAUDIT_TRAILING_VERDICT_RE = re.compile(
 # (OBS-02 residue R-52-01, D-03) adds `rollup_inversions`: a Criterion 5
 # Rigorous verdict over a §6 roll-up rated above its own cited §4 chains is
 # the same kind of contradiction, whether or not a pre-check was emitted.
+# Phase 53 (OBS-03, D-01) adds `hop_arithmetic_mismatches` to Criterion 4: a
+# Rigorous verdict over a §4 hop whose stated arithmetic does not recompute
+# is the same kind of contradiction as a malformed chain or a dependency
+# cycle — Criterion 4's hop-validity and arithmetic limb (53-02) makes this
+# incompatible with Rigorous, and this is what makes that incompatibility
+# measurable.
 _SELFAUDIT_CONTRADICTIONS: dict[int, tuple[str, ...]] = {
     2: ("nonconforming_verdict_cells",),
-    4: ("malformed_chain_blocks", "_dependency_cycles"),
+    4: ("malformed_chain_blocks", "_dependency_cycles", "hop_arithmetic_mismatches"),
     5: ("high_conf_unverified_head", "confidence_inversions", "precheck_disagreements", "rollup_inversions"),
     6: ("untraced_claims",),
 }
@@ -6312,6 +6628,7 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
     confidence = _confidence_defects(chain_ids, blocks)
     precheck = _precheck_defects({4: section4, 6: section6})
     rollup = _rollup_inversion_defects(section6, chain_ids, blocks)
+    hop_arith = _hop_arithmetic_defects(blocks)
     claims = _conclusion_claims(section6, chain_ids)
     ledger = _closure_ledger_fragments(section6, chain_ids)
     untraced = [
@@ -6400,6 +6717,19 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
         "_rollup_unpairable": rollup["unpairable"],
         "_rollup_unparsed": rollup["unparsed"],
     })
+    # Phase 53 (OBS-03, D-01/D-02): the hop-arithmetic dimension, computed
+    # above alongside `dependency`/`confidence`/`precheck`/`rollup`. Placed
+    # before the self-audit reconciliation call below so Task 2's widened
+    # `_SELFAUDIT_CONTRADICTIONS[4]` sees `hop_arithmetic_mismatches` in
+    # `record`.
+    record.update({
+        "hop_arithmetic_checked": len(hop_arith["checked"]),
+        "hop_arithmetic_unparsed": len(hop_arith["unparsed"]),
+        "hop_arithmetic_mismatches": len(hop_arith["mismatches"]),
+        "_hop_arithmetic_checked": hop_arith["checked"],
+        "_hop_arithmetic_unparsed": hop_arith["unparsed"],
+        "_hop_arithmetic_mismatches": hop_arith["mismatches"],
+    })
     disagreements = _selfaudit_calibration_defects(analysis_text, record)
     record["selfaudit_disagreements"] = len(disagreements)
     record["_selfaudit_disagreements"] = disagreements
@@ -6485,6 +6815,9 @@ _EXPECTED_CONFORMANT_RECORD = {
     "precheck_disagreements": 0,
     "rollups_checked": 0,
     "rollup_inversions": 0,
+    "hop_arithmetic_checked": 0,
+    "hop_arithmetic_unparsed": 0,
+    "hop_arithmetic_mismatches": 0,
 }
 _EXPECTED_DEFECTIVE_RECORD = {
     "conclusion_claims": 3,
@@ -6510,6 +6843,9 @@ _EXPECTED_DEFECTIVE_RECORD = {
     "precheck_disagreements": 0,
     "rollups_checked": 0,
     "rollup_inversions": 0,
+    "hop_arithmetic_checked": 0,
+    "hop_arithmetic_unparsed": 0,
+    "hop_arithmetic_mismatches": 0,
 }
 
 # D-19 pinned observed calibration vector: the detector's OBSERVED per-
@@ -6818,7 +7154,16 @@ def _selftest_defects() -> bool:
     (Phase 52, OBS-02 SC3, D-06 second evidence leg) reads the committed
     frozen fixture tests/precheck-rollup-v9.6/analyses/PC-ROLLUP.md and pins
     its exact defect-record reading, so the fixture's own trip cannot
-    silently regress.
+    silently regress. Controls (P25)-(P28) (Phase 53, OBS-03, D-01/D-02)
+    pin `_hop_arithmetic_defects`: (P25) trip/no-trip over the reach's
+    supported operators and tolerance rules, (P26) parse accounting over
+    every unparsed reason plus the non-candidate and no-arithmetic cases,
+    (P27) scope (D-03) — a mismatching expression trips only inside a hop,
+    never in a fenced §4 block, a chain head, a `**Confidence:**` line or
+    §6 prose, (P28) the ReDoS long-near-miss wall-clock bound (T-53-08),
+    and (P29) the end-to-end Criterion 4 join over the widened
+    `_SELFAUDIT_CONTRADICTIONS[4]`, including the committed
+    tests/hop-validity-v9.6/analyses/HV-ARITH.md fixture read end to end.
     """
     ok = True
 
@@ -8113,6 +8458,388 @@ Nothing material here.
             f"pre-check disagreement, section 6, kinds "
             f"['label_above_ceiling'], got "
             f"{p24_precheck_disagreements!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # Phase 53 (OBS-03, D-01/D-02) pins `_hop_arithmetic_defects` below:
+    # one hop per case, built via `_confidence_test_doc` so `_slice_sections`
+    # resolves each document without touching the two fixtures pinned above.
+    def _hop_doc(hop_text: str) -> str:
+        return _confidence_test_doc(
+            "### Chain C1 — fixture chain\n\n"
+            f"GT-1 + GT-2\n→ {hop_text}\n→ the recommended conclusion.\n\n"
+            "**Confidence: HIGH**"
+        )
+
+    def _hop_counts(hop_text: str) -> tuple[int, int, int]:
+        rec = detect_defects(_hop_doc(hop_text), "hop-arith")
+        return (
+            rec["hop_arithmetic_checked"],
+            rec["hop_arithmetic_unparsed"],
+            rec["hop_arithmetic_mismatches"],
+        )
+
+    # (P25) trip / no-trip.
+    p25_cases: list[tuple[str, tuple[int, int, int]]] = [
+        ("the fleet drives 40 × 150 = 6,000 km per day", (1, 0, 0)),
+        ("40 × 150 = 5,000 km", (1, 0, 1)),
+        ("1,875 Wh ÷ 5.5 PSH ≈ 341 W", (1, 0, 0)),
+        ("480 ÷ 45 ≈ 10.7", (1, 0, 0)),
+        ("3 × 7 ≈ 20", (1, 0, 0)),
+        ("3 × 7 ≈ 30", (1, 0, 1)),
+        ("1,000 / 3 = 333", (1, 0, 0)),
+        ("12 / 5 = 3", (1, 0, 1)),
+        ("200 − 180 = 20", (1, 0, 0)),
+        ("200 - 180 = 30", (1, 0, 1)),
+        ("9 + 4 = 13", (1, 0, 0)),
+        ("6 x 7 = 42", (1, 0, 0)),
+        ("8 * 3 = 25", (1, 0, 1)),
+        ("60 × 12 = ~700", (1, 0, 0)),
+    ]
+    for hop_text, expected in p25_cases:
+        got = _hop_counts(hop_text)
+        if got != expected:
+            print(
+                f"self-test FAIL: defects hop-arithmetic (P25) {hop_text!r} "
+                f"expected (checked, unparsed, mismatches)={expected!r}, "
+                f"got {got!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+    p25_trip_rec = detect_defects(_hop_doc("40 × 150 = 5,000 km"), "hop-arith-p25")
+    p25_mismatch = p25_trip_rec["_hop_arithmetic_mismatches"]
+    if (
+        len(p25_mismatch) != 1
+        or p25_mismatch[0]["computed"] != 6000.0
+        or p25_mismatch[0]["stated"] != 5000.0
+    ):
+        print(
+            f"self-test FAIL: defects hop-arithmetic (P25) mismatch detail "
+            f"expected one entry computed=6000.0 stated=5000.0, got "
+            f"{p25_mismatch!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    # P7 discipline: each emitted scalar equals len() of its own audit list.
+    if (
+        p25_trip_rec["hop_arithmetic_checked"]
+        != len(p25_trip_rec["_hop_arithmetic_checked"])
+        or p25_trip_rec["hop_arithmetic_unparsed"]
+        != len(p25_trip_rec["_hop_arithmetic_unparsed"])
+        or p25_trip_rec["hop_arithmetic_mismatches"]
+        != len(p25_trip_rec["_hop_arithmetic_mismatches"])
+    ):
+        print(
+            "self-test FAIL: defects hop-arithmetic (P25) a scalar column "
+            "disagrees with len() of its own audit list",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P26) parse accounting: every listed reason plus the three
+    # non-candidates and the no-arithmetic case.
+    p26_unparsed_cases: list[tuple[str, str]] = [
+        ("400 × 4.5 × 0.80 = 1,440", "chained"),
+        ("9% − 0.5 = 8.5%", "percentage"),
+        ("60,000 × (1.025)^10 ≈ 76,805", "exponent or parentheses"),
+        ("1.5 kWh ÷ 0.80 = 1,875 Wh", "unit scale"),
+        ("5 / 0 = 1", "division by zero"),
+    ]
+    for hop_text, reason in p26_unparsed_cases:
+        rec = detect_defects(_hop_doc(hop_text), "hop-arith-p26")
+        got = (
+            rec["hop_arithmetic_checked"],
+            rec["hop_arithmetic_unparsed"],
+            rec["hop_arithmetic_mismatches"],
+        )
+        got_reason = (
+            rec["_hop_arithmetic_unparsed"][0]["reason"]
+            if rec["_hop_arithmetic_unparsed"]
+            else None
+        )
+        if got != (0, 1, 0) or got_reason != reason:
+            print(
+                f"self-test FAIL: defects hop-arithmetic (P26) {hop_text!r} "
+                f"expected (0, 1, 0) reason {reason!r}, got {got!r} reason "
+                f"{got_reason!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+    p26_noncandidates = [
+        "for ≈9 months",
+        "η = 1 − T_cold/T_hot",
+        "(2.5% = the 3% nominal)",
+    ]
+    for hop_text in p26_noncandidates:
+        got = _hop_counts(hop_text)
+        if got != (0, 0, 0):
+            print(
+                f"self-test FAIL: defects hop-arithmetic (P26) non-candidate "
+                f"{hop_text!r} expected (0, 0, 0), got {got!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+    got_none = _hop_counts("the recommended conclusion follows directly")
+    if got_none != (0, 0, 0):
+        print(
+            f"self-test FAIL: defects hop-arithmetic (P26) a hop with no "
+            f"arithmetic expected (0, 0, 0), got {got_none!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P27) scope (D-03): the mismatching expression trips only when it
+    # sits inside a hop; every other placement reads mismatches 0.
+    p27_hop_doc = _confidence_test_doc(
+        "### Chain C1 — fixture chain\n\n"
+        "GT-1 + GT-2\n→ 40 × 150 = 5,000 km\n→ the recommended conclusion.\n\n"
+        "**Confidence: HIGH**"
+    )
+    p27_hop_rec = detect_defects(p27_hop_doc, "hop-arith-p27-hop")
+    if p27_hop_rec["hop_arithmetic_mismatches"] != 1:
+        print(
+            f"self-test FAIL: defects hop-arithmetic (P27) a mismatching "
+            f"expression inside a hop did not trip: "
+            f"hop_arithmetic_mismatches={p27_hop_rec['hop_arithmetic_mismatches']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p27_fenced_doc = _confidence_test_doc(
+        "### Chain C1 — fixture chain\n\n"
+        "GT-1 + GT-2\n\n"
+        "```text\n40 × 150 = 5,000 km\n```\n\n"
+        "→ a hop with no arithmetic at all\n→ the recommended conclusion.\n\n"
+        "**Confidence: HIGH**"
+    )
+    p27_fenced_rec = detect_defects(p27_fenced_doc, "hop-arith-p27-fenced")
+    if p27_fenced_rec["hop_arithmetic_mismatches"] != 0:
+        print(
+            f"self-test FAIL: defects hop-arithmetic (P27) a fenced §4 "
+            f"block was wrongly scanned: hop_arithmetic_mismatches="
+            f"{p27_fenced_rec['hop_arithmetic_mismatches']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p27_head_doc = _confidence_test_doc(
+        "### Chain C1 — fixture chain\n\n"
+        "GT-1 (40 × 150 = 5,000 km)\n→ a hop with no arithmetic at all\n"
+        "→ the recommended conclusion.\n\n"
+        "**Confidence: HIGH**"
+    )
+    p27_head_rec = detect_defects(p27_head_doc, "hop-arith-p27-head")
+    if p27_head_rec["hop_arithmetic_mismatches"] != 0:
+        print(
+            f"self-test FAIL: defects hop-arithmetic (P27) a chain head "
+            f"citation (before the first arrow) was wrongly scanned: "
+            f"hop_arithmetic_mismatches="
+            f"{p27_head_rec['hop_arithmetic_mismatches']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p27_confidence_doc = _confidence_test_doc(
+        "### Chain C1 — fixture chain\n\n"
+        "GT-1 + GT-2\n→ a hop with no arithmetic at all\n"
+        "→ the recommended conclusion.\n\n"
+        "**Confidence:** 40 × 150 = 5,000 HIGH"
+    )
+    p27_confidence_rec = detect_defects(p27_confidence_doc, "hop-arith-p27-confidence")
+    if p27_confidence_rec["hop_arithmetic_mismatches"] != 0:
+        print(
+            f"self-test FAIL: defects hop-arithmetic (P27) a "
+            f"**Confidence:** line was wrongly scanned: "
+            f"hop_arithmetic_mismatches="
+            f"{p27_confidence_rec['hop_arithmetic_mismatches']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p27_s6_doc = _confidence_test_doc_s6(
+        "### Chain C1 — fixture chain\n\n"
+        "GT-1 + GT-2\n→ a hop with no arithmetic at all\n"
+        "→ the recommended conclusion.\n\n"
+        "**Confidence: HIGH**",
+        "**Recommended approach:** the roll-up conclusion (chain C1), where "
+        "40 × 150 = 5,000 km is stated as plain prose, not a hop.\n\n"
+        "**Confidence:** (chain C1) HIGH",
+    )
+    p27_s6_rec = detect_defects(p27_s6_doc, "hop-arith-p27-s6")
+    if p27_s6_rec["hop_arithmetic_mismatches"] != 0:
+        print(
+            f"self-test FAIL: defects hop-arithmetic (P27) §6 prose was "
+            f"wrongly scanned: hop_arithmetic_mismatches="
+            f"{p27_s6_rec['hop_arithmetic_mismatches']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # Discriminates a whole-document scope regression (call-site D-03
+    # enforcement, not the scan rule's own arrow requirement): an
+    # arrow-LED mismatching line placed in §6 — never legitimate prose,
+    # but the shape that distinguishes "scoped to §4 blocks" from
+    # "scoped to the whole analysis text" — must still read 0.
+    p27_s6_arrow_doc = _confidence_test_doc_s6(
+        "### Chain C1 — fixture chain\n\n"
+        "GT-1 + GT-2\n→ a hop with no arithmetic at all\n"
+        "→ the recommended conclusion.\n\n"
+        "**Confidence: HIGH**",
+        "**Recommended approach:** the roll-up conclusion (chain C1).\n"
+        "→ 40 × 150 = 5,000 km\n\n"
+        "**Confidence:** (chain C1) HIGH",
+    )
+    p27_s6_arrow_rec = detect_defects(p27_s6_arrow_doc, "hop-arith-p27-s6-arrow")
+    if p27_s6_arrow_rec["hop_arithmetic_mismatches"] != 0:
+        print(
+            f"self-test FAIL: defects hop-arithmetic (P27) an arrow-led §6 "
+            f"line was wrongly scanned (whole-document scope, not §4 "
+            f"blocks): hop_arithmetic_mismatches="
+            f"{p27_s6_arrow_rec['hop_arithmetic_mismatches']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P28) ReDoS / long near-miss (T-53-08): each call completes well
+    # under the 1.0s wall-clock bound, and every candidate in the second
+    # near-miss is classified (chained or checked), none left uncounted.
+    p28_noresult_doc = _confidence_test_doc(
+        "### Chain C1 — fixture chain\n\nGT-1 + GT-2\n→ "
+        + ("1×" * 10000)
+        + "\n→ the recommended conclusion.\n\n**Confidence: HIGH**"
+    )
+    p28_start = time.perf_counter()
+    p28_noresult_rec = detect_defects(p28_noresult_doc, "hop-arith-p28-noresult")
+    p28_noresult_elapsed = time.perf_counter() - p28_start
+    if (
+        p28_noresult_elapsed >= 1.0
+        or p28_noresult_rec["hop_arithmetic_checked"] != 0
+        or p28_noresult_rec["hop_arithmetic_unparsed"] != 0
+        or p28_noresult_rec["hop_arithmetic_mismatches"] != 0
+    ):
+        print(
+            f"self-test FAIL: defects hop-arithmetic (P28) a 20,000-char "
+            f"no-result-sign hop expected 0/0/0 under 1.0s, got "
+            f"checked={p28_noresult_rec['hop_arithmetic_checked']!r} "
+            f"unparsed={p28_noresult_rec['hop_arithmetic_unparsed']!r} "
+            f"mismatches={p28_noresult_rec['hop_arithmetic_mismatches']!r} "
+            f"elapsed={p28_noresult_elapsed!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p28_repeat_doc = _confidence_test_doc(
+        "### Chain C1 — fixture chain\n\nGT-1 + GT-2\n→ "
+        + ("1 × 1 = 1 " * 2000)
+        + "\n→ the recommended conclusion.\n\n**Confidence: HIGH**"
+    )
+    p28_start = time.perf_counter()
+    p28_repeat_rec = detect_defects(p28_repeat_doc, "hop-arith-p28-repeat")
+    p28_repeat_elapsed = time.perf_counter() - p28_start
+    p28_repeat_total = (
+        p28_repeat_rec["hop_arithmetic_checked"]
+        + p28_repeat_rec["hop_arithmetic_unparsed"]
+    )
+    if p28_repeat_elapsed >= 1.0 or p28_repeat_total != 2000:
+        print(
+            f"self-test FAIL: defects hop-arithmetic (P28) 2,000 repeated "
+            f"expressions expected every candidate classified (chained or "
+            f"checked), 2000 total, under 1.0s, got checked="
+            f"{p28_repeat_rec['hop_arithmetic_checked']!r} unparsed="
+            f"{p28_repeat_rec['hop_arithmetic_unparsed']!r} "
+            f"elapsed={p28_repeat_elapsed!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P29) end to end (D-01): a Rigorous Criterion 4 verdict next to a
+    # non-recomputing hop reconciles into a criterion-4 selfaudit_
+    # disagreement contradicted_by "hop_arithmetic_mismatches"; a conceded
+    # Sound band does not; a Rigorous Criterion 5 verdict (a different
+    # criterion) alone does not credit this field either. HV-ARITH read end
+    # to end reconciles the same way.
+    p29_c4_selfaudit = (
+        "\n\n**Criterion 4: Reason Upward**\n"
+        "Quoted span: *\"x\"*\n"
+        "Band: **{band}**\n"
+        "Justification: y."
+    )
+    p29_trip_doc = _confidence_test_doc(
+        "### Chain C1 — fixture chain\n\n"
+        "GT-1 + GT-2\n→ 40 × 150 = 5,000 km\n→ the recommended conclusion.\n\n"
+        "**Confidence: HIGH**"
+    )
+    p29_rigorous_rec = detect_defects(
+        p29_trip_doc + p29_c4_selfaudit.format(band="Rigorous"),
+        "hop-arith-p29-rigorous",
+    )
+    if (
+        p29_rigorous_rec["selfaudit_disagreements"] != 1
+        or p29_rigorous_rec["_selfaudit_disagreements"][0]["criterion"] != 4
+        or p29_rigorous_rec["_selfaudit_disagreements"][0]["contradicted_by"]
+        != "hop_arithmetic_mismatches"
+    ):
+        print(
+            f"self-test FAIL: defects hop-arithmetic (P29) a Rigorous "
+            f"Criterion 4 next to a hop-arithmetic mismatch did not "
+            f"reconcile: selfaudit_disagreements="
+            f"{p29_rigorous_rec['selfaudit_disagreements']!r}, "
+            f"_selfaudit_disagreements="
+            f"{p29_rigorous_rec['_selfaudit_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p29_sound_rec = detect_defects(
+        p29_trip_doc + p29_c4_selfaudit.format(band="Sound"),
+        "hop-arith-p29-sound",
+    )
+    if p29_sound_rec["selfaudit_disagreements"] != 0:
+        print(
+            f"self-test FAIL: defects hop-arithmetic (P29) a conceded Sound "
+            f"Criterion 4 band wrongly reconciled: selfaudit_disagreements="
+            f"{p29_sound_rec['selfaudit_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p29_c5only_rec = detect_defects(
+        p29_trip_doc + p8_selfaudit.format(band="Rigorous"),
+        "hop-arith-p29-c5only",
+    )
+    if any(
+        d["contradicted_by"] == "hop_arithmetic_mismatches"
+        for d in p29_c5only_rec["_selfaudit_disagreements"]
+    ):
+        print(
+            f"self-test FAIL: defects hop-arithmetic (P29) a Criterion 5 "
+            f"Rigorous verdict alone wrongly credited "
+            f"hop_arithmetic_mismatches (Criterion 4 only): "
+            f"{p29_c5only_rec['_selfaudit_disagreements']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    hv_arith_text = (
+        REPO_ROOT / "tests" / "hop-validity-v9.6" / "analyses" / "HV-ARITH.md"
+    ).read_text(encoding="utf-8")
+    hv_arith_rec = detect_defects(hv_arith_text, "HV-ARITH-p29")
+    if (
+        hv_arith_rec["selfaudit_disagreements"] != 1
+        or hv_arith_rec["_selfaudit_disagreements"][0]["criterion"] != 4
+        or hv_arith_rec["_selfaudit_disagreements"][0]["contradicted_by"]
+        != "hop_arithmetic_mismatches"
+    ):
+        print(
+            f"self-test FAIL: defects hop-arithmetic (P29) HV-ARITH read "
+            f"end to end did not reconcile: selfaudit_disagreements="
+            f"{hv_arith_rec['selfaudit_disagreements']!r}, "
+            f"_selfaudit_disagreements="
+            f"{hv_arith_rec['_selfaudit_disagreements']!r}",
             file=sys.stderr,
         )
         ok = False
