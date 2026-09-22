@@ -1,0 +1,4 @@
+**Criterion 4: Reason Upward**
+Quoted span: "→ 20 ms of headroom means the service will stay within its SLO when traffic doubles again"
+Band: **Hand-wavy**
+Justification: The endpoint depends on this hop, and it does not follow from the line above. The arithmetic (200 − 180 = 20 ms) is correct, but 20 ms of headroom today says nothing about p99 latency at double the traffic: no deduction, calculation or ground-truth regularity links load to latency, and the hop has no `[Assumes: X]` declaration that would let it follow. That is a non-sequitur on an endpoint-bearing hop, which is the Hand-wavy descriptor even though the chain's form is otherwise correct.

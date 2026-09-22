@@ -1,0 +1,78 @@
+D-04 observation: model-graded reading of HV-NONSEQ under the old and new Criterion 4
+=======================================================================================
+
+Model-graded observation, not a gate (D-04). N=3 per rubric arm.
+
+This file records how one pinned model grades Criterion 4 on the committed well-formed
+non-sequitur fixture (HV-NONSEQ) under the pre-Phase-53 rubric text ("before") and under the
+Phase 53 rubric text ("after"), three single-turn calls per arm, six calls total. It is written
+up as an observation because N=3 cannot show more than a K-of-3 split at this sample size
+(docs/v8.7-constraint-teardown.md §2 item 3) — it is not a pass/fail check and nothing in this
+repository gates on it.
+
+Model and invocation
+---------------------
+--model flag:      claude-opus-5
+Resolved model id: claude-opus-5 (modelUsage.claude-opus-5.canonicalModel == "claude-opus-5" on
+                    every one of the six raw JSON responses; no substitution occurred)
+Command:            claude -p --model claude-opus-5 --output-format json --tools ""
+                     (prompt piped on stdin; run from an empty scratchpad directory so no repo
+                     CLAUDE.md was loaded; `claude --help` confirms `--tools ""` disables all
+                     tools)
+Calls made:          6, sequential, one at a time, interleaved
+                     before-1, after-1, before-2, after-2, before-3, after-3
+                     (never run in parallel; no call failed, so the stop-and-relaunch rule was
+                     not exercised)
+
+Prompt provenance
+------------------
+prompt-before.txt sha256: 2c9cfbe503a97fce41340caec6026508f32e012c6dffdfc23239b839ba79d0e3
+prompt-after.txt  sha256: e3083e3d0b26dde5067724051509ea4ff1a922d277878ed4508361e5d8bf61e1
+
+Old rubric (before arm) Criterion 4 slice: git show d250539:shared/spine/references/validation-rubric.md
+  (phase base — the last commit before Phase 53 touched this file)
+New rubric (after arm) Criterion 4 slice:  file at HEAD (bd494db), unchanged since the 53-02
+  commit 61e66cc, which `git log --oneline d250539..HEAD -- shared/spine/references/validation-rubric.md`
+  confirms is the only commit between phase base and HEAD to touch this file.
+
+Both arms share the same instruction block, the same `## Verdict Block Format` section (from
+HEAD), the same output-template HIGH paragraph (from HEAD), and the same HV-NONSEQ.md text with
+its own trailing self-audit block removed — see 53-04-SUMMARY.md's Task 1 section for the
+hunk-by-hunk diff confirming the two prompts differ only inside the Criterion 4 slice.
+
+Per-call results
+------------------
+| Arm    | Run | Parsed band | Cost (USD) | num_turns |
+|--------|-----|-------------|------------|-----------|
+| before | 1   | Sound       | 0.13963    | 1         |
+| after  | 1   | Hand-wavy   | 0.07492    | 1         |
+| before | 2   | Sound       | 0.03400    | 1         |
+| after  | 2   | Hand-wavy   | 0.01664    | 1         |
+| before | 3   | Sound       | 0.04450    | 1         |
+| after  | 3   | Hand-wavy   | 0.01756    | 1         |
+
+Total cost of the six calls: $0.327249 (within the $0.15-$0.55 range stated and approved at the
+Task 2 checkpoint).
+
+Band parse: the first match of `Band:\s*\*\*(Rigorous|Sound|Hand-wavy|Absent)\*\*` in each
+response file. All six responses matched; none is `unparsed`.
+
+K-of-3 tally per arm
+----------------------
+before arm (old Criterion 4 text): Sound 3/3, Rigorous 0/3, Hand-wavy 0/3, Absent 0/3
+after  arm (new Criterion 4 text): Hand-wavy 3/3, Rigorous 0/3, Sound 0/3, Absent 0/3
+
+Every one of the three before-arm calls graded HV-NONSEQ's quoted hop Sound; every one of the
+three after-arm calls graded the identical quoted hop Hand-wavy. All three before-arm
+justifications and all three after-arm justifications independently name the same defect (the
+20 ms headroom does not imply anything about latency at double the traffic) but reach opposite
+verdicts on whether that defect caps the band, tracking the rubric text each arm was given.
+
+What this reading can and cannot show
+----------------------------------------
+It shows whether this model, on this one fixture, grades the non-sequitur differently under the
+two rubric texts. It does not show how the agent grades its own live output, which is 999.147's
+job. A 3/3-vs-3/3 split at N=3 is consistent with the rubric change having an effect on this
+model and this fixture; it is not statistical proof at this sample size, and it says nothing
+about generalization to other fixtures, other models, or the agent's self-graded live behavior.
+Do not read this split as success or failure of either rubric text.

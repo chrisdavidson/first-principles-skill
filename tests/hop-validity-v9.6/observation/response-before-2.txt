@@ -1,0 +1,4 @@
+**Criterion 4: Reason Upward**
+Quoted span: "→ 20 ms of headroom means the service will stay within its SLO when traffic doubles again"
+Band: **Sound**
+Justification: C1 has the right chain form, a real intermediate (the 20 ms headroom, which needs both GT-1 and GT-2) and a specific dead end with no analogy used as evidence, but this hop assumes p99 latency will rise less than 20 ms when traffic doubles without saying so; that assumption is not in the Assumptions Table (A1 is a placeholder), GT-3 says nothing about how latency responds to load, and the step carries no `[Assumes: X]` declaration, so the chain fails the inline-assumption requirement and cannot be Rigorous, while nothing in it triggers a Hand-wavy condition.

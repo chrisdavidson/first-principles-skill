@@ -1,0 +1,166 @@
+You are applying one criterion of a self-audit rubric to the analysis below. Score Criterion 4 only. Do not use tools. Emit exactly one verdict block in the Verdict Block Format below, with its Band line written as `Band: **<Rigorous|Sound|Hand-wavy|Absent>**`.
+
+## Verdict Block Format
+
+Each of the 6 criteria requires exactly one verdict block. Use the standard form when the
+analysis section exists and contains scoreable content:
+
+```text
+**Criterion N: [Criterion Name]**
+Quoted span: "[Direct quote of the specific text that most directly determines the band assigned — from the analysis being scored, or, per the admission below, from the self-audit scan for Criteria 4 and 6 or the Assumption Audit scan for Criterion 2, each emitted as process output for this analysis.]"
+Band: [**Rigorous** / **Sound** / **Hand-wavy** / **Absent**]
+Justification: [One sentence tying the quoted span to the observable descriptor for
+that band — name the specific structural property present or absent.]
+```
+
+The self-audit scan and the Assumption Audit scan are not output sections, and they are the only artifacts outside the six-section analysis a verdict block may quote: the self-audit scan for Criteria 4 and 6, and the Assumption Audit scan for Criterion 2. Every other criterion quotes the analysis text itself, and the §6→§4 closure ledger is admitted nowhere — it is a drafting artifact that describes a document other than the one being scored.
+
+Use the gap-citation form when the criterion scores Absent because the section or named
+artifact is missing or empty — in that case there is no span to quote, and the documented
+absence is the evidence:
+
+```text
+**Criterion N: [Criterion Name]**
+Gap: [Name what is missing and where it should have appeared — e.g., "No Derivation
+Chains section exists; chains of the form 'GT-N + GT-M → [intermediate] → [conclusion]'
+should appear in section 4 (Derivation Chains) for each conclusion stated in section 6
+(Conclusion)."]
+Band: Absent
+Justification: [One sentence: the absence itself is the structural failure that triggers
+the gate — the criterion cannot be scored against a non-existent artifact.]
+```
+
+Verdict blocks (not a consolidated table) are required because each block contains a quoted
+span or a gap citation. Without that span, the evidence-quoting requirement cannot be audited:
+a summary table of band labels can be produced by asserting compliance, but a verdict block
+containing a quote that contradicts its claimed band creates a contradiction that cannot be
+sustained.
+
+---
+
+**HIGH — nothing on this chain is outstanding.** Every identifier on the head line is an unsuffixed `GT-N` whose read-at-source location is named, or a `Cn` itself rated HIGH; every hop the endpoint depends on follows from the line above it by deduction, by arithmetic that recomputes when redone independently of the chain text, or by a regularity cited to an unsuffixed ground truth; and the strongest rival conclusion the analysis considered is named — on this confidence line or in a section 5 entry this chain points to — together with the ground truth or chain that rules it out, that ruling-out input itself unsuffixed. A chain whose endpoint a live alternative still contests is unexamined, not certain: it is MEDIUM at best.
+
+### Criterion 4: Reason Upward
+
+Scores **both** the **Derivation Chains** (output section 4) — one chain per conclusion,
+formatted as `GT-N + GT-M → [intermediate claim] → [conclusion]` with at least one
+intermediate step — **and** the **Abandoned Reasoning** section (output section 5).
+Both sections are in scope for this criterion. Quoted span: where the band is determined by chain form or chain dependency, it must be drawn from the self-audit scan's chain-form table row or rows that determine the band, not from the Derivation Chains prose directly. Where the band is determined by the Abandoned Reasoning section, the no-analogies-as-direct-evidence ban, or a missing `[Assumes: X]` declaration — none of which the chain-form table carries a column for — quote the analysis text directly. Folds in:
+dead-end honesty
+and the no-analogies-as-direct-evidence ban (D-07), and escape-valve policing for Abandoned
+Reasoning (D-03). The one-line form is the degenerate case, used only when the whole chain fits on one physical line; a chain that does not fit uses the head-plus-arrow-led form, and a hop is split rather than continued on a second line.
+
+- **Rigorous** — every conclusion stated anywhere in the document (in section 4 or section 6)
+  has exactly one derivation chain in section 4; each chain names the inputs it consumes — ground truths, upstream conclusions, or both — in the prescribed head form (`GT-1? ([brief fact label]) + C2 ([brief fact label])`),
+  contains at least one intermediate claim (a claim that cannot be stated from any single named input alone), and reaches a conclusion; each chain is rendered in the prescribed
+  arrow-led form. A hop occupies exactly one physical line. Every line after the head begins with `→` and carries exactly one complete hop; a hop is never broken across physical lines. The head line lists the inputs the chain consumes: each is a `GT-N` identifier (`GT-N?` when the ground truth is unverified) or a `Cn` identifier, optionally followed by a parenthesized gloss, joined to the next by `+`. The first `→` closes the head. An input carrying unparenthesized prose — `C2's threshold` — is not an identifier and does not parse; write `C2 (threshold)` in every position. The mechanical form check detects that violation only when the prose input is the last one before the first `→`; in an earlier position the check matches the well-formed remainder and scores the head conforming, so the rule binds in positions the check does not reach. The head grammar governs the head line only. A hop is prose: `C2's saving` is fine after the first `→`, and is not an input reference. One exception: a hop must not begin with a `GT-N` identifier, which the form check reads as the head of a new chain and which therefore ends this one — write `→ the duty cycle stated in GT-4 is the binding term`, not `→ GT-4's stated duty cycle is the binding term`. The form check detects that violation only while fewer than two hops precede it; in a later position the check matches the preceding hops and scores the chain conforming, so the rule binds in positions the check does not reach. The mechanical form check additionally rejects a chain whose head or first hop closes its own sentence before the next `→`: it reads the following arrow-led line as a new statement and ends the chain there, so a chain satisfying every rule above is scored malformed for that reason alone. The check reaches only that position — a hop that closes its own sentence from the second hop onward does not change the verdict — which is why intermediate hops carry no terminal punctuation in this project's worked examples. Hops rendered as an ordered list do not satisfy the prescribed form; the Abandoned Reasoning
+  section either documents
+  at least one dead end using the What-was-tried / Why-abandoned / What-it-ruled-out structure,
+  OR uses the honest-depth escape valve with a reason that is specific to this analysis's
+  problem and appears in no other analysis without alteration; no analogy
+  is used as direct evidence (any reference to how others solved a similar problem is grounded
+  in a named GT about their situation, not offered as standalone justification);
+  each chain step that introduces an assumption not already in the Assumptions Table
+  declares that assumption inline using `[Assumes: X]` appended to the step text —
+  a reviewer applies this check by scanning each chain step for the `[Assumes:` token.
+
+- **Sound** — chains exist for all conclusions, but one or more chains lack a genuine
+  intermediate step (the chain goes directly from its head inputs to conclusion, or the stated
+  intermediate is a restatement of one of its named inputs rather than a new inference); OR
+  a conclusion has more than one derivation chain — redundant restatement rather than a
+  missing chain — where the prescribed form is exactly one chain per conclusion; OR
+  one dead end in Abandoned Reasoning is described with a vague abandonment reason
+  ("seemed unlikely," "ran out of time") rather than the specific structural reason
+  (assumption false, contradicts a GT, circular, intermediate could not be established); OR
+  one or more chains render their hops as an ordered list (`1.`, `2.`, `3.`) instead of the
+  prescribed arrow-led hop form, OR break a single hop across physical lines rather than
+  splitting it into two hops, which splits one chain into disconnected
+  fragments even where every hop is individually sound — **this clause is why the criterion
+  cannot be scored on reasoning quality alone.** A chain that names its inputs, carries a
+  genuine intermediate and reaches a conclusion satisfies every other Rigorous requirement
+  while still failing the prescribed form; scoring only the semantics is what lets a
+  Rigorous verdict coexist with a section of malformed chains.
+
+- **Hand-wavy** — some conclusions lack derivation chains; OR chains reference GT-IDs that
+  do not appear in the Ground Truths section; OR an analogy is used as direct evidence
+  ("others have solved it this way," "industry standard is X") without grounding in a named
+  GT about that other situation; OR the Abandoned Reasoning section uses the honest-depth
+  escape valve with a reason that is generic and would apply equally to any analysis (e.g.,
+  "no dead ends were encountered," "all reasoning paths worked").
+
+- **Absent** — no derivation chains exist in the document; OR the Derivation Chains section
+  is absent or empty; OR conclusions appear in section 6 with no corresponding chains in
+  section 4 — the core question's answer cannot be traced to any named ground truth.
+
+# Fixture: OBS-03 D-04 — Hop-Validity Non-Sequitur Observation Fixture
+
+**Synthetic fixture, not evidence of model behaviour.** Hand-authored directly against
+`shared/spine/references/output-template.md`'s chain-hop shape to pin the pure non-sequitur
+case (D-04): a well-formed chain whose endpoint-bearing hop's arithmetic is correct but does
+not follow, carrying a Criterion 4 Rigorous self-verdict.
+
+---
+
+## 1. Problem Essence
+
+**Core problem:** Fixture problem statement for the OBS-03 D-04 non-sequitur observation
+fixture — a service's latency headroom against its SLO ahead of a traffic doubling.
+
+**Success criteria:** The fixture deliberately carries an endpoint-bearing hop (C1's
+headroom-to-doubling hop) that is a pure non-sequitur — correct arithmetic, but the inference
+does not follow from it — while every other rubric limb is satisfied and the chain carries a
+Criterion 4 Rigorous self-verdict.
+
+---
+
+## 2. Assumptions Table
+
+| # | Assumption | Type | Treatment | Verdict | Verification |
+|---|---|---|---|---|---|
+| A1 | Fixture assumption | convention | Challenge before use | Accept — survives challenge | Fixture source |
+
+---
+
+## 3. Ground Truths
+
+- **GT-1** The service's p99 latency is 180 ms — source: fixture; read-at-source: fixture
+- **GT-2** The SLO requires p99 at most 200 ms — source: fixture; read-at-source: fixture
+- **GT-3** Traffic doubled last quarter — source: fixture; read-at-source: fixture
+
+---
+
+## 4. Derivation Chains
+
+### Conclusion C1: No capacity work is needed before the next traffic doubling
+
+GT-1 (p99 180 ms) + GT-2 (SLO 200 ms) + GT-3 (traffic doubled)
+→ the service has 200 − 180 = 20 ms of p99 headroom today
+→ 20 ms of headroom means the service will stay within its SLO when traffic doubles again
+→ no capacity work is needed before the next traffic doubling
+
+**Pre-check:** head GT-1, GT-2, GT-3 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
+**Confidence:** HIGH
+
+---
+
+## 5. Abandoned Reasoning
+
+### Dead End: Provisioning additional capacity ahead of the next doubling
+
+**What was tried:** Considered provisioning additional capacity now, ahead of the next traffic
+doubling, as a precaution.
+
+**Why abandoned:** Chain C1 establishes that today's p99 headroom already covers the SLO, so
+provisioning ahead of need was treated as unnecessary cost.
+
+**What it ruled out:** Pre-emptive capacity provisioning as a standing response to the current
+headroom reading.
+
+---
+
+## 6. Conclusion
+
+**Recommended approach:** Do not provision additional capacity before the next traffic doubling (chain C1).
+
+**Pre-check:** head C1 (HIGH) · ?-marked: none · lowest cited: HIGH · Inputs ceiling: HIGH
+**Confidence:** (chain C1) HIGH

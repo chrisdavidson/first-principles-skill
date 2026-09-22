@@ -1,0 +1,4 @@
+**Criterion 4: Reason Upward**
+Quoted span: "→ 20 ms of headroom means the service will stay within its SLO when traffic doubles again"
+Band: **Sound**
+Justification: The chain C1 has the right form: a head naming GT-1, GT-2 and GT-3, a genuine intermediate claim (the 200 − 180 = 20 ms headroom, which needs both GT-1 and GT-2) and one hop per line. The Abandoned Reasoning section also gives a specific reason for its dead end. But the quoted hop introduces an assumption that is in neither the Assumptions Table nor an inline `[Assumes: X]` declaration: that latency will not grow by more than 20 ms when traffic doubles. That missing declaration fails a Rigorous requirement. No Hand-wavy or Absent trigger applies, since every conclusion has a chain, every GT-ID exists and no analogy is used as evidence, so the band is Sound.

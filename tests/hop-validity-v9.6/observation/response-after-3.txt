@@ -1,0 +1,4 @@
+**Criterion 4: Reason Upward**
+Quoted span: "→ 20 ms of headroom means the service will stay within its SLO when traffic doubles again"
+Band: **Hand-wavy**
+Justification: The C1 endpoint depends on this hop, and the hop does not follow from the line above it: correct arithmetic showing 20 ms of p99 headroom today says nothing about p99 latency when load doubles, and no unsuffixed ground truth supplies a load-to-latency regularity. The hop also has no `[Assumes: X]` premise that would let it count as following. That makes it a non-sequitur the endpoint depends on, which is the Hand-wavy clause, regardless of the chain's well-formed arrow-led form and its Rigorous self-verdict.
