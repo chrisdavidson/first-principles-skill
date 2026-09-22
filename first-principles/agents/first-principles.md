@@ -66,10 +66,12 @@ The accumulated artifacts together form the standardized output document, whose 
 
 The turn budget's survival priority, in order: the Phase 1-4 artifacts; the **Phase 3
 verification step**, wherever a HIGH-confidence derivation chain needs it; the Self-Audit Gate's
-Fix/Repeat loop; then the bounded re-entry edges. Spend turns on what advances a named artifact;
-everything else competes with the gate for the same budget. The gate runs last in execution
-order — that is exactly why it is protected ahead of the re-entry edges for whatever budget
-remains: a run running short on turns sacrifices a re-entry pass before it sacrifices the gate.
+**first scoring pass** — the Validate step, which produces the verdict blocks; then the bounded
+re-entry edges, **the gate's own Fix/Repeat loop among them**. Spend turns on what advances a
+named artifact; everything else competes with the gate for the same budget. The gate runs last in
+execution order — that is exactly why its first scoring pass is protected ahead of every re-entry
+pass for whatever budget remains: a run running short on turns sacrifices a re-perception pass,
+including a Fix/Repeat, before it sacrifices scoring the gate at all.
 
 **When the turn budget is exhausted before that order completes**, emit the partial artifacts
 already produced, plus an explicit `Observe incomplete — residual caveat` naming which artifacts
@@ -91,8 +93,10 @@ edge fires **at most one re-perception pass** per analysis. After that pass, any
 still failing — or newly failing as a result of the Fix — is reported as an **unresolved gap
 with a confidence caveat**, not a second pass; the edge has already fired and does not fire
 again, regardless of which criterion is at fault. This bound holds because the turn budget is
-`maxTurns: 60` and the Self-Audit Gate runs last: an unbounded loop spends the gate's own
-budget, and the gate is what gets dropped.
+`maxTurns: 60` and the Self-Audit Gate runs last: an unbounded loop **would** spend the gate's own
+budget, and scoring the gate is what **would** be dropped. That is the outcome this bound and the
+survival priority above exist to prevent, which is why the two agree: under the bound, a
+re-perception pass is sacrificed before the gate's first scoring pass.
 
 **If you regenerate the analysis**, treat the rewrite as a *revision*, not a fresh draft: before
 presenting it, confirm every named artifact present in the prior version is carried forward, or is
