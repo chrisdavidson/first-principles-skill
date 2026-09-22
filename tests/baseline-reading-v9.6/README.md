@@ -5,6 +5,9 @@ milestone — see "Why this is not frozen" below. Five real `claude -p` dispatch
 `first-principles:first-principles` agent against the pre-edit body (Phase 50, HEAD `d1c64d5`),
 captured and committed as-is.
 
+**Frozen 2026-09-22 (Phase 54, D-08):** registered in `_FROZEN_PATHS` once BASE-02's reading
+(`docs/v9.6-rebaseline-reading.md`) was reviewed. Both the before- and after-readings now exist.
+
 ## Purpose
 
 This directory is the BASE-01 fresh set. BASE-01 requires the milestone's baseline reading to

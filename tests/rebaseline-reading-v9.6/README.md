@@ -5,6 +5,9 @@ milestone — see "Why this is not frozen yet" below. Five real `claude -p` disp
 shipped `first-principles:first-principles` agent against the post-OBS-01..03 body (Phases 52 and
 53, HEAD `5a86e0b`), captured and committed as-is.
 
+**Frozen 2026-09-22 (Phase 54, D-08):** registered in `_FROZEN_PATHS` once BASE-02's reading
+(`docs/v9.6-rebaseline-reading.md`) was reviewed. Both the before- and after-readings now exist.
+
 ## Purpose
 
 This directory is the BASE-02 fresh set. BASE-02 closes the loop opened at Phase 51: the same five
