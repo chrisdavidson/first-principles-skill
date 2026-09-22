@@ -6787,6 +6787,11 @@ _DEFECT_FIXTURE_DEFECTIVE = FIXTURES_DIR / "analyses-defective.md"
 _PRECHECK_ROLLUP_FIXTURE = (
     REPO_ROOT / "tests" / "precheck-rollup-v9.6" / "analyses" / "PC-ROLLUP.md"
 )
+# Phase 53 (OBS-03 SC2, D-01/D-05 evidence leg): the committed frozen
+# fixture directory the pre-Phase-53 harness reads clean and this harness
+# trips on HV-ARITH's Criterion 4 hop-arithmetic mismatch — see
+# tests/hop-validity-v9.6/README.md for both readings, taken live.
+_HOP_VALIDITY_FIXTURE_DIR = REPO_ROOT / "tests" / "hop-validity-v9.6" / "analyses"
 
 # Expected records (every numeric field, not just the flags — a flags-only
 # assertion would pass while the per-claim counts D-20 depends on drifted
@@ -7164,6 +7169,12 @@ def _selftest_defects() -> bool:
     and (P29) the end-to-end Criterion 4 join over the widened
     `_SELFAUDIT_CONTRADICTIONS[4]`, including the committed
     tests/hop-validity-v9.6/analyses/HV-ARITH.md fixture read end to end.
+    Control (P30) (Phase 53, OBS-03 SC2, D-05) reads both committed fixtures
+    in tests/hop-validity-v9.6/analyses/ and pins their exact new-harness
+    defect-record readings together, plus HV-ARITH's mismatch detail
+    (stated 1200, computed 1500) and HV-NONSEQ's non-trip, so the fixture
+    directory's own trip and its disclosed non-sequitur bound cannot
+    silently regress.
     """
     ok = True
 
@@ -8843,6 +8854,92 @@ Nothing material here.
             file=sys.stderr,
         )
         ok = False
+
+    # (P30) OBS-03 SC2 (D-05 fixture-directory evidence leg): the committed
+    # frozen fixtures tests/hop-validity-v9.6/analyses/HV-ARITH.md and
+    # HV-NONSEQ.md — pins the exact readings recorded in
+    # tests/hop-validity-v9.6/README.md's "New-harness reading" TSV for
+    # both files, plus HV-ARITH's mismatch detail (stated 1200, computed
+    # 1500) and HV-NONSEQ's disclosed non-trip, so the fixture directory's
+    # own trip and its non-sequitur bound cannot silently regress.
+    p30_arith_text = (_HOP_VALIDITY_FIXTURE_DIR / "HV-ARITH.md").read_text(
+        encoding="utf-8"
+    )
+    p30_arith_rec = detect_defects(p30_arith_text, "HV-ARITH-p30")
+    p30_arith_expected = {
+        "untraced_claims": 0,
+        "malformed_chain_blocks": 0,
+        "nonconforming_verdict_cells": 0,
+        "precheck_disagreements": 0,
+        "rollup_inversions": 0,
+        "hop_arithmetic_checked": 2,
+        "hop_arithmetic_unparsed": 1,
+        "hop_arithmetic_mismatches": 1,
+        "selfaudit_disagreements": 1,
+    }
+    for field, expected in p30_arith_expected.items():
+        if p30_arith_rec[field] != expected:
+            print(
+                f"self-test FAIL: defects hop-arithmetic fixture (P30) "
+                f"HV-ARITH field {field!r} expected {expected!r}, got "
+                f"{p30_arith_rec[field]!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+    p30_arith_selfaudit = p30_arith_rec["_selfaudit_disagreements"]
+    if (
+        len(p30_arith_selfaudit) != 1
+        or p30_arith_selfaudit[0]["criterion"] != 4
+        or p30_arith_selfaudit[0]["contradicted_by"] != "hop_arithmetic_mismatches"
+    ):
+        print(
+            f"self-test FAIL: defects hop-arithmetic fixture (P30) "
+            f"HV-ARITH expected one selfaudit disagreement, criterion 4, "
+            f"contradicted_by 'hop_arithmetic_mismatches', got "
+            f"{p30_arith_selfaudit!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p30_arith_mismatches = p30_arith_rec["_hop_arithmetic_mismatches"]
+    if (
+        len(p30_arith_mismatches) != 1
+        or p30_arith_mismatches[0]["stated"] != 1200
+        or p30_arith_mismatches[0]["computed"] != 1500
+    ):
+        print(
+            f"self-test FAIL: defects hop-arithmetic fixture (P30) "
+            f"HV-ARITH expected one mismatch, stated 1200, computed 1500, "
+            f"got {p30_arith_mismatches!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    p30_nonseq_text = (_HOP_VALIDITY_FIXTURE_DIR / "HV-NONSEQ.md").read_text(
+        encoding="utf-8"
+    )
+    p30_nonseq_rec = detect_defects(p30_nonseq_text, "HV-NONSEQ-p30")
+    p30_nonseq_expected = {
+        "untraced_claims": 0,
+        "malformed_chain_blocks": 0,
+        "nonconforming_verdict_cells": 0,
+        "precheck_disagreements": 0,
+        "rollup_inversions": 0,
+        "hop_arithmetic_checked": 1,
+        "hop_arithmetic_unparsed": 0,
+        "hop_arithmetic_mismatches": 0,
+        "selfaudit_disagreements": 0,
+    }
+    for field, expected in p30_nonseq_expected.items():
+        if p30_nonseq_rec[field] != expected:
+            print(
+                f"self-test FAIL: defects hop-arithmetic fixture (P30) "
+                f"HV-NONSEQ field {field!r} expected {expected!r}, got "
+                f"{p30_nonseq_rec[field]!r}",
+                file=sys.stderr,
+            )
+            ok = False
 
     return ok
 
