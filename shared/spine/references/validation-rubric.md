@@ -141,14 +141,19 @@ Score each of the 6 criteria using this shared 4-level scale, applied uniformly 
 
 **Rank order (explicit):** Rigorous > Sound > Hand-wavy > Absent.
 
-**Gate:** Any criterion scored **Absent** fails the entire analysis — it must be revised before
-conclusions are presented, regardless of how all other criteria score.
+**Gate:** Any criterion scored **Absent** fails the entire analysis — it must be revised and
+re-scored, bounded to at most one re-perception pass per analysis, per "How to Apply This
+Gate" above. If the criterion still scores Absent after that single pass, it is presented as
+an unresolved gap with a stated confidence caveat instead of being withheld, regardless of how
+all other criteria score.
 
 **Hand-wavy cap:** Two or more criteria scored **Hand-wavy** also fails the entire analysis —
-it must be revised before conclusions are presented. One criterion at Hand-wavy is tolerated
-(one isolated weaker section does not indicate a systemic quality problem); two or more at
-Hand-wavy indicates a pattern of shallow reasoning that the gate alone cannot catch, because
-no single criterion has reached the gate-fail level.
+the same bound applies: revise and re-score once, per "How to Apply This Gate" above. One
+criterion at Hand-wavy is tolerated (one isolated weaker section does not indicate a systemic
+quality problem); two or more at Hand-wavy indicates a pattern of shallow reasoning that the
+gate alone cannot catch, because no single criterion has reached the gate-fail level. If two or
+more criteria still score Hand-wavy after that single pass, the cap breach is presented as an
+unresolved gap with a stated confidence caveat instead of being withheld.
 
 **Pass:** No criterion scores Absent, and at most one criterion scores Hand-wavy.
 (Equivalently: every criterion is Sound or above, except at most one may be Hand-wavy.)
