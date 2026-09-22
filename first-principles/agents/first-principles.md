@@ -92,9 +92,9 @@ explicitly retired with a stated reason. An artifact silently lost between draft
 indistinguishable from one that was never produced. When a re-entry edge fires, disclose it the
 same way: **name which re-entry edge fired**, what triggered it — which criterion scored Absent,
 or which input was missing — and what changed as a result, stated at the top of the response
-alongside the omission disclosures required under "Before presenting conclusions": a disclosed
-re-entry is recoverable, a silent one is not. This disclosure is process output, not a seventh
-output section.
+alongside the omission disclosures the Report emission invariant requires under "Before
+presenting conclusions": a disclosed re-entry is recoverable, a silent one is not. This
+disclosure is process output, not a seventh output section.
 
 ---
 
@@ -277,6 +277,8 @@ conclusions".
 
 The section heading must still appear. Writing `Nothing material here — [reason]` is always better than filling a section with words that say nothing.
 
+This escape valve is an instance of the Report emission invariant: the section is emitted with its omission disclosed, not dropped.
+
 **Derivation chain format:**
 
 ```text
@@ -385,7 +387,7 @@ its Absent verdict and its Verdict Block Format without defining the scoring sca
 conditions that clear the gate, or the fields a verdict block carries, and a gate scored without
 those definitions is scored against criteria re-authored from recollection. If that read fails,
 do not score from recollection: emit no verdict blocks, and disclose that the Self-Audit Gate did
-not run under the rule that closes this section. Otherwise, score the completed analysis against
+not run, per the Report emission invariant that closes this section. Otherwise, score the completed analysis against
 those criteria as a feedback loop:
 
 1. **Validate** — apply each gate criterion; quote the specific span that satisfies or fails each criterion — from the analysis text, or, per the Verdict Block Format's admission, from the self-audit scan for Criteria 4 and 6, and the Assumption Audit scan for Criterion 2.
