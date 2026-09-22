@@ -158,11 +158,15 @@ _ASK_FALLBACK = "If `AskUserQuestion` is unavailable at runtime"  # L7b
 # fallback stayed written for the pre-analysis case only — "states what it needs
 # ... before proceeding with a best-effort analysis". Applied at the mid-run
 # trigger point, the gate has already scored a criterion Absent, and two rules
-# forbid what that licenses: the rubric's "any criterion scored Absent fails the
-# entire analysis — it must be revised before conclusions are presented", and the
-# body's "do not present conclusions until ... the Self-Audit Gate is cleared".
-# Proceeding best-effort past an Absent verdict is the escape hatch those two
-# rules exist to close.
+# govern what happens next: the rubric's Gate paragraph, which still fails the
+# entire analysis on an Absent verdict and bounds any fix to one re-perception
+# pass, and the body's Report emission invariant (Phase 56), which requires the
+# analysis to still be presented — degraded and labelled — rather than silently
+# patched over. Proceeding best-effort past an Absent verdict is not merely
+# forbidden by those two rules; after Phase 56's reconciliation they also
+# prescribe what replaces it: a presented analysis that carries the Absent
+# verdict as a disclosed, caveated unresolved gap, not a best-effort rewrite
+# that erases it.
 _ASK_FALLBACK_MIDRUN = (
     "If it is unavailable at the mid-run re-open, the analysis does not proceed "
     "past the Absent verdict"
