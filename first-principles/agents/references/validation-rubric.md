@@ -387,8 +387,11 @@ Reasoning (D-03), and hop validity and arithmetic. The one-line form is the dege
   cited to an unsuffixed ground truth — the test `output-template.md` states for the HIGH
   band under "Confidence levels, defined", shared here rather than restated. A hop that
   follows once the `[Assumes: X]` premise declared on that hop is granted counts as following
-  for this criterion — whether that premise is priced is Criterion 5's Inference axis, and a
-  missing declaration is already this criterion's own `[Assumes: X]` limb above; a hop citing
+  for this criterion — declaring the premise takes the hop out of this limb by design, and
+  whether that premise is priced is Criterion 5's Inference axis. An undeclared premise is not
+  treated that way: a hop the endpoint depends on whose only gap is an undeclared premise is a
+  non-sequitur under Hand-wavy below, and the `[Assumes: X]` limb above covers undeclared
+  premises on hops the endpoint does not depend on; a hop citing
   a regularity to a `GT-N?` ground truth is an Inputs-axis matter Criterion 3/5 scores, not a
   failure to follow.
 
@@ -420,8 +423,8 @@ Reasoning (D-03), and hop validity and arithmetic. The one-line form is the dege
   GT about that other situation; OR the Abandoned Reasoning section uses the honest-depth
   escape valve with a reason that is generic and would apply equally to any analysis (e.g.,
   "no dead ends were encountered," "all reasoning paths worked"); OR a hop the endpoint
-  depends on does not follow by deduction or cited regularity (a non-sequitur), or an
-  arithmetic error changes the endpoint; an arithmetic error that leaves the endpoint unchanged
+  depends on does not follow by deduction or cited regularity (a non-sequitur) — including
+  a hop whose only gap is an undeclared premise — or an arithmetic error changes the endpoint; an arithmetic error that leaves the endpoint unchanged
   is the Sound clause above, not this one — **this clause is why the criterion cannot be scored
   on form alone either.** A chain can name
   its inputs, carry a genuine intermediate, render every hop in the prescribed form and reach
