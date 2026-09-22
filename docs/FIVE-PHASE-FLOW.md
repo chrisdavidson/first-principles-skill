@@ -17,7 +17,7 @@ flowchart LR
     GROUNDTRUTHS["Phase 3: Establish Ground Truths\n(Ground Truths list)"]
     REASON["Phase 4: Reason Upward\n(Derivation Chains)"]
     VALIDATE["Phase 5: Validate\n(Signed-off analysis)"]
-    RUBRIC["Self-Audit Gate\n(no conclusions until it clears)"]
+    RUBRIC["Self-Audit Gate\n(one re-check, then caveat)"]
 
     STEP0 --> ESSENCE
     ESSENCE --> ASSUMPTIONS
@@ -58,5 +58,7 @@ flowchart LR
   contradicts a Ground Truth, the conclusion returns to Phase 2 for re-challenging rather than
   proceeding to Phase 5 on a false premise.
 - **The terminal rubric node** is a gate, not a hand-off: the Self-Audit Gate
-  (`references/validation-rubric.md`) must clear before conclusions are presented — validate,
-  fix, and repeat until every criterion passes.
+  (`references/validation-rubric.md`) scores the analysis, and a failure sends it back through
+  the validate/fix/repeat loop for **at most one re-perception pass** before conclusions are
+  presented. If a criterion still fails after that single pass, the analysis is presented with
+  the failure reported as an unresolved gap and a confidence caveat, rather than withheld.
