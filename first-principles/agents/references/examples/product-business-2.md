@@ -93,19 +93,22 @@ against?
 
 ### Conclusion C1: The reporting-rewrite candidate has a verified expansion-revenue case that the Slack candidate does not
 
-GT-2 (three top-ten accounts cite reporting limitations as renewal risk) + GT-3 (signed LOI commits $180K/year contingent on the rewrite shipping this quarter)
-→ The reporting-rewrite value chain rests on a named, signed, quantified customer commitment with a contractually-observable falsification trigger (expansion order signed or not by quarter-end); the Slack-side value chain rests on GT-1's inbound request volume plus GT-5?'s unmeasured retention hypothesis, neither of which is contractually anchored
-→ At equivalent engineering cost (GT-4), the reporting rewrite returns a defined, verifiable $180K expansion ARR plus reduced renewal risk on two other named top-ten accounts; the Slack integration returns a hypothesized retention and acquisition uplift with no instrumented anchor
+GT-2 (three top-ten accounts cite reporting limitations as renewal risk) + GT-3 (signed LOI commits $180K/year contingent on the rewrite shipping this quarter) + GT-1 (41 inbound Slack requests; no churn-survey reason code attributes departure to the gap) + GT-4 (3.2 engineer-quarters of build capacity this quarter)
+→ The reporting-rewrite value chain rests on a named, signed, quantified customer commitment with a contractually-observable falsification trigger (expansion order signed or not by quarter-end); the Slack-side value chain rests on GT-1's inbound request volume and a retention effect for which GT-1 records no churn-survey reason code, neither of which is contractually anchored
+→ At equivalent engineering cost (GT-4), the reporting rewrite returns a defined, verifiable $180K expansion ARR plus reduced renewal risk on two other named top-ten accounts; the Slack integration returns a hypothesized retention and acquisition uplift with no instrumented anchor *[Assumes: A3 — both candidates fit inside one engineering quarter (Assumptions Table row 3); only top-down estimates support it]*
 
-**Pre-check:** head GT-2, GT-3 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
-**Confidence:** MEDIUM. The downgrade sits on this chain's own second and
-third steps, which compare a signed $180K commitment against a Slack-side
-uplift the chain has not priced: the comparison asserts, rather than
-derives, that the unmeasured Slack-side uplift is smaller than the verified
-reporting-side case. Pricing that Slack-side leg would require either (a) a
-churn-survey reason code attributing exits to the missing integration, or
-(b) a win/loss instrument isolating Slack-integration absence as a
-deal-deciding factor — neither exists today.
+**Pre-check:** head GT-2, GT-3, GT-1, GT-4 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
+**Confidence:** MEDIUM. The Inference axis is short on one hop: the
+endpoint's "at equivalent engineering cost" comparison rests on A3 —
+both candidates fit inside one engineering quarter, which only
+top-down estimates support — and this chain has not priced what
+becomes of the comparison if A3 fails. A3 would be established by a
+bottom-up estimate for each candidate (ticket-level breakdown ×
+historical per-ticket cycle time), the verification the Assumptions
+Table names for that row. The rival that the Slack integration is the
+higher-value build is ruled out by the §5 dead end ("Sixty percent of
+polled customers said they want Slack, therefore build Slack"), grounded
+in GT-1.
 
 ---
 
@@ -118,7 +121,10 @@ GT-1 (Slack requests are inbound but no churn signal attributes departure to the
 **Pre-check:** head GT-1, GT-3 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
 **Confidence:** HIGH. Both inputs are verified ground truths; the asymmetry
 follows from contract language (GT-3) and the absence of a counterpart
-contractual trigger on the Slack side.
+contractual trigger on the Slack side. The rival — that the Slack delay
+is equally irreversible — is ruled out by GT-3's contractual exit
+clause, which has no Slack-side counterpart (GT-1 records no churn
+signal attributing departure to the gap).
 
 ---
 
@@ -129,9 +135,17 @@ GT-5? (Slack-side retention and acquisition effects unmeasured) + GT-4 (capacity
 → Until that evidence appears, the reporting rewrite dominates on verified-value-per-engineer-quarter; if it appears, the analysis must be re-run with the new GT promoted from GT-5? to a verified GT
 
 **Pre-check:** head GT-5?, GT-4 · ?-marked: GT-5? · lowest cited: none · Inputs ceiling: MEDIUM
-**Confidence:** MEDIUM. The downgrade is driven by GT-5?; the chain's
-own conclusion is that the recommendation is conditional on GT-5?'s
-verification status.
+**Confidence:** MEDIUM. The Inputs axis is short: the downgrade is
+driven by GT-5?, because the Slack-side retention and acquisition
+magnitudes are unmeasured. GT-5? is removed as a cause by (a) a
+re-coded churn-survey instrument surfacing a Slack-attributed reason
+code on a material fraction of exits, and (b) a win/loss audit
+isolating Slack-integration absence as a deal-deciding factor —
+together promoting it to a verified ground truth. The rival that
+existing stated-preference counts already supply that evidence is
+ruled out by the §5 dead end, grounded in GT-1. The chain's own
+conclusion is that the recommendation is conditional on that
+verification.
 
 ---
 
@@ -213,15 +227,14 @@ candidate stays in the same evidence position next planning cycle and
 the deferral compounds.
 
 **Pre-check:** head C1 (MEDIUM), C3 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
-**Confidence:** (chains C1 and C3) MEDIUM. Both cited chains rate below HIGH: C3's
-MEDIUM rests on its unverified input GT-5? (Slack-side retention and
-acquisition magnitudes are unmeasured), and C1's MEDIUM rests on its own
-unpriced Slack-side comparison (the reporting-side $180K case is verified;
-the Slack-side uplift it is compared against is not). The Conclusion also
-carries its own cause: the challenged methodology assumption on cost
-estimation (top-down estimates not bottom-up-validated for either
-candidate). Raising to HIGH requires either bottom-up cost decompositions
-for both candidates and verified Slack-side retention/acquisition
-instrumentation, or the explicit acceptance that the verified contractual
-case for the reporting rewrite (GT-3) is sufficient on its own and the
-comparison need not be quantitatively symmetric.
+**Confidence:** (chains C1 and C3) MEDIUM. Exactly one axis is short,
+Inputs: both cited chains rate below HIGH. C3's MEDIUM rests on its
+unverified input GT-5? (Slack-side retention and acquisition magnitudes
+are unmeasured); C1's MEDIUM rests on its own A3 hop — the top-down cost
+estimates behind its equal-cost comparison — a cause counted there,
+through C1 (MEDIUM), not a second time here. The Slack-first rival is
+ruled out by the §5 dead end ("Sixty percent of polled customers said
+they want Slack, therefore build Slack"), grounded in GT-1. Raising to
+HIGH requires closing both: bottom-up cost decompositions for both
+candidates (C1's A3), and the churn-survey and win/loss instrumentation
+that would verify GT-5? (C3).
