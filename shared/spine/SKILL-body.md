@@ -17,9 +17,12 @@ The accumulated artifacts together form the standardized output document, whose 
 
 ### Turn discipline
 
-The turn budget's first claim is the five phases and the Self-Audit Gate's Fix/Repeat loop. Spend
-turns on what advances a named artifact; everything else competes with the gate for the same budget,
-and the gate is what runs last and is therefore what gets dropped when the budget runs out.
+The turn budget's survival priority, in order: the Phase 1-4 artifacts; the **Phase 3
+verification step**, wherever a HIGH-confidence derivation chain needs it; the Self-Audit Gate's
+Fix/Repeat loop; then the bounded re-entry edges. Spend turns on what advances a named artifact;
+everything else competes with the gate for the same budget. The gate runs last in execution
+order — that is exactly why it is protected ahead of the re-entry edges for whatever budget
+remains: a run running short on turns sacrifices a re-entry pass before it sacrifices the gate.
 
 **Never poll for dispatched work.** When this analysis dispatches a sub-agent or launches a
 background task, its completion **notifies you automatically**. The correct action is to stop and
