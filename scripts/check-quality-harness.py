@@ -6239,7 +6239,10 @@ def _hop_arithmetic_defects(blocks: list[str]) -> dict:
     currency) with a digit, and whose left window carries at least one
     operator — a spaced operator, or an unspaced ASCII hyphen between two
     digits (`200-180`), which is never evaluated and is counted `unparsed`
-    (reason `"unspaced hyphen"`); a minus sign on the first operand
+    (reason `"unspaced hyphen"`); an operand or stated result the number
+    pattern cannot take whole — more than 6 decimal places, a leading-dot
+    decimal, a decimal comma — is counted `unparsed` (reason `"unparsed
+    number"`) rather than matched from inside the number; a minus sign on the first operand
     (`−5 + 3`) is counted `unparsed` (reason `"negative operand"`), and a
     signed stated result (`10 − 20 = −10`) is evaluated. A sign not meeting
     this shape is a non-candidate and contributes nothing to any column
@@ -6347,6 +6350,13 @@ def _hop_scan_segment(
             ) and not _HOP_OP_AT_END_RE.search(prefix[:-1]):
                 unparsed.append({"expr": expr, "reason": "negative operand"})
                 continue
+            # WR-06: a match starting right after `.` or `,` (no space) began
+            # INSIDE a number `_HOP_NUM_SRC` could not take whole — more than
+            # 6 decimal places, a leading-dot decimal, a decimal comma — and
+            # would be scored against the wrong operand.
+            if prefix and prefix[-1] in ".,":
+                unparsed.append({"expr": expr, "reason": "unparsed number"})
+                continue
             if _HOP_OP_AT_END_RE.search(prefix) or (
                 prefix_trimmed and prefix_trimmed[-1] in "0123456789)^"
             ):
@@ -6383,6 +6393,15 @@ def _hop_scan_segment(
         stated_m = _HOP_RIGHT_NUM_RE.match(right_nocur)
         if stated_m is None:
             unparsed.append({"expr": expr, "reason": "chained"})
+            continue
+        # WR-06: the stated number must be taken whole — a following digit,
+        # or a `.`/`,` followed by a digit, means it was cut short (e.g. to
+        # 6 decimals). A sentence-ending `.` is not a continuation.
+        stated_tail = right_nocur[stated_m.end() : stated_m.end() + 2]
+        if stated_tail[:1].isdigit() or (
+            stated_tail[:1] in ".," and stated_tail[1:2].isdigit()
+        ):
+            unparsed.append({"expr": expr, "reason": "unparsed number"})
             continue
         # The stated result's own trailing `%` disqualifies (D-02).
         if right_nocur[stated_m.end() : stated_m.end() + 2].lstrip(" \t")[
@@ -8543,6 +8562,10 @@ Nothing material here.
         ("10 − 20 = −10", (1, 0, 0)),
         ("10 - 20 = -10", (1, 0, 0)),
         ("10 − 20 = −5", (1, 0, 1)),
+        # WR-06: a sentence-ending `.` after the stated result, and a prose
+        # comma before the first operand, are not number continuations.
+        ("40 × 150 = 6,000 km.", (1, 0, 0)),
+        ("GT-1, 5 × 2 = 10", (1, 0, 0)),
     ]
     for hop_text, expected in p25_cases:
         got = _hop_counts(hop_text)
@@ -8597,6 +8620,14 @@ Nothing material here.
         # a named reason, never folded into a zero-mismatch count.
         ("200-180 = 30", "unspaced hyphen"),
         ("−5 + 3 = −2", "negative operand"),
+        # WR-06: numbers `_HOP_NUM_SRC` cannot take whole are unparsed, not
+        # matched from inside and scored against the wrong operand.
+        ("1.2345678 × 2 = 2.4691356", "unparsed number"),
+        ("0.1234567 × 2 = 0.2469134", "unparsed number"),
+        (".5 × 4 = 2", "unparsed number"),
+        ("1,5 × 2 = 3", "unparsed number"),
+        ("12,34 × 2 = 24.68", "unparsed number"),
+        ("2 × 3 = 6.0000001", "unparsed number"),
     ]
     for hop_text, reason in p26_unparsed_cases:
         rec = detect_defects(_hop_doc(hop_text), "hop-arith-p26")
