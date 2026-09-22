@@ -6149,8 +6149,16 @@ _HOP_OP_AT_END_RE = re.compile(
 # Result sign: `=` (never `==`, `<=`, `>=`, `!=`, `=>`) or `≈`.
 _HOP_RESULT_SIGN_RE = re.compile(r"(?<![=<>!])=(?![=>])|≈")
 _HOP_OPERATOR_ANYWHERE_RE = re.compile(
-    r"[×÷/+−]|[ \t]x[ \t]|[ \t]-[ \t]|[ \t]\*[ \t]"
+    r"[×÷/+−]|[ \t]x[ \t]|[ \t]-[ \t]|[ \t]\*[ \t]|(?<=\d)-(?=\d)"
 )
+# WR-05 (Phase 53 review): an ASCII hyphen with no surrounding spaces
+# between two digits (`200-180`) is ambiguous — subtraction, a range or a
+# date — so it is never evaluated, but it makes the sign a CANDIDATE and the
+# expression is counted `unparsed` with reason "unspaced hyphen" rather than
+# contributing nothing to any column.
+_HOP_UNSPACED_HYPHEN_RE = re.compile(r"(?<=\d)-(?=\d)")
+# WR-05: a leading minus sign (U+2212 or ASCII) on the stated result.
+_HOP_RIGHT_SIGN = "−-"
 _HOP_PERCENT_RE = re.compile(r"\d[ \t]{0,2}%")
 _HOP_EXP_PAREN_RE = re.compile(r"[()^]")
 _HOP_LEFT_END_RE = re.compile(r"[0-9)%]$")
@@ -6227,8 +6235,13 @@ def _hop_arithmetic_defects(blocks: list[str]) -> dict:
     Reach (D-02, the disclosed bound). A candidate is a `=`/`≈` sign whose
     left side (<=80 characters, trailing whitespace and one trailing unit
     token stripped) ends in a digit, `)` or `%`, whose right side begins
-    (after <=3 spaces, an optional `~`, optional currency) with a digit,
-    and whose left window carries at least one operator; a sign not meeting
+    (after <=3 spaces, an optional `~`, an optional `−`/`-` sign, optional
+    currency) with a digit, and whose left window carries at least one
+    operator — a spaced operator, or an unspaced ASCII hyphen between two
+    digits (`200-180`), which is never evaluated and is counted `unparsed`
+    (reason `"unspaced hyphen"`); a minus sign on the first operand
+    (`−5 + 3`) is counted `unparsed` (reason `"negative operand"`), and a
+    signed stated result (`10 − 20 = −10`) is evaluated. A sign not meeting
     this shape is a non-candidate and contributes nothing to any column
     (e.g. "for ≈9 months", "η = 1 − T_cold/T_hot"). Every candidate this
     narrow parser cannot reduce to exactly `NUM [UNIT] OP NUM [UNIT]` —
@@ -6300,6 +6313,12 @@ def _hop_scan_segment(
             is_approx = True
             right_window = after_sign[tilde_m.end() :]
         right_stripped = right_window.lstrip(" \t")
+        # WR-05: a signed stated result (`= −10`) is a candidate, not a
+        # silent non-candidate; the sign is re-applied after parsing.
+        stated_negative = False
+        if right_stripped[:1] in _HOP_RIGHT_SIGN and right_stripped[1:2].isdigit():
+            stated_negative = True
+            right_stripped = right_stripped[1:]
         right_nocur = (
             right_stripped[1:]
             if right_stripped[:1] in _HOP_CURRENCY
@@ -6320,6 +6339,14 @@ def _hop_scan_segment(
         if expr_m is not None:
             prefix = left_stripped[: expr_m.start()]
             prefix_trimmed = prefix.rstrip(" \t")
+            # WR-05: a minus sign directly on the first operand (`−5 + 3`),
+            # at the window's start or after whitespace/`(`, is a signed
+            # operand, not a second operator — named, not called "chained".
+            if prefix and prefix[-1] in _HOP_RIGHT_SIGN and (
+                len(prefix) == 1 or prefix[-2] in " \t("
+            ) and not _HOP_OP_AT_END_RE.search(prefix[:-1]):
+                unparsed.append({"expr": expr, "reason": "negative operand"})
+                continue
             if _HOP_OP_AT_END_RE.search(prefix) or (
                 prefix_trimmed and prefix_trimmed[-1] in "0123456789)^"
             ):
@@ -6331,6 +6358,8 @@ def _hop_scan_segment(
             # bounded to <=80 characters), rather than the padded original.
             if _HOP_PERCENT_RE.search(left_stripped):
                 unparsed.append({"expr": expr, "reason": "percentage"})
+            elif _HOP_UNSPACED_HYPHEN_RE.search(left_stripped):
+                unparsed.append({"expr": expr, "reason": "unspaced hyphen"})
             elif _HOP_EXP_PAREN_RE.search(left_stripped):
                 unparsed.append(
                     {"expr": expr, "reason": "exponent or parentheses"}
@@ -6367,6 +6396,8 @@ def _hop_scan_segment(
         except ValueError:
             unparsed.append({"expr": expr, "reason": "chained"})
             continue
+        if stated_negative:
+            stated = -stated
 
         d = _hop_decimal_places(stated_text)
         eq_tol = 0.5 * (10**-d) + 1e-9 * abs(stated)
@@ -8507,6 +8538,11 @@ Nothing material here.
         ("6 x 7 = 42", (1, 0, 0)),
         ("8 * 3 = 25", (1, 0, 1)),
         ("60 × 12 = ~700", (1, 0, 0)),
+        # WR-05: a signed stated result is evaluated, not a silent
+        # non-candidate.
+        ("10 − 20 = −10", (1, 0, 0)),
+        ("10 - 20 = -10", (1, 0, 0)),
+        ("10 − 20 = −5", (1, 0, 1)),
     ]
     for hop_text, expected in p25_cases:
         got = _hop_counts(hop_text)
@@ -8557,6 +8593,10 @@ Nothing material here.
         ("60,000 × (1.025)^10 ≈ 76,805", "exponent or parentheses"),
         ("1.5 kWh ÷ 0.80 = 1,875 Wh", "unit scale"),
         ("5 / 0 = 1", "division by zero"),
+        # WR-05: shapes that used to read (0, 0, 0) now read unparsed with
+        # a named reason, never folded into a zero-mismatch count.
+        ("200-180 = 30", "unspaced hyphen"),
+        ("−5 + 3 = −2", "negative operand"),
     ]
     for hop_text, reason in p26_unparsed_cases:
         rec = detect_defects(_hop_doc(hop_text), "hop-arith-p26")
