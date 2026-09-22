@@ -24,6 +24,11 @@ everything else competes with the gate for the same budget. The gate runs last i
 order — that is exactly why it is protected ahead of the re-entry edges for whatever budget
 remains: a run running short on turns sacrifices a re-entry pass before it sacrifices the gate.
 
+**When the turn budget is exhausted before that order completes**, emit the partial artifacts
+already produced, plus an explicit `Observe incomplete — residual caveat` naming which artifacts
+are partial and what is therefore unverified. This is the Report emission invariant applied to
+budget exhaustion: silent truncation is not an option.
+
 **Never poll for dispatched work.** When this analysis dispatches a sub-agent or launches a
 background task, its completion **notifies you automatically**. The correct action is to stop and
 wait for that notification — not to issue sleep loops, wait scripts, repeated status checks, or
