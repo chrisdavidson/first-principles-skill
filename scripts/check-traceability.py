@@ -6271,6 +6271,269 @@ def _rows_v95() -> list[MatrixRow]:
     ]
 
 
+def _rows_v96() -> list[MatrixRow]:
+    """v9.6.0 milestone rows -- 9 requirements, 4 reproducible + 5 audit-only (Phase 54 / BASE-02).
+
+    All rows carry milestone="v9.6". Keys use the milestone-qualified form "v9.6/<bare_id>".
+
+    Tiering method, stated once rather than per row (D-10, 54-CONTEXT.md): for each requirement,
+    its statement was reduced to the distinguishing literal(s) that would have to survive a
+    mutation for the claim to hold, that literal was grepped against every `scripts/*.py` file in
+    this tree, and for every candidate-reproducible clause a break test was actually run --
+    mutate the one control inside `scripts/check-quality-harness.py`, run
+    `python3 scripts/check-quality-harness.py --self-test`, record the exit code, then restore
+    with `git checkout -- scripts/check-quality-harness.py` and confirm
+    `git diff --quiet -- scripts/check-quality-harness.py`. A row is `reproducible` only if every
+    clause of its statement broke `--self-test` red under its own mutation; one clause that stays
+    green is sufficient to keep the row `audit-only`, the same rule `_rows_v93()`/`_rows_v95()`
+    state. Every break test this batch ran, with its mutation, command and exit code, is recorded
+    in `54-03-SUMMARY.md` -- not retyped here.
+
+    Four requirements (INSTR-01..04) are apparatus-tier instrument columns, Capability
+    Test-Network, deliverable `scripts/check-quality-harness.py`, `surfaces=('apparatus',)`:
+
+      - INSTR-01: `selfaudit_bands_parsed` forced to a constant `0` and, separately,
+        `selfaudit_offvocab_bands` forced to a constant `0` (`scripts/check-quality-harness.py:6831`
+        and `:6832`) each independently turned `_selftest_defects` red. Both clauses of the
+        statement -- the parsed-band count and the off-vocabulary-word count -- are re-run by
+        QUAL-01's own `(P9)`-neighbourhood control.
+
+      - INSTR-02: `high_conf_chains`, `high_conf_unverified_head` and `confidence_inversions`
+        (`scripts/check-quality-harness.py:6773-6775`) were each independently forced to a
+        constant `0`; all three turned `_selftest_defects` red. All three clauses of the
+        statement -- the HIGH-rated chain count, the `?`-marked-head count, and the
+        above-lowest-cited-chain (inversion) count -- are re-run by QUAL-01's `(P2)`/`(P5)`/`(P8)`
+        neighbourhood controls.
+
+      - INSTR-03: `_SELFAUDIT_CONTRADICTIONS[5]` (`scripts/check-quality-harness.py:6567`) was
+        emptied to `()`; `--self-test` turned red on both `_selftest_defects` and
+        `_selftest_selfaudit_calibration`. The statement's clause -- a Criterion 5 entry exists
+        and lets a Criterion 5 verdict disagree with what the scan measured -- is re-run by
+        QUAL-01's `(P19)`-neighbourhood control.
+
+      - INSTR-04: each of `read_rubric`, `read_output_template` and `read_any_technique_ref`'s
+        own entries in `_REFERENCE_READ_TARGETS` (`scripts/check-quality-harness.py:693-709`) was
+        independently pointed at a nonexistent path (or emptied); each turned
+        `_selftest_reference_reads` red. All three clauses of the statement -- whether the run
+        opened the rubric, the output template, and any technique reference file -- are re-run by
+        that function's own controls (a)/(k)/(l) neighbourhood.
+
+    Five requirements are audit-only, one unchecked clause sufficient for each:
+
+      - BASE-01: a reading recorded in `docs/v9.6-baseline-reading.md`. Zero `scripts/*.py` hits
+        for any BASE-01-distinguishing literal (its own filename, or "existing captures plus a
+        fresh set") -- confirmed by grep. Barred from gating by its own governing rule
+        (K-of-N observation, `docs/v8.7-constraint-teardown.md` §2 item 3): no script re-reads or
+        re-derives it.
+
+      - BASE-02: same shape, reading recorded in `docs/v9.6-rebaseline-reading.md`. Zero
+        `scripts/*.py` hits for its own filename or "re-reading with the same columns" -- confirmed
+        by grep. Same governing rule bars it from gating.
+
+      - OBS-01: zero `scripts/*.py` hits for the pre-check's placement clause ("immediately before
+        every") or its citation clause ("three-axis") -- confirmed by grep. The pre-check detector
+        (`_precheck_defects`, QUAL-01 controls `(P15)`-`(P19)`) exists and is reproducible, but for
+        a *different* property -- whether a stated `Inputs ceiling` label agrees with the derived
+        ceiling from cited heads -- never whether the pre-check line is present, correctly placed,
+        or carries the D-09 wording deviation
+        (`docs/v9.6-instrument-rederivation.md` §7.9: the shipped field reads `Inputs ceiling`, not
+        "the band that licenses", because `output-template.md` states a cap never licenses a band
+        on its own). One unchecked clause (placement/wording) is sufficient to keep this
+        audit-only, even though a neighbouring detector is itself reproducible.
+
+      - OBS-02: INSTR-02 discharges the §4 chain-to-chain case of the P2 composition detection in
+        full (`docs/v9.6-instrument-rederivation.md` §7.5). The residue `R-52-01` (the §6 roll-up
+        case) is closed only in part: `rollup_inversions` (`scripts/check-quality-harness.py:6801`)
+        forced to a constant `0` DID turn `_selftest_defects` red -- the detector itself is real
+        and reproducible -- but its own disclosed bound (§7.8) states 17 of 59 measured §6 roll-up
+        Confidence lines are unpairable and thus structurally unreached by the detector, remainder
+        carried by backlog `999.154`. The requirement's own statement asks whether the P2 case "is
+        detected" without qualification; since part of that case is not detected by any registered
+        gate, the row stays audit-only, even though the discharged-in-part clause is itself
+        break-tested and reproducible.
+
+      - OBS-03: the hop-arithmetic limb clause is reproducible on its own --
+        `hop_arithmetic_mismatches` (`scripts/check-quality-harness.py:6815`) forced to a constant
+        `0` turned `_selftest_defects` red (QUAL-01's `(P25)`-`(P30)` neighbourhood) -- but the
+        Rival-step clause is not: `/usr/bin/grep -rin '\\brival\\b' scripts/*.py` returns zero hits
+        anywhere in this tree -- no registered gate reads or checks whether Phase 5's Rival step
+        fires, is prompted, or resolves for an intermediate `Cn`
+        (`docs/v9.6-instrument-rederivation.md` §8.9: "no step prompts a rival for an intermediate
+        `Cn` and no code site checks that a rival was sought or resolved (C-O3-4, C-O3-5, not at
+        all)"; remainder backlog `999.157`). One unchecked clause is sufficient to keep this
+        audit-only.
+
+    DISCLOSED BOUNDARY. The four reproducible rows each carry a `#_selftest_*` symbol anchor
+    (`_selftest_defects` for INSTR-01/02/03, `_selftest_reference_reads` for INSTR-04) --
+    dispatch-checked by `_resolve_artifact()`, matching v8.24/CAP-01's own precedent rather than a
+    bare-file-existence anchor. Every audit-only row's rationale names the specific literal grepped
+    and the specific mutation run (where one was run), so a later reader can re-run the same break
+    rather than trust the tier as asserted. This batch's break tests are lighter-weight than a
+    fixture-scale addition to `_selftest_defects` itself -- they mutate the existing shipped
+    columns and restore, per the plan's own instruction, rather than add a new numbered control.
+
+    No new -ROWS sentinel, for the same reasons `_rows_v93()`'s and `_rows_v95()`'s docstrings
+    already give. `_rows_v96()` is re-run by TRACE-03's existing ROW-FIELDS live leg and by
+    HEADLINE-LOCK; no new control or registration is added.
+    """
+    _audit_base01_reading_v96 = (
+        "a reading recorded in docs/v9.6-baseline-reading.md. Zero scripts/*.py hits for any "
+        "BASE-01-distinguishing literal (its own filename, or \"existing captures plus a fresh "
+        "set\") -- confirmed by grep. Barred from gating by its own governing rule (K-of-N "
+        "observation, docs/v8.7-constraint-teardown.md §2 item 3): no script re-reads or "
+        "re-derives it."
+    )
+    _audit_base02_reading_v96 = (
+        "a reading recorded in docs/v9.6-rebaseline-reading.md. Zero scripts/*.py hits for its "
+        "own filename or \"re-reading with the same columns\" -- confirmed by grep. Same "
+        "governing rule (K-of-N observation, docs/v8.7-constraint-teardown.md §2 item 3) bars it "
+        "from gating."
+    )
+    _audit_obs01_precheck_placement_v96 = (
+        "zero scripts/*.py hits for the pre-check's placement clause (\"immediately before "
+        "every\") or its citation clause (\"three-axis\") -- confirmed by grep. The pre-check "
+        "detector (_precheck_defects, QUAL-01 controls (P15)-(P19)) exists and is reproducible, "
+        "but for a different property -- whether a stated Inputs ceiling label agrees with the "
+        "derived ceiling from cited heads -- never whether the pre-check line is present, "
+        "correctly placed, or carries the D-09 wording deviation (docs/v9.6-instrument-"
+        "rederivation.md §7.9: the shipped field reads \"Inputs ceiling\", not \"the band that "
+        "licenses\", because output-template.md states a cap never licenses a band on its own). "
+        "One unchecked clause (placement/wording) is sufficient to keep this audit-only, even "
+        "though a neighbouring detector is itself reproducible."
+    )
+    _audit_obs02_rollup_residue_v96 = (
+        "INSTR-02 discharges the §4 chain-to-chain case of the P2 composition detection in full "
+        "(docs/v9.6-instrument-rederivation.md §7.5). The residue R-52-01 (the §6 roll-up case) "
+        "is closed only in part: rollup_inversions (scripts/check-quality-harness.py:6801) "
+        "forced to a constant 0 DID turn _selftest_defects red -- the detector itself is real "
+        "and reproducible -- but its own disclosed bound (§7.8) states 17 of 59 measured §6 "
+        "roll-up Confidence lines are unpairable and thus structurally unreached by the "
+        "detector, remainder carried by backlog 999.154. The requirement's own statement asks "
+        "whether the P2 case \"is detected\" without qualification; since part of that case is "
+        "not detected by any registered gate, the row stays audit-only, even though the "
+        "discharged-in-part clause is itself break-tested and reproducible."
+    )
+    _audit_obs03_rival_step_v96 = (
+        "the hop-arithmetic limb clause is reproducible on its own -- hop_arithmetic_mismatches "
+        "(scripts/check-quality-harness.py:6815) forced to a constant 0 turned _selftest_defects "
+        "red (QUAL-01's (P25)-(P30) neighbourhood) -- but the Rival-step clause is not: "
+        "/usr/bin/grep -rin '\\brival\\b' scripts/*.py returns zero hits anywhere in this tree -- "
+        "no registered gate reads or checks whether Phase 5's Rival step fires, is prompted, or "
+        "resolves for an intermediate Cn (docs/v9.6-instrument-rederivation.md §8.9: \"no step "
+        "prompts a rival for an intermediate Cn and no code site checks that a rival was sought "
+        "or resolved (C-O3-4, C-O3-5, not at all)\"; remainder backlog 999.157). One unchecked "
+        "clause is sufficient to keep this audit-only."
+    )
+    return [
+        MatrixRow('v9.6/INSTR-01', 'INSTR-01', 'v9.6', 'Test-Network',
+                  'scripts/check-quality-harness.py',
+                  'reproducible',
+                  'scripts/check-quality-harness.py#_selftest_defects', '',
+                  surfaces=('apparatus',),
+                  statement=(
+                      "`detect_defects` reports how many self-audit verdict blocks it parsed, so "
+                      "a clean reading cannot be produced by parsing nothing. A verdict in "
+                      "non-rubric vocabulary is counted as a finding rather than as silence."
+                  ),
+                  rerun_by='battery-only'),
+        MatrixRow('v9.6/INSTR-02', 'INSTR-02', 'v9.6', 'Test-Network',
+                  'scripts/check-quality-harness.py',
+                  'reproducible',
+                  'scripts/check-quality-harness.py#_selftest_defects', '',
+                  surfaces=('apparatus',),
+                  statement=(
+                      "`detect_defects` reports, per capture, the number of HIGH-rated chains, "
+                      "the number whose head carries a `?` input, and the number rated above the "
+                      "lowest-rated chain their head cites."
+                  ),
+                  rerun_by='battery-only'),
+        MatrixRow('v9.6/INSTR-03', 'INSTR-03', 'v9.6', 'Test-Network',
+                  'scripts/check-quality-harness.py',
+                  'reproducible',
+                  'scripts/check-quality-harness.py#_selftest_defects', '',
+                  surfaces=('apparatus',),
+                  statement=(
+                      "A Criterion 5 entry in `_SELFAUDIT_CONTRADICTIONS` lets a Criterion 5 "
+                      "verdict disagree with what the scan measured, where Criterion 5 was "
+                      "previously structurally invisible to the contradiction check."
+                  ),
+                  rerun_by='battery-only'),
+        MatrixRow('v9.6/INSTR-04', 'INSTR-04', 'v9.6', 'Test-Network',
+                  'scripts/check-quality-harness.py',
+                  'reproducible',
+                  'scripts/check-quality-harness.py#_selftest_reference_reads', '',
+                  surfaces=('apparatus',),
+                  statement=(
+                      "A `reference_reads` census reports, per stored capture, whether the run "
+                      "opened the validation rubric, the output template, and any technique "
+                      "reference file."
+                  ),
+                  rerun_by='battery-only'),
+        MatrixRow('v9.6/BASE-01', 'BASE-01', 'v9.6', 'Test-Network',
+                  'docs/v9.6-baseline-reading.md',
+                  'audit-only', '', _audit_base01_reading_v96,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "A reading over the existing captures plus a fresh set is recorded with "
+                      "its N, using INSTR-01..04's columns, before any `shared/` edit in this "
+                      "milestone."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.6/BASE-02', 'BASE-02', 'v9.6', 'Test-Network',
+                  'docs/v9.6-rebaseline-reading.md',
+                  'audit-only', '', _audit_base02_reading_v96,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "A re-reading with the same columns is recorded after the OBS requirements "
+                      "land, stated with its N as an observation and never as a gate (K-of-5 "
+                      "discipline, docs/v8.7-constraint-teardown.md §2 item 3)."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.6/OBS-01', 'OBS-01', 'v9.6', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_obs01_precheck_placement_v96,
+                  surfaces=('agent',),
+                  statement=(
+                      "A confidence pre-check is emitted immediately before every "
+                      "`**Confidence:**` line -- the head's identifiers listed, whether any is "
+                      "`?`-marked, and the band that licenses. It references 999.137's "
+                      "three-axis definition rather than restating a cap. Shipped with the D-09 "
+                      "wording deviation: the pre-check's final field is worded `Inputs ceiling`, "
+                      "not \"the band that licenses\" (docs/v9.6-instrument-rederivation.md §7.9)."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.6/OBS-02', 'OBS-02', 'v9.6', 'Test-Network',
+                  'scripts/check-quality-harness.py',
+                  'audit-only', '', _audit_obs02_rollup_residue_v96,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "The P2 composition case -- a chain rated above the lowest-rated chain its "
+                      "head cites -- is detected, not merely forbidden in prose. Discharged in "
+                      "part: INSTR-02 discharges the §4 chain-to-chain case in full; residue "
+                      "R-52-01 (the §6 roll-up case) is closed in part by "
+                      "`_rollup_inversion_defects`, with a disclosed bound (17 of 59 measured §6 "
+                      "roll-up Confidence lines unreached, docs/v9.6-instrument-rederivation.md "
+                      "§7.8), remainder backlog 999.154."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.6/OBS-03', 'OBS-03', 'v9.6', 'Methodology',
+                  'shared/spine/references/validation-rubric.md',
+                  'audit-only', '', _audit_obs03_rival_step_v96,
+                  surfaces=('agent',),
+                  statement=(
+                      "Phase 5 prescribes recompute -> sensitivity -> rival conclusion -> "
+                      "adversarial technique -> falsification condition, and Criterion 4 carries "
+                      "a hop-validity and arithmetic limb that can fail a well-formed "
+                      "non-sequitur. Discharged in part (docs/v9.6-instrument-rederivation.md "
+                      "§8.9): the Rival step prescribes and routes a rival for the headline "
+                      "conclusion (landed, prose); no step prompts a rival for an intermediate "
+                      "`Cn` and no code site checks that a rival was sought or resolved (not at "
+                      "all); remainder backlog 999.157."
+                  ),
+                  rerun_by='none'),
+    ]
+
+
 def build_matrix_rows() -> list[MatrixRow]:
     """Return the curated list of MatrixRow objects (Plan 02 — fully populated).
 
@@ -6478,6 +6741,8 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v93())
     # --- v9.5.0 milestone (Phase 49 / REL-26) — 0 reproducible + 18 audit-only ---
     rows.extend(_rows_v95())
+    # --- v9.6.0 milestone (Phase 54 / BASE-02) — 4 reproducible + 5 audit-only ---
+    rows.extend(_rows_v96())
     return rows
 
 
