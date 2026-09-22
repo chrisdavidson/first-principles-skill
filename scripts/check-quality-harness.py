@@ -6161,7 +6161,16 @@ _HOP_UNSPACED_HYPHEN_RE = re.compile(r"(?<=\d)-(?=\d)")
 _HOP_RIGHT_SIGN = "−-"
 _HOP_PERCENT_RE = re.compile(r"\d[ \t]{0,2}%")
 _HOP_EXP_PAREN_RE = re.compile(r"[()^]")
-_HOP_LEFT_END_RE = re.compile(r"[0-9)%]$")
+_HOP_LEFT_END_RE = re.compile(r"[0-9)%⌉⌋]$")
+# WR-07 (Phase 53 review): a disclosed rounding — a ceiling/floor bracket
+# anywhere in the expression, or "rounded up/down" / "round up/down" beside
+# the result — is a named `unparsed` reason, never a mismatch. The bare words
+# "ceiling"/"floor" are deliberately not matched: they occur in ordinary
+# prose ("floor area 20 × 30 = 600 m²").
+_HOP_ROUNDING_BRACKET_RE = re.compile(r"[⌈⌉⌊⌋]")
+_HOP_ROUNDING_WORDS_RE = re.compile(
+    r"\bround(?:ed)?[ \t]{1,3}(?:up|down)\b", re.IGNORECASE
+)
 _HOP_TILDE_LEAD_RE = re.compile(r"^[ \t]{0,3}~")
 _HOP_TRAILING_UNIT_RE = re.compile(r"(?:[ \t]?[A-Za-z/°µ²³]{1,15})$")
 _HOP_RIGHT_NUM_RE = re.compile(_HOP_NUM_SRC)
@@ -6260,7 +6269,14 @@ def _hop_arithmetic_defects(blocks: list[str]) -> dict:
     and a failing one is also appended to `mismatches`.
 
     `=` passes when `|computed - stated| <= 0.5 * 10 ** -d + 1e-9 *
-    |stated|` (`d` = decimal places written in the stated result). `≈`
+    |stated|` (`d` = decimal places written in the stated result), OR —
+    for an integer stated result with trailing zeros and no decimal point
+    (`= 340 W`) — when `computed` rounded to the stated result's
+    significant digits, floored at 2, equals it (WR-07). A bare integer
+    with no trailing zero (`12 / 5 = 3`) stays strict: an undisclosed
+    ceiling reads as a mismatch, while a disclosed one ("rounded up/down"
+    or "round up/down" beside the result, or a `⌈…⌉`/`⌊…⌋` bracket) is
+    counted `unparsed` (reason `"rounding"`). `≈`
     (and `=` followed by `~`) passes under the `=` rule, OR when
     `|computed - stated| <= 0.10 * |stated|`, OR when `computed` rounded to
     the stated result's significant figures equals it.
@@ -6328,6 +6344,15 @@ def _hop_scan_segment(
             else right_stripped
         )
         if not right_nocur[:1].isdigit():
+            continue
+
+        # WR-07: a disclosed rounding is named, not scored.
+        if (
+            _HOP_ROUNDING_BRACKET_RE.search(left_stripped)
+            or _HOP_ROUNDING_BRACKET_RE.search(after_sign)
+            or _HOP_ROUNDING_WORDS_RE.search(after_sign)
+        ):
+            unparsed.append({"expr": expr, "reason": "rounding"})
             continue
 
         # Candidate confirmed — classify. Try the structural match FIRST, anchored at the end of the (up to
@@ -6421,6 +6446,18 @@ def _hop_scan_segment(
         d = _hop_decimal_places(stated_text)
         eq_tol = 0.5 * (10**-d) + 1e-9 * abs(stated)
         passes = abs(computed - stated) <= eq_tol
+        # WR-07: an integer stated result with trailing zeros and no decimal
+        # point (`= 340 W`) is read as significant-figure-rounded: it passes
+        # when `computed` rounded to its significant digits — floored at 2,
+        # so `= 5,000` cannot absorb an error of up to 50% — equals it.
+        if not passes and "." not in stated_text:
+            digits = re.sub(r"[^0-9]", "", stated_text)
+            if digits.endswith("0") and digits.strip("0"):
+                sig = max(2, len(digits.lstrip("0").rstrip("0")))
+                if _hop_round_sig_figs(computed, sig) == _hop_round_sig_figs(
+                    stated, sig
+                ):
+                    passes = True
         if is_approx and not passes:
             if abs(computed - stated) <= 0.10 * abs(stated):
                 passes = True
@@ -8550,7 +8587,16 @@ Nothing material here.
         ("3 × 7 ≈ 20", (1, 0, 0)),
         ("3 × 7 ≈ 30", (1, 0, 1)),
         ("1,000 / 3 = 333", (1, 0, 0)),
+        # Deliberately strict (WR-07): a bare integer result with no
+        # trailing zero and no disclosed rounding is read exactly, so an
+        # undisclosed ceiling trips.
         ("12 / 5 = 3", (1, 0, 1)),
+        # WR-07: an integer result with trailing zeros is read as
+        # significant-figure-rounded, floored at 2 significant digits.
+        ("1,875 ÷ 5.5 = 340 W", (1, 0, 0)),
+        ("1,875 ÷ 5.5 = 350 W", (1, 0, 1)),
+        ("45 × 120 = 5,000", (1, 0, 1)),
+        ("the floor area is 20 × 30 = 600 m²", (1, 0, 0)),
         ("200 − 180 = 20", (1, 0, 0)),
         ("200 - 180 = 30", (1, 0, 1)),
         ("9 + 4 = 13", (1, 0, 0)),
@@ -8628,6 +8674,10 @@ Nothing material here.
         ("1,5 × 2 = 3", "unparsed number"),
         ("12,34 × 2 = 24.68", "unparsed number"),
         ("2 × 3 = 6.0000001", "unparsed number"),
+        # WR-07: a disclosed rounding is named, not scored.
+        ("12 / 5 = 3 trucks (rounded up)", "rounding"),
+        ("⌈12 / 5⌉ = 3 trucks", "rounding"),
+        ("12 / 5 = 3 (round up)", "rounding"),
     ]
     for hop_text, reason in p26_unparsed_cases:
         rec = detect_defects(_hop_doc(hop_text), "hop-arith-p26")
