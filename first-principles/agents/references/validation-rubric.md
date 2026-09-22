@@ -486,9 +486,13 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
   step's not-applicable line. Each structural weakness the pass
   returned has landed somewhere a reader can find it — as a named weak link on a chain, or as
   an explicit confidence caveat on the conclusion it threatens. An analysis whose conclusion is
-  neither a plan nor a claim satisfies this by carrying the `adversarial pass not applicable —
-  [reason]` line with its reason named; an analysis that does carry a plan or a claim cannot
-  satisfy it that way, and the reason given is what makes the two cases distinguishable.
+  neither a plan nor a claim satisfies the Premise, Causes, Clusters and Disposition parts by
+  carrying the `adversarial pass not applicable — [reason]` line with its reason named — that
+  line is the adversarial-technique step's own not-applicable line, not a waiver of the whole
+  record, so the Recompute, Sensitivity, Rival and Falsification parts each still carry their
+  content or their own step's not-applicable line; an analysis that does carry a plan or a claim
+  cannot satisfy the technique step that way, and the reason given is what makes the two cases
+  distinguishable.
 
   **A conclusion without a HIGH chain is not a shortfall.** A conclusion resting on no
   HIGH-confidence chain, uncovered by either EXCEPT clause above, is Rigorous on this
@@ -519,7 +523,11 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
   the lowest-rated chain its head cites; OR a single chain's band does not match what its
   three axes license, in either direction — a chain rated HIGH whose head carries a `?` or
   whose hops rest on a stated `[Assumes: A-N]` premise, or a chain meeting all three axes
-  rated MEDIUM — while every other chain in the analysis is correctly banded.
+  rated MEDIUM — while every other chain in the analysis is correctly banded; OR an
+  adversarial pass record, or the `adversarial pass not applicable — [reason]` line, is present
+  but one or more of the Recompute, Sensitivity, Rival and Falsification parts is absent and
+  carries no not-applicable line of its own — a step silently omitted from a pass that otherwise
+  ran.
 
 - **Hand-wavy** — confidence ratings appear on the overall Conclusion section but are absent
   from individual derivation chains; OR weak links are described in general terms ("some
