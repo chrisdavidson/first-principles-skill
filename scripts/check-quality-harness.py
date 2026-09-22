@@ -14995,8 +14995,10 @@ def _selftest_render_contract() -> bool:
         "_selftest_analysis_persistence",
         "_selftest_capture_tool_reader",
         "_selftest_chain_detector_pin",
+        "_selftest_defects",
         "_selftest_incidence_schema_compat",
         "_selftest_ledger_traceability",
+        "_selftest_reference_reads",
         "_selftest_render_contract",
     }
 
@@ -15198,8 +15200,10 @@ def _selftest_render_contract() -> bool:
                 "_selftest_analysis_persistence",
                 "_selftest_capture_tool_reader",
                 "_selftest_chain_detector_pin",
+                "_selftest_defects",
                 "_selftest_incidence_schema_compat",
                 "_selftest_ledger_traceability",
+                "_selftest_reference_reads",
                 "_selftest_render_contract",
             }
         ),

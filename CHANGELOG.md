@@ -13,6 +13,93 @@ installed session.
 
 ## [Unreleased]
 
+## [9.6.0] — 2026-09-22
+
+Milestone release: **v9.6.0 PRAOR Observe: Instrument and Method**. Closes the loop Phase 51
+opened: BASE-01 (Phase 51) took the before-reading over the Phase 50 instrument columns; Phases
+52 and 53 landed OBS-01..03; this milestone's own Phase 54 takes the after-reading (BASE-02) and
+ships.
+
+### What shipped
+
+- **INSTR-01..04** (`reproducible`, `scripts/check-quality-harness.py`): the four instrument
+  columns this milestone measures against — self-audit band-parse accounting with an
+  off-vocabulary count (INSTR-01), per-capture HIGH-rated/`?`-marked-head/inversion counts
+  (INSTR-02), a Criterion 5 entry in `_SELFAUDIT_CONTRADICTIONS` (INSTR-03), and a
+  `reference_reads` census of whether a run opened the rubric, the output template, or any
+  technique reference file (INSTR-04). Each is break-tested this phase: mutating the column's own
+  computation turns `scripts/check-quality-harness.py --self-test` red; restoring returns it to a
+  byte-identical, green tree.
+- **BASE-01** (`audit-only`, `docs/v9.6-baseline-reading.md`): the before-reading, recorded at
+  Phase 51, over the existing captures plus a fresh set, before any `shared/` edit this milestone.
+- **OBS-01** (`audit-only`, `shared/spine/SKILL-body.md`): a confidence pre-check emitted
+  immediately before every `**Confidence:**` line, with the D-09 wording deviation — the
+  pre-check's final field reads `Inputs ceiling`, not "the band that licenses", because
+  `output-template.md` states a cap never licenses a band on its own
+  (`docs/v9.6-instrument-rederivation.md` §7.9).
+- **OBS-02** (`audit-only`, `scripts/check-quality-harness.py`): the P2 composition case — a chain
+  rated above the lowest-rated chain its head cites — is detected, not merely forbidden in prose.
+  Discharged in part: INSTR-02 discharges the §4 chain-to-chain case in full; the §6 roll-up
+  residue (`R-52-01`) is closed in part by `_rollup_inversion_defects`, with a disclosed bound (17
+  of 59 measured §6 roll-ups unreached, remainder backlog **999.154**).
+- **OBS-03** (`audit-only`, `shared/spine/references/validation-rubric.md`): Phase 5 prescribes
+  recompute → sensitivity → rival conclusion → adversarial technique → falsification condition,
+  and Criterion 4 carries a hop-validity and arithmetic limb that can fail a well-formed
+  non-sequitur. Discharged in part: the Rival step prescribes and routes a rival for the headline
+  conclusion (landed, prose); no step prompts a rival for an intermediate `Cn` and no code site
+  checks that a rival was sought or resolved, remainder backlog **999.157**.
+
+No audit-only requirement above is described as gated by this entry — INSTR-01..04 are the only
+four rows this milestone's matrix registration tiers `reproducible`.
+
+### Readings taken — observations, not gates
+
+- **BASE-02, N = 5 per arm** (`docs/v9.6-rebaseline-reading.md`), the same five catalog prompts
+  (`Q-P1`, `Q-P2`, `Q-P3`, `PR-P1`, `PR-P2`) dispatched fresh against the post-OBS-01..03 body and
+  compared to `tests/baseline-reading-v9.6/`'s pre-OBS fresh set. INSTR-01's parse accounting and
+  INSTR-04's reference-reads census are unchanged across both arms (30/30 bands parsed in both
+  arms; all three reference-read booleans 5/5 true in both arms). INSTR-02's `high_conf_chains` sum
+  moved `8 → 4` and INSTR-03's `selfaudit_disagreements` sum moved `1 → 0` — both single-capture
+  movements at N=5. Per `docs/v8.7-constraint-teardown.md` §2 item 3 this reading gates nothing:
+  at N=5 noise equals effect, and neither movement is attributed to any particular OBS change.
+- **Existing-population instrument drift: one delta, named.** Re-scoring the unchanged existing
+  population (N=32 scored, 33 censused — the same captures BASE-01 read, byte-unchanged) with
+  today's shipped harness found exactly one drift:
+  `live-conformance-v9.0/PR-P2`'s `selfaudit_disagreements` moved `0 → 1`, caused by the
+  Phase-52 `rollup_inversions` column being newly wired into `_SELFAUDIT_CONTRADICTIONS[5]` and
+  firing on a pre-existing, byte-unchanged capture's text — instrument drift, not agent change
+  (`confidence_inversions`, INSTR-02's own column, stayed `0` on the same row in both readings).
+  Reference-reads (INSTR-04) read byte-identical across the same population: zero diffs.
+
+### Costs this release does not pay
+
+- **999.133's turn-budget cost is unpaid again**, carrying over a second milestone. Phases 52 and
+  53 each added Phase 5 prose under a phase-local word budget; paying it from Step 0's own padding
+  remains out of scope.
+- **OBS-03's Rivals-axis cheque is discharged in part.** The remainder — no step prompts a rival
+  for an intermediate `Cn`, and no code site checks that one was sought or resolved — is filed as
+  backlog **999.157**.
+- **The pure non-sequitur arm is evidenced only by an N=3 model-graded observation**
+  (`tests/hop-validity-v9.6/observation/`, `claude-opus-5`, six sequential single-turn calls, tools
+  disabled), and no detector in this tree reaches it.
+- **The Phase 53 review fixes that change scoring logic (WR-01, WR-02, WR-03, WR-05, WR-06,
+  WR-07) are flagged for human verification** rather than treated as self-evidently correct because
+  their own self-test passed.
+- **The BASE-02 reading carries its N and gates nothing** — see "Readings taken" above.
+
+### Coverage: this release adds 9 requirements, 4 reproducible and 5 audit-only
+
+The headline moves `228 reproducible / 185 audit-only / 0 gap / 413 total` →
+`232 reproducible / 190 audit-only / 0 gap / 422 total`. INSTR-01..04 are reproducible — each
+break-tested this phase, anchored at `scripts/check-quality-harness.py#_selftest_defects` or
+`#_selftest_reference_reads`, `rerun_by="battery-only"`. BASE-01, BASE-02, OBS-01, OBS-02 and
+OBS-03 are audit-only: BASE-01/BASE-02 are readings barred from gating by the K-of-N discipline;
+OBS-01's placement and wording clauses have zero `scripts/*.py` hits; OBS-02 and OBS-03 each
+contain one break-tested-reproducible clause (`rollup_inversions`, `hop_arithmetic_mismatches`)
+sitting beside one clause no registered gate reaches (the §6 roll-up residue, the Rival-step
+gap) — one unchecked clause is sufficient to keep the row audit-only, per the same rule prior
+milestones' rows state.
+
 ## [9.5.0] — 2026-09-20
 
 Milestone release: **v9.5.0 PRAOR Adversarial Pass**. Phase 5 — the phase whose own text calls
