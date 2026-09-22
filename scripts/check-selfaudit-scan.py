@@ -456,9 +456,18 @@ _BODY_DISCLOSED_BOUND = (
     "a given run complied with it — a gate can assert the prescription is "
     "present and well-formed, never that a run obeyed it."
 )
+# Re-pointed at Phase 56 (TERM-03): the opening sentence was reconciled from
+# an unqualified "do not present until clean" into the named Report
+# emission invariant, which states that the analysis is always presented
+# and a still-incomplete run is presented degraded and labelled rather
+# than withheld. The value below tracks that reconciled sentence verbatim.
 _BODY_DONOTPRESENT_AMENDED = (
-    "Do not present conclusions until the closure ledger is clean, the "
-    "self-audit scan has been emitted, AND the Self-Audit Gate is cleared."
+    "This is the **Report emission invariant**: the analysis is presented "
+    "at the end of every run — closure ledger clean, self-audit scan "
+    "emitted, AND Self-Audit Gate cleared is the completion state it "
+    "requires — and when one of the three could not be reached, the "
+    "analysis is still presented, degraded and labelled rather than "
+    "withheld."
 )
 _BODY_DONOTPRESENT_PREAMENDMENT = (
     "Do not present conclusions until the closure ledger is clean AND the "

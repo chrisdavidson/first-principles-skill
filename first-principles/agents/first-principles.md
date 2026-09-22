@@ -422,7 +422,7 @@ If any Fix step adds, removes, or renames a §4 chain that the ledger references
 the ledger's affected rows against the current state of §4 before re-scoring — a chain rename
 or merge during the Fix/Repeat loop can silently invalidate an already-cleared ledger entry.
 
-Do not present conclusions until the closure ledger is clean, the self-audit scan has been emitted, AND the Self-Audit Gate is cleared.
+This is the **Report emission invariant**: the analysis is presented at the end of every run — closure ledger clean, self-audit scan emitted, AND Self-Audit Gate cleared is the completion state it requires — and when one of the three could not be reached, the analysis is still presented, degraded and labelled rather than withheld.
 If any of the three could not be completed, or the output template's read failed,
 **say so explicitly at the top of the response**: name each of the closure ledger, the
 self-audit scan and the Self-Audit Gate that did not run, and for each state its cause — turns
