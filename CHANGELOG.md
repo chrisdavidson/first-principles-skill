@@ -13,6 +13,92 @@ installed session.
 
 ## [Unreleased]
 
+## [9.8.0] — 2026-09-23
+
+Milestone release: **v9.8.0 Retracted-Claim Register**. One gate and one rule, both aimed at a
+single measured defect class.
+
+### The defect this closes
+
+v9.7.0 shipped **seven blocking product defects**. Every one was caught by code review, and every
+one was caught *after* some verification step had passed the same area. Two were the **same claim
+shipping twice**: 55-CR-01 retracted "each companion technique is owned by exactly one phase …
+bounded at ≤ 8 lines", and 58-CR-01 found that identical retracted premise three phases later in
+`docs/requirements-matrix.md` — because the requirement statement the matrix row is generated from
+was never updated alongside the fix.
+
+The diagnosis is narrower than "review harder". Every acceptance criterion in that milestone had
+the shape `grep -c '<literal>' <file> == N` — a **presence check**. None asked whether the sentence
+it pinned was *true*. A presence check and a falsifier look identical and do opposite work. Phase
+57's criteria all passed while rows they guarded were false, and one of them pinned the literal
+`no phase owns`, which was itself the false claim: enforcement that would have made the defect
+durable.
+
+### Added
+
+- **RETRACT-01** (`reproducible` ×3, `scripts/check-retracted-claims.py`) — a registered claim may
+  never reappear on a published surface. Literal, not semantic. Exemptions are (path, exact count)
+  and fire in **both** directions: above the count a new occurrence crept in; below it, the erratum
+  that justified the exemption was deleted. Matching is whitespace-normalised, so line-wrapping
+  cannot hide a reappearance. The register file is the sole excluded path; control C10 pins that
+  exclusion to a population of one. 10 falsifiability controls. Battery 23 → **24**; CI job
+  `check-retracted-claims (RETRACT-01)`.
+- **RETR-04** (`reproducible`, `scripts/check-registration.py`) — REG-GUARD's GATE-02 arm confirms
+  the battery registration and the CI job agree.
+- **RULE-01** (`audit-only`, `CLAUDE.md`) — the **Claims and falsifiers** rule, binding on any
+  plan, plan-check or execution here: an acceptance criterion asserts truth, not presence.
+
+### Confirmed against the defect it was built for
+
+Run against the **tagged v9.7.0 release** (`c96610a`) in a sandboxed `git archive`, RETRACT-01
+catches **both Phase 58 blocking defects** — 58-CR-01's retracted premise in
+`docs/requirements-matrix.md` and `docs/data/matrix.json`, and 58-CR-02's false costs claim in
+`CHANGELOG.md`. Both were found by code review only *after* the tag. This gate would have blocked
+them at pre-commit. That is end-to-end evidence, not a self-test result.
+
+### The rule's second clause was earned by failing
+
+A first falsifier written for 55-CR-01 reported **"claim holds"** against the very commit where the
+false claim shipped — because it encoded *invocation = `{{TOOL:}}` token*, the same wrong model of
+the tree that produced the claim. `theoretical-limit` is invoked in prose at Phase 1 and `inversion`
+via a `Read` link at Phase 5, and both were invisible to it. Hence: **a falsifier written by the
+claim's author reproduces the author's blind spot.** Derive it from observed text; have the checker
+derive its own.
+
+### This gate shipped with three false claims of its own, and review caught all three
+
+Stated plainly, because it is the strongest evidence for keeping review as the last word:
+
+- **CR-01 (product, blocking)** — the gate asserted a retracted claim "may never reappear on a
+  published surface" while `SCAN_GLOBS` omitted `CONTRIBUTING.md`, which `docs/PROCESS.md` §2 names
+  as a product surface three times.
+- **AP-01 (critical)** — substring matching was defeated by line-wrapping. Demonstrated live: the
+  literal "no new registered gate asserts" had a substring count of **zero** in `CHANGELOG.md`
+  while being present. The gate's pass on that entry was luck, not correctness.
+- **AP-02 (critical)** — the self-test's roster check was **tautological**: it built a set *from*
+  `_CONTROL_IDS` and compared its length to `_CONTROL_IDS`. A control that cannot fail, sitting
+  inside the self-test written to prevent controls that cannot fail.
+
+All three fixed at `e7b0c00` and break-tested.
+
+### Costs this release does not pay
+
+- **The fresh-context claim audit is not built.** It was the third recommended mechanism, gated on
+  evidence that the first two leave family-A defects landing. No such evidence yet, so it stays
+  unbuilt rather than speculatively added.
+- **RETRACT-01 does not defeat rewording.** A retracted claim restated in different words remains
+  invisible. The register is literal and always was; normalisation closed the line-wrap hole, not
+  the semantic one.
+- **The registry is not self-populating.** A retracted claim nobody registers is invisible. Growth
+  is a human act, now required by RULE-01 in the same change as the fix.
+
+### Coverage: this release adds 6 requirements, 4 reproducible and 2 audit-only
+
+The headline moves `233 reproducible / 208 audit-only / 0 gap / 441 total` →
+`237 reproducible / 210 audit-only / 0 gap / 447 total`. Unlike v9.5–v9.7, most of this
+milestone's rows are gate-asserted — a gate is the deliverable, so its own self-test and live leg
+assert it.
+
 ## [9.7.0] — 2026-09-22
 
 Milestone release: **v9.7.0 PRAOR Report: Termination and the Named Loop**. The loop terminates

@@ -6753,5 +6753,95 @@
     ],
     "statement": "`CHANGELOG.md` carries a `## [9.7.0]` entry that states the tier of every requirement above and names any cost this release does not pay.",
     "rerun_by": "none"
+  },
+  {
+    "key": "v9.8/RETR-01",
+    "bare_id": "RETR-01",
+    "milestone": "v9.8",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-retracted-claims.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-retracted-claims.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "A claim a code review found false may never reappear on a published surface. RETRACT-01 scans CLAUDE.md, README.md, CHANGELOG.md, CONTRIBUTING.md, docs/, shared/, first-principles/ and scripts/ for every registered retracted literal, and fails naming the file and the retracting defect id. The register is literal, not semantic: a reworded restatement is not caught, and a retracted claim nobody registers is invisible to it.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.8/RETR-02",
+    "bare_id": "RETR-02",
+    "milestone": "v9.8",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-retracted-claims.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-retracted-claims.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Exemptions are (path, exact count) and fire in BOTH directions: above the count a new unexempted occurrence crept in; below it, the erratum that justified the exemption was deleted. The second direction is what a plain allowlist would miss.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.8/RETR-03",
+    "bare_id": "RETR-03",
+    "milestone": "v9.8",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-retracted-claims.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-retracted-claims.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Matching is whitespace-normalised on both haystack and needle, so ordinary Markdown line-wrapping cannot hide a reappearance. `scripts/check-retracted-claims.py` is the sole excluded path, since the registry necessarily contains every literal it bars; control C10 pins that exclusion to a population of one.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.8/RETR-04",
+    "bare_id": "RETR-04",
+    "milestone": "v9.8",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-registration.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-registration.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "RETRACT-01 is registered in `scripts/check-firewall-battery.sh` (moving the offline tally to 24) and carries a matching `check-retracted-claims (RETRACT-01)` job in `.github/workflows/validation.yml`, as REG-GUARD's GATE-02 arm requires of every battery gate outside `BATTERY_ONLY_GATE_IDS`.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.8/RULE-01",
+    "bare_id": "RULE-01",
+    "milestone": "v9.8",
+    "capability": "Methodology",
+    "deliverable_path": "CLAUDE.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "zero scripts/*.py hits for any RULE-01-distinguishing literal (\"asserts truth, not presence\", \"reproduces the author's blind spot\") -- confirmed by grep. CONF-SURFACE regenerates CLAUDE.md's generated gate-table fences and the docs/gates/ pages, never this narrative section, so no registered gate reads the rule's text. It binds by being read, which is the same standing every other instruction in CLAUDE.md has, including the Review protocol the vendored reviewer honours.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "CLAUDE.md states, binding on any plan, plan-check or execution here, that an acceptance criterion asserts truth rather than presence: a plan shipping a factual claim about this tree pairs it with a falsifier that exits non-zero if the claim is FALSE; the plan-checker re-derives falsifiers independently because one written by the claim's author reproduces the author's blind spot; a noisy falsifier that fires beats a clean presence check that does not; and a review that retracts a claim registers it in RETRACT-01 in the same change as the fix.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.8/REL-30",
+    "bare_id": "REL-30",
+    "milestone": "v9.8",
+    "capability": "Test-Network",
+    "deliverable_path": "CHANGELOG.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "VERSION-01 asserts the 17 stamps agree, never that they equal `9.8.0` -- a uniformly wrong value stays green, so 'the stamps read 9.8.0' is not gate-asserted. The battery tally is computed fresh per run and never stored for comparison. Same reasoning `_rows_v95()` and `_rows_v97()` record for their own release rows.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "All 17 hand-maintained version stamps read `9.8.0` (VERSION-01 green), `bash scripts/check-firewall-battery.sh` reaches `FIREWALL: GREEN` at 24/24, the milestone's requirements are registered as matrix rows with the coverage headline moved, and `CHANGELOG.md` carries a `## [9.8.0]` entry stating each requirement's tier and the defect record that motivated the milestone.",
+    "rerun_by": "none"
   }
 ]

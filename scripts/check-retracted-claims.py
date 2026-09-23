@@ -122,6 +122,9 @@ REGISTRY: tuple[RetractedClaim, ...] = (
             "Phases 1 and 4, inversion at Phases 2 and 5. The decline record is "
             "bounded at <= 10 lines per full-composer run, not <= 8."
         ),
+        # CHANGELOG.md's v9.8.0 entry quotes the literal once, in the paragraph
+        # explaining the defect class this gate exists to close.
+        exemptions=(("CHANGELOG.md", 1),),
     ),
     RetractedClaim(
         literal="considered once, at the phase that owns it",
@@ -140,15 +143,17 @@ REGISTRY: tuple[RetractedClaim, ...] = (
         ),
         # Legitimate quotations of the retracted literal, each inside prose
         # whose subject IS the retraction:
-        #   CHANGELOG.md  - the v9.7.0 disclosure table names the defect (1)
-        #                   and the narrative explains the false grep
-        #                   assertion built on it (1).
+        #   CHANGELOG.md  - the v9.7.0 disclosure table names the defect (1),
+        #                   its narrative explains the false grep assertion
+        #                   built on it (1), and the v9.8.0 entry cites the
+        #                   same assertion as the worked example of a criterion
+        #                   that pinned a claim which was itself false (1).
         #   CLAUDE.md     - the "Claims and falsifiers" rule cites it as the
         #                   worked example of an assertion that pinned a
         #                   claim which was itself false (1).
         # Both are two-sided: deleting the erratum fires this gate just as a
         # new unexempted occurrence does.
-        exemptions=(("CHANGELOG.md", 2), ("CLAUDE.md", 1)),
+        exemptions=(("CHANGELOG.md", 3), ("CLAUDE.md", 1)),
     ),
     RetractedClaim(
         literal="no new registered gate asserts",
@@ -164,7 +169,7 @@ REGISTRY: tuple[RetractedClaim, ...] = (
         # whitespace normalisation landed, because the paragraph wraps the
         # literal across a newline — the review's demonstration that the pass
         # on this entry had been luck rather than correctness.
-        exemptions=(("CHANGELOG.md", 1),),
+        exemptions=(("CHANGELOG.md", 2),),
     ),
 )
 

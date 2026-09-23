@@ -6987,6 +6987,144 @@ def _rows_v97() -> list[MatrixRow]:
     ]
 
 
+
+def _rows_v98() -> list[MatrixRow]:
+    """v9.8.0 milestone rows -- 6 requirements, 4 reproducible + 2 audit-only.
+
+    All rows carry milestone="v9.8". Keys use the milestone-qualified form "v9.8/<bare_id>".
+
+    Tiering method, unchanged from `_rows_v93()`..`_rows_v97()`: each requirement's
+    distinguishing behaviour was mutated, the owning gate re-run, the exit code recorded, and
+    the mutation reverted. A row is `reproducible` only where that mutation turned a registered
+    gate red.
+
+    Four rows are reproducible, all behind RETRACT-01's own self-test plus live leg
+    (`scripts/check-retracted-claims.py`), which runs as a battery gate AND the
+    `check-retracted-claims (RETRACT-01)` CI job:
+
+      - RETR-01: appending a registered retracted literal to a scanned surface
+        (`docs/METHODOLOGY-CHEATSHEET.md`) turned the live leg red naming the file and the
+        retracting defect id; reverted, green.
+      - RETR-02: the two-sided exemption is controlled in both directions by C4 (above the
+        count) and C5 (below it, i.e. the erratum was deleted). Both were observed failing
+        against purpose-built fixtures inside `--self-test`.
+      - RETR-03: whitespace normalisation. Before it, the 58-CR-02 registered literal
+        (quoted verbatim only in CHANGELOG.md's own erratum, and deliberately described
+        rather than restated here) had a substring count of ZERO in `CHANGELOG.md`
+        while being present,
+        Demonstrated by the code review, fixed at `e7b0c00`, and the previously-invisible
+        occurrence is now explicitly exempted rather than silently absorbed.
+      - RETR-04: REG-GUARD's GATE-02 arm asserts every battery-registered gate has a matching
+        `name: <job> (<GATE-ID>)` CI job; `python3 scripts/check-registration.py` passes with
+        RETRACT-01 counted among the CI-matched gates.
+
+    Two rows are audit-only:
+
+      - RULE-01 is prose in `CLAUDE.md`. No registered gate reads it -- CONF-SURFACE regenerates
+        that file's gate TABLES, never its narrative sections. Its distinguishing literals
+        ("falsifier", "asserts truth, not presence") return zero `scripts/*.py` hits.
+      - REL-30 follows `_rows_v95()`/`_rows_v97()`'s established reasoning: VERSION-01 asserts
+        the 17 stamps AGREE, never that they equal `9.8.0` (a uniformly wrong value stays
+        green), and a FIREWALL tally is computed fresh each run and never stored for comparison.
+    """
+    _audit_rule01_falsifier_rule_v98 = (
+        "zero scripts/*.py hits for any RULE-01-distinguishing literal (\"asserts truth, not "
+        "presence\", \"reproduces the author's blind spot\") -- confirmed by grep. "
+        "CONF-SURFACE regenerates CLAUDE.md's generated gate-table fences and the docs/gates/ "
+        "pages, never this narrative section, so no registered gate reads the rule's text. It "
+        "binds by being read, which is the same standing every other instruction in CLAUDE.md "
+        "has, including the Review protocol the vendored reviewer honours."
+    )
+    _audit_rel30_release_bundle_v98 = (
+        "VERSION-01 asserts the 17 stamps agree, never that they equal `9.8.0` -- a uniformly "
+        "wrong value stays green, so 'the stamps read 9.8.0' is not gate-asserted. The battery "
+        "tally is computed fresh per run and never stored for comparison. Same reasoning "
+        "`_rows_v95()` and `_rows_v97()` record for their own release rows."
+    )
+    return [
+        MatrixRow('v9.8/RETR-01', 'RETR-01', 'v9.8', 'Test-Network',
+                  'scripts/check-retracted-claims.py',
+                  'reproducible',
+                  'scripts/check-retracted-claims.py', '',
+                  surfaces=('apparatus',),
+                  statement=(
+                      "A claim a code review found false may never reappear on a published "
+                      "surface. RETRACT-01 scans CLAUDE.md, README.md, CHANGELOG.md, "
+                      "CONTRIBUTING.md, docs/, shared/, first-principles/ and scripts/ for every "
+                      "registered retracted literal, and fails naming the file and the "
+                      "retracting defect id. The register is literal, not semantic: a reworded "
+                      "restatement is not caught, and a retracted claim nobody registers is "
+                      "invisible to it."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.8/RETR-02', 'RETR-02', 'v9.8', 'Test-Network',
+                  'scripts/check-retracted-claims.py',
+                  'reproducible',
+                  'scripts/check-retracted-claims.py', '',
+                  surfaces=('apparatus',),
+                  statement=(
+                      "Exemptions are (path, exact count) and fire in BOTH directions: above "
+                      "the count a new unexempted occurrence crept in; below it, the erratum "
+                      "that justified the exemption was deleted. The second direction is what a "
+                      "plain allowlist would miss."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.8/RETR-03', 'RETR-03', 'v9.8', 'Test-Network',
+                  'scripts/check-retracted-claims.py',
+                  'reproducible',
+                  'scripts/check-retracted-claims.py', '',
+                  surfaces=('apparatus',),
+                  statement=(
+                      "Matching is whitespace-normalised on both haystack and needle, so "
+                      "ordinary Markdown line-wrapping cannot hide a reappearance. "
+                      "`scripts/check-retracted-claims.py` is the sole excluded path, since the "
+                      "registry necessarily contains every literal it bars; control C10 pins "
+                      "that exclusion to a population of one."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.8/RETR-04', 'RETR-04', 'v9.8', 'Test-Network',
+                  'scripts/check-registration.py',
+                  'reproducible',
+                  'scripts/check-registration.py', '',
+                  surfaces=('apparatus',),
+                  statement=(
+                      "RETRACT-01 is registered in `scripts/check-firewall-battery.sh` (moving "
+                      "the offline tally to 24) and carries a matching "
+                      "`check-retracted-claims (RETRACT-01)` job in "
+                      "`.github/workflows/validation.yml`, as REG-GUARD's GATE-02 arm requires "
+                      "of every battery gate outside `BATTERY_ONLY_GATE_IDS`."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.8/RULE-01', 'RULE-01', 'v9.8', 'Methodology',
+                  'CLAUDE.md',
+                  'audit-only', '', _audit_rule01_falsifier_rule_v98,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "CLAUDE.md states, binding on any plan, plan-check or execution here, "
+                      "that an acceptance criterion asserts truth rather than presence: a plan "
+                      "shipping a factual claim about this tree pairs it with a falsifier that "
+                      "exits non-zero if the claim is FALSE; the plan-checker re-derives "
+                      "falsifiers independently because one written by the claim's author "
+                      "reproduces the author's blind spot; a noisy falsifier that fires beats a "
+                      "clean presence check that does not; and a review that retracts a claim "
+                      "registers it in RETRACT-01 in the same change as the fix."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.8/REL-30', 'REL-30', 'v9.8', 'Test-Network',
+                  'CHANGELOG.md',
+                  'audit-only', '', _audit_rel30_release_bundle_v98,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "All 17 hand-maintained version stamps read `9.8.0` (VERSION-01 green), "
+                      "`bash scripts/check-firewall-battery.sh` reaches `FIREWALL: GREEN` at "
+                      "24/24, the milestone's requirements are registered as matrix rows with "
+                      "the coverage headline moved, and `CHANGELOG.md` carries a `## [9.8.0]` "
+                      "entry stating each requirement's tier and the defect record that "
+                      "motivated the milestone."
+                  ),
+                  rerun_by='none'),
+    ]
+
 def build_matrix_rows() -> list[MatrixRow]:
     """Return the curated list of MatrixRow objects (Plan 02 — fully populated).
 
@@ -7198,6 +7336,7 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v96())
     # --- v9.7.0 milestone (Phase 58 / REL-28) — 1 reproducible + 18 audit-only ---
     rows.extend(_rows_v97())
+    rows.extend(_rows_v98())
     return rows
 
 
