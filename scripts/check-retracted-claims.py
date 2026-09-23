@@ -255,6 +255,51 @@ REGISTRY: tuple[RetractedClaim, ...] = (
         # the bare "the two pre-commit gates" appears 13 times across the
         # conformance artifacts and gen-gate-docs.py as recorded detections.
     ),
+    RetractedClaim(
+        literal="Carry-forward — expected FAIL (RR-95-02)",
+        retracted_by="DRIFT-2026-09-23",
+        corrected=(
+            "S-P05's chain terminated at RR-108-02 CLOSED at 4/5 (Phase 114, "
+            "v7.6 re-baseline), close sustained at 5/5 (Phase 129, v7.11 "
+            "re-baseline). RR-108-02 is retained only as a regression guard; "
+            "no successor id was minted. The cell did not merely name a stale "
+            "id -- it instructed an operator to excuse a FAIL on a prompt "
+            "whose last live reading was a clean sweep, which masks a "
+            "regression rather than reporting one."
+        ),
+        # Measured before registration: 1 occurrence (docs/live-monitoring-
+        # runbook.md, the site backlog 999.158 corrects), 0 after. No
+        # collision with docs/conformance-baseline.md or docs/data/
+        # conformance.json. The bare id RR-95-02 occurs widely in legitimate
+        # chain strings across several scanned surfaces, so the long form
+        # (this exact cell text) was chosen over the bare id to avoid
+        # needing exemptions against those chain-string occurrences.
+        exemptions=(),
+    ),
+    RetractedClaim(
+        literal="Carry-forward — expected FAIL (RR-95-01)",
+        retracted_by="DRIFT-2026-09-23",
+        corrected=(
+            "S-P02 genuinely is a live carry-forward, so the row's conclusion "
+            "was right; what was false is the id. The current id is "
+            "RR-114-01 (chain RR-79-02 -> RR-92-01 -> RR-95-01 -> RR-108-01 "
+            "-> RR-114-01), [v8.0 ACCEPTED-FINAL]. Naming a retired id as the "
+            "current tracking id is a false claim, not merely a stale one -- "
+            "a wrong residual id reads as authoritative in a way a stale one "
+            "does not (999.158's own filing note)."
+        ),
+        # Measured before registration: 1 occurrence (docs/live-monitoring-
+        # runbook.md, the site backlog 999.158 corrects), 0 after. No
+        # collision with the conformance artifacts, for the same reason as
+        # the entry above.
+        #
+        # DISCLOSED BOUND: this is the weaker of the pair, registered because
+        # the id is false rather than because the row's conclusion is false.
+        # It bars only this exact cell form -- a reworded restatement of the
+        # same error (e.g. a table naming RR-95-01 in different phrasing)
+        # stays invisible, as the register is literal and always was.
+        exemptions=(),
+    ),
 )
 
 
