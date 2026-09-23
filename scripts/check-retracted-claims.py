@@ -73,6 +73,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -311,8 +312,17 @@ REGISTRY: tuple[RetractedClaim, ...] = (
 SELF_EXCLUDED_PATH = "scripts/check-retracted-claims.py"
 
 
+# A fenced code block toggles on a ``` or ~~~ line; content inside must not
+# be rewritten, since it may be showing Markdown syntax (including `>`) AS
+# SOURCE. A line-leading blockquote marker is `>` at the start of a line,
+# after optional whitespace, followed by a space or end-of-line — the space
+# requirement is what spares `>>> ` doctest prompts.
+_FENCE_RE = re.compile(r"^\s*(```|~~~)")
+_LEADING_BQ_RE = re.compile(r"^(\s*)>(?: |$)")
+
+
 def _normalise(text: str) -> str:
-    """Collapse every run of whitespace to a single space.
+    """Collapse whitespace and strip line-leading blockquote markers.
 
     AP-01: a plain substring match is defeated by ordinary Markdown
     line-wrapping. Demonstrated live during review — the registered literal
@@ -321,11 +331,50 @@ def _normalise(text: str) -> str:
     gate's pass on that entry was luck, not correctness. Both haystack and
     needle are normalised so a wrap point cannot hide a reappearance.
 
-    Residual bound, disclosed: normalisation does not defeat *rewording*. A
-    retracted claim restated in different words remains invisible — the
-    register is literal, not semantic, and always was.
+    BQ-01 (Phase 59): whitespace-collapsing alone does not close the same
+    class of blind spot for a registered literal wrapped across two `>`
+    blockquote lines — the `>` survives whitespace-collapsing as its own
+    token and the phrase either side of it never rejoins. A line-leading `>`
+    (optional whitespace, then `>`, then a space or end-of-line) is now
+    stripped in a loop, so nested quoting (`> > text`) collapses fully — but
+    ONLY outside a ``` / ~~~ fenced code block, so a fenced Markdown example
+    that shows blockquote syntax AS SOURCE, or a `>>> ` doctest prompt, is
+    left byte-intact. Fence-awareness is prospective, not a live save:
+    measured at Phase 59, of the 10 line-leading `>` occurrences inside
+    fences in the corpus scanned today, all ten are `>>> ` doctest prompts
+    that a fence-UNaware, space-requiring strip already spares — the fence
+    branch is pinned by its own control (C12), not by today's corpus.
+
+    Residual bounds, disclosed:
+      * Rewording. A retracted claim restated in different words remains
+        invisible — the register is literal, not semantic, and always was.
+      * Non-`>` line-leading Markdown syntax (list markers, table pipes,
+        indentation) is out of scope. BQ-01 measured the blockquote case
+        specifically; this function does not generalise beyond it.
+      * A bare, un-fenced, line-leading shell redirect that is its own
+        source line (e.g. `> output.txt`) is indistinguishable from a
+        blockquote marker to this function and would be stripped. No such
+        line occurs in the corpus scanned at Phase 59, so this is a
+        disclosed residual bound, not a live defect — recorded here so it
+        is not rediscovered as a surprise.
     """
-    return " ".join(text.split())
+    out_lines: list[str] = []
+    in_fence = False
+    for line in text.split("\n"):
+        if _FENCE_RE.match(line):
+            in_fence = not in_fence
+            out_lines.append(line)
+            continue
+        if in_fence:
+            out_lines.append(line)
+            continue
+        while True:
+            m = _LEADING_BQ_RE.match(line)
+            if not m:
+                break
+            line = line[m.end() :]
+        out_lines.append(line)
+    return " ".join(" ".join(out_lines).split())
 
 
 def _iter_scan_files(root: Path) -> list[Path]:
@@ -423,6 +472,10 @@ _CONTROL_IDS: tuple[str, ...] = (
     "C8-live-tree",
     "C9-registry-literals-nonempty",
     "C10-self-exclusion-is-one-file",
+    "C11-blockquote-wrapped-positive",
+    "C12-fenced-blockquote-not-stripped",
+    "C13-nonblockquote-leading-gt-preserved",
+    "C14-nested-blockquote-fully-stripped",
 )
 
 
@@ -523,6 +576,90 @@ def self_test() -> int:
             root.mkdir(parents=True, exist_ok=True)
             ok, _ = check(root)
             record("C7-empty-population-fails", not ok, "empty population passed vacuously")
+
+            # C11 — BQ-01: a registered literal wrapped across two `>`
+            # blockquote lines, spanning the wrap point, is counted just like
+            # its unquoted twin. The fixture pair differs ONLY by the leading
+            # `>` marker. Both twins must match (and therefore fail the gate,
+            # since neither is exempted) — asserting only `not ok` would let a
+            # broken fixture (e.g. a typo in one twin) pass as a "gate fires"
+            # result even if the OTHER twin were silently not matching.
+            REGISTRY = one
+            root = _fixture(
+                Path(td) / "c11",
+                {
+                    "docs/quoted.md": "> each technique is owned\n> by exactly one phase, so...\n",
+                    "docs/plain.md": "each technique is owned\nby exactly one phase, so...\n",
+                },
+            )
+            ok, probs = check(root)
+            quoted_hit = any("quoted.md" in p for p in probs)
+            plain_hit = any("plain.md" in p for p in probs)
+            record(
+                "C11-blockquote-wrapped-positive",
+                (not ok) and quoted_hit and plain_hit,
+                f"expected both twins to match and fail the gate, got ok={ok} probs={probs}",
+            )
+
+            # C12 — a line-leading `>` INSIDE a fence (``` or ~~~), even when
+            # it IS blockquote syntax, is left untouched — a fenced Markdown
+            # example that shows blockquote syntax as source must not be
+            # silently rewritten. Per the plan's research corrections, the
+            # `>>> ` doctest line alone cannot make this control fail against
+            # a fence-unaware implementation (the space-requiring regex
+            # already spares it); the `> a literal blockquote` line is what
+            # makes this falsifiable.
+            fenced_text = (
+                "```markdown\n"
+                "> a literal blockquote, shown as source\n"
+                ">>> doctest_prompt()\n"
+                "```\n"
+                "~~~\n"
+                "> another fenced blockquote line\n"
+                "~~~\n"
+            )
+            normalised = _normalise(fenced_text)
+            record(
+                "C12-fenced-blockquote-not-stripped",
+                "> a literal blockquote, shown as source" in normalised
+                and "> another fenced blockquote line" in normalised,
+                f"expected both fenced '>' lines preserved, got {normalised!r}",
+            )
+
+            # C13 — over-permissiveness negative: a `>` that is NOT a
+            # line-leading blockquote marker survives unchanged, and none of
+            # these forms spuriously match a registered literal.
+            REGISTRY = one
+            root = _fixture(
+                Path(td) / "c13",
+                {
+                    "docs/x.md": (
+                        ">>> foo(1, 2)\n>notablockquote\nRR-95-01 -> RR-108-01 and x > y\n"
+                    )
+                },
+            )
+            ok, _ = check(root)
+            normalised = _normalise((root / "docs/x.md").read_text(encoding="utf-8"))
+            preserved = (
+                ">>> foo(1, 2)" in normalised
+                and ">notablockquote" in normalised
+                and "RR-95-01 -> RR-108-01 and x > y" in normalised
+            )
+            record(
+                "C13-nonblockquote-leading-gt-preserved",
+                ok and preserved,
+                f"expected all forms preserved and no spurious match, got ok={ok} "
+                f"normalised={normalised!r}",
+            )
+
+            # C14 — the `while` loop that handles nested blockquotes
+            # (`> > text`) is otherwise untested code; this pins it.
+            nested = _normalise("> > text spanning\n> > two nested lines")
+            record(
+                "C14-nested-blockquote-fully-stripped",
+                nested == "text spanning two nested lines",
+                f"expected fully-stripped nested quote, got {nested!r}",
+            )
     finally:
         REGISTRY = original
 
