@@ -101,17 +101,29 @@ All K/N thresholds are met. No action required. Record the result per §"Where t
 
 ### BATTERY:FAIL — carry-forward (expected, non-blocking)
 
-A BATTERY:FAIL is **not a blocker** if the failing rows are already documented as carry-forward
-residuals in the prior baseline. The following residuals are known carry-forwards from
-`tests/step0-baseline-v6.4.md` — **do not chase them**:
+A BATTERY:FAIL is **not a blocker** if the failing row is a documented live carry-forward. There
+is exactly **one** such row. Residual ids supersede over time; the id below is current as of
+2026-09-23 (chains per `docs/requirements-traceability.md` and `scripts/_battery_core.py`).
 
-| Prompt ID | Expected MODE | v6.4 K/N | Status |
-|-----------|--------------|----------|--------|
-| S-P02 | focused-inversion | 1/5 | Carry-forward — expected FAIL (RR-95-01) |
-| S-P05 | focused-trade-off | 2/5 | Carry-forward — expected FAIL (RR-95-02) |
+| Prompt ID | Expected MODE | Current residual | Last live K/N | Status |
+|-----------|--------------|------------------|---------------|--------|
+| S-P02 | focused-inversion | **RR-114-01** (chain: RR-79-02 → RR-92-01 → RR-95-01 → RR-108-01 → RR-114-01) | 0/5 at v8.5 (`tests/step0-baseline-v8.5.md`); 2/5 at v7.11; 1/5 at v7.13 | Carry-forward — expected FAIL, **[v8.0 ACCEPTED-FINAL]**. Do not chase. |
 
-These residuals reflect genuine detection limits documented at the time of the v6.4 baseline.
-A BATTERY:FAIL that matches this exact set of rows is **honesty-not-score** — the mechanism is
+**S-P05 `focused-trade-off` is NOT a carry-forward, and a FAIL there IS blocking.** Its chain
+(RR-79-03 → RR-92-02 → RR-95-02 → **RR-108-02**) **CLOSED** at 4/5 at the Phase 114 v7.6
+re-baseline, and the close was **sustained at 5/5** at the Phase 129 v7.11 re-baseline. `RR-108-02`
+is retained only as a regression guard, and no successor id was minted on the close. An S-P05 FAIL
+is a regression from a clean sweep — investigate it.
+
+> **Correction note, 2026-09-23 (backlog 999.158).** Through v9.8.0 this section listed S-P02 under
+> the retired id `RR-95-01` and S-P05 under the retired id `RR-95-02`, presenting each row's v6.4
+> K/N figure (1/5 and 2/5 respectively) as the current expectation. Both ids had been superseded —
+> S-P02's chain ran on three more supersessions to RR-114-01, and S-P05's chain had *closed*. An
+> operator following the old table would have excused an S-P05 regression from a clean 5/5 sweep as
+> expected, which masks a regression instead of reporting one. The v6.4 figures remain correct as a
+> record of v6.4; see `tests/step0-baseline-v6.4.md:177-180` for the original mints.
+
+A carry-forward FAIL matching the single row above is **honesty-not-score** — the mechanism is
 working correctly and honestly reporting its limits.
 
 ### BATTERY:FAIL — new regression (blocking)
@@ -123,7 +135,9 @@ To detect a new regression: compare the current per-prompt K/N table against the
 file. As of 2026-09-23 that is **`tests/step0-baseline-v8.5.md`** — the version
 `_BASELINE_VERSION` in `scripts/check-step0-live.py` pins. `tests/step0-baseline-v7.8.md` is the
 last full-run baseline (6 prompts x 5) and is the better comparison when the current run covers
-prompts v8.5 did not measure.
+prompts v8.5 did not measure — except for S-P02 or S-P05: v7.8's run covered only
+`S-P01 S-P03 S-N01 S-N02 S-N03 S-N04`, so it is not a usable comparison for either of those two
+prompts.
 
 ---
 
@@ -164,7 +178,9 @@ S-N PASS count, known carry-forward residuals, and a link to the new baseline fi
 > The live Step-0 readings that *were* taken live elsewhere: `tests/step0-baseline-v7.8.md`
 > (the last full run), `tests/step0-baseline-v8.5.md` (current pinned baseline), and the v9.6.0
 > readings in `docs/v9.6-baseline-reading.md` / `docs/v9.6-rebaseline-reading.md`. Treat this
-> table as aspirational, not as a record of runs that happened.
+> table as aspirational, not as a record of runs that happened. The placeholder row's `S-P05`
+> entry is NOT a current carry-forward: its chain closed at the Phase 114 v7.6 re-baseline (see
+> § BATTERY:FAIL above).
 
 ---
 
