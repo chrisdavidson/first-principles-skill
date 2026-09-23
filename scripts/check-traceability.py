@@ -13431,6 +13431,210 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         )
 
 
+# ---------------------------------------------------------------------------
+# LEDGER-CHAIN: headline-history continuity (2026-09-23 drift audit)
+#
+# Added after the v9.8.0 release overwrote headline-history row 26's `to`-cell
+# instead of appending a row for v9.8.0. Row 26 records v9.7.0's move and held
+# `233/208/0/441`; the release's hand find-and-replace of the PREVIOUS headline
+# literal hit it, because the previous headline is, by construction, exactly
+# what the last row's `to`-cell contains. The row then read
+# `232/190/0/422 -> 237/210/0/447` while its own body still said
+# "Row count 422 -> 441", and v9.8.0 had no row at all.
+#
+# HEADLINE-LOCK did not catch it IN EITHER DIRECTION: the corrupted and the
+# correct value both passed --self-test, confirmed by mutation at the audit.
+# HEADLINE-LOCK asserts the CURRENT headline on registered surfaces; it never
+# reads the history table, so every historical row was unguarded.
+#
+# The failure is silent, recurs at every release, and corrupts HISTORY rather
+# than current state -- the one class a later reader cannot reconstruct.
+# ---------------------------------------------------------------------------
+_LEDGER_DOC: str = "docs/requirements-traceability.md"
+
+# `| <n> | <label> | <from> -> <to> |` -- the shape all 27 rows share. The arrow
+# is U+2192. Deliberately anchored to line start and to the numeric first cell so
+# it cannot drift onto one of the file's several other pipe tables.
+_LEDGER_ROW_PAT = re.compile(
+    r"^\|\s*(\d+)\s*\|\s*([^|]*?)\s*\|\s*"
+    r"(\d+/\d+/\d+/\d+)\s*\u2192\s*(\d+/\d+/\d+/\d+)\s*\|",
+    re.MULTILINE,
+)
+
+# Non-vacuity floor. The ledger had 27 rows at the 2026-09-23 audit; it only ever
+# grows. A parse returning fewer means the regex stopped matching the table --
+# the failure mode that would turn this whole sentinel into a no-op.
+_LEDGER_ROW_FLOOR: int = 27
+
+
+def _ledger_chain_problems(text: str, expected_tail: str) -> list[str]:
+    """Pure continuity check over the headline-history table. No I/O.
+
+    `text` is the ledger document's full text; `expected_tail` is the current
+    published headline in slash form. Purity is deliberate and matches
+    `_selftest_dispatch_problems`' contract one level up: it lets the negative
+    controls below drive real corruption through in-memory literals rather than
+    writing to the tracked tree.
+
+    Asserts, in order:
+      (1) NON-VACUITY -- at least `_LEDGER_ROW_FLOOR` rows parsed. Guards the
+          case this sentinel is most likely to fail at: matching nothing and
+          passing.
+      (2) Row numbers are contiguous 1..N. A dropped or duplicated ordinal is
+          how a row goes missing without leaving a hole a reader would notice.
+      (3) Each row's `from` equals the previous row's `to`. This is the
+          assertion that fires on the v9.8.0 corruption.
+      (4) The last row's `to` equals the current published headline, so a
+          release that moves the headline without appending a row fails here
+          rather than shipping an unrecorded move.
+    """
+    problems: list[str] = []
+    rows = [
+        (int(m.group(1)), m.group(2), m.group(3), m.group(4))
+        for m in _LEDGER_ROW_PAT.finditer(text)
+    ]
+
+    if not rows:
+        problems.append(
+            "ledger parse returned ZERO rows -- the row pattern no longer matches "
+            "the history table at all (a vacuous pass, not a clean tree)"
+        )
+        return problems
+
+    if len(rows) < _LEDGER_ROW_FLOOR:
+        # Deliberately does NOT return: a short parse has two causes with opposite
+        # fixes -- rows were deleted, or the pattern stopped matching -- and the
+        # chain/tail arms below are what distinguish them. Returning here would
+        # suppress the evidence needed to tell which happened, which is how the
+        # v9.8.0 corruption (a rewritten row AND a missing one) would have been
+        # reported as a single pattern complaint.
+        problems.append(
+            f"ledger parse returned {len(rows)} rows, below the floor of "
+            f"{_LEDGER_ROW_FLOOR} -- either a historical row was deleted or the "
+            "row pattern has stopped matching part of the history table"
+        )
+
+    for _i, (_n, _label, _frm, _to) in enumerate(rows):
+        if _n != _i + 1:
+            problems.append(
+                f"ledger row ordinal {_n} is out of sequence at position "
+                f"{_i + 1} ({_label!r}) -- a row was dropped, duplicated or renumbered"
+            )
+            break
+
+    for _prev, _cur in zip(rows, rows[1:]):
+        if _cur[2] != _prev[3]:
+            problems.append(
+                f"ledger chain break at row {_cur[0]} ({_cur[1]!r}): its `from` "
+                f"is {_cur[2]} but row {_prev[0]} ({_prev[1]!r}) ends at "
+                f"{_prev[3]} -- a historical row was rewritten, or a row is missing"
+            )
+
+    if rows[-1][3] != expected_tail:
+        problems.append(
+            f"ledger tail {rows[-1][3]} (row {rows[-1][0]}, {rows[-1][1]!r}) does "
+            f"not equal the published coverage headline {expected_tail} -- the "
+            "headline moved without a ledger row being appended"
+        )
+
+    return problems
+
+
+def _self_test_ledger_chain(wrong_results: list[str]) -> None:
+    """LEDGER-CHAIN named sentinel (2026-09-23 drift audit).
+
+    Live leg plus four negative controls. The negative controls matter more than
+    usual here: this sentinel guards a table by regex, and a regex that silently
+    matches nothing is the exact shape of a control that cannot fail -- the
+    defect v9.8.0's own review caught in AP-02.
+    """
+    # (slash_rendering, prose_rendering) — slash first, per _headline_literals()'s
+    # own contract. The ledger's cells are the slash form.
+    _slash, _ = _headline_literals()
+    _doc = REPO_ROOT / _LEDGER_DOC
+
+    if not _doc.is_file():
+        print(f"  LEDGER-CHAIN FAIL: {_LEDGER_DOC} is missing")
+        wrong_results.append(f"LEDGER-CHAIN: {_LEDGER_DOC} missing")
+        return
+
+    _text = _doc.read_text(encoding="utf-8")
+
+    # (live) the tracked ledger is continuous and ends at the published headline.
+    _live = _ledger_chain_problems(_text, _slash)
+    if _live:
+        for _p in _live:
+            print(f"  LEDGER-CHAIN FAIL: {_p}")
+        wrong_results.extend(f"LEDGER-CHAIN: {_p}" for _p in _live)
+    else:
+        _n_rows = len(_LEDGER_ROW_PAT.findall(_text))
+        print(
+            f"  LEDGER-CHAIN PASS: (live) {_n_rows} headline-history rows are "
+            f"contiguous and chain-continuous, ending at {_slash}"
+        )
+
+    # (c1) the v9.8.0 corruption itself, replayed: rewrite the penultimate row's
+    # `to` to the current headline -- exactly what the release's find-and-replace
+    # did -- and require a chain break naming the row.
+    _c1 = (
+        "| 1 | a | 1/1/0/2 \u2192 2/2/0/4 |\n"
+        "| 2 | b | 2/2/0/4 \u2192 9/9/0/9 |\n"
+        "| 3 | c | 3/3/0/6 \u2192 9/9/0/9 |\n"
+    )
+    if _ledger_chain_problems(_c1, "9/9/0/9"):
+        print(
+            "  LEDGER-CHAIN PASS: (c1) the v9.8.0 corruption shape (a historical "
+            "row's `to` overwritten with the current headline) is detected"
+        )
+    else:
+        print("  LEDGER-CHAIN FAIL: (c1) the v9.8.0 corruption shape passed undetected")
+        wrong_results.append("LEDGER-CHAIN: (c1) corruption shape undetected")
+
+    # (c2) headline moved, no row appended.
+    _c2 = "| 1 | a | 1/1/0/2 \u2192 2/2/0/4 |\n"
+    if _ledger_chain_problems(_c2, "7/7/0/7"):
+        print("  LEDGER-CHAIN PASS: (c2) a headline move with no appended row is detected")
+    else:
+        print("  LEDGER-CHAIN FAIL: (c2) an unrecorded headline move passed undetected")
+        wrong_results.append("LEDGER-CHAIN: (c2) unrecorded move undetected")
+
+    # (c3) NON-VACUITY: text with no ledger table at all must fail, not pass.
+    # Without this, a regex that stops matching would make every other arm silent.
+    _c3_problems = _ledger_chain_problems("no table here at all\n", _slash)
+    if _c3_problems and "ZERO rows" in _c3_problems[0]:
+        print("  LEDGER-CHAIN PASS: (c3) a document with no parsable ledger fails vacuity-first, naming the zero-row cause")
+    else:
+        print("  LEDGER-CHAIN FAIL: (c3) an unparsable ledger passed vacuously or was misdiagnosed")
+        wrong_results.append("LEDGER-CHAIN: (c3) vacuous pass on unparsable ledger")
+
+    # (c5) a SHORT but non-empty parse must still reach the chain arms, so a
+    # deleted row is reported as a deletion rather than as a pattern failure.
+    # This is the arm the first break test of this sentinel exposed as missing.
+    _c5 = "| 1 | a | 1/1/0/2 \u2192 2/2/0/4 |\n| 2 | b | 9/9/0/9 \u2192 3/3/0/6 |\n"
+    _c5_problems = _ledger_chain_problems(_c5, "3/3/0/6")
+    if any("below the floor" in _p for _p in _c5_problems) and any(
+        "chain break" in _p for _p in _c5_problems
+    ):
+        print("  LEDGER-CHAIN PASS: (c5) a short parse still reaches the chain arms -- deletion and pattern failure stay distinguishable")
+    else:
+        print("  LEDGER-CHAIN FAIL: (c5) a short parse short-circuited before the chain arms")
+        wrong_results.append("LEDGER-CHAIN: (c5) short parse short-circuits")
+
+    # (c4) POSITIVE COUNTER-CHECK: a well-formed, continuous chain at/above the
+    # floor must produce NO problems -- so (c1)-(c3) are not passing merely
+    # because the helper always reports something.
+    _c4 = "".join(
+        f"| {_i} | r{_i} | {_i}/{_i}/0/{_i} \u2192 {_i + 1}/{_i + 1}/0/{_i + 1} |\n"
+        for _i in range(1, _LEDGER_ROW_FLOOR + 1)
+    )
+    _c4_tail = f"{_LEDGER_ROW_FLOOR + 1}/{_LEDGER_ROW_FLOOR + 1}/0/{_LEDGER_ROW_FLOOR + 1}"
+    if not _ledger_chain_problems(_c4, _c4_tail):
+        print("  LEDGER-CHAIN PASS: (c4) a well-formed continuous chain reports no problem")
+    else:
+        print("  LEDGER-CHAIN FAIL: (c4) a valid chain was flagged -- the helper over-reports")
+        wrong_results.append("LEDGER-CHAIN: (c4) valid chain flagged")
+
+
 def _self_test_describe_consistency(wrong_results: list[str]) -> None:
     """(describe) describe()-consistency control (D-03, plan 21-05): the
     module-level constants --describe reads must agree with the live
@@ -13563,6 +13767,7 @@ def _run_self_test() -> None:
     _self_test_v921_rows_sentinel(wrong_results)
     _self_test_row_fields_live(wrong_results)
     _self_test_headline_lock(wrong_results)
+    _self_test_ledger_chain(wrong_results)
     _self_test_describe_consistency(wrong_results)
     if wrong_results:
         sys.stderr.write(
