@@ -34,13 +34,17 @@ that the registry is complete. A retracted claim nobody adds here is
 invisible to this gate. Registry growth is a human act performed when a
 review retracts a claim.
 
-Matching is whitespace-normalised, so ordinary Markdown line-wrapping cannot
-hide a reappearance (AP-01). It was not always: the review that found this
-demonstrated the literal "no new registered gate asserts" sitting in
-CHANGELOG.md with a substring count of zero, wrapped across a newline — this
-gate's pass on that entry had been luck rather than correctness. Normalisation
-does not defeat rewording, and nothing here does; that residual is the
-literal-not-semantic bound stated above, not a second one.
+Matching is whitespace-normalised AND blockquote-continuation-normalised
+outside fenced code blocks, so neither ordinary Markdown line-wrapping nor a
+literal wrapped across a `>` blockquote line break can hide a reappearance
+(AP-01, widened by BQ-01 / Phase 59). It was not always: the review that
+found the whitespace gap demonstrated the literal "no new registered gate
+asserts" sitting in CHANGELOG.md with a substring count of zero, wrapped
+across a newline — this gate's pass on that entry had been luck rather than
+correctness. A later audit found the same defect class surviving in a
+blockquote-wrapped variant; Phase 59 closed it. Normalisation does not defeat
+rewording, and nothing here does; that residual is the literal-not-semantic
+bound stated above, not a second one.
 
 THE EXEMPTION MECHANISM, AND WHY IT IS TWO-SIDED
 ------------------------------------------------
@@ -212,6 +216,20 @@ REGISTRY: tuple[RetractedClaim, ...] = (
         # strip blockquote markers, this count becomes 2 and the gate will fire
         # -- which is the correct prompt to re-read both sites, not a
         # regression.
+        #
+        # CORRECTION, dated 2026-09-23 (Phase 59): the mechanism above was real
+        # and is now closed -- `_normalise` strips line-leading blockquote
+        # markers outside fences (BQ-01) -- but the worked example was wrong.
+        # The second site (the 2026-09-04 discharge note) reads "), produced
+        # by", not "is produced by": it is missing the registered literal's
+        # leading "is ", so it is a paraphrase that the literal-not-semantic
+        # bound correctly does not match, with or without the fix. A third
+        # nearby paraphrase, in the 2026-09-23 correction block, says "the
+        # sweep" rather than "`HEADLINE-LOCK`'s sweep" and is likewise not the
+        # registered literal. The exemption below therefore STAYS 1; the
+        # prediction that it would become 2 is retracted. Established two
+        # ways: simulated against the live tree at plan time, and re-verified
+        # by hand with `cat -A`.
         exemptions=(("docs/requirements-traceability.md", 1),),
     ),
     RetractedClaim(
