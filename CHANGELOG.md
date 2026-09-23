@@ -13,6 +13,124 @@ installed session.
 
 ## [Unreleased]
 
+## [9.7.0] — 2026-09-22
+
+Milestone release: **v9.7.0 PRAOR Report: Termination and the Named Loop**. The loop terminates
+in a Report — the agent stops reasoning and reports, with degradation disclosed rather than the
+Report withheld. Three phases: Phase 55 paid for the addition, Phase 56 reconciled termination and
+turn discipline, Phase 57 named the control loop; this release phase (58) bumps, registers, and
+ships.
+
+### What shipped
+
+- **TERM-01** (`audit-only`, `docs/FIVE-PHASE-FLOW.md`): the two statements that instructed an
+  unbounded loop or withholding now carry the one-pass bound already stated in
+  `SKILL-body.md:30-40`.
+- **TERM-02** (`audit-only`, `shared/spine/references/validation-rubric.md`): the absolute "must
+  be revised before conclusions are presented" clause carries the bound its own `:29` already
+  states.
+- **TERM-03** (`reproducible`, `shared/spine/SKILL-body.md`): the agent body states the Report
+  emission invariant exactly once — every run emits a Report; when the turn budget or a failed
+  criterion prevents completion, the Report ships degraded and labelled, never withheld.
+- **TERM-04** (`audit-only`, `shared/spine/SKILL-body.md`): the four existing
+  degradation-disclosure mechanisms are named as instances of one contract under TERM-03.
+- **TERM-05** (`audit-only`, `shared/spine/SKILL-body.md`): no new rule was invented — every TERM
+  change traces to an existing statement, named per edit.
+- **TURN-01** (`audit-only`, `shared/spine/SKILL-body.md`): Turn discipline states an explicit
+  priority order — Phase 1-4 artefacts, then the Act limb where a HIGH chain needs it, then the
+  Self-Audit Gate, then React edges.
+- **TURN-02** (`audit-only`, `shared/spine/SKILL-body.md`): on budget exhaustion the body
+  prescribes partial artefacts plus an explicit `Observe incomplete — residual caveat`, never a
+  silent truncation.
+- **TURN-03** (`audit-only`, `shared/spine/SKILL-body.md`): TURN-01's order is reconciled with
+  `SKILL-body.md:18-22`'s existing "the gate runs last" statement, not left standing beside it.
+- **PAY-01** (`audit-only`, `shared/spine/SKILL-body.md`): Step 0's Phase-4 eight-technique
+  enumeration is replaced by per-phase consideration, with a one-line `not applicable — reason`
+  record for the rest; the replacement is ≤ 60 words.
+- **PAY-02** — **WITHDRAWN**, not shipped. See below.
+- **PAY-03** (`audit-only`, `docs/v9.7-payment-record.md`): the body-size figure is recorded as an
+  observation, not held to a target — before/after `wc -w`, sign stated plainly, instrument scope
+  stated. See below.
+- **PAY-04** (`audit-only`, `docs/v9.7-payment-record.md`): the runtime saving PAY-01 delivers is
+  argued structurally, not measured — the argument names itself as an argument.
+- **LOOP-01** (`audit-only`, `shared/spine/SKILL-body.md`): the agent body names the five limbs —
+  Perceive, Reason, Act, Observe, Report — and states that the run terminates in the Report.
+- **LOOP-02** (`audit-only`, `shared/spine/SKILL-body.md`): React is named as the class of the
+  four bounded re-entry edges HARN-02 already gates — an edge class, never a sixth limb and never
+  the fifth.
+- **LOOP-03** (`audit-only`, `shared/spine/SKILL-body.md`): the phases are named as the limbs'
+  implementation, mapping Phase 1-5 onto the loop without leaving the body.
+- **LOOP-04** (`audit-only`, `shared/spine/SKILL-body.md`): the loop-backlog drafts and backlog
+  entry 999.132 are amended so none of them specifies shipping "React" as a limb name.
+- **REL-27** (`audit-only`, `scripts/sync-content.py`): `sync-content.py --write` run, no drift,
+  and the battery reaches `FIREWALL: GREEN` at its current tally.
+- **REL-28** (`audit-only`, `scripts/check-traceability.py`): all 17 stamps read `9.7.0`
+  (VERSION-01 green); this milestone's requirements are registered as matrix rows and the
+  coverage headline moves.
+- **REL-29** (`audit-only`, `CHANGELOG.md`): this entry.
+
+**One row is reproducible by inheritance; the rest are audit-only.** TERM-03 is the exception:
+SCAN-GUARD's `Body-15` control reads the live shipped agent body and asserts the reconciled
+Report-emission-invariant sentence occurs exactly once, and it runs in CI and in the battery. That
+coverage was not built by this milestone — Phase 56 (`c6648d9`) re-pointed the pin at TERM-03's
+sentence while fixing something else, and nobody noticed until this release phase checked. A gate
+acquired as a side effect of an unrelated edit is worth naming: it is coverage nobody designed and
+nobody would find by reading the requirements alone.
+
+### PAY-02: planned, checked twice, withdrawn (D-55-A)
+
+A full amendment relocating five parser-workaround passages out of `shared/spine/SKILL-body.md`
+was authored and plan-checked twice. The plan-checker judged the amendment itself honest and
+legitimate — this was not a rejection of the mechanism. It was declined on the trade: ~170 body
+words (1.4%) bought by permanently ending QUAL-01's body coverage of five rendering rules, against
+`.planning/analysis-D10-phase5-word-cap.md`'s own finding that words in the body are not the cost
+999.133 names — turns are. **999.133 is paid in runtime terms only**, via PAY-01's routing change.
+The parser-workaround prose stays in the body, byte-unchanged, and the backlog item stays open.
+
+### `scripts/` touched, and what stayed byte-unchanged
+
+Phase 56 touched two files under `scripts/`: `check-selfaudit-scan.py` (the SCAN-GUARD pin,
+mechanically forced by a `:378` edit) and `check-loop-closure.py` (a stale rationale comment).
+D-55-A's literal commitment — the four contract pins in `scripts/check-quality-harness.py` — held
+byte-unchanged for the whole milestone. The milestone's looser "no `scripts/`" shorthand did not.
+
+### Five blocking product defects, shipped and fixed inside this milestone
+
+| # | Defect | What had passed it first |
+|---|---|---|
+| 55-CR-01 | a table asserting each technique is invoked at exactly one phase (two are invoked at two) | the round-2 plan-checker verified that table |
+| 56-CR-01 | a survival order ranking the gate's Fix/Repeat loop above "the bounded re-entry edges", which contain it | the verifier examined the adjacent seam and passed it |
+| 56-CR-02 | the TERM-05 source map asserting a reconciliation that had not happened | — |
+| 57-CR-01 | the Report row claiming "no phase owns" the output document, which is Phase 5's named artifact | — |
+| 57-CR-02 | the Observe row claiming the whole Self-Audit Gate, after Phase 56 split it | — |
+
+Each mechanism examined *the question it was asked* rather than *the claim itself*. The sharpest
+instance: the orchestrator's response to Phase 57's plan-check blocker added a grep assertion
+pinning the literal `no phase owns` to enforce a fact — and the fact was false, so the enforcement
+would have made the defect durable. **Adding a gate does not make a claim true.** This milestone
+ships mostly audit-only prose, so review is the only thing standing between a plausible sentence
+and the shipped body, and this entry is the evidence for how often that matters.
+
+### Costs this release does not pay
+
+- **The body grew by 654 words, and nothing offsets that.** The emitted agent body moved from
+  12240 words (`3e2f66f`, before this milestone's first `shared/` edit) to 12894 words (after the
+  last one, the version-stamp bump). The instrument measures static shipped prose only and is
+  blind to the runtime output PAY-01 reduces; the delta is not evidence for or against PAY-04's
+  runtime argument in either direction. See `docs/v9.7-payment-record.md` for the full reading.
+- **This release ships mostly audit-only rows** — no new registered gate asserts the termination
+  semantics, the invariant, or the limb vocabulary. That was a scope decision, recorded in
+  `.planning/REQUIREMENTS.md` § Out of Scope ("A registered gate asserting TERM/TURN/LOOP prose —
+  deliberately not attempted"), continuing the v9.5/v9.6 pattern.
+
+### Coverage: this release adds 19 requirements, 1 reproducible and 18 audit-only
+
+The headline moves `232 reproducible / 190 audit-only / 0 gap / 422 total` →
+`233 reproducible / 208 audit-only / 0 gap / 441 total`. Row count `422 → 441`. TERM-03 is the one
+reproducible row, anchored at `scripts/check-selfaudit-scan.py` (a bare script path, not a
+dispatch-checked anchor). PAY-02 registers as **withdrawn**, not shipped — recording it complete
+would be a false claim in the exact surface this milestone has already produced five defects in.
+
 ## [9.6.0] — 2026-09-22
 
 Milestone release: **v9.6.0 PRAOR Observe: Instrument and Method**. Closes the loop Phase 51
