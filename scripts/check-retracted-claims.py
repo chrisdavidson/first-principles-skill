@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.12"
+# dependencies = []
+# ///
 """RETRACT-01 — a retracted claim may never reappear on a published surface.
 
 WHY THIS GATE EXISTS
@@ -30,6 +34,14 @@ that the registry is complete. A retracted claim nobody adds here is
 invisible to this gate. Registry growth is a human act performed when a
 review retracts a claim.
 
+Matching is whitespace-normalised, so ordinary Markdown line-wrapping cannot
+hide a reappearance (AP-01). It was not always: the review that found this
+demonstrated the literal "no new registered gate asserts" sitting in
+CHANGELOG.md with a substring count of zero, wrapped across a newline — this
+gate's pass on that entry had been luck rather than correctness. Normalisation
+does not defeat rewording, and nothing here does; that residual is the
+literal-not-semantic bound stated above, not a second one.
+
 THE EXEMPTION MECHANISM, AND WHY IT IS TWO-SIDED
 ------------------------------------------------
 A retracted claim legitimately appears inside its own erratum — CHANGELOG.md's
@@ -50,7 +62,11 @@ Usage:
 Exit codes:
     0  no retracted claim present off-exemption (or all self-test controls behaved)
     1  a retracted claim is present, or a control failed
-    2  usage / environment error
+
+    (No exit 2: argparse exits 2 itself on a usage error, and this gate has no
+    external prerequisite that could be unmet — unlike VAL-03's pytest leg,
+    whose absence the battery reports as BLOCKED. Stating a 2 this module never
+    returns would be a small false claim in a gate against false claims.)
 """
 
 from __future__ import annotations
@@ -70,6 +86,7 @@ SCAN_GLOBS: tuple[str, ...] = (
     "CLAUDE.md",
     "README.md",
     "CHANGELOG.md",
+    "CONTRIBUTING.md",
     "docs/**/*.md",
     "docs/data/*.json",
     "shared/**/*.md",
@@ -141,6 +158,13 @@ REGISTRY: tuple[RetractedClaim, ...] = (
             "emission invariant sentence against the live shipped agent body, in "
             "CI and in the battery. The coverage was inherited, not built."
         ),
+        # CHANGELOG.md's v9.7.0 "Costs this release does not pay" bullet quotes
+        # its own superseded wording ("As published, it read ...") as the
+        # erratum recording 58-CR-02. Invisible to the gate until AP-01's
+        # whitespace normalisation landed, because the paragraph wraps the
+        # literal across a newline — the review's demonstration that the pass
+        # on this entry had been luck rather than correctness.
+        exemptions=(("CHANGELOG.md", 1),),
     ),
 )
 
@@ -151,6 +175,23 @@ REGISTRY: tuple[RetractedClaim, ...] = (
 # quietly widen to cover another script that genuinely restates a retracted
 # claim. C10 pins the exclusion to a population of one.
 SELF_EXCLUDED_PATH = "scripts/check-retracted-claims.py"
+
+
+def _normalise(text: str) -> str:
+    """Collapse every run of whitespace to a single space.
+
+    AP-01: a plain substring match is defeated by ordinary Markdown
+    line-wrapping. Demonstrated live during review — the registered literal
+    "no new registered gate asserts" had substring count 0 in CHANGELOG.md
+    while being present, because the paragraph wraps it across a newline. The
+    gate's pass on that entry was luck, not correctness. Both haystack and
+    needle are normalised so a wrap point cannot hide a reappearance.
+
+    Residual bound, disclosed: normalisation does not defeat *rewording*. A
+    retracted claim restated in different words remains invisible — the
+    register is literal, not semantic, and always was.
+    """
+    return " ".join(text.split())
 
 
 def _iter_scan_files(root: Path) -> list[Path]:
@@ -194,7 +235,7 @@ def check(root: Path) -> tuple[bool, list[str]]:
                 text = path.read_text(encoding="utf-8")
             except (OSError, UnicodeDecodeError):
                 continue
-            n = text.count(claim.literal)
+            n = _normalise(text).count(_normalise(claim.literal))
             if n:
                 found[str(path.relative_to(root))] = n
 
@@ -268,7 +309,10 @@ def self_test() -> int:
     original = REGISTRY
     failures: list[str] = []
 
+    recorded: list[str] = []
+
     def record(cid: str, ok: bool, note: str = "") -> None:
+        recorded.append(cid)
         if ok:
             print(f"  PASS {cid}")
         else:
@@ -372,9 +416,24 @@ def self_test() -> int:
         f"expected exactly {{{SELF_EXCLUDED_PATH!r}}} excluded, got {sorted(excluded)}",
     )
 
-    covered = {cid for cid in _CONTROL_IDS}
-    if len(covered) != len(_CONTROL_IDS):
-        failures.append("control roster mismatch")
+    # AP-02: this check was tautological — it built a set FROM _CONTROL_IDS and
+    # compared its length to _CONTROL_IDS, so it could never fail. A control
+    # that cannot fail is the exact defect class CLAUDE.md's "Claims and
+    # falsifiers" section warns about, and it was sitting inside the self-test
+    # written to prevent it. It now compares what record() actually ran against
+    # what the roster declares, in both directions.
+    declared, ran = set(_CONTROL_IDS), set(recorded)
+    if declared != ran:
+        missing, extra = sorted(declared - ran), sorted(ran - declared)
+        failures.append(
+            f"control roster mismatch: declared-but-never-run={missing}, "
+            f"run-but-undeclared={extra}"
+        )
+        print(f"  FAIL roster — missing={missing} extra={extra}")
+    else:
+        print(f"  PASS roster — all {len(declared)} declared controls ran")
+    if len(recorded) != len(set(recorded)):
+        failures.append(f"a control id ran more than once: {recorded}")
 
     if failures:
         print(f"\ncheck-retracted-claims: SELF-TEST FAIL — {len(failures)} control(s)")
