@@ -13,6 +13,111 @@ installed session.
 
 ## [Unreleased]
 
+## [9.9.0] — 2026-09-23
+
+Milestone release: **v9.9.0 Auditing the Auditor**. Nine commits, one subject — the
+repository's factual claims **about itself**. A documentation drift audit found thirteen; the
+two mechanisms v9.8.0 shipped to stop exactly this were themselves found holed; and several of
+the false claims were written by the same session that then caught them.
+
+### The defect class, and who kept producing it
+
+v9.8.0 shipped RETRACT-01 and the falsifier rule against *a claim a review found false
+reappearing*. This milestone tested both against the tree and against their own author.
+
+The audit's own summary is the finding: **every single defect sat in prose no gate reads.** The
+machine-checked layer was clean throughout — 24/24 battery, zero sync drift, 362 links resolving,
+447 matrix rows reconciled. Verification is strong exactly where it is mechanical and unguarded
+exactly where it is narrative.
+
+### Added
+
+- **LEDGER-CHAIN** (`DRIFT-01`, `LEDG-01` — both `reproducible`, `scripts/check-traceability.py`)
+  — a named sentinel under TRACE-03 asserting the headline-history ledger's ordinal contiguity,
+  from/to continuity, and that the last row's `to` equals the live headline, behind a
+  non-vacuity floor. Five controls, each break-tested.
+
+  It exists because **the v9.8.0 release corrupted v9.7.0's historical record.** The headline
+  update hand-replaced the previous headline literal, which is by construction exactly what the
+  last ledger row's `to`-cell contains. Row 26 was rewritten to claim v9.7.0 ended at
+  `237/210/0/447`; it ended at `233/208/0/441`, as the row's own body text still said. v9.8.0 got
+  no row at all. **HEADLINE-LOCK passed on the corrupted and the correct value alike** — the
+  history table was never in its reach.
+
+- **RETRACT-01's register grows 4 → 10** (`REG-01`, `RUN-01` — `reproducible`). Every literal was
+  **measured against the live tree before registration**, which changed most of the choices: the
+  obvious short forms collide with `docs/conformance-baseline.md` and `docs/data/conformance.json`,
+  which record those very sites as detected count-literals. Long forms carrying zero exemptions
+  were chosen instead.
+
+### Fixed
+
+- **`_normalise`'s blockquote blind spot** (`BQ-01`, `reproducible`). Whitespace-collapsing — the
+  AP-01 fix — left the `>` continuation marker, so a literal wrapped across two blockquote lines
+  stayed invisible. Now stripped where it *is* a marker: line-leading after optional whitespace,
+  outside fenced blocks. Controls 10 → 14. Corpus diff over every registered literal × every
+  scanned file: **zero differing rows**. No exemption count changed.
+
+  Scope was held narrow deliberately. This gate blocks commits, so **a false positive is worse
+  than the false negative being fixed** — arrows (`->`, `→`), comparisons, mid-line redirects and
+  `>>> ` doctest prompts all survive byte-for-byte.
+
+- **`docs/live-monitoring-runbook.md`'s carry-forward table** (`RUN-01`). Filed as stale ids; it
+  was worse. S-P02 and S-P05 have *different fates*: S-P02's chain ends at RR-114-01, still live;
+  **S-P05's terminates CLOSED** at RR-108-02 — closed 4/5 (v7.6), sustained **5/5** (v7.11). The
+  runbook was telling an operator mid-incident to excuse a failure on a prompt whose last two
+  readings were clean. Not staleness — **regression-masking**.
+
+- **Nine false or stale claims on published surfaces** (`DRIFT-02..05`, all `audit-only`): the
+  non-existent "HEADLINE-LOCK sweep" that licensed the ledger corruption; `CONTRIBUTING.md`
+  pointing contributors at an archive-tier fixture (filed as WR-03 at **v9.0.0** with a
+  replacement supplied, unfixed through eight milestones); `docs/DEVELOPMENT.md` and
+  `docs/ONBOARDING.md` documenting two pre-commit gates when there are five — with `TESTING.md`,
+  which had it right, routing readers to the stale one; six citations to files deleted in the
+  2026-08-16 prune; and the canonical Step 0 baseline, named as v7.8 at two sites when
+  `_BASELINE_VERSION` pins v8.5.
+
+### Coverage
+
+`237/210/0/447` → **`242/215/0/457`**. Ten requirements, **5 reproducible / 5 audit-only**. Every
+tier derived by mutate-run-restore break test. The five audit-only rows are prose no registered
+gate reads — `DRIFT-04` most sharply: its six citations are backticked plain text, not Markdown
+links, which is precisely why VAL-03 never saw them. That is a coverage boundary, not a broken
+gate.
+
+### What this release got wrong about itself, stated plainly
+
+The milestone's subject is unchecked claims, so its own are on the record:
+
+- **The unpushed-tag claim.** Three files asserted v9.8.0 was tagged locally and unpushed, and the
+  session reported that to the operator as fact. It was pushed. A v9.4.0-era sentence carried
+  forward across closes without one `git ls-remote`.
+- **The blockquote worked example was wrong.** Backlog 999.159 and RETRACT-01's own disclosed-bound
+  comment both claimed `docs/requirements-traceability.md` states the sweep literal twice, the
+  second hidden by wrapping. It does not: site 2 reads `), produced by`, missing the registered
+  literal's leading `is `. A paraphrase the literal-not-semantic bound correctly misses. The defect
+  was real; the illustration was not. **Four surfaces carried it; all four were corrected.**
+- **Two proposed controls could not fail** — the AP-02 class, inside the fix for it. One placed the
+  literal entirely on line 2 so the `>` never landed in it; the other used `>>> `, which the
+  space-requiring regex spares with or without fence-awareness. Both replaced with fixtures that
+  discriminate.
+- **The ledger corruption recurred during this very release.** Moving the headline for v9.9.0
+  re-ran the same blanket replace and overwrote row 27 — one milestone after fixing it, while
+  shipping the gate for it. Caught by hand, restored, and disclosed in row 28.
+
+### Costs this release does not pay
+
+- **LEDGER-CHAIN cannot protect the newest row.** It checks continuity and that the last row's
+  `to` equals the headline — so overwriting the last row's `to` *while* moving the headline keeps
+  both invariants satisfied. A row is protected only once a successor exists. Disclosed in ledger
+  row 28; this is how the recurrence above slipped past the gate that exists to stop it.
+- **Four residual bounds in `_normalise`**, all measured at zero live occurrences: rewording;
+  non-`>` line-leading Markdown syntax; a bare line-leading shell redirect on its own source line;
+  and fence-delimiter-type mismatch (`~~~` inside a ```-fence closes it early), found by the
+  verifier after the other three were written.
+- **The third mechanism** — a fresh-context claim audit at plan time — remains unbuilt, on the
+  written trigger v9.8.0 recorded.
+
 ## [9.8.0] — 2026-09-23
 
 Milestone release: **v9.8.0 Retracted-Claim Register**. One gate and one rule, both aimed at a

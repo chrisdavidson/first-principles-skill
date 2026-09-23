@@ -6843,5 +6843,155 @@
     ],
     "statement": "All 17 hand-maintained version stamps read `9.8.0` (VERSION-01 green), `bash scripts/check-firewall-battery.sh` reaches `FIREWALL: GREEN` at 24/24, the milestone's requirements are registered as matrix rows with the coverage headline moved, and `CHANGELOG.md` carries a `## [9.8.0]` entry stating each requirement's tier and the defect record that motivated the milestone.",
     "rerun_by": "none"
+  },
+  {
+    "key": "v9.9/DRIFT-01",
+    "bare_id": "DRIFT-01",
+    "milestone": "v9.9",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-traceability.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-traceability.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "The headline-history ledger is continuous and its last row's `to` equals the published coverage headline. The v9.8.0 release had overwritten row 26 -- v9.7.0's record -- with v9.8.0's headline, falsifying that milestone's own history while contradicting the row's own body text, and left v9.8.0 with no row at all. Row 26 restored, row 27 appended.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.9/LEDG-01",
+    "bare_id": "LEDG-01",
+    "milestone": "v9.9",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-traceability.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-traceability.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "LEDGER-CHAIN (`_self_test_ledger_chain`) asserts row-ordinal contiguity, that each row's `from` equals the prior row's `to`, and that the last row's `to` equals the live headline from `_headline_literals()`, behind a non-vacuity floor. Five controls: the v9.8.0 corruption shape, an unrecorded headline move, vacuity-first on an unparsable ledger, a positive counter-check, and short-parse reachability. Before it, both the corrupted and the correct value passed.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.9/REG-01",
+    "bare_id": "REG-01",
+    "milestone": "v9.9",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-retracted-claims.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-retracted-claims.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "RETRACT-01's register grows 4 -> 10 claims. Every literal was MEASURED against the live tree before registration: the short forms collide with docs/conformance-baseline.md and docs/data/conformance.json, which record those sites as detected count-literals, so long forms carrying zero exemptions were chosen instead.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.9/RUN-01",
+    "bare_id": "RUN-01",
+    "milestone": "v9.9",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-retracted-claims.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-retracted-claims.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "docs/live-monitoring-runbook.md's carry-forward table is reconciled to the live RR-* chain, and both retired cell literals are registered so neither can reappear. S-P02 carries RR-114-01, still a live carry-forward. S-P05's chain terminates CLOSED at RR-108-02, so a FAIL there is blocking -- the old row told an operator to excuse a regression from a clean 5/5 sweep.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.9/BQ-01",
+    "bare_id": "BQ-01",
+    "milestone": "v9.9",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-retracted-claims.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-retracted-claims.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "`_normalise` strips the blockquote continuation marker where it is one -- line-leading after optional whitespace, outside fenced blocks -- so a literal wrapped across blockquote lines is matched. Controls 10 -> 14, each red under its own mutant. Corpus diff over every registered literal on every scanned file: zero differing rows. No exemption count changed.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.9/DRIFT-02",
+    "bare_id": "DRIFT-02",
+    "milestone": "v9.9",
+    "capability": "Methodology",
+    "deliverable_path": "docs/requirements-traceability.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads this correction. It is narrative prose in docs/requirements-traceability.md; CONF-SURFACE regenerates that tree's generated fences and the docs/gates/ pages, never a dated addendum. Confirmed by grep: zero scripts/*.py hits for the corrected wording.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "The claim that a coverage-headline move is produced by a HEADLINE-LOCK sweep is corrected: no such sweep exists. HEADLINE-LOCK has no write path, and check-traceability.py writes only the two matrix artifacts. A move is a hand edit the sentinel then checks -- and believing otherwise is what licensed the find-and-replace that corrupted the ledger.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.9/DRIFT-03",
+    "bare_id": "DRIFT-03",
+    "milestone": "v9.9",
+    "capability": "Methodology",
+    "deliverable_path": "CONTRIBUTING.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads CONTRIBUTING.md's contribution table or docs/DEVELOPMENT.md's hook section. The pre-commit count is stated in prose on three surfaces and reconciled by hand; nothing compares them to the hook files.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "The contributor-facing guides state what is true. CONTRIBUTING.md's routing-catalog row named an archive-tier fixture no script reads and omitted the two live catalogs -- filed as WR-03 at v9.0.0 with a replacement supplied, unfixed through eight milestones. docs/DEVELOPMENT.md and docs/ONBOARDING.md each said two pre-commit gates; there are five.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.9/DRIFT-04",
+    "bare_id": "DRIFT-04",
+    "milestone": "v9.9",
+    "capability": "Methodology",
+    "deliverable_path": "docs/README.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "VAL-03 validates link TARGETS. All six citations are backticked plain text, not Markdown links, so they sit outside that gate's contract by construction -- the reason the breakage survived the prune undetected. Adding a retrieval note does not bring them into any gate's reach.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Six citations to two files deleted in the 2026-08-16 prune carry the retrieval note docs/README.md already documents, naming the tag that still holds each file. All six are backticked plain text rather than Markdown links, which is why the link gate never saw them.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.9/DRIFT-05",
+    "bare_id": "DRIFT-05",
+    "milestone": "v9.9",
+    "capability": "Methodology",
+    "deliverable_path": "CLAUDE.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "STEP0-06 lists tests/step0-baseline-v8.5.md among its checked_files, but no gate asserts which baseline CLAUDE.md NAMES as canonical. The correction is prose; a wrong name would stay green.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "CLAUDE.md names tests/step0-baseline-v8.5.md as the canonical Step 0 baseline -- the version `_BASELINE_VERSION` pins and STEP0-06 lists among its checked_files -- at both sites that previously named v7.8. v7.8's real role is stated: the last full-run baseline and the generation the RR-* sentinels cite.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.9/REL-31",
+    "bare_id": "REL-31",
+    "milestone": "v9.9",
+    "capability": "Test-Network",
+    "deliverable_path": "CHANGELOG.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "VERSION-01 asserts the 17 stamps AGREE, never that they equal `9.9.0` -- a uniformly wrong value stays green. The battery tally is computed fresh per run and never stored for comparison. Same reasoning `_rows_v95()`, `_rows_v97()` and `_rows_v98()` record for their own release rows.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "All 17 hand-maintained version stamps read `9.9.0` (VERSION-01 green), `bash scripts/check-firewall-battery.sh` reaches `FIREWALL: GREEN` at 24/24, the milestone's requirements are registered as matrix rows with the coverage headline moved, and `CHANGELOG.md` carries a `## [9.9.0]` entry stating each requirement's tier.",
+    "rerun_by": "none"
   }
 ]

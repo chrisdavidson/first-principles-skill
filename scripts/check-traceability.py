@@ -6988,6 +6988,194 @@ def _rows_v97() -> list[MatrixRow]:
 
 
 
+def _rows_v99() -> list[MatrixRow]:
+    """v9.9.0 milestone rows -- 10 requirements, 5 reproducible + 5 audit-only.
+
+    All rows carry milestone="v9.9". Keys use the milestone-qualified form "v9.9/<bare_id>".
+
+    Tiering method, unchanged from `_rows_v93()`..`_rows_v98()`: each requirement's
+    distinguishing behaviour was mutated, the owning gate re-run, the exit code recorded, and
+    the mutation reverted. A row is `reproducible` only where that mutation turned a registered
+    gate red.
+
+    Five rows are reproducible:
+
+      - DRIFT-01 and LEDG-01 behind LEDGER-CHAIN (`_self_test_ledger_chain`, inside TRACE-03's
+        `--self-test`, a CI job and a battery gate). Replaying the v9.8.0 ledger corruption
+        turned TRACE-03 red naming the broken row; reverted, green.
+      - REG-01, RUN-01 and BQ-01 behind RETRACT-01 (`scripts/check-retracted-claims.py`,
+        a CI job and a battery gate). Reintroducing a registered literal turned the live leg red
+        naming the file and the retracting defect id; reverted, green.
+
+    Five rows are audit-only. Each is prose no registered gate reads: the corrections landed on
+    `docs/`, `CONTRIBUTING.md` and `CLAUDE.md` narrative sections, and CONF-SURFACE regenerates
+    those files' generated gate TABLES, never their prose. DRIFT-04 is the sharpest case -- the
+    six citations it fixes are backticked plain text rather than Markdown links, which is exactly
+    why VAL-03 never saw them.
+    """
+    _audit_sweep_v99 = (
+        "No registered gate reads this correction. It is narrative prose in "
+        "docs/requirements-traceability.md; CONF-SURFACE regenerates that tree's generated "
+        "fences and the docs/gates/ pages, never a dated addendum. Confirmed by grep: zero "
+        "scripts/*.py hits for the corrected wording."
+    )
+    _audit_guides_v99 = (
+        "No registered gate reads CONTRIBUTING.md's contribution table or docs/DEVELOPMENT.md's "
+        "hook section. The pre-commit count is stated in prose on three surfaces and reconciled "
+        "by hand; nothing compares them to the hook files."
+    )
+    _audit_citations_v99 = (
+        "VAL-03 validates link TARGETS. All six citations are backticked plain text, not Markdown "
+        "links, so they sit outside that gate's contract by construction -- the reason the "
+        "breakage survived the prune undetected. Adding a retrieval note does not bring them "
+        "into any gate's reach."
+    )
+    _audit_baseline_v99 = (
+        "STEP0-06 lists tests/step0-baseline-v8.5.md among its checked_files, but no gate asserts "
+        "which baseline CLAUDE.md NAMES as canonical. The correction is prose; a wrong name would "
+        "stay green."
+    )
+    _audit_rel31_v99 = (
+        "VERSION-01 asserts the 17 stamps AGREE, never that they equal `9.9.0` -- a uniformly "
+        "wrong value stays green. The battery tally is computed fresh per run and never stored "
+        "for comparison. Same reasoning `_rows_v95()`, `_rows_v97()` and `_rows_v98()` record "
+        "for their own release rows."
+    )
+    return [
+        MatrixRow('v9.9/DRIFT-01', 'DRIFT-01', 'v9.9', 'Test-Network',
+                  'scripts/check-traceability.py',
+                  'reproducible',
+                  'scripts/check-traceability.py', '',
+                  surfaces=('apparatus',),
+                  statement=(
+                      "The headline-history ledger is continuous and its last row's `to` equals "
+                      "the published coverage headline. The v9.8.0 release had overwritten row "
+                      "26 -- v9.7.0's record -- with v9.8.0's headline, falsifying that "
+                      "milestone's own history while contradicting the row's own body text, and "
+                      "left v9.8.0 with no row at all. Row 26 restored, row 27 appended."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.9/LEDG-01', 'LEDG-01', 'v9.9', 'Test-Network',
+                  'scripts/check-traceability.py',
+                  'reproducible',
+                  'scripts/check-traceability.py', '',
+                  surfaces=('apparatus',),
+                  statement=(
+                      "LEDGER-CHAIN (`_self_test_ledger_chain`) asserts row-ordinal contiguity, "
+                      "that each row's `from` equals the prior row's `to`, and that the last "
+                      "row's `to` equals the live headline from `_headline_literals()`, behind a "
+                      "non-vacuity floor. Five controls: the v9.8.0 corruption shape, an "
+                      "unrecorded headline move, vacuity-first on an unparsable ledger, a "
+                      "positive counter-check, and short-parse reachability. Before it, both the "
+                      "corrupted and the correct value passed."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.9/REG-01', 'REG-01', 'v9.9', 'Test-Network',
+                  'scripts/check-retracted-claims.py',
+                  'reproducible',
+                  'scripts/check-retracted-claims.py', '',
+                  surfaces=('apparatus',),
+                  statement=(
+                      "RETRACT-01's register grows 4 -> 10 claims. Every literal was MEASURED "
+                      "against the live tree before registration: the short forms collide with "
+                      "docs/conformance-baseline.md and docs/data/conformance.json, which record "
+                      "those sites as detected count-literals, so long forms carrying zero "
+                      "exemptions were chosen instead."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.9/RUN-01', 'RUN-01', 'v9.9', 'Test-Network',
+                  'scripts/check-retracted-claims.py',
+                  'reproducible',
+                  'scripts/check-retracted-claims.py', '',
+                  surfaces=('apparatus',),
+                  statement=(
+                      "docs/live-monitoring-runbook.md's carry-forward table is reconciled to the "
+                      "live RR-* chain, and both retired cell literals are registered so neither "
+                      "can reappear. S-P02 carries RR-114-01, still a live carry-forward. S-P05's "
+                      "chain terminates CLOSED at RR-108-02, so a FAIL there is blocking -- the "
+                      "old row told an operator to excuse a regression from a clean 5/5 sweep."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.9/BQ-01', 'BQ-01', 'v9.9', 'Test-Network',
+                  'scripts/check-retracted-claims.py',
+                  'reproducible',
+                  'scripts/check-retracted-claims.py', '',
+                  surfaces=('apparatus',),
+                  statement=(
+                      "`_normalise` strips the blockquote continuation marker where it is one -- "
+                      "line-leading after optional whitespace, outside fenced blocks -- so a "
+                      "literal wrapped across blockquote lines is matched. Controls 10 -> 14, "
+                      "each red under its own mutant. Corpus diff over every registered literal "
+                      "on every scanned file: zero differing rows. No exemption count changed."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.9/DRIFT-02', 'DRIFT-02', 'v9.9', 'Methodology',
+                  'docs/requirements-traceability.md',
+                  'audit-only',
+                  '', _audit_sweep_v99,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "The claim that a coverage-headline move is produced by a HEADLINE-LOCK "
+                      "sweep is corrected: no such sweep exists. HEADLINE-LOCK has no write "
+                      "path, and check-traceability.py writes only the two matrix artifacts. A "
+                      "move is a hand edit the sentinel then checks -- and believing otherwise "
+                      "is what licensed the find-and-replace that corrupted the ledger."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.9/DRIFT-03', 'DRIFT-03', 'v9.9', 'Methodology',
+                  'CONTRIBUTING.md',
+                  'audit-only',
+                  '', _audit_guides_v99,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "The contributor-facing guides state what is true. CONTRIBUTING.md's "
+                      "routing-catalog row named an archive-tier fixture no script reads and "
+                      "omitted the two live catalogs -- filed as WR-03 at v9.0.0 with a "
+                      "replacement supplied, unfixed through eight milestones. docs/DEVELOPMENT.md "
+                      "and docs/ONBOARDING.md each said two pre-commit gates; there are five."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.9/DRIFT-04', 'DRIFT-04', 'v9.9', 'Methodology',
+                  'docs/README.md',
+                  'audit-only',
+                  '', _audit_citations_v99,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "Six citations to two files deleted in the 2026-08-16 prune carry the "
+                      "retrieval note docs/README.md already documents, naming the tag that still "
+                      "holds each file. All six are backticked plain text rather than Markdown "
+                      "links, which is why the link gate never saw them."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.9/DRIFT-05', 'DRIFT-05', 'v9.9', 'Methodology',
+                  'CLAUDE.md',
+                  'audit-only',
+                  '', _audit_baseline_v99,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "CLAUDE.md names tests/step0-baseline-v8.5.md as the canonical Step 0 "
+                      "baseline -- the version `_BASELINE_VERSION` pins and STEP0-06 lists among "
+                      "its checked_files -- at both sites that previously named v7.8. v7.8's real "
+                      "role is stated: the last full-run baseline and the generation the RR-* "
+                      "sentinels cite."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.9/REL-31', 'REL-31', 'v9.9', 'Test-Network',
+                  'CHANGELOG.md',
+                  'audit-only',
+                  '', _audit_rel31_v99,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "All 17 hand-maintained version stamps read `9.9.0` (VERSION-01 green), "
+                      "`bash scripts/check-firewall-battery.sh` reaches `FIREWALL: GREEN` at "
+                      "24/24, the milestone's requirements are registered as matrix rows with the "
+                      "coverage headline moved, and `CHANGELOG.md` carries a `## [9.9.0]` entry "
+                      "stating each requirement's tier."
+                  ),
+                  rerun_by='none'),
+    ]
+
+
 def _rows_v98() -> list[MatrixRow]:
     """v9.8.0 milestone rows -- 6 requirements, 4 reproducible + 2 audit-only.
 
@@ -7337,6 +7525,7 @@ def build_matrix_rows() -> list[MatrixRow]:
     # --- v9.7.0 milestone (Phase 58 / REL-28) — 1 reproducible + 18 audit-only ---
     rows.extend(_rows_v97())
     rows.extend(_rows_v98())
+    rows.extend(_rows_v99())
     return rows
 
 
