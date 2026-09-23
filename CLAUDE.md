@@ -61,7 +61,7 @@ python3 scripts/check-routing.py --dry-run --catalog tests/routing-catalog.md  #
 
 ```sh
 # Live manual full run — 60 live claude invocations (manual only, not run in CI).
-# Run from the repo root so the relative --catalog path resolves. Baseline: tests/step0-baseline-v7.8.md
+# Run from the repo root so the relative --catalog path resolves. Baseline: tests/step0-baseline-v8.5.md
 python3 scripts/check-step0-live.py --catalog tests/step0-fixture-catalog.md --repeat 5 --min-pass 3
 
 # Live harness offline self-test — STEP0-06 CI gate (no live claude session)
@@ -303,7 +303,8 @@ product findings.
 **Accepted limitation, stated plainly.** `bm:gsd-code-reviewer` is vendored outside this
 repository, under the plugin cache, and is replaced on plugin update — there is no repo-side
 binding, and this repository cannot pin which tools it holds. As installed when last checked
-(`bm` plugin 4.5.5, read 2026-09-17) it holds `Read`, `Write`, `Bash`, `Grep` and `Glob`;
+(`bm` plugin 4.9.0, read 2026-09-23 — the `tools:` line is unchanged from 4.5.5, checked in
+both) it holds `Read`, `Write`, `Bash`, `Grep` and `Glob`;
 re-derive that set from the installed agent definition's own `tools:` line before relying on
 it. It reads this file, which is the only reach this repository has into its behaviour. The
 first live test of whether this block is honoured was Phase 22's own `/bm:code-review 22`.
@@ -423,8 +424,18 @@ via `--self-test`, the only supported batch mode; no live session, no heavy manu
 
 **`scripts/check-step0-live.py`** — live agent-body harness over the Plan-36-locked
 `claude -p --output-format stream-json --verbose` transport; offline `--self-test` is the
-STEP0-06 CI gate. Canonical baseline: `tests/step0-baseline-v7.8.md` (priors frozen in
-`tests/step0-baseline-v*.md`).
+STEP0-06 CI gate. Canonical baseline: **`tests/step0-baseline-v8.5.md`** — the version
+`_BASELINE_VERSION` in `scripts/check-step0-live.py` pins, the label the harness emits, and the
+file `docs/gates/STEP0-06.md` lists among its `checked_files`. Priors are frozen in
+`tests/step0-baseline-v*.md` and are never rewritten.
+
+`tests/step0-baseline-v7.8.md` is **not** a prior in the ordinary sense and this line previously
+misnamed it canonical (corrected 2026-09-23): it is the last **full-run** baseline (30 invocations,
+6 prompts x 5), and it is the generation the RR-* residual sentinels in `scripts/_battery_core.py`
+cite in their lineage comments (CONF-03, Phase 119). v8.5 is later but **narrower** (25
+invocations, 5 prompts x 5) and carries a `BATTERY: FAIL` verdict of its own. Read v8.5 for what
+the harness compares against today; read v7.8 for the last time every prompt in the bar was
+measured together.
 
 Mechanism detail for both — bypass channel, MODE classification, fault-injection fixtures —
 is in `docs/TESTING.md` and `docs/MEASUREMENT-MAP.md`.

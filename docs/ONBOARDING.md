@@ -110,5 +110,5 @@ Follow the conventional commits format; for conventions and the full commit-mess
 | [MEASUREMENT-MAP.md](MEASUREMENT-MAP.md) | The layered test stack and which gate owns which residual |
 | [COMPONENT-DIAGRAM.md](COMPONENT-DIAGRAM.md) | Mermaid diagrams of the generation pipeline and measurement stack — what reads what and what generates what |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Full contributor workflow: editing loop, validation-script inventory, pre-commit hook setup, key invariants |
-| [TESTING.md](TESTING.md) | How to run every CI gate and the two pre-commit gates, including offline `--self-test` modes |
+| [TESTING.md](TESTING.md) | How to run every CI gate and the five pre-commit gates, including offline `--self-test` modes |
 | [GETTING-STARTED.md](GETTING-STARTED.md) | Install, invoke the agent, companion skills |

@@ -120,7 +120,10 @@ A new failure is a row that was **PASS** in the prior baseline and is now **FAIL
 a regression introduced since the last baseline run. Investigate before closing the milestone.
 
 To detect a new regression: compare the current per-prompt K/N table against the prior baseline
-file (`tests/step0-baseline-v6.4.md` or the most recent versioned file in `tests/`).
+file. As of 2026-09-23 that is **`tests/step0-baseline-v8.5.md`** — the version
+`_BASELINE_VERSION` in `scripts/check-step0-live.py` pins. `tests/step0-baseline-v7.8.md` is the
+last full-run baseline (6 prompts x 5) and is the better comparison when the current run covers
+prompts v8.5 did not measure.
 
 ---
 
@@ -154,6 +157,14 @@ S-N PASS count, known carry-forward residuals, and a link to the new baseline fi
 | Date | Milestone | BATTERY verdict | Step-0 S-P PASS | S-N PASS | Carry-forward residuals | Baseline file |
 |------|-----------|----------------|-----------------|----------|------------------------|---------------|
 | (initial — no live run yet) | v7.0 | — | — | — | S-P02, S-P05 | [step0-baseline-v6.4.md](../tests/step0-baseline-v6.4.md) |
+
+> **Status note, 2026-09-23 (drift audit).** This table has never been filled in. The row above is
+> the v7.0 placeholder it shipped with, and the cadence this runbook prescribes ("re-run at each
+> milestone boundary") has **not** been executed through it since — the repository is at v9.8.0.
+> The live Step-0 readings that *were* taken live elsewhere: `tests/step0-baseline-v7.8.md`
+> (the last full run), `tests/step0-baseline-v8.5.md` (current pinned baseline), and the v9.6.0
+> readings in `docs/v9.6-baseline-reading.md` / `docs/v9.6-rebaseline-reading.md`. Treat this
+> table as aspirational, not as a record of runs that happened.
 
 ---
 

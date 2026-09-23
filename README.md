@@ -30,6 +30,13 @@ The agent applies a five-phase procedure. Each phase produces a named artifact; 
 
 **Phase 5 — Validate:** A five-step adversarial pass over the completed chains, in order: recompute, sensitivity, rival, adversarial technique, falsification. Recomputes every computed figure, names the ground truth whose falsity flips the conclusion, states the rival conclusion and what rules it out, applies a structured adversarial technique (pre-mortem or inversion), and states the condition under which the conclusion is false — then applies the Self-Audit Gate as a systematic check. Produces the *Signed-off analysis* — the complete output document with all conclusions traced and all weak links either resolved or explicitly flagged.
 
+**The run always produces a Report.** The five phases are limbs of a named control loop —
+**PRAOR**: Perceive, Reason, Act, Observe, Report — that terminates in the Report rather than
+looping until clean. If the turn budget runs out, or a Self-Audit criterion fails and its one
+bounded re-entry pass does not resolve it, the analysis is still presented: **degraded and
+explicitly labelled, never withheld.** A short run tells you what it could not finish; it does not
+go silent.
+
 For the complete procedure with entry/exit criteria per phase and the exact output document structure, see [`first-principles/agents/first-principles.md`](first-principles/agents/first-principles.md). The agent body is the authoritative spec — the summary above orients; it defines. For a one-page working reference with each phase's exit gate, the assumption-type treatments, and the derivation-chain format, see [docs/METHODOLOGY-CHEATSHEET.md](docs/METHODOLOGY-CHEATSHEET.md).
 
 ## Companion tools

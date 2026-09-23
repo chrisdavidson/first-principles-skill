@@ -15,6 +15,23 @@ Thank you for contributing to first-principles-skills. This project ships a Clau
 
 The `first-principles/` tree is generated output. Every file in it carries a `<!-- GENERATED — DO NOT EDIT -->` marker. Direct edits will be overwritten on the next sync run and blocked by the pre-commit drift gate.
 
+### The second rule: a claim about this tree needs a falsifier, not a grep
+
+If your change states a **fact about this repository** — a count, a coverage claim, "every X does
+Y", "no gate asserts Z" — `CLAUDE.md`'s [Claims and falsifiers](CLAUDE.md) section binds it, and it
+binds any plan, plan-check or execution here. In short:
+
+- Pair the claim with a command that **exits non-zero if the claim is false** — not one that
+  confirms the sentence is present. `grep -c '<literal>' <file> == N` is a *presence check*; it
+  passes happily while the sentence it pins is false.
+- A reviewer re-derives the falsifier independently rather than re-running yours, because one
+  written by the claim's author reproduces the author's blind spot.
+- If a review finds one of your claims false, register it in `REGISTRY` in
+  `scripts/check-retracted-claims.py` (gate **RETRACT-01**) **in the same change as the fix** —
+  correcting it only where it was found leaves the copies.
+
+This rule exists because v9.7.0 shipped the same false claim twice, three phases apart.
+
 ## Standard contribution loop
 
 ```sh
@@ -58,7 +75,7 @@ one, never both. Full detail, including what `install-hooks.sh` does to an exist
 | Focused-mode skill stubs | `shared/skills/<slug>/SKILL.md` |
 | Worked examples | `shared/examples/` |
 | Validation scripts | `scripts/` |
-| Routing catalogs | `tests/routing-catalog.md`, `tests/sub-skill-routing-catalog.md` |
+| Routing catalogs | `tests/routing-catalog.md` (check-routing.py), `tests/routing-battery-catalog.md` (BATT-06), `tests/step0-fixture-catalog.md` (STEP0-06). **Check `tests/README.md`'s tier table first** — most of `tests/` is archive tier, read by nothing that runs, and several paths are frozen under FROZEN-EVIDENCE. `tests/sub-skill-routing-catalog.md` is archive: its consumers were retired at the 2026-08-16 audit |
 | Documentation | `docs/` — register new pages in the `docs/README.md` nav; intra-docs links use bare filenames (no `docs/` prefix) |
 
 ## Key invariants

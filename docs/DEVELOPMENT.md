@@ -105,7 +105,7 @@ Any record of a live run — routing battery, Step 0 harness, quality harness �
 plugin version and install surface the session actually loaded. A stale surface is otherwise
 indistinguishable from a real result, and supplies a plausible wrong explanation that costs time
 to rule out. This happened during the investigation in
-`dispatch-attribution-findings.md`: the stale install had to be
+`dispatch-attribution-findings.md` (removed from the tree in the 2026-08-16 docs prune; read it at its last tag with `git show v8.17:docs/dispatch-attribution-findings.md`): the stale install had to be
 eliminated as a confound before the real finding could be trusted.
 
 ## What lives where in `shared/`
@@ -165,12 +165,27 @@ Run these locally before pushing. For the full CI gate inventory (every gate map
 
 ## Pre-commit hooks
 
-Two gates fire on `git commit`: the **sync-drift gate**, which blocks if `shared/` and the
-generated tree have diverged, and the **conformance-baseline drift gate**
-(`scripts/report-conformance.py --check`), which blocks if `docs/conformance-baseline.md` or
-`docs/data/conformance.json` no longer match a fresh run. The second gate fails on staleness only
-and is deliberately absent from the battery and from CI (D-06). Install either hook mechanism
-— **never both**, they are mutually exclusive at the Git level:
+**Five** gates fire on `git commit`, in this order — both `.githooks/pre-commit` and
+`scripts/git-hooks/pre-commit` run the same five. `CLAUDE.md`'s `### Pre-commit gates` section
+holds the per-gate detail; this list exists so the count here cannot drift from it again:
+
+1. **sync-drift gate** (`scripts/sync-content.py --check`) — blocks if `shared/` and the generated
+   tree have diverged.
+2. **conformance generator self-test** (`scripts/report-conformance.py --self-test`) — the
+   generator's own falsifiability controls, run *before* gate 3 compares its output to anything
+   (WR-05 ordering: a generator whose controls are failing makes that comparison meaningless).
+3. **conformance-baseline drift gate** (`scripts/report-conformance.py --check`) — blocks if
+   `docs/conformance-baseline.md` or `docs/data/conformance.json` no longer match a fresh run.
+   It fails on staleness of the committed baseline only, never on a conformance count being too
+   high, and is deliberately absent from the battery and from CI (D-06).
+4. **claim-surface generator self-test** (`scripts/gen-gate-docs.py --self-test`) — same WR-05
+   ordering discipline as gate 2, ahead of gate 5's comparison.
+5. **claim-surface drift gate** (`scripts/gen-gate-docs.py --check`, CONF-SURFACE) — blocks if the
+   generated gate tables in `CLAUDE.md` / `docs/ARCHITECTURE.md`, `docs/TESTING.md`'s generated
+   index, or any `docs/gates/<ID>.md` page no longer match a fresh `--write` run. Unlike gates 2-3,
+   CONF-SURFACE is *also* a battery gate and a CI job.
+
+Install either hook mechanism — **never both**, they are mutually exclusive at the Git level:
 
 ```sh
 ./scripts/install-hooks.sh          # Option A (recommended)

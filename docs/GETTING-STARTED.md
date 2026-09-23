@@ -79,7 +79,7 @@ The agent routes automatically when your prompt matches known trigger phrases â€
 
 The trigger phrases above route to the agent only intermittently. Measured on 2026-07-27, the
 agent was reached on roughly **one prompt in seventeen** built from its own documented triggers,
-while explicit dispatch worked. See `dispatch-attribution-findings.md`.
+while explicit dispatch worked. See `dispatch-attribution-findings.md` â€” removed from the tree in the 2026-08-16 docs prune; read it at its last tag with `git show v8.17:docs/dispatch-attribution-findings.md`.
 
 **The reliable way to run a full analysis is the slash command:**
 
