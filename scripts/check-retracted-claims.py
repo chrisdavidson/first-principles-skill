@@ -375,6 +375,16 @@ def _normalise(text: str) -> str:
         line occurs in the corpus scanned at Phase 59, so this is a
         disclosed residual bound, not a live defect — recorded here so it
         is not rediscovered as a surprise.
+      * Fence DELIMITER TYPE is not tracked. The fence toggle flips on
+        either ``` or ~~~ without recording which opened the block, so a
+        literal ~~~ line inside a ```-fenced block (or the reverse) closes
+        the fence early: markers after it are then treated as blockquotes
+        and stripped, and a real blockquote following the true fence end is
+        left alone. Found by the Phase 59 verifier, after the three bounds
+        above were written. A corpus walk at Phase 59 found zero files with
+        a mismatched open/close fence-type pair, so this has the same
+        prospective shape as the fence branch itself — no live effect today,
+        and no control pins it.
     """
     out_lines: list[str] = []
     in_fence = False
