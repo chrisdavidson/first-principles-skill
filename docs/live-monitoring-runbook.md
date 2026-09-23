@@ -115,6 +115,15 @@ re-baseline, and the close was **sustained at 5/5** at the Phase 129 v7.11 re-ba
 is retained only as a regression guard, and no successor id was minted on the close. An S-P05 FAIL
 is a regression from a clean sweep — investigate it.
 
+**Age of that evidence, stated so it is not read as fresher than it is.** v7.11 is **two baselines
+back** from the currently pinned `tests/step0-baseline-v8.5.md` (the intervening one is v7.13), and
+**neither v7.13 nor v8.5 measured S-P05 at all** — verified by the absence of an `| S-P05 |` row in
+either file's per-prompt table, not by the absence of the string. So "a FAIL here is blocking" is a procedural call resting on the recorded
+close, **not** on a recent measurement. It is still the right call — a closed chain with no
+successor has no carry-forward to excuse a failure against — but if S-P05 does fail, treat the
+absent recent reading as part of what you are investigating rather than assuming the v7.11 sweep
+still holds.
+
 > **Correction note, 2026-09-23 (backlog 999.158).** Through v9.8.0 this section listed S-P02 under
 > the retired id `RR-95-01` and S-P05 under the retired id `RR-95-02`, presenting each row's v6.4
 > K/N figure (1/5 and 2/5 respectively) as the current expectation. Both ids had been superseded —
