@@ -6468,5 +6468,290 @@
     ],
     "statement": "Phase 5 prescribes recompute -> sensitivity -> rival conclusion -> adversarial technique -> falsification condition, and Criterion 4 carries a hop-validity and arithmetic limb that can fail a well-formed non-sequitur. Discharged in part (docs/v9.6-instrument-rederivation.md \u00a78.9): the Rival step prescribes and routes a rival for the headline conclusion (landed, prose); no step prompts a rival for an intermediate `Cn` and no code site checks that a rival was sought or resolved (not at all); remainder backlog 999.157.",
     "rerun_by": "none"
+  },
+  {
+    "key": "v9.7/TERM-01",
+    "bare_id": "TERM-01",
+    "milestone": "v9.7",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/FIVE-PHASE-FLOW.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "zero scripts/*.py hits for any TERM-01-distinguishing literal (\"repeat until every criterion passes\", \"no conclusions until it clears\") -- confirmed by grep. A phrase-collision false positive was found and ruled out: \"one-pass bound\" hits check-focused-parity.py's Stub-10 control, but that control's _ONE_PASS_BOUND constant reads \"Revise at most one time.\" -- the skill-stub revision-count bound, a completely different subject from docs/FIVE-PHASE-FLOW.md's loop bound. No registered gate opens docs/FIVE-PHASE-FLOW.md or reads either amended statement.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "The two `docs/FIVE-PHASE-FLOW.md` statements that instruct an unbounded loop (`:62` \"repeat until every criterion passes\") or withholding (`:20`, `:61` \"no conclusions until it clears\") carry the one-pass bound, so no surface contradicts `SKILL-body.md:30-40`.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.7/TERM-02",
+    "bare_id": "TERM-02",
+    "milestone": "v9.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "zero scripts/*.py hits for the distinguishing literal (\"must be revised before conclusions are presented\") -- confirmed by grep. No registered gate opens this specific validation-rubric.md clause or its :29 counterpart.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "`validation-rubric.md:144-152`'s absolute \"must be revised before conclusions are presented\" carries the same bound its own `:29` already states, so the file no longer contradicts itself.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.7/TERM-03",
+    "bare_id": "TERM-03",
+    "milestone": "v9.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-selfaudit-scan.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The agent body states the Report emission invariant exactly once: every run emits a Report; when the turn budget or a failed criterion prevents completion, the Report ships degraded and labelled, never withheld.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.7/TERM-04",
+    "bare_id": "TERM-04",
+    "milestone": "v9.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "zero scripts/*.py hits for any of the four disclosure-mechanism names (\"honest-depth escape valve\", \"omission disclosures\", \"gate-did-not-run\", \"re-entry-fired\") -- confirmed by grep. No registered gate reads whether the body names these four as instances of one contract.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The four existing degradation-disclosure mechanisms \u2014 the honest-depth escape valve, the omission disclosures, the gate-did-not-run disclosure, and the re-entry-fired disclosure \u2014 are named as instances of one contract under TERM-03, rather than remaining four unrelated rules.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.7/TERM-05",
+    "bare_id": "TERM-05",
+    "milestone": "v9.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "zero scripts/*.py hits for the distinguishing literal (\"No new rule is invented\") -- confirmed by grep. This is a claim about how the other TERM edits were derived, not a testable runtime property -- no script could assert it without re-deriving this milestone's own editorial history.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "No new rule is invented. Each TERM change is traceable to an existing statement in `SKILL-body.md` or `validation-rubric.md` that already said it; the milestone records which one for each edit.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.7/TURN-01",
+    "bare_id": "TURN-01",
+    "milestone": "v9.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "zero real scripts/*.py hits for any TURN-01-distinguishing literal (\"Phase 1-4 artefacts\", \"Act limb where a HIGH chain\") -- confirmed by grep. \"priority order[ing]\" surfaces twice, in _battery_core.py:3116 and check-routing.py:769, both # comments about full-composer routing / P26-style prompts and routing-catalog fixture labels respectively -- an unrelated subject, narration only. check-loop-closure.py's ### Turn discipline heading machinery (_TURN_DISCIPLINE, the S3 one-paragraph arity check) asserts the heading exists once and is one paragraph -- a structural check, never TURN-01's own priority-order content.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Turn discipline states an explicit priority order \u2014 Phase 1-4 artefacts, then the Act limb where a HIGH chain needs it, then the Self-Audit Gate, then React edges \u2014 naming what must survive, not only what gets dropped.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.7/TURN-02",
+    "bare_id": "TURN-02",
+    "milestone": "v9.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "zero scripts/*.py hits for any TURN-02-distinguishing literal (\"Observe incomplete\", \"residual caveat\", \"partial artefacts\", \"budget exhaustion\") -- confirmed by grep.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "On budget exhaustion the body prescribes emitting partial artefacts plus an explicit `Observe incomplete \u2014 residual caveat`, never a silent truncation.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.7/TURN-03",
+    "bare_id": "TURN-03",
+    "milestone": "v9.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "zero scripts/*.py hits for the distinguishing literal (\"gate runs last\") -- confirmed by grep. A reconciliation claim between two prose passages in the same file, not a property any registered gate reads.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "TURN-01's order does not contradict `SKILL-body.md:18-22`'s existing statement that the gate runs last; the existing sentence is reconciled, not left standing beside a new one that disagrees with it.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.7/PAY-01",
+    "bare_id": "PAY-01",
+    "milestone": "v9.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "zero scripts/*.py hits for any PAY-01-distinguishing literal (\"companion techniques\", \"Techniques not applied\", \"not applicable \u2014 reason\") -- confirmed by grep.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Step 0's `Phase 4 enumerating all eight companion techniques` (`SKILL-body.md:78`) is replaced by per-phase consideration at the phase that owns each technique, with a one-line `not applicable \u2014 reason` record for the rest. The replacement bullet is \u2264 60 words \u2014 a cap on Step 0's own bulk, no longer a funding constraint.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.7/PAY-02",
+    "bare_id": "PAY-02",
+    "milestone": "v9.7",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-quality-harness.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "WITHDRAWN. git diff 3e2f66f -- scripts/check-quality-harness.py docs/gates/QUAL-01.md returns empty (0 lines): _RENDER_SURFACE_REQUIRED_RULES, _RENDER_RULE_LITERALS, expected_required_rules, expected_missing_case_count and docs/gates/QUAL-01.md are all byte-unchanged since the milestone base. That diff is run once, here, and is not a standing gate -- no registered control re-runs \"unchanged since 3e2f66f\" on any future commit. QUAL-01's own render_contract sub-check confirms the pins are internally consistent with the body's current rendering rules on every run, a different property from unchanged-since-a-historical-commit. The underlying backlog item stays open.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "WITHDRAWN. This milestone relocates no parser-workaround prose and amends no contract pin. `_RENDER_SURFACE_REQUIRED_RULES`, `_RENDER_RULE_LITERALS`, `expected_required_rules`, `expected_missing_case_count` and `docs/gates/QUAL-01.md` are all left byte-unchanged; QUAL-01 keeps body coverage of all twelve rendering rules. Recorded as withdrawn-with-reason rather than deleted, so a later reader sees the trade was considered and declined, not overlooked. The underlying backlog item stays open.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.7/PAY-03",
+    "bare_id": "PAY-03",
+    "milestone": "v9.7",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/v9.7-payment-record.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "zero scripts/*.py hits for either PAY-03-distinguishing literal (\"v9.7-payment-record\", \"recorded as an observation\") -- confirmed by grep. Explicitly barred from gating by its own governing rule (K-of-N observation discipline, docs/v8.7-constraint-teardown.md \u00a72 item 3), the same shape as v9.6/BASE-01, v9.6/BASE-02 and v9.5/MEAS-03.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "The body-size figure is recorded as an observation, not held to a target. `wc -w first-principles/agents/first-principles.md` is taken before the first `shared/` edit of the milestone and again after the last, both figures published with the instrument's scope stated plainly: it measures static shipped prose only and cannot see runtime output. No net-non-positive claim is made, by this phase or any other.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.7/PAY-04",
+    "bare_id": "PAY-04",
+    "milestone": "v9.7",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/v9.7-payment-record.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "zero scripts/*.py hits for any PAY-04-distinguishing literal (\"runtime saving\", \"argued structurally\", \"Techniques not applied\") -- confirmed by grep. No script measures runtime output volume or full-composer emission length; the argument in docs/v9.7-payment-record.md \u00a76 names itself as an argument, not a measurement.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "The runtime saving PAY-01 delivers is stated and argued structurally, not measured: each of the eight companion techniques is owned by exactly one phase, so the `Techniques not applied` record is bounded at \u2264 8 lines per full-composer run, replacing an enumeration the prior text required at Phase 4 unconditionally. The argument names itself as an argument \u2014 no live turn-cost measurement is claimed.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.7/LOOP-01",
+    "bare_id": "LOOP-01",
+    "milestone": "v9.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "the distinguishing literal \"Perceive\" hits three places -- check-traceability.py:2822 and _gate_registry.py:451 (both HARN-02's Observe->Perceive re-entry-edges summary, a distinct pre-existing gate subject) and gen-gate-docs.py:3631 (a historical literal-scan exemption entry quoting a 2026-08-27 review's title) -- all narration on an adjacent but distinct subject, never an assertion that the agent body names the five limbs or terminates in the Report.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The agent body names the five limbs \u2014 Perceive, Reason, Act, Observe, Report \u2014 and states that the run terminates in the Report.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.7/LOOP-02",
+    "bare_id": "LOOP-02",
+    "milestone": "v9.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "the distinguishing literal \"React\" (word-boundary grep) returns zero hits. check-loop-closure.py's _REENTRY_EXCEPTION literal (\"except through the bounded re-entry edges named under Turn discipline\") is genuinely asserted (N7/N32 mutation controls), but it names the edges only as bounded re-entry edges under Turn discipline -- never as \"React\" -- so it covers HARN-02's edge-boundedness property, not LOOP-02's own naming claim.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "React is named as the class of the four bounded re-entry edges that already exist and that HARN-02 already gates \u2014 an edge class, never a sixth limb and never the fifth.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.7/LOOP-03",
+    "bare_id": "LOOP-03",
+    "milestone": "v9.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "shares LOOP-01's \"Perceive\" literal and the same three narration hits, none an assertion of LOOP-03's own phase-to-limb mapping claim -- see LOOP-01's rationale.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The phases are named as the limbs' implementation, so a reader can map Phase 1-5 onto the loop without leaving the body.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.7/LOOP-04",
+    "bare_id": "LOOP-04",
+    "milestone": "v9.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "zero scripts/*.py hits for either LOOP-04-distinguishing literal (\"PLAN-PRAOR-loop-backlog\", \"999.132\") -- confirmed by grep. Its own artifacts sit under .planning/, which is gitignored, so a tracked matrix row cannot cite them; per the v9.5/EVID-01 precedent, deliverable_path instead names the tracked surface carrying the settled decision these drafts were amended to match.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "`.planning/drafts/PLAN-PRAOR-loop-backlog.md`, its v2, and backlog entry 999.132 are amended so none of them specifies shipping \"React\" as a limb name. Their analysis is preserved; only the limb-name specification changes.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.7/REL-27",
+    "bare_id": "REL-27",
+    "milestone": "v9.7",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/sync-content.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "bundles two clauses, neither fully re-derived by a registered gate. The no-drift clause is DUAL-04's (sync-content.py --check) own continuously re-run subject, but is a check of tree state, not a textual literal from REL-27's own wording living inside a script. The battery clause: check-firewall-battery.sh stores no prior FIREWALL tally to diff against -- a fresh count taken once at ship time corroborates the claim, it is not a standing re-derivation of it, the same finding _audit_rel25_release_bundle_v95 already recorded for v9.5/REL-25's identical clause. One unchecked clause keeps the row audit-only even though the other is genuinely, continuously re-run.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "`python3 scripts/sync-content.py --write` run, no drift, and `bash scripts/check-firewall-battery.sh` reaches `FIREWALL: GREEN` at the battery's current tally.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.7/REL-28",
+    "bare_id": "REL-28",
+    "milestone": "v9.7",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-traceability.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "bundles two clauses. Stamp clause, break-tested directly: setting all 17 version stamps to a uniform wrong value (9.9.9) and running check-version-stamps.py stayed green (\"17 stamps, all '9.9.9'\", PASS, exit 0) -- VERSION-01 asserts internal agreement only, never the literal 9.7.0, re-establishing the v9.3/REL-19 and v9.5/REL-25 finding directly rather than citing it; restored and reconfirmed 17 stamps at 9.7.0, tree clean. Registration/headline clause follows the v9.5/REL-26 precedent: this row's own statement describes an act this commit performs, not a standing property a later gate re-derives -- TRACE-03's ROW-FIELDS live leg and HEADLINE-LOCK re-check the registered rows stay well-formed and the headline stays internally consistent going forward, never whether this registration event happened correctly.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "All 17 hand-maintained version stamps read `9.7.0` (VERSION-01 green); the milestone's requirements are registered as matrix rows and the coverage headline moves.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.7/REL-29",
+    "bare_id": "REL-29",
+    "milestone": "v9.7",
+    "capability": "Test-Network",
+    "deliverable_path": "CHANGELOG.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "no script opens CHANGELOG.md and asserts on its prose content anywhere in this tree -- the same finding every prior CHANGELOG-record row already recorded (REL-08, REL-11, REL-13, REL-16, REL-18, REL-22, REL-25); re-deriving it per requirement would be circular, since the only way a script could assert the absence is by adding the very control this milestone declines to add.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "`CHANGELOG.md` carries a `## [9.7.0]` entry that states the tier of every requirement above and names any cost this release does not pay.",
+    "rerun_by": "none"
   }
 ]

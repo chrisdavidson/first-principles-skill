@@ -6534,6 +6534,452 @@ def _rows_v96() -> list[MatrixRow]:
     ]
 
 
+def _rows_v97() -> list[MatrixRow]:
+    """v9.7.0 milestone rows -- 19 requirements, 1 reproducible + 18 audit-only (Phase 58 /
+    REL-28).
+
+    All rows carry milestone="v9.7". Keys use the milestone-qualified form "v9.7/<bare_id>".
+
+    Tiering method, stated once rather than per row (same discipline `_rows_v93()` through
+    `_rows_v96()` already state): for each requirement, its statement was reduced to the
+    distinguishing literal(s) that would have to survive a mutation for the claim to hold, that
+    literal was grepped against every `scripts/*.py` file in this tree with `/usr/bin/grep -rn`,
+    and for every candidate-reproducible clause a break test was actually run -- mutate the one
+    clause in its source file, run `python3 scripts/sync-content.py --write`, run the candidate
+    gate's own `--self-test`, record the exit code, then restore with `git checkout -- shared
+    first-principles` (or `git checkout -- .` for the version-stamp break) and confirm `git diff
+    --quiet`. A row is `reproducible` only if every clause of its statement broke a registered
+    gate red under its own mutation; one clause that stays green is sufficient to keep the row
+    `audit-only`, the same rule `_rows_v93()`/`_rows_v95()`/`_rows_v96()` all state. Every grep
+    command, hit, mutation and exit code this batch ran is recorded in `58-02-SUMMARY.md` -- not
+    retyped here.
+
+    One requirement is reproducible:
+
+      - TERM-03: the agent body's reconciled Report-emission-invariant sentence
+        (`shared/spine/SKILL-body.md:418`, verbatim in `scripts/check-selfaudit-scan.py`'s
+        `_BODY_DONOTPRESENT_AMENDED` constant) was mutated (one word changed); `python3
+        scripts/check-selfaudit-scan.py --self-test` turned red on Body-15 ("amended handoff
+        sentence occurs 0 time(s) in the whole file, expected exactly 1"); restored, re-ran,
+        confirmed green (26 PASS lines) and `git diff --quiet`. Body-15 reads
+        `AGENT_FILE.read_text()` -- the live shipped agent body, not a fixture -- so this is a
+        genuine, currently-standing break. **This coverage was inherited, not built**: Phase 56
+        (`c6648d9`) re-pointed the pre-existing Body-15 pin at TERM-03's reconciled sentence
+        while fixing something else in that same commit; no new gate or control was authored by
+        this milestone for TERM-03. `REQUIREMENTS.md`'s own Out-of-Scope row was corrected during
+        this phase's plan-check to say so explicitly, distinguishing *building* a gate
+        (deliberately out of scope, unchanged) from *inheriting* one (happened, and is reported
+        here rather than assumed away). SCAN-GUARD runs as a CI job and a battery gate.
+        artifact_link carries a bare script path, not a dispatch-checked `#_self_test_*` anchor
+        (`/usr/bin/grep -n "^def _self_test_\\|^def _selftest_"
+        scripts/check-selfaudit-scan.py` returns 0 hits -- Body-15 runs inline inside
+        `_run_self_test()`, with no separately-named prefixed symbol to anchor against), matching
+        the majority precedent this matrix already carries for its other reproducible rows
+        (v9.0's 15 of 16, v9.1's 8 of 9, v9.2's 6 of 8).
+
+    Eighteen requirements are audit-only, one unchecked clause sufficient for each -- named
+    individually, never by count: TERM-01, TERM-02, TERM-04, TERM-05, TURN-01, TURN-02, TURN-03,
+    PAY-01, PAY-02, PAY-03, PAY-04, LOOP-01, LOOP-02, LOOP-03, LOOP-04, REL-27, REL-28, REL-29.
+    Zero `scripts/*.py` hits for every distinguishing literal of TERM-01, TERM-02, TERM-04,
+    TERM-05, TURN-01, TURN-02, TURN-03, PAY-01, PAY-03, PAY-04, LOOP-04, confirmed by grep (a
+    phrase-collision false positive was found and ruled out for TERM-01's "one-pass bound", which
+    hits `check-focused-parity.py`'s unrelated Stub-10 revision-count bound, and for TURN-01's
+    "priority order[ing]", which hits unrelated routing-fixture narration in
+    `_battery_core.py`/`check-routing.py`). LOOP-01/LOOP-03's shared literal "Perceive" hits three
+    places, all narration on HARN-02's distinct Observe->Perceive re-entry-edges subject or a
+    historical exemption record, never LOOP-01/03's own five-limb-naming claim. LOOP-02's literal
+    "React" returns zero hits; the adjacent `check-loop-closure.py` `_REENTRY_EXCEPTION` literal
+    is asserted but never names the edges "React", only "bounded re-entry edges ... under Turn
+    discipline" -- a different, narrower assertion.
+
+    **PAY-02 is registered as withdrawn.** No parser-workaround prose was relocated this
+    milestone and no contract pin was amended; recording the original relocation requirement as
+    satisfied would be a false claim in the exact surface this milestone has already produced
+    five defects in. `git diff 3e2f66f -- scripts/check-quality-harness.py docs/gates/QUAL-01.md`
+    returns empty (0 lines) -- `_RENDER_SURFACE_REQUIRED_RULES`, `_RENDER_RULE_LITERALS`,
+    `expected_required_rules`, `expected_missing_case_count` and `docs/gates/QUAL-01.md` are all
+    byte-unchanged since the milestone base. That diff is not itself a standing gate, though: no
+    registered control re-runs "unchanged since `3e2f66f`" on any future commit -- the comparison
+    point is fixed to this one milestone's closing reading, not a generic property any CI job or
+    battery gate asserts going forward. QUAL-01's own `render_contract` sub-check does confirm
+    the pins are internally consistent with the body's *current* rendering rules on every run,
+    which is a different property from "unchanged since this specific historical commit". So
+    PAY-02's checkable content is real and was verified, but is not itself gate-asserted; its row
+    stays audit-only, states the withdrawal in its own statement, and its underlying backlog item
+    stays open.
+
+    REL-27 and REL-28's stamp/battery clauses were derived, not assumed, per the plan's own
+    instruction. Re-running the v9.3/REL-19 and v9.5/REL-25 break directly: setting all 17
+    version stamps to a uniform wrong value (`9.9.9`) and running `check-version-stamps.py`
+    stayed **green** (`17 stamps, all '9.9.9'`, `PASS`) -- VERSION-01 asserts internal agreement
+    only, never the specific literal `9.7.0`, re-establishing rather than merely citing the prior
+    finding. `check-firewall-battery.sh` stores no prior tally to diff against; a fresh count
+    taken once at ship time corroborates REL-27's battery clause, it is not a standing
+    re-derivation of it (the same finding `_audit_rel25_release_bundle_v95` already recorded).
+    REL-28's registration/headline clause follows the v9.5/REL-26 precedent directly: this row's
+    own statement describes an act this commit performs, not a standing property a later gate
+    re-derives -- TRACE-03's ROW-FIELDS live leg and HEADLINE-LOCK re-check that the registered
+    rows stay well-formed and the headline stays internally consistent going forward, never
+    whether this registration event happened correctly. REL-29's "no gate reads CHANGELOG.md's
+    prose" finding is the same one every prior CHANGELOG-record row already recorded (REL-08,
+    REL-11, REL-13, REL-16, REL-18, REL-22, REL-25); re-deriving it per requirement would be
+    circular, since the only way a script could assert the absence is by adding the very control
+    this milestone declines to add.
+
+    DISCLOSED BOUNDARY. This milestone registers exactly one reproducible row because it shipped
+    TERM/TURN/PAY/LOOP prose under an explicit scope decision
+    (`REQUIREMENTS.md` § Out of Scope: "Building a new registered gate for TERM/TURN/LOOP prose
+    -- Deliberately not attempted"), not because the derivation above was skipped -- every
+    requirement above carries its own recorded grep command, hit count, and (where a literal hit)
+    mutation and exit code. TERM-03's single reproducible row is coverage this milestone
+    *inherited* by a Phase 56 re-point, not coverage it built; the corrected Out-of-Scope row
+    draws that distinction explicitly rather than letting a stale "entirely audit-only" claim
+    stand. Every audit-only row's rationale names the specific literal(s) grepped and, where
+    relevant, the specific narration hit ruled out, so a later reader can re-run the same break
+    rather than trust the tier as asserted.
+
+    No new -ROWS sentinel, for the same reasons `_rows_v93()`'s through `_rows_v96()`'s
+    docstrings already give (999.83, 999.85, the count-not-sentinel shape of every exit reading in
+    this milestone, and the REACH-or-LEVEL discipline this module has followed since Phase 33).
+    `_rows_v97()` is re-run by TRACE-03's existing ROW-FIELDS live leg and by HEADLINE-LOCK; no
+    new control or registration is added.
+    """
+    _audit_term01_five_phase_flow_v97 = (
+        "zero scripts/*.py hits for any TERM-01-distinguishing literal (\"repeat until every "
+        "criterion passes\", \"no conclusions until it clears\") -- confirmed by grep. A "
+        "phrase-collision false positive was found and ruled out: \"one-pass bound\" hits "
+        "check-focused-parity.py's Stub-10 control, but that control's _ONE_PASS_BOUND constant "
+        "reads \"Revise at most one time.\" -- the skill-stub revision-count bound, a completely "
+        "different subject from docs/FIVE-PHASE-FLOW.md's loop bound. No registered gate opens "
+        "docs/FIVE-PHASE-FLOW.md or reads either amended statement."
+    )
+    _audit_term02_rubric_reconciliation_v97 = (
+        "zero scripts/*.py hits for the distinguishing literal (\"must be revised before "
+        "conclusions are presented\") -- confirmed by grep. No registered gate opens this "
+        "specific validation-rubric.md clause or its :29 counterpart."
+    )
+    _audit_term04_disclosure_contract_v97 = (
+        "zero scripts/*.py hits for any of the four disclosure-mechanism names (\"honest-depth "
+        "escape valve\", \"omission disclosures\", \"gate-did-not-run\", \"re-entry-fired\") -- "
+        "confirmed by grep. No registered gate reads whether the body names these four as "
+        "instances of one contract."
+    )
+    _audit_term05_edit_traceability_v97 = (
+        "zero scripts/*.py hits for the distinguishing literal (\"No new rule is invented\") -- "
+        "confirmed by grep. This is a claim about how the other TERM edits were derived, not a "
+        "testable runtime property -- no script could assert it without re-deriving this "
+        "milestone's own editorial history."
+    )
+    _audit_turn01_priority_order_v97 = (
+        "zero real scripts/*.py hits for any TURN-01-distinguishing literal (\"Phase 1-4 "
+        "artefacts\", \"Act limb where a HIGH chain\") -- confirmed by grep. \"priority "
+        "order[ing]\" surfaces twice, in _battery_core.py:3116 and check-routing.py:769, both "
+        "# comments about full-composer routing / P26-style prompts and routing-catalog fixture "
+        "labels respectively -- an unrelated subject, narration only. check-loop-closure.py's "
+        "### Turn discipline heading machinery (_TURN_DISCIPLINE, the S3 one-paragraph arity "
+        "check) asserts the heading exists once and is one paragraph -- a structural check, "
+        "never TURN-01's own priority-order content."
+    )
+    _audit_turn02_residual_caveat_v97 = (
+        "zero scripts/*.py hits for any TURN-02-distinguishing literal (\"Observe incomplete\", "
+        "\"residual caveat\", \"partial artefacts\", \"budget exhaustion\") -- confirmed by grep."
+    )
+    _audit_turn03_gate_runs_last_v97 = (
+        "zero scripts/*.py hits for the distinguishing literal (\"gate runs last\") -- confirmed "
+        "by grep. A reconciliation claim between two prose passages in the same file, not a "
+        "property any registered gate reads."
+    )
+    _audit_pay01_step0_bulk_v97 = (
+        "zero scripts/*.py hits for any PAY-01-distinguishing literal (\"companion techniques\", "
+        "\"Techniques not applied\", \"not applicable — reason\") -- confirmed by grep."
+    )
+    _audit_pay02_withdrawn_v97 = (
+        "WITHDRAWN. git diff 3e2f66f -- scripts/check-quality-harness.py docs/gates/QUAL-01.md "
+        "returns empty (0 lines): _RENDER_SURFACE_REQUIRED_RULES, _RENDER_RULE_LITERALS, "
+        "expected_required_rules, expected_missing_case_count and docs/gates/QUAL-01.md are all "
+        "byte-unchanged since the milestone base. That diff is run once, here, and is not a "
+        "standing gate -- no registered control re-runs \"unchanged since 3e2f66f\" on any future "
+        "commit. QUAL-01's own render_contract sub-check confirms the pins are internally "
+        "consistent with the body's current rendering rules on every run, a different property "
+        "from unchanged-since-a-historical-commit. The underlying backlog item stays open."
+    )
+    _audit_pay03_observation_reading_v97 = (
+        "zero scripts/*.py hits for either PAY-03-distinguishing literal (\"v9.7-payment-record\", "
+        "\"recorded as an observation\") -- confirmed by grep. Explicitly barred from gating by "
+        "its own governing rule (K-of-N observation discipline, "
+        "docs/v8.7-constraint-teardown.md §2 item 3), the same shape as v9.6/BASE-01, "
+        "v9.6/BASE-02 and v9.5/MEAS-03."
+    )
+    _audit_pay04_structural_argument_v97 = (
+        "zero scripts/*.py hits for any PAY-04-distinguishing literal (\"runtime saving\", "
+        "\"argued structurally\", \"Techniques not applied\") -- confirmed by grep. No script "
+        "measures runtime output volume or full-composer emission length; the argument in "
+        "docs/v9.7-payment-record.md §6 names itself as an argument, not a measurement."
+    )
+    _audit_loop01_five_limbs_v97 = (
+        "the distinguishing literal \"Perceive\" hits three places -- check-traceability.py:2822 "
+        "and _gate_registry.py:451 (both HARN-02's Observe->Perceive re-entry-edges summary, a "
+        "distinct pre-existing gate subject) and gen-gate-docs.py:3631 (a historical literal-scan "
+        "exemption entry quoting a 2026-08-27 review's title) -- all narration on an adjacent but "
+        "distinct subject, never an assertion that the agent body names the five limbs or "
+        "terminates in the Report."
+    )
+    _audit_loop02_react_edge_class_v97 = (
+        "the distinguishing literal \"React\" (word-boundary grep) returns zero hits. "
+        "check-loop-closure.py's _REENTRY_EXCEPTION literal (\"except through the bounded "
+        "re-entry edges named under Turn discipline\") is genuinely asserted (N7/N32 mutation "
+        "controls), but it names the edges only as bounded re-entry edges under Turn discipline "
+        "-- never as \"React\" -- so it covers HARN-02's edge-boundedness property, not LOOP-02's "
+        "own naming claim."
+    )
+    _audit_loop03_phases_as_limbs_v97 = (
+        "shares LOOP-01's \"Perceive\" literal and the same three narration hits, none an "
+        "assertion of LOOP-03's own phase-to-limb mapping claim -- see LOOP-01's rationale."
+    )
+    _audit_loop04_draft_amendment_v97 = (
+        "zero scripts/*.py hits for either LOOP-04-distinguishing literal "
+        "(\"PLAN-PRAOR-loop-backlog\", \"999.132\") -- confirmed by grep. Its own artifacts sit "
+        "under .planning/, which is gitignored, so a tracked matrix row cannot cite them; per "
+        "the v9.5/EVID-01 precedent, deliverable_path instead names the tracked surface carrying "
+        "the settled decision these drafts were amended to match."
+    )
+    _audit_rel27_release_bundle_v97 = (
+        "bundles two clauses, neither fully re-derived by a registered gate. The no-drift clause "
+        "is DUAL-04's (sync-content.py --check) own continuously re-run subject, but is a check "
+        "of tree state, not a textual literal from REL-27's own wording living inside a script. "
+        "The battery clause: check-firewall-battery.sh stores no prior FIREWALL tally to diff "
+        "against -- a fresh count taken once at ship time corroborates the claim, it is not a "
+        "standing re-derivation of it, the same finding _audit_rel25_release_bundle_v95 already "
+        "recorded for v9.5/REL-25's identical clause. One unchecked clause keeps the row "
+        "audit-only even though the other is genuinely, continuously re-run."
+    )
+    _audit_rel28_matrix_registration_v97 = (
+        "bundles two clauses. Stamp clause, break-tested directly: setting all 17 version stamps "
+        "to a uniform wrong value (9.9.9) and running check-version-stamps.py stayed green "
+        "(\"17 stamps, all '9.9.9'\", PASS, exit 0) -- VERSION-01 asserts internal agreement "
+        "only, never the literal 9.7.0, re-establishing the v9.3/REL-19 and v9.5/REL-25 finding "
+        "directly rather than citing it; restored and reconfirmed 17 stamps at 9.7.0, tree clean. "
+        "Registration/headline clause follows the v9.5/REL-26 precedent: this row's own "
+        "statement describes an act this commit performs, not a standing property a later gate "
+        "re-derives -- TRACE-03's ROW-FIELDS live leg and HEADLINE-LOCK re-check the registered "
+        "rows stay well-formed and the headline stays internally consistent going forward, never "
+        "whether this registration event happened correctly."
+    )
+    _audit_rel29_changelog_entry_v97 = (
+        "no script opens CHANGELOG.md and asserts on its prose content anywhere in this tree -- "
+        "the same finding every prior CHANGELOG-record row already recorded (REL-08, REL-11, "
+        "REL-13, REL-16, REL-18, REL-22, REL-25); re-deriving it per requirement would be "
+        "circular, since the only way a script could assert the absence is by adding the very "
+        "control this milestone declines to add."
+    )
+    return [
+        MatrixRow('v9.7/TERM-01', 'TERM-01', 'v9.7', 'Test-Network',
+                  'docs/FIVE-PHASE-FLOW.md',
+                  'audit-only', '', _audit_term01_five_phase_flow_v97,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "The two `docs/FIVE-PHASE-FLOW.md` statements that instruct an unbounded "
+                      "loop (`:62` \"repeat until every criterion passes\") or withholding "
+                      "(`:20`, `:61` \"no conclusions until it clears\") carry the one-pass "
+                      "bound, so no surface contradicts `SKILL-body.md:30-40`."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.7/TERM-02', 'TERM-02', 'v9.7', 'Methodology',
+                  'shared/spine/references/validation-rubric.md',
+                  'audit-only', '', _audit_term02_rubric_reconciliation_v97,
+                  surfaces=('agent',),
+                  statement=(
+                      "`validation-rubric.md:144-152`'s absolute \"must be revised before "
+                      "conclusions are presented\" carries the same bound its own `:29` already "
+                      "states, so the file no longer contradicts itself."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.7/TERM-03', 'TERM-03', 'v9.7', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'reproducible',
+                  'scripts/check-selfaudit-scan.py', '',
+                  surfaces=('agent',),
+                  statement=(
+                      "The agent body states the Report emission invariant exactly once: every "
+                      "run emits a Report; when the turn budget or a failed criterion prevents "
+                      "completion, the Report ships degraded and labelled, never withheld."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.7/TERM-04', 'TERM-04', 'v9.7', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_term04_disclosure_contract_v97,
+                  surfaces=('agent',),
+                  statement=(
+                      "The four existing degradation-disclosure mechanisms — the honest-depth "
+                      "escape valve, the omission disclosures, the gate-did-not-run disclosure, "
+                      "and the re-entry-fired disclosure — are named as instances of one "
+                      "contract under TERM-03, rather than remaining four unrelated rules."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.7/TERM-05', 'TERM-05', 'v9.7', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_term05_edit_traceability_v97,
+                  surfaces=('agent',),
+                  statement=(
+                      "No new rule is invented. Each TERM change is traceable to an existing "
+                      "statement in `SKILL-body.md` or `validation-rubric.md` that already said "
+                      "it; the milestone records which one for each edit."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.7/TURN-01', 'TURN-01', 'v9.7', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_turn01_priority_order_v97,
+                  surfaces=('agent',),
+                  statement=(
+                      "Turn discipline states an explicit priority order — Phase 1-4 artefacts, "
+                      "then the Act limb where a HIGH chain needs it, then the Self-Audit Gate, "
+                      "then React edges — naming what must survive, not only what gets dropped."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.7/TURN-02', 'TURN-02', 'v9.7', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_turn02_residual_caveat_v97,
+                  surfaces=('agent',),
+                  statement=(
+                      "On budget exhaustion the body prescribes emitting partial artefacts plus "
+                      "an explicit `Observe incomplete — residual caveat`, never a silent "
+                      "truncation."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.7/TURN-03', 'TURN-03', 'v9.7', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_turn03_gate_runs_last_v97,
+                  surfaces=('agent',),
+                  statement=(
+                      "TURN-01's order does not contradict `SKILL-body.md:18-22`'s existing "
+                      "statement that the gate runs last; the existing sentence is reconciled, "
+                      "not left standing beside a new one that disagrees with it."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.7/PAY-01', 'PAY-01', 'v9.7', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_pay01_step0_bulk_v97,
+                  surfaces=('agent',),
+                  statement=(
+                      "Step 0's `Phase 4 enumerating all eight companion techniques` "
+                      "(`SKILL-body.md:78`) is replaced by per-phase consideration at the phase "
+                      "that owns each technique, with a one-line `not applicable — reason` "
+                      "record for the rest. The replacement bullet is ≤ 60 words — a cap on "
+                      "Step 0's own bulk, no longer a funding constraint."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.7/PAY-02', 'PAY-02', 'v9.7', 'Test-Network',
+                  'scripts/check-quality-harness.py',
+                  'audit-only', '', _audit_pay02_withdrawn_v97,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "WITHDRAWN. This milestone relocates no parser-workaround prose and "
+                      "amends no contract pin. `_RENDER_SURFACE_REQUIRED_RULES`, "
+                      "`_RENDER_RULE_LITERALS`, `expected_required_rules`, "
+                      "`expected_missing_case_count` and `docs/gates/QUAL-01.md` are all left "
+                      "byte-unchanged; QUAL-01 keeps body coverage of all twelve rendering "
+                      "rules. Recorded as withdrawn-with-reason rather than deleted, so a later "
+                      "reader sees the trade was considered and declined, not overlooked. The "
+                      "underlying backlog item stays open."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.7/PAY-03', 'PAY-03', 'v9.7', 'Test-Network',
+                  'docs/v9.7-payment-record.md',
+                  'audit-only', '', _audit_pay03_observation_reading_v97,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "The body-size figure is recorded as an observation, not held to a "
+                      "target. `wc -w first-principles/agents/first-principles.md` is taken "
+                      "before the first `shared/` edit of the milestone and again after the "
+                      "last, both figures published with the instrument's scope stated "
+                      "plainly: it measures static shipped prose only and cannot see runtime "
+                      "output. No net-non-positive claim is made, by this phase or any other."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.7/PAY-04', 'PAY-04', 'v9.7', 'Test-Network',
+                  'docs/v9.7-payment-record.md',
+                  'audit-only', '', _audit_pay04_structural_argument_v97,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "The runtime saving PAY-01 delivers is stated and argued structurally, "
+                      "not measured: each of the eight companion techniques is owned by exactly "
+                      "one phase, so the `Techniques not applied` record is bounded at ≤ 8 "
+                      "lines per full-composer run, replacing an enumeration the prior text "
+                      "required at Phase 4 unconditionally. The argument names itself as an "
+                      "argument — no live turn-cost measurement is claimed."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.7/LOOP-01', 'LOOP-01', 'v9.7', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_loop01_five_limbs_v97,
+                  surfaces=('agent',),
+                  statement=(
+                      "The agent body names the five limbs — Perceive, Reason, Act, Observe, "
+                      "Report — and states that the run terminates in the Report."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.7/LOOP-02', 'LOOP-02', 'v9.7', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_loop02_react_edge_class_v97,
+                  surfaces=('agent',),
+                  statement=(
+                      "React is named as the class of the four bounded re-entry edges that "
+                      "already exist and that HARN-02 already gates — an edge class, never a "
+                      "sixth limb and never the fifth."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.7/LOOP-03', 'LOOP-03', 'v9.7', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_loop03_phases_as_limbs_v97,
+                  surfaces=('agent',),
+                  statement=(
+                      "The phases are named as the limbs' implementation, so a reader can map "
+                      "Phase 1-5 onto the loop without leaving the body."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.7/LOOP-04', 'LOOP-04', 'v9.7', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_loop04_draft_amendment_v97,
+                  surfaces=('agent',),
+                  statement=(
+                      "`.planning/drafts/PLAN-PRAOR-loop-backlog.md`, its v2, and backlog entry "
+                      "999.132 are amended so none of them specifies shipping \"React\" as a "
+                      "limb name. Their analysis is preserved; only the limb-name specification "
+                      "changes."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.7/REL-27', 'REL-27', 'v9.7', 'Test-Network',
+                  'scripts/sync-content.py',
+                  'audit-only', '', _audit_rel27_release_bundle_v97,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "`python3 scripts/sync-content.py --write` run, no drift, and `bash "
+                      "scripts/check-firewall-battery.sh` reaches `FIREWALL: GREEN` at the "
+                      "battery's current tally."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.7/REL-28', 'REL-28', 'v9.7', 'Test-Network',
+                  'scripts/check-traceability.py',
+                  'audit-only', '', _audit_rel28_matrix_registration_v97,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "All 17 hand-maintained version stamps read `9.7.0` (VERSION-01 green); "
+                      "the milestone's requirements are registered as matrix rows and the "
+                      "coverage headline moves."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.7/REL-29', 'REL-29', 'v9.7', 'Test-Network',
+                  'CHANGELOG.md',
+                  'audit-only', '', _audit_rel29_changelog_entry_v97,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "`CHANGELOG.md` carries a `## [9.7.0]` entry that states the tier of "
+                      "every requirement above and names any cost this release does not pay."
+                  ),
+                  rerun_by='none'),
+    ]
+
+
 def build_matrix_rows() -> list[MatrixRow]:
     """Return the curated list of MatrixRow objects (Plan 02 — fully populated).
 
@@ -6743,6 +7189,8 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v95())
     # --- v9.6.0 milestone (Phase 54 / BASE-02) — 4 reproducible + 5 audit-only ---
     rows.extend(_rows_v96())
+    # --- v9.7.0 milestone (Phase 58 / REL-28) — 1 reproducible + 18 audit-only ---
+    rows.extend(_rows_v97())
     return rows
 
 
