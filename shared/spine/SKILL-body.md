@@ -19,17 +19,18 @@ The accumulated artifacts together form the standardized output document, whose 
 
 The methodology implements a control loop with five limbs: **PRAOR** — **Perceive → Reason → Act → Observe → Report**.
 
-The five limbs do not map one-to-one onto the five phases: two limbs each span two
-phases, one limb is a step nested inside another phase rather than a phase of its own,
-and one limb spans a phase plus a section that sits apart from the five phases.
+The five limbs do not map one-to-one onto the five phases. Each row below states its own
+shape: two limbs span two phases each, one is a step nested inside a phase, one spans a
+phase plus part of a section that sits apart from the five phases, and one is not a phase's
+work at all but the emission of what the phases produced.
 
 | Limb | Implemented by | Note |
 |---|---|---|
 | Perceive | Phase 1: Identify Essence + Phase 2: Challenge Assumptions | two phases |
 | Reason | Phase 3: Establish Ground Truths + Phase 4: Reason Upward | two phases |
 | Act | the Phase 3 verification step | a step inside Phase 3, not a phase of its own |
-| Observe | Phase 5: Validate + the Self-Audit Gate, which runs under "Before presenting conclusions" | a phase plus a section outside the five phases |
-| Report | the six-section output document | terminal; an accumulated document no phase owns |
+| Observe | Phase 5: Validate + the Self-Audit Gate's **first scoring pass**, which runs under "Before presenting conclusions" | a phase plus part of a section outside the five phases; the gate's Fix/Repeat loop is a re-entry edge, not Observe |
+| Report | the **emission** of Phase 5's named artifact — the signed-off analysis, which is the complete six-section output document | terminal; Phase 5 owns the artifact, this limb is presenting it |
 
 The run terminates in the Report. Its presentation is governed by the Report emission
 invariant, stated under "Before presenting conclusions" — that invariant is named here,
