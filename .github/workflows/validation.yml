@@ -287,3 +287,17 @@ jobs:
       - run: uv sync --locked --group dev
       - run: uv run python3 scripts/gen-gate-docs.py --self-test
       - run: uv run python3 scripts/gen-gate-docs.py --check
+
+  check-retracted-claims:
+    name: check-retracted-claims (RETRACT-01)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --locked --group dev
+      - run: uv run python3 scripts/check-retracted-claims.py --self-test
+      - run: uv run python3 scripts/check-retracted-claims.py

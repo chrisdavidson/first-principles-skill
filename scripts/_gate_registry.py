@@ -702,6 +702,40 @@ ENTRIES: tuple[GateEntry, ...] = (
             "locked_constants",
         ),
     ),
+    GateEntry(
+        key="RETRACT-01",
+        gate_id="RETRACT-01",
+        extra_ids=(),
+        mechanism=_ci("check-retracted-claims"),
+        ci_job="check-retracted-claims",
+        script="scripts/check-retracted-claims.py",
+        run_command=(
+            "python3 scripts/check-retracted-claims.py --self-test && "
+            "python3 scripts/check-retracted-claims.py"
+        ),
+        summary=(
+            "A claim a code review found false may never reappear on a published "
+            "surface. Literal, not semantic: it bars the registered literals, "
+            "never a reworded restatement, and a retracted claim nobody registers "
+            "is invisible to it. Exemptions are (path, exact count) and fire in "
+            "both directions — above the count a new occurrence crept in, below it "
+            "the erratum that justified the exemption was deleted. "
+            "`scripts/check-retracted-claims.py` is the sole excluded path, since "
+            "the registry necessarily contains every literal it bars; control C10 "
+            "pins that exclusion to a population of one. Added after v9.7.0 shipped "
+            "seven blocking product defects, two of which were the same claim "
+            "shipping twice: 55-CR-01 retracted the one-phase-per-technique premise "
+            "and 58-CR-01 found it again three phases later in the requirements "
+            "matrix, because the requirement statement generating that row was "
+            "never updated alongside the fix."
+        ),
+        consumes=(
+            "registered_surfaces",
+            "derived_counts",
+            "control_ids",
+            "control_count",
+        ),
+    ),
 )
 
 

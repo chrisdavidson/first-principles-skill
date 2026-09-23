@@ -607,6 +607,23 @@ gate "CONF-SURFACE" \
     "python3 scripts/gen-gate-docs.py --self-test" \
     "python3 scripts/gen-gate-docs.py --check"
 
+# RETRACT-01 — a claim a code review found false may never reappear on a
+#              published surface. Added after v9.7.0 shipped seven blocking
+#              product defects, two of which were the SAME claim shipping
+#              twice: 55-CR-01 retracted the one-phase-per-technique premise,
+#              and 58-CR-01 found it three phases later in the requirements
+#              matrix, because the requirement statement the matrix row is
+#              generated from was never updated alongside the fix.
+#              Runs the live scan as well as the self-test: like VERSION-01,
+#              the invariant is a property of the working tree, not of the
+#              script's own fixtures. The self-test's C8 control already
+#              covers the live tree, but the live leg is registered
+#              separately so a battery reader sees the tree scanned by name.
+gate "RETRACT-01" \
+    "check-retracted-claims.py --self-test + live" \
+    "python3 scripts/check-retracted-claims.py --self-test" \
+    "python3 scripts/check-retracted-claims.py"
+
 # ---------------------------------------------------------------------------
 # Invariant re-confirm (D-07) — byte-frozen constants in _battery_core.py.
 #

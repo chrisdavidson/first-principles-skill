@@ -40,6 +40,7 @@ For the full at-a-glance gate inventory — every gate mapped to its owning scri
 | — | [`docs/gates/PRECOMMIT-claim-surface-generator-self-test.md`](gates/PRECOMMIT-claim-surface-generator-self-test.md) | `python3 scripts/gen-gate-docs.py --self-test` |
 | — | [`docs/gates/PRECOMMIT-claim-surface-drift-gate.md`](gates/PRECOMMIT-claim-surface-drift-gate.md) | `python3 scripts/gen-gate-docs.py --check` |
 | CONF-SURFACE | [`docs/gates/CONF-SURFACE.md`](gates/CONF-SURFACE.md) | `python3 scripts/gen-gate-docs.py --self-test && python3 scripts/gen-gate-docs.py --check` |
+| RETRACT-01 | [`docs/gates/RETRACT-01.md`](gates/RETRACT-01.md) | `python3 scripts/check-retracted-claims.py --self-test && python3 scripts/check-retracted-claims.py` |
 <!-- END GENERATED -->
 
 ## Routing battery (developer tools — not in CI)
