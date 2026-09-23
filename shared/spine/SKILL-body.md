@@ -15,6 +15,31 @@ Each phase produces a named artifact. That artifact is the entry condition for t
 
 The accumulated artifacts together form the standardized output document, whose full section shape is defined in the [First Principles Analysis Output Template](${CLAUDE_PLUGIN_ROOT}/agents/references/output-template.md). Working through these phases in order is what makes the analysis auditable — a skeptic can inspect any artifact and verify that the phase that produced it was executed rather than skipped.
 
+### The control loop
+
+The methodology implements a control loop with five limbs: **PRAOR** — **Perceive → Reason → Act → Observe → Report**.
+
+The five limbs do not map one-to-one onto the five phases: two limbs each span two
+phases, one limb is a step nested inside another phase rather than a phase of its own,
+and one limb spans a phase plus a section that sits apart from the five phases.
+
+| Limb | Implemented by | Note |
+|---|---|---|
+| Perceive | Phase 1: Identify Essence + Phase 2: Challenge Assumptions | two phases |
+| Reason | Phase 3: Establish Ground Truths + Phase 4: Reason Upward | two phases |
+| Act | the Phase 3 verification step | a step inside Phase 3, not a phase of its own |
+| Observe | Phase 5: Validate + the Self-Audit Gate, which runs under "Before presenting conclusions" | a phase plus a section outside the five phases |
+| Report | the six-section output document | terminal; an accumulated document no phase owns |
+
+The run terminates in the Report. Its presentation is governed by the Report emission
+invariant, stated under "Before presenting conclusions" — that invariant is named here,
+not restated.
+
+React is not a limb: it names the class of the four bounded re-entry edges already
+enumerated and bounded under Turn discipline, immediately below. Five limbs carry the
+loop forward; React is the name for the class of edges that can send it back a step,
+never a stage in that chain.
+
 ### Turn discipline
 
 The turn budget's survival priority, in order: the Phase 1-4 artifacts; the **Phase 3
