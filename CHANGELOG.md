@@ -118,10 +118,18 @@ and the shipped body, and this entry is the evidence for how often that matters.
   last one, the version-stamp bump). The instrument measures static shipped prose only and is
   blind to the runtime output PAY-01 reduces; the delta is not evidence for or against PAY-04's
   runtime argument in either direction. See `docs/v9.7-payment-record.md` for the full reading.
-- **This release ships mostly audit-only rows** — no new registered gate asserts the termination
-  semantics, the invariant, or the limb vocabulary. That was a scope decision, recorded in
-  `.planning/REQUIREMENTS.md` § Out of Scope ("A registered gate asserting TERM/TURN/LOOP prose —
-  deliberately not attempted"), continuing the v9.5/v9.6 pattern.
+- **This release ships mostly audit-only rows — 18 of 19.** No gate was *built* for the
+  termination semantics, the invariant or the limb vocabulary; that was a scope decision, recorded
+  in `.planning/REQUIREMENTS.md` § Out of Scope, continuing the v9.5/v9.6 pattern. **But one gate
+  was inherited, and this bullet first said otherwise.** As published, it read "no new registered
+  gate asserts the termination semantics, the invariant, or the limb vocabulary" — which
+  contradicted this same entry's own earlier paragraph naming TERM-03 reproducible via SCAN-GUARD's
+  `Body-15`, and quoted an Out-of-Scope line that had already been corrected before release. A
+  reader taking the costs section at face value would have concluded there is zero live enforcement
+  of the invariant. There is: `Body-15` asserts the invariant sentence against the live shipped
+  agent body, in CI and in the battery. Corrected post-release; the error is stated rather than
+  quietly replaced, because a costs section that understates coverage is the same defect class as
+  one that overstates it.
 
 ### Coverage: this release adds 19 requirements, 1 reproducible and 18 audit-only
 

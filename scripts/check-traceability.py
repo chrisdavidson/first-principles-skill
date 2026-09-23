@@ -6902,11 +6902,18 @@ def _rows_v97() -> list[MatrixRow]:
                   surfaces=('apparatus',),
                   statement=(
                       "The runtime saving PAY-01 delivers is stated and argued structurally, "
-                      "not measured: each of the eight companion techniques is owned by exactly "
-                      "one phase, so the `Techniques not applied` record is bounded at ≤ 8 "
-                      "lines per full-composer run, replacing an enumeration the prior text "
-                      "required at Phase 4 unconditionally. The argument names itself as an "
-                      "argument — no live turn-cost measurement is claimed."
+                      "not measured: the eight companion techniques carry ten invocation sites "
+                      "between them — `theoretical-limit` is invoked at Phase 1 and Phase 4, "
+                      "`inversion` at Phase 2 and Phase 5 — so the `Techniques not applied` "
+                      "record is bounded at ≤ 10 lines per full-composer run, replacing an "
+                      "enumeration the prior text required at Phase 4 unconditionally. The "
+                      "argument names itself as an argument — no live turn-cost measurement is "
+                      "claimed. (Corrected post-release: this statement first shipped carrying "
+                      "PAY-04's original one-phase-per-technique premise and ≤ 8 bound, which "
+                      "Phase 55's own code review had already found false and retracted — "
+                      "docs/v9.7-payment-record.md §6 carries the corrected derivation. The "
+                      "retracted claim reached the matrix because the requirement text it was "
+                      "generated from was never updated alongside the fix.)"
                   ),
                   rerun_by='none'),
         MatrixRow('v9.7/LOOP-01', 'LOOP-01', 'v9.7', 'Methodology',
