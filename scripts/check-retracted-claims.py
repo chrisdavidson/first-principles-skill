@@ -171,6 +171,90 @@ REGISTRY: tuple[RetractedClaim, ...] = (
         # on this entry had been luck rather than correctness.
         exemptions=(("CHANGELOG.md", 2),),
     ),
+    # ---------------------------------------------------------------------
+    # The four below were retracted by the 2026-09-23 documentation drift
+    # audit rather than by a phase code review. RULE-01 clause 4 is written
+    # for a review, but the property it protects is the same one: a claim
+    # found false has copies, and correcting the instance leaves them. Each
+    # literal below was measured against the live tree before registration --
+    # the long forms were chosen precisely BECAUSE the short ones collide with
+    # docs/conformance-baseline.md and docs/data/conformance.json, which
+    # legitimately RECORD these sites as detected count-literals. Registering
+    # a short form would have required exemptions against generated artifacts
+    # whose counts move on every re-measure.
+    # ---------------------------------------------------------------------
+    RetractedClaim(
+        literal="is produced by `HEADLINE-LOCK`'s sweep rather than a hand edit",
+        retracted_by="DRIFT-2026-09-23",
+        corrected=(
+            "No such sweep exists. HEADLINE-LOCK is assertion-only: it has no "
+            "write path, and check-traceability.py writes only "
+            "requirements-matrix.md and matrix.json, via `emit`. A "
+            "coverage-headline move is a hand edit that HEADLINE-LOCK then "
+            "CHECKS. Believing otherwise licensed the v9.8.0 find-and-replace "
+            "that corrupted headline-history row 26, because the previous "
+            "headline literal is by construction what the last row's `to`-cell "
+            "holds."
+        ),
+        # The one exempted occurrence is docs/requirements-traceability.md's
+        # verbatim quotation of v8.26 ROADMAP's Phase 16 success criterion,
+        # which must stay byte-intact: it is the record of what that milestone
+        # required, not this tree's own assertion.
+        #
+        # DISCLOSED BOUND: the same file states the claim a SECOND time, in the
+        # 2026-09-04 discharge note, where it is wrapped across two blockquote
+        # lines. The gate cannot see it. `_normalise` collapses whitespace but
+        # not the `>` continuation marker, so the normalised text reads
+        # "...rather than a > hand edit". That is AP-01's defect class
+        # surviving in a variant form, found by this audit and recorded here
+        # rather than silently absorbed. If the normaliser is ever taught to
+        # strip blockquote markers, this count becomes 2 and the gate will fire
+        # -- which is the correct prompt to re-read both sites, not a
+        # regression.
+        exemptions=(("docs/requirements-traceability.md", 1),),
+    ),
+    RetractedClaim(
+        literal="Canonical baseline: `tests/step0-baseline-v7.8.md`",
+        retracted_by="DRIFT-2026-09-23",
+        corrected=(
+            "The canonical Step 0 baseline is tests/step0-baseline-v8.5.md -- "
+            "the version _BASELINE_VERSION in check-step0-live.py pins, the "
+            "label the harness emits, and the file docs/gates/STEP0-06.md "
+            "lists among its checked_files. v7.8 is the last FULL-RUN baseline "
+            "(30 invocations, 6 prompts x 5) and the generation the RR-* "
+            "residual sentinels cite; v8.5 is later but narrower."
+        ),
+        # Zero occurrences at registration: CLAUDE.md's two sites were both
+        # corrected in 53c316e, and the replacement prose names v7.8 only in
+        # its own distinct "is not a prior in the ordinary sense" sentence.
+    ),
+    RetractedClaim(
+        literal="Two gates fire on `git commit`: the **sync-drift gate**",
+        retracted_by="DRIFT-2026-09-23",
+        corrected=(
+            "Five gates fire on `git commit`, in order: sync-drift, the "
+            "conformance generator self-test, the conformance-baseline drift "
+            "gate, the claim-surface generator self-test, and the claim-surface "
+            "drift gate. Both hook mechanisms run the same five."
+        ),
+        # Zero occurrences at registration. The bare phrase "Two gates fire on "
+        # `git commit`" is deliberately NOT the registered literal: it appears
+        # 6 times across docs/conformance-baseline.md and
+        # docs/data/conformance.json, which record this site as a detected
+        # count-literal. Those are measurements OF the defect, and their counts
+        # move whenever the corpus is re-measured.
+    ),
+    RetractedClaim(
+        literal="How to run every CI gate and the two pre-commit gates",
+        retracted_by="DRIFT-2026-09-23",
+        corrected=(
+            "docs/TESTING.md documents every CI gate and all FIVE pre-commit "
+            "gates. docs/ONBOARDING.md's index row said two."
+        ),
+        # Zero occurrences at registration. Same reasoning as the entry above:
+        # the bare "the two pre-commit gates" appears 13 times across the
+        # conformance artifacts and gen-gate-docs.py as recorded detections.
+    ),
 )
 
 
