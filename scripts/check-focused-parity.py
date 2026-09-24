@@ -212,8 +212,12 @@ _CLOSING_HANDOFF_ANCHOR = "invoke the main `first-principles`"
 # / D-29-P2 (v9.2.1 Phase 29 commit A): the candidate-input handoff tail. Once
 # asserted on every non-launcher stub; now asserted only on the unclassified-
 # facts stubs named by `_HANDOFF_ROUTED_SLUGS`'s complement, because the three
-# routed stubs route their output somewhere other than Phase 2 as of this
-# commit. See `docs/gates/HARN-03.md` § "REACH-or-LEVEL determination" for the
+# routed stubs route their output through the focused-mode handoff rather than
+# through the unclassified-facts slot, as of this commit. (Named and corrected
+# per 999.103's sibling item: the previous wording, "route their output
+# somewhere other than Phase 2", was CR-01's and is false -- a handed-over
+# fact still enters Phase 2 as a candidate, which is exactly what v9.2.0
+# established. What differs is the slot it arrives in, not whether it arrives.) See `docs/gates/HARN-03.md` § "REACH-or-LEVEL determination" for the
 # argument; this comment does not restate it.
 _HANDOFF_CANDIDATE_TAIL = (
     "as candidate inputs for Phase 2. Carry the `?` marks with it — this run "

@@ -792,6 +792,13 @@ class MatrixRow:
         (D-05, stated below); (e) this replaces the rule applied at Phase 32 gap closure
         (commit 4f18a0d), which subtracted a cited gate's current exclusion constants, and
         cites the Root-answer determination paragraph above.
+        (f) BATCH TIMING, stated because the rule did not say and its only
+        application contradicted the natural reading (999.103 IN-02): the note
+        lands in the same batch commit as the narrowing row WHERE BOTH ARE IN
+        ONE BATCH. SUP-03's note landed outside HAND-01..HAND-03's batch, and
+        that is permitted rather than a one-off exception -- a narrowing row
+        may be registered in a later batch than the row it narrows, and the
+        note follows the narrowing row, not the narrowed one.
       - P-AGENT: a path under `first-principles/agents/`, `shared/spine/`, `shared/agent/`,
         or `shared/examples` names `agent`.
       - P-AGENT-SUBJECT (D-11's "subject is the agent body" test, path-only): one of
@@ -885,7 +892,14 @@ class MatrixRow:
     deliverable_path: str # live file path or "active-tail" sentinel
     coverage_tier: str    # "reproducible" | "audit-only" | "gap" | "scheduled"
     artifact_link: str    # resolves to real path/row/section or whitelist CLI
-    gap_rationale: str    # non-empty when coverage_tier != "reproducible"
+    # Non-empty on every non-reproducible row, where it is mandatory. NOT empty
+    # on every reproducible row: D-05 re-pointing notes land here too, and 11
+    # live reproducible rows carry one (the v3.7 RIGOR-* family re-pointed at
+    # v9.3.0 Phase 34 / TIER-01, among others). The comment used to read
+    # "non-empty when coverage_tier != reproducible", which a reader could take
+    # as "empty when it IS reproducible" -- false against the live matrix, and
+    # false since D-05 rather than newly so (backlog 999.103 IN-03).
+    gap_rationale: str
     # --- appended last, D-05: no default, required at every call site ---
     surfaces: tuple[str, ...]  # shipped skill slug(s) | "agent" | "apparatus"; never empty (D-06)
     statement: str  # sourced requirement wording, or _STATEMENT_UNRECOVERABLE (D-T4)
@@ -5222,7 +5236,7 @@ def _rows_v921() -> list[MatrixRow]:
     rosters live. See `_rows_v92()`'s and `_rows_v91()`'s identical paragraph for the
     precedent rather than re-arguing it.
 
-    Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths), P-DIR, P-SKILL (a shared/skills/<slug>/ or first-principles/skills/<slug>/ path). P-DIR rows at tag v9.2.1 expand to the skills present in `git ls-tree --name-only v9.2.1 first-principles/skills/`: challenge-assumptions, estimate, first-principles-analysis, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, theoretical-limit, trade-off, validate (D-10, locked). D-09 governs this batch's sourced rows generally; HAND-04 is a statement-scoped P-DIR row (D-02) whose surfaces value is the tag-v9.2.1 expansion minus the launcher and the stubs this batch's HAND-01..HAND-03 statements route elsewhere, on its own statement's "the ten unclassified-facts stubs"; no constant from any script is subtracted; no other row in this batch departs from its path-derived value.
+    Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths), P-DIR, P-SKILL (a shared/skills/<slug>/ or first-principles/skills/<slug>/ path). P-DIR rows at tag v9.2.1 expand to the skills present in `git ls-tree --name-only v9.2.1 first-principles/skills/`: challenge-assumptions, estimate, first-principles-analysis, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, theoretical-limit, trade-off, validate (D-10, locked). D-09 governs this batch's sourced rows generally; HAND-04 is a statement-scoped P-DIR row (D-02) whose surfaces value is the tag-v9.2.1 expansion minus the launcher and the stubs this batch's HAND-01..HAND-03 statements route through the focused-mode handoff (whose cited ground truths still enter Phase 2 as candidates -- "elsewhere" here means a different ROUTE INTO Phase 2, never an exemption from it; the CR-01 wording this replaces said "somewhere other than Phase 2" and was false, 999.103 IN-01), on its own statement's "the ten unclassified-facts stubs"; no constant from any script is subtracted; no other row in this batch departs from its path-derived value.
 
     Statements: the bullet's first paragraph after the bold ID (ending at the first blank line, next list item, heading or blockquote line), whitespace collapsed, cut before any Exit: clause; later bold-labelled Evidence/Amended/Progress paragraphs are excluded (D-01).
     """
@@ -8175,7 +8189,267 @@ def check_consistency(rows: list[MatrixRow]) -> list[str]:
         issues.extend(_row_field_problems(row))
     issues.extend(_statement_citation_problems(rows, _STATEMENT_CITATIONS))
     issues.extend(_rerun_via_problems(build_matrix_rows()))
+    issues.extend(_reproducible_artifact_link_problems(rows))
+    issues.extend(_superseded_count_problems(rows))
+    issues.extend(_superseded_count_registry_problems())
+    issues.extend(_deliverable_path_problems(rows))
+    issues.extend(_deliverable_registry_problems())
     return issues
+
+
+# ---------------------------------------------------------------------------
+# Backlog 999.83: deliverable_path resolution
+# ---------------------------------------------------------------------------
+# The `-ROWS` sentinels deep-resolve `artifact_link` and have never resolved
+# `deliverable_path`, so a row could name a file that does not exist and
+# publish green. That prediction was not hypothetical when this check was
+# built: 8 of 457 live rows named a missing file, and SIX of the eight were
+# created by v9.4.0 Phase 40's own gate retirements -- the milestone that
+# deleted the scripts never revisited the matrix rows citing them.
+#
+# The fix is NOT to blank those rows. Their historical claim is true: the
+# deliverable of v2.0/VAL-04 really was `scripts/check-trigger-collisions.py`.
+# What was missing is the disclosure that the file is gone and where that is
+# recorded. Each known dangling path is therefore registered here with the
+# record that explains it, and the check fires on any dangling path that is
+# NOT registered. A registry entry is a disclosure a reviewer can read, not a
+# suppression: adding one is a visible diff, and removing the last reference
+# to a registered path makes its entry unused, which `(c)` below reports.
+_RETIRED_DELIVERABLES: dict[str, str] = {
+    "scripts/check-trigger-collisions.py": (
+        "retired at v9.4.0 Phase 40 with VAL-04 (backlog 999.104) -- "
+        "docs/v9.4-gate-retirement.md"
+    ),
+    "scripts/check-description-budget.py": (
+        "retired at v9.4.0 Phase 40 with VAL-05 (backlog 999.105) -- "
+        "docs/v9.4-gate-retirement.md"
+    ),
+    "scripts/check-install-collisions.py": (
+        "retired at v9.4.0 Phase 40 with the dual-install collision scan "
+        "(backlog 999.106) -- docs/v9.4-gate-retirement.md"
+    ),
+}
+
+# A different failure from a retired file: a path that still exists on the
+# author's disk but is invisible to everyone else. `.planning/` is entirely
+# gitignored and absent from a fresh clone, so a matrix row citing evidence
+# there cites something no reader can open -- the same property that forbids
+# the tracked tree from linking into `docs/history/`.
+_UNTRACKED_DELIVERABLES: dict[str, str] = {
+    ".planning/phases/999.93-shipped-milestones-requirements-have-no-matrix-row-"
+    "undisclos/trace-atlas/rederive.py": (
+        "under gitignored `.planning/`, so it is absent from a fresh clone and "
+        "cannot be opened by any reader but the author"
+    ),
+}
+
+
+# Backlog 999.111: a `reproducible` row whose statement freezes a moving count.
+#
+# `reproducible` claims something re-runs the row. When the statement's own
+# clause is a MOVING count -- the battery total is this repo's worked example
+# of one (docs/PROCESS.md section 2) -- the cited gate re-runs the row's
+# subject but cannot reproduce its number, because the number has moved. The
+# row then publishes a figure that is false against live state while claiming
+# to be re-derivable.
+#
+# Measured: 6 reproducible rows, every one `rerun_by='battery-only'`, state a
+# battery total that is not the live one. The sharpest is v8.24/VAL-01, whose
+# statement is literally "`bash scripts/check-firewall-battery.sh` reports
+# `FIREWALL: GREEN (23/23)`" against a battery that reports 24/24.
+#
+# This check does NOT re-tier those rows. Re-tiering is the real fix and it
+# moves the published coverage headline, which cascades through the ledger and
+# every surface that states it -- out of scope here and left open on 999.111
+# with the six rows named. What this closes is the silent half: a SEVENTH row
+# of the same shape can no longer appear without an explicit entry here.
+_SUPERSEDED_COUNT_ROWS: dict[str, str] = {
+    "v8.18/HARN-04": "states the battery at 20/20 (v8.18-era); live total has moved",
+    "v8.18/SHIP-03": "states the battery at 20/20 (v8.18-era); live total has moved",
+    "v8.18/SHIP-06": "states the battery at 20/20 (v8.18-era); live total has moved",
+    "v8.24/GATE-03": "states the battery moving 22/22 -> 23/23 (v8.24-era); live total has moved",
+    "v8.24/VAL-01": "states `FIREWALL: GREEN (23/23)`; live total has moved",
+}
+
+_BATTERY_TOTAL_RE = re.compile(r"\b(\d{1,2})/(\1)\b")
+
+
+def _superseded_count_problems(rows: list["MatrixRow"]) -> list[str]:
+    """999.111: a reproducible row may not freeze a moving count unregistered.
+
+    Only `reproducible` rows are in scope. An `audit-only` row stating a
+    historical battery total is honest by construction -- audit-only means
+    nothing re-runs it, so the figure is a frozen historical count in exactly
+    the sense docs/PROCESS.md section 2 permits, and flagging those would make
+    the check fire on the one population that is behaving correctly.
+
+    The rule is deliberately structural: a reproducible row may not state a
+    battery-total-shaped literal AT ALL unless registered. A first attempt
+    compared each literal against a live total derived from the battery
+    script, and that derivation was both fragile and wrong -- it read 23 by
+    counting `gate` lines, which silently reclassified v8.24/VAL-01's
+    superseded "23/23" as current and reported its registry entry stale. A
+    guard against frozen moving counts must not itself depend on deriving the
+    moving count.
+    """
+    problems: list[str] = []
+    seen: set[str] = set()
+    for row in rows:
+        if row.coverage_tier != "reproducible":
+            continue
+        statement = row.statement or ""
+        for match in _BATTERY_TOTAL_RE.finditer(statement):
+            value = int(match.group(1))
+            if not (10 <= value <= 60):
+                continue          # not battery-total shaped
+            if row.key in _SUPERSEDED_COUNT_ROWS:
+                seen.add(row.key)
+                continue
+            problems.append(
+                f"{row.key}: coverage_tier 'reproducible' but its statement "
+                f"freezes the moving count {match.group(0)!r}, which the live "
+                f"battery no longer reports -- register it in "
+                f"_SUPERSEDED_COUNT_ROWS or re-tier the row"
+            )
+    del seen  # the unused-registry arm is whole-matrix; see below
+    return problems
+
+
+def _superseded_count_registry_problems() -> list[str]:
+    """999.111 arm (c): no registry entry outlives the row that justifies it.
+
+    Reads the LIVE matrix rather than a caller's row list, for the same reason
+    `_deliverable_registry_problems` does -- and the reason is worth stating,
+    because this file got it wrong TWICE in one session. A whole-matrix
+    property driven from a caller's subset fails every fixture-based
+    self-test case, because a three-row fixture legitimately names none of the
+    registered keys. The first instance was caught and fixed in
+    `_deliverable_path_problems`; this one was then written the same wrong way
+    and caught by the same self-test. Recorded here so a third copy is not
+    written from the same pattern.
+    """
+    live_keys = {
+        row.key
+        for row in build_matrix_rows()
+        if row.coverage_tier == "reproducible"
+        and any(
+            10 <= int(m.group(1)) <= 60
+            for m in _BATTERY_TOTAL_RE.finditer(row.statement or "")
+        )
+    }
+    return [
+        f"superseded-count registry: {stale!r} is registered but no live "
+        f"reproducible row of that key states a superseded count -- remove "
+        f"the entry rather than leaving a standing permission"
+        for stale in sorted(set(_SUPERSEDED_COUNT_ROWS) - live_keys)
+    ]
+
+
+def _reproducible_artifact_link_problems(rows: list["MatrixRow"]) -> list[str]:
+    """Backlog 999.61: a `reproducible` row must name the artifact that re-runs it.
+
+    The per-milestone `-ROWS` sentinels each assert the AUDIT-ONLY direction
+    (`artifact_link == ""`) and resolve whatever link a reproducible row
+    happens to carry -- but `_resolve_artifact("")` returns no issue by
+    construction, so emptying a reproducible row's link was invisible to them.
+    Measured: the `(d) Deep-resolve artifact_link` shape had been copied into
+    SIXTEEN sentinels, every one blind the same way.
+
+    `check_consistency` caught it only INDIRECTLY, and only for `rerun_by='ci'`
+    rows, through the CI-job registry check that happens to read the same
+    field. Measured against the live matrix: of 242 reproducible rows, 158 are
+    `ci` and were covered by that accident; the other 84 -- 39 `battery-only`,
+    38 `live-manual`, 7 `pre-commit-only` -- could each be emptied with nothing
+    reported at all.
+
+    Asserted once over the whole matrix rather than patched into all sixteen
+    sentinels: the gap spread by copying, and a seventeenth sentinel written
+    tomorrow inherits this check without having to remember it.
+    """
+    problems: list[str] = []
+    for row in rows:
+        if row.coverage_tier != "reproducible":
+            continue
+        if (row.artifact_link or "").strip():
+            continue
+        problems.append(
+            f"{row.key}: coverage_tier is 'reproducible' but artifact_link is "
+            f"empty -- a reproducible row claims something re-runs it, so it "
+            f"must name what"
+        )
+    return problems
+
+
+def _deliverable_path_problems(rows: list["MatrixRow"]) -> list[str]:
+    """999.83: every row's `deliverable_path` resolves, or is registered as
+    retired/untracked with the record that says so.
+
+    Non-path values (`active-tail` and friends) are skipped by construction --
+    `deliverable_path` is not always a filesystem path, and a check that
+    treated every value as one would fire on a whole class of legitimate rows
+    and be switched off. The discriminator is a `/`, stated here rather than
+    left implicit.
+    """
+    problems: list[str] = []
+    seen_registered: set[str] = set()
+
+    for row in rows:
+        raw = (row.deliverable_path or "").strip()
+        if not raw or "/" not in raw:
+            continue
+        for part in (p.strip() for p in raw.split(",")):
+            if not part or "/" not in part:
+                continue
+            if (REPO_ROOT / part.rstrip("/")).exists():
+                continue
+            if part in _RETIRED_DELIVERABLES:
+                seen_registered.add(part)
+                continue
+            if part in _UNTRACKED_DELIVERABLES:
+                seen_registered.add(part)
+                continue
+            problems.append(
+                f"{row.key}: deliverable_path {part!r} does not exist and is not "
+                f"registered in _RETIRED_DELIVERABLES or _UNTRACKED_DELIVERABLES "
+                f"-- a row may not publish a path a reader cannot open without "
+                f"saying why"
+            )
+
+    del seen_registered  # the unused-registry arm is whole-matrix; see below
+    return problems
+
+
+def _deliverable_registry_problems() -> list[str]:
+    """999.83 arm (c): no registry entry outlives the rows that justify it.
+
+    Deliberately reads the LIVE matrix itself rather than taking a row list.
+    The property is about the whole matrix, not about whatever subset a caller
+    holds -- driving it from a caller's rows made every fixture-based
+    self-test case fail, because a three-row fixture legitimately names none
+    of the registered paths. That was this check's own first defect.
+
+    A registry that outlives its rows is a standing permission nobody is
+    using, and the next dangling path of the same shape would ride it in
+    silently.
+    """
+    named: set[str] = set()
+    for row in build_matrix_rows():
+        raw = (row.deliverable_path or "").strip()
+        if not raw or "/" not in raw:
+            continue
+        for part in (p.strip() for p in raw.split(",")):
+            if part:
+                named.add(part)
+
+    problems: list[str] = []
+    registered = set(_RETIRED_DELIVERABLES) | set(_UNTRACKED_DELIVERABLES)
+    for stale in sorted(registered - named):
+        problems.append(
+            f"deliverable-path registry: {stale!r} is registered as "
+            f"retired/untracked but no live row names it -- remove the entry "
+            f"rather than leaving a standing permission"
+        )
+    return problems
 
 
 # ---------------------------------------------------------------------------
@@ -13824,6 +14098,122 @@ def _self_test_ledger_chain(wrong_results: list[str]) -> None:
         wrong_results.append("LEDGER-CHAIN: (c4) valid chain flagged")
 
 
+def _self_test_deliverable_paths(wrong_results: list[str]) -> None:
+    """DELIV-PATH sentinel (backlog 999.83): the deliverable_path resolution
+    check reaches, discriminates, and cannot pass vacuously.
+
+    Four arms. (d1) and (d2) are the positive halves -- the live matrix is
+    clean and the registry carries no stale entry -- and they are stated as
+    controls rather than assumed, because a check whose live population is
+    already clean is exactly the shape that rots unnoticed. (d3) and (d4) are
+    the negative halves, each driven through the SAME helper the live check
+    calls, never a reimplementation.
+    """
+    import dataclasses as _dc
+
+    rows = build_matrix_rows()
+
+    # (d1) POSITIVE: every live row's deliverable_path resolves or is
+    # registered. The eight known dangling paths -- six of them created by
+    # v9.4.0 Phase 40's own retirements -- are disclosed, not suppressed.
+    live = _deliverable_path_problems(rows)
+    if live:
+        wrong_results.append(f"DELIV-PATH: (d1) live rows report problems: {live[:2]}")
+        print("  DELIV-PATH FAIL: (d1) live matrix has unregistered dangling paths")
+    else:
+        print("  DELIV-PATH PASS: (d1) every live deliverable_path resolves or is registered")
+
+    # (d2) POSITIVE: no registry entry outlives the rows that justify it.
+    stale = _deliverable_registry_problems()
+    if stale:
+        wrong_results.append(f"DELIV-PATH: (d2) stale registry entries: {stale[:2]}")
+        print("  DELIV-PATH FAIL: (d2) registry carries an entry no row names")
+    else:
+        print("  DELIV-PATH PASS: (d2) no registry entry outlives its rows")
+
+    # (d3) NEGATIVE: an unregistered dangling path must fire. This is the
+    # property 999.83 filed -- it was already violated eight times when the
+    # check was written, so a control that cannot reproduce it is worthless.
+    mutated = _dc.replace(rows[0], deliverable_path="scripts/does-not-exist.py")
+    if not any("does-not-exist" in m for m in _deliverable_path_problems([mutated])):
+        wrong_results.append("DELIV-PATH: (d3) unregistered dangling path NOT caught")
+        print("  DELIV-PATH FAIL: (d3) a dangling path published clean")
+    else:
+        print("  DELIV-PATH PASS: (d3) an unregistered dangling path is rejected")
+
+    # (d5/d6) REPRO-LINK arms (backlog 999.61), run here because they share
+    # this sentinel's live-matrix read rather than paying for a second one.
+    live_links = _reproducible_artifact_link_problems(rows)
+    if live_links:
+        wrong_results.append(f"REPRO-LINK: (d5) live reproducible rows lack links: {live_links[:2]}")
+        print("  REPRO-LINK FAIL: (d5) a reproducible row carries an empty artifact_link")
+    else:
+        repro_n = sum(1 for r in rows if r.coverage_tier == "reproducible")
+        print(f"  REPRO-LINK PASS: (d5) all {repro_n} reproducible rows name an artifact")
+
+    # (d6) NEGATIVE, per rerun_by class. One mutation would not do: the gap
+    # 999.61 filed was INVISIBLE only for non-`ci` rows, because the CI-job
+    # registry check happened to cover `ci` through a different field. A
+    # control that mutated a `ci` row would have passed against the unfixed
+    # code and proved nothing.
+    missed = []
+    for _rb in ("ci", "battery-only", "live-manual", "pre-commit-only"):
+        _victim = next(
+            (r for r in rows
+             if r.coverage_tier == "reproducible" and r.rerun_by == _rb and r.artifact_link),
+            None,
+        )
+        if _victim is None:
+            continue
+        if not _reproducible_artifact_link_problems([_dc.replace(_victim, artifact_link="")]):
+            missed.append(_rb)
+    if missed:
+        wrong_results.append(f"REPRO-LINK: (d6) emptied artifact_link NOT caught for {missed}")
+        print(f"  REPRO-LINK FAIL: (d6) emptying a link went unreported for {missed}")
+    else:
+        print("  REPRO-LINK PASS: (d6) an emptied artifact_link is rejected in every rerun_by class")
+
+    # (d7/d8) FROZEN-COUNT arms (backlog 999.111).
+    frozen = _superseded_count_problems(rows) + _superseded_count_registry_problems()
+    if frozen:
+        wrong_results.append(f"FROZEN-COUNT: (d7) unregistered superseded counts: {frozen[:2]}")
+        print("  FROZEN-COUNT FAIL: (d7) a reproducible row freezes an unregistered moving count")
+    else:
+        print(
+            f"  FROZEN-COUNT PASS: (d7) every reproducible row's frozen battery total is "
+            f"one of the {len(_SUPERSEDED_COUNT_ROWS)} disclosed rows"
+        )
+
+    # (d8) NEGATIVE: a SEVENTH row of the same shape must fire. This is the
+    # whole point -- the six known rows are disclosed, not fixed, so the value
+    # of this check is entirely in rejecting the next one.
+    _unreg = next(
+        (r for r in rows
+         if r.coverage_tier == "reproducible" and r.key not in _SUPERSEDED_COUNT_ROWS),
+        None,
+    )
+    if _unreg is not None:
+        _mut = _dc.replace(
+            _unreg, statement="the battery reports FIREWALL: GREEN (31/31) and stays green"
+        )
+        if not _superseded_count_problems([_mut]):
+            wrong_results.append("FROZEN-COUNT: (d8) a new frozen moving count was NOT caught")
+            print("  FROZEN-COUNT FAIL: (d8) a seventh frozen-count row published clean")
+        else:
+            print("  FROZEN-COUNT PASS: (d8) a newly-frozen moving count is rejected")
+
+    # (d4) NEGATIVE, discrimination: a non-path value must NOT fire. Without
+    # this arm the obvious "fix" for (d3) -- treat every value as a path --
+    # would pass while flagging a whole class of legitimate rows, and the
+    # check would be switched off rather than corrected.
+    non_path = _dc.replace(rows[0], deliverable_path="active-tail")
+    if _deliverable_path_problems([non_path]):
+        wrong_results.append("DELIV-PATH: (d4) non-path value wrongly flagged")
+        print("  DELIV-PATH FAIL: (d4) a non-path deliverable_path was treated as a path")
+    else:
+        print("  DELIV-PATH PASS: (d4) a non-path value is skipped, not flagged")
+
+
 def _self_test_describe_consistency(wrong_results: list[str]) -> None:
     """(describe) describe()-consistency control (D-03, plan 21-05): the
     module-level constants --describe reads must agree with the live
@@ -13957,6 +14347,7 @@ def _run_self_test() -> None:
     _self_test_row_fields_live(wrong_results)
     _self_test_headline_lock(wrong_results)
     _self_test_ledger_chain(wrong_results)
+    _self_test_deliverable_paths(wrong_results)
     _self_test_describe_consistency(wrong_results)
     if wrong_results:
         sys.stderr.write(
