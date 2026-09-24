@@ -7002,6 +7002,272 @@ def _rows_v97() -> list[MatrixRow]:
 
 
 
+def _rows_v910() -> list[MatrixRow]:
+    """v9.10.0 milestone rows -- 23 requirements, 0 reproducible + 23 audit-only.
+
+    All rows carry milestone="v9.10". Keys use the milestone-qualified form
+    "v9.10/<bare_id>".
+
+    Tiering method, unchanged from `_rows_v93()`..`_rows_v99()`: mutate the requirement's
+    distinguishing behaviour, re-run the owning gate, record the exit code, revert. A row is
+    `reproducible` only where that mutation turns a registered gate red.
+
+    **Every row is audit-only, and that is a measurement rather than a concession.** Seven
+    mutations were run across all four requirement families -- one literal deleted from its
+    `shared/` source, the tree regenerated, the full battery run. All seven returned
+    `FIREWALL: GREEN (24/24)`. No registered gate reads shipped methodology prose: DUAL-04
+    asserts that `shared/` and the generated tree agree, which a regenerated deletion satisfies
+    by construction, and the remaining gates score structure, style and link targets.
+
+    This is the same asymmetry 999.91 measured and v9.9.0 recorded as its own finding. It is
+    stated here rather than worked around: claiming a reproducible tier for any of these rows
+    would be the exact defect class RETRACT-01 and the falsifier rule exist to stop.
+
+    What DOES protect this milestone is the 90-falsifier suite run per phase, which asserts
+    truth rather than presence -- including one that recomputes every shipped physics figure
+    from its formula. Those are developer-run, not registered gates, and the rows say so.
+    """
+    _audit_v910 = (
+        "No registered gate reads this. Measured by mutate-run-restore, not assumed: the "
+        "distinguishing literal was deleted from its `shared/` source, the tree regenerated, and "
+        "`check-firewall-battery.sh` run -- GREEN (24/24) on every one of seven probes spanning "
+        "all four requirement families (TIGHT-01, TRADE-01, TECH-01, TECH-04, TECH-05, FOCUS-01, "
+        "FOCUS-02). DUAL-04 asserts `shared/` and the generated tree AGREE, so a deletion that is "
+        "regenerated stays green by construction; VAL-02 checks style and VAL-03 link targets. "
+        "This is the same class 999.91 measured on the output-template read imperative, and the "
+        "reason the milestone carries 0 reproducible rows rather than a claimed figure."
+    )
+    return [
+        MatrixRow('v9.10/TIGHT-01', 'TIGHT-01', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('theoretical-limit', 'agent'),
+                  statement=(
+                      "theoretical-limit requires the **tightest applicable** bound, not merely a "
+                      "valid one. The loosest true bound is always available and nearly always "
+                      "useless: true, unfalsifiable, and overstating headroom."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/TIGHT-02', 'TIGHT-02', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('theoretical-limit', 'agent'),
+                  statement=(
+                      "The bracket is three tiers -- ideal ceiling (derived), best demonstrated "
+                      "(observed and cited), conventional -- reporting TWO gaps rather than one, "
+                      "because headroom somebody has demonstrated and headroom nobody has reached "
+                      "carry different risk."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/TIGHT-03', 'TIGHT-03', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('theoretical-limit', 'agent'),
+                  statement=(
+                      "\"Governing physical law\" generalised to \"governing hard constraint\", so "
+                      "the technique applies where the binding limit is not thermodynamic."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/TIGHT-04', 'TIGHT-04', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('theoretical-limit', 'agent'),
+                  statement=(
+                      "Example A rebuilt on sourced figures re-derived from their formulas: "
+                      "Carnot 1-313/873 = 64.1%, best demonstrated ~47% LHV (modern USC), "
+                      "conventional 34.1% HHV (EIA 2024 heat rate 10,018 Btu/kWh). The LHV/HHV "
+                      "basis mismatch is stated, not hidden."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/TIGHT-05', 'TIGHT-05', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('theoretical-limit', 'agent'),
+                  statement=(
+                      "A non-thermodynamic Example B ships: the speed-of-light latency floor. "
+                      "c/1.5 over 5,570 km gives 27.9 ms one-way and 55.7 ms RTT against ~70 ms "
+                      "observed, a ratio of 1.26x -- a bracket whose lesson is to stop looking "
+                      "here."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/TIGHT-06', 'TIGHT-06', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('theoretical-limit', 'agent'),
+                  statement=(
+                      "The limitation that a model-dependent bound is not a ceiling ships IN the "
+                      "technique text, with Curzon-Ahlborn as the worked cautionary case. This "
+                      "requirement caught the entry's own premise: CA is efficiency at maximum "
+                      "power, and the demonstrated figure exceeds it by ~7 points."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/TRADE-01', 'TRADE-01', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('trade-off', 'agent'),
+                  statement=(
+                      "Must-have knock-outs applied before scoring; an option failing one is "
+                      "eliminated, not scored low, so a weighted total cannot out-vote a hard "
+                      "constraint."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/TRADE-02', 'TRADE-02', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('trade-off', 'agent'),
+                  statement=(
+                      "The 1-5 scale carries stated anchors for 1 and 5, so a score means the "
+                      "same thing across options and runs."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/TRADE-03', 'TRADE-03', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('trade-off', 'agent'),
+                  statement=(
+                      "Scores cite the GT-IDs they rest on, carrying provenance into the "
+                      "collapsed chain."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/TRADE-04', 'TRADE-04', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('trade-off', 'agent'),
+                  statement=(
+                      "A score resting on a `GT-N?` caps the collapsed chain at MEDIUM, per D-07 "
+                      "rather than restating it."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/TRADE-05', 'TRADE-05', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('trade-off', 'agent'),
+                  statement=(
+                      "The flip test runs every time and reports the smallest weight change that "
+                      "changes the winner, replacing a sensitivity check that fired only inside a "
+                      "~10% near-tie and so was silent exactly when a result looked safe."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/TRADE-06', 'TRADE-06', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('trade-off', 'agent'),
+                  statement=(
+                      "The status quo is always among the options, named concretely or explicitly "
+                      "ruled out."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/TRADE-07', 'TRADE-07', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('trade-off', 'agent'),
+                  statement=(
+                      "The worked example demonstrates every rule, with arithmetic re-derived: "
+                      "A=64, B=82, and no single weight change within the 1-5 scale flips it "
+                      "(closest Reliability 5->1, gap 18->6)."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/TECH-01', 'TECH-01', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('five-whys', 'agent'),
+                  statement=(
+                      "five-whys applies a counterfactual test to every cause; one that fails it "
+                      "is recorded as a contributing condition, not a cause. Plus a depth guard "
+                      "naming both the too-shallow and too-deep failures, and a causal-mode "
+                      "verdict format."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/TECH-02', 'TECH-02', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('fishbone', 'agent'),
+                  statement=(
+                      "fishbone names a discriminating observation per prioritised cause -- true "
+                      "if this cause operates, false if a sibling does -- or states that none was "
+                      "found."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/TECH-03', 'TECH-03', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('inversion', 'agent'),
+                  statement=(
+                      "inversion states preconditions as claims that can be false, never as "
+                      "topics, and tags each `load-bearing` per the validation rubric's existing "
+                      "definition, reporting load-bearing-and-unverified first."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/TECH-04', 'TECH-04', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('pre-mortem', 'agent'),
+                  statement=(
+                      "pre-mortem triages each cluster on plausibility AND recoverability, sorted "
+                      "by recoverability first, and gives every fatal or costly cluster a "
+                      "tripwire: the named observation that says the failure is now underway."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/TECH-05', 'TECH-05', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('second-order', 'agent'),
+                  statement=(
+                      "second-order walks an actor lens and a time lens, and checks each effect "
+                      "against the decision's own success criteria -- contradictions with what is "
+                      "WANTED, which no other step looked for."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/TECH-06', 'TECH-06', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('second-order', 'agent'),
+                  statement=(
+                      "second-order's \"at least three\" quotas become coverage lenses, since a "
+                      "quota invites padding to the number."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/FOCUS-01', 'FOCUS-01', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('challenge-assumptions', 'estimate', 'fishbone', 'five-whys', 'ground-truths', 'identify-essence', 'inversion', 'pre-mortem', 'reason-upward', 'second-order', 'theoretical-limit', 'trade-off', 'validate'),
+                  statement=(
+                      "A focused run emits a mandatory residual line every time, including after "
+                      "`satisfied`: it opened no cited source, so a `?` claim is unverified "
+                      "rather than merely uncited. Previously a prescription the model read, "
+                      "never a disclosure the reader saw."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/FOCUS-02', 'FOCUS-02', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('challenge-assumptions', 'estimate', 'fishbone', 'five-whys', 'ground-truths', 'identify-essence', 'inversion', 'pre-mortem', 'reason-upward', 'second-order', 'theoretical-limit', 'trade-off', 'validate'),
+                  statement=(
+                      "A focused run escalates to the full composer when a `?` claim proves load- "
+                      "bearing, in its own verbatim form, and recommends rather than silently "
+                      "performing a full analysis."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/FOCUS-03', 'FOCUS-03', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('challenge-assumptions', 'estimate', 'fishbone', 'five-whys', 'ground-truths', 'identify-essence', 'inversion', 'pre-mortem', 'reason-upward', 'second-order', 'theoretical-limit', 'trade-off', 'validate'),
+                  statement=(
+                      "A cheap per-technique semantic check, all eight techniques named; a failed "
+                      "check is a `not satisfied` result rather than a caveat on a satisfied one."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.10/FOCUS-04', 'FOCUS-04', 'v9.10', 'Test-Network',
+                  'shared/references/', 'audit-only',
+                  '', _audit_v910,
+                  surfaces=('challenge-assumptions', 'estimate', 'fishbone', 'five-whys', 'ground-truths', 'identify-essence', 'inversion', 'pre-mortem', 'reason-upward', 'second-order', 'theoretical-limit', 'trade-off', 'validate'),
+                  statement=(
+                      "FOCUS-02 and FOCUS-03 ship together, because an escalation rule without "
+                      "the check is a rule nothing can decide."
+                  ),
+                  rerun_by='none'),
+    ]
+
 def _rows_v99() -> list[MatrixRow]:
     """v9.9.0 milestone rows -- 10 requirements, 5 reproducible + 5 audit-only.
 
@@ -7540,6 +7806,8 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v97())
     rows.extend(_rows_v98())
     rows.extend(_rows_v99())
+    # --- v9.10.0 milestone -- 0 reproducible + 23 audit-only (measured) ---
+    rows.extend(_rows_v910())
     return rows
 
 

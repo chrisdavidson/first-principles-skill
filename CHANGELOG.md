@@ -13,6 +13,102 @@ installed session.
 
 ## [Unreleased]
 
+## [9.10.0] — 2026-09-24
+
+Milestone release: **v9.10.0 Technique Hardening**. Eight phases, five backlog entries, one
+subject — the techniques the composer *invokes*. v9.5.0–v9.9.0 hardened the composer itself
+(the PRAOR limbs, the adversarial pass, the Report emission, the claim register). The
+techniques were untouched, and the backlog's own evidence said they were the weaker surface:
+999.139 shipped a thermal-vs-electrical `$/kWh` basis error in a worked exemplar, and 999.140
+named the same class in its sibling — *the example demonstrating the error the technique exists
+to prevent*.
+
+### Added
+
+- **theoretical-limit requires the tightest applicable bound** (TIGHT-01..06, backlog 999.140).
+  A three-tier bracket — **ideal ceiling** (derived), **best demonstrated** (observed and
+  cited), **conventional** — reporting **two gaps rather than one**, because headroom somebody
+  has already demonstrated and headroom nobody has reached carry different risk. "Physical law"
+  generalised to "governing hard constraint". A second, non-thermodynamic worked example: the
+  speed-of-light latency floor, whose bracket returns the opposite lesson — *stop looking here*.
+- **trade-off carries anchors, provenance and an unconditional flip test** (TRADE-01..07,
+  backlog 999.142). Must-have knock-outs applied before scoring; stated 1-and-5 anchors; scores
+  citing their GT-IDs, with a `GT-N?` capping the collapsed chain at MEDIUM per D-07; the
+  smallest weight flip that changes the winner, reported **every time**; and the status quo
+  always among the options.
+- **Five per-technique rigour gaps closed** (TECH-01..06, backlog 999.143). five-whys: a
+  counterfactual test, so a cause that fails it is recorded as a *contributing condition*.
+  fishbone: a discriminating observation per prioritised cause. inversion: preconditions stated
+  as claims that can be false, tagged `load-bearing`. pre-mortem: triage sorted by
+  recoverability before plausibility, and a tripwire per fatal or costly cluster. second-order:
+  actor and time lenses replacing the "at least three" quotas, plus a success-criteria
+  contradiction check — contradictions with what is *wanted*, which no other step looked for.
+- **Focused mode discloses its residual and knows when to escalate** (FOCUS-01..04, backlog
+  999.144 and 999.145). A mandatory residual line every run, including after `satisfied`: this
+  run opened no cited source, so a `?` claim is unverified rather than merely uncited. An
+  escalation rule when a `?` proves load-bearing. A cheap per-technique semantic check across
+  all eight techniques.
+
+### Changed
+
+- All 17 hand-maintained version stamps `9.9.0` → `9.10.0`; VERSION-01 green.
+- `_rows_v910()` registers 23 requirements. Coverage headline `242/215/0/457` →
+  `242/238/0/480`; ledger row 29 appended.
+
+### What this release does not claim
+
+**Every one of the 23 rows is audit-only, and that is a measurement rather than a concession.**
+Mutate-run-restore probes spanning all four requirement families each deleted a requirement's
+distinguishing literal from its `shared/` source, regenerated the tree and ran the full battery.
+**Every probe returned `FIREWALL: GREEN (24/24)`.** No registered gate reads shipped methodology
+prose: DUAL-04 asserts that `shared/` and the generated tree *agree*, which a regenerated
+deletion satisfies by construction, and the remaining gates score structure, style and link
+targets.
+
+This is the same asymmetry backlog 999.91 measured on the output-template read imperative and
+that v9.9.0 recorded as its own finding. It is stated rather than worked around: claiming a
+reproducible tier for any of these rows would be the exact defect class RETRACT-01 and the
+falsifier rule exist to stop. What does protect this milestone is a 90-falsifier suite run per
+phase, asserting truth rather than presence — including one that recomputes every shipped
+physics figure from its formula and fails if the file disagrees. Those are developer-run, not
+registered gates, and the rows say so.
+
+### What this release got wrong about itself
+
+**999.140's own premise was partly false.** The entry proposed bracketing against
+Curzon-Ahlborn as the tighter true bound. Targeted research found CA is **not a ceiling at
+all** — it is the efficiency of an endoreversible engine *at maximum power*, and real plants
+exceed it: modern USC coal ~47% (LHV) against a CA figure of 40.1% for the same reservoirs, and
+the Siemens Keadby-2 CCGT world record (64.18%) against CA's 58–60%. Both stay below Carnot, as
+the Second Law requires. **Implementing the entry as written would have shipped a third exemplar
+defect after 999.118 and 999.139** — in the file whose entire subject is not doing that. The
+middle tier therefore takes an *observed* figure, never a calculated one, and CA ships as the
+worked cautionary case for the new "a model-dependent bound is not a ceiling" rule. Requirement
+TIGHT-06, which anticipated exactly this, was written before the research ran.
+
+**Two guards caught the author mid-release, and both are recorded rather than quietly fixed.**
+HARN-03's `n3` anti-masking control rejected a Phase 67 draft that reused the pinned parity
+literal `scope-proportionate`, leaving a decoy that would have let a later edit delete the real
+token undetected — fixed by rewording, not by loosening the gate. Then CONF-13's standing
+literal scanner rejected this release's own `CLAUDE.md` edit for stating a hand-maintained count
+with no gate behind it; the count moved to `_rows_v910()` where it is adjudicated, and a stale
+containment-ledger entry that had lapsed *as a consequence* recovered on its own once the real
+cause was fixed.
+
+### Filed, not fixed
+
+**999.166** — the Carnot exemplar brackets a tank-to-tank reservoir pair while the
+theoretical-limit detail file bracketed steam-to-condenser. Both are internally consistent and
+both arithmetics check, so "two different questions" is as well supported as "a defect", and the
+exemplar was never covered by 999.118's seven-exemplar adjudication. This release shipped the
+rule that decides it and left the exemplar for adjudication against that rule, rather than
+rewriting shipped content on one reading of the physics.
+
+**999.165** — `detect_defects` judges a chain head malformed when a parenthetical carries a
+digit immediately followed by `(`, i.e. a statutory sub-clause such as `121.8(a)(2)`. Filed
+during 999.164; not patched, because the extractors are CONTRACT-06-frozen.
+
+
 ## [9.9.0] — 2026-09-23
 
 Milestone release: **v9.9.0 Auditing the Auditor**. Nine commits, one subject — the
