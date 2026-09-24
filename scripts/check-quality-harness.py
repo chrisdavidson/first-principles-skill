@@ -11381,26 +11381,31 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
     # assertiveness floor (`_is_assertive_claim`). Each bound is pinned by
     # a worked-example fixture in section 6 below.
     "R11": (
-        "A Conclusion-section claim is a bold lead-in whose colon closes "
-        "the bold span, or a numbered or bulleted list item, and the "
-        "three lead-ins this template prescribes — "
-        "`**Recommended approach:**`, `**Key insight:**`, "
-        "`**Trade-offs acknowledged:**` — are always claims and each "
-        "must cite a chain; nothing inside a fenced block is ever a "
-        "claim whatever its shape, a near-paraphrase restatement or "
-        "direct entailment of an already-cited claim earlier in the "
-        "same section is not a second claim, and prose carrying neither "
-        "a bold colon lead-in nor a list marker is not a claim at all. "
-        "Three bounds are measured, not assumed: a bold lead-in whose "
-        "colon-terminated span is the entire physical line and carries "
-        "no citation of its own is a section-intro label, and the "
-        "citation obligation then falls to the list items beneath it; a "
-        "bold span whose closing `**` is not immediately preceded by "
-        "the colon is not matched at all — write `**Label:** text` to "
-        "match, not `**Label: text**`; and a list item counts only "
-        "when it closes its own sentence or runs past forty characters. "
-        "Enumerate by this rule, not by recollection — the rule is the "
-        "contract and the extractor is a partial instrument for it."
+        "A Conclusion-section claim is a bold lead-in whose colon "
+        "closes the bold span, or a numbered or bulleted list item, and "
+        "the four lead-ins this template prescribes — `**Recommended "
+        "approach:**`, `**Key insight:**`, `**Trade-offs "
+        "acknowledged:**` and `**Confidence:**` — are always claims and "
+        "each must cite a chain; the `**Confidence:**` line discharges "
+        "that obligation through the chains D-07 already requires it to "
+        "name, and a HIGH line whose justification prose names no chain "
+        "is the one position where this rule and the extractor can "
+        "disagree, so name the chain there too; nothing inside a fenced "
+        "block is ever a claim whatever its shape, a near-paraphrase "
+        "restatement or direct entailment of an already-cited claim "
+        "earlier in the same section is not a second claim, and prose "
+        "carrying neither a bold colon lead-in nor a list marker is not "
+        "a claim at all. Three bounds are measured, not assumed: a bold "
+        "lead-in whose colon-terminated span is the entire physical "
+        "line and carries no citation of its own is a section-intro "
+        "label, and the citation obligation then falls to the list "
+        "items beneath it; a bold span whose closing `**` is not "
+        "immediately preceded by the colon is not matched at all — "
+        "write `**Label:** text` to match, not `**Label: text**`; and a "
+        "list item counts only when it closes its own sentence or runs "
+        "past forty characters. Enumerate by this rule, not by "
+        "recollection — the rule is the contract and the extractor is a "
+        "partial instrument for it."
     ),
     # R12: the caveat rule (LEDGER-03, D-05/D-08/D-09, plan 14-03). A
     # marked caveat still scores untraced by design — the marker is a
@@ -12586,8 +12591,20 @@ def _render_registry_lock_problems(
     # to relax the rule elsewhere, and the reason the published
     # `| QUAL-01 |` rows' "locked by value against inline expectations"
     # was not literally true of every arm.
+    # RE-PINNED at v9.11.0 Phase 73 (DEBT-03, backlog 999.23), in the SAME
+    # commit as the contract change it pins — the discipline this comment
+    # states, exercised rather than dodged. What changed and why: R11 said
+    # "the three lead-ins this template prescribes" while the same template
+    # prescribes a FOURTH, `**Confidence:**`, eleven lines above the rule,
+    # whose MEDIUM/LOW form carries prose that clears `_is_assertive_claim`
+    # and is mined as a claim (reproduced at filing: a conforming MEDIUM
+    # Confidence line moved a fixture from 7 claims / 1 untraced to 8 / 2).
+    # A false statement of fact about the very document it sits in, carried
+    # byte-identically across six surfaces. R11 now names four lead-ins and
+    # states how the Confidence line discharges its citation obligation.
+    # Previous value: sha256:5cb4567121cc0f25c7b2ccafade23ad8355f1badb1d2230856a1756112c09dfb
     expected_literal_digest = (
-        "sha256:5cb4567121cc0f25c7b2ccafade23ad8355f1badb1d2230856a1756112c09dfb"
+        "sha256:4de4fbee6daa3f25d49e9fc37b712d294057ce32c0263855c0fe238be8b14292"
     )
     literal_digest = "sha256:" + hashlib.sha256(
         "\x00".join(
