@@ -120,6 +120,29 @@ class RetractedClaim:
 # ---------------------------------------------------------------------------
 REGISTRY: tuple[RetractedClaim, ...] = (
     RetractedClaim(
+        literal="feeding only a MEDIUM- or LOW-confidence chain",
+        retracted_by="999.164",
+        corrected=(
+            "The Phase 3 read population is the load-bearing chains, never the "
+            "HIGH-confidence ones. Conditioning the read on the chain's "
+            "confidence closes a loop: an unopened citation takes the `?` "
+            "(provenance table), the `?` caps its chain below HIGH (D-07), and "
+            "the capped chain then excuses the read. 'Open nothing' is a "
+            "fixpoint of that rule and satisfies every clause of it. Measured "
+            "matched-pair at N=5 per arm, 2026-09-24: external calls per run "
+            "0,0,6,1,6 before and 14,4,3,10,14 after, zero-runs 2/5 -> 0/5."
+        ),
+        # Registered because this population has now grown a circularity TWICE
+        # by two different routes. The first (the suffix deciding the read) was
+        # closed at plan 01-03 by `_B5B_INCLUSIVE`, whose guard comment warns
+        # that without it "the circularity returns" — and it returned anyway,
+        # through the confidence label the suffix determines. A literal bar is
+        # the only thing that makes a third return visible at commit time.
+        # No exemption: the retraction is recorded in `.planning/ROADMAP.md`,
+        # which is gitignored and therefore outside this gate's scanned
+        # surfaces. A CHANGELOG entry quoting it will need one.
+    ),
+    RetractedClaim(
         literal="owned by exactly one phase",
         retracted_by="55-CR-01",
         corrected=(
