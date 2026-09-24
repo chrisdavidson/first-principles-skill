@@ -13,6 +13,85 @@ installed session.
 
 ## [Unreleased]
 
+## [9.11.0] — 2026-09-24
+
+Milestone release: **v9.11.0 The Loop Sees Itself**. Six phases in three strictly sequential
+waves, plus two follow-on fixes the milestone's own behavioural re-run produced. Where v9.10.0
+hardened the techniques, this one makes the **control loop's state visible in the artifact it
+produces** — and then measures whether any of it landed.
+
+### Added
+
+- **The self-audit scan records the run, not only the chains** (LOOP-01..05). Table 1 gains
+  `Band`, `Act attempted?` and `Edges fired` per chain, and `Form conforming?` gains a third
+  value, `unreached`, for a rule that binds where the mechanical check cannot reach. Recording
+  `yes` there converts a disclosed limit into a clean bill of health, which is the defect the
+  value exists to prevent.
+- **One emission shape for the Self-Audit Gate** (EMIT-01..03): the six verdict blocks emit under
+  a single prescribed top-level heading — they are one artifact, not six — the Verdict separator
+  is an em-dash and never a colon, and the assumptions table's five columns are the whole table.
+- **Reason-limb completeness** (REAS-01..04): the §6 pre-check's `head` includes any `GT-N?` the
+  Conclusion rests on directly; rivals are prescribed for every intermediate chain, not only the
+  headline; and `pre-mortem.md` finally names inversion, the technique it is selected against.
+
+### Changed
+
+- All 17 stamps `9.10.0` → `9.11.0`. Coverage `242/238/0/480` → `248/248/0/496`, ledger row 30.
+- `_hop_arithmetic_defects` no longer evaluates an unspaced `A/B` (RATIO-01, backlog 999.167).
+
+### Declined, with evidence
+
+**Workstream B2 (999.133) is not paid, and the entry's premise is why.** The "parser-workaround
+prose" it proposed relocating to `docs/` is R1–R13, the rendering rules. At most two of thirteen
+are instrument-facing. Three measurements decided it: `docs/` is not in the shipped plugin, so
+rules there are unreachable by the agent; the genuinely detector-facing prose is **four phrases in
+11,094 words**; and two of those four are among the disclosed unreached positions this same
+release made recordable. An unpaid debt honestly re-priced beats a paid one that quietly costs
+measurement and reachability.
+
+### Measured, not asserted
+
+A **three-generation behavioural re-run** — one byte-identical prompt, N=5 per arm, 15 live runs
+against v9.9.0 / +999.164 / this release:
+
+- **Seven of eight newly prescribed behaviours reached 5/5 adoption, none regressed.** The loop
+  columns went 0/5 → 5/5; trade-off knock-outs 0/5 → 5/5; pre-mortem tripwires 0/5 → 5/5.
+- **999.161 is behaviourally closed** — gate emission placement was 2/5 in both prior arms and is
+  5/5 now, the one finding in this milestone with a live before-reading to close against.
+- **The Act-limb repair held** under two further milestones of prose change: the zero-fixpoint has
+  not recurred in ten post-fix runs.
+- **LOOP-01 is already doing its job**: 2 of 26 chain rows carry `HIGH` with `Act attempted? = no`
+  — a conclusion reached without once trying to check it, a fact not recoverable from the output
+  before this release.
+
+**Six of sixteen rows are reproducible**, against zero in v9.10.0. The difference is subject, not
+diligence: this milestone edited surfaces gates already owned — SCAN-GUARD's column anchor,
+QUAL-01's cross-surface render-rule identity, a detector control — while v9.10.0 edited technique
+prose no gate reads.
+
+### What this release got wrong about itself
+
+**A filing note of mine was wrong and the fix depended on catching it.** 999.167 was filed saying
+`detect_defects`' extractors are CONTRACT-06-frozen and so the ratio defect was not patchable.
+Only **three** functions carry a pinned digest — `_chain_block_well_formed`, `_conclusion_claims`,
+`_slice_sections` — and `_hop_arithmetic_defects` is not among them. Checked before being acted
+on, which is the only reason RATIO-01 exists.
+
+**Guards caught the author repeatedly, and none of it was worked around.** SCAN-GUARD's
+`_COLS_CHAIN` matches by substring, so appending columns passed until the anchor was updated —
+whereupon it immediately failed on the rubric surface that had not moved. QUAL-01 rejected the R11
+change twice. TRACE-03 rejected `rerun_by='ci'` on two rows because QUAL-01 has no CI job. The
+containment ledger refused a new `16` a free ride on an existing entry. Each was fixed at the
+cause; no pin was recomputed to make a failing check pass, and the R11 re-pin landed in the same
+commit as the change it pins, with the previous value recorded rather than erased.
+
+### Filed, not fixed
+
+**999.168** — LOOP-04's `unreached` value went unused across 26 chain rows while one row disclosed
+a reach limit in the neighbouring cell. Fixed on **direction** (the row scored a block conforming
+on a rule it never checked) while **frequency remains unmeasured**, and the entry says so.
+
+
 ## [9.10.0] — 2026-09-24
 
 Milestone release: **v9.10.0 Technique Hardening**. Eight phases, five backlog entries, one

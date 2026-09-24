@@ -7002,6 +7002,206 @@ def _rows_v97() -> list[MatrixRow]:
 
 
 
+def _rows_v911() -> list[MatrixRow]:
+    """v9.11.0 milestone rows -- 16 requirements, 6 reproducible + 10 audit-only.
+
+    All rows carry milestone="v9.11". Keys use the milestone-qualified form
+    "v9.11/<bare_id>".
+
+    Tiering method, unchanged from `_rows_v93()`..`_rows_v910()`: mutate the requirement's
+    distinguishing behaviour, re-run the owning gate, record the exit code, revert.
+
+    **Six rows are reproducible, which is six more than v9.10.0 managed.** The difference is
+    not diligence, it is subject: v9.10.0 edited technique prose no gate reads, while this
+    milestone edited the self-audit scan's COLUMN SET (SCAN-GUARD's `_COLS_CHAIN` anchor),
+    a cross-surface pinned render rule (QUAL-01), and a detector control. Where a gate already
+    owned the surface, the row is gate-backed; where it did not, the row says so.
+
+    RATIO-01 is the 999.167 fix. It is reproducible because the phase added a control to
+    QUAL-01's own `p26_unparsed_cases` table in the same commit -- deleting the fix turns the
+    self-test red naming the case.
+    """
+    _audit_v911 = (
+        "No registered gate reads this. Measured by mutate-run-restore, not assumed: the "
+        "distinguishing literal was deleted from its source, the tree regenerated, and `check- "
+        "firewall-battery.sh` run -- GREEN (24/24). Probes covering EMIT-01, REAS-01, REAS-03 and "
+        "LOOP-04 all returned green, so these rows carry no gate. The same asymmetry 999.91 "
+        "measured and v9.10.0 recorded for all 23 of its rows."
+    )
+    _repro_v911 = (
+        "Mutate-run-restore turned a registered gate RED. LOOP-01/02/03/05 and DEBT-03 are pinned "
+        "by SCAN-GUARD's `_COLS_CHAIN` anchor and QUAL-01's cross-surface render-rule identity "
+        "respectively; RATIO-01 by QUAL-01's `p26_unparsed_cases` control. Each mutation was run "
+        "and the exit code recorded; each was reverted."
+    )
+    return [
+        MatrixRow('v9.11/LOOP-01', 'LOOP-01', 'v9.11', 'Test-Network',
+                  'shared/spine/', 'reproducible',
+                  'scripts/check-selfaudit-scan.py', _repro_v911,
+                  surfaces=('agent',),
+                  statement=(
+                      "Table 1 of the Phase 15 self-audit scan records, per chain, whether the "
+                      "Act limb was attempted -- whether this run tried to open a cited source "
+                      "for any input on that chain's head. It records what the run DID, not "
+                      "whether the read succeeded."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.11/LOOP-02', 'LOOP-02', 'v9.11', 'Test-Network',
+                  'shared/spine/', 'reproducible',
+                  'scripts/check-selfaudit-scan.py', _repro_v911,
+                  surfaces=('agent',),
+                  statement=(
+                      "Table 1 records which bounded re-entry edges fired for each chain, or "
+                      "`none`, so a chain reached on the first pass is distinguishable from one "
+                      "reached after a Criterion 1 return."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.11/LOOP-03', 'LOOP-03', 'v9.11', 'Test-Network',
+                  'shared/spine/', 'reproducible',
+                  'scripts/check-selfaudit-scan.py', _repro_v911,
+                  surfaces=('agent',),
+                  statement=(
+                      "Table 1 records each chain's confidence band, copied from its own "
+                      "section-4 label and never re-derived, so a disagreement between scan and "
+                      "chain is visible as a disagreement."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.11/LOOP-04', 'LOOP-04', 'v9.11', 'Test-Network',
+                  'shared/spine/', 'audit-only',
+                  'scripts/check-selfaudit-scan.py', _audit_v911,
+                  surfaces=('agent',),
+                  statement=(
+                      "`Form conforming?` takes `yes`, `no` or `unreached`; `unreached` records "
+                      "that a rule binds at a position the mechanical check cannot reach, and is "
+                      "explicitly not a softer `no`. The disclosure belongs in that cell rather "
+                      "than a neighbouring one."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.11/LOOP-05', 'LOOP-05', 'v9.11', 'Test-Network',
+                  'shared/spine/', 'reproducible',
+                  'scripts/check-selfaudit-scan.py', _repro_v911,
+                  surfaces=('agent',),
+                  statement=(
+                      "SCAN-GUARD's `_COLS_CHAIN` anchor asserts the eight-column set the body "
+                      "and rubric ship, on both surfaces, and no control was weakened to "
+                      "accommodate the widening."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.11/EMIT-01', 'EMIT-01', 'v9.11', 'Test-Network',
+                  'shared/spine/', 'audit-only',
+                  '', _audit_v911,
+                  surfaces=('agent',),
+                  statement=(
+                      "The Self-Audit Gate's six verdict blocks emit under the single top-level "
+                      "heading `## Self-Audit Gate (process output)`, prescribed on both the body "
+                      "and the rubric -- the placement the adversarial pass record and the self- "
+                      "audit scan already prescribe for themselves."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.11/EMIT-02', 'EMIT-02', 'v9.11', 'Test-Network',
+                  'shared/spine/', 'audit-only',
+                  '', _audit_v911,
+                  surfaces=('agent',),
+                  statement=(
+                      "The Verdict cell's separator is an em-dash and never a colon, stated as a "
+                      "bar rather than only as a rationale, with the measured consequence (ten "
+                      "non-conforming cells in one run) beside it."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.11/EMIT-03', 'EMIT-03', 'v9.11', 'Test-Network',
+                  'shared/spine/', 'audit-only',
+                  '', _audit_v911,
+                  surfaces=('agent',),
+                  statement=(
+                      "The assumptions table's five columns are the whole table; no ID column, "
+                      "because the `[Assumes: A-N]` marks and the Assumption Audit scan already "
+                      "carry that identity."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.11/REAS-01', 'REAS-01', 'v9.11', 'Test-Network',
+                  'shared/spine/', 'audit-only',
+                  '', _audit_v911,
+                  surfaces=('agent',),
+                  statement=(
+                      "The §6 pre-check's `head` is every chain the Conclusion rests on with its "
+                      "band, plus any `GT-N?` the Conclusion rests on directly, stated "
+                      "identically on both D-13 parity sources."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.11/REAS-02', 'REAS-02', 'v9.11', 'Test-Network',
+                  'shared/spine/', 'audit-only',
+                  '', _audit_v911,
+                  surfaces=('agent',),
+                  statement=(
+                      "The Phase 5 Rival step prescribes a rival for the headline conclusion AND "
+                      "for every intermediate chain it rests on; `rival not applicable` is a "
+                      "result where silence is not."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.11/REAS-03', 'REAS-03', 'v9.11', 'Test-Network',
+                  'shared/spine/', 'audit-only',
+                  '', _audit_v911,
+                  surfaces=('agent',),
+                  statement=(
+                      "`pre-mortem.md` states the reciprocal decision rule naming inversion, "
+                      "mirroring `inversion.md`'s own plan-versus-claim wording rather than "
+                      "inventing a second phrasing."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.11/REAS-04', 'REAS-04', 'v9.11', 'Test-Network',
+                  'shared/spine/', 'audit-only',
+                  '', _audit_v911,
+                  surfaces=('agent',),
+                  statement=(
+                      "The Phase 5 parenthetical states that BOTH procedures carry the decision "
+                      "rule -- true only once REAS-03 landed, and re-examined rather than left "
+                      "stating the superseded singular."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.11/DEBT-01', 'DEBT-01', 'v9.11', 'Test-Network',
+                  'shared/spine/', 'audit-only',
+                  '', _audit_v911,
+                  surfaces=('agent',),
+                  statement=(
+                      "Workstream B2's relocation is declined on measured grounds: `docs/` is not "
+                      "in the shipped plugin, the detector-facing prose is four phrases in 11,094 "
+                      "words, and two of those four are disclosed unreached positions Phase 68 "
+                      "made recordable."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.11/DEBT-02', 'DEBT-02', 'v9.11', 'Test-Network',
+                  'shared/spine/', 'audit-only',
+                  '', _audit_v911,
+                  surfaces=('agent',),
+                  statement=(
+                      "No rendering-rule prose was relocated; the rules remain on the surfaces "
+                      "`_RENDER_SURFACE_REQUIRED_RULES` requires them on."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.11/DEBT-03', 'DEBT-03', 'v9.11', 'Test-Network',
+                  'shared/spine/', 'reproducible',
+                  'scripts/check-quality-harness.py', _repro_v911,
+                  surfaces=('agent',),
+                  statement=(
+                      "R11 names FOUR lead-ins, not three -- the template also prescribes "
+                      "`**Confidence:**` -- and states how that line discharges its citation "
+                      "obligation, with the QUAL-01 membership-lock digest re-pinned in the same "
+                      "commit."
+                  ),
+                  rerun_by='battery-only'),
+        MatrixRow('v9.11/RATIO-01', 'RATIO-01', 'v9.11', 'Test-Network',
+                  'shared/spine/', 'reproducible',
+                  'scripts/check-quality-harness.py', _repro_v911,
+                  surfaces=('agent',),
+                  statement=(
+                      "`_hop_arithmetic_defects` never evaluates an unspaced ASCII slash between "
+                      "two digits; a bare `A/B` is counted `unparsed` with reason `unspaced "
+                      "slash`, by exact analogy with the existing unspaced-hyphen rule, and "
+                      "spaced division is untouched."
+                  ),
+                  rerun_by='battery-only'),
+    ]
+
 def _rows_v910() -> list[MatrixRow]:
     """v9.10.0 milestone rows -- 23 requirements, 0 reproducible + 23 audit-only.
 
@@ -7808,6 +8008,8 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v99())
     # --- v9.10.0 milestone -- 0 reproducible + 23 audit-only (measured) ---
     rows.extend(_rows_v910())
+    # --- v9.11.0 -- 6 reproducible + 10 audit-only (measured) ---
+    rows.extend(_rows_v911())
     return rows
 
 

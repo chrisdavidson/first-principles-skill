@@ -7405,5 +7405,245 @@
     ],
     "statement": "FOCUS-02 and FOCUS-03 ship together, because an escalation rule without the check is a rule nothing can decide.",
     "rerun_by": "none"
+  },
+  {
+    "key": "v9.11/LOOP-01",
+    "bare_id": "LOOP-01",
+    "milestone": "v9.11",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-selfaudit-scan.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED. LOOP-01/02/03/05 and DEBT-03 are pinned by SCAN-GUARD's `_COLS_CHAIN` anchor and QUAL-01's cross-surface render-rule identity respectively; RATIO-01 by QUAL-01's `p26_unparsed_cases` control. Each mutation was run and the exit code recorded; each was reverted.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Table 1 of the Phase 15 self-audit scan records, per chain, whether the Act limb was attempted -- whether this run tried to open a cited source for any input on that chain's head. It records what the run DID, not whether the read succeeded.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.11/LOOP-02",
+    "bare_id": "LOOP-02",
+    "milestone": "v9.11",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-selfaudit-scan.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED. LOOP-01/02/03/05 and DEBT-03 are pinned by SCAN-GUARD's `_COLS_CHAIN` anchor and QUAL-01's cross-surface render-rule identity respectively; RATIO-01 by QUAL-01's `p26_unparsed_cases` control. Each mutation was run and the exit code recorded; each was reverted.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Table 1 records which bounded re-entry edges fired for each chain, or `none`, so a chain reached on the first pass is distinguishable from one reached after a Criterion 1 return.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.11/LOOP-03",
+    "bare_id": "LOOP-03",
+    "milestone": "v9.11",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-selfaudit-scan.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED. LOOP-01/02/03/05 and DEBT-03 are pinned by SCAN-GUARD's `_COLS_CHAIN` anchor and QUAL-01's cross-surface render-rule identity respectively; RATIO-01 by QUAL-01's `p26_unparsed_cases` control. Each mutation was run and the exit code recorded; each was reverted.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Table 1 records each chain's confidence band, copied from its own section-4 label and never re-derived, so a disagreement between scan and chain is visible as a disagreement.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.11/LOOP-04",
+    "bare_id": "LOOP-04",
+    "milestone": "v9.11",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/",
+    "coverage_tier": "audit-only",
+    "artifact_link": "scripts/check-selfaudit-scan.py",
+    "gap_rationale": "No registered gate reads this. Measured by mutate-run-restore, not assumed: the distinguishing literal was deleted from its source, the tree regenerated, and `check- firewall-battery.sh` run -- GREEN (24/24). Probes covering EMIT-01, REAS-01, REAS-03 and LOOP-04 all returned green, so these rows carry no gate. The same asymmetry 999.91 measured and v9.10.0 recorded for all 23 of its rows.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "`Form conforming?` takes `yes`, `no` or `unreached`; `unreached` records that a rule binds at a position the mechanical check cannot reach, and is explicitly not a softer `no`. The disclosure belongs in that cell rather than a neighbouring one.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.11/LOOP-05",
+    "bare_id": "LOOP-05",
+    "milestone": "v9.11",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-selfaudit-scan.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED. LOOP-01/02/03/05 and DEBT-03 are pinned by SCAN-GUARD's `_COLS_CHAIN` anchor and QUAL-01's cross-surface render-rule identity respectively; RATIO-01 by QUAL-01's `p26_unparsed_cases` control. Each mutation was run and the exit code recorded; each was reverted.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "SCAN-GUARD's `_COLS_CHAIN` anchor asserts the eight-column set the body and rubric ship, on both surfaces, and no control was weakened to accommodate the widening.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.11/EMIT-01",
+    "bare_id": "EMIT-01",
+    "milestone": "v9.11",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads this. Measured by mutate-run-restore, not assumed: the distinguishing literal was deleted from its source, the tree regenerated, and `check- firewall-battery.sh` run -- GREEN (24/24). Probes covering EMIT-01, REAS-01, REAS-03 and LOOP-04 all returned green, so these rows carry no gate. The same asymmetry 999.91 measured and v9.10.0 recorded for all 23 of its rows.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The Self-Audit Gate's six verdict blocks emit under the single top-level heading `## Self-Audit Gate (process output)`, prescribed on both the body and the rubric -- the placement the adversarial pass record and the self- audit scan already prescribe for themselves.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.11/EMIT-02",
+    "bare_id": "EMIT-02",
+    "milestone": "v9.11",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads this. Measured by mutate-run-restore, not assumed: the distinguishing literal was deleted from its source, the tree regenerated, and `check- firewall-battery.sh` run -- GREEN (24/24). Probes covering EMIT-01, REAS-01, REAS-03 and LOOP-04 all returned green, so these rows carry no gate. The same asymmetry 999.91 measured and v9.10.0 recorded for all 23 of its rows.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The Verdict cell's separator is an em-dash and never a colon, stated as a bar rather than only as a rationale, with the measured consequence (ten non-conforming cells in one run) beside it.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.11/EMIT-03",
+    "bare_id": "EMIT-03",
+    "milestone": "v9.11",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads this. Measured by mutate-run-restore, not assumed: the distinguishing literal was deleted from its source, the tree regenerated, and `check- firewall-battery.sh` run -- GREEN (24/24). Probes covering EMIT-01, REAS-01, REAS-03 and LOOP-04 all returned green, so these rows carry no gate. The same asymmetry 999.91 measured and v9.10.0 recorded for all 23 of its rows.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The assumptions table's five columns are the whole table; no ID column, because the `[Assumes: A-N]` marks and the Assumption Audit scan already carry that identity.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.11/REAS-01",
+    "bare_id": "REAS-01",
+    "milestone": "v9.11",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads this. Measured by mutate-run-restore, not assumed: the distinguishing literal was deleted from its source, the tree regenerated, and `check- firewall-battery.sh` run -- GREEN (24/24). Probes covering EMIT-01, REAS-01, REAS-03 and LOOP-04 all returned green, so these rows carry no gate. The same asymmetry 999.91 measured and v9.10.0 recorded for all 23 of its rows.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The \u00a76 pre-check's `head` is every chain the Conclusion rests on with its band, plus any `GT-N?` the Conclusion rests on directly, stated identically on both D-13 parity sources.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.11/REAS-02",
+    "bare_id": "REAS-02",
+    "milestone": "v9.11",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads this. Measured by mutate-run-restore, not assumed: the distinguishing literal was deleted from its source, the tree regenerated, and `check- firewall-battery.sh` run -- GREEN (24/24). Probes covering EMIT-01, REAS-01, REAS-03 and LOOP-04 all returned green, so these rows carry no gate. The same asymmetry 999.91 measured and v9.10.0 recorded for all 23 of its rows.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The Phase 5 Rival step prescribes a rival for the headline conclusion AND for every intermediate chain it rests on; `rival not applicable` is a result where silence is not.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.11/REAS-03",
+    "bare_id": "REAS-03",
+    "milestone": "v9.11",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads this. Measured by mutate-run-restore, not assumed: the distinguishing literal was deleted from its source, the tree regenerated, and `check- firewall-battery.sh` run -- GREEN (24/24). Probes covering EMIT-01, REAS-01, REAS-03 and LOOP-04 all returned green, so these rows carry no gate. The same asymmetry 999.91 measured and v9.10.0 recorded for all 23 of its rows.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "`pre-mortem.md` states the reciprocal decision rule naming inversion, mirroring `inversion.md`'s own plan-versus-claim wording rather than inventing a second phrasing.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.11/REAS-04",
+    "bare_id": "REAS-04",
+    "milestone": "v9.11",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads this. Measured by mutate-run-restore, not assumed: the distinguishing literal was deleted from its source, the tree regenerated, and `check- firewall-battery.sh` run -- GREEN (24/24). Probes covering EMIT-01, REAS-01, REAS-03 and LOOP-04 all returned green, so these rows carry no gate. The same asymmetry 999.91 measured and v9.10.0 recorded for all 23 of its rows.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The Phase 5 parenthetical states that BOTH procedures carry the decision rule -- true only once REAS-03 landed, and re-examined rather than left stating the superseded singular.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.11/DEBT-01",
+    "bare_id": "DEBT-01",
+    "milestone": "v9.11",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads this. Measured by mutate-run-restore, not assumed: the distinguishing literal was deleted from its source, the tree regenerated, and `check- firewall-battery.sh` run -- GREEN (24/24). Probes covering EMIT-01, REAS-01, REAS-03 and LOOP-04 all returned green, so these rows carry no gate. The same asymmetry 999.91 measured and v9.10.0 recorded for all 23 of its rows.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Workstream B2's relocation is declined on measured grounds: `docs/` is not in the shipped plugin, the detector-facing prose is four phrases in 11,094 words, and two of those four are disclosed unreached positions Phase 68 made recordable.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.11/DEBT-02",
+    "bare_id": "DEBT-02",
+    "milestone": "v9.11",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads this. Measured by mutate-run-restore, not assumed: the distinguishing literal was deleted from its source, the tree regenerated, and `check- firewall-battery.sh` run -- GREEN (24/24). Probes covering EMIT-01, REAS-01, REAS-03 and LOOP-04 all returned green, so these rows carry no gate. The same asymmetry 999.91 measured and v9.10.0 recorded for all 23 of its rows.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "No rendering-rule prose was relocated; the rules remain on the surfaces `_RENDER_SURFACE_REQUIRED_RULES` requires them on.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.11/DEBT-03",
+    "bare_id": "DEBT-03",
+    "milestone": "v9.11",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED. LOOP-01/02/03/05 and DEBT-03 are pinned by SCAN-GUARD's `_COLS_CHAIN` anchor and QUAL-01's cross-surface render-rule identity respectively; RATIO-01 by QUAL-01's `p26_unparsed_cases` control. Each mutation was run and the exit code recorded; each was reverted.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "R11 names FOUR lead-ins, not three -- the template also prescribes `**Confidence:**` -- and states how that line discharges its citation obligation, with the QUAL-01 membership-lock digest re-pinned in the same commit.",
+    "rerun_by": "battery-only"
+  },
+  {
+    "key": "v9.11/RATIO-01",
+    "bare_id": "RATIO-01",
+    "milestone": "v9.11",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED. LOOP-01/02/03/05 and DEBT-03 are pinned by SCAN-GUARD's `_COLS_CHAIN` anchor and QUAL-01's cross-surface render-rule identity respectively; RATIO-01 by QUAL-01's `p26_unparsed_cases` control. Each mutation was run and the exit code recorded; each was reverted.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "`_hop_arithmetic_defects` never evaluates an unspaced ASCII slash between two digits; a bare `A/B` is counted `unparsed` with reason `unspaced slash`, by exact analogy with the existing unspaced-hyphen rule, and spaced division is untouched.",
+    "rerun_by": "battery-only"
   }
 ]
