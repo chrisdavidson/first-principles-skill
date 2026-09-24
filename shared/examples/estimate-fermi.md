@@ -155,9 +155,15 @@ by salt-procurement cost, the system multiple, and the O&M reserve.
 | **Central estimate** | ~$20.6/kWh | ~$28/kWh | Mid salt cost ($0.60/kg), 4× system, mid O&M ($7.5) |
 | **Upper bound** | ~$34.4/kWh | ~$44/kWh | High salt cost, full 5× system, high O&M ($10) |
 
-Only the **Installed capital** column is like-for-like with GT-5's and GT-6's installed ranges.
-The **Installed + lifetime O&M** column is the Step 6 amortisation basis and carries a scope those
-cited sources do not.
+Only the **Installed capital** column is like-for-like with GT-5's installed range. The
+**Installed + lifetime O&M** column is the Step 6 amortisation basis and carries a scope that
+cited source does not.
+
+**GT-6 is not on this basis at all, and the difference is load-bearing.** Every figure in this
+table is dollars per kWh of *thermal* capacity — the whole rebuild runs from a heat capacity in
+kJ/(kg·°C), so its kWh is a kWh of stored heat (kWh_th). GT-6's lithium-ion figure is dollars per
+kWh of *electrical* capacity (kWh_e). Those are different units that share a name, and dividing
+one by the other produces a ratio with no physical meaning. Step 6a converts before comparing.
 
 ---
 
@@ -172,7 +178,8 @@ Cycle life is load-bearing here. The table below pairs the cheapest install with
 and the dearest with the shortest — an assumption, not a measurement: it presumes lean, mature
 designs also run longest. Nothing in this drill verifies that correlation; the opposite pairing
 would narrow the levelised spread to roughly 1.7× rather than the ~4× shown. The conclusion below
-does not depend on which pairing holds, since every combination clears GT-6 by more than 3×.
+does not depend on which pairing holds: the comparison against GT-6 is settled on installed
+capital at Step 6a, on a converted basis, not on the levelised column at all.
 Unlike Steps 4–5,
 the cycle term does **not** cancel — it is the divisor that converts one-time capital into cost
 per delivered kWh.
@@ -185,15 +192,41 @@ per delivered kWh.
 
 The ~4× spread in levelised cost is driven jointly by installed capital and cycle life.
 
-**Decision-resolution check:** Like for like, the **installed-only** bracket [$12.0–$34.4/kWh] vs.
-utility-scale lithium-ion [$150–$300/kWh] installed (GT-6) keeps the cost-competitiveness
-conclusion stable across the entire width of the estimate bracket — even the installed upper bound
-($34.4/kWh) is ~4.4× below the lithium-ion lower bound (150 ÷ 34.4 = 4.4). Adding the lifetime
-O&M reserve to the molten-salt side — a scope GT-6's installed figure does not carry — still
-leaves that upper bound ~3.4× below it (150 ÷ 44 = 3.4). Both arms clear the threshold, so the
-conclusion does not turn on which scope is used.
-Amortised, the gap only widens: molten-salt's long cycle
-life drives its levelised cost to ~$0.0014–0.0055/kWh delivered. Molten-salt TES is
+### Step 6a — Convert to a common basis before comparing (unit check)
+
+The molten-salt bracket is $/kWh_th; GT-6 is $/kWh_e. To compare them, one side must be moved onto
+the other's basis. Storage that exists to return **electricity** is paid for in electricity, so the
+thermal figures convert to a delivered-electrical basis through the heat-to-power efficiency:
+
+    cost_per_kWh_e = cost_per_kWh_th ÷ η_th→e     [$/kWh_th ÷ (kWh_e/kWh_th) = $/kWh_e]
+
+η_th→e ≈ 0.33 for a steam cycle at these salt temperatures — the same figure the companion Carnot
+worked example derives as realistic rather than law-permitted. **This factor is an assumption
+carried into the comparison, not a ground truth of this drill**, and the conclusion is sensitive to
+it, which is why it is named rather than folded silently into a ratio.
+
+| Basis | Installed-only upper | Installed + O&M upper |
+|---|---|---|
+| Thermal (as rebuilt) | ~$34.4/kWh_th | ~$44/kWh_th |
+| **Electrical (÷ 0.33)** | **~$104/kWh_e** | **~$133/kWh_e** |
+
+**Decision-resolution check:** on the common electrical basis, the **installed-only** upper bound
+(~$104/kWh_e) sits ~1.4× below the lithium-ion lower bound (150 ÷ 104 = 1.44), and the
+installed-plus-O&M upper bound (~$133/kWh_e) sits ~1.1× below it (150 ÷ 133 = 1.13). The
+cost-competitiveness conclusion survives at both scopes, but **narrowly at the second**, and it is
+the conversion factor — not the capital rebuild — that now dominates the margin: at η ≈ 0.29 the
+installed-plus-O&M arm crosses $150/kWh_e and the conclusion reverses.
+
+> **What this step is doing in a worked example.** The earlier version of this analysis compared
+> $34.4/kWh_th directly against $150/kWh_e and reported the conclusion clearing by ~4.4×. That
+> number was wrong by the conversion factor: it divided electrical dollars by thermal dollars and
+> read the quotient as a margin. The defect is invisible to inspection because both quantities are
+> spelled "$/kWh" — which is the whole reason Step 4's unit-cancellation discipline exists, and the
+> reason it has to be applied to the *comparison* and not only to the rebuild that feeds it.
+Amortised, the gap widens on the thermal basis: molten-salt's long cycle
+life drives its levelised cost to ~$0.0014–0.0055/kWh_th delivered. That column is not compared
+against GT-6 — GT-6 states an installed capital cost, not a levelised one, and the decision is
+resolved at Step 6a on installed capital with the basis conversion applied. Molten-salt TES is
 cost-competitive under all combinations of factor uncertainty. The estimate is decision-grade.
 
 ---
@@ -220,6 +253,12 @@ lifetime O&M reserve ($5–10/kWh). Each is cited to NREL engineering cost data 
 each is carried as a range rather than a point precisely because none is verified here; together
 they are what the Step 5 bracket's width measures.
 
+A fourth input is new and is of a different kind: **GT-7? — the thermal-to-electric conversion factor (≈ 0.33)**, introduced at Step 6a. The first three set the *width* of the capital bracket; GT-7? sets
+whether the comparison against GT-6 is meaningful at all, because GT-5's kWh is thermal and GT-6's
+is electrical. It is carried `?`-marked as **GT-7?**, it caps chain C1 at MEDIUM, and it is the one input whose
+refinement would change the decision — the sensitivity named on C1's `**Confidence:**` line is
+η ≈ 0.29, not a movement in any capital factor.
+
 ---
 
 ## 3. Ground Truths
@@ -233,27 +272,39 @@ they are what the Step 5 bracket's width measures.
   direct measurement, established in the five-whys (reduce-to-primitives) example.
 
 - **GT-6** Utility-scale lithium-ion storage installed capital cost is ≈ $150–300/kWh
-  installed — source: BloombergNEF direct measurement, established in the five-whys
-  (reduce-to-primitives) example.
+  **electrical** installed — source: BloombergNEF direct measurement, established in the
+  five-whys (reduce-to-primitives) example. The basis is electrical; GT-5's is thermal.
+
+- **GT-7?** Thermal-to-electric conversion efficiency for a steam cycle at this salt's
+  temperatures is ≈ 0.33 — **unverified in this drill**. Carried from the companion Carnot
+  worked example, which derives it as a realistic rather than law-permitted figure for these
+  source and sink temperatures. It is `?`-marked because no measured or quoted round-trip
+  efficiency for a specific power block was obtained here, and because the conclusion's margin
+  turns on it.
 
 ---
 
 ## 4. Derivation Chains
 
-### Conclusion C1: Molten-salt TES is cost-competitive with lithium-ion under all bracket scenarios
+### Conclusion C1: Molten-salt TES is cost-competitive with lithium-ion once both sides are on a common electrical basis
 
-GT-4 (Solar Salt stable 290–565 °C; c_p ≈ 1.52 kJ/(kg·°C) — direct measurement) + GT-5 (molten-salt TES installed capital ≈ $20–50/kWh — NREL direct measurement) + GT-6 (lithium-ion storage ≈ $150–300/kWh installed — BloombergNEF direct measurement)
-→ The unit-factor rebuild (material_mass 8.6 kg/kWh × cost_per_kg $0.40–0.80/kg × system_factor 3.5–5×, GT-4-anchored) reconstructs the installed-capital bracket from first principles — Lower ~$12.0/kWh, Central ~$20.6/kWh, Upper ~$34.4/kWh installed, or ~$17/~$28/~$44 per kWh once the separate lifetime O&M reserve of $5–10/kWh is added — overlapping the GT-5 range this rebuild explains rather than merely assumes over $20–$34.4/kWh, with the installed lower bound falling 40% below GT-5's $20/kWh floor. That shortfall is not resolved here: it may mean the lean-system factor values are optimistic, in which case the upper bound is understated in the same direction. The cost-competitiveness conclusion below is binding at the upper bound, not the lower: it clears GT-6's $150/kWh floor by 4.4× as computed, and would still clear it by 2.6× if the installed upper bound were itself understated by that same 40% ($34.4 → ~$57/kWh)
+GT-4 (Solar Salt stable 290–565 °C; c_p ≈ 1.52 kJ/(kg·°C) — direct measurement) + GT-5 (molten-salt TES installed capital ≈ $20–50/kWh — NREL direct measurement) + GT-6 (lithium-ion storage ≈ $150–300/kWh_e installed — BloombergNEF direct measurement) + GT-7? (thermal-to-electric conversion ≈ 0.33)
+→ The unit-factor rebuild (material_mass 8.6 kg/kWh × cost_per_kg $0.40–0.80/kg × system_factor 3.5–5×, GT-4-anchored) reconstructs the installed-capital bracket from first principles — Lower ~$12.0/kWh, Central ~$20.6/kWh, Upper ~$34.4/kWh installed, or ~$17/~$28/~$44 per kWh once the separate lifetime O&M reserve of $5–10/kWh is added — overlapping the GT-5 range this rebuild explains rather than merely assumes over $20–$34.4/kWh, with the installed lower bound falling 40% below GT-5's $20/kWh floor. That shortfall is not resolved here: it may mean the lean-system factor values are optimistic, in which case the upper bound is understated in the same direction. The cost-competitiveness conclusion below is binding at the upper bound, not the lower, and only after the Step 6a basis conversion: the rebuilt bracket is $/kWh_th and GT-6 is $/kWh_e, so the installed upper bound converts to ~$104/kWh_e at η ≈ 0.33 and clears GT-6's $150/kWh_e floor by ~1.4×, not by the ~4.4× a direct division of the two unconverted figures reports. If the installed upper bound were itself understated by the same 40% ($34.4 → ~$57/kWh_th → ~$173/kWh_e), the conclusion would reverse rather than merely narrow [Assumes: GT-7? η_th→e ≈ 0.33]
 → Amortising the installed-capital bracket over cycle life (8,000–12,000 cycles) converts one-time capital into levelised cost per kWh delivered — Lower ~$0.0014/kWh, Central ~$0.0028/kWh, Upper ~$0.0055/kWh
-→ Molten-salt TES is cost-competitive with lithium-ion (GT-6) under every combination of factor uncertainty in the bracket — on the like-for-like installed-only comparison the upper bound ($34.4/kWh) is ~4.4× below the lithium-ion installed lower bound ($150/kWh), and adding the lifetime O&M reserve to the molten-salt side alone still leaves it ~3.4× below ($44/kWh vs $150/kWh); the levelised gap is larger still.
+→ Molten-salt TES is cost-competitive with lithium-ion (GT-6) across the rebuilt bracket once both sides are placed on a common electrical basis — the installed-only upper bound converts to ~$104/kWh_e and sits ~1.4× below the lithium-ion installed lower bound ($150/kWh_e), and adding the lifetime O&M reserve leaves it ~$133/kWh_e, ~1.1× below; the margin is narrow at the second scope and is dominated by the assumed η_th→e ≈ 0.33 rather than by the capital rebuild [Assumes: GT-7? η_th→e ≈ 0.33].
 
-**Confidence:** HIGH — the installed upper bound is well below the lithium-ion installed
-lower bound across the full width of the estimate bracket. If a future lithium-ion installed
-quote reached ~$40/kWh (emerging cost trajectory), the two would nearly meet — $34.4/kWh
-installed, $44/kWh once the lifetime O&M reserve is added, so the O&M-inclusive band would
-straddle that threshold — and confidence would drop to MEDIUM. At that point, tighten `cost_per_kg`, the
-`system_factor`, and the O&M reserve with current procurement and engineering quotes before
-drawing the conclusion.
+**Pre-check:** head GT-4, GT-5, GT-6, GT-7? · ?-marked: GT-7? · lowest cited: none · Inputs ceiling: MEDIUM
+
+**Confidence:** MEDIUM — GT-7? (the thermal-to-electric conversion factor, ≈ 0.33) is an unverified
+input, and after the Step 6a basis conversion the conclusion rests on it rather than on the capital
+rebuild. On the common electrical basis the installed-only upper bound (~$104/kWh_e) clears the
+lithium-ion floor by ~1.4× and the O&M-inclusive upper bound (~$133/kWh_e) by only ~1.1×; at
+η ≈ 0.29 the second arm crosses $150/kWh_e and the conclusion reverses. The ceiling is MEDIUM
+because a `?`-marked input sits on the head, and the band is where it is because the margin is
+narrow rather than merely uncertain. Verification path: a measured or quoted round-trip efficiency
+for the specific power block, which would move η off `?` and re-open HIGH if the margin held. The
+earlier HIGH on this line was read against a ~4.4× margin that a basis error had manufactured;
+this is the same conclusion at its real width, not a new finding.
 
 ---
 
@@ -268,11 +319,14 @@ was tried and discarded.
 
 ## 6. Conclusion
 
-**Recommended approach:** Treat the molten-salt TES installed-cost figure (chain C1) as
-decision-grade for the cost-competitiveness question — the rebuilt installed-only bracket
-[$12.0–$34.4/kWh], and the [$17–$44/kWh] band that adds the lifetime O&M reserve,
-both hold under every combination of factor uncertainty, so no further estimate refinement is
-required before comparing against lithium-ion.
+**Recommended approach:** Treat the molten-salt TES installed-cost rebuild (chain C1) as
+decision-grade for the *capital* question — the rebuilt installed-only bracket
+[$12.0–$34.4/kWh_th], and the [$17–$44/kWh_th] band that adds the lifetime O&M reserve, both hold
+under every combination of factor uncertainty. Do **not** treat the comparison against lithium-ion
+as settled at the same confidence: that comparison runs through the Step 6a basis conversion, and
+its margin is ~1.1× at the O&M-inclusive scope. Before committing, obtain a measured round-trip
+efficiency for the specific power block; further refinement of the capital factors would not move
+the decision, and refinement of η would.
 
 **Key insight:** The unit-factor rebuild (chain C1) explains *why* the GT-5 installed-cost
 range holds rather than treating it as an unexplained given, and the amortisation over cycle
@@ -288,7 +342,11 @@ level alone.
   GT-4, which anchored the Solar Salt specific heat and operating window that chain C1's
   `material_mass` factor derives from.
 
-**Confidence:** HIGH — matches chain C1. Raising the bracket's precision further would
-require tightening `cost_per_kg`, the `system_factor`, and the O&M reserve with current
-procurement and engineering quotes, but the cost-competitiveness conclusion itself does not
-depend on that tightening.
+**Pre-check:** head C1 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
+
+**Confidence:** MEDIUM — matches chain C1, which is capped at MEDIUM by GT-7? (the unverified
+thermal-to-electric conversion factor). Raising the bracket's precision further would require
+tightening `cost_per_kg`, the `system_factor`, and the O&M reserve with current procurement and
+engineering quotes — but that is not what the conclusion now turns on, so it would not raise this
+band. The verification that would is a measured round-trip efficiency for the specific power
+block.

@@ -13,7 +13,7 @@ This file is a measurement, not a contract: no figure below defines what the cod
 | Reading | shared-examples | generated-twin | contract-surface |
 |---|---|---|---|
 | Files unreadable by `_slice_sections` | 0 of 14 | 0 of 14 | 0 of 1 |
-| §6 conclusion claims (untraced) | 79 (2 untraced) | 79 (2 untraced) | 4 (3 untraced) |
+| §6 conclusion claims (untraced) | 80 (2 untraced) | 80 (2 untraced) | 4 (3 untraced) |
 | §6 untraced claims (marked / silent) | 2 untraced (2 marked, 0 silent) | 2 untraced (2 marked, 0 silent) | 3 untraced (0 marked, 3 silent) |
 | §2 verdict cells (non-conforming) | 77 (0 non-conforming) | 77 (0 non-conforming) | 1 (1 non-conforming) |
 | §4 `chain_blocks` (malformed) | 31 (0 malformed) | 31 (0 malformed) | 3 (1 malformed) |
@@ -48,7 +48,7 @@ This phase publishes four disclosures in the same voice R7/R9/R10 use on the age
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | shared/examples/composed-inversion-second-order.md | OK | 1 | 0 | 0 | 0 | composed-inversion-second-order | 2 | 0 | 0 | 8 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 0 | 0 | 0 | 0 | 6 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
 | shared/examples/decompose-irreducibility.md | OK | 1 | 0 | 2 | 0 | decompose-irreducibility | 7 | 2 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 2 | 0 |
-| shared/examples/estimate-fermi.md | OK | 1 | 0 | 0 | 0 | estimate-fermi | 5 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
+| shared/examples/estimate-fermi.md | OK | 1 | 0 | 0 | 0 | estimate-fermi | 6 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 0 | 0 | 0 | 0 | 0 | 0 | 2 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
 | shared/examples/ishikawa-fishbone.md | OK | 3 | 0 | 0 | 0 | ishikawa-fishbone | 4 | 0 | 0 | 8 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 2 | 0 | 0 | 0 | 6 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
 | shared/examples/personal-general-2.md | OK | 3 | 0 | 0 | 0 | personal-general-2 | 7 | 0 | 0 | 8 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 3 | 0 |
 | shared/examples/personal-general.md | OK | 2 | 0 | 0 | 0 | personal-general | 7 | 0 | 0 | 5 | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
@@ -67,7 +67,7 @@ This phase publishes four disclosures in the same voice R7/R9/R10 use on the age
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | first-principles/agents/references/examples/composed-inversion-second-order.md | OK | 1 | 0 | 0 | 0 | composed-inversion-second-order | 2 | 0 | 0 | 8 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 0 | 0 | 0 | 0 | 6 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
 | first-principles/agents/references/examples/decompose-irreducibility.md | OK | 1 | 0 | 2 | 0 | decompose-irreducibility | 7 | 2 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 2 | 0 |
-| first-principles/agents/references/examples/estimate-fermi.md | OK | 1 | 0 | 0 | 0 | estimate-fermi | 5 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
+| first-principles/agents/references/examples/estimate-fermi.md | OK | 1 | 0 | 0 | 0 | estimate-fermi | 6 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 0 | 0 | 0 | 0 | 0 | 0 | 2 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
 | first-principles/agents/references/examples/ishikawa-fishbone.md | OK | 3 | 0 | 0 | 0 | ishikawa-fishbone | 4 | 0 | 0 | 8 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 2 | 0 | 0 | 0 | 6 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
 | first-principles/agents/references/examples/personal-general-2.md | OK | 3 | 0 | 0 | 0 | personal-general-2 | 7 | 0 | 0 | 8 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 3 | 0 |
 | first-principles/agents/references/examples/personal-general.md | OK | 2 | 0 | 0 | 0 | personal-general | 7 | 0 | 0 | 5 | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | 1 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 |
