@@ -34,7 +34,12 @@ dependent on an assumption not fully verified, or where the inferential gap is l
 named per chain. Not-applicable line: `sensitivity not applicable — [reason]`.
 
 **Rival.** State the strongest rival conclusion the same ground truths would support, and
-what rules it out. A ruled-out rival becomes an Abandoned Reasoning entry, using the
+what rules it out — **for the headline conclusion and for every intermediate chain the
+conclusion rests on.** A rival is not only an alternative answer to the question asked; it is
+an alternative reading of any step the answer depends on, and a chain whose endpoint nothing
+competes with is a chain whose Rivals axis was never exercised rather than one that survived
+it. Where an intermediate chain has no live rival, say so on that chain — `rival not
+applicable — [reason]` is a result, and silence is not. A ruled-out rival becomes an Abandoned Reasoning entry, using the
 What-was-tried / Why-abandoned / What-it-ruled-out structure and naming the `GT-N` or `Cn`
 that ruled it out, and the record's Rival part points at that entry; a rival nothing rules
 out stays live and is named on the affected `**Confidence:**` line as the short Rivals

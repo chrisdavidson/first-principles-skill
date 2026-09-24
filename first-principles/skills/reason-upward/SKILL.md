@@ -60,7 +60,10 @@ false, and it is the only exception that can stand in for a verification path. D
 lowest `Cn` band in `head`, or `none`) and `Inputs ceiling` (LOW if a cited chain is LOW, else
 MEDIUM if anything is `?`-marked or a cited chain is MEDIUM, else HIGH), fields separated by ` · `;
 the label never sits above that ceiling. The Conclusion's `**Confidence:**` line gets a pre-check
-too, its `head` being the chains it rests on.
+too, its `head` being every chain the Conclusion rests on, each with its band, plus any
+`GT-N?` the Conclusion rests on directly — a `GT-N?` the Conclusion uses without routing it
+through a chain still caps the Conclusion, and omitting it from `head` hides the one input
+most likely to be doing so.
 
 `head` is followed by a space and no colon; `?-marked`, `lowest cited` and `Inputs ceiling` each
 carry a colon, as in this worked pair:

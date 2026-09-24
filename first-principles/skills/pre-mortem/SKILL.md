@@ -23,6 +23,15 @@ failure modes, but before it is finalised and carries organizational momentum.
 Not the right tool for evaluating options (use trade-off analysis) or for tracing
 something that already went wrong (use 5-Whys).
 
+**Decision rule — pre-mortem vs. inversion:** pre-mortem stress-tests a **plan**;
+[inversion](${CLAUDE_PLUGIN_ROOT}/skills/inversion/SKILL.md) stress-tests a **claim**. If a concrete plan with actions and a
+timeline exists, pre-mortem is the right tool — it reasons about implementation failure
+modes that claim-level inversion cannot see. With only a stated belief, conclusion, or
+design principle in hand, inversion fits better. This is the same boundary
+`inversion.md` states from its own side, and it is the one that matters most here:
+Phase 5 selects between these two directly, so a reader arriving from that
+prescription needs to know why they were sent here rather than there.
+
 ---
 
 ## Framing
