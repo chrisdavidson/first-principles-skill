@@ -734,32 +734,66 @@ cluster is box-ticking, not a finding.
 
 ## Procedure
 
-1. **Name the options.** List each option being compared.
+1. **Name the options — including the status quo.** List each option being
+   compared, and **always include doing nothing** as one of them, named as what
+   it concretely is ("keep the current 70/30 split", "stay on REST/JSON"). A
+   comparison whose option set is all-change silently assumes change is
+   warranted and reports that assumption back as a finding. If the status quo is
+   genuinely unavailable — a contract expires, the hardware is failing — say so
+   in one line and list it as ruled out; do not omit it silently.
 
-2. **List criteria.** Identify 5–8 criteria that matter to this decision. Lock
+2. **State the must-haves and apply them as knock-outs.** Before any scoring,
+   name the conditions an option must satisfy to be viable at all. An option
+   that fails a must-have is **eliminated, not scored low** — report it under
+   `## Options` as knocked out, with the must-have it failed. Scoring a
+   non-viable option lets a high weighted total out-vote a hard constraint,
+   which is how an option that cannot actually be chosen wins a trade-off.
+   If nothing is a must-have, write "no must-haves" rather than skipping the
+   step — the two are different claims.
+
+3. **List criteria.** Identify 5–8 criteria that matter to this decision. Lock
    this list — add no new criteria after this step. If a criterion matters, it
    must appear now.
 
-3. **Assign weights. Lock them now.** Give each criterion a relative weight
+4. **Assign weights. Lock them now.** Give each criterion a relative weight
    (1–5) before scoring any option. If you cannot assign weights without first
    seeing how options score, stop — locking weights before scoring is the core
    discipline that prevents reverse-engineering them to favor an intuitive pick.
 
-4. **Score each option** on each criterion independently (1–5). Phrase every
-   criterion so higher is always better (e.g., "Reliability" not "Reliability
-   risk") — a mixed scale silently inverts the result.
+5. **Anchor the scale, then score.** Before scoring, state for each criterion
+   what a **1** and a **5** concretely mean — the anchors. "Cost: 1 = over
+   $20k, 5 = under $2k" is an anchor; "Cost: 1 = bad, 5 = good" is not. Then
+   score each option on each criterion independently (1–5) against those
+   anchors. Phrase every criterion so higher is always better (e.g.,
+   "Reliability" not "Reliability risk") — a mixed scale silently inverts the
+   result. Without anchors a score means only "how I felt about this option",
+   and the arithmetic that follows inherits that and dresses it as a number.
 
-5. **Compute:** multiply weight × score per criterion; sum per option.
+6. **Cite the ground truth each score rests on.** Every score names the
+   `GT-ID`s that justify it. A score resting on a `GT-N?` input carries that
+   `?` forward: per D-07, the chain this trade-off collapses into is capped at
+   **MEDIUM** and its confidence line names the unverified input and the
+   verification that would remove it. A score with no ground truth behind it is
+   a preference — mark it as one rather than citing nothing.
 
-6. **Read the result.** The highest weighted total is the recommendation. If
-   it surprises you, only re-examine a weight when you can state why it was
-   wrong *before* seeing the result — adjusting weights afterward is the
-   failure mode this procedure prevents.
+7. **Compute:** multiply weight × score per criterion; sum per option.
 
-**Sensitivity check:** If two options score within roughly 10% of each other,
-do not refine scores. Identify the criterion whose weight, if changed, would
-flip the result, and ask whether that weight is genuinely wrong — if not, the
-near-tie is a real finding and either option is defensible.
+8. **Read the result.** The highest weighted total among the surviving options
+   is the recommendation. If it surprises you, only re-examine a weight when you
+   can state why it was wrong *before* seeing the result — adjusting weights
+   afterward is the failure mode this procedure prevents.
+
+**Flip test — run it every time, not only on a near-tie.** Report the
+**smallest weight change that changes the winner**: name the criterion, the
+weight it would have to move to, and how far that is from the weight you
+locked. Then ask whether that weight is genuinely wrong. A winner that survives
+only a ±1 move on one criterion is a near-tie whatever the totals look like,
+and a winner that survives every single-criterion move is a robust result —
+both are findings, and neither is visible from the totals alone. Report the
+flip distance under `## Recommendation`. Do not refine scores to break a
+near-tie; refining manufactures false precision. If no single-criterion change
+flips the result, say that explicitly — "no single weight change flips this"
+is the strongest result this procedure can return, and it is worth stating.
 
 ---
 
