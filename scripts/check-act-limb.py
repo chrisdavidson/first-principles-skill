@@ -136,6 +136,22 @@ _B5B_INCLUSIVE = (
 # reachable by promotion — without it the population silently re-excludes
 # `?`-carrying entries and the circularity returns
 _B3_TOOLS = ["Read", "Grep", "WebFetch"]  # ACT-01: the three instruments, same paragraph
+_B17_TEMPLATE_READ = "Open the output template once"
+# Backlog 999.91 (REACH, taken here after Phase 999.88 declined it in writing).
+# The SECOND read imperative in the emitted body — the one that makes the
+# six-section document carry the `**Confidence:**` field and the D-07 naming
+# requirement. 999.88 shipped it unanchored, so a later edit could remove or
+# invert it and no gate would say so. Measured before this anchor existed:
+# deleting the whole paragraph from `shared/spine/SKILL-body.md`, regenerating,
+# and running the full battery left 23 of 24 gates passing and none red.
+# This anchor is the same REACH move `_B16_IMPERATIVE` above already made for
+# the Phase 3 imperative, pointed at the Output-format section instead: its
+# subject is the product body, never another guard's correctness.
+_B17_TEMPLATE_READ_SECTION = "## Output format"
+# The section the imperative must sit in. Presence alone is not the property —
+# the imperative belongs where assembly begins, and an edit that relocated it
+# into, say, Phase 1 would satisfy a whole-file substring test while destroying
+# the ordering the sentence exists to impose.
 _B16_IMPERATIVE = "attempt to open the cited source directly"
 # WR-03 (01-06), ACT-01: the step's OPERATIVE IMPERATIVE — the clause that says
 # to do the read. Every other anchor in this file survived the reviewer's
@@ -368,7 +384,7 @@ _ANCHOR_CONTROL_PENDING: dict[str, str] = {}
 # name, now resolved as a module global instead of a local.
 REQUIRED_BRANCHES: frozenset[str] = frozenset({
     "B-01", "B-02", "B-03", "B-04-imperative", "B-04-tools", "B-05-termination",
-    "B-06-not-found-assign", "B-12-table",
+    "B-06-not-found-assign", "B-12-table", "B-17-template-read",
     "R-01", "R-02-slice", "R-02-whole", "R-04-crit2", "R-04-crit5", "R-03-block",
     "R-05-pointer", "R-07-band",
 })
@@ -395,7 +411,7 @@ REQUIRED_BRANCHES: frozenset[str] = frozenset({
 # floor fires, driven against a synthetic executed/registered pair through
 # the SAME helper the live floor calls.
 _CONTROL_IDS: tuple[str, ...] = (
-    "a", "b", "aa", "ab", "ac", "ad", "ae", "af", "ag", "ah", "ai", "aj", "ak",
+    "a", "b", "cb", "cc", "cd", "aa", "ab", "ac", "ad", "ae", "af", "ag", "ah", "ai", "aj", "ak",
     "al", "am", "an", "ao", "ap", "aq", "ar", "as", "at", "au", "av", "aw",
     "ax", "ay", "az", "ba", "bb", "bc", "bd", "be", "bf", "bg", "bh", "bi",
     "bj", "bk", "bl", "bm", "bn", "bo", "bp", "bq", "br", "bs", "bt", "bu",
@@ -759,6 +775,7 @@ def _check_body_text(text: str) -> list[str]:
                 f"missing {'; '.join(missing_instruments)}"
             )
 
+
         # Body-5 (ACT-04, the bound): the population's two halves (WR-04 split
         # at 01-05 — intent, and action), the exclusion clause, the inclusive
         # clause (gap 1 / CR-04 — without it the population silently re-excludes
@@ -979,6 +996,36 @@ def _check_body_text(text: str) -> list[str]:
         failures.append(
             "Body-12 (ACT-02/ACT-03, table coverage): Phase 3 section missing the not-found test"
         )
+
+    # Body-17 (999.91): the output-template read imperative is present, occurs
+    # exactly once in the whole body, and sits inside the Output format section.
+    # Three arms rather than one: a bare presence test would pass a body that
+    # stated the imperative twice with different scopes, or stated it in a phase
+    # that runs before there is anything to assemble.
+    template_count = _count_flex(text, _B17_TEMPLATE_READ)
+    if template_count != 1:
+        failures.append(
+            f"Body-17 (999.91, template read): the output-template read "
+            f"imperative {_B17_TEMPLATE_READ!r} occurs {template_count} time(s) "
+            "in the body, expected exactly 1"
+        )
+    else:
+        output_format_at = text.find(_B17_TEMPLATE_READ_SECTION)
+        imperative_match = _flex_pattern(_B17_TEMPLATE_READ).search(text)
+        if output_format_at == -1:
+            failures.append(
+                f"Body-17 (999.91, template read): section heading "
+                f"{_B17_TEMPLATE_READ_SECTION!r} not found, so the imperative's "
+                "placement cannot be checked"
+            )
+        elif imperative_match is not None and imperative_match.start() < output_format_at:
+            failures.append(
+                "Body-17 (999.91, template read): the output-template read "
+                "imperative appears BEFORE "
+                f"{_B17_TEMPLATE_READ_SECTION!r} — it prescribes the read that "
+                "precedes assembly, so it belongs in the section that defines "
+                "what is assembled"
+            )
 
     return failures
 
@@ -2752,6 +2799,32 @@ def _run_self_test(real_body: str | None = None, real_rubric: str | None = None)
         real_body, _B1_STEP_LEAD, _B16_IMPERATIVE, "do not open the cited source"
     )
     _check_negative("br", _check_body_text(br_body), "Body-4", "operative imperative", "B-04-imperative")
+
+    # (cb/cc/cd) Negative, Body-17 output-template read imperative (999.91).
+    # Three fixtures because the assertion has three arms and a single deletion
+    # fixture would leave two of them unproven — the shape 999.91 names as the
+    # reason an unanchored imperative survived: nothing read it.
+    #
+    # (cb) DELETION — the measured regression. Before this anchor existed,
+    # removing this paragraph left 23 of 24 battery gates passing.
+    cb_body = real_body.replace(_B17_TEMPLATE_READ, "Assemble the document")
+    _check_negative("cb", _check_body_text(cb_body), "Body-17", "template read", "B-17-template-read")
+
+    # (cc) DUPLICATION — the imperative stated twice. A bare presence test
+    # passes this; the "exactly 1" arm is what rejects it.
+    cc_body = real_body.replace(
+        _B17_TEMPLATE_READ, _B17_TEMPLATE_READ + " — and again: " + _B17_TEMPLATE_READ, 1
+    )
+    _check_negative("cc", _check_body_text(cc_body), "Body-17", "template read", "B-17-template-read")
+
+    # (cd) RELOCATION — the imperative moved ahead of the Output format
+    # section. Present, stated once, and in the wrong place: the ordering arm
+    # is the only one that rejects it.
+    cd_body = real_body.replace(_B17_TEMPLATE_READ, "Assemble the document", 1)
+    cd_body = cd_body.replace(
+        "## Output format", _B17_TEMPLATE_READ + ", before assembling.\n\n## Output format", 1
+    )
+    _check_negative("cd", _check_body_text(cd_body), "Body-17", "template read", "B-17-template-read")
 
     # --- Phase 8 Rubric-side fixtures (bs-bv) ---
 
