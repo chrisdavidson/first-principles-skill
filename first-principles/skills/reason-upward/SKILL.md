@@ -89,11 +89,25 @@ The mechanical form check additionally rejects a chain whose head or first hop c
 Each chain must include at least one intermediate step; a chain that goes directly from
 its head inputs to a conclusion is a flat list, not a derivation.
 
-**Exit criterion:** ALL THREE conditions must hold: (1) the problem's core question as
+**End-of-phase Assumption Audit:** Once the chains — including their second-order
+extensions — exist, visit every chain step in order and name any assumption that step
+requires to hold that is not already in the Classified Assumptions Table; add each
+surfaced assumption back to that table, and mark the originating step inline with
+`[Assumes: X]`. When the same undeclared assumption surfaces on more than one step, add it
+to the table once and mark each originating step `[Assumes: X]` referencing it — do not
+create duplicate table rows for one assumption. A step that introduces no assumption
+beyond those already in the table gets no `[Assumes: X]` mark — a clean pass, not an
+error. Emit the completed audit as a scan table, one row per chain per step, in order,
+with columns `Chain | Step | Step Text (brief) | Assumption surfaced? | Added to Table?`,
+as process output.
+
+**Exit criterion:** ALL FOUR conditions must hold: (1) the problem's core question as
 stated in the Essence Statement is answered, AND (2) every conclusion offered has a
 complete derivation chain back to named ground truths, AND (3) the second-order effects
-procedure pass has been applied and no extension step contradicts a Ground Truth. Partial
-conclusions, incomplete chains, or a silently-skipped second-order pass do not satisfy
+procedure pass has been applied and no extension step contradicts a Ground Truth, AND (4)
+the end-of-phase Assumption Audit has run and the Classified Assumptions Table reflects
+every assumption surfaced from a chain step. Partial conclusions, incomplete chains, a
+silently-skipped second-order pass, or a silently-skipped Assumption Audit do not satisfy
 this criterion and do not exit this phase.
 
 ## Focused-mode validation

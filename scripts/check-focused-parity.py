@@ -1299,6 +1299,171 @@ def _check_cross_surface_parity(agent_text: str, stubs: dict[str, str]) -> list[
     return failures
 
 
+# ---------------------------------------------------------------------------
+# Backlog 999.146: phase-stub exit-criterion agreement with the body
+# ---------------------------------------------------------------------------
+# HARN-03 asserted that a stub CARRIES an `**Exit criterion:**` line. It never
+# asked whether that line AGREES with the body phase the stub mirrors — a
+# presence check standing in for a falsifier, in exactly the sense CLAUDE.md
+# § "Claims and falsifiers" names. Measured cost of the gap: `/reason-upward`
+# shipped "ALL THREE" against the body's "ALL FOUR" (omitting the Assumption
+# Audit entirely) and `/validate` shipped a two-condition criterion against the
+# body's three, both with HARN-03 green over them.
+#
+# This check derives BOTH sides from live sources and compares them. It pins no
+# expected value: it fails when the two disagree, whatever they say. Adding a
+# sixth condition to a body phase and forgetting its stub fails here; so does
+# the reverse. A phase whose body criterion does not use the `ALL <WORD>` form
+# is not in scope and is skipped by construction, which the non-vacuity floor
+# below keeps honest.
+_PHASE_STUB_SLUGS: dict[str, str] = {
+    "reason-upward": "### Phase 4: Reason Upward",
+    "validate": "### Phase 5: Validate",
+}
+
+_ALL_WORD_RE = re.compile(r"\*\*Exit criterion:\*\*\s+ALL\s+([A-Z]+)\b")
+_CONDITION_ORDINAL_RE = re.compile(r"\((\d+)\)")
+
+# The count word the body and the stub must agree on, spelled out.
+_ORDINAL_WORDS: dict[str, int] = {
+    "TWO": 2,
+    "THREE": 3,
+    "FOUR": 4,
+    "FIVE": 5,
+    "SIX": 6,
+}
+
+
+def _exit_criterion_shape(text: str) -> tuple[str, int] | None:
+    """Return (count-word, enumerated-condition-count) for an `ALL <WORD>` criterion.
+
+    `None` when the text states no `**Exit criterion:** ALL <WORD>` line at all
+    — the caller decides whether that is in scope, never this helper.
+    """
+    match = _ALL_WORD_RE.search(text)
+    if match is None:
+        return None
+    word = match.group(1)
+    # Count the `(1) … (N)` ordinals in the sentence the criterion opens, which
+    # ends at the first blank line — not across the whole document, where an
+    # unrelated `(2)` elsewhere would inflate the count.
+    tail = text[match.start() :]
+    sentence = tail.split("\n\n", 1)[0]
+    ordinals = {int(n) for n in _CONDITION_ORDINAL_RE.findall(sentence)}
+    return word, len(ordinals)
+
+
+def _check_phase_stub_exit_criteria(
+    body: str | None = None,
+    stub_texts: dict[str, str] | None = None,
+) -> list[str]:
+    """999.146: each phase stub's exit criterion must agree with its body phase.
+
+    `body` and `stub_texts` default to None, which reads the live emitted tree.
+    The controls pass them explicitly so every branch here is driven by an
+    in-memory mutation fixture, never by writing to a file on disk — the same
+    discipline the rest of this file's self-test follows.
+    """
+    failures: list[str] = []
+
+    # D-11: this gate reads the emitted tree, never `shared/` — DUAL-04 already
+    # guarantees the two agree, and D-11's scope here is "what actually ships."
+    if body is None:
+        if not AGENT_FILE.exists():
+            return [
+                f"phase-stub exit-criterion check could not read the agent body: "
+                f"{AGENT_FILE} does not exist"
+            ]
+        body = AGENT_FILE.read_text(encoding="utf-8")
+
+    compared = 0
+    for slug, phase_heading in sorted(_PHASE_STUB_SLUGS.items()):
+        start = body.find(phase_heading)
+        if start == -1:
+            failures.append(
+                f"phase-stub exit-criterion check: body heading {phase_heading!r} "
+                f"not found — the {slug!r} mapping is stale, so the check it "
+                f"anchors cannot run"
+            )
+            continue
+        # The phase section ends at the next `### ` heading or the next `---`
+        # rule, whichever comes first.
+        rest = body[start + len(phase_heading) :]
+        end_candidates = [i for i in (rest.find("\n### "), rest.find("\n---")) if i != -1]
+        section = rest[: min(end_candidates)] if end_candidates else rest
+
+        body_shape = _exit_criterion_shape(section)
+        if body_shape is None:
+            # Not in scope: this phase does not use the `ALL <WORD>` form.
+            continue
+
+        if stub_texts is not None:
+            if slug not in stub_texts:
+                failures.append(
+                    f"phase-stub exit-criterion check: no stub text supplied for "
+                    f"{slug!r}, but {phase_heading!r} states an `ALL <WORD>` exit "
+                    f"criterion the stub is supposed to mirror"
+                )
+                continue
+            stub_text = stub_texts[slug]
+        else:
+            stub_path = PLUGIN_SKILLS_DIR / slug / "SKILL.md"
+            if not stub_path.exists():
+                failures.append(
+                    f"phase-stub exit-criterion check: {stub_path} does not exist, "
+                    f"but {phase_heading!r} states an `ALL <WORD>` exit criterion "
+                    f"the stub is supposed to mirror"
+                )
+                continue
+            stub_text = stub_path.read_text(encoding="utf-8")
+        stub_shape = _exit_criterion_shape(stub_text)
+        if stub_shape is None:
+            failures.append(
+                f"skills/{slug}/SKILL.md states no `**Exit criterion:** ALL "
+                f"<WORD>` line, but {phase_heading} states "
+                f"`ALL {body_shape[0]}` — the stub cannot mirror a criterion it "
+                f"does not state"
+            )
+            continue
+
+        compared += 1
+        if stub_shape[0] != body_shape[0]:
+            failures.append(
+                f"skills/{slug}/SKILL.md exit criterion says "
+                f"`ALL {stub_shape[0]}` but {phase_heading} says "
+                f"`ALL {body_shape[0]}` — the focused stub and the body prescribe "
+                f"a different number of conditions for the same phase"
+            )
+        expected = _ORDINAL_WORDS.get(body_shape[0])
+        if expected is not None and body_shape[1] != expected:
+            failures.append(
+                f"{phase_heading} says `ALL {body_shape[0]}` but enumerates "
+                f"{body_shape[1]} conditions — the body's own criterion is "
+                f"internally inconsistent"
+            )
+        # The stub's internal consistency is judged against the STUB's own count
+        # word, never the body's — otherwise a stub that disagreed with the body
+        # would be reported twice, the second time with a false message calling a
+        # self-consistent criterion inconsistent. Measured: reintroducing the real
+        # 999.146 defect produced exactly that spurious second line.
+        stub_expected = _ORDINAL_WORDS.get(stub_shape[0])
+        if stub_expected is not None and stub_shape[1] != stub_expected:
+            failures.append(
+                f"skills/{slug}/SKILL.md says `ALL {stub_shape[0]}` but "
+                f"enumerates {stub_shape[1]} conditions — the stub's own criterion "
+                f"is internally inconsistent"
+            )
+
+    # Non-vacuity floor: a check that compared nothing must not report PASS.
+    if not failures and compared == 0:
+        failures.append(
+            "phase-stub exit-criterion check compared zero phases — every mapped "
+            "slug was skipped as out of scope, which makes the check vacuous"
+        )
+
+    return failures
+
+
 def _validate_files() -> int:
     """Validate the live emitted stub tree. Returns a process exit code."""
     if not PLUGIN_SKILLS_DIR.exists():
@@ -1346,6 +1511,7 @@ def _validate_files() -> int:
         + _check_stub_surface(stubs)
         + _check_agent_surface(agent_text, reference_texts, stubs["fishbone"])
         + _check_cross_surface_parity(agent_text, stubs)
+        + _check_phase_stub_exit_criteria()
         + _check_anchor_control_coverage(
             Path(__file__).read_text(encoding="utf-8"), require_control_region=True
         )
@@ -2757,6 +2923,142 @@ def _run_self_test_body() -> int:
 
     # (describe) describe()-consistency control (D-03, plan 21-04): the
     # module-level constants --describe reads must agree with the live
+    # -----------------------------------------------------------------
+    # (ec-series) Backlog 999.146: phase-stub exit-criterion agreement.
+    # Every control drives `_check_phase_stub_exit_criteria` with injected
+    # in-memory text — never a file on disk. The fixtures are built from
+    # the live `_PHASE_STUB_SLUGS` mapping so a future phase added there is
+    # covered without editing these controls.
+    # -----------------------------------------------------------------
+    _ec_slug, _ec_heading = sorted(_PHASE_STUB_SLUGS.items())[0]
+
+    def _ec_clauses(conditions: int) -> str:
+        return ", AND ".join(f"({i}) condition {i}" for i in range(1, conditions + 1))
+
+    def _ec_body(word: str, conditions: int, *, subject_heading: str | None = None) -> str:
+        """Build a body covering EVERY mapped phase.
+
+        The subject phase carries the (word, conditions) under test; every
+        OTHER mapped phase carries a well-formed agreeing criterion, so a
+        control isolates the one variable it is about instead of tripping on
+        the sibling phases the check also iterates. `subject_heading` replaces
+        the subject phase's heading, for the stale-mapping control.
+        """
+        parts = []
+        for slug, heading in sorted(_PHASE_STUB_SLUGS.items()):
+            if slug == _ec_slug:
+                use_heading = subject_heading if subject_heading is not None else heading
+                parts.append(
+                    f"{use_heading}\n\n**Exit criterion:** ALL {word} conditions "
+                    f"must hold: {_ec_clauses(conditions)}.\n\n---\n"
+                )
+            else:
+                parts.append(
+                    f"{heading}\n\n**Exit criterion:** ALL THREE conditions must "
+                    f"hold: {_ec_clauses(3)}.\n\n---\n"
+                )
+        return "".join(parts)
+
+    def _ec_stub(word: str, conditions: int) -> str:
+        return (
+            f"**Exit criterion:** ALL {word} conditions must hold: "
+            f"{_ec_clauses(conditions)}.\n"
+        )
+
+    def _ec_stubs(word: str, conditions: int, subject: str | None = None) -> dict[str, str]:
+        """Stub texts for every mapped slug; `subject` overrides the subject one."""
+        out = {slug: _ec_stub("THREE", 3) for slug in _PHASE_STUB_SLUGS}
+        out[_ec_slug] = subject if subject is not None else _ec_stub(word, conditions)
+        return out
+
+    # (ec1) POSITIVE: body and stub agree, and each is internally consistent.
+    _ec1 = _check_phase_stub_exit_criteria(
+        _ec_body("THREE", 3), _ec_stubs("THREE", 3)
+    )
+    if _ec1:
+        _problems.append(f"(ec1) agreeing body/stub pair reported failures: {_ec1}")
+    else:
+        print("(ec1) phase-stub exit criterion agreement: PASS — agreeing pair accepted")
+
+    # (ec2) NEGATIVE — the measured 999.146 defect: the stub prescribes fewer
+    # conditions than the body. This is the exact shape `/reason-upward`
+    # shipped (ALL THREE against the body's ALL FOUR) while HARN-03 stayed
+    # green, so a control that cannot catch it would re-open the gap.
+    _ec2 = _check_phase_stub_exit_criteria(
+        _ec_body("FOUR", 4), _ec_stubs("THREE", 3)
+    )
+    if not any("prescribe" in m for m in _ec2):
+        _problems.append(f"(ec2) body/stub disagreement was NOT caught: {_ec2}")
+    else:
+        print("(ec2) phase-stub exit criterion disagreement: PASS — mismatch rejected")
+
+    # (ec3) NEGATIVE: the count word and the enumerated ordinals disagree
+    # INSIDE one document. `_ORDINAL_WORDS` is what makes this decidable;
+    # without it the check could only compare two sides to each other and
+    # would pass a pair that agreed on being wrong.
+    _ec3 = _check_phase_stub_exit_criteria(
+        _ec_body("THREE", 3), _ec_stubs("THREE", 2)
+    )
+    if not any("internally inconsistent" in m for m in _ec3):
+        _problems.append(f"(ec3) internally inconsistent stub criterion NOT caught: {_ec3}")
+    else:
+        print("(ec3) internal ordinal consistency: PASS — miscounted stub rejected")
+
+    # (ec4) NEGATIVE: a stub that states no `ALL <WORD>` criterion at all must
+    # fail rather than be silently skipped — the skip path belongs to the
+    # BODY side (a phase not using this form), never to the stub side.
+    _ec4 = _check_phase_stub_exit_criteria(
+        _ec_body("THREE", 3), _ec_stubs("THREE", 3, subject="no criterion here at all\n")
+    )
+    if not any("states no" in m for m in _ec4):
+        _problems.append(f"(ec4) stub with no ALL-form criterion NOT caught: {_ec4}")
+    else:
+        print("(ec4) missing stub criterion: PASS — absent criterion rejected")
+
+    # (ec5) NEGATIVE, anti-vacuity: when every mapped phase is out of scope the
+    # check must refuse to report PASS. Without this floor the check would
+    # silently become a no-op the first time the body stopped using the
+    # `ALL <WORD>` form — passing loudest exactly when it had stopped looking.
+    _ec5 = _check_phase_stub_exit_criteria(
+        "".join(
+            f"{heading}\n\n**Exit criterion:** every condition holds.\n\n---\n"
+            for heading in sorted(_PHASE_STUB_SLUGS.values())
+        ),
+        _ec_stubs("THREE", 3),
+    )
+    if not any("vacuous" in m for m in _ec5):
+        _problems.append(f"(ec5) vacuous comparison NOT caught: {_ec5}")
+    else:
+        print("(ec5) non-vacuity floor: PASS — zero-comparison run rejected")
+
+    # (ec6) NEGATIVE: a stale slug->heading mapping must be named, not skipped.
+    _ec6 = _check_phase_stub_exit_criteria(
+        _ec_body("THREE", 3, subject_heading="### Phase 99: Not A Mapped Heading"),
+        _ec_stubs("THREE", 3),
+    )
+    if not any("stale" in m for m in _ec6):
+        _problems.append(f"(ec6) stale heading mapping NOT caught: {_ec6}")
+    else:
+        print("(ec6) stale heading mapping: PASS — missing body heading rejected")
+
+    # (ec7) helper-level controls for the two regexes, exercised directly so a
+    # rewrite of either is caught at its own level rather than only through
+    # the assertions above.
+    _ec7_text = "**Exit criterion:** ALL FIVE conditions must hold: (1) a, AND (2) b.\n"
+    _ec7_match = _ALL_WORD_RE.search(_ec7_text)
+    _ec7_ordinals = _CONDITION_ORDINAL_RE.findall(_ec7_text)
+    if _ec7_match is None or _ec7_match.group(1) != "FIVE" or _ec7_ordinals != ["1", "2"]:
+        _problems.append(
+            f"(ec7) regex helpers misread the criterion: word="
+            f"{_ec7_match.group(1) if _ec7_match else None!r} ordinals={_ec7_ordinals!r}"
+        )
+    elif _exit_criterion_shape("no criterion at all") is not None:
+        _problems.append("(ec7) _exit_criterion_shape returned a shape for text with none")
+    elif _ORDINAL_WORDS.get("FIVE") != 5:
+        _problems.append("(ec7) _ORDINAL_WORDS disagrees with its own spelled-out key")
+    else:
+        print("(ec7) criterion-parsing helpers: PASS — word, ordinals and None-path correct")
+
     # module state this self-test just exercised against — proving the
     # emitted facts are derived reads, not hand-typed literals that could
     # silently drift from EXPECTED_STUB_COUNT / _ANCHOR_CONTROL_EXEMPT.
