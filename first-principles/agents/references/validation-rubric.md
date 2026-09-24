@@ -181,6 +181,13 @@ high-stakes conclusion.")
 
 ## Verdict Block Format
 
+The six verdict blocks are emitted together under the single top-level heading
+`## Self-Audit Gate (process output)`, one `##` heading holding all six in criterion order —
+the same placement the adversarial pass record and the self-audit scan prescribe for themselves.
+They are one artifact, not six; nesting them beneath another section's heading makes them a
+subsection of something they do not belong to, and a reader or a check keyed to that heading
+must find it in the same structural position on every run.
+
 Each of the 6 criteria requires exactly one verdict block. Use the standard form when the
 analysis section exists and contains scoreable content:
 

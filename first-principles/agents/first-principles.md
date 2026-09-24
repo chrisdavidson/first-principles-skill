@@ -418,6 +418,16 @@ This prescription binds the emission; no gate in this tree checks that a given r
 Only once the ledger is clean — every surviving §6 claim carries a chain reference — does the
 Self-Audit Gate begin.
 
+**Emit the gate's verdict blocks under the single top-level heading**
+`` `## Self-Audit Gate (process output)` `` — one `##` heading, at the top level of the response,
+holding all six verdict blocks in criterion order. This is the same placement the adversarial pass
+record and the self-audit scan already prescribe for themselves, and it applies for the same
+reason: the six blocks are **one artifact**, not six, and nesting them under another section's
+heading makes them a subsection of something they do not belong to. A reader scanning for the
+gate's result, and any future check keyed to that heading, must find it in the same structural
+position on every run. Like those siblings, the block is process output, **not** a seventh output
+section.
+
 **Open the Self-Audit Gate's rubric once, before scoring the first criterion.** This read is
 spent on the gate itself — the Fix/Repeat loop the turn discipline rule above names as the turn
 budget's first claim — so it fires once per analysis, after the self-audit scan is emitted and

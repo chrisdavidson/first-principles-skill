@@ -45,6 +45,12 @@ List every assumption — explicit and implicit — that the analysis rests on. 
 |------------|------|-----------|---------|--------------|
 | [Assumption text] | [physical law / current constraint / convention / untested belief] | [prescribed action per type — see below] | [Accept / Challenge / Discard] — [justification/reason] | [source, or "unverified — flagged" if used in a chain per D-07] |
 
+**These five columns are the whole table — no ID column.** Assumptions are referred to by the
+`[Assumes: A-N]` marks the chains carry and by the `A-N` labels used in the Assumption Audit
+scan; adding a sixth ID column to this table duplicates that identity in a second place, and two
+places that name the same thing drift. A run that adds one is deviating from this template even
+though nothing rejects it today.
+
 ### Type Definitions and Prescribed Treatments
 
 **physical law** — a constraint imposed by physics, mathematics, or formal logic that cannot change regardless of context or decisions made.
@@ -66,7 +72,12 @@ The higher the stakes of the conclusion resting on an assumption, the more that 
 ### Verdict Vocabulary
 
 The Verdict cell is a token prefix followed by an em-dash and the justification — the bare
-token leads so it stays matchable, and the em-dash prose carries the reasoning:
+token leads so it stays matchable, and the em-dash prose carries the reasoning. **The separator
+is an em-dash, never a colon.** `Accept: the figure is audited` puts the token and the reasoning
+on one side of a punctuation mark that appears throughout ordinary prose, so the cell stops being
+matchable — which is the whole property the token-first form exists to provide. Measured: a single
+run using the colon form scored ten non-conforming verdict cells at once. The em-dash is not a
+stylistic preference here; it is the delimiter:
 
 - **Accept** — the assumption survives challenge and may be used in the analysis (e.g., "Accept — survives P2 challenge; physical-law backed by GT-1")
 - **Challenge** — the assumption is questionable; probe further before use (e.g., "Challenge — vendor benchmark unverified, flagged GT-5?")
