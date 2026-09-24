@@ -25,6 +25,8 @@ The section heading must still appear. The escape valve exists to prevent box-ti
 5. Abandoned Reasoning
 6. Conclusion
 
+**Nothing about the environment enters the document.** The six sections above are the whole deliverable, and none of them has a slot for the state of the session that produced it. Tooling, connector, authorisation, permission, quota, configuration, model, harness and transcript state are all environment state, and none of it belongs in the analysis — not in a section, not appended after §6, not as a footnote. The class is *any* fact about the machinery rather than about the problem; it is not a list of forbidden words, and a new kind of environment fact is covered by this rule on the day it first exists. A prefix such as "Unrelated to this analysis", "Separately" or "Note:" does not make such a paragraph admissible — it marks the writer as already knowing the paragraph does not belong, which is the point at which it is dropped rather than labelled. Where environment state genuinely blocked the analysis, it is already disclosed in its proper place: a failed reference read under the template's own disclosure rule, and an unmet evidence need as a `?`-marked input carried into the Assumptions Table and named on the affected `**Confidence:**` line. Environment state that blocked nothing is reported to the user outside the deliverable, after the document ends, or not at all.
+
 ---
 
 ## 1. Problem Essence

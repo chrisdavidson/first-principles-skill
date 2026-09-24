@@ -11422,6 +11422,23 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
         "deliberately not taught to recognise it. A caveat doing "
         "neither is cut, not softened."
     ),
+    # R13: the environment-state exclusion rule (backlog 999.163).
+    # Measured cause: 6 of 15 live runs (2026-09-23 K-of-5) ended the
+    # deliverable with a paragraph about the reader's MCP connector
+    # authorisation -- inside a liver-allocation ethics analysis and a
+    # sourdough microbiology analysis alike -- and all six cleared the
+    # Self-Audit Gate. The literal deliberately ENUMERATES the class
+    # rather than naming one member: 999.163 records that a control
+    # keyed to the word "connector" would be too narrow, because the
+    # class is any fact about the machinery rather than the problem.
+    # Pinning the enumeration is what keeps a later edit from quietly
+    # narrowing the rule back to the one symptom that prompted it.
+    "R13": (
+        "Tooling, connector, authorisation, permission, quota, "
+        "configuration, model, harness and transcript state are all "
+        "environment state, and none of it belongs in the analysis — "
+        "not in a section, not appended after §6, not as a footnote."
+    ),
 }
 
 # Which `_RENDER_RULE_LITERALS` keys each `_RENDER_RULE_SURFACES` entry must
@@ -11444,11 +11461,11 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
 _RENDER_SURFACE_REQUIRED_RULES: dict[str, tuple[str, ...]] = {
     "shared/spine/references/output-template.md": (
         "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10",
-        "R11", "R12",
+        "R11", "R12", "R13",
     ),
     "shared/spine/SKILL-body.md": (
         "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10",
-        "R11", "R12",
+        "R11", "R12", "R13",
     ),
     # R4 is deliberately NOT added here — plan 14-02 declined that
     # extension (D-06): the rubric is a scoring instrument, not the
@@ -12263,11 +12280,11 @@ def _render_registry_lock_problems(
     expected_required_rules = {
         "shared/spine/references/output-template.md": (
             "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10",
-            "R11", "R12",
+            "R11", "R12", "R13",
         ),
         "shared/spine/SKILL-body.md": (
             "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10",
-            "R11", "R12",
+            "R11", "R12", "R13",
         ),
         "shared/spine/references/validation-rubric.md": (
             "R1", "R6", "R7", "R8", "R9", "R10", "R11", "R12",
@@ -12530,6 +12547,14 @@ def _render_registry_lock_problems(
         # this is the sentence a future "helpful" edit would soften
         # first.
         "R12": "the marker discloses the gap, it does not discharge the claim",
+        # R13's clause pins the ENUMERATION rather than the prohibition.
+        # The prohibition is the easy half to keep; the half a future edit
+        # would soften first is the breadth — narrowing the rule back to
+        # the single symptom that prompted it (an MCP connector notice,
+        # 6/15 live runs, 2026-09-23). Pinning four class members that have
+        # nothing to do with connectors means a narrowing edit must delete
+        # this clause outright rather than quietly rewrite around it.
+        "R13": "configuration, model, harness and transcript state are all environment state",
     }
     if sorted(snapshot.literals) != sorted(expected_literal_clauses):
         problems.append(
@@ -12562,7 +12587,7 @@ def _render_registry_lock_problems(
     # `| QUAL-01 |` rows' "locked by value against inline expectations"
     # was not literally true of every arm.
     expected_literal_digest = (
-        "sha256:7834b5c5b51136e2403d41ad94bb126eaec785eddb2df4e0950f69654edbdd49"
+        "sha256:5cb4567121cc0f25c7b2ccafade23ad8355f1badb1d2230856a1756112c09dfb"
     )
     literal_digest = "sha256:" + hashlib.sha256(
         "\x00".join(
@@ -16781,7 +16806,12 @@ def _selftest_render_contract() -> bool:
             f"did not fire when the literal was stripped in memory: "
             f"{missing_cases_unfired!r}"
         )
-    expected_missing_case_count = 37
+    # Floor re-pinned 37 -> 39 when R13 (the environment-state exclusion
+    # rule, backlog 999.163) was required on the two emission-time surfaces.
+    # Both new cases FIRED on first run -- stripping R13's literal from
+    # either surface is detected -- so this bump records a widened
+    # population, never a relaxed assertion.
+    expected_missing_case_count = 39
     derived_missing_case_count = sum(
         len(keys) for keys in _RENDER_SURFACE_REQUIRED_RULES.values()
     )
