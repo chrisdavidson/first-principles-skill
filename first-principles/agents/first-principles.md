@@ -591,6 +591,20 @@ Multiple causes at the first level are expected.
 Complete the lateral scan at a level before descending. Multiple valid causes each become
 their own branch.
 
+**Apply the counterfactual test to every cause before descending into it.** Ask: *had this
+cause not occurred, would the symptom still have happened?*
+
+- **No** — the cause is counterfactually necessary. Keep it and drill it.
+- **Yes** — the symptom survives without it, so it is a **contributing condition**, not a
+  cause. Record it as one and do not drill it as though it were causal.
+- **Cannot tell** — mark it `?` and say what observation would settle it. An untested link
+  is not a passed one.
+
+This is the test that separates a cause from a narrative. A chain of plausible-sounding
+steps that each merely *preceded* the symptom explains nothing, and it reads exactly like a
+chain that explains everything — which is why the test is applied to each link rather than
+to the story at the end.
+
 **Stop drilling a branch when BOTH hold:**
 - You can state a specific corrective action that would prevent recurrence.
 - That action is within your practical control.
@@ -598,8 +612,30 @@ their own branch.
 A branch with no actionable corrective — a systemic constraint outside your control — is
 still a real finding: record it and move to the next branch.
 
+**Depth guard — the stop rule above is a floor, not a target.** Two opposite failures share
+one symptom, a chain that looks the right length:
+
+- **Stopped too shallow.** The first cause that admits a corrective action is very often a
+  *proximate* one, and the corrective is a patch. Before stopping, ask once more: would this
+  corrective prevent the symptom, or only this instance of it? If only this instance, the
+  branch is not finished.
+- **Drilled too deep.** A branch that has reached "because the organisation is under-resourced"
+  or "because physics" has left the decision behind. Stop at the deepest cause you can still
+  act on, and record the level below it as context rather than continuing.
+
+Depth is not a score. Five is a convention, not a requirement: a branch that bottoms out
+honestly at three levels is complete, and one padded to five to reach the number is not.
+
 **Validate each causal link** with observable evidence, not inference; flag unevidenced
 links as assumed.
+
+**Record the verdict for each branch:**
+- `Root cause — [corrective action], within control` — counterfactual test passed, corrective
+  named and actionable.
+- `Root cause — [corrective action], outside control` — a real finding; name who owns it.
+- `Contributing condition — symptom survives without it` — failed the counterfactual test.
+- `Unresolved ? — [observation that would settle it]` — the counterfactual test could not be
+  run on the evidence available.
 
 ### Reduce-to-primitives mode (irreducibility drill)
 
@@ -647,16 +683,32 @@ branch flags the whole parent with `?`.
    add a sub-cause beneath it. Two levels of nesting are typically enough; go deeper
    only where the extra depth changes what action is possible.
 
-5. **Prioritise and verify.** Review the completed map, identify the branches most
-   likely contributing based on available evidence, and mark unverified candidate
-   causes explicitly. Select the highest-priority branches for evidence gathering or
+5. **Name a discriminating observation for each priority cause.** For every cause you
+   are about to prioritise, state the observation that would **distinguish it from its
+   siblings** — something that would be true if this cause is operating and false if a
+   neighbouring cause is the real one. "Check whether the logs show errors" is not
+   discriminating if every candidate cause produces the same errors; "the errors appear
+   only on nodes patched after March" is, because it separates one branch from the rest.
+
+   If no observation discriminates a cause from its siblings, say so. That is a finding:
+   the branches are not yet distinguishable on available evidence, and the honest next
+   step is to find an observation that separates them rather than to pick the most
+   plausible-sounding one. A fishbone's characteristic failure is a wide, tidy map whose
+   branches nothing can tell apart, which looks like thorough analysis and settles
+   nothing.
+
+6. **Prioritise and verify.** Review the completed map, identify the branches most
+   likely contributing based on available evidence *and on which discriminating
+   observations are actually obtainable*, and mark unverified candidate causes
+   explicitly. Select the highest-priority branches for evidence gathering or
    further depth analysis.
 
 **Exit criterion:** Every category in the chosen set has been walked, each candidate
 cause is attached to exactly one category, unverified candidate causes are explicitly
-marked as unverified, and the highest-priority branches for evidence gathering or
-further depth are named. A reader can tell which causes were tested and which are
-still candidates.
+marked as unverified, every prioritised cause carries a discriminating observation or
+an explicit statement that none was found, and the highest-priority branches for
+evidence gathering or further depth are named. A reader can tell which causes were
+tested, which are still candidates, and what would tell them apart.
 
 **Read [fishbone-detail.md](${CLAUDE_PLUGIN_ROOT}/agents/references/fishbone-detail.md) when you need:**
 - a worked example of this technique
@@ -677,18 +729,35 @@ still candidates.
    would *guarantee* the inverted form. These are not risks; they are
    sufficient causes of failure. Write at least five before stopping.
 
-4. **Derive necessary preconditions.** For each failure-guaranteeing condition,
-   identify the precondition whose absence would cause it. This converts a
-   failure list into a list of things the original claim silently depends on.
+4. **Derive the necessary preconditions, and state each as a claim that can be
+   false.** For each failure-guaranteeing condition, name the precondition whose
+   absence would cause it, and write it as a definite assertion about the world
+   ("runbooks transfer without rewriting"), never as a topic ("runbooks"). A
+   topic cannot be checked; an assertion can. One condition may yield more than
+   one precondition, and two conditions may share one — record the mapping
+   rather than assuming it is one-to-one, because a precondition that several
+   failure conditions depend on is the one most worth verifying first. This
+   converts a failure list into a list of things the original claim silently
+   depends on.
 
-5. **Check each precondition's status.** For every necessary precondition, ask:
+5. **Tag each precondition `load-bearing` or not.** A precondition is
+   **load-bearing** when the conclusion does not survive its being false — the
+   same sense the validation rubric defines for chains. One that would merely
+   weaken the conclusion, or affect only an intermediate result nothing rests
+   on, is not load-bearing. Mark each one explicitly; an untagged precondition
+   reads as equally important as every other, which is how a list of twelve
+   preconditions hides the two that actually matter.
+
+6. **Check each precondition's status.** For every necessary precondition, ask:
    is it verified, conventionally assumed, or untested? Anything not currently
-   verified is unverified by default.
+   verified is unverified by default. **A precondition that is both
+   `load-bearing` and unverified is the analysis's sharpest finding** — report
+   those first, ahead of the full list.
 
-6. **Record each unverified precondition as an `untested belief`.** Each
+7. **Record each unverified precondition as an `untested belief`.** Each
    unverified precondition becomes one row in the Classified Assumptions Table
-   with type `untested belief`, routed back to Phase 2 for the
-   challenge-and-verify operation.
+   with type `untested belief`, carrying its `load-bearing` tag, routed back to
+   Phase 2 for the challenge-and-verify operation.
 
 ---
 
@@ -720,15 +789,43 @@ still candidates.
    never validated). A cluster is a structural weakness in the plan, not an
    isolated risk.
 
-5. **Act on findings.** Modify the plan to address the structural weaknesses, or
+5. **Triage each cluster on two axes: plausibility and recoverability.** Not by
+   a probability figure invented for the purpose — say which of these it is:
+
+   - **Fatal** — if it happens, the plan does not recover. These get a plan
+     change, not a mitigation, however unlikely they seem.
+   - **Costly but survivable** — the plan continues at a stated price. These get
+     a mitigation and an owner.
+   - **Tolerable** — record and move on.
+
+   Sort by recoverability *before* plausibility. A fatal-but-unlikely cause
+   outranks a likely-but-tolerable one, and ranking by likelihood alone inverts
+   exactly that comparison — which is the failure a pre-mortem exists to catch.
+
+6. **Give every fatal and costly cluster a tripwire.** A tripwire is the
+   **observation that would tell you this failure is now underway**, named in
+   advance: a threshold, a date, a signal, a metric crossing a line. "Watch
+   integration risk" is not a tripwire; "the staging sync job fails twice in one
+   week" is, and "we have not got a test environment by 14 March" is.
+
+   State who would see it and when they would look. A failure mode nobody is
+   positioned to notice has no tripwire, and saying so plainly is more useful
+   than writing one that will never fire. The pre-mortem's value is spent at the
+   moment the list is written unless something converts a predicted failure into
+   a detected one — that is what the tripwire is.
+
+7. **Act on findings.** Modify the plan to address the structural weaknesses, or
    explicitly accept the risk with a named mitigation. A pre-mortem with no
    downstream plan change was box-ticking.
 
 **Exit criterion:** The failure has been stated as having already happened, causes
-are written from that stance, causes are clustered into structural weaknesses, and
-every cluster has either a named plan change or an explicitly accepted risk with a
-named mitigation. A pre-mortem that ends without one of those two outcomes per
-cluster is box-ticking, not a finding.
+are written from that stance, causes are clustered into structural weaknesses,
+every cluster carries a triage verdict of fatal / costly but survivable /
+tolerable, every fatal and costly cluster carries a tripwire with an owner or an
+explicit statement that no observable one exists, and every cluster has either a
+named plan change or an explicitly accepted risk with a named mitigation. A
+pre-mortem that ends without one of those two outcomes per cluster is
+box-ticking, not a finding.
 
 ---
 
@@ -802,14 +899,29 @@ is the strongest result this procedure can return, and it is worth stating.
 1. **State the first-order conclusion precisely.** One sentence, no hedges.
    The sharper the conclusion, the sharper the consequences it generates.
 
-2. **Enumerate 2nd-order consequences.** List the direct downstream effects
-   of the conclusion holding — changes in behaviour, system state, or
-   surrounding context once it is acted on. Aim for at least three; include
-   adverse effects alongside favourable ones.
+2. **Enumerate 2nd-order consequences through two lenses.** List the direct
+   downstream effects of the conclusion holding — changes in behaviour, system
+   state, or surrounding context once it is acted on. Walk both lenses rather
+   than counting to a number:
+
+   - **The actor lens.** Who changes what they do once this holds? Name the
+     parties — the people executing it, the people living with the result, the
+     people paying for it, and anyone whose incentives now point somewhere new,
+     including a competitor or an adversary. Effects that arrive through *other
+     people reacting* are the ones a single-perspective pass misses, and they
+     are usually the expensive ones.
+   - **The time lens.** What is true immediately, what after a few cycles, and
+     what once this has been in place long enough to be assumed? Many
+     second-order effects are invisible at one horizon and dominant at another —
+     a cost that is trivial per week and structural per year.
+
+   Cover both lenses and include adverse effects alongside favourable ones. The
+   lenses are coverage checks, not quotas: a pass that finds two real effects
+   across both lenses is complete, and one padded to a count is not.
 
 3. **Enumerate 3rd-order consequences.** For each 2nd-order effect, list its
-   own downstream effects. Same discipline: at least three across the layer,
-   adverse alongside favourable.
+   own downstream effects, through the same two lenses. Adverse alongside
+   favourable.
 
 4. **Apply the stopping rule.** Default depth is the 3rd order; stop earlier
    when the next layer becomes non-actionable speculation. Each additional
@@ -821,15 +933,30 @@ is the strongest result this procedure can return, and it is worth stating.
    the first-order conclusion depended on. Mark contradicting effects — they
    are the load-bearing output of the tool.
 
-6. **Route the result.** Non-contradicting effects extend the Phase 4
+6. **Check the effects against the decision's own success criteria.** Name what
+   this decision is *for* — the outcome it is meant to produce — and ask of each
+   enumerated effect whether it works against that outcome. An effect can be
+   perfectly consistent with every Ground Truth and still defeat the purpose:
+   the flag system ships faster and makes the codebase unreadable, the incentive
+   raises the reported number and not the thing it proxies for. Step 5 catches
+   contradictions with what is *true*; this catches contradictions with what is
+   *wanted*, and nothing else in the methodology looks for them.
+
+   An effect that undermines the success criteria is reported as such even when
+   the conclusion survives on the evidence. If the success criteria were never
+   stated, say so — that is itself the finding, and it routes back to Phase 1.
+
+7. **Route the result.** Non-contradicting effects extend the Phase 4
    Derivation Chain as additional order-marked steps (`→[2nd]`, `→[3rd]`).
    Any contradicting effect routes the conclusion back to Phase 2
    (Challenge Assumptions) — never directly to Phase 3 or past Phase 2.
 
 **Exit criterion:** Every first-order effect in scope has been carried to at least
-its second order, each derived effect carries its order mark, contradicting effects
-are identified as contradicting, and each effect is routed — non-contradicting
-effects into the Derivation Chain, contradicting effects back to Phase 2.
+its second order through both the actor and time lenses, each derived effect carries
+its order mark, contradicting effects are identified as contradicting, every effect
+has been checked against the decision's stated success criteria (or their absence
+recorded), and each effect is routed — non-contradicting effects into the Derivation
+Chain, contradicting effects back to Phase 2.
 
 ---
 

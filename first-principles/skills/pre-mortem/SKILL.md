@@ -68,15 +68,43 @@ the mechanism.
    never validated). A cluster is a structural weakness in the plan, not an
    isolated risk.
 
-5. **Act on findings.** Modify the plan to address the structural weaknesses, or
+5. **Triage each cluster on two axes: plausibility and recoverability.** Not by
+   a probability figure invented for the purpose — say which of these it is:
+
+   - **Fatal** — if it happens, the plan does not recover. These get a plan
+     change, not a mitigation, however unlikely they seem.
+   - **Costly but survivable** — the plan continues at a stated price. These get
+     a mitigation and an owner.
+   - **Tolerable** — record and move on.
+
+   Sort by recoverability *before* plausibility. A fatal-but-unlikely cause
+   outranks a likely-but-tolerable one, and ranking by likelihood alone inverts
+   exactly that comparison — which is the failure a pre-mortem exists to catch.
+
+6. **Give every fatal and costly cluster a tripwire.** A tripwire is the
+   **observation that would tell you this failure is now underway**, named in
+   advance: a threshold, a date, a signal, a metric crossing a line. "Watch
+   integration risk" is not a tripwire; "the staging sync job fails twice in one
+   week" is, and "we have not got a test environment by 14 March" is.
+
+   State who would see it and when they would look. A failure mode nobody is
+   positioned to notice has no tripwire, and saying so plainly is more useful
+   than writing one that will never fire. The pre-mortem's value is spent at the
+   moment the list is written unless something converts a predicted failure into
+   a detected one — that is what the tripwire is.
+
+7. **Act on findings.** Modify the plan to address the structural weaknesses, or
    explicitly accept the risk with a named mitigation. A pre-mortem with no
    downstream plan change was box-ticking.
 
 **Exit criterion:** The failure has been stated as having already happened, causes
-are written from that stance, causes are clustered into structural weaknesses, and
-every cluster has either a named plan change or an explicitly accepted risk with a
-named mitigation. A pre-mortem that ends without one of those two outcomes per
-cluster is box-ticking, not a finding.
+are written from that stance, causes are clustered into structural weaknesses,
+every cluster carries a triage verdict of fatal / costly but survivable /
+tolerable, every fatal and costly cluster carries a tripwire with an owner or an
+explicit statement that no observable one exists, and every cluster has either a
+named plan change or an explicitly accepted risk with a named mitigation. A
+pre-mortem that ends without one of those two outcomes per cluster is
+box-ticking, not a finding.
 
 ---
 

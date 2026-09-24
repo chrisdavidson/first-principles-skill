@@ -106,16 +106,32 @@ labels and blank branches.
    add a sub-cause beneath it. Two levels of nesting are typically enough; go deeper
    only where the extra depth changes what action is possible.
 
-5. **Prioritise and verify.** Review the completed map, identify the branches most
-   likely contributing based on available evidence, and mark unverified candidate
-   causes explicitly. Select the highest-priority branches for evidence gathering or
+5. **Name a discriminating observation for each priority cause.** For every cause you
+   are about to prioritise, state the observation that would **distinguish it from its
+   siblings** — something that would be true if this cause is operating and false if a
+   neighbouring cause is the real one. "Check whether the logs show errors" is not
+   discriminating if every candidate cause produces the same errors; "the errors appear
+   only on nodes patched after March" is, because it separates one branch from the rest.
+
+   If no observation discriminates a cause from its siblings, say so. That is a finding:
+   the branches are not yet distinguishable on available evidence, and the honest next
+   step is to find an observation that separates them rather than to pick the most
+   plausible-sounding one. A fishbone's characteristic failure is a wide, tidy map whose
+   branches nothing can tell apart, which looks like thorough analysis and settles
+   nothing.
+
+6. **Prioritise and verify.** Review the completed map, identify the branches most
+   likely contributing based on available evidence *and on which discriminating
+   observations are actually obtainable*, and mark unverified candidate causes
+   explicitly. Select the highest-priority branches for evidence gathering or
    further depth analysis.
 
 **Exit criterion:** Every category in the chosen set has been walked, each candidate
 cause is attached to exactly one category, unverified candidate causes are explicitly
-marked as unverified, and the highest-priority branches for evidence gathering or
-further depth are named. A reader can tell which causes were tested and which are
-still candidates.
+marked as unverified, every prioritised cause carries a discriminating observation or
+an explicit statement that none was found, and the highest-priority branches for
+evidence gathering or further depth are named. A reader can tell which causes were
+tested, which are still candidates, and what would tell them apart.
 
 **Read [fishbone-detail.md](fishbone-detail.md) when you need:**
 - a worked example of this technique

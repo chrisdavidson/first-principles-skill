@@ -56,18 +56,35 @@ second-order to trace consequences of what holds.
    would *guarantee* the inverted form. These are not risks; they are
    sufficient causes of failure. Write at least five before stopping.
 
-4. **Derive necessary preconditions.** For each failure-guaranteeing condition,
-   identify the precondition whose absence would cause it. This converts a
-   failure list into a list of things the original claim silently depends on.
+4. **Derive the necessary preconditions, and state each as a claim that can be
+   false.** For each failure-guaranteeing condition, name the precondition whose
+   absence would cause it, and write it as a definite assertion about the world
+   ("runbooks transfer without rewriting"), never as a topic ("runbooks"). A
+   topic cannot be checked; an assertion can. One condition may yield more than
+   one precondition, and two conditions may share one — record the mapping
+   rather than assuming it is one-to-one, because a precondition that several
+   failure conditions depend on is the one most worth verifying first. This
+   converts a failure list into a list of things the original claim silently
+   depends on.
 
-5. **Check each precondition's status.** For every necessary precondition, ask:
+5. **Tag each precondition `load-bearing` or not.** A precondition is
+   **load-bearing** when the conclusion does not survive its being false — the
+   same sense the validation rubric defines for chains. One that would merely
+   weaken the conclusion, or affect only an intermediate result nothing rests
+   on, is not load-bearing. Mark each one explicitly; an untagged precondition
+   reads as equally important as every other, which is how a list of twelve
+   preconditions hides the two that actually matter.
+
+6. **Check each precondition's status.** For every necessary precondition, ask:
    is it verified, conventionally assumed, or untested? Anything not currently
-   verified is unverified by default.
+   verified is unverified by default. **A precondition that is both
+   `load-bearing` and unverified is the analysis's sharpest finding** — report
+   those first, ahead of the full list.
 
-6. **Record each unverified precondition as an `untested belief`.** Each
+7. **Record each unverified precondition as an `untested belief`.** Each
    unverified precondition becomes one row in the Classified Assumptions Table
-   with type `untested belief`, routed back to Phase 2 for the
-   challenge-and-verify operation.
+   with type `untested belief`, carrying its `load-bearing` tag, routed back to
+   Phase 2 for the challenge-and-verify operation.
 
 ---
 
@@ -100,6 +117,15 @@ service will reduce operational toil."
 Flipping "X is good" to "X is bad" and stopping there produces no new information
 — the value of inversion is in the *preconditions* the failure form forces into
 view. Always carry the inversion through to step 4 of the procedure.
+
+**Leaving every precondition untagged.** A flat list of twelve preconditions
+reads as twelve equal risks, which hides the two the conclusion actually rests
+on. Tag each one `load-bearing` or not at step 5, and report the load-bearing
+unverified ones first.
+
+**Writing a precondition as a topic instead of a claim.** "Runbooks" cannot be
+true or false, so it cannot be checked, and it will survive every later review
+by being unfalsifiable. "Runbooks transfer without rewriting" can be checked.
 
 **Treating the inverted claim as the new conclusion rather than a stress test.**
 Inversion is diagnostic, not assertive. The inverted form is a thinking device

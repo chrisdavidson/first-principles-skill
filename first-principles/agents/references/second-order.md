@@ -48,14 +48,29 @@ compared without reverse-engineering the answer.
 1. **State the first-order conclusion precisely.** One sentence, no hedges.
    The sharper the conclusion, the sharper the consequences it generates.
 
-2. **Enumerate 2nd-order consequences.** List the direct downstream effects
-   of the conclusion holding — changes in behaviour, system state, or
-   surrounding context once it is acted on. Aim for at least three; include
-   adverse effects alongside favourable ones.
+2. **Enumerate 2nd-order consequences through two lenses.** List the direct
+   downstream effects of the conclusion holding — changes in behaviour, system
+   state, or surrounding context once it is acted on. Walk both lenses rather
+   than counting to a number:
+
+   - **The actor lens.** Who changes what they do once this holds? Name the
+     parties — the people executing it, the people living with the result, the
+     people paying for it, and anyone whose incentives now point somewhere new,
+     including a competitor or an adversary. Effects that arrive through *other
+     people reacting* are the ones a single-perspective pass misses, and they
+     are usually the expensive ones.
+   - **The time lens.** What is true immediately, what after a few cycles, and
+     what once this has been in place long enough to be assumed? Many
+     second-order effects are invisible at one horizon and dominant at another —
+     a cost that is trivial per week and structural per year.
+
+   Cover both lenses and include adverse effects alongside favourable ones. The
+   lenses are coverage checks, not quotas: a pass that finds two real effects
+   across both lenses is complete, and one padded to a count is not.
 
 3. **Enumerate 3rd-order consequences.** For each 2nd-order effect, list its
-   own downstream effects. Same discipline: at least three across the layer,
-   adverse alongside favourable.
+   own downstream effects, through the same two lenses. Adverse alongside
+   favourable.
 
 4. **Apply the stopping rule.** Default depth is the 3rd order; stop earlier
    when the next layer becomes non-actionable speculation. Each additional
@@ -67,15 +82,30 @@ compared without reverse-engineering the answer.
    the first-order conclusion depended on. Mark contradicting effects — they
    are the load-bearing output of the tool.
 
-6. **Route the result.** Non-contradicting effects extend the Phase 4
+6. **Check the effects against the decision's own success criteria.** Name what
+   this decision is *for* — the outcome it is meant to produce — and ask of each
+   enumerated effect whether it works against that outcome. An effect can be
+   perfectly consistent with every Ground Truth and still defeat the purpose:
+   the flag system ships faster and makes the codebase unreadable, the incentive
+   raises the reported number and not the thing it proxies for. Step 5 catches
+   contradictions with what is *true*; this catches contradictions with what is
+   *wanted*, and nothing else in the methodology looks for them.
+
+   An effect that undermines the success criteria is reported as such even when
+   the conclusion survives on the evidence. If the success criteria were never
+   stated, say so — that is itself the finding, and it routes back to Phase 1.
+
+7. **Route the result.** Non-contradicting effects extend the Phase 4
    Derivation Chain as additional order-marked steps (`→[2nd]`, `→[3rd]`).
    Any contradicting effect routes the conclusion back to Phase 2
    (Challenge Assumptions) — never directly to Phase 3 or past Phase 2.
 
 **Exit criterion:** Every first-order effect in scope has been carried to at least
-its second order, each derived effect carries its order mark, contradicting effects
-are identified as contradicting, and each effect is routed — non-contradicting
-effects into the Derivation Chain, contradicting effects back to Phase 2.
+its second order through both the actor and time lenses, each derived effect carries
+its order mark, contradicting effects are identified as contradicting, every effect
+has been checked against the decision's stated success criteria (or their absence
+recorded), and each effect is routed — non-contradicting effects into the Derivation
+Chain, contradicting effects back to Phase 2.
 
 ---
 

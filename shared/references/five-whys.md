@@ -63,6 +63,20 @@ Multiple causes at the first level are expected.
 Complete the lateral scan at a level before descending. Multiple valid causes each become
 their own branch.
 
+**Apply the counterfactual test to every cause before descending into it.** Ask: *had this
+cause not occurred, would the symptom still have happened?*
+
+- **No** — the cause is counterfactually necessary. Keep it and drill it.
+- **Yes** — the symptom survives without it, so it is a **contributing condition**, not a
+  cause. Record it as one and do not drill it as though it were causal.
+- **Cannot tell** — mark it `?` and say what observation would settle it. An untested link
+  is not a passed one.
+
+This is the test that separates a cause from a narrative. A chain of plausible-sounding
+steps that each merely *preceded* the symptom explains nothing, and it reads exactly like a
+chain that explains everything — which is why the test is applied to each link rather than
+to the story at the end.
+
 **Stop drilling a branch when BOTH hold:**
 - You can state a specific corrective action that would prevent recurrence.
 - That action is within your practical control.
@@ -70,8 +84,30 @@ their own branch.
 A branch with no actionable corrective — a systemic constraint outside your control — is
 still a real finding: record it and move to the next branch.
 
+**Depth guard — the stop rule above is a floor, not a target.** Two opposite failures share
+one symptom, a chain that looks the right length:
+
+- **Stopped too shallow.** The first cause that admits a corrective action is very often a
+  *proximate* one, and the corrective is a patch. Before stopping, ask once more: would this
+  corrective prevent the symptom, or only this instance of it? If only this instance, the
+  branch is not finished.
+- **Drilled too deep.** A branch that has reached "because the organisation is under-resourced"
+  or "because physics" has left the decision behind. Stop at the deepest cause you can still
+  act on, and record the level below it as context rather than continuing.
+
+Depth is not a score. Five is a convention, not a requirement: a branch that bottoms out
+honestly at three levels is complete, and one padded to five to reach the number is not.
+
 **Validate each causal link** with observable evidence, not inference; flag unevidenced
 links as assumed.
+
+**Record the verdict for each branch:**
+- `Root cause — [corrective action], within control` — counterfactual test passed, corrective
+  named and actionable.
+- `Root cause — [corrective action], outside control` — a real finding; name who owns it.
+- `Contributing condition — symptom survives without it` — failed the counterfactual test.
+- `Unresolved ? — [observation that would settle it]` — the counterfactual test could not be
+  run on the evidence available.
 
 ### Reduce-to-primitives mode (irreducibility drill)
 
