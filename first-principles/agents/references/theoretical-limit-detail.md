@@ -2,55 +2,154 @@
 
 <!-- markdownlint-disable MD041 -->
 
-## Example
+## Example A — thermal (coal steam cycle)
 
-**Target:** thermal-to-electric conversion efficiency of a molten-salt
-concentrating solar power (CSP) plant — conventionally quoted at ~40–42% for
-modern plants.
+**Target:** thermal-to-electric conversion efficiency of a coal-fired steam
+plant.
 
-**Conventions embedded:** the 40–42% figure reflects the current power-cycle
-engineering (steam Rankine cycle with supercritical parameters), real-world
-turbine isentropic efficiency, practical heat-exchanger ΔT losses, and parasitic
-loads — all of which are engineering choices, not physical laws.
+**Conventions embedded:** fleet-average efficiency reflects the age mix of
+installed units, part-load operation, and decades-old steam conditions — all
+engineering and economic choices, not hard constraints.
 
-**Governing law:** the Carnot efficiency bound (Second Law of Thermodynamics):
-η_Carnot = 1 − T_cold / T_hot (temperatures in kelvin). No heat engine
-operating between two reservoirs can exceed this bound regardless of engineering
+**Governing hard constraint:** the Carnot efficiency bound (Second Law of
+Thermodynamics): η_Carnot = 1 − T_cold / T_hot (kelvin). No heat engine
+operating between two reservoirs can exceed this, regardless of engineering
 sophistication.
 
-**First-principles derivation:** Solar Salt operates at T_cold ≈ 290 °C =
-563 K (cold tank) and T_hot ≈ 565 °C = 838 K (hot tank).
-η_Carnot = 1 − 563/838 ≈ 0.33. Wait — this is lower than the conventional
-figure. The Carnot bound here is a *hard ceiling on the ideal reversible
-cycle*; the conventional figure exceeds it only because the 40–42% quote
-uses the live-steam temperature in the turbine (≈ 560 °C / 833 K) as T_hot
-and the condenser temperature (≈ 30–40 °C / 303–313 K) as T_cold:
-η_Carnot (turbine cycle) = 1 − 308/833 ≈ 0.63. This is the physical ceiling
-the cycle's steam conditions permit; 40–42% is well below it.
+**Ideal ceiling, derived.** A modern ultra-supercritical (USC) unit runs main
+steam at ≈ 600 °C = 873 K, condensing at ≈ 40 °C = 313 K:
+
+    η_Carnot = 1 − 313/873 = 1 − 0.3585 = 0.6415 → 64.1%
+
+**Best demonstrated, observed.** Modern USC units achieve ≈ 47% (LHV basis).
+This is a cited observation, not a calculation.
+
+**Conventional figure.** The US coal fleet averaged a heat rate of
+10,018 Btu/kWh in 2024 (EIA):
+
+    η = 3,412.14 / 10,018 = 0.3406 → 34.1% (HHV basis)
 
 **Bracket:**
 
-- Law-permitted ceiling (Carnot, turbine cycle): ~63%
-- Conventional figure (modern CSP plants): ~40–42%
-- Gap: ~21 percentage points — the laws permit far more than current practice
-  captures. Most of this gap is engineering headroom (turbine efficiency losses,
-  regeneration losses, parasitics); a small irreducible fraction is the
-  Carnot penalty from non-zero ΔT across heat exchangers.
+| Tier | Figure | Kind |
+|---|---|---|
+| Ideal ceiling (Carnot, 873 K → 313 K) | 64.1% | derived |
+| Best demonstrated (modern USC) | ~47% (LHV) | observed, cited |
+| Conventional (US fleet average, 2024) | 34.1% (HHV) | observed, cited |
+
+- **Conventional → best demonstrated: ~13 points.** Headroom somebody has
+  already proven reachable — it is an equipment and capital question, not a
+  physics question.
+- **Best demonstrated → ideal ceiling: ~17 points.** Headroom nobody has
+  reached. Most of it is irreducible in practice: real cycles need finite ΔT
+  across heat exchangers, and finite ΔT is exactly what Carnot's reversible
+  idealisation assumes away.
+
+**Basis caveat — read this before quoting the 13-point gap.** The 47% figure is
+LHV and the 34.1% figure is HHV, and LHV efficiency for coal runs roughly 2–5
+points higher than HHV for the *same physical plant*, because LHV leaves the
+latent heat of flue-gas water vapour out of the denominator. The two figures also
+describe different populations (a modern unit vs. a whole ageing fleet). So the
+13 points is an upper estimate of the real gap, not a measured one. Putting two
+bases in one bracket without saying so is how a comparison that looks like
+arithmetic becomes an overstatement.
+
+**Why this example does not use Curzon-Ahlborn as the middle tier.** For the
+same reservoirs, the Curzon-Ahlborn efficiency is:
+
+    η_CA = 1 − √(313/873) = 1 − 0.5988 = 0.4012 → 40.1%
+
+That is tighter than Carnot and looks like the "practical" bound — but the
+demonstrated 47% **exceeds it by about 7 points**. CA is the efficiency of an
+endoreversible engine *at maximum power*, and a plant tuned for efficiency
+rather than power density beats it. Treating it as a ceiling would have
+understated what is already built. This is the "a model-dependent bound is not a
+ceiling" rule, demonstrated on the technique's own worked numbers.
+
+---
+
+## Example B — non-thermal (network latency floor)
+
+Theoretical-limit is not a thermodynamics tool. Here the governing hard
+constraint is the speed of light.
+
+**Target:** round-trip latency between New York and London for a web service,
+conventionally ~70 ms.
+
+**Conventions embedded:** routing that is not great-circle, switching and
+queueing hops, protocol round trips, server think time.
+
+**Governing hard constraint:** signal propagation cannot exceed *c*, and in
+fibre it travels at *c/n*.
+
+**Ideal ceiling, derived.** c = 299,792,458 m/s (exact, by SI definition); fibre
+group index n ≈ 1.5:
+
+    v = 299,792,458 / 1.5 ≈ 199,862 km/s
+    one-way = 5,570 km / 199,862 km/s = 27.9 ms
+    round trip = 55.7 ms
+
+**Best demonstrated / conventional.** Ordinary commercial routing runs ≈ 70 ms
+RTT.
+
+**Bracket:**
+
+| Tier | Figure | Kind |
+|---|---|---|
+| Ideal ceiling (fibre, great circle) | 55.7 ms RTT | derived |
+| Conventional (commercial routing) | ~70 ms RTT | observed |
+
+- **Gap: ~14 ms, a ratio of about 1.26×.** Current practice is already within
+  about a quarter of the physical floor.
+
+**What this bracket tells you, and it is the opposite of Example A.** There is
+almost nothing to win by optimising the network path: a perfect straight fibre
+saves ~14 ms and no engineering saves more, because the remaining 55.7 ms is
+light. Any real latency budget must come from somewhere else — fewer round
+trips, caching, moving computation closer to the user. A theoretical-limit
+analysis is just as valuable when it says *stop looking here* as when it finds
+headroom, and an analysis bracketed only against a loose bound would never have
+returned that answer.
+
+*Note on n:* real single-mode fibre has a group index nearer 1.46–1.48, giving
+v ≈ 202,000–205,000 km/s and a floor 2–3% lower. Immaterial at this precision,
+stated so the number is reproducible.
 
 ---
 
 ## Failure modes
 
 **Citing best-in-class practice as the ceiling.** Using "the best plant in
-the world achieves X%" as the theoretical limit. That is still a conventional
-figure — a physical bound must derive from a named law, not from observation
-of incumbents. Even the best incumbent may be far below the law-permitted
-ceiling.
+the world achieves X%" as the theoretical limit. That is still an observation —
+a bound must derive from a named constraint, not from incumbents. Even the best
+incumbent may be far below the ideal ceiling. Note this is *not* an argument
+against the demonstrated tier: recording the best achieved figure is required,
+and calling it the ceiling is the error. Keep the tiers labelled, and the
+distinction stays visible.
 
-**Omitting the bracket.** Deriving the Carnot ceiling without comparing it
-to the conventional figure defeats the purpose. The bracket (ceiling vs.
-convention, and the gap between them) is the deliverable. A theoretical-limit
-analysis that reports only a ceiling is half-finished.
+**Omitting the bracket.** Deriving the ideal ceiling without comparing it to
+what is demonstrated and what is conventional defeats the purpose. The bracket —
+three tiers and both gaps — is the deliverable. A theoretical-limit analysis
+that reports only a ceiling is half-finished.
+
+**Collapsing the two gaps into one.** Reporting a single "gap to the limit"
+merges headroom somebody has already demonstrated with headroom nobody has ever
+reached. Those carry very different risk: the first is a procurement question,
+the second may be unreachable in principle. Report them separately.
+
+**Using a model-dependent bound as the demonstrated tier.** A published "limit"
+often answers a narrower question than the one being asked, and real systems
+exceed it — Curzon-Ahlborn is the worked case in Example A, where the observed
+figure beats the "bound" by ~7 points. Ask what the bound actually constrains
+and under what assumptions before promoting it to a tier. The demonstrated tier
+takes an observed, cited figure, never a calculated one.
+
+**Bracketing across mismatched bases or populations.** Comparing an LHV figure
+with an HHV figure, a thermal quantity with an electrical one, or one modern
+unit with a whole fleet average, produces a gap that is an artifact of the
+accounting rather than a fact about the system. State the basis of every tier;
+where they differ and cannot be reconciled, say so and mark the gap as an upper
+estimate rather than a measurement.
 
 **Confusing theoretical-limit with estimate.** If the question is "how big is
 this quantity rebuilt from units?" reach for estimate. Theoretical-limit answers

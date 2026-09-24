@@ -877,33 +877,66 @@ uncertainty explicitly.
 **Name the conventional figure and its embedded conventions** (a performance
 metric, efficiency, or cost ceiling) before stripping anything.
 
-**Strip each convention back to a governing physical law, definition, or direct
-measurement.** Name the law explicitly (e.g., "the Second Law of Thermodynamics,"
-"Carnot efficiency bound"). Do not reason by analogy to what others currently
-achieve — the ceiling is set by the laws, not by the best incumbent.
+**Strip each convention back to a governing hard constraint, definition, or
+direct measurement.** Name the constraint explicitly (e.g., "the Second Law of
+Thermodynamics," "Carnot efficiency bound," "the speed of light in fiber"). A
+governing hard constraint is whatever genuinely cannot be negotiated in this
+domain — a physical law, a mathematical bound, a conservation identity, a
+protocol's minimum round trips. It is often not thermodynamic, and the technique
+applies wherever such a constraint exists. Do not reason by analogy to what
+others currently achieve — the ceiling is set by the constraint, not by the best
+incumbent.
 
-**Derive the limit the fundamentals permit**, using the governing law and
+**Derive the limit the fundamentals permit**, using the governing constraint and
 first-principles values (constants, definitions, direct measurements). This is
-the law-permitted ceiling: the highest the figure can go if every convention is
-removed and only physics remains as a constraint.
+the ideal ceiling: the highest the figure can go if every convention is removed
+and only the constraint remains.
 
-**Bracket the gap between the law-permitted ceiling and the conventional
-figure.** State explicitly:
+**Use the tightest applicable bound — a valid bound is not automatically the
+right one.** The loosest true bound is always available and is nearly always
+useless: it is true, unfalsifiable, and overstates headroom, so an analysis
+bracketed against it reports far more room than really exists. Ask what else
+binds before the ideal ceiling does — materials, cost, a practical operating
+point, a regulatory floor — and bracket against that too.
 
-- **Law-permitted ceiling:** the value the governing law allows.
-- **Conventional figure:** the figure in current practice.
-- **Gap:** the headroom between current practice and what the laws permit.
+**Bracket in three tiers.** State each explicitly, and label which is which:
 
-Identify how much of the gap is irreducible (the laws impose it — a process
-converting X → Y can never be 100% efficient under the Second Law) versus how
-much is convention (headroom the laws allow but practice has not reached).
+- **Ideal ceiling:** what the governing hard constraint permits. Derived, not
+  observed. Nothing can exceed it.
+- **Best demonstrated:** the best figure anyone has actually achieved, **cited**
+  — a record, a measured result, a published benchmark. This tier is an
+  *observation*, never a calculation.
+- **Conventional figure:** what current practice in this context achieves.
+
+Then state two gaps rather than one: **conventional → best demonstrated** is
+headroom somebody has already proven reachable, and **best demonstrated → ideal
+ceiling** is headroom nobody has reached yet. The two are different claims with
+very different risk, and collapsing them into a single "gap" is what makes a
+theoretical-limit analysis sound more actionable than it is.
+
+Identify how much of the gap is irreducible (the constraint imposes it — a
+process converting X → Y can never be 100% efficient under the Second Law)
+versus how much is convention (headroom the constraint allows but practice has
+not reached).
+
+**A model-dependent bound is not a ceiling.** Many published "limits" are the
+answer to a narrower question than the one being asked, and real systems exceed
+them. Before using a bound as a tier, ask *what exactly does this bound
+constrain, and under what assumptions?* If it is model-dependent, either label
+it as an illustrative reference rather than a ceiling, or drop it. The
+Curzon-Ahlborn efficiency is the standard cautionary case: it is the efficiency
+of an endoreversible engine **at maximum power**, not a maximum efficiency, and
+real plants that trade power density for efficiency exceed it — so using it as a
+"practical ceiling" understates what is achievable. Put an observed record in the
+demonstrated tier instead of a computed one.
 
 **Apply the stop criterion.** The analysis is complete when: (1) the governing
-law is named explicitly, (2) the limit is derived from first-principles values
-— not from what competitors achieve — and (3) the gap to the conventional
-figure is stated explicitly. A theoretical-limit analysis that names a ceiling
-without bracketing that gap is incomplete — the bracket, not the ceiling alone,
-is the deliverable.
+hard constraint is named explicitly, (2) the ideal ceiling is derived from
+first-principles values — not from what competitors achieve, (3) the best
+demonstrated figure is cited as an observation, and (4) both gaps are stated
+explicitly. A theoretical-limit analysis that names a ceiling without bracketing
+those gaps is incomplete — the bracket, not the ceiling alone, is the
+deliverable.
 
 **Read [theoretical-limit-detail.md](${CLAUDE_PLUGIN_ROOT}/agents/references/theoretical-limit-detail.md) when you need:**
 - a worked example of this technique
