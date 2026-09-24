@@ -93,7 +93,7 @@ against?
 
 GT-2 (three top-ten accounts cite reporting limitations as renewal risk) + GT-3 (signed LOI commits $180K/year contingent on the rewrite shipping this quarter) + GT-1 (41 inbound Slack requests; no churn-survey reason code attributes departure to the gap) + GT-4 (3.2 engineer-quarters of build capacity this quarter)
 → The reporting-rewrite value chain rests on a named, signed, quantified customer commitment with a contractually-observable falsification trigger (expansion order signed or not by quarter-end); the Slack-side value chain rests on GT-1's inbound request volume and a retention effect for which GT-1 records no churn-survey reason code, neither of which is contractually anchored
-→ At equivalent engineering cost (GT-4), the reporting rewrite returns a defined, verifiable $180K expansion ARR plus reduced renewal risk on two other named top-ten accounts; the Slack integration returns a hypothesized retention and acquisition uplift with no instrumented anchor *[Assumes: A3 — both candidates fit inside one engineering quarter (Assumptions Table row 3); only top-down estimates support it]*
+→ At equivalent engineering cost (GT-4), the reporting rewrite returns a defined, verifiable $180K expansion ARR plus reduced renewal risk on two other named top-ten accounts; the Slack integration returns a hypothesized retention uplift with no instrumented anchor *[Assumes: A3 — both candidates fit inside one engineering quarter (Assumptions Table row 3); only top-down estimates support it]*
 
 **Pre-check:** head GT-2, GT-3, GT-1, GT-4 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
 **Confidence:** MEDIUM. The Inference axis is short on one hop: the
@@ -103,10 +103,15 @@ top-down estimates support — and this chain has not priced what
 becomes of the comparison if A3 fails. A3 would be established by a
 bottom-up estimate for each candidate (ticket-level breakdown ×
 historical per-ticket cycle time), the verification the Assumptions
-Table names for that row. The rival that the Slack integration is the
-higher-value build is ruled out by the §5 dead end ("Sixty percent of
-polled customers said they want Slack, therefore build Slack"), grounded
-in GT-1.
+Table names for that row. The rival — that the Slack candidate's case is
+equally well evidenced, GT-1's 41 inbound requests constituting a
+comparable anchored revenue case — is ruled out by the §5 dead end
+("Sixty percent of polled customers said they want Slack, therefore
+build Slack"), which shows the aggregated count conflates three response
+surfaces with different selection biases and so is not verified evidence
+of a revenue case. That dead end rules out this argument for the Slack
+integration being the higher-value build, not that conclusion itself —
+C3 keeps the value comparison open.
 
 ---
 

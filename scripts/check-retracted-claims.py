@@ -495,6 +495,33 @@ REGISTRY: tuple[RetractedClaim, ...] = (
         ),
         exemptions=(),
     ),
+    RetractedClaim(
+        literal="higher-value build is ruled out by the §5 dead end",
+        retracted_by="999.156",
+        corrected=(
+            "The §5 dead end rules out one ARGUMENT for the Slack candidate "
+            "being the higher-value build — stated preference read off an "
+            "aggregated count that conflates three response surfaces with "
+            "different selection biases — not that conclusion. C3 exists "
+            "precisely to keep the value comparison open, and its own "
+            "conclusion is that the recommendation flips if the Slack-side "
+            "evidence picture changes materially. A dead end that had "
+            "disposed of the conclusion would make C3 vacuous."
+        ),
+        # Scoped deliberately narrow, and the narrowness is the point. The
+        # bare phrase "the Slack integration is the higher-value build" is
+        # LEGITIMATE prose — §5 names it as the claim the dead end examined —
+        # so barring that would bar correct text. Measured 2026-09-24 under
+        # this module's own `_normalise`, over its own SCAN_GLOBS: the bare
+        # phrase has 2 off-registry occurrences (shared/examples/product-
+        # business-2.md and its generated twin), this literal has 0. What is
+        # barred is the CONJUNCTION — the value conclusion asserted as ruled
+        # out by §5 — never either half alone.
+        # No exemption: the retraction is recorded in `.planning/ROADMAP.md`,
+        # which is gitignored and therefore outside this gate's scanned
+        # surfaces. A CHANGELOG entry quoting it will need one.
+        exemptions=(),
+    ),
 )
 
 
