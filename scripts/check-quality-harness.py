@@ -6340,6 +6340,28 @@ _HOP_OPERATOR_ANYWHERE_RE = re.compile(
 # expression is counted `unparsed` with reason "unspaced hyphen" rather than
 # contributing nothing to any column.
 _HOP_UNSPACED_HYPHEN_RE = re.compile(r"(?<=\d)-(?=\d)")
+# 999.167 (v9.12.0): the same ambiguity, one operator over. An ASCII slash
+# with no surrounding spaces between two integers (`70/30`) is far more often
+# a RATIO LABEL — a policy weighting, an aspect ratio, a score split, a date —
+# than a division a hop is asserting. Unlike the hyphen above it parses
+# CLEANLY as `70 ÷ 30`, so it reaches evaluation and is scored a mismatch
+# against whatever the label was equated to.
+#
+# Measured, three-generation re-run 2026-09-24
+# (`.planning/AGENT-EVAL-3GEN-2026-09-24.md` §4.1): on a transplant-allocation
+# prompt whose options the PROMPT ITSELF names `70/30` and `40/60`, the
+# detector computed 70 ÷ 30 = 2.333 against a stated trade-off total of 77 and
+# reported a mismatch, 2 per run across 4 of 5 runs. None was an arithmetic
+# error. It surfaced only once v9.10.0's trade-off hardening made the agent
+# emit weighted totals at all — the instrument penalising the runs in which
+# the newly hardened technique fired.
+#
+# Treated exactly as the hyphen is: never evaluated, counted `unparsed` with
+# its own reason, so the miss is DISCLOSED rather than scored either way. A
+# genuine unspaced division in a hop is now an honest miss instead of a
+# silent pass, which is the same trade the hyphen rule already accepted.
+# Spaced division (`1,875 Wh ÷ 5.5 PSH`, `12 / 5 = 3`) is untouched.
+_HOP_UNSPACED_SLASH_RE = re.compile(r"(?<=\d)/(?=\d)")
 # WR-05: a leading minus sign (U+2212 or ASCII) on the stated result.
 _HOP_RIGHT_SIGN = "−-"
 _HOP_PERCENT_RE = re.compile(r"\d[ \t]{0,2}%")
@@ -6431,7 +6453,11 @@ def _hop_arithmetic_defects(blocks: list[str]) -> dict:
     currency) with a digit, and whose left window carries at least one
     operator — a spaced operator, or an unspaced ASCII hyphen between two
     digits (`200-180`), which is never evaluated and is counted `unparsed`
-    (reason `"unspaced hyphen"`); an operand or stated result the number
+    (reason `"unspaced hyphen"`); an unspaced ASCII slash between two digits
+    (`70/30`) is likewise never evaluated and is counted `unparsed` (reason
+    `"unspaced slash"`), because a bare `A/B` is a ratio label — a policy
+    weighting, a score split, a date — more often than a division a hop
+    asserts, and spaced division is untouched; an operand or stated result the number
     pattern cannot take whole — more than 6 decimal places, a leading-dot
     decimal, a decimal comma — is counted `unparsed` (reason `"unparsed
     number"`) rather than matched from inside the number; a minus sign on the first operand
@@ -6569,6 +6595,13 @@ def _hop_scan_segment(
                 prefix_trimmed and prefix_trimmed[-1] in "0123456789)^"
             ):
                 unparsed.append({"expr": expr, "reason": "chained"})
+                continue
+            # 999.167: an unspaced slash between two digits inside the MATCHED
+            # expression is a ratio label far more often than a division, and
+            # unlike the unspaced hyphen it parses cleanly, so it must be
+            # intercepted here rather than in the no-clean-match branch below.
+            if _HOP_UNSPACED_SLASH_RE.search(expr_m.group(0)):
+                unparsed.append({"expr": expr, "reason": "unspaced slash"})
                 continue
         else:
             # No clean trailing expression anywhere in the window — classify
@@ -8848,6 +8881,9 @@ Nothing material here.
         # WR-05: shapes that used to read (0, 0, 0) now read unparsed with
         # a named reason, never folded into a zero-mismatch count.
         ("200-180 = 30", "unspaced hyphen"),
+        # 999.167: the ratio-label shape measured live on 2026-09-24 --
+        # `70/30` is the prompt's own policy weighting, not a division.
+        ("weighted totals are 70/30 = 77", "unspaced slash"),
         ("−5 + 3 = −2", "negative operand"),
         # WR-06: numbers `_HOP_NUM_SRC` cannot take whole are unparsed, not
         # matched from inside and scored against the wrong operand.
