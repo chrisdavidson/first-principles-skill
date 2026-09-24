@@ -316,3 +316,49 @@ entirely must raise `SectionResolutionError` rather than reporting zero malforme
 
 Every row reverted to a clean `exit 0` / seven-`PASSED`-lines self-test run before the plan
 moved to its next step.
+
+---
+
+## `gen-handback-*.jsonl` — the transport hand-back frame (backlog 999.160, 2026-09-23)
+
+Three fixtures for `_selftest_handback_frame`. **Every one is derived from a committed real
+capture, never hand-written** — the defect was a platform-side transport change the repo had not
+adapted to, so a synthetic frame would have re-asserted the shape this file already believed in
+rather than testing against the shape the transport actually emits.
+
+| Fixture | Donor | Transport shape | Expected |
+|---|---|---|---|
+| `gen-handback-frame.jsonl` | `tests/baseline-reading-v9.6/Q-P1.jsonl` | (B) synchronous hand-back: frame line at column zero, every report line indented two spaces, one trailing newline the primary channel lacks | extraction SUCCEEDS |
+| `gen-handback-truncated.jsonl` | `tests/adversarial-firing-v9.5/Q-P1.jsonl` | (C) persisted-output truncation notice — carries only a ~2KB preview, no copy of the report | extraction SUCCEEDS (channel ignored) |
+| `gen-handback-forged.jsonl` | `gen-handback-frame.jsonl`, one report line moved to column zero | shape the real transport **cannot** produce | extraction RAISES |
+
+**How they were derived.** The donor's Agent `tool_use`, its completed `task_notification` and its
+matching `tool_result` were harvested verbatim; the report was then truncated to its first 12
+lines on *both* channels together, with an assertion that the dedented cross-check still equals
+the primary text exactly — so the fixture cannot encode a disagreement the donor did not have.
+The unread sibling keys `tool_use_result` and `wire_tool_inputs` were dropped (0 references in
+`scripts/`), taking the fixtures from ~34KB to ~5KB.
+
+**Measured before the fix:** all three raised `AgentAnalysisExtractionError`. Across the full
+committed wrapped corpus (`adversarial-firing-v9.5`, `baseline-reading-v9.6`,
+`rebaseline-reading-v9.6`) extraction raised on **15 of 15** `first-principles` dispatches and
+succeeded on the single `general-purpose` async dispatch — independently reproducing the
+shape-dependence backlog 999.160 measured live at K-of-5. After the fix: **15 of 15 extract.**
+
+**Correction to 999.160's own write-up.** The entry recorded "residual delta 0" after
+wrapper-strip and dedent. That reproduces for shape (B) *only once the transport's single trailing
+newline is also accounted for*, and does not reproduce at all for shape (C), which the entry did
+not name — there the cross-check carries no copy of the report to converge to. Shape (C) is
+handled the way the async launch stub already was: recognised and ignored, never compared.
+
+**Control falsifiability (mutation-tested 2026-09-23).** Four mutations of the shipped fix, each
+re-running `--self-test`:
+
+| Mutation | Control that caught it |
+|---|---|
+| `_strip_handback_frame` reduced to the identity function | (a) |
+| its fail-closed column-zero check disabled | (d) |
+| `_TRUNCATED_OUTPUT_PHRASE` dropped from the ignore condition | (b) |
+| trailing-newline normalisation reverted to exact `!=` | (a) |
+
+All four were caught. No mutation left `handback_frame` passing.

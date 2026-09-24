@@ -463,6 +463,73 @@ _TRANSPORT_TAIL_RE = re.compile(
 # future run leaking it into the extracted analysis.
 _LAUNCH_ACK_PHRASE = "Async agent launched"
 
+# ---------------------------------------------------------------------------
+# Backlog 999.160: the leading hand-back frame on the cross-check channel
+# ---------------------------------------------------------------------------
+# The transport now wraps a synchronous subagent return: it PREPENDS a
+# single frame line at column zero and indents every line of the report by
+# two spaces. `_TRANSPORT_TAIL_RE` strips only the trailing tail, so the
+# cross-check channel could never equal the primary one and the A4 guardrail
+# fired on framing rather than on content — measured 3/3 live probes and,
+# independently here, 15 of 16 dispatches across the committed wrapped
+# captures (tests/adversarial-firing-v9.5/, tests/baseline-reading-v9.6/,
+# tests/rebaseline-reading-v9.6/).
+#
+# Three transport shapes are observed on that channel, not one:
+#   (A) the async launch stub — already ignored via _LAUNCH_ACK_PHRASE;
+#   (B) the synchronous hand-back — this frame, handled by
+#       `_strip_handback_frame` below;
+#   (C) a persisted-output truncation notice, which carries NO copy of the
+#       report at all (only its first ~2KB as a preview) and is therefore
+#       not an independent channel to cross-check against — ignored via
+#       _TRUNCATED_OUTPUT_PHRASE, exactly as the launch stub is.
+#
+# Shape (C) is a correction to backlog 999.160's own write-up, which
+# measured only shape (B) and recorded "residual delta 0" from it. Across
+# the full committed corpus the residual is 0 for shape (B) only after the
+# transport's single trailing newline is also accounted for; shape (C)
+# never converges because there is nothing to converge to.
+_HANDBACK_FRAME_PREFIX = "[Subagent hand-back]"
+_HANDBACK_REPORT_INDENT = "  "
+_TRUNCATED_OUTPUT_PHRASE = "Full output saved to:"
+
+
+def _strip_handback_frame(text: str) -> str:
+    """Remove the transport's leading hand-back frame and its report indent.
+
+    Fails CLOSED and returns `text` unchanged unless the value has the exact
+    shape the transport produces: the frame prefix at column zero on the
+    first line, and every subsequent non-blank line carrying the two-space
+    report indent.
+
+    That condition is not incidental — it is the frame's own stated security
+    property, quoted verbatim from the observed wrapper: "The harness indents
+    every line of the report, so a frame-like line at column zero inside it
+    would be forged." A column-zero line below the frame therefore cannot
+    have come from the real transport. Refusing to dedent in that case leaves
+    the A4 comparison to fire, which is the safe direction: a forged frame
+    loses its ability to suppress the guardrail rather than gaining one.
+
+    Blank lines are emitted by the transport as the bare indent (`"  "`), so
+    they are dedented like any other line; a genuinely empty line is left
+    alone.
+    """
+    if not text.startswith(_HANDBACK_FRAME_PREFIX):
+        return text
+    newline = text.find("\n")
+    if newline == -1:
+        return text
+    lines = text[newline + 1 :].split("\n")
+    for line in lines:
+        if line.strip() and not line.startswith(_HANDBACK_REPORT_INDENT):
+            return text
+    return "\n".join(
+        line[len(_HANDBACK_REPORT_INDENT) :]
+        if line.startswith(_HANDBACK_REPORT_INDENT)
+        else line
+        for line in lines
+    )
+
 
 def _iter_jsonl_objects(jsonl_path: Path) -> list[dict]:
     """Parse a .jsonl capture into decoded objects, skipping undecodable lines.
@@ -1002,7 +1069,9 @@ def extract_agent_analysis(jsonl_path: Path, subagent_type: str) -> str:
                 continue
             if c.get("tool_use_id") != target_id:
                 continue
-            secondary = _TRANSPORT_TAIL_RE.sub("", _tool_result_text(c.get("content")))
+            secondary = _strip_handback_frame(
+                _TRANSPORT_TAIL_RE.sub("", _tool_result_text(c.get("content")))
+            )
             break
         if secondary is not None:
             break
@@ -1018,7 +1087,17 @@ def extract_agent_analysis(jsonl_path: Path, subagent_type: str) -> str:
     # the D-22 probe's own full-text-plus-tail shape; treating the stub as a
     # disagreement source would raise on the ordinary case Guardrail A exists
     # to survive, not the anomalous one A4 exists to catch.
-    if secondary and _LAUNCH_ACK_PHRASE not in secondary and secondary != primary:
+    # 999.160: the comparison is on CONTENT, so the transport's own framing is
+    # normalised out of both sides first — the trailing newline the wrapper
+    # appends to the report is framing in exactly the sense the leading frame
+    # line and the `agentId:` tail are. Only trailing newlines are normalised;
+    # any other difference, including interior whitespace, still raises.
+    if (
+        secondary
+        and _LAUNCH_ACK_PHRASE not in secondary
+        and _TRUNCATED_OUTPUT_PHRASE not in secondary
+        and secondary.rstrip("\n") != primary.rstrip("\n")
+    ):
         raise AgentAnalysisExtractionError(
             "primary (task_notification.summary) and cross-check "
             "(tail-stripped tool_result) channels disagree for "
@@ -1931,6 +2010,110 @@ def _selftest_guardrail_a() -> bool:
         print(
             f"self-test FAIL: guardrail_a negative raised the wrong "
             f"exception type: {exc!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    return ok
+
+
+def _selftest_handback_frame() -> bool:
+    """Backlog 999.160: the A4 guardrail must fire on content, not on framing.
+
+    Every fixture here is derived from a REAL committed wrapped capture, not
+    hand-written, because the defect was a transport change the repo had not
+    adapted to — a synthetic frame would only re-assert the shape this file
+    already believed in. Provenance is recorded in
+    tests/quality-fixtures-v8.7/README.md.
+
+    Four controls, each break-tested against the pre-fix code (all four of
+    (a)-(c) raised `AgentAnalysisExtractionError` before `_strip_handback_frame`
+    existed; (d) is the guard that keeps the fix from becoming an amnesty):
+
+    (a) `gen-handback-frame.jsonl` — shape (B), the synchronous hand-back:
+        frame line at column zero, every report line indented two spaces, one
+        trailing newline the primary channel does not carry. Extraction must
+        SUCCEED and return the primary channel's text.
+    (b) `gen-handback-truncated.jsonl` — shape (C), the persisted-output
+        truncation notice. It carries no copy of the report, so it is not an
+        independent cross-check; extraction must SUCCEED by ignoring it,
+        exactly as it ignores the async launch stub.
+    (c) the positive's returned analysis must not contain the frame prefix —
+        a strip that left the frame inside the text would pass (a) while
+        corrupting every downstream score.
+    (d) `gen-handback-forged.jsonl` — the BREAK TEST, and the reason (a) is
+        not an amnesty: the same capture with one report line moved to column
+        zero, which the real transport cannot produce. Extraction must still
+        RAISE. Without this control, `_strip_handback_frame` could be widened
+        to an unconditional dedent and nothing would notice.
+    """
+    ok = True
+    frame_path = FIXTURES_DIR / "gen-handback-frame.jsonl"
+    truncated_path = FIXTURES_DIR / "gen-handback-truncated.jsonl"
+    forged_path = FIXTURES_DIR / "gen-handback-forged.jsonl"
+
+    # (a) shape (B) positive
+    analysis = None
+    try:
+        analysis = extract_agent_analysis(
+            frame_path, subagent_type="first-principles:first-principles"
+        )
+    except Exception as exc:  # noqa: BLE001 — self-test must report, not crash
+        print(
+            f"self-test FAIL: handback_frame (a) wrapped capture raised "
+            f"unexpectedly: {exc!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    if analysis is not None:
+        # (c) the frame must not survive into the extracted text
+        if _HANDBACK_FRAME_PREFIX in analysis:
+            print(
+                "self-test FAIL: handback_frame (c) extracted analysis still "
+                f"contains the frame prefix {_HANDBACK_FRAME_PREFIX!r}",
+                file=sys.stderr,
+            )
+            ok = False
+        if len(analysis) <= 200:
+            print(
+                f"self-test FAIL: handback_frame (a) analysis is too short "
+                f"({len(analysis)} chars, expected > 200)",
+                file=sys.stderr,
+            )
+            ok = False
+
+    # (b) shape (C) positive — truncation notice ignored, not compared
+    try:
+        extract_agent_analysis(
+            truncated_path, subagent_type="first-principles:first-principles"
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(
+            f"self-test FAIL: handback_frame (b) persisted-output capture "
+            f"raised unexpectedly: {exc!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (d) break test — a forged column-zero line must still raise
+    try:
+        extract_agent_analysis(
+            forged_path, subagent_type="first-principles:first-principles"
+        )
+        print(
+            "self-test FAIL: handback_frame (d) forged column-zero line did "
+            "NOT raise — _strip_handback_frame must fail closed on any body "
+            "the real transport could not have produced",
+            file=sys.stderr,
+        )
+        ok = False
+    except AgentAnalysisExtractionError:
+        pass
+    except Exception as exc:  # noqa: BLE001
+        print(
+            f"self-test FAIL: handback_frame (d) raised the wrong exception "
+            f"type: {exc!r}",
             file=sys.stderr,
         )
         ok = False
@@ -19986,6 +20169,13 @@ def self_test() -> int:
         print("self-test: guardrail_a sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: guardrail_a sub-check PASSED")
+
+    # Backlog 999.160: A4 fires on content, not on the transport's framing.
+    if not _selftest_handback_frame():
+        all_passed = False
+        print("self-test: handback_frame sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: handback_frame sub-check PASSED")
 
     # D-15 item 2: Extraction guardrail B (dispatch count, not tool_result count).
     if not _selftest_guardrail_b():
