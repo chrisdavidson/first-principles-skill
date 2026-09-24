@@ -405,6 +405,96 @@ REGISTRY: tuple[RetractedClaim, ...] = (
         # invisible to this entry.
         exemptions=(),
     ),
+    # ---------------------------------------------------------------------
+    # The four below were retracted by quick task 260924-crn (2026-09-24),
+    # closing 999.166 against the adjudication that found the Carnot worked
+    # example's reservoir pair wrong on three independent grounds. One root:
+    # the drill took the molten-salt COLD TANK (563 K) as the power cycle's
+    # cold reservoir. It is not -- the salt loop is the heat SOURCE and
+    # returns at 290 C, while the steam cycle rejects to a condenser at
+    # near-ambient temperature, so nothing in the plant rejects heat at
+    # 290 C. Every figure below followed from that one substitution. All four
+    # read 0 across the scanned surfaces at registration, measured with this
+    # module's own `_normalise` and `_iter_scan_files` rather than a bare
+    # grep, so none carries an exemption. `.planning/` quotes all four at
+    # length and is outside SCAN_GLOBS by design; a CHANGELOG entry quoting
+    # one will need an exemption.
+    #
+    # DELIBERATELY NOT REGISTERED: "The Second Law imposes this ceiling
+    # absolutely." The sentence is not false on its own -- the Second Law does
+    # impose ceilings absolutely. What was false was its CO-OCCURRENCE with
+    # ~33%, and a literal register cannot express a co-occurrence. Barring a
+    # sentence that is true in isolation would make this gate assert something
+    # it cannot support. The first entry below bars the number the sentence was
+    # attached to, which is the part that was false.
+    # ---------------------------------------------------------------------
+    RetractedClaim(
+        literal="Law-permitted ceiling: ~33%",
+        retracted_by="999.166",
+        corrected=(
+            "The law-permitted ceiling for this cycle is ~61-62% -- 62.3% "
+            "wet-cooled (1 - 316/838) and 60.6% air-cooled (1 - 330/838), the "
+            "condenser being the cycle's actual cold reservoir. 32.8% is the "
+            "Carnot bound between the two SALT TANK temperatures, which is not "
+            "a reservoir pair any heat engine in the plant operates across. "
+            "The decisive test needs no physics: current 565 C subcritical "
+            "molten-salt tower technology is DESIGNED for 43.0% wet-cooled and "
+            "41.2% air-cooled thermal-to-electric (Sandia, OSTI 1035342 Table "
+            "2; NREL ATB, OSTI 1820100), so a claimed absolute Second-Law "
+            "ceiling of ~33% on the same quantity is exceeded by the "
+            "equipment's own design point."
+        ),
+        exemptions=(),
+    ),
+    RetractedClaim(
+        literal="**Irreducible fraction:** zero",
+        retracted_by="999.166",
+        corrected=(
+            "Most of the gap is irreducible, not none of it. Carnot's bound is "
+            "the efficiency of a REVERSIBLE cycle, and reversible heat transfer "
+            "requires either infinite exchanger area or infinite time; a machine "
+            "delivering finite power through finite hardware destroys exergy at "
+            "every heat exchange and cannot approach the ceiling however good "
+            "the equipment gets. The original sentence conceded exactly this in "
+            "its own parenthesis ('though never reaching it in finite time for a "
+            "finite-power machine') and then set the irreducible share to zero "
+            "anyway."
+        ),
+        exemptions=(),
+    ),
+    RetractedClaim(
+        literal=(
+            "The conventional 20–25% Rankine efficiency is engineering "
+            "headroom, not a physical ceiling"
+        ),
+        retracted_by="999.166",
+        corrected=(
+            "20-25% is not a Rankine cycle efficiency. It is the band that "
+            "WHOLE-PLANT annual solar-to-electric efficiency is quoted in -- "
+            "after heliostat cosine, soiling and receiver losses, and then the "
+            "power block. Solar Two's own test report separates the two: power "
+            "block 34% measured / 42% predicted, whole plant 13% measured / 22% "
+            "predicted (OSTI 793226, Table 6-1). Bracketing a power-block "
+            "Carnot ceiling against a whole-plant figure attributes optical and "
+            "receiver loss to the turbine."
+        ),
+        exemptions=(),
+    ),
+    RetractedClaim(
+        literal="the conventional figure is anchored in published turbine operating data",
+        retracted_by="999.166",
+        corrected=(
+            "It was anchored in nothing of the kind. The figure it justified "
+            "(20-25%) is a whole-plant annual solar-to-electric band, so no "
+            "turbine operating data could have produced it. A confidence line "
+            "may name only supports that exist; this one named a provenance "
+            "that never held. The replacement figures are anchored in published "
+            "design characterizations (OSTI 1035342, 1088078, 1820100) and one "
+            "published measurement (OSTI 793226), each cited at the ground "
+            "truth that carries it."
+        ),
+        exemptions=(),
+    ),
 )
 
 

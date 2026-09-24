@@ -47,11 +47,11 @@
     },
     "verdict_cells": {
       "shared-examples": {
-        "total": 77,
+        "total": 79,
         "nonconforming": 0
       },
       "generated-twin": {
-        "total": 77,
+        "total": 79,
         "nonconforming": 0
       },
       "contract-surface": {
@@ -689,7 +689,7 @@
       "conclusion_claims": 5,
       "untraced_claims": 0,
       "untraced_flag": 0,
-      "verdict_cells": 0,
+      "verdict_cells": 2,
       "nonconforming_verdict_cells": 0,
       "verdict_flag": 0,
       "chain_blocks": 1,
@@ -718,8 +718,8 @@
       "precheck_disagreements": 0,
       "rollups_checked": 1,
       "rollup_inversions": 0,
-      "hop_arithmetic_checked": 0,
-      "hop_arithmetic_unparsed": 1,
+      "hop_arithmetic_checked": 2,
+      "hop_arithmetic_unparsed": 0,
       "hop_arithmetic_mismatches": 0,
       "marked_untraced_claims": 0,
       "silent_untraced_claims": 0
@@ -1319,7 +1319,7 @@
       "conclusion_claims": 5,
       "untraced_claims": 0,
       "untraced_flag": 0,
-      "verdict_cells": 0,
+      "verdict_cells": 2,
       "nonconforming_verdict_cells": 0,
       "verdict_flag": 0,
       "chain_blocks": 1,
@@ -1348,8 +1348,8 @@
       "precheck_disagreements": 0,
       "rollups_checked": 1,
       "rollup_inversions": 0,
-      "hop_arithmetic_checked": 0,
-      "hop_arithmetic_unparsed": 1,
+      "hop_arithmetic_checked": 2,
+      "hop_arithmetic_unparsed": 0,
       "hop_arithmetic_mismatches": 0,
       "marked_untraced_claims": 0,
       "silent_untraced_claims": 0
