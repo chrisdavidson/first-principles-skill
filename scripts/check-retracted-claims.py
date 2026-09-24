@@ -342,6 +342,69 @@ REGISTRY: tuple[RetractedClaim, ...] = (
         # stays invisible, as the register is literal and always was.
         exemptions=(),
     ),
+    # ---------------------------------------------------------------------
+    # The three below were retracted by quick task 260924-swp (2026-09-24),
+    # closing 999.129 RF-01/RF-02 and 999.128. One root: Phase 46's CR-02
+    # rescope made GT-1's per-stage split explicitly unmeasured, and the
+    # sentences written before that rescope kept speaking as though the
+    # split were known. All three read 0 across the scanned surfaces at
+    # registration, measured with this module's own `_normalise` and
+    # `_iter_scan_files` rather than a bare grep, so none carries an
+    # exemption. `.planning/ROADMAP.md` quotes all three at length and is
+    # outside SCAN_GLOBS by design; a CHANGELOG entry quoting one will need
+    # an exemption.
+    # ---------------------------------------------------------------------
+    RetractedClaim(
+        literal="largest but unmeasured",
+        retracted_by="999.129 RF-01",
+        corrected=(
+            "GT-1 states 'the per-stage split is not measured', so no sentence "
+            "may rank the stages. Test execution is EXPECTED to be the largest "
+            "stage for a codebase of this profile; the expectation is stated as "
+            "an expectation, and profiling is what would confirm it. The "
+            "ranking is not lost, only its epistemic status corrected."
+        ),
+        exemptions=(),
+    ),
+    RetractedClaim(
+        literal="the test suite is the largest unmeasured share",
+        retracted_by="999.129 RF-01",
+        corrected=(
+            "Same retraction as the entry above, in the wording chain C1's "
+            "first hop used instead. Registered SEPARATELY because this is the "
+            "form that already escaped once: the 2026-09-24 backlog sweep "
+            "re-verified RF-01 by grepping the literal 'largest but "
+            "unmeasured', found 2 of the 3 filed sites, and recorded RF-01's "
+            "3-site list as stale -- while this third site sat in the same "
+            "file asserting the same ranking in the same clause that declares "
+            "it unmeasured. The executing task's co-occurrence falsifier "
+            "(a ranking word within 40 characters of 'unmeasured') found all "
+            "three. That is 58-CR-01's shape exactly: a retracted claim "
+            "surviving in a paraphrase because only the registered wording was "
+            "searched for."
+        ),
+        exemptions=(),
+    ),
+    RetractedClaim(
+        literal="test suite runtime (GT-1) is usually the dominant stage",
+        retracted_by="999.129 RF-02",
+        corrected=(
+            "The hedge on this sentence ('profiling confirms or refutes this') "
+            "was always correct; the CITATION was the defect. GT-1 measures "
+            "the 45-minute pipeline total and explicitly declines the "
+            "per-stage split, so it cannot be the source of a claim about "
+            "which stage dominates. The dominance claim now names itself an "
+            "expectation and says GT-1 does not measure it."
+        ),
+        # DISCLOSED BOUND: this literal bars the GT-1-attributed form only. An
+        # unattributed dominance claim ("test suite runtime is usually the
+        # dominant stage") is the CORRECTED text and must stay legal, so the
+        # literal necessarily includes the "(GT-1)" that made it false. A
+        # future miscitation through a different ground truth -- "(GT-3) is
+        # usually the dominant stage" -- is a different literal and is
+        # invisible to this entry.
+        exemptions=(),
+    ),
 )
 
 
