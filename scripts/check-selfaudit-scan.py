@@ -403,8 +403,19 @@ _BODY_LEDGER_CLEAN = "Only once the ledger is clean"
 _SCAN_HEADING = "## Self-audit scan (process output)"
 _COLS_CHAIN = (
     "Chain | Chain Head (brief) | Form conforming? | Rule applied | "
-    "Dependency clean?"
+    "Dependency clean? | Band | Act attempted? | Edges fired"
 )
+# v9.11.0 Phase 68 (LOOP-01..05) appended `Band`, `Act attempted?` and
+# `Edges fired`, and widened `Form conforming?` to a three-value vocabulary.
+#
+# NOTE ON THIS ANCHOR'S REACH, recorded because the change exposed it: this
+# literal is matched as a SUBSTRING, so the pre-Phase-68 five-column value was
+# a prefix of the new eight-column one and the widening passed the gate
+# unchanged before this line was updated. Appending a column is therefore
+# invisible to this anchor; removing or reordering one is not. The literal is
+# updated here so the gate asserts the column set the body actually ships.
+# Tightening the match itself is a guard-on-guard change (docs/PROCESS.md
+# depth rule) and is deliberately NOT taken here.
 _COLS_CLAIM = (
     "§6 Span (brief) | Construct | Claim under R11? | R11 clause applied | "
     "Chain cited"

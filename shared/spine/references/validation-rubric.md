@@ -37,7 +37,7 @@ scan.
 
 Before scoring any criterion, confirm the audit table below is present in the analysis and
 covers every named derivation chain step from section 4 — one row per chain per step, in
-order, with no step skipped. Do not proceed to verdict blocks until this is confirmed.
+order, with no step skipped. Do not proceed to verdict blocks until this is confirmed. `Form conforming?` reads `unreached` where a rule binds at a position the mechanical check cannot reach — a disclosed gap in the check, never a softer `no`, and never to be scored as a conforming block. `Band` is copied from the chain's own section-4 confidence label, so a disagreement between scan and chain is visible rather than reconciled silently. `Act attempted?` records whether the run tried to open a cited source for that chain's head inputs, and `Edges fired` which bounded re-entry edges fired for it. A load-bearing chain whose inputs are all `?`-marked and whose `Act attempted?` reads `no` is the shape this criterion most needs surfaced: a conclusion reached without once trying to check it.
 
 | Chain | Step | Step Text (brief) | Assumption surfaced? | Added to Table? |
 |-------|------|-------------------|----------------------|-----------------|
@@ -58,10 +58,10 @@ This one scan backs two non-adjacent criteria: Criterion 4 quotes the chain-form
 
 Before scoring either criterion, confirm the block `## Self-audit scan (process output)` is present in the analysis; that its chain-form table carries one row per section-4 chain block in order with no block skipped; that its claim-inventory table carries one row per section-6 construct in order with no construct skipped, non-claims included; and that its reconciliation line's counts recount against sections 4 and 6. Do not proceed to verdict blocks until this is confirmed.
 
-| Chain | Chain Head (brief) | Form conforming? | Rule applied | Dependency clean? |
-|-------|---------------------|-------------------|---------------|--------------------|
-| [chain id] | [head, brief] | [yes / no] | [rule or "n/a"] | [yes / dependency defect] |
-| [chain id] | [head, brief] | [yes / no] | [rule or "n/a"] | [yes / dependency defect] |
+| Chain | Chain Head (brief) | Form conforming? | Rule applied | Dependency clean? | Band | Act attempted? | Edges fired |
+|-------|---------------------|-------------------|---------------|--------------------|------|-----------------|-------------|
+| [chain id] | [head, brief] | [yes / no / unreached] | [rule or "n/a"] | [yes / dependency defect] | [HIGH / MEDIUM / LOW] | [yes / no] | [edges, or "none"] |
+| [chain id] | [head, brief] | [yes / no / unreached] | [rule or "n/a"] | [yes / dependency defect] | [HIGH / MEDIUM / LOW] | [yes / no] | [edges, or "none"] |
 
 | §6 Span (brief) | Construct | Claim under R11? | R11 clause applied | Chain cited |
 |-------------------|-----------|-------------------|----------------------|---------------|
