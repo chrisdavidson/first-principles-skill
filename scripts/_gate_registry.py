@@ -736,6 +736,46 @@ ENTRIES: tuple[GateEntry, ...] = (
             "control_count",
         ),
     ),
+    GateEntry(
+        key="PROV-ROLLUP",
+        gate_id="PROV-ROLLUP",
+        extra_ids=(),
+        mechanism=_ci("check-provenance-rollup"),
+        ci_job="check-provenance-rollup",
+        script="scripts/check-provenance-rollup.py",
+        run_command=(
+            "python3 scripts/check-provenance-rollup.py --self-test && "
+            "python3 scripts/check-provenance-rollup.py --dir shared/examples"
+        ),
+        summary=(
+            "The provenance roll-up's enumeration must agree with the section 3 it "
+            "summarises. Not a presence check: the enumerated ids are compared "
+            "against the document's own ground-truth population, so an emitted label "
+            "cannot satisfy it, and the template's own rule at `:136` — *where a count "
+            "and its enumeration disagree, the enumeration governs* — is what makes "
+            "the comparison decidable. A present roll-up over an empty section 3 is a "
+            "FAILURE, never a pass: every enumeration agrees vacuously with an empty "
+            "set, so that guard is what stops check 2 passing on everything. Presence "
+            "(check 1) and read-at-source coverage (check 3) are report-only by "
+            "design and cannot fail — emission rate is a K-of-N live reading, barred "
+            "from gating by `docs/v8.7-constraint-teardown.md` §2 item 3, and check 3 "
+            "was downgraded on measurement because 17 of 19 observations named their "
+            "location in the ground truth's own section-3 entry rather than on the "
+            "roll-up line, which is a question the template does not settle. Added at "
+            "backlog 999.173's registration residual: the checker shipped registered "
+            "nowhere, so its reading gated nothing and 999.176's fourteen "
+            "non-conforming exemplars shipped with the battery green."
+        ),
+        consumes=(
+            "registered_surfaces",
+            "scan_globs",
+            "locked_constants",
+            "derived_counts",
+            "disclosed_bounds_anchors",
+            "control_ids",
+            "control_count",
+        ),
+    ),
 )
 
 

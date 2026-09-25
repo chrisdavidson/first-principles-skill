@@ -153,9 +153,17 @@ reader can adjudicate each from the report.
 
 Disclosed bounds
 ----------------
-(a) **Registered nowhere.** No entry in `scripts/check-firewall-battery.sh`, no
-    CI job, no pre-commit hook. `structure_problems()` asserts that, so the
-    claim is checked rather than promised.
+(a) **Registered as PROV-ROLLUP** in `scripts/check-firewall-battery.sh` and in
+    `.github/workflows/validation.yml` (backlog 999.173's registration
+    residual). It shipped registered nowhere, and `structure_problems()` then
+    asserted that non-registration, because it was a claim the shipping task
+    made about its own scope. Registration retires both of those assertions
+    rather than inverting them: REG-GUARD already derives "every id the battery
+    registers has a matching CI job" from the battery's own source text, and
+    restating it here would be the second grammar over one file that
+    REG-GUARD's own D-01 floor note forbids. The third assertion --- that no
+    file under `shared/` names this script --- is 999.90's trap guard, is
+    unaffected by registration, and stays.
 (b) **The roll-up is located inside section 3 only**, via the frozen
     `_slice_sections`. A roll-up emitted elsewhere in a document is not found,
     and the document reads as ABSENT (report-only, so nothing fails).
@@ -191,6 +199,7 @@ Usage:
     python3 scripts/check-provenance-rollup.py --dir shared/examples
     python3 scripts/check-provenance-rollup.py --self-test
     python3 scripts/check-provenance-rollup.py --inject empty-ground-truths
+    python3 scripts/check-provenance-rollup.py --describe   # CONF-SURFACE self-description
 
 Exit codes:
     0  a reading completed with no failing-check finding, or --self-test passed
@@ -202,6 +211,7 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import json
 import re
 import sys
 from pathlib import Path
@@ -1455,26 +1465,25 @@ def template_only_problems() -> list[str]:
 
 
 def structure_problems() -> list[str]:
-    """This module is registered nowhere, and prescribes nothing.
+    """This module prescribes nothing.
 
-    Both are claims the task made about itself, so both are checked. The
-    non-registration claim is checked in the two places registration would
-    live; the no-prescription claim is `template_only_problems()`'s job for the
-    roll-up specifically, and this adds the wider assertion that no file under
-    `shared/` mentions this script at all.
+    That is a claim the tool makes about itself, so it is checked.
+    `template_only_problems()` owns it for the roll-up form specifically; this
+    adds the wider assertion that no file under `shared/` mentions this script
+    at all, which is 999.90's trap guard -- a detector reads output, so naming
+    it on a shipped surface would convert the template-only artifact it
+    measures into a body-prescribed one and destroy the signal.
+
+    Registration under PROV-ROLLUP (999.173's residual) retired this
+    function's two former assertions that the script appeared in neither
+    `scripts/check-firewall-battery.sh` nor `.github/workflows/validation.yml`.
+    They were controls on the shipping task's scope claim, not product
+    invariants, and they are not inverted here: REG-GUARD derives
+    battery-id-implies-CI-job from the battery's own source text, and a second
+    grammar over that same file is what its D-01 floor note forbids.
     """
     problems: list[str] = []
     me = Path(__file__).name
-
-    battery = REPO_ROOT / "scripts" / "check-firewall-battery.sh"
-    if battery.exists() and me in battery.read_text(encoding="utf-8"):
-        problems.append(
-            f"{me} is referenced in check-firewall-battery.sh -- this task registers "
-            "nothing in the battery"
-        )
-    workflow = REPO_ROOT / ".github" / "workflows" / "validation.yml"
-    if workflow.exists() and me in workflow.read_text(encoding="utf-8"):
-        problems.append(f"{me} has a CI job -- this task adds none")
 
     shared = REPO_ROOT / "shared"
     if shared.is_dir():
@@ -1645,12 +1654,60 @@ def _collect_inputs(args: argparse.Namespace) -> list[Path]:
     return paths
 
 
+def describe() -> dict:
+    """Pure, gate-agnostic self-description backing PROV-ROLLUP (D-03 shape).
+
+    Every field is DERIVED from this module's own rosters, never hand-typed: a
+    hand-copied count in a generated doc page is the defect CONF-SURFACE exists
+    to prevent, and this gate's whole subject is counts that agree with the
+    lists they summarise.
+    """
+    control_ids = sorted([f.fid for f in FIXTURES] + list(INJECTIONS))
+    return {
+        "control_ids": control_ids,
+        "control_count": len(control_ids),
+        "registered_surfaces": sorted(
+            relpath
+            for _label, relpath, _expected in _TEMPLATE_ONLY_SURFACES
+            if "*" not in relpath
+        ),
+        "scan_globs": sorted(
+            relpath
+            for _label, relpath, _expected in _TEMPLATE_ONLY_SURFACES
+            if "*" in relpath
+        ),
+        "locked_constants": {
+            relpath: expected
+            for _label, relpath, expected in _TEMPLATE_ONLY_SURFACES
+        },
+        "derived_counts": {
+            "fixtures": len(FIXTURES),
+            "injections": len(INJECTIONS),
+            "template_only_surfaces": len(_TEMPLATE_ONLY_SURFACES),
+        },
+        "disclosed_bounds_anchors": sorted(
+            [
+                "presence-is-report-only",
+                "read-at-source-coverage-is-report-only",
+                "rollup-located-in-section-3-only",
+                "pre-check-line-is-not-a-rollup",
+                "ids-compared-question-mark-insensitively",
+                "section-3-read-outside-fenced-code",
+                "unreadable-document-is-named-not-failed",
+                "chain-head-window-is-head-line-only",
+                "read-at-source-grammar-unprescribed",
+            ]
+        ),
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         description=(
             "Cross-check an analysis's provenance roll-up against its own section 3. "
             "Presence and read-at-source coverage are report-only; enumeration "
-            "agreement is the failing check. Registered in no CI job and no battery."
+            "agreement is the failing check. Registered as PROV-ROLLUP in the "
+            "offline battery and in CI."
         )
     )
     ap.add_argument("--analysis", nargs="+", help="one or more analysis .md files")
@@ -1664,7 +1721,12 @@ def main(argv: list[str] | None = None) -> int:
         choices=INJECTIONS,
         help="run the control suite with one component degraded; must exit non-zero",
     )
+    ap.add_argument("--describe", action="store_true", help="emit self-description JSON")
     args = ap.parse_args(argv)
+
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return 0
 
     if args.inject:
         return self_test(args.inject)

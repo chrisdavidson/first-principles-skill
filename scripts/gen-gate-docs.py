@@ -2609,6 +2609,7 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     # and following it without checking would have retired a true disclosure.
     # The same coincidence took ('CLAUDE.md', '16') the other way: see below.
     ('CLAUDE.md', '16'): ('999.75', 2, 'CANNOT-REACH (no harvest field), and a second live instance of the 999.75 provenance blindness: "The 16 links *between* files in `first-principles/agents/references/`" is a frozen count of emitted cross-technique links, which no gate harvests. It sat unflagged only because HARN-01`s branch_count happened to read 16 inside a generated fence; backlog 999.91 moved that count to 17 and the coincidence lapsed, surfacing a residual that had been present and unnoticed all along. Both occurrences state the same claim -- the count at its definition and the same figure restated as "contributes 16 real links" -- so they are adjudicated together rather than one riding free on the other. Deferred as cannot-reach residue (D-06 proviso 2) until a field exposes the emitted link population.'),
+    ('CLAUDE.md', '20'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "the 20 v8.26 milestone requirements registered as matrix rows at Phase 16 / SHIP-03" -- an arrow-free historical requirement count in the requirements-ledger paragraph, the same exception as \'15\'/\'18\'/\'23\' above, and not a current-fact claim about the battery or CI. The paragraph\'s other \'20\' mentions are not containment hits: "(Phase 20)" and "REL-20" are citations, "v8.20" is a version identifier, and the tally paragraph\'s "17 to 20" / "20 to 21" are delta-chain termini CONTAIN-02\'s terminus arm owns. This occurrence was previously covered by coincidental in-fence corroboration from the CI-job total (20); that broke at backlog 999.173\'s registration residual when PROV-ROLLUP\'s registration moved the CI total to 21 -- the identical uncovering the \'23\' entry records for RETRACT-01 and the \'26\' entry for COLLIDE-01\'s retirement. Ledgered rather than reworded, because rewording a frozen historical count to dodge a coincidence would falsify the record it states.'),
     ('CLAUDE.md', '22'): ('999.104', 2, 'NOT A COUNT CLAIM: "this phase\'s own `/bm:code-review 22`" -- a phase-number citation, the same shape as `CLAUDE.md`\'s own \'03\' half-strip entry above, not a population total. Occurrence count lowered from 2 to 1 when VAL-05\'s retirement (Phase 40, docs/v9.4-gate-retirement.md §2.3) reworded the tally sentence off \'22\' entirely, onto \'21\' (see that key\'s own entry).'),
     ('CLAUDE.md', '260728'): ('999.73', 1, 'NOT A COUNT CLAIM: "quick task `260728-vxn`" -- a quick-task id (date-shaped digits plus a suffix), not a count. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises quick-task-id shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('CLAUDE.md', '26'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "docs/history/ -- frozen per-milestone REQUIREMENTS.md / ROADMAP.md / MILESTONE-AUDIT.md snapshots (26 milestones, v1.0 through v5.3)" -- an archived milestone-snapshot count under the Requirements surface section, unrelated to the battery/CI gate totals it happens to share a digit with. This entry\'s coincidental in-fence corroboration from the pre-retirement battery total (26) broke when COLLIDE-01 was retired (Phase 40, docs/v9.4-gate-retirement.md §2.1) moved that total to 25; the sibling "battery total (26, see above)" sentence this same coincidence used to cover was a genuinely stale current-fact claim; it was hand-corrected to 25 in that commit, went stale again when VAL-04 and VAL-05 retired, and was reworded at the Phase 40 code review (CR-01) to point at the generated population-arithmetic sentence instead of stating a digit, rather than ledgered.'),
@@ -2624,7 +2625,6 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('docs/TESTING.md', '4'): ('999.69', 3, 'CANNOT-REACH (no harvest field): `_COMPOSER_FOCUS_CEILING: int = 4`, the bolded "`_COMPOSER_FOCUS_CEILING=4`" heading, and "the value itself stays 4" -- `scripts/_battery_core.py`\'s own constant (its `== 4` comparison elsewhere on this page is already stripped structurally). Re-verified live this plan: `python3 scripts/check-routing-battery.py --describe`\'s `locked_constants` exposes only the four routing thresholds -- no field for `_COMPOSER_FOCUS_CEILING` exists today. Deferred as cannot-reach residue (D-06 proviso 2).'),
     ('docs/TESTING.md', '5'): ('999.73', 1, 'NOT A COUNT CLAIM: "--repeat 5 --min-pass 3" (the routing-battery run command) -- the sibling CLI flag value to \'3\' immediately above, in the same reproduced shell command. Out of Phase 26\'s D-E quantity-shaped scope, same disposition as \'3\'. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('docs/gates/CONF-SURFACE.md', '1'): ('999.69', 20, 'NOT A COUNT CLAIM: twenty occurrences, none a count -- the pronoun "one" ("one at a time", "a deeper one", "one real, one ..."), plan-task and test ordinals ("plan 21-20 Task 1", "Task 1 lowered it", "per test 1\'s own framing", "**Test 1 (capability, not correction).**"), and `docs/PROCESS.md` section citations ("§1", "§1.1", "§1.2") that the citation-shape stripper does not consume. None states a population total. This residue predates Phase 40 and was covered only by coincidence: `derived_counts`\' `chain_termini_uncorroborable` read 1 while `docs/ARCHITECTURE.md`\'s battery growth chain was missing VAL-05\'s hop. The Phase 40 code review (CR-02) added that hop, the derived count returned to 0, and the residue surfaced as a live finding.'),
-    ('docs/gates/CONF-SURFACE.md', '5'): ('999.69', 4, 'NOT A COUNT CLAIM: four occurrences, none a count -- "The landing site is pre-commit gate 5", "it runs entirely through pre-commit gate 5", "because pre-commit gate 5 disputes both" and "watching pre-commit gate 5" (the fifth of five fixed pre-commit gates, an ordinal position). Removed as stale by Phase 40 plan 07, when `derived_counts`\' `chain_termini_current` read 5 and covered these by coincidence; re-added at the Phase 40 code review (CR-02), whose added VAL-05 hop moved `chain_termini_current` 5 -> 6 and removed that cover.'),
     ('CLAUDE.md', '23'): ('999.69', 2, 'FROZEN HISTORICAL COUNT + PHASE CITATION (docs/PROCESS.md \u00a72\'s exception, D-06 proviso 3): "the 23 v8.18 milestone requirements registered as matrix rows at Phase 4" and "matrix rows at Phase 23 / REL-03" -- one arrow-free historical requirement count and one phase-number citation, both long-standing in the historical requirements-ledger paragraph, the same exception as \'15\'/\'18\' above. Neither is a current-fact claim about the battery. Both were previously covered by coincidental in-fence corroboration from the battery total (23); that broke at v9.8.0 when RETRACT-01\'s registration moved the total to 24 -- the identical uncovering the \'26\' entry records for COLLIDE-01\'s retirement. Ledgered rather than reworded, because rewording a frozen historical count to dodge a coincidence would falsify the record it states.'),
 }
 
@@ -2833,6 +2833,23 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # re-added (`('CLAUDE.md', '20')`, byte-identical text to its pre-40-07
 # entry); no key removed.
 #
+# Held at 21 by backlog 999.173's registration residual (PROV-ROLLUP): one
+# key added and one removed, so the ledger did not grow and only the key-set
+# digest was re-pinned. `('CLAUDE.md', '20')` is re-ledgered for the FOURTH
+# time by the same recurring mechanism -- PROV-ROLLUP's registration moved
+# the generated table's own "N in CI" text off '20' onto '21', uncovering the
+# "20 v8.26 milestone requirements" historical mention yet again. Its reason
+# text is NOT byte-identical to the pre-40-07 entry this time, because the
+# uncovering cause is a different one and stating the old cause would be
+# false. `('docs/gates/CONF-SURFACE.md', '5')` is removed as stale for the
+# second time, and for the opposite reason to the first: where VAL-05's
+# retirement made its live finding disappear outright, here it is re-covered
+# by coincidence -- this same commit's added ledger entry moved that page's
+# `containment_ledger_frozen_historical` derived count 4 -> 5, rendering a
+# bare '5' back into the fence. The two events are one step apart in the
+# same commit, which is the clearest illustration available of why this
+# ledger is emitted by `--emit-containment-ledger` and never hand-typed.
+#
 # Re-pinned by plan 40-10 Task 2: two keys removed --
 # ('docs/ARCHITECTURE.md', '644') and ('docs/TESTING.md', '644') -- both
 # FROZEN/RETIRED HISTORICAL CONSTANT permits for the retired body-budget
@@ -2861,7 +2878,7 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 _CONTAINMENT_LEDGER_MAX: int = 21
 
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:af5f132d98b21e7007a46e2c8f8409e5e31ab33ca5f27a37f2a24ba655525b3e"
+    "sha256:de7ae628f9f748b857f5133a86d3640df12f79b363e71e108aa2c21ceee36cca"
 )
 
 

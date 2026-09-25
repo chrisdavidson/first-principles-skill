@@ -624,6 +624,29 @@ gate "RETRACT-01" \
     "python3 scripts/check-retracted-claims.py --self-test" \
     "python3 scripts/check-retracted-claims.py"
 
+# PROV-ROLLUP — the provenance roll-up's enumeration must agree with the
+#               section 3 it summarises. Backlog 999.173 asked for a detector
+#               over the ONE artifact still traceable to output-template.md
+#               alone; the checker shipped at 260924-prv registered nowhere,
+#               so its reading gated nothing and 999.176 could ship green.
+#               This is that registration residual.
+#               Check 1 (presence) and check 3 (read-at-source coverage) are
+#               report-only BY DESIGN and cannot fail — emission rate is a
+#               K-of-N live reading, which docs/v8.7-constraint-teardown.md
+#               §2 item 3 bars from gating anything. Check 2 is the failing
+#               check, and it is not a presence check: it compares the
+#               enumerated ids against the document's own section 3, so an
+#               emitted label cannot satisfy it.
+#               Runs --self-test plus a live leg over the 14 shipped
+#               exemplars, matching RETRACT-01/CONF-GATE's shape. The live
+#               leg is green on absence today (999.176 records that reading);
+#               it turns into a real comparison the moment an exemplar grows
+#               a roll-up, which is what exemplar_problems() enforces.
+gate "PROV-ROLLUP" \
+    "check-provenance-rollup.py --self-test + live exemplars" \
+    "python3 scripts/check-provenance-rollup.py --self-test" \
+    "python3 scripts/check-provenance-rollup.py --dir shared/examples"
+
 # ---------------------------------------------------------------------------
 # Invariant re-confirm (D-07) — byte-frozen constants in _battery_core.py.
 #
