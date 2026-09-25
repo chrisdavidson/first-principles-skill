@@ -147,9 +147,12 @@ GT-5 (provider data exports are partial — user records yes, MFA enrollment see
 
 **Confidence:** MEDIUM — downgraded because the chain consumes GT-7? (pricing trajectory)
   and the conditional in GT-2 (first enterprise customer timing is a projection, not a
-  signed contract). Raising to HIGH requires a signed enterprise customer with stated
+  signed contract). GT-7? would be removed as a cause by a signed contract with the
+  chosen managed provider pinning the pricing trajectory through the 24-month horizon;
+  GT-2's conditional would be removed by a signed enterprise customer with stated
   SSO/SAML requirements, at which point the reversal window has already closed and the
-  decision is effectively committed.
+  decision is effectively committed. Both are required, not either — D-07 bars a HIGH
+  line while any GT-N? input stands, so resolving GT-2 alone leaves this chain at MEDIUM.
 
 ---
 
@@ -342,8 +345,9 @@ to own).
 **Confidence:** (chains C2 and C3) MEDIUM — the hybrid-path chain itself is HIGH confidence, but the
 overall recommendation inherits the MEDIUM rating from the chain on reversibility
 (which depends on GT-7? — the pricing trajectory — and the projection in GT-2 of the
-first enterprise customer's timing). Raising to HIGH requires either (a) a signed
+first enterprise customer's timing). Raising to HIGH requires both (a) a signed
 enterprise customer with stated SSO/SAML requirements, which would resolve GT-2's
-projection into a fact and either confirm or close the 9-month reversal window, or
+projection into a fact and either confirm or close the 9-month reversal window, and
 (b) a signed contract with the chosen managed provider that pins the pricing
-trajectory through the 24-month horizon, which would resolve GT-7?.
+trajectory through the 24-month horizon, which would resolve GT-7?. Either alone
+leaves C2 at MEDIUM and caps the Conclusion there with it.
