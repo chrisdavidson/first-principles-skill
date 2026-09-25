@@ -93,11 +93,10 @@ group index n ≈ 1.5:
 **Best demonstrated, observed.** Purpose-built low-latency transatlantic
 routes beat ordinary commercial routing. Hibernia Express, in service since
 September 2015, is **measured at 58.95 ms** round trip between the Equinix
-NY4 data centre in Secaucus, New Jersey and LD4 in Slough, England. Cite it
-as a **tested figure**, not an advertised one — the technique's own
-failure-modes section demands an observed, cited figure, and this one is a
-published test result. Name the endpoints explicitly, because they are not
-the floor's endpoints (see the caveat below).
+NY4 data centre in Secaucus, New Jersey and LD4 in Slough, England. That
+figure is a published test result rather than a vendor projection, which is
+what this tier requires; its endpoints are named here because they are not
+the floor's, and the caveat below says what that costs.
 
 **Conventional figure.** Ordinary commercial routing runs ≈ 70 ms RTT.
 
