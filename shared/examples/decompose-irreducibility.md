@@ -93,9 +93,10 @@ are confirmed.
 
 The Rankine cycle heat-to-electricity efficiency is bounded above by the Carnot
 limit: η_Carnot = 1 − T_cold / T_hot (temperatures in Kelvin). At T_hot = 565 °C
-= 838 K and T_cold ≈ 30 °C = 303 K, the Carnot limit is:
+= 838 K and T_cold ≈ 43 °C = 316 K — the saturation temperature at the 0.087 bar
+wet-cooled design condenser pressure, not an ambient guess — the Carnot limit is:
 
-    η_Carnot = 1 − 303/838 ≈ 63.8%
+    η_Carnot = 1 − 316/838 ≈ 62.3%
 
 Real Rankine cycles achieve 35–45% net electrical efficiency at these temperatures
 (accounting for pump work, condenser losses, and turbine isentropic efficiency).
@@ -217,7 +218,8 @@ for **Phase 3 (Establish Ground Truths)**:
   engineering specification.
 
 - **GT-3** Carnot efficiency limit for the Rankine heat-to-electricity cycle at
-  T_hot = 838 K, T_cold = 303 K: η_Carnot ≈ 63.8%; real Rankine cycle efficiency
+  T_hot = 838 K, T_cold = 316 K (the saturation temperature at the 0.087 bar wet-cooled
+  design condenser pressure): η_Carnot ≈ 62.3%; real Rankine cycle efficiency
   ≈ 35–45% (physical law: second law of thermodynamics / Carnot's theorem; confirmed
   by published operational data for commercial steam turbines at these inlet conditions).
 
@@ -281,7 +283,8 @@ assumptions table.
   engineering specification.
 
 - **GT-3** Carnot efficiency limit for the Rankine heat-to-electricity cycle at
-  T_hot = 838 K, T_cold = 303 K: η_Carnot ≈ 63.8%; real Rankine cycle efficiency
+  T_hot = 838 K, T_cold = 316 K (the saturation temperature at the 0.087 bar wet-cooled
+  design condenser pressure): η_Carnot ≈ 62.3%; real Rankine cycle efficiency
   ≈ 35–45% (physical law: second law of thermodynamics / Carnot's theorem; confirmed
   by published operational data for commercial steam turbines at these inlet conditions).
 
