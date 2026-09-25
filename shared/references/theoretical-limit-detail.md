@@ -67,7 +67,8 @@ ceiling" rule, demonstrated on the technique's own worked numbers.
 ## Example B — non-thermal (network latency floor)
 
 Theoretical-limit is not a thermodynamics tool. Here the governing hard
-constraint is the speed of light.
+constraint is the speed of light. Latency is a quantity where lower is
+better, so the governing bound is a **floor**, and the bracket runs downward.
 
 **Target:** round-trip latency between New York and London for a web service,
 conventionally ~70 ms.
@@ -78,34 +79,55 @@ queueing hops, protocol round trips, server think time.
 **Governing hard constraint:** signal propagation cannot exceed *c*, and in
 fibre it travels at *c/n*.
 
-**Ideal ceiling, derived.** c = 299,792,458 m/s (exact, by SI definition); fibre
+**Ideal floor, derived.** c = 299,792,458 m/s (exact, by SI definition); fibre
 group index n ≈ 1.5:
 
     v = 299,792,458 / 1.5 ≈ 199,862 km/s
     one-way = 5,570 km / 199,862 km/s = 27.9 ms
     round trip = 55.7 ms
 
-**Best demonstrated / conventional.** Ordinary commercial routing runs ≈ 70 ms
-RTT.
+**Best demonstrated, observed.** Purpose-built low-latency transatlantic
+routes beat ordinary commercial routing. Hibernia Express, in service since
+September 2015, is **measured at 58.95 ms** round trip between the Equinix
+NY4 data centre in Secaucus, New Jersey and LD4 in Slough, England. Cite it
+as a **tested figure**, not an advertised one — the technique's own
+failure-modes section demands an observed, cited figure, and this one is a
+published test result. Name the endpoints explicitly, because they are not
+the floor's endpoints (see the caveat below).
+
+**Conventional figure.** Ordinary commercial routing runs ≈ 70 ms RTT.
 
 **Bracket:**
 
 | Tier | Figure | Kind |
 |---|---|---|
-| Ideal ceiling (fibre, great circle) | 55.7 ms RTT | derived |
+| Ideal floor (fibre, great circle) | 55.7 ms RTT | derived |
+| Best demonstrated (Hibernia Express, NY4 Secaucus - LD4 Slough) | 58.95 ms RTT | observed, measured |
 | Conventional (commercial routing) | ~70 ms RTT | observed |
 
-- **Gap: ~14 ms, a ratio of about 1.26×.** Current practice is already within
-  about a quarter of the physical floor.
+- **Conventional -> best demonstrated: ~11 ms.** Headroom somebody has already
+  proven reachable — a procurement decision, not a physics one.
+- **Best demonstrated -> ideal floor: ~3 ms.** Headroom nobody has reached.
+  This is what is actually left to engineering once the best available route
+  is bought.
 
-**What this bracket tells you, and it is the opposite of Example A.** There is
-almost nothing to win by optimising the network path: a perfect straight fibre
-saves ~14 ms and no engineering saves more, because the remaining 55.7 ms is
-light. Any real latency budget must come from somewhere else — fewer round
-trips, caching, moving computation closer to the user. A theoretical-limit
-analysis is just as valuable when it says *stop looking here* as when it finds
-headroom, and an analysis bracketed only against a loose bound would never have
-returned that answer.
+**What this bracket tells you, and it is the opposite of Example A.** The
+~14 ms gap splits roughly 11/3: most of it is a route you can buy, and only
+~3 ms is beyond any engineering once you have bought it. *Stop looking here*
+still applies, but scoped correctly — it is the **engineering** path that is
+closed, not the procurement one, and a real latency budget still has to come
+from fewer round trips, caching, or moving computation closer to the user.
+This is the worked case for the core file's own warning: the collapsed
+two-tier bracket merged a purchasable 11 ms with an unreachable 3 ms and
+returned the wrong instruction.
+
+**Basis caveat.** The 55.7 ms floor is derived over the 5,570 km NY-London
+great circle; the 58.95 ms is measured Secaucus-to-Slough, which carries metro
+tails at both ends and the cable's Halifax/Brean landing detour, so it
+traverses a **longer** path than the floor's basis. The like-for-like gap to
+the physical floor is therefore **smaller** than the 3.25 ms the raw
+subtraction gives. The mismatch makes the residual engineering headroom look
+larger than it is, so the bracket's lesson holds a fortiori.
 
 *Note on n:* real single-mode fibre has a group index nearer 1.46–1.48, giving
 v ≈ 202,000–205,000 km/s and a floor 2–3% lower. Immaterial at this precision,
