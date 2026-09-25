@@ -8714,6 +8714,29 @@ _UNTRACKED_DELIVERABLES: dict[str, str] = {
         "under gitignored `.planning/`, so it is absent from a fresh clone and "
         "cannot be opened by any reader but the author"
     ),
+    # v9.3/ROWS-02's deliverable. Registered 2026-09-25 after this check had
+    # been failing in CI since v9.10.0 without the cause being read: the path
+    # exists on the author's disk, so the live leg passes locally and fails
+    # only on a fresh clone, which is the one place the claim is actually
+    # tested. Two prior release runs (v9.10.0, v9.11.0) went red here and were
+    # shipped anyway. The row's claim stays true -- HC-01..03 really are ticked
+    # in that file -- and what was missing is the disclosure that no reader but
+    # the author can open it.
+    ".planning/milestones/v8.19.0-REQUIREMENTS.md": (
+        "under gitignored `.planning/`, so it is absent from a fresh clone and "
+        "cannot be opened by any reader but the author"
+    ),
+    # v3.10/CONV-01 and v3.10/CONV-02's deliverable, found the same day and by
+    # the same fresh-clone run. A first pass over docs/data/matrix.json missed
+    # it because that scan filtered candidates by file extension and this value
+    # is a bare directory -- the local heuristic was weaker than the check it
+    # was trying to predict. Recorded because it is the generalisable half: a
+    # dangling-path claim is only tested where the path is actually absent, so
+    # a fresh clone is the authority and a working tree cannot stand in for it.
+    ".planning/phases": (
+        "under gitignored `.planning/`, so it is absent from a fresh clone and "
+        "cannot be opened by any reader but the author"
+    ),
 }
 
 
