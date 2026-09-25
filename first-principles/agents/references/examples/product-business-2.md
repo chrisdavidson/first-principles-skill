@@ -120,7 +120,7 @@ C3 keeps the value comparison open.
 ### Conclusion C2: The opportunity cost of not building the Slack integration this quarter is bounded and recoverable; the opportunity cost of not shipping the reporting rewrite is not
 
 GT-1 (Slack requests are inbound but no churn signal attributes departure to the gap) + GT-3 (the reporting LOI's exit clause permits non-renewal at the contract anniversary if the rewrite slips)
-→ A one-quarter delay to the Slack integration costs the team a quarter of hypothesized retention/acquisition uplift on an unmeasured base; a one-quarter slip on the reporting rewrite triggers a contractual non-renewal right on a $180K+ account and signals to the two adjacent at-risk accounts that the reporting gap remains unaddressed
+→ A one-quarter delay to the Slack integration **defers** a quarter of the hypothesized retention/acquisition uplift — a magnitude GT-5? leaves unmeasured, and one this chain deliberately does not rely on, because deferring an unquantified upside does not foreclose it; a one-quarter slip on the reporting rewrite triggers a contractual non-renewal right on a $180K+ account and signals to the two adjacent at-risk accounts that the reporting gap remains unaddressed
 → The two opportunity-cost profiles are asymmetric: the Slack delay is revisitable next quarter without contractually irreversible consequences; the reporting slip permits a contractually-irreversible customer loss
 
 **Pre-check:** head GT-1, GT-3 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
@@ -129,7 +129,15 @@ follows from contract language (GT-3) and the absence of a counterpart
 contractual trigger on the Slack side. The rival — that the Slack delay
 is equally irreversible — is ruled out by GT-3's contractual exit
 clause, which has no Slack-side counterpart (GT-1 records no churn
-signal attributing departure to the gap).
+signal attributing departure to the gap). Hop 1 names the Slack-side
+uplift, whose magnitude originates in GT-5?, but does not consume it:
+the conclusion turns on whether the delay is *revisable*, not on how
+large the deferred upside is, so GT-5? is not an input here and the
+`?-marked: none` pre-check above is correct rather than an oversight.
+Chain C3 below is where GT-5? IS load-bearing — it sits on that chain's
+head and caps it at MEDIUM. The contrast between the two chains is the
+point: a `GT-N?` mentioned to characterise what is being given up does
+not cap a chain, and the same `GT-N?` relied on for its magnitude does.
 
 ---
 
