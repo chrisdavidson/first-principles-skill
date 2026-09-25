@@ -92,7 +92,15 @@ Disclosed bounds
     hand work done in a findings write-up, precisely so no catalogued
     expectation can leak into the prompt or bias the reading.
 (c) **"Claim" means exactly what `_conclusion_claims` means by it** -- no
-    second claim definition is invented here. That function counts some
+    second claim definition is invented here, and `complete_claims` adds none
+    and drops none (it only extends each identified claim to the end of its own
+    paragraph, because `_conclusion_claims` returns a physical LINE and a
+    hard-wrapped document's line is a sentence fragment; see that function's
+    docstring for what was measured). One consequence, disclosed rather than
+    hidden: because the citation scan then runs over the completed sentence, a
+    chain cited on a continuation line is found here where `_claim_is_traced`'s
+    line-scoped reading would not find it. The difference only ever runs toward
+    finding MORE citations, never fewer. That function counts some
     section-6 meta lines (a `**Confidence:**` roll-up, a `**Pre-check:**`
     line) as claims. Asked whether a chain "supports" a confidence roll-up, a
     judge should answer UNDECIDABLE, which is one of the reasons the third
@@ -118,8 +126,24 @@ Disclosed bounds
 (g) **Transitive chain expansion is bounded and cycle-safe.** When a chain's
     head composes on another chain, that chain's block is included too, to
     `_MAX_COMPOSITION_DEPTH` levels, each block once. A genuine citation cycle
-    therefore reaches the judge as two blocks that cite each other, which is
+    therefore reaches the judge as blocks that cite each other, which is
     visible reasoning, not a structural flag.
+(h) **Expansion reads chain bodies as well as heads, and that was forced by
+    measurement.** Head-driven expansion alone inherits the blindness D-1
+    declines to fix in the detector: `_chain_head_refs` reads one line, so a
+    chain naming another chain in the prose *under* its head yields no
+    expansion. Measured on `t06-hidden-cycle-past-head.md` -- the catalogued
+    999.35 item -- where head-only expansion handed each packet a single block
+    and both claims read SUPPORTS. A second, depth-one hop now also pulls in
+    chains referenced anywhere in an included chain's body, labelled
+    `referenced-by:` in the packet so the reader can tell how a block arrived.
+    The scan is this module's own and reads a block the frozen function already
+    returned; `_chain_head_refs` is called, never altered.
+(i) **A chain reference is the document's own `C<n>` token, not prose.** A
+    chain that says "which Chain 2 does" in words contributes no expansion,
+    because the reference vocabulary is the token form `_chain_head_refs` and
+    `_cites_chain` already recognise. Measured instance:
+    `t08-verdict-contradicts-its-type.md`'s C1 confidence note.
 
 Usage:
     python3 scripts/check-claim-chain-judge.py --self-test
@@ -256,6 +280,67 @@ def _gt_key(gt_id: str) -> str:
     return gt_id.strip().rstrip("?").casefold()
 
 
+def complete_claims(section6: str, claims: list[str]) -> list[str]:
+    """Extend each `_conclusion_claims` claim to the end of its own paragraph.
+
+    `_conclusion_claims` identifies claims line by line and returns the
+    stripped physical line (or, for a list item, its text after the marker).
+    On a hard-wrapped document that is a sentence FRAGMENT, and a fragment is
+    not a claim a support question can be asked about. Measured before this
+    existed: half the claims on both measured surfaces arrived cut mid-sentence
+    (`shared/examples/estimate-fermi.md` read "The bracket width (chain C1)
+    reflects the uncertainty in", and a judge correctly answered UNDECIDABLE
+    four times over on that document because the text asserted nothing).
+
+    **The claim POPULATION is untouched.** This returns exactly one string per
+    input claim, in the same order, and adds no claim and drops none --
+    `_conclusion_claims` remains the sole authority on which lines are claims,
+    and it is called, never altered. What changes is only how much of each
+    identified claim's own paragraph the judge is shown.
+
+    Continuation stops at a blank line, a fenced line, or a line that opens a
+    new claim shape. Lines are joined with single spaces, undoing the wrap.
+    """
+    lines = section6.split("\n")
+    fenced = QH._fenced_code_flags(lines)
+    completed: list[str] = []
+    cursor = 0
+    for claim in claims:
+        found: int | None = None
+        for idx in range(cursor, len(lines)):
+            if fenced[idx]:
+                continue
+            stripped = lines[idx].strip()
+            if stripped == claim:
+                found = idx
+                break
+            lm = QH._LIST_ITEM_RE.match(stripped)
+            if lm and lm.group(1).strip() == claim:
+                found = idx
+                break
+        if found is None:
+            # Unlocatable: hand over the claim exactly as the detector gave it
+            # rather than guessing. Never a silent drop.
+            completed.append(claim)
+            continue
+        cursor = found + 1
+        parts = [claim]
+        for idx in range(found + 1, len(lines)):
+            if fenced[idx]:
+                break
+            nxt = lines[idx].strip()
+            if not nxt:
+                break
+            if QH._BOLD_LEADIN_COLON_RE.match(nxt) or QH._LIST_ITEM_RE.match(nxt):
+                break
+            if nxt.startswith("#") or re.fullmatch(r"-{3,}", nxt):
+                break
+            parts.append(nxt)
+            cursor = idx + 1
+        completed.append(" ".join(parts))
+    return completed
+
+
 def _ledger_rows(section6: str) -> list[tuple[str, str]]:
     """Return `(quoted fragment, chain id)` for each structural closure-ledger row.
 
@@ -293,7 +378,11 @@ def extract_packets(analysis_text: str) -> list[ClaimPacket]:
     gt_by_key = {_gt_key(gt_id): (gt_id, body) for gt_id, body in gt_entries}
 
     ledger_rows = _ledger_rows(section6)
-    claims = QH._conclusion_claims(section6, chain_ids)
+    # `_conclusion_claims` decides WHICH lines are claims; `complete_claims`
+    # only extends each one to its own paragraph so the judge is shown a
+    # sentence rather than a wrapped fragment. Population, order and count are
+    # identical -- asserted by a control in `packet_problems`.
+    claims = complete_claims(section6, QH._conclusion_claims(section6, chain_ids))
 
     packets: list[ClaimPacket] = []
     for idx, claim in enumerate(claims, start=1):
@@ -328,6 +417,25 @@ def extract_packets(analysis_text: str) -> list[ClaimPacket]:
                     continue
                 add(target, f"composed-by:{QH._normalize_chain_id(parent).upper()}")
                 frontier.append((target, depth + 1))
+
+        # One further hop, driven by the chain BODY rather than its head
+        # (disclosed bound (h)). Head-driven expansion alone inherits exactly
+        # the blindness D-1 declines to fix in the detector: `_chain_head_refs`
+        # reads one line, so a chain that names another chain in the prose
+        # under its head contributes no expansion and the judge is handed one
+        # side of a two-sided dependence. Measured on
+        # `t06-hidden-cycle-past-head.md`, where both packets carried a single
+        # block and both claims read SUPPORTS. This scan lives here, in this
+        # module, and reads a block the frozen function already returned --
+        # `_chain_head_refs` is called, never altered.
+        for parent in [c.chain_id for c in chains]:
+            body = by_id.get(parent, "")
+            masked = _GT_TOKEN_MASK_RE.sub(" ", body)
+            for ref in sorted({r.upper() for r in _CHAIN_SHAPED_REF_RE.findall(masked)}):
+                target = norm_to_id.get(QH._normalize_chain_id(ref))
+                if target is None or target in seen:
+                    continue
+                add(target, f"referenced-by:{QH._normalize_chain_id(parent).upper()}")
 
         # Ground truths named by the heads of every included chain.
         gts_needed: list[str] = []
@@ -427,10 +535,15 @@ def render_packet(packet: ClaimPacket) -> str:
                 how = "named by the claim"
             elif c.via == "ledger":
                 how = "paired with this claim by the document's own closure ledger"
-            else:
+            elif c.via.startswith("composed-by:"):
                 how = (
                     "included because "
                     f"{c.via.split(':', 1)[1]}'s first line builds on it"
+                )
+            else:
+                how = (
+                    "included because "
+                    f"{c.via.split(':', 1)[1]} refers to it"
                 )
             parts.append(f"{c.chain_id} ({how}):")
             parts.append("")
@@ -1042,6 +1155,122 @@ C1 (a third engineer is required)
 **Recommended approach:** (chain C1) Add a third engineer to the payments rotation.
 
 **Key insight:** (chain C2) The review backlog is the cost the rotation is paying.
+"""
+
+# Hard-wrapped section-6 prose, the shape every shipped exemplar uses. Claim 1's
+# sentence runs across three physical lines; claim 2's chain citation sits on a
+# CONTINUATION line, so it is invisible to a line-scoped citation scan.
+_FIX_WRAPPED_CLAIMS = """
+# A document
+
+## 1. Problem Essence
+
+**Core problem:** whether to add a second checkout worker.
+
+## 2. Assumptions Table
+
+| Assumption | Type | Treatment | Verdict | Verification |
+|---|---|---|---|---|
+| Queue depth is the binding constraint | untested belief | Verify | Challenge | measured |
+
+## 3. Ground Truths
+
+- **GT-1** The checkout queue holds a p99 of 900 jobs -- source: direct measurement.
+- **GT-2** One worker clears 12 jobs per minute -- source: direct measurement.
+
+## 4. Derivation Chains
+
+### Conclusion C1: a second worker halves the p99 drain time
+
+GT-1 (queue depth measured) + GT-2 (per-worker throughput measured)
+-> A p99 depth of 900 jobs drains in 75 minutes on one worker
+-> Two workers clear 24 jobs a minute, halving that worst case to about 38 minutes
+
+**Confidence:** HIGH
+
+### Conclusion C2: the queue metric is the right thing to watch
+
+GT-1 (queue depth measured)
+-> Depth is recorded continuously and leads the incident
+-> Watching depth rather than worker CPU gives the earliest warning
+
+**Confidence:** MEDIUM
+
+## 5. Abandoned Reasoning
+
+### Dead End: buy a bigger machine
+
+**Why abandoned:** vertical scaling does not change per-worker throughput.
+
+## 6. Conclusion
+
+**Recommended approach:** (chain C1) Add a second checkout worker, taking the
+worst-case drain from about 75 minutes to about 38 minutes and thereby
+halving the worst-case drain to about 38 minutes.
+
+**Key insight:** Queue depth, not worker CPU, is the signal that leads the
+incident, and so the one to alert on (chain C2).
+"""
+
+# The 999.35 shape: the cross-reference is stated in the prose UNDER each head,
+# not in the head itself, so `_chain_head_refs` returns no chain ref for either
+# block and head-driven expansion yields nothing. Transcribed in shape (not in
+# content) from `t06-hidden-cycle-past-head.md`, the catalogued item this was
+# measured against.
+_FIX_PROSE_LOOP = """
+# A document
+
+## 1. Problem Essence
+
+**Core problem:** whether the new fee schedule is a net gain.
+
+## 2. Assumptions Table
+
+| Assumption | Type | Treatment | Verdict | Verification |
+|---|---|---|---|---|
+| The fee change is net-positive | untested belief | Verify | Challenge | measured |
+
+## 3. Ground Truths
+
+- **GT-1** Per-transaction net revenue rose from $0.34 to $0.41 over four weeks.
+  -- source: direct measurement (the ledger's own per-transaction record).
+- **GT-2** Pricing-attributed cancellations rose from 6 a week to 14 a week.
+  -- source: direct measurement (the cancellation reason codes, 12 weeks).
+
+## 4. Derivation Chains
+
+### Conclusion C1: the revenue gain is real and material
+
+GT-1 (per-transaction revenue rose)
+-> The $0.07 per-transaction increase across measured volume is material
+-> The fee change is producing a measurable revenue gain
+
+This gain is only worth keeping once the retention picture in C2 is weighed against
+it, and C2's own loss figure is itself calculated by assuming the fee change in this
+chain stays in place.
+
+**Confidence:** MEDIUM
+
+### Conclusion C2: the churn loss is a real and growing cost
+
+GT-2 (cancellations rose)
+-> The extra 8 cancellations a week carry a recurring revenue loss
+-> The churn loss is a growing cost of keeping the schedule
+
+This loss is a fair comparison against C1's gain only once that gain is confirmed to
+persist, since the loss computed here presumes the schedule C1 justifies keeping.
+
+**Confidence:** MEDIUM
+
+## 5. Abandoned Reasoning
+
+### Dead End: raise fees further
+
+**Why abandoned:** the cancellation trend is already the binding cost.
+
+## 6. Conclusion
+
+**Recommended approach:** (chain C1) Keep the new fee schedule.
 """
 
 _FIX_LEAKY = """
@@ -1684,7 +1913,99 @@ def packet_problems() -> list[str]:
         )
     vias = {c.via for p in cyc for c in p.chains}
     if not any(v.startswith("composed-by:") for v in vias):
-        problems.append("cycle fixture: transitive expansion never fired")
+        problems.append("cycle fixture: head-driven transitive expansion never fired")
+
+    # Disclosed bound (h): the prose-stated loop. Head-driven expansion alone
+    # must find nothing here -- asserted, so a later edit cannot quietly make
+    # this fixture pass through the head path and leave the body path
+    # unmeasured -- and the body-driven hop must supply the other block.
+    loop = extract_packets(_FIX_PROSE_LOOP)
+    if len(loop) != 1:
+        problems.append(f"prose-loop fixture: expected 1 claim, got {len(loop)}")
+    else:
+        got = [(c.chain_id, c.via) for c in loop[0].chains]
+        if got != [("Conclusion C1", "cited"), ("Conclusion C2", "referenced-by:C1")]:
+            problems.append(
+                "prose-loop fixture: expected C1 cited plus C2 pulled in by a body "
+                f"reference, got {got}"
+            )
+        rendered = render_packet(loop[0])
+        if "C1 refers to it" not in rendered:
+            problems.append(
+                "prose-loop fixture: the packet does not disclose HOW the second "
+                "block arrived"
+            )
+        if "the loss computed here presumes the schedule" not in rendered:
+            problems.append(
+                "prose-loop fixture: the other side of the dependence is not in the "
+                "packet, so the judge cannot see both halves of the loop"
+            )
+    for block in QH._chain_blocks(QH._slice_sections(_FIX_PROSE_LOOP)[4]):
+        _gts, refs = QH._chain_head_refs(block)
+        if refs:
+            problems.append(
+                "prose-loop fixture no longer states its cross-reference past the "
+                f"head line ({refs!r} is head-visible), so it no longer exercises "
+                "disclosed bound (h)"
+            )
+
+    # Claim completion. Two properties, both load-bearing: the population is
+    # identical to `_conclusion_claims`' on every fixture, and a wrapped claim
+    # arrives as a whole sentence rather than a fragment.
+    for fx_text, label in (
+        (_FIX_SOUND, "sound"),
+        (_FIX_WRAPPED_CLAIMS, "wrapped"),
+        (_FIX_UNRESOLVED, "unresolved"),
+        (_FIX_CYCLE, "cycle"),
+        (_FIX_PROSE_LOOP, "prose-loop"),
+    ):
+        s6 = QH._slice_sections(fx_text)[6]
+        ids = QH._chain_ids(QH._slice_sections(fx_text)[4])
+        raw = QH._conclusion_claims(s6, ids)
+        done = complete_claims(s6, raw)
+        if len(done) != len(raw):
+            problems.append(
+                f"complete_claims changed the claim population on {label}: "
+                f"{len(raw)} -> {len(done)}"
+            )
+            continue
+        for r, d in zip(raw, done):
+            if not d.startswith(r):
+                problems.append(
+                    f"complete_claims on {label} did not preserve the detector's own "
+                    f"claim text as a prefix: {r!r} -> {d!r}"
+                )
+
+    wrapped = extract_packets(_FIX_WRAPPED_CLAIMS)
+    if len(wrapped) != 2:
+        problems.append(f"wrapped fixture: expected 2 claims, got {len(wrapped)}")
+    else:
+        first = wrapped[0].claim_text
+        if "halving the worst-case drain to about 38 minutes." not in first:
+            problems.append(
+                "wrapped fixture: the claim still arrives cut mid-sentence "
+                f"({first!r}) -- a fragment is not a claim a support question can "
+                "be asked about"
+            )
+        if "\n" in first:
+            problems.append("wrapped fixture: the completed claim was not unwrapped")
+        # The citation sits on a continuation line, so this also proves the
+        # widened citation window the docstring discloses under (c).
+        if [c.chain_id for c in wrapped[1].chains] != ["Conclusion C2"]:
+            problems.append(
+                "wrapped fixture: a citation on a continuation line was not found, "
+                f"got {[c.chain_id for c in wrapped[1].chains]}"
+            )
+    # The fixture must actually BE wrapped, or it stops exercising any of this.
+    raw_wrapped = QH._conclusion_claims(
+        QH._slice_sections(_FIX_WRAPPED_CLAIMS)[6],
+        QH._chain_ids(QH._slice_sections(_FIX_WRAPPED_CLAIMS)[4]),
+    )
+    if not any(not re.search(r"[.!?]$", c.strip()) for c in raw_wrapped):
+        problems.append(
+            "wrapped fixture is no longer hard-wrapped mid-sentence, so it no "
+            "longer exercises complete_claims"
+        )
 
     # Ground-truth entry parsing, including the `?`-marked form.
     entries = ground_truth_entries(
