@@ -13,6 +13,107 @@ installed session.
 
 ## [Unreleased]
 
+## [9.12.0] — 2026-09-25
+
+Unphased release: **v9.12.0 The Exemplars Audited**. Twenty-one backlog commits, no milestone
+phases. Where v9.11.0 made the control loop's state visible in the artifact, this one turns the
+same scrutiny on the **shipped worked examples** — and on the instruments that were supposed to
+be reading them. Every exemplar defect fixed below sat in a file the whole battery passed, because
+no gate asked the question that would have caught it — which is why half of this release is new
+instruments rather than more prose.
+
+### Fixed — the worked examples
+
+- **The cold tank is not the heat sink** (999.166). The Carnot drill took the molten-salt cold
+  tank (563 K) as its cold reservoir. That tank is part of the heat *source*; the steam cycle
+  rejects to a condenser near ambient. The bound was on a machine that does not exist, and real
+  hardware beat it on measured data — the tank pair permits at most 32.8%, while Solar Two, whose
+  tanks sat at exactly those temperatures, measured 34.1% at full load. `T_cold` now comes from
+  published design condenser pressures (316 K wet-cooled, 330 K air-cooled), the ceiling is
+  ~61–62%, and the "conventional" tier is relabelled from a whole-plant solar-to-electric band to
+  the thermal-to-electric design point it has to be to sit in the same bracket. **Irreducible
+  fraction: zero** is retracted — reversible heat transfer needs infinite area or infinite time.
+  Every replacement figure was read from its primary source in-session (OSTI 1035342, 1088078,
+  1820100, 793226), not carried from the adjudication.
+- **The unmeasured share is not a known share** (999.128, 999.129). Seven sentences written before
+  Phase 46's rescope still spoke as though the per-stage split were measured, three of them
+  asserting a stage ranking inside the same clause that declares the split unmeasured, and one
+  citing GT-1 as the source of a dominance claim GT-1 explicitly declines to supply. Hedge
+  propagation only: every arithmetic literal is byte-unchanged, verified by diffing the numeric
+  multisets of both revisions.
+- **Direction-neutral theoretical limits** (999.171). The prescription read as maximisation-only,
+  so Example B — a *latency* bracket, where lower is better — labelled its 55.7 ms floor an
+  "Ideal ceiling" and shipped two tiers where three are required. Ceiling and floor are now named
+  as the two instantiations of one governing bound, the tier is "Ideal bound", a fix-the-direction
+  step comes first, the missing middle tier is restored with a measured, dated, endpoint-named
+  figure, and the instrument and matrix were widened to match. Two sentences addressed to whoever
+  *writes* the example, transcribed from the execution plan, were removed from the shipped text.
+- **Four ground-truth bookkeeping defects.** A duplicate `GT-3` naming two propositions split, the
+  trajectory claim renumbered `GT-7?` (999.174); that `GT-7?` given the verification path D-07
+  requires on its own confidence line, with its two causes made conjunctive (999.175);
+  `estimate-fermi`'s `GT-7?` re-anchored on its primary source with every hop re-run — its
+  provenance sentence had been false even before 999.166 (999.169); and a `GT-5?` mention
+  adjudicated as characterising rather than consuming, on evidence internal to the document that
+  the backlog entry had not weighed (999.170).
+- **A rival that ruled out the wrong proposition** (999.156). C1 ends on a claim about *what
+  evidence exists*; its stated rival was a claim about *which candidate is worth more*. Ruling out
+  the second earned the endpoint nothing. The dead end's scope was overstated in the same
+  sentence — it rules out one argument for the higher-value conclusion, not the conclusion.
+- **Second-order's two lenses, at the point of use** (999.172). The actor/time lens vocabulary
+  reached 1 of 15 live captures, and 0 of 5 on a prompt built around four plainly distinct actor
+  groups where `second-order` was named in 4 of 5. Its anti-masking control proved the marker set
+  fires when the lens is present, so the reading is real.
+
+### Fixed — a gate that had been red for two releases
+
+- **TRACE-03 `DELIV-PATH` is green in CI again.** It had failed since v9.10.0 and the cause was
+  never read; two release runs went red here and shipped anyway. Three of the five dangling
+  deliverable paths were registered exemptions, two were not — both under gitignored `.planning/`, which is
+  exactly the class of gate that passes a local scan and fails only in a fresh clone.
+
+### Added — instruments
+
+- **PROV-ROLLUP is registered** (999.173). `scripts/check-provenance-rollup.py` shipped with a
+  real failing check and its own falsifiability controls, registered in neither the battery nor
+  CI — so the reading it produced gated nothing. That is how backlog 999.176's fourteen
+  non-conforming exemplars shipped with the battery GREEN. Battery **24 → 25**, plus a matching CI
+  job. The roll-up's enumeration is compared against the section 3 it summarises, so an emitted
+  label cannot satisfy it, and a present roll-up over an empty section 3 is a failure, not a
+  vacuous pass.
+- **The claim-chain judge** (999.4). `untraced_claims` read a claim as traced by any of three
+  citation routes; all three ask whether a citation is *present*, none opens the chain. A claim
+  citing the wrong chain, a chain reaching a different conclusion, or a chain that contradicts it
+  all read clean. The judge opens it. Its own first live reading over the frozen probe set found
+  two defects in the instrument — claims arriving as hard-wrapped sentence *fragments*, and a loop
+  read from one side only — both fixed here, neither touching a frozen detector.
+- **A three-valued technique-adoption scorer and the v9.12 prompt catalog** (999.147). `n/a` /
+  `absent` / `present`, because the 3-generation eval could not distinguish a technique that
+  *declined* (correctly — an ethics problem has no governing physical bound) from one that fired
+  and was ignored. Both previously scored 0/5.
+- **Ten more barred literals** in RETRACT-01 (11 → 21): three for the unmeasured-share claims,
+  four for the Carnot basis, one for the overstated dead end, two for the maximisation-only
+  bracket. Each measured at 0 occurrences before registration using the module's own normaliser,
+  and each mutation-tested — reintroduce, observe exit 1, restore, confirm the file's sha256 is
+  unchanged. One deliberately *not* registered, with the reason recorded: the sentence was not
+  false on its own, only in co-occurrence with a number, and a literal register cannot express a
+  co-occurrence. Two of the three unmeasured-share entries are paraphrases of one claim,
+  registered separately because that claim had already escaped a sweep that searched only for the
+  wording it was filed under — 58-CR-01's shape exactly.
+
+### Changed
+
+- All 17 stamps `9.11.0` → `9.12.0`.
+
+### Not claimed
+
+**The coverage headline does not move: `248 / 248 / 0 / 496`.** No requirements matrix rows are
+registered for this release, because it has no milestone requirement ids to register — it is
+twenty-one backlog entries, not a phased milestone. Every prior release's headline movement came
+from `_rows_v9NN()`; there is no `_rows_v912()`, and inventing ids after the fact to make the
+number grow would be the defect this project spends most of its gates preventing.
+
+`FIREWALL: GREEN (25/25)`; `sync-content.py --check` clean; VERSION-01 green on all 17 stamps.
+
 ## [9.11.0] — 2026-09-24
 
 Milestone release: **v9.11.0 The Loop Sees Itself**. Six phases in three strictly sequential
