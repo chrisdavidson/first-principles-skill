@@ -7253,10 +7253,11 @@ def _rows_v910() -> list[MatrixRow]:
                   '', _audit_v910,
                   surfaces=('theoretical-limit', 'agent'),
                   statement=(
-                      "The bracket is three tiers -- ideal ceiling (derived), best demonstrated "
-                      "(observed and cited), conventional -- reporting TWO gaps rather than one, "
-                      "because headroom somebody has demonstrated and headroom nobody has reached "
-                      "carry different risk."
+                      "The bracket is three tiers -- an ideal bound (derived; a ceiling when "
+                      "higher is better, a floor when lower is better), best demonstrated "
+                      "(observed and cited), and conventional -- reporting TWO gaps rather than "
+                      "one, because headroom somebody has demonstrated and headroom nobody has "
+                      "reached carry different risk."
                   ),
                   rerun_by='none'),
         MatrixRow('v9.10/TIGHT-03', 'TIGHT-03', 'v9.10', 'Test-Network',
@@ -7286,8 +7287,10 @@ def _rows_v910() -> list[MatrixRow]:
                   statement=(
                       "A non-thermodynamic Example B ships: the speed-of-light latency floor. "
                       "c/1.5 over 5,570 km gives 27.9 ms one-way and 55.7 ms RTT against ~70 ms "
-                      "observed, a ratio of 1.26x -- a bracket whose lesson is to stop looking "
-                      "here."
+                      "observed, a ratio of 1.26x -- a three-tier bracket (55.7 ms floor / "
+                      "58.95 ms Hibernia Express, measured / ~70 ms conventional) whose ~14 ms "
+                      "gap splits roughly 11/3: the engineering path is closed, the procurement "
+                      "one is not."
                   ),
                   rerun_by='none'),
         MatrixRow('v9.10/TIGHT-06', 'TIGHT-06', 'v9.10', 'Test-Network',

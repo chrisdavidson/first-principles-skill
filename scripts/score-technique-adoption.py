@@ -102,9 +102,18 @@ class Component(NamedTuple):
     overlap would make `absent` unreachable.
 
     `prescription_mode` is `all` when the prescription is a conjunction (the
-    three-tier bracket is not a bracket with a tier missing; the lens pass is
-    a coverage check over both lenses) and `any` when the prescription has
-    accepted alternate surface forms.
+    lens pass is a coverage check over both lenses) and `any` when the
+    prescription has accepted alternate surface forms (a direction word for
+    one tier, a bare noun for another).
+
+    A conjunction across several `Component`s within one `Workstream`, each
+    itself `any`, is expressed by giving every one of them the SAME
+    `invocation` set and letting `combine()` roll them up (999.171): when the
+    technique is invoked at all, every sibling component's `inv_hits` becomes
+    non-empty together, so each one reads `present` or `absent` -- never
+    `n/a` -- and the workstream is `present` only when every sibling is. The
+    three-tier bracket (`TIGHT-02`) uses this shape: one `any`-mode component
+    per tier, not one `all`-mode component with alternates inside it.
     """
 
     name: str
@@ -135,11 +144,23 @@ DECLINATION_LINE_PHRASE = Marker("not applicable", "shared/spine/SKILL-body.md:1
 
 WORKSTREAMS: tuple[Workstream, ...] = (
     Workstream(
+        # Restructured 999.171: the prescription is a conjunction across three
+        # tiers with accepted alternates *within* each tier (a direction word
+        # for tier 1, a bare noun for tier 3) -- a shape the old single
+        # `prescription_mode="all"` component could not express without either
+        # requiring every alternate at once or accepting any one of them
+        # anywhere. Splitting into one `Component` per tier, each
+        # `prescription_mode="any"`, lets `combine()` supply the conjunction
+        # across tiers for free: it already returns `absent` if any component
+        # is `absent` and `present` only when all are. All three components
+        # share the same invocation markers, which is what makes that
+        # conjunction correct rather than merely convenient -- see the
+        # Component docstring.
         id="TIGHT-02",
         title="theoretical-limit — three-tier bracket",
         components=(
             Component(
-                name="theoretical-limit three-tier bracket",
+                name="theoretical-limit ideal-bound tier",
                 slug="theoretical-limit",
                 invocation=(
                     Marker("theoretical limit", "shared/references/theoretical-limit.md:1"),
@@ -147,15 +168,52 @@ WORKSTREAMS: tuple[Workstream, ...] = (
                     Marker("governing hard constraint", "shared/references/theoretical-limit.md:21"),
                     Marker("law-permitted", "shared/references/theoretical-limit.md:47"),
                 ),
-                # theoretical-limit.md:80 "**Bracket in three tiers.** State each
-                # explicitly, and label which is which:" -- the three labels it
-                # then defines, each on its own line.
+                # theoretical-limit.md:88 "**Bracket in three tiers.**", tier 1
+                # (:90-91) named as either instantiation of the ideal bound --
+                # the 999.171 direction widening.
                 prescription=(
-                    Marker("ideal ceiling", "shared/references/theoretical-limit.md:82"),
-                    Marker("best demonstrated", "shared/references/theoretical-limit.md:84"),
-                    Marker("conventional figure", "shared/references/theoretical-limit.md:87"),
+                    Marker("ideal ceiling", "shared/references/theoretical-limit.md:90"),
+                    Marker("ideal floor", "shared/references/theoretical-limit.md:91"),
                 ),
-                prescription_mode="all",
+                prescription_mode="any",
+            ),
+            Component(
+                name="theoretical-limit best-demonstrated tier",
+                slug="theoretical-limit",
+                invocation=(
+                    Marker("theoretical limit", "shared/references/theoretical-limit.md:1"),
+                    Marker("theoretical-limit", "shared/spine/SKILL-body.md:103"),
+                    Marker("governing hard constraint", "shared/references/theoretical-limit.md:21"),
+                    Marker("law-permitted", "shared/references/theoretical-limit.md:47"),
+                ),
+                # theoretical-limit.md:94, tier 2.
+                prescription=(
+                    Marker("best demonstrated", "shared/references/theoretical-limit.md:94"),
+                ),
+                prescription_mode="any",
+            ),
+            Component(
+                name="theoretical-limit conventional tier",
+                slug="theoretical-limit",
+                invocation=(
+                    Marker("theoretical limit", "shared/references/theoretical-limit.md:1"),
+                    Marker("theoretical-limit", "shared/spine/SKILL-body.md:103"),
+                    Marker("governing hard constraint", "shared/references/theoretical-limit.md:21"),
+                    Marker("law-permitted", "shared/references/theoretical-limit.md:47"),
+                ),
+                # theoretical-limit.md:97, tier 3 -- the bare noun (matching
+                # "Conventional figure", "Conventional:" and "conventional
+                # practice" alike) plus "current practice" from the same line.
+                # Deliberately NOT widened to accept "this plant" or any other
+                # system name: that is the label rule Task 1 now states
+                # explicitly (":97-100"), so an unprescribed name is measurably
+                # non-adherent rather than merely unrecognised. See FIXTURES
+                # "r1-verbatim" for the standing control.
+                prescription=(
+                    Marker("conventional", "shared/references/theoretical-limit.md:97"),
+                    Marker("current practice", "shared/references/theoretical-limit.md:97"),
+                ),
+                prescription_mode="any",
             ),
         ),
     ),
@@ -612,6 +670,34 @@ demonstrated, Conventional
 figure — the governing hard constraint fixes the first.
 """
 
+# The three fixtures below (999.171) stand in for the `260924-tcv` QT-P1
+# captures. Those 15 captures were never persisted -- 999.172 records them as
+# session scratchpad, deliberately outside `tests/` and therefore ephemeral --
+# so there is nothing on disk to re-score. Each text below is transcribed
+# verbatim from the two output blocks quoted inside the 999.171 ROADMAP
+# amendment, the only surviving evidence the defect reached live output.
+_FIX_MINIMISATION_PRESENT = """
+Theoretical-limit tiers:
+- Ideal floor: about 1.3 kWh/m³ (reversible, at 45% recovery).
+- Best demonstrated: under 2 kWh/m³ (GT-8, salinity unstated).
+- Conventional: 3.8 kWh/m³.
+"""
+
+_FIX_R3_VERBATIM = """
+Theoretical-limit bracket:
+- **Ideal ceiling:** 1.28 kWh/m³ (reversible), or 1.75 kWh/m³ for single-stage with perfect equipment.
+- **Best demonstrated:** about 3 kWh/m³ (GT-11), at ordinary rather than Gulf salinity.
+- **Conventional:** this plant's 3.8 kWh/m³.
+- **Gaps:** ... About 1.2–1.7 kWh/m³ from demonstrated to ceiling, reached by nobody.
+"""
+
+_FIX_R1_VERBATIM = """
+Theoretical-limit tiers:
+- Ideal floor: about 1.3 kWh/m³ (reversible, at 45% recovery).
+- Best demonstrated: under 2 kWh/m³ (GT-8, salinity unstated).
+- This plant: 3.8 kWh/m³.
+"""
+
 
 class Fixture(NamedTuple):
     name: str
@@ -666,6 +752,38 @@ FIXTURES: tuple[Fixture, ...] = (
         _FIX_WRAPPED,
         {"TIGHT-02": PRESENT, "TECH-01": NA, "TECH-05": PRESENT, "TRADE/PASS": NA},
         "markers wrapped across physical lines still match — disclosed bound (b)",
+    ),
+    Fixture(
+        "minimisation-present",
+        _FIX_MINIMISATION_PRESENT,
+        {"TIGHT-02": PRESENT, "TECH-01": NA, "TECH-05": NA, "TRADE/PASS": NA},
+        "999.171: the QT-P1 r1 bracket transcribed from the ROADMAP amendment, "
+        "with its unprescribed third-tier label ('This plant:') replaced by the "
+        "prescribed 'Conventional:' — the fixture that fails if the direction "
+        "widening (ideal floor) is ever reverted. Stands in for a capture that "
+        "was never persisted; no re-score of the 15 originals occurred.",
+    ),
+    Fixture(
+        "r3-verbatim",
+        _FIX_R3_VERBATIM,
+        {"TIGHT-02": PRESENT, "TECH-01": NA, "TECH-05": NA, "TRADE/PASS": NA},
+        "999.171: QT-P1 r3, transcribed verbatim from the ROADMAP amendment — "
+        "the run that followed the (then maximisation-only) prescription into a "
+        "directional error, labelling an energy floor 'Ideal ceiling'. The "
+        "fixture that fails if the noun widening (bare 'conventional') is ever "
+        "reverted. Stands in for a capture that was never persisted; no "
+        "re-score of the 15 originals occurred.",
+    ),
+    Fixture(
+        "r1-verbatim",
+        _FIX_R1_VERBATIM,
+        {"TIGHT-02": ABSENT, "TECH-01": NA, "TECH-05": NA, "TRADE/PASS": NA},
+        "999.171: QT-P1 r1, transcribed verbatim from the ROADMAP amendment — "
+        "the standing non-widening control. Its third tier reads 'This plant:', "
+        "the system's name rather than the prescribed 'Conventional' label; "
+        "declining to match it is a deliberate, recorded call, not an "
+        "oversight. Stands in for a capture that was never persisted; no "
+        "re-score of the 15 originals occurred.",
     ),
 )
 

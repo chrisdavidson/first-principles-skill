@@ -522,6 +522,35 @@ REGISTRY: tuple[RetractedClaim, ...] = (
         # surfaces. A CHANGELOG entry quoting it will need one.
         exemptions=(),
     ),
+    RetractedClaim(
+        literal="Nothing can exceed it",
+        retracted_by="999.171",
+        corrected=(
+            "The bound theoretical-limit derives is a ceiling only when higher "
+            "is better and a floor when lower is better; 'nothing can exceed "
+            "it' asserted the bound is unconditionally an upper bound, which is "
+            "false for a minimisation quantity (latency, energy per unit "
+            "output, cost, defect rate, time-to-X). Live evidence: QT-P1 r3 "
+            "labelled a 1.28 kWh/m3 energy floor 'Ideal ceiling' while "
+            "following the (then maximisation-only) prescription faithfully — "
+            "the prescription induced the directional error, not the agent."
+        ),
+        exemptions=(),
+    ),
+    RetractedClaim(
+        literal="ideal ceiling (derived), best demonstrated",
+        retracted_by="999.171",
+        corrected=(
+            "This was the matrix restatement (v9.10/TIGHT-02) of the same "
+            "maximisation-only premise 'Nothing can exceed it' retracts above. "
+            "Registered separately because CLAUDE.md records 58-CR-01 as "
+            "55-CR-01's retracted premise resurfacing in "
+            "docs/requirements-matrix.md, from a requirement statement never "
+            "updated alongside the fix — the exact propagation path this entry "
+            "closes across scripts/*.py, docs/**/*.md and docs/data/*.json."
+        ),
+        exemptions=(),
+    ),
 )
 
 
