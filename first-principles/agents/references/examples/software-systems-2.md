@@ -83,16 +83,10 @@ produced only after the assumption table is resolved against the team's measured
   examples on the candidate providers' published pricing pages place the cost for 1,000
   MAUs (a midpoint of the 24-month projection if every tenant has 1–2 active users) in
   the rough range of $200–$800/month depending on provider, feature mix, and tier — source:
-  provider pricing pages, retrieved at the analysis date; cited as `GT-3?` because the
-  retrieved values represent published list prices and may not reflect negotiated rates,
-  feature bundles, or pricing changes within the 24-month horizon.
-
-- **GT-3?** The specific cost trajectory of any chosen managed provider over the next 24
-  months is asserted but unverified — list-price snapshots only; the providers reserve
-  the right to revise pricing tiers, and the actual MAU count at month 24 is itself a
-  projection — unverified: list prices are a snapshot, not a contract; the 24-month
-  cost path depends on both the provider's pricing decisions and the actual MAU
-  trajectory.
+  provider pricing pages, retrieved at the analysis date. This ground truth asserts the
+  price level observed at that date and nothing beyond it: the retrieved values are
+  published list prices, so they may not reflect negotiated rates or feature bundles, and
+  any extrapolation across the 24-month horizon is carried by `GT-7?`, not by this entry.
 
 - **GT-4** Building production-grade auth in-house — session-based login, secure password
   storage (bcrypt/argon2), email-based password reset with rate limiting, TOTP MFA, audit
@@ -120,6 +114,13 @@ produced only after the assumption table is resolved against the team's measured
   observation of the team's current infrastructure (secret material is in environment
   variables in the deploy platform; no audit log of access; no documented IR runbook).
 
+- **GT-7?** The specific cost trajectory of any chosen managed provider over the next 24
+  months is asserted but unverified — list-price snapshots only; the providers reserve
+  the right to revise pricing tiers, and the actual MAU count at month 24 is itself a
+  projection — unverified: list prices are a snapshot, not a contract; the 24-month
+  cost path depends on both the provider's pricing decisions and the actual MAU
+  trajectory.
+
 ---
 
 ## 4. Derivation Chains
@@ -142,9 +143,9 @@ GT-4 (4–8 weeks initial build + 0.1–0.3 FTE ongoing maintenance) + GT-3 (man
 
 GT-5 (provider data exports are partial — user records yes, MFA enrollment seeds and social-login linkages partial) + GT-2 (first enterprise customer expected in months 9–18)
 → Migrating off a managed provider before the first enterprise customer lands is cheap — the team re-issues credentials to ~120 tenants, walks each through an MFA re-enrollment, and accepts the social-login linkage loss as a one-time cost; migrating AFTER the first enterprise customer's identity records (potentially including SAML federation configuration, SCIM provisioning state, and audited access logs the customer has retention requirements on) are stored in the vendor is materially harder — the migration is no longer "re-issue credentials" but "preserve the customer's federation configuration and audit-log continuity through the migration"
-→ The buy path is reversible at low cost for ≈9 months, becomes a one-way door once the first enterprise customer is onboarded onto the vendor's SSO surface, and stays a one-way door for the rest of the 24-month horizon. The reversal window is the observable, decision-relevant quantity, not the binary "can we migrate?" question. Any future re-evaluation of the buy path must happen inside the 9-month window — after that, the decision is locked in regardless of how the cost trajectory in GT-3? resolves.
+→ The buy path is reversible at low cost for ≈9 months, becomes a one-way door once the first enterprise customer is onboarded onto the vendor's SSO surface, and stays a one-way door for the rest of the 24-month horizon. The reversal window is the observable, decision-relevant quantity, not the binary "can we migrate?" question. Any future re-evaluation of the buy path must happen inside the 9-month window — after that, the decision is locked in regardless of how the cost trajectory in GT-7? resolves.
 
-**Confidence:** MEDIUM — downgraded because the chain consumes GT-3? (pricing trajectory)
+**Confidence:** MEDIUM — downgraded because the chain consumes GT-7? (pricing trajectory)
   and the conditional in GT-2 (first enterprise customer timing is a projection, not a
   signed contract). Raising to HIGH requires a signed enterprise customer with stated
   SSO/SAML requirements, at which point the reversal window has already closed and the
@@ -340,9 +341,9 @@ to own).
 
 **Confidence:** (chains C2 and C3) MEDIUM — the hybrid-path chain itself is HIGH confidence, but the
 overall recommendation inherits the MEDIUM rating from the chain on reversibility
-(which depends on GT-3? — the pricing trajectory — and the projection in GT-2 of the
+(which depends on GT-7? — the pricing trajectory — and the projection in GT-2 of the
 first enterprise customer's timing). Raising to HIGH requires either (a) a signed
 enterprise customer with stated SSO/SAML requirements, which would resolve GT-2's
 projection into a fact and either confirm or close the 9-month reversal window, or
 (b) a signed contract with the chosen managed provider that pins the pricing
-trajectory through the 24-month horizon, which would resolve GT-3?.
+trajectory through the 24-month horizon, which would resolve GT-7?.
