@@ -850,6 +850,13 @@ _FROZEN_PATHS=(
     # phase that edited these captures could manufacture an improvement.
     'tests/trackb-run-v9.13'
     'tests/trackb-catalog-v9.13.md'
+    # emission-phase1 Stage A (2026-09-26) -- the first captures of the AGENT'S OWN
+    # document rather than the main session's summary of it. Frozen because the
+    # erratum these transcripts establish (docs/trackb-transport-erratum.md) is
+    # falsifiable only against them, and because raw/ is what makes a corrected
+    # extraction rule re-derivable instead of re-spent. raw-attempt1/ holds TB-05's
+    # voided first attempt -- the routing miss is evidence, not a mistake to tidy.
+    'tests/emission-stage-a-v9.14'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null

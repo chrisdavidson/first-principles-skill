@@ -1,0 +1,205 @@
+{
+  "complete": true,
+  "documents": {
+    "TB-01": {
+      "agent_dispatches": 1,
+      "chain_hops": 17,
+      "derivation_lines": 4,
+      "gt_identifiers": 118,
+      "section_count": 6,
+      "sections_present": [
+        "Problem Essence",
+        "Assumptions Table",
+        "Ground Truths",
+        "Derivation Chains",
+        "Abandoned Reasoning",
+        "Conclusion"
+      ],
+      "ungrounded_marks": 0,
+      "urls": 0,
+      "weight_table": true,
+      "words": 6669
+    },
+    "TB-02": {
+      "agent_dispatches": 1,
+      "chain_hops": 18,
+      "derivation_lines": 5,
+      "gt_identifiers": 76,
+      "section_count": 6,
+      "sections_present": [
+        "Problem Essence",
+        "Assumptions Table",
+        "Ground Truths",
+        "Derivation Chains",
+        "Abandoned Reasoning",
+        "Conclusion"
+      ],
+      "ungrounded_marks": 0,
+      "urls": 8,
+      "weight_table": false,
+      "words": 6566
+    },
+    "TB-03": {
+      "agent_dispatches": 2,
+      "chain_hops": 10,
+      "derivation_lines": 5,
+      "gt_identifiers": 87,
+      "section_count": 6,
+      "sections_present": [
+        "Problem Essence",
+        "Assumptions Table",
+        "Ground Truths",
+        "Derivation Chains",
+        "Abandoned Reasoning",
+        "Conclusion"
+      ],
+      "ungrounded_marks": 0,
+      "urls": 1,
+      "weight_table": false,
+      "words": 4516
+    },
+    "TB-04": {
+      "agent_dispatches": 1,
+      "chain_hops": 36,
+      "derivation_lines": 3,
+      "gt_identifiers": 143,
+      "section_count": 6,
+      "sections_present": [
+        "Problem Essence",
+        "Assumptions Table",
+        "Ground Truths",
+        "Derivation Chains",
+        "Abandoned Reasoning",
+        "Conclusion"
+      ],
+      "ungrounded_marks": 0,
+      "urls": 14,
+      "weight_table": true,
+      "words": 5850
+    },
+    "TB-05": {
+      "agent_dispatches": 1,
+      "chain_hops": 17,
+      "derivation_lines": 1,
+      "gt_identifiers": 140,
+      "section_count": 6,
+      "sections_present": [
+        "Problem Essence",
+        "Assumptions Table",
+        "Ground Truths",
+        "Derivation Chains",
+        "Abandoned Reasoning",
+        "Conclusion"
+      ],
+      "ungrounded_marks": 0,
+      "urls": 0,
+      "weight_table": true,
+      "words": 6357
+    },
+    "TB-06": {
+      "agent_dispatches": 1,
+      "chain_hops": 13,
+      "derivation_lines": 1,
+      "gt_identifiers": 90,
+      "section_count": 6,
+      "sections_present": [
+        "Problem Essence",
+        "Assumptions Table",
+        "Ground Truths",
+        "Derivation Chains",
+        "Abandoned Reasoning",
+        "Conclusion"
+      ],
+      "ungrounded_marks": 0,
+      "urls": 0,
+      "weight_table": false,
+      "words": 6980
+    },
+    "TB-07": {
+      "agent_dispatches": 1,
+      "chain_hops": 15,
+      "derivation_lines": 16,
+      "gt_identifiers": 86,
+      "section_count": 6,
+      "sections_present": [
+        "Problem Essence",
+        "Assumptions Table",
+        "Ground Truths",
+        "Derivation Chains",
+        "Abandoned Reasoning",
+        "Conclusion"
+      ],
+      "ungrounded_marks": 0,
+      "urls": 0,
+      "weight_table": false,
+      "words": 5655
+    },
+    "TB-08": {
+      "agent_dispatches": 1,
+      "chain_hops": 0,
+      "derivation_lines": 0,
+      "gt_identifiers": 0,
+      "section_count": 2,
+      "sections_present": [
+        "Ground Truths",
+        "Conclusion"
+      ],
+      "ungrounded_marks": 0,
+      "urls": 0,
+      "weight_table": false,
+      "words": 1301
+    },
+    "TB-09": {
+      "agent_dispatches": 1,
+      "chain_hops": 24,
+      "derivation_lines": 2,
+      "gt_identifiers": 100,
+      "section_count": 6,
+      "sections_present": [
+        "Problem Essence",
+        "Assumptions Table",
+        "Ground Truths",
+        "Derivation Chains",
+        "Abandoned Reasoning",
+        "Conclusion"
+      ],
+      "ungrounded_marks": 0,
+      "urls": 0,
+      "weight_table": true,
+      "words": 6863
+    },
+    "TB-10": {
+      "agent_dispatches": 1,
+      "chain_hops": 21,
+      "derivation_lines": 3,
+      "gt_identifiers": 107,
+      "section_count": 6,
+      "sections_present": [
+        "Problem Essence",
+        "Assumptions Table",
+        "Ground Truths",
+        "Derivation Chains",
+        "Abandoned Reasoning",
+        "Conclusion"
+      ],
+      "ungrounded_marks": 0,
+      "urls": 2,
+      "weight_table": false,
+      "words": 4513
+    }
+  },
+  "model": "claude-sonnet-5",
+  "predictions": {
+    "P1": 9,
+    "P2": 4,
+    "P3": 9,
+    "n": 10
+  },
+  "protocol": "emission-phase1",
+  "run_id": "emission-stage-a-v9.14",
+  "voids": {
+    "TB-08": [
+      "only 2 of 6 section headings (need >= 4) -- looks like a summary, not the document"
+    ]
+  }
+}
