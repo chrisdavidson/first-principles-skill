@@ -120,6 +120,62 @@ class RetractedClaim:
 # ---------------------------------------------------------------------------
 REGISTRY: tuple[RetractedClaim, ...] = (
     RetractedClaim(
+        literal="prescription is already present and already ignored",
+        retracted_by="2026-09-26 emission-phase1 Stage A transport probe",
+        corrected=(
+            "Refuted on its own specimen. The claim was that the always-loaded "
+            "trade-off prescription ('Assign weights. Lock them now.', 'Anchor "
+            "the scale, then score.', 'Cite the ground truth each score rests "
+            "on.') was in context for every Track B run and was ignored, "
+            "evidenced by TB-04-T's bare 82/70/63. TB-04-T is not the agent's "
+            "emission -- it is the main session's summary of it "
+            "(docs/trackb-transport-erratum.md). Re-run on the identical "
+            "prompt capturing the subagent's own document, 2026-09-26: a "
+            "'Criteria & Weights:' table with all seven weights locked and a "
+            "1-5 scale anchored per criterion, a 'Recompute check:' "
+            "reconciling the arithmetic ('net +3, matching 84-81'), and a "
+            "'Flip test:' bounding the result. The prescription was followed; "
+            "the evidence was destroyed downstream."
+        ),
+        # Registered because this was the near-fatal objection to an entire
+        # proposed milestone, and it was wrong in the direction that would
+        # have killed work that did not need doing -- or, worse, authorised a
+        # body edit to induce behaviour the agent already performs. The
+        # measured readings for that one prompt: the frozen summary carries 0
+        # of 6 section headings, 0 GT identifiers, 0 chain hops and 0 URLs;
+        # the agent's document carries 6, 143, 36 and 14.
+    ),
+    RetractedClaim(
+        literal="emits zero URLs",
+        retracted_by="2026-09-26 emission-phase1 Stage A transport probe",
+        corrected=(
+            "False of the agent; true only of the summary of it. The frozen "
+            "arm-T captures contain no URLs, and that reading was generalised "
+            "to 'there is nothing to verify' -- which in turn retired citation "
+            "verification from consideration. On the 2026-09-26 TB-04 re-run "
+            "the subagent issued 9 WebSearch and 9 WebFetch calls and its "
+            "document carries 14 URLs, including per-ground-truth source links "
+            "and logged Phase 3 fetch failures (403 Forbidden, truncated "
+            "fetch). The orchestrator's 585-word summary of that same document "
+            "carries none."
+        ),
+    ),
+    RetractedClaim(
+        literal="natural experiment on the pivot's core assumption, and it went the wrong way",
+        retracted_by="2026-09-26 emission-phase1 Stage A transport probe",
+        corrected=(
+            "There was no natural experiment, because the artifact it read was "
+            "not the agent's output. See the two entries above and "
+            "docs/trackb-transport-erratum.md."
+        ),
+        # Exemption: docs/emission-phase1-preregistration.md quotes this
+        # sentence once, in section 1, as the claim it exists to test. Quoting
+        # a retracted claim in order to refute it is the documented erratum
+        # pattern, and the gate normalises blockquote markers, so the quote is
+        # matched and must be exempted by count rather than by being quoted.
+        exemptions=(("docs/emission-phase1-preregistration.md", 1),),
+    ),
+    RetractedClaim(
         literal="are *not* inlined into the agent body",
         retracted_by="2026-09-26 pivot evaluation",
         corrected=(

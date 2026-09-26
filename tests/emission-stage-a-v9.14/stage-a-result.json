@@ -4,6 +4,7 @@
     "TB-01": {
       "agent_dispatches": 1,
       "chain_hops": 17,
+      "delivery_route": "streamed",
       "derivation_lines": 4,
       "gt_identifiers": 118,
       "section_count": 6,
@@ -23,6 +24,7 @@
     "TB-02": {
       "agent_dispatches": 1,
       "chain_hops": 18,
+      "delivery_route": "streamed",
       "derivation_lines": 5,
       "gt_identifiers": 76,
       "section_count": 6,
@@ -42,6 +44,7 @@
     "TB-03": {
       "agent_dispatches": 2,
       "chain_hops": 10,
+      "delivery_route": "handback",
       "derivation_lines": 5,
       "gt_identifiers": 87,
       "section_count": 6,
@@ -61,6 +64,7 @@
     "TB-04": {
       "agent_dispatches": 1,
       "chain_hops": 36,
+      "delivery_route": "streamed",
       "derivation_lines": 3,
       "gt_identifiers": 143,
       "section_count": 6,
@@ -80,6 +84,7 @@
     "TB-05": {
       "agent_dispatches": 1,
       "chain_hops": 17,
+      "delivery_route": "streamed",
       "derivation_lines": 1,
       "gt_identifiers": 140,
       "section_count": 6,
@@ -99,6 +104,7 @@
     "TB-06": {
       "agent_dispatches": 1,
       "chain_hops": 13,
+      "delivery_route": "streamed",
       "derivation_lines": 1,
       "gt_identifiers": 90,
       "section_count": 6,
@@ -118,6 +124,7 @@
     "TB-07": {
       "agent_dispatches": 1,
       "chain_hops": 15,
+      "delivery_route": "streamed",
       "derivation_lines": 16,
       "gt_identifiers": 86,
       "section_count": 6,
@@ -137,6 +144,7 @@
     "TB-08": {
       "agent_dispatches": 1,
       "chain_hops": 0,
+      "delivery_route": "streamed",
       "derivation_lines": 0,
       "gt_identifiers": 0,
       "section_count": 2,
@@ -152,6 +160,7 @@
     "TB-09": {
       "agent_dispatches": 1,
       "chain_hops": 24,
+      "delivery_route": "streamed",
       "derivation_lines": 2,
       "gt_identifiers": 100,
       "section_count": 6,
@@ -171,6 +180,7 @@
     "TB-10": {
       "agent_dispatches": 1,
       "chain_hops": 21,
+      "delivery_route": "streamed",
       "derivation_lines": 3,
       "gt_identifiers": 107,
       "section_count": 6,

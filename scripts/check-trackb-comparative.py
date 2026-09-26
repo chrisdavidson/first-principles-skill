@@ -210,13 +210,42 @@ _RUBRIC_CONTAMINATION_MARKERS = (
 )
 
 
-def extraction_problems(doc_text: str, min_words: int = 120) -> list[str]:
+# The agent's output contract. A plugin-arm capture that carries none of these is
+# not the agent's document -- see AGENT_CONTRACT_MIN_SECTIONS below.
+_AGENT_CONTRACT_SECTIONS = (
+    "Problem Essence",
+    "Assumptions Table",
+    "Ground Truths",
+    "Derivation Chains",
+    "Abandoned Reasoning",
+    "Conclusion",
+)
+AGENT_CONTRACT_MIN_SECTIONS = 4
+
+
+def extraction_problems(
+    doc_text: str, min_words: int = 120, *, plugin_arm: bool = False
+) -> list[str]:
     """Void-the-cell checks applied BEFORE a document reaches a judge.
 
     This harness family has twice nearly fabricated a decisive result through
     extraction faults -- once by paraphrasing an analysis down to ~15% of itself,
     once by concatenating the rubric onto an arm's output. Both would have
     produced confident, false verdicts, in OPPOSITE directions.
+
+    A THIRD fault of the same family was found on 2026-09-26 and is what
+    `plugin_arm` closes (`docs/trackb-transport-erratum.md`). Under `--plugin-dir`,
+    `claude -p` stdout is the main session's SUMMARY of the agent's document, not
+    the document. All ten arm-T captures of the v9.13 run were summaries; every
+    reading taken from them describes a summary. The two checks above could not
+    see it: a summary carries no rubric text and runs 282-699 words, far above the
+    floor. Length distinguishes a truncation, and this is a SUBSTITUTION of one
+    well-formed document for another.
+
+    `plugin_arm=True` therefore additionally requires the agent's own output
+    contract. It is opt-in per arm and MUST stay that way: the control arm is
+    unaided and will never carry the contract, so applying this to it would void
+    every control cell and destroy the comparison it exists to protect.
     """
     problems: list[str] = []
     for marker in _RUBRIC_CONTAMINATION_MARKERS:
@@ -225,6 +254,17 @@ def extraction_problems(doc_text: str, min_words: int = 120) -> list[str]:
     words = len(doc_text.split())
     if words < min_words:
         problems.append(f"implausibly short capture: {words} words < {min_words}")
+    if plugin_arm:
+        lowered = doc_text.lower()
+        found = [s for s in _AGENT_CONTRACT_SECTIONS if s.lower() in lowered]
+        if len(found) < AGENT_CONTRACT_MIN_SECTIONS:
+            problems.append(
+                f"not the agent's document: {len(found)} of "
+                f"{len(_AGENT_CONTRACT_SECTIONS)} contract sections present "
+                f"(need >= {AGENT_CONTRACT_MIN_SECTIONS}) -- under --plugin-dir, "
+                f"`claude -p` stdout is the orchestrator's summary; capture the "
+                f"subagent message instead (docs/trackb-transport-erratum.md)"
+            )
     return problems
 
 
@@ -501,7 +541,7 @@ def cmd_run(out_dir: Path, model: str) -> int:
                     dispatch_failures += 1
                     continue
             text = cap.read_text(encoding="utf-8")
-            probs = extraction_problems(text)
+            probs = extraction_problems(text, plugin_arm=(arm == "T"))
             if probs:
                 print(f"[gen] {cell} VOIDED: {probs}", flush=True)
                 voided.append(cell)
@@ -765,6 +805,49 @@ def _c12_extraction_integrity_detects_both_faults() -> str | None:
     return None
 
 
+def _c18_plugin_arm_rejects_an_orchestrator_summary() -> str | None:
+    """The v9.13 defect, as a standing control (docs/trackb-transport-erratum.md).
+
+    A 400-word summary with no contract sections must void on the plugin arm and
+    must NOT void on the control arm -- the control is unaided and never carries the
+    contract, so a symmetric check would void every control cell.
+    """
+    summary = ("Here's the analysis, distilled from the full first-principles "
+               "breakdown: " + "the city should price congestion. " * 80)
+    if len(summary.split()) < 120:
+        return "C18 fixture is under the word floor; it would void for the wrong reason"
+    plugin = extraction_problems(summary, plugin_arm=True)
+    if not any("not the agent's document" in x for x in plugin):
+        return "C18: a plugin-arm summary was accepted -- the v9.13 defect can recur"
+    if extraction_problems(summary, plugin_arm=False):
+        return ("C18: the same text voided on the CONTROL arm; that would void every "
+                "control cell and destroy the comparison")
+    document = ("# Analysis\n## Problem Essence\n## Assumptions Table\n"
+                "## Ground Truths\n## Derivation Chains\n## Abandoned Reasoning\n"
+                "## Conclusion\n" + "word " * 300)
+    if extraction_problems(document, plugin_arm=True):
+        return f"C18: a real agent document voided: {extraction_problems(document, plugin_arm=True)}"
+    return None
+
+
+def _c19_the_frozen_arm_t_captures_would_now_void() -> str | None:
+    """Re-run against the evidence: every one of the ten frozen arm-T captures must
+    fail the guard. If any passes, the guard does not cover the case it was built for."""
+    gens = REPO_ROOT / "tests" / "trackb-run-v9.13" / "generations"
+    if not gens.is_dir():
+        return None  # frozen evidence absent (shallow clone); not a failure
+    passed = [f.name for f in sorted(gens.glob("TB-*-T.txt"))
+              if not extraction_problems(f.read_text(encoding="utf-8"), plugin_arm=True)]
+    if passed:
+        return (f"C19: {len(passed)} frozen arm-T summaries still pass the plugin-arm "
+                f"guard ({passed[:3]})")
+    controls = [f.name for f in sorted(gens.glob("TB-*-C.txt"))
+                if extraction_problems(f.read_text(encoding="utf-8"), plugin_arm=False)]
+    if controls:
+        return f"C19: {len(controls)} frozen CONTROL captures void under the unchanged check ({controls[:3]})"
+    return None
+
+
 def _c13_prereg_and_code_constants_agree() -> str | None:
     """The code is the pre-registration's executable form; drift between them
     would let the run follow a protocol nobody registered."""
@@ -904,6 +987,8 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("C15-transport-bg-wait-fix", _c15_transport_carries_the_bg_wait_fix),
     ("C16-delegation-stub-rejected", _c16_a_delegation_stub_would_be_rejected),
     ("C17-status-is-derived-not-asserted", _c17_status_cannot_be_asserted_by_a_caller),
+    ("C18-plugin-arm-rejects-orchestrator-summary", _c18_plugin_arm_rejects_an_orchestrator_summary),
+    ("C19-frozen-arm-t-captures-would-void", _c19_the_frozen_arm_t_captures_would_now_void),
 )
 
 
