@@ -1,0 +1,28 @@
+## What can be concluded
+
+**Only this, at face value:** in this specific report, yield went from 62% to 71% (a 9-point absolute / ~14.5% relative increase) when the catalyst was introduced, across three runs. That's an observed association, nothing more.
+
+## What cannot be concluded — and why
+
+**1. That the catalyst caused the increase.**
+A causal claim requires a controlled comparison — other variables (substrate lot, temperature, operator, instrument, workup, run order) held constant or randomized while only the catalyst varies. Nothing in "62% to 71%, measured across three runs" tells you that happened. Plenty of ordinary confounds could produce the same numbers: a protocol tweak alongside the catalyst switch, an operator learning-curve effect if the runs were done before/after rather than interleaved, a reagent-lot change, even a change in how "theoretical yield" was calculated. None of these are ruled out by the report as stated.
+
+**2. That the difference is statistically significant.**
+A t-test or confidence interval needs a dispersion estimate (standard deviation), and none is given. This isn't just missing detail — it's decisive. Bracket the plausible run-to-run SD for bench chemistry at 1–8 percentage points, and the required sample size for adequate power swings from ~2 runs (n=3 is plenty) to ~13 runs (n=3 is badly underpowered), depending on that one unreported number. You genuinely cannot tell which regime you're in.
+
+**3. That n=3 is "obviously too small."**
+This is the mirror-image error. Small n isn't automatically invalid — it's *unknowable* without the variance. Don't overcorrect into a blanket "3 runs proves nothing" stance either; that's just as unwarranted as trusting the numbers outright.
+
+**4. That the result generalizes.**
+Even if real, this describes one substrate/scale/batch. Nothing here supports "the catalyst works" more broadly.
+
+**5. That yield alone settles whether the catalyst is "better."**
+Selectivity, cost, catalyst loading, reaction time, and byproducts are all absent. A yield gain with a selectivity loss or a much pricier catalyst could reverse the practical verdict entirely.
+
+## The single highest-leverage missing datum
+
+The run-to-run standard deviation (or raw per-run values). That one number would resolve most of the open questions above — it determines whether n=3 was adequate, whether the gap is signal or noise, and (combined with a stated control protocol) whether causal attribution is even defensible.
+
+## Bottom line
+
+Treat this as a preliminary signal worth a properly controlled, adequately-powered replication — not as a validated result to act on (scale-up, publication claims, investment) as-is. The fix is cheap: ask the lab for per-run data, a stated control protocol, and confirmation that all runs performed were reported.

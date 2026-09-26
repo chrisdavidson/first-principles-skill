@@ -1,0 +1,19 @@
+**1. Decision usefulness.** The document reaches an unambiguous position — land is not the binding constraint on solar self-sufficiency for a country of this profile — and backs it with concrete figures (≈540 km² central estimate, 500–1,700 km² range) rather than a vague direction. It goes further than most memos by naming who the estimate is *for* (a temperate, developed, ~10M-person country in the 80,000–90,000 km² class) and flagging when the conclusion doesn't apply (small, dense countries). It also redirects the reader's attention productively: it names the actual bottlenecks (storage, transmission, market economics, siting) rather than stopping at "land is fine." A reader deciding where to focus policy or investment attention has something specific to act on.
+
+**2. Evidence grounding.** The core numbers are traced to identifiable sources — LBNL 2022 utility-scale PV data for land-use intensity, a France/Germany per-capita demand anchor, Germany's observed ~12% solar share for the intermittency point — rather than asserted from nowhere. The document is also honest about the tier of sourcing: it flags in the confidence line that these are "search-synthesized rather than read at primary source." That said, a few supporting claims (the duck-curve mechanism, the "~7% of theoretical irradiance ceiling" figure, transmission-permitting lag) are stated without the same sourcing rigor applied to the headline numbers, so support is present but uneven across the load-bearing claims.
+
+**3. Assumption surfacing.** The document explicitly lists the assumptions the conclusion leans on — the demand-electrification multiplier, the cross-country transfer of a US land-density figure, the capacity-factor range, the Germany intermittency analogy — rather than burying them inside the numbers. It goes on to actually test the most consequential one: country size/density. Rather than just naming that assumption, it bounds what happens if it's wrong, producing an alternative figure (3–9% of territory) for a small, dense country. That's engagement with a specific assumption, not just a list.
+
+**4. Calibration.** The document attaches an explicit, reasoned confidence level (MEDIUM) and explains why — because the figures are synthesized from public data rather than independently re-verified. The ranges given for the headline number (540 up to 1,700 km², 0.6–2.2%) already build uncertainty into the claim rather than presenting a single false-precise figure. The one soft spot is that the "Bottom line" reads with more assertiveness ("Land is *not* the binding constraint") than the later confidence caveat would strictly license, so the confidence signal isn't applied evenly across the document's boldest versus shakier claims.
+
+**5. Falsifiability.** The document doesn't state a generic "more research is needed" caveat; instead it gives a specific, checkable boundary condition — the conclusion holds for countries in the ~80,000–90,000 km² class, and for a small, densely populated country the same method instead yields ~3–9% of territory. A reader could take a specific country's area and density and check which bracket it falls into. This is short of a full falsification test for the core method itself (e.g., it doesn't say what would overturn the land-density or demand assumptions specifically), but it is a concrete, checkable scope condition rather than boilerplate hedging.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Sound
+=== TRACKB-SCORELINE-END ===
+```

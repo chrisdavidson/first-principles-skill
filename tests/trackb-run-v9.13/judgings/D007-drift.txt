@@ -1,0 +1,19 @@
+**1. Decision usefulness — Rigorous.** The document reaches a specific, actionable conclusion: training-data disclosure alone is a weak proxy for the stated policy aim and will produce compliance theater unless paired with mandatory outcome/bias audits on the deployed system. It doesn't stop at "it depends" — it tells the reader (a policymaker or advocate evaluating this proposal) exactly what to add to make the rule work, and specifies the conditions under which the recommendation holds (disclosure as end vs. disclosure as supporting input to an audit regime). That is specific enough to execute or reject.
+
+**2. Evidence grounding — Sound.** Several load-bearing claims are anchored to checkable real-world referents — EU AI Act Art. 10/13, NYC Local Law 144, and the Amazon resume-screening case (a well-known public incident, accurately characterized as bias learned from historical labels rather than pretraining text). But other claims doing real work — e.g., "hiring AI systems today are mostly... general-purpose LLMs fine-tuned or prompted for resume screening" — are asserted as fact with no cited basis, despite being the kind of empirical claim that could have been flagged as an estimate or given a source. That keeps it a notch below rigorous.
+
+**3. Assumption surfacing — Rigorous.** The document explicitly names its key assumption ("The aim is presumably...") rather than treating it as given, and it engages with the most consequential ambiguity in the question — what "publish training data sources" actually means — by walking through three distinct readings and tracing what each would mechanically produce. This isn't a gestured-at assumption; the entire structure of the piece is built around testing it.
+
+**4. Calibration — Sound.** Confidence tracks support in most places: hedged language ("presumably," "would likely," "could matter, but only conditionally") surrounds the more speculative claims, while firmer language is reserved for things with public documentation (the Amazon case, the existence of the cited statutes). The one place confidence outruns support is the flat, unhedged claim about what architecture most hiring AI systems use today — stated as settled fact without the same care given elsewhere.
+
+**5. Falsifiability — Absent.** Nowhere does the document say what evidence would overturn its bottom line or under what discovery it would revise its position. The conditional about bundling with audits describes what would make the *policy* better, not what would make the *analysis* wrong. There's no acknowledgement, generic or specific, that the conclusion itself could be mistaken — it is presented as settled.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Absent
+=== TRACKB-SCORELINE-END ===
+```

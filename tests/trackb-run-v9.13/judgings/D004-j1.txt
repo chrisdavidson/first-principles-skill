@@ -1,0 +1,21 @@
+## Assessment
+
+**1. Decision usefulness — Rigorous.** The document doesn't just survey the terrain; it lands on an actionable default ("default to staging unless step 1 shows the runway is genuinely short") and backs it with a concrete six-step procedure a reader could start executing today (get a functional assessment, cost out alternatives, ask the parents, weight by reversibility, re-score, pre-name triggers). It also states the boundary condition under which the recommendation flips (an acute health event already having occurred), which tells the reader exactly when this guidance does and doesn't apply. That combination — a specific default plus named conditions of applicability — is what the top band asks for.
+
+**2. Evidence grounding — Sound.** Most of the reasoning is shown rather than asserted: the reversibility asymmetry (firm-specific capital vs. irrecoverable time), the proximity-isn't-sufficiency point, and the pre-mortem's failure chain are all argued in view of the reader rather than handed down as fact. But the document's centerpiece finding — that a "structured comparison across care coverage, reversibility, financial risk, child impact, parents' autonomy, and family capacity favored staying-and-scaling-support" — is stated as a conclusion with no visible weights, criteria scores, or table; the document itself says this material was stripped out. That's a load-bearing claim asserted where the support plainly existed and could have been shown, which caps this at Sound rather than Rigorous.
+
+**3. Assumption surfacing — Rigorous.** The document names its own generic-inputs assumption explicitly ("no real ages, health status, distance, or finances") and doesn't let it pass unremarked — it uses that assumption to cap overall confidence and to explain why finding 5 is "a demonstration of method, not a verdict." It also identifies the single most consequential contingent assumption (parents currently in reasonably good health) and engages with it directly by stating what happens if it's false (the health-event case inverts the whole time-pressure conclusion). That's naming plus engagement with the most consequential assumption, not just a gesture at uncertainty.
+
+**4. Calibration — Rigorous.** Confidence is not uniform across the document, and it tracks support in the right places: the procedural steps are presented with full confidence, while the one output that rests on unshown numbers (finding 5) is explicitly flagged as a method demonstration rather than a verdict — confidence is pulled back exactly where the evidence grounding is weakest. The closing paragraph goes further and names which specific claims are "general consensus, not verified against your specifics" (aging trajectory, job-market reversibility, distance-caregiving correlation), separating what the document actually knows from what it's inferring rather than issuing a blanket disclaimer.
+
+**5. Falsifiability — Rigorous.** The document states concrete, checkable conditions that would overturn its conclusion rather than generic caveats: the staying-default is explicitly reversed "unless step 1 shows the runway is genuinely short," and the good-health assumption behind finding 4 is explicitly reversed by "an acute health event." Finding 5 goes as far as naming exactly what would need to change — real weighted numbers from the reader's own situation replacing the generic weighting — and tells the reader to go rerun the comparison with them. These are specific, actionable falsification tests, not boilerplate hedges.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

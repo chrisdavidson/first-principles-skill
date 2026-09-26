@@ -1,0 +1,23 @@
+## Bottom line
+
+**A 10-million-person, temperate developed country could power itself entirely on solar PV using well under 2.5% of its total land area — central estimate ≈540 km² (~0.6% of a country the size of Austria/Czech Republic/Portugal), ranging up to ~1,700 km² (~2.2%) under a heavier electrification/lower-density scenario.** Land is *not* the binding constraint.
+
+## How that number was built
+
+- **Demand:** ~6,250 kWh/person/year (France/Germany-anchored) × 10M people ≈ **60 TWh/year** today, rising toward ~150 TWh/year if transport and heat get fully electrified.
+- **Land-use intensity:** real-world US utility-scale fixed-tilt PV data (LBNL 2022) → median **450 MWh/acre/year** (range 350–520).
+- **Footprint:** 60–150 TWh ÷ that density ≈ **500–1,700 km²**, i.e., a square roughly 23–41 km on a side.
+- **As a share of national territory:** 0.6% central case, up to 2.2% in the conservative bracket, against a representative mid-size-country land area of ~80,000–90,000 km².
+
+## What actually determines feasibility
+
+The land number is almost a non-issue — the physics leaves an order of magnitude of headroom (observed density captures only ~7% of the theoretical irradiance ceiling). The real constraints are:
+
+1. **Intermittency/storage, not capacity.** Germany has already installed roughly the per-capita nameplate capacity this estimate calls "sufficient" — yet solar supplies only ~12% of its electricity, because annual-energy-sufficient ≠ continuously-sufficient (no sun at night, seasonal skew).
+2. **Transmission buildout** — the best sites are rural/remote, and interconnection permitting typically lags construction speed.
+3. **Market economics** — as penetration rises, midday oversupply crushes wholesale prices (the "duck curve"), eroding the case for further solar investment absent storage or demand-shifting.
+4. **Siting/social friction** on the specific high-irradiance, grid-adjacent land developers want, even though the *national* land total is trivial.
+
+**Caveat surfaced by stress-testing:** this "land is a non-issue" conclusion holds for a country in the ~80,000–90,000 km² class. For a small, densely populated country, the same math pushes the footprint share to a still-manageable but non-trivial **~3–9%** of territory — worth flagging if the "10 million people" in question live somewhere small and dense rather than mid-sized.
+
+**Confidence: MEDIUM.** The demand-electrification multiplier, cross-country generalization of the US land-density figure, capacity-factor range, and the Germany benchmark are all search-synthesized rather than read at primary source — solid public figures, but not independently re-verified this session.

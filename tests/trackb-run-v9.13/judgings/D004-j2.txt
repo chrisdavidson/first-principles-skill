@@ -1,0 +1,21 @@
+Below is my scoring of `analysis.md` against the rubric.
+
+**1. Decision usefulness — Rigorous.** The document doesn't just survey the terrain; it lands on a position ("under generic weighting, full relocation doesn't come out ahead," staged/staying options score better) and converts that into a concrete, ordered six-step procedure (get a functional assessment, cost out alternatives, ask the parents, weight by reversibility, re-score with real numbers, pre-name trigger conditions). Each step is specific enough that a reader could go do it tomorrow, and the document is explicit about who it's for and the condition under which its lean flips (an already-occurred acute health event). The practical edge isn't blunted by the honesty about missing real numbers — the procedure itself remains executable regardless.
+
+**2. Evidence grounding — Hand-wavy.** The single most load-bearing claim — that a "structured comparison across care coverage, reversibility, financial risk, child impact, parents' autonomy, and family capacity" favored staying/staging over full relocation — is asserted without showing the reader the comparison itself: no weights, no scores, no table. The document even says the underlying scaffolding was stripped out, so this conclusion is unverifiable as presented. Other supporting claims (firm-specific capital not fully recovering, a multi-year runway before intensive care is typically needed, anticipated-regret bias driving urgency) are stated as general fact with no source or derivation, and are only later blanket-labeled as "general consensus, not verified against your specifics" rather than individually grounded.
+
+**3. Assumption surfacing — Rigorous.** The document names its load-bearing assumptions specifically rather than generically: that weights are generic rather than the family's own, that no real ages/health/distance/finances were used, and — most consequentially — that the parents are "currently in reasonably good health" with no acute event yet. It doesn't just name that last assumption, it engages with it directly: it states the condition under which the assumption fails (an acute health event having already occurred) and says explicitly that this inverts the entire time-pressure conclusion. That is exactly the kind of bounding-and-consequence treatment the top band asks for.
+
+**4. Calibration — Rigorous.** Confidence tracks support throughout rather than sitting at one uniform level. General, low-risk claims (guilt is a signal to investigate rather than evidence; proximity reduces cost but doesn't guarantee capacity) are stated flatly, while the numerically-dependent claims (the "clocks aren't racing" finding, the relocation-vs-staying scoring) are explicitly hedged with "but you have to check" and "unless an acute health event." The closing "Honest limitation" section separates what it's confident about (the procedure) from what it isn't (the specific numeric answer), and caps overall confidence at LOW for exactly the reasons given — this is calibration doing real work, not a pro forma disclaimer.
+
+**5. Falsifiability — Rigorous.** The document names concrete, checkable conditions that would overturn its lean: an acute health event already having occurred (inverts the "plenty of runway" finding), a geriatric assessment showing a short runway rather than a long one (inverts step 4's default toward staging), and re-running the comparison with the family's real weights and numbers instead of generic ones (could overturn finding 5 entirely). These are specific enough that a reader could actually go check them, rather than generic "further research is needed" language — though the checkable conditions are scattered across findings rather than gathered into one dedicated falsification statement.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

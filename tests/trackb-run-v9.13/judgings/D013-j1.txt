@@ -1,0 +1,19 @@
+**1. Decision usefulness — Rigorous.** The document reaches a clear, actionable position: treat "the catalyst raised yield" as a hypothesis, not a validated finding, and it spells out concretely what would need to be true for a reader to act otherwise (a controlled, fully-disclosed, adequately powered replication with disclosed run-count and variance). A reader deciding whether to trust or act on the underlying catalyst claim has enough here to decide "not yet" and knows exactly what to demand before flipping that answer.
+
+**2. Evidence grounding — Rigorous.** Every number is either given with its origin or derived live for the reader: the 9-point/14.5% gap is computed from the stated 62%→71%, the SEM shrinkage (√3, ≈58%) is shown as arithmetic, and the two illustrative signal/noise ratios (≈3.7 and ≈1.1) both check out as SD-dependent computations from the stated effect size rather than assertions. The thermodynamic claim (ΔG°=−RT ln K fixes K independent of catalyst) is a stated, checkable chemical principle rather than an unsourced assertion.
+
+**3. Assumption surfacing — Rigorous.** The document explicitly names the assumptions its own argument leans on — most consequential is the unknown per-run SD, which it doesn't just flag but bounds with two concrete scenarios showing how the conclusion flips. It also names and engages the equilibrium assumption directly ("if this reaction runs to full equilibrium"), rather than treating it as background fact, and separately flags the undisclosed-controls and undisclosed-total-runs issues as specific, load-bearing gaps rather than generic caveats.
+
+**4. Calibration — Rigorous.** Confidence tracks support throughout: the correlation is stated flatly as established, the causal claim is explicitly downgraded ("not yet supported"), and the thermodynamic argument is confidently asserted only for the well-established physics while being explicitly conditioned ("if... runs to full equilibrium") where the underlying premise is uncertain. The closing line ("Correlation is established; causation is not") is a clean, non-hedged statement of exactly what is and isn't known.
+
+**5. Falsifiability — Rigorous.** The document states a specific, checkable path to overturning its own conclusion: a controlled/randomized, fully-disclosed replication reporting per-run variance and total attempted runs. This isn't a generic "more research needed" — it names the exact missing artifact (the SD figure) and even shows numerically how that single value would resolve the question either way, which is about as checkable as a falsification criterion gets in this domain.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

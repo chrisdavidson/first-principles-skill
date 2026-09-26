@@ -1,0 +1,21 @@
+## Criterion-by-criterion assessment
+
+**1. Decision usefulness.** The document reaches a clear, specific position — don't approve the runner purchase yet — and pairs it with a concrete, executable next step: a 1–2 week time-boxed diagnostic checking queue-wait vs. execution time, test parallelization, cache-hit rate, flaky-test rerun time, and scope. It also names the condition under which the recommendation would flip (evidence of a mostly parallelizable, CPU-bound workload). This is specific enough for a reader to execute or explicitly reject, with the applicable conditions stated. **Rigorous.**
+
+**2. Evidence grounding.** Several load-bearing numbers are handled well: the diagnostic cost estimate is explicitly flagged as "illustrative," and the 73%-breakeven threshold is derived from a stated pricing ratio rather than asserted outright. But the ratio it's derived from — "an 8-core runner costs 3.67x more per minute than a 2-core one" — is presented as settled fact with no source given, and the claim that "developer wait-time cost from the status quo runs an order of magnitude higher annually" is asserted with no computation shown at all, despite doing real work in the cost-comparison argument. These are exactly the kind of claims that would have been easy to ground and weren't. **Sound.**
+
+**3. Assumption surfacing.** The document identifies the single most consequential unknown with precision — that the composition of the 47 minutes (CPU-bound work vs. serial steps vs. fixed overhead vs. flaky reruns vs. missing caching vs. suite scope) is unmeasured — and structures its entire recommendation around resolving that specific assumption rather than assuming it away. It also separately flags the batching-habit persistence as an assumption needing its own monitoring rather than folding it into the main argument uncritically. **Rigorous.**
+
+**4. Calibration.** The document states an explicit confidence level (MEDIUM) and ties it to a specific, named condition that would raise or change it, distinguishing established facts (the 47-minute duration, the batching behavior) from what remains inferred (the composition of that time, the wait-time cost multiple). The organizational-risk aside is framed as a risk worth naming rather than a certainty, consistent with the rest of the document's hedging pattern. **Rigorous.**
+
+**5. Falsifiability.** The document states a specific, checkable threshold that would overturn its conclusion: if a timing profile shows more than 80% of the 47 minutes is genuinely parallelizable CPU-bound work with negligible flakiness/caching/scope issues, hardware becomes close to a direct fix. This is concrete enough that someone running the proposed diagnostic could actually check it against the stated bar. **Rigorous.**
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

@@ -1,0 +1,19 @@
+**Decision usefulness (C1 — Rigorous):** The document lands on a specific, actionable answer to the implicit question ("is land a binding constraint on solar for a 10M-person country?"): no, with a central estimate (~540 km², ~0.6%) and a bounded range, and it names the actual constraints a reader should worry about instead (storage/intermittency, transmission, market economics, siting friction). It also states the scope condition explicitly — this holds for a country in the ~80,000–90,000 km² class — and gives the alternate figure (3–9%) for the case where that condition fails. That combination of a specific number, a clear "don't worry about X, worry about Y" recommendation, and stated applicability conditions is enough for a reader to act on or reject.
+
+**Evidence grounding (C2 — Sound):** Most of the load-bearing numbers are traceable: the land-use intensity figure is attributed to a named source (LBNL 2022, with a stated range), the demand figure is anchored to named countries, and the derivation of the footprint (demand ÷ density) is shown in view of the reader rather than just asserted. However, at least one claim doing real work for the headline conclusion — that observed density captures "only ~7% of the theoretical irradiance ceiling" — is dropped in with no stated derivation or source, and the Germany 12%-solar-share figure is presented as bare fact with no citation. The document's own closing caveat concedes several of these are "search-synthesized rather than read at primary source," which is honest but confirms the grounding is good, not airtight.
+
+**Assumption surfacing (C3 — Rigorous):** The document explicitly flags its load-bearing assumptions by name in the confidence paragraph (the demand-electrification multiplier, the cross-country generalization of a US land-density figure, the capacity-factor range, and the Germany benchmark), rather than gesturing generically. More importantly, it goes further than merely naming: it identifies the single most consequential hidden assumption — that the "10 million people" live in a mid-sized, moderate-density country — and actively stress-tests it, producing a concrete alternative figure (3–9%) for the case where that assumption fails. That is genuine engagement with the assumption that matters most, not just a list.
+
+**Calibration (C4 — Rigorous):** The document distinguishes tiers of confidence rather than asserting everything with uniform certainty: it treats the LBNL land-density figure and the Germany intermittency data point as solid real-world observations, while explicitly marking the demand-growth multiplier, the geographic generalization, and the country-size assumption as weaker, search-synthesized inferences, and it closes with an explicit "MEDIUM" confidence label tied to a stated reason. The use of a central estimate plus an honestly wider conservative bracket (0.6% vs. up to 2.2%, or 3–9% under the alternate scenario) further shows the confidence expressed is tracking the actual strength of the underlying support rather than being flatly asserted.
+
+**Falsifiability (C5 — Rigorous):** Rather than a generic "further research needed" hedge, the document gives a specific, checkable condition under which its headline conclusion would need revision: if the country in question is small and densely populated rather than in the ~80,000–90,000 km² mid-size class, the footprint share rises to a "still-manageable but non-trivial ~3–9%." A reader could go check the actual land area and population density of the country under consideration and know immediately whether the "land is a non-issue" conclusion still holds. That is a concrete overturning condition tied to a checkable fact, not a boilerplate caveat.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

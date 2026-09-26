@@ -1,0 +1,19 @@
+**1. Decision usefulness — Sound.** The document doesn't hand back a flat "join" or "don't join," but it does more than survey considerations: it establishes that the financial cushion is adequate, specifies exactly what diligence questions must be answered (startup's own runway, cap table mechanics, role centrality), and closes with an operational decision test the reader can actually run. That test is specific to the reader's situation, but the document ultimately defers the final call to the reader's answer to a question rather than committing to a position itself, which keeps its practical edge just short of "execute or reject."
+
+**2. Evidence grounding — Sound.** The equity-as-zero call is well-argued (illiquid, unpriced, dilutable) rather than merely asserted. The load-bearing numeric claim, however — that an 11-month cushion becomes "roughly 15-16 months" under a 30% pay cut — states its inputs (current spending, current cushion, magnitude of the cut) but never shows the arithmetic connecting them, so a reader can't verify the figure themselves; the basis is gestured at rather than fully shown, which is the kind of easily-given support the top band expects.
+
+**3. Assumption surfacing — Rigorous.** The single most consequential assumption in the whole argument — that equity should be valued at zero for planning purposes — is named explicitly as a deliberate simplification, not a fact, and the document reasons about what follows if that assumption is wrong ("if the decision only works when the equity pays off, it's not a decision, it's a bet"). That is direct engagement with the load-bearing assumption, which is what the top band asks for, even though secondary assumptions (e.g., that a return to stable employment will in fact be available) pass without the same scrutiny.
+
+**4. Calibration — Sound.** Confidence is generally well-matched to support: the document is emphatic about the general financial framework (cushion math, equity valuation) where its reasoning is shown, and appropriately conditional about the startup-specific and personal-risk-tolerance questions it can't answer from the outside ("If yes... If no..."). The one soft spot is the 15-16 month figure, which is delivered with more numeric confidence than its unshown derivation supports.
+
+**5. Falsifiability — Rigorous.** Rather than a generic hedge, the closing paragraph gives a concrete, situation-specific test of the recommendation's validity: imagine the startup fails in 12 months with a thinner cushion, and ask whether the choice still looks correct. That's a condition tied to this decision's actual parameters (timeframe, cushion depletion) that the reader can genuinely check against their own risk tolerance, not a boilerplate caveat that could be pasted onto any analysis.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Sound
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

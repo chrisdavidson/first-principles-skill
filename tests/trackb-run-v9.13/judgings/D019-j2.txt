@@ -1,0 +1,19 @@
+**1. Decision usefulness — Rigorous.** The document lands on a specific, actionable position: reject the binary timed-vs-take-home framing, adopt a construct-specific portfolio, retain timed/unaided formats only where the construct needs them, pair expanded take-home work with concrete lightweight verification mechanisms (checkpoints, drafts, oral spot-checks), and sequence rollout starting with TA-supported small/medium upper-division courses before scaling to large lecture courses. It also states who the recommendation is for and where it doesn't apply (the closing scope note excludes licensure-style programs). A reader could take this and start designing a rollout plan rather than merely a conversation starter.
+
+**2. Evidence grounding — Sound.** Some load-bearing claims are well grounded: the Fermi estimate for grading-capacity burden shows its inputs (a ~12-minute spot-check, twice a term, 30-student course) so the reader can inspect and challenge the arithmetic, and the pre-AI cheating rate is attributed to a named research tradition (ICAI/McCabe) rather than asserted from nowhere. But other load-bearing claims fall short: "several institutions, e.g. in the Russell Group, have already stopped treating detector scores as dispositive" names no specific institution or source, and the central mechanistic claim about detection degrading with model quality is explicitly labeled by the document itself as an "unverified Bayes-error argument." That mix of shown-basis and unsupported-but-load-bearing assertions is exactly the one-or-two-easy-to-support-claims-missing pattern of the middle band, not the top.
+
+**3. Assumption surfacing — Rigorous.** The document doesn't just gesture at uncertainty; it names the specific assumptions the conclusion depends on and engages the most consequential ones. It states outright that the detection-degradation argument is unverified and treats it as a lower-confidence input rather than a settled fact, and it flags that the entire cheating-rate premise assumes the pre-AI survey data reflects individual-authorship violations on written work — then carries that specific assumption into the falsifiability section as something that could overturn the conclusion if wrong. That is naming plus consequence-tracing, not generic hand-waving.
+
+**4. Calibration — Rigorous.** The document explicitly separates its confidence levels rather than presenting a uniform tone: the directional recommendation (reject the binary, favor construct-specific formats, treat detection skeptically) is marked as resting on three "independently MEDIUM-confidence chains" and called fairly solid, while the specific rollout-pace and capacity numbers are explicitly marked lower-confidence and "partly illustrative." This is a direct, substantive attempt to track confidence to the strength of what's underneath it, distinguishing inference from established support.
+
+**5. Falsifiability — Rigorous.** The "what would overturn this" section gives four concrete, checkable conditions rather than generic caveats: a primary-source-confirmed study showing detectors survive sustained paraphrase-evasion, an institutional study showing the grading-time estimate is significantly off, evidence that the cheating statistic doesn't reflect individual-authorship violations, or a documented real-world case where the portfolio approach failed to improve outcomes relative to a comparison group. Each is specific enough that someone could actually go look for it, which is what distinguishes this from boilerplate "more research is needed" language.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

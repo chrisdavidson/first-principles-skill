@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness — Rigorous
+
+The document lands on a specific, executable recommendation: default to congestion pricing where legally and fiscally feasible, reinvest revenue into the other two levers rather than treating them as competitors, and pair the trip-count target with a congestion/delay metric. It also specifies the decision sequence (measure mode-viable share and check hard knockouts first) and states the conditions under which the recommendation flips (car-dependent, low-density cities need infrastructure first). A reader could execute or reject this position immediately, and the document is explicit about who it's for and when the default doesn't hold.
+
+## Criterion 2: Evidence grounding — Hand-wavy
+
+Most of the load-bearing numbers — Stockholm's 20-25%, London's 10-15%, Seville's 0.6%→7% mode-share climb, and especially the weighted trade-off scores (82 vs. 70 vs. 63) that anchor the final recommendation — are stated as bare facts with no citation, link, or visible derivation. The weighting methodology behind the 82/70/63 scores is never shown, so the reader cannot check the central quantitative claim used to justify "congestion pricing wins." The document does earn some credit for flagging the Tallinn ridership breakdown as unverifiable ("couldn't verify at source — paywalled"), but that's the exception, not the pattern; the bulk of the evidentiary weight rests on unsourced figures.
+
+## Criterion 3: Assumption surfacing — Rigorous
+
+The document explicitly identifies the single load-bearing assumption the whole analysis pivots on — the city's pre-existing mode-viable share of car-commute trips — names it as the decisive variable rather than a background premise, and works through what happens if it's high versus low. It goes further and flags a second consequential assumption as unresolved (whether Stockholm/London's results reflect pre-existing transit viability or just enforcement/charge intensity), rather than treating its own causal story as settled.
+
+## Criterion 4: Calibration — Rigorous
+
+Confidence is explicitly graded rather than uniform: the document states "medium, not high" confidence overall, and locates specific weak points within that (the unverifiable Tallinn figure, the live enforcement-vs-transit-viability question, sensitivity of the weighted ranking to reweighting) rather than asserting everything with the same tone. It also draws a clear line between what's treated as a settled geography/infrastructure fact and what's an inference the analysis is making on thin data.
+
+## Criterion 5: Falsifiability — Rigorous
+
+The document names concrete, checkable tests rather than generic hedges: it specifies that a city's own travel-survey/origin-destination data on mode-viable share would determine whether the pricing-first default even applies, and separately flags that resolving whether Stockholm/London's gains were driven by transit viability versus enforcement intensity would bear on the ranking's validity. These are specific enough that someone could actually go verify them, rather than boilerplate "more research is needed" language.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

@@ -1,0 +1,29 @@
+## Criterion 1 — Decision usefulness
+
+The document reaches an unambiguous position ("No — not now") and pairs it with a concrete, executable recommendation: keep the single deployable, impose specific internal discipline (module boundaries, no cross-module direct DB access), and set numeric extraction triggers rather than defaulting to microservices. It is clear who this is for (a roughly six-engineer team at the stated traffic level) and under what conditions the recommendation would flip (the named reversal triggers). A reader could act on this today — either implement the modularity discipline or reject the recommendation on stated terms. This lands in the top band.
+
+## Criterion 2 — Evidence grounding
+
+Several load-bearing claims are well sourced: the DAU-to-req/s conversion is shown as a Fermi estimate with visible mechanics, and Google SRE's rotation-size threshold and Fowler's monolith-first pattern are both named and applied to the specific facts at hand, including an explicit caveat that the Segment case is illustrative rather than scale-predictive. However, the six-criteria weighted trade-off that anchors the final call is reported only as output ("112... 96... 36") with no visible weighting table or scoring rationale, so the reader cannot check the arithmetic that supposedly makes the conclusion robust to reweighting. The underlying ~1,200 DAU figure is also simply asserted rather than sourced. These are load-bearing numbers where the supporting work was evidently available (the document clearly did the scoring) but wasn't shown. That gap keeps this at the second band rather than the top one.
+
+## Criterion 3 — Assumption surfacing
+
+The document names its assumptions rather than leaving them implicit — the DAU baseline, the six-person team size, and the absence of subsystem divergence are all identifiable as load-bearing premises rather than facts. Crucially, it identifies the single most consequential one (the DAU figure) explicitly, bounds the consequence of it being wrong ("if real traffic is materially higher... the throughput argument weakens and the calculus shifts"), and tells the reader what to go check. That is genuine engagement with the most decision-sensitive premise, not just a mention of it, which is what separates this from merely naming assumptions and moving on.
+
+## Criterion 4 — Calibration
+
+Confidence is stated ("MEDIUM overall") and then decomposed rather than left as a flat label: two sub-arguments are singled out as independently HIGH-confidence and load-bearing enough to hold the conclusion on their own, while the DAU-dependent throughput argument is explicitly flagged as the weaker, more assumption-sensitive leg. This is a document distinguishing what it's sure of from what it's inferring, and doing so at the level of individual sub-arguments rather than a single blanket confidence claim — the strongest form this criterion asks for.
+
+## Criterion 5 — Falsifiability
+
+The document gives named reversal triggers, two of which are concretely checkable (headcount crossing ~8–10 engineers; the org splitting into 2+ independently-run teams) and one of which is directionally clear but not numerically pinned down ("a subsystem's load or release cadence diverges sharply from the rest"). Combined with the calibration section's specific instruction to check the DAU figure against actual analytics, this gives a reader concrete things to go verify that would overturn the recommendation, not generic hedging. The one softer trigger keeps it just shy of fully specified across the board, but the overall bar of "specific enough that someone could go check" is met.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

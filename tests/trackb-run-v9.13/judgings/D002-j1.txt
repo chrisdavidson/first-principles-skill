@@ -1,0 +1,21 @@
+## Criterion-by-criterion assessment
+
+**1. Decision usefulness — Rigorous.** The document reaches an unambiguous, executable position: refactor to a modular monolith, defer microservices, enforce module boundaries, and add a specific CI guardrail (dependency-direction fitness check). It states who this is for (a 6-person team at 1,200 DAU) and gives concrete trigger conditions under which the recommendation would no longer apply. A reader could act on this today — adopt the module-boundary work and the CI check, and treat the "flips if" list as a monitoring checklist.
+
+**2. Evidence grounding — Hand-wavy.** Several of the numbers that do the actual work of the argument have no visible derivation. The weighted trade-off scores (101/93/88/56) are presented as settled facts with no criteria, weights, or scoring method shown, yet they are the figure directly cited as tipping the recommendation. The "~18 hrs/week... roughly 3–13% of total team capacity" estimate is flagged as "plausible" but its components (which tasks, how many hours each) are never broken out. The DAU-to-req/s conversion shows a result but not the assumption chain that produced it. These are load-bearing claims stated as fact with no stated origin, which is more than "one or two" gaps.
+
+**3. Assumption surfacing — Rigorous.** The document identifies the single assumption the whole argument pivots on — whether the 6 engineers already function as 2–3 sub-teams — names it explicitly as unstated in the prompt, and describes precisely what happens to the conclusion if it's wrong (Conway's Law flips the verdict toward partial extraction). This is the most consequential assumption engaged directly, not just gestured at, which is exactly what the top band asks for.
+
+**4. Calibration — Sound.** The document opens with an explicit "Medium" confidence rating tied to a named source of uncertainty, and that overall calibration is reasonable given the analysis. However, downstream figures (the precise trade-off scores, the hours/capacity percentages) are stated with a level of numeric precision that outruns the visible support behind them — confidence running slightly ahead of what was shown in one or two places, rather than uniformly over- or under-confident.
+
+**5. Falsifiability — Rigorous.** The "This flips if" section gives three concrete, checkable conditions (sub-team split, a measured scaling/compliance need, measured operational pain in the monolith), and "The one thing that could reverse this" names a specific fact someone could go verify. These are not generic caveats — each names an observable event or measurement that would overturn the specific recommendation.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

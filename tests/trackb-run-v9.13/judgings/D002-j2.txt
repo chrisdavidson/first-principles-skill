@@ -1,0 +1,29 @@
+## Decision usefulness
+
+The document reaches a clear, specific recommendation — refactor to a modular monolith, defer microservices — and pairs it with a concrete action (add a dependency-direction CI fitness check) rather than leaving the reader to infer next steps. It states who the recommendation is for (a 6-person team, ~1,200 DAU) and under what conditions it would no longer apply. A reader could act on this document directly. This lands in the top band: **Rigorous**.
+
+## Evidence grounding
+
+Several of the argument's load-bearing numbers are asserted without shown derivation: the "0.2–4 req/s at peak" figure from DAU, the "~18 hrs/week" overhead estimate for a six-service split, the "3–13%" capacity figure, and especially the weighted trade-off scores (101 vs. 93 vs. 88 vs. 56) that anchor the central comparative claim — none of these show their arithmetic, weighting scheme, or source to the reader, despite being central to the conclusion's strength. The conceptual claims (Conway's Law, Fowler's "microservices premium") are grounded in named frameworks rather than raw assertion, but the quantitative backbone of the argument is presented as fact with no visible basis. This is **Hand-wavy**.
+
+## Assumption surfacing
+
+The single most consequential assumption — whether the 6 engineers already operate as informal sub-teams — is explicitly named as unstated in the prompt, and the document engages with it directly: it says precisely how the recommendation would flip if this assumption is false, and flags it as the one thing that could reverse the verdict. This is exactly the kind of engagement the top band asks for, applied to the assumption that matters most. **Rigorous**.
+
+## Calibration
+
+The document states an overall confidence level (Medium) and gives a reason tied to the one open variable, which is good practice. But this sits awkwardly against the false precision of the trade-off scores (101/93/88/56) and the specific-looking overhead percentages, which are presented with more numeric confidence than their (unshown) basis would support. The self-awareness is real but doesn't fully extend to the numeric claims that carry the argument. This is **Sound** rather than rigorous.
+
+## Falsifiability
+
+The "This flips if" section gives concrete, checkable triggers — the team splitting into sub-teams with independent deploy needs, a component developing a *measured* scaling or compliance need, or the modular monolith producing *measured* pain — each specific enough that someone could go verify whether it has occurred. This is not a generic hedge; it names the actual conditions under which the recommendation reverses. **Rigorous**.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

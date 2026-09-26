@@ -1,0 +1,17 @@
+Here's what the first-principles analysis found:
+
+**The core problem: the rule discloses the wrong thing.**
+
+"Training-data sources" tells you *where the data came from*, not *what's in it* or *how the system behaves*. Anti-discrimination law (and the goal the regulator presumably has) turns on outcomes — whether the system produces disparate selection rates across protected groups (the "four-fifths rule" logic behind measures like NYC's Local Law 144). A list of source names doesn't let anyone compute that. So even perfect compliance wouldn't give regulators, candidates, or watchdogs the information they need to detect discrimination.
+
+**A structural problem on top of that:** for a lot of modern hiring AI, "the" training-data source isn't even a well-defined single thing — many tools are fine-tuned or RAG-wrapped versions of a third-party foundation model, whose own pretraining data is often undisclosed by the model vendor itself. The rule presupposes a single-source architecture that a growing share of the regulated technology doesn't have.
+
+**What actually follows (second-order effects):**
+- *Compliance theater* — vendors can satisfy the letter of the rule with a boilerplate source list without changing model behavior at all, since there's no technical incentive to do so.
+- *Advantages large incumbents* — the fixed legal/compliance cost of disclosure (and the competitive exposure of revealing sourcing relationships) hits small vendors disproportionately harder, pushing market share toward big players — an effect unrelated to and working against the stated goal.
+
+**What would work better:** a mandatory outcome/disparate-impact audit requirement (the mechanism real-world analogs like LL144 actually use) scores far higher on diagnostic power, enforceability, and architectural coherence than source disclosure — no reasonable reweighting of priorities flips that ranking. A hybrid (audit + light disclosure) doesn't beat the audit-only approach on any criterion.
+
+**Caveat, stated honestly:** the audit-based fix isn't automatically effective either — its real-world payoff depends on unverified preconditions: audit samples that reflect actual deployment populations, funded enforcement, and demographic categories that cover locally relevant discrimination risks. Existing audit regimes show enforcement gaps even with a stronger mechanism than disclosure alone. So the honest claim is comparative, not absolute: an outcome-audit rule would beat a source-disclosure rule at achieving the stated aim, not that it would solve the problem outright.
+
+**Bottom line:** the proposed rule, as stated, would mostly generate paperwork and modestly entrench large vendors, without giving anyone the evidence needed to catch discriminatory hiring — because it disclosed provenance when the actual test that matters is about outcomes.

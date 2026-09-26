@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches a specific, actionable position: reject the binary timed-vs-take-home framing, adopt a "construct-specific, capacity-sequenced portfolio model," and it spells out the mechanics — which formats go where, that take-home be paired with process verification (checkpoints, drafts, oral spot-checks), and that rollout start with TA-supported small/medium upper-division courses before scaling to large lecture courses. It also states the scope explicitly (a typical research university's general curriculum, not licensure-style programs). A reader could take this to a curriculum committee and actually act on it — implement, pilot, or reject a specific proposal, not just "think about it more." This lands at **Rigorous**.
+
+## Criterion 2: Evidence grounding
+
+Some load-bearing claims are grounded well: the detection-ceiling argument is derived in view of the reader (detectors measure exactly the statistical distance generators are trained to minimize), and the grading-capacity figures are explicitly flagged as a Fermi estimate with its inputs stated (12-minute spot-check, twice a term, 30 students) rather than presented as measured fact. But two claims that carry real weight are asserted more thinly than they needed to be: the "above 60% pre-AI" cheating-rate figure is attributed only to a named research "tradition" (ICAI/McCabe) rather than a specific citable finding, and the claim that "several institutions, e.g. in the Russell Group" have dropped detector scores as dispositive is vague enough that a reader can't check it. These are exactly the kind of claims where a specific source would have been easy to give. That mix — solid derivation and explicit estimate-flagging alongside a couple of under-cited factual assertions — fits **Sound** rather than the top band.
+
+## Criterion 3: Assumption surfacing
+
+The document names its key assumptions rather than leaving them implicit: that unaided written authorship is verifiable (challenged directly), that AI-detection reliability is a temporary rather than structural gap (examined via the adversarial-training argument), and that the pre-AI cheating statistic reflects individual-authorship violations (flagged as questionable in the falsifiability section). It goes further than merely naming these — it tests the detection-ceiling assumption with a mechanistic argument, bounds the capacity assumption with a Fermi estimate, and explicitly notes where the recommendation would not hold (licensure-style programs). This engagement with the most consequential assumptions, not just a generic gesture at them, earns **Rigorous**.
+
+## Criterion 4: Calibration
+
+The document is explicit and differentiated about its own confidence: "LOW-to-MEDIUM, asymmetric across the claim," with the directional recommendation (reject the binary, favor construct-specific formats, treat detection skeptically) rated as resting on independently MEDIUM-confidence chains and "fairly solid," while the specific rollout pace and capacity numbers are separately flagged as resting on "an unverified Bayes-error argument" and "estimated rather than measured" figures. This is exactly the kind of tracking-to-evidence the top band asks for — strong claims held with more confidence than illustrative ones, stated as such. **Rigorous**.
+
+## Criterion 5: Falsifiability
+
+The "what would overturn this" section lists four concrete, checkable conditions: a primary-source-confirmed study showing detector accuracy survives sustained paraphrase-evasion, an institutional grading-time study contradicting the estimated figures, evidence that the cheating statistic doesn't actually reflect individual-authorship violations, and a documented comparison-group case where the portfolio approach failed to improve outcomes. None of these are generic hedges — each names a specific study type or dataset someone could actually go find or run. **Rigorous**.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

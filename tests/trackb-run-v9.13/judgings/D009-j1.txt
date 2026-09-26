@@ -1,0 +1,21 @@
+## Criterion-by-criterion assessment
+
+**1. Decision usefulness — Rigorous.** The document lands on an explicit, executable position: treat the result as a preliminary signal, not something to act on for scale-up/publication/investment, and it names the concrete next step (get per-run data, a stated control protocol, confirmation that no runs were dropped). That's specific enough for a reader to actually go do something with, and the "who it's for" (someone deciding whether to act on this yield claim) is implicit but clear from framing.
+
+**2. Evidence grounding — Sound.** The headline facts (62%→71%, three runs) are taken as given from the report under evaluation, which is appropriate. Most of the reasoning is shown in view of the reader — the list of confounds, the logic linking missing SD to unresolved significance, the pushback on both overclaiming and overcorrecting. But the numeric bracket ("plausible run-to-run SD... 1–8 percentage points" implying "~2 runs" to "~13 runs" for adequate power) is asserted with specific figures and no stated basis or shown calculation — a load-bearing quantitative claim presented without visible derivation, which keeps this from the top band.
+
+**3. Assumption surfacing — Rigorous.** The document doesn't just gesture at "assumptions may not hold" — it enumerates the specific confounds a causal reading would require ruling out (substrate lot, temperature, operator, instrument, workup, run order, reagent lot, yield-calculation method), and it engages substantively with the most consequential one (unknown variance) by bounding its effect on required sample size and showing why that single unknown is decisive.
+
+**4. Calibration — Rigorous.** Confidence is carefully matched to support throughout: strong and flat statement of the one thing that's actually established ("nothing more"), explicit refusal to assert causality or significance, and — notably — a deliberate correction against *both* directions of miscalibration (don't trust the numbers naively, but also don't dismiss n=3 as obviously inadequate). That symmetry is a strong signal the document is tracking evidence rather than defaulting to either credulity or reflexive skepticism.
+
+**5. Falsifiability — Rigorous.** The document identifies a single, specific, checkable piece of evidence (the run-to-run SD or raw per-run values) that would resolve most of the open questions, and pairs it with concrete actions (ask for per-run data, a stated control protocol, confirmation of complete reporting) that a reader could actually go verify. This goes well beyond a generic "more research needed" caveat — it says exactly what would move the needle and how to get it.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

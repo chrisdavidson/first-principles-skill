@@ -1,0 +1,29 @@
+## Decision usefulness
+
+The document reaches a clear, quantified position — land requirement is ~540 km² central estimate (up to ~1,700 km², 2.2% of territory) — and goes further than merely stating the number: it explicitly redirects the reader's attention to the actual binding constraints (intermittency/storage, transmission, market economics, siting friction), which is the substantive, actionable payload for anyone deciding whether to worry about land. It also states the conditions under which the conclusion holds (a temperate, developed country in the ~80,000–90,000 km² class) and flags that the picture changes for small, dense countries, giving a specific alternate range (3–9%). That combination of a specific number, a directional recommendation about where effort belongs, and stated scope conditions is enough to act on.
+
+## Evidence grounding
+
+Most load-bearing numbers are traced to a named source or method rather than asserted outright: the land-use intensity figure cites "LBNL 2022" with a stated median and range, the demand figure is anchored to France/Germany per-capita consumption, and the Germany solar-share figure and the "~7% of theoretical irradiance ceiling" claim are given as identifiable, checkable facts. However, none of these are given precise citations (a report title, a link, a table reference) that a reader could actually pull up, and the document itself admits the inputs are "search-synthesized rather than read at primary source." That's a step above bare assertion but short of derivation-in-view-of-the-reader or fully sourced figures, which places it in the middle band.
+
+## Assumption surfacing
+
+The document does more than name its assumptions generically — it identifies the specific ones the conclusion leans on (the demand-electrification multiplier, the cross-country generalization of a US land-density figure, the capacity-factor range, the Germany benchmark) and, critically, stress-tests the single most consequential one: the assumption that "10 million people" live in a mid-size country. It shows explicitly what happens to the headline conclusion if that assumption fails (share rises to 3–9% for a small, dense country). That is exactly the kind of engagement with a load-bearing assumption the top band asks for.
+
+## Calibration
+
+Confidence is not applied uniformly: the structural claim that land is "almost a non-issue" is backed by a hard, quantified buffer (order-of-magnitude headroom from theoretical irradiance), and well-established facts (Germany's actual solar share, the duck-curve mechanism) are stated plainly, while the numeric build itself is explicitly downgraded to "MEDIUM" and the specific inputs responsible for that uncertainty (demand multiplier, density generalization, capacity-factor range, Germany benchmark) are named rather than lumped together. This differentiation between what follows from robust logic/known facts versus what rests on unverified search-derived figures tracks the actual strength of support reasonably well.
+
+## Falsifiability
+
+The document acknowledges a specific, checkable boundary condition — country size and density — under which the land-share estimate shifts materially (0.6–2.2% to 3–9%), which is more concrete than a generic disclaimer. But it never states what would overturn the actual headline conclusion ("land is not the binding constraint"); even in its stress-tested worst case it still calls the result "manageable," so no scenario is offered in which the core recommendation would actually be wrong. The self-flagged uncertainty on inputs (density figure, demand multiplier) is also never tied to a threshold — e.g., how far off would the LBNL figure need to be before land *did* become a constraint. That leaves the falsifiability gesture real but incomplete.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Sound
+=== TRACKB-SCORELINE-END ===
+```

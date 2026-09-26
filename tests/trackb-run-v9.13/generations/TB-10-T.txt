@@ -1,0 +1,25 @@
+## What should actually drive the decision
+
+**Not** "how close" — but a staged process conditioned on the right variable:
+
+1. **Reframe the question.** "Closer" is a proxy for the caregiving *latency* you actually need to guarantee (minutes for acute needs vs. hours/days for chronic ones), not a distance to minimize.
+
+2. **Key finding (theoretical-limit/Fermi check):** the acute-response benefit of proximity is dominated by getting into the *same region* — that single move captures ~90% of the total possible time savings. Going from "same region" to "next door" only shaves a further ~1–20 minutes. So "move closer" and "co-locate fully" are not the same decision, even though they're usually treated as one.
+
+3. **Condition on the parents' actual trajectory, not a snapshot.** Decline tends to be event-punctuated, not a smooth slope — chronic-stable need doesn't justify full relocation the way an escalating trajectory would. Revisit this regularly, don't decide it once.
+
+4. **Run the real trade-off**, including options the "move or don't" framing skips: staying put with more frequent visits, paid local care, one adult relocating first, or a same-region (not same-house) move. Full relocation only wins when both jobs are truly location-bound *and* need is escalating *and* no local-care alternative exists.
+
+5. **Four go/no-go gates (inversion)** — don't proceed unless all clear:
+   - The parents actually *want* the increased proximity/help (don't infer this — ask, and re-ask).
+   - The destination is career/school-viable for both adults, not just caregiving-viable.
+   - The need is genuinely escalating, not assumed to be.
+   - The move isn't secretly solving a different problem (burnout, marital tension) mislabeled as caregiving.
+
+6. **Default to reversible, staged commitment** — a bounded trial (temporary housing, deferred home purchase, deferred full school transfer, or one adult moving first) before an irreversible full move. Irreversibility asymmetry means being wrong is much costlier one way than the other.
+
+7. **Explicitly renegotiate caregiving load with any siblings, on a recurring schedule.** The pre-mortem's dominant failure mode: proximity quietly makes the movers the default sole caregiver while others' involvement fades — a burden that compounds over years and erodes career capital, unless it's named and redistributed on purpose.
+
+**What this doesn't settle:** the relational value of just living near family isn't priced in here — that's a legitimate values-based add-on, not something this framework corrects for. And if the situation is *already* an acute crisis (not the stable-need case assumed above), skip the trial and act directly — staging is protection against being wrong about the trajectory, not a delay tactic once it's confirmed.
+
+**Confidence: MEDIUM overall** (HIGH on the distance/latency mechanics; MEDIUM on anything resting on how *this specific family's* dynamics compare to general caregiving/sibling patterns — those need direct verification with the actual parents and siblings, not assumption).

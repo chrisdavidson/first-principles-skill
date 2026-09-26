@@ -1,0 +1,44 @@
+## Should you replace REST with GraphQL?
+
+**Short answer: No — not as a full 9-client replacement.** The stated problem (mobile screens needing 4-6 round trips) is a data-aggregation/granularity problem, not a protocol problem, and there's a narrower fix that reaches the same latency floor at far lower cost and risk.
+
+### Reframing the question
+
+"REST vs. GraphQL" conflates two different things. REST's actual architectural constraints (Fielding's dissertation) never mandate fine-grained, one-resource-per-endpoint design — that's a convention your team adopted, not a REST requirement. So "replace REST" mislabels what's actually a granularity problem as a protocol-choice problem.
+
+### The grounded facts this rests on
+
+- **BFF (Backend-for-Frontend)** was invented specifically for this symptom: generic APIs producing fine-grained endpoints that require many requests to render a screen, especially over "unreliable and slow wireless networks" — i.e., mobile. This predates GraphQL and targets your exact complaint.
+- **GraphQL doesn't remove aggregation work, it relocates it.** The canonical DataLoader example shows a naive resolver graph hitting *13* backend calls where batching gets it to *4* — the N+1 problem is real, and avoiding it requires new backend engineering discipline (resolver/batching design), not something the protocol gives you for free.
+- **GraphQL has real costs REST doesn't**: no URL-like cacheable identifier (so HTTP/CDN caching breaks and gets replaced with app-level caching), and no versioning scheme (one evolving schema instead of REST's URL/media-type versioning).
+- **The physical floor is one round trip.** HTTP/2 multiplexing and a well-designed aggregation endpoint both already get real systems there — the gap from 4-6 down to ~1 is almost entirely a design/convention gap, not an irreducible network cost.
+
+### Weighing the actual options
+
+| Criterion (weight) | Full REST→GraphQL replace | GraphQL, mobile-only | Scoped BFF endpoints, mobile-only | Narrower fixes only (HTTP/2, batching) |
+|---|---|---|---|---|
+| Reduces round trips (5) | 5 | 5 | 5 | 2 |
+| Blast radius to other 6 clients (4) | 1 | 5 | 5 | 5 |
+| Migration cost (3) | 1 | 3 | 4 | 5 |
+| Caching/versioning preserved (3) | 1 | 3 | 5 | 5 |
+| Learning curve (2) | 1 | 2 | 5 | 5 |
+| N+1/aggregation risk (2) | 2 | 2 | 5 | 5 |
+| **Weighted total** | **41** | **71** | **92** | **80** |
+
+Scoped BFF endpoints dominate GraphQL-for-mobile on every criterion where they differ, and no plausible reweighting flips the ranking.
+
+### Recommendation
+
+1. **Diagnose first, cheaply**: confirm HTTP/2 is on, and trace one mobile screen's actual call graph to see which of the 4-6 calls are truly independent vs. causally sequential (a sequential chain — token→profile→feed — can't be flattened by any of this).
+2. **Build mobile-scoped aggregation (BFF) endpoints** for the specific screens causing pain. Leave the other 6 clients and the existing REST surface untouched — they have no demonstrated problem.
+3. **Gate it on a measured pilot, not the plan's own optimism**: the pre-mortem's most likely failure mode is that the aggregation endpoint just proxies the same 4-6 calls sequentially server-side, producing no real latency win. Require a measured p95 latency comparison before rolling out beyond one pilot screen.
+4. **Name the fallback trigger now, don't discover it later**: if mobile screen count/shape diversity grows enough that you're hand-maintaining many bespoke endpoints (watch for >6 endpoints, or >2 consecutive sprints of pure maintenance), that's the point to revisit a scoped GraphQL layer for mobile — not a full 9-client migration.
+
+### What this analysis couldn't verify (you should check before committing)
+
+- Whether the other 6 clients have any related over-fetching pain (if yes, the "leave them alone" scope call changes).
+- Your team's current GraphQL/batching-tooling familiarity.
+- Your current REST API's actual endpoint granularity and existing HTTP/CDN caching setup.
+- Whether backend service code is cleanly isolated per client today — if aggregation endpoints end up sharing code paths with non-mobile-serving logic, the "zero blast radius to the 6" advantage weakens.
+
+**Confidence: medium**, capped mainly by the fact that the 9-client/3-mobile/4-6-round-trip figures are as you reported them, not independently verified against your actual codebase — the diagnostic in step 1 is exactly what resolves that.

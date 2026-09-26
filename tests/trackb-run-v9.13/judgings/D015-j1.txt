@@ -1,0 +1,21 @@
+## Scoring
+
+**1. Decision usefulness — Rigorous.** The document reaches an explicit, specific position ("No — not as a full 9-client replacement") and follows it with a concrete, sequenced action plan: diagnose the call graph first, build mobile-scoped BFF endpoints for specific screens, gate rollout on a measured p95 comparison, and revisit GraphQL only past a named trigger. A reader could execute or reject this tomorrow; it isn't generic advice that would fit any REST-vs-GraphQL question.
+
+**2. Evidence grounding — Sound.** Several load-bearing claims are grounded with visible reasoning rather than bare assertion: the DataLoader N+1 example is worked through with concrete numbers (13 calls reduced to 4), and the GraphQL caching/versioning tradeoffs are explained rather than just stated. But the weighted decision table — the mechanism that actually produces the recommendation — assigns per-cell scores (1–5) and a weight per criterion with no shown derivation, and the claim that "no plausible reweighting flips the ranking" is asserted rather than demonstrated (e.g., by showing a boundary case). That's a load-bearing quantitative claim without visible support, which keeps this out of the top band.
+
+**3. Assumption surfacing — Rigorous.** The document doesn't just gesture at uncertainty; it names specific, checkable assumptions the conclusion depends on — whether the other six clients have similar pain, the team's GraphQL/batching familiarity, actual endpoint granularity, and whether backend code is shared across clients — and explicitly ties the most consequential one (the reported round-trip/client figures) to a concrete diagnostic step that would test it. This is the most consequential assumption being engaged, not just listed.
+
+**4. Calibration — Sound.** The document distinguishes what it's confident about (the architectural reasoning, the BFF-vs-GraphQL tradeoff structure) from what it isn't (the raw figures it was given), and states this directly ("Confidence: medium, capped mainly by..."). It stops short of the top band because that calibration is delivered as a single blanket label at the end rather than varying signal attached to individual claims throughout — e.g., the table's confident-sounding "dominates on every criterion" sits next to an unexamined acknowledgment that the scores behind it aren't independently derived.
+
+**5. Falsifiability — Rigorous.** The document states a specific failure mode for its own recommendation (the aggregation endpoint merely proxying the same 4-6 calls sequentially, yielding no latency win) and ties it to a concrete, checkable gate (a measured p95 comparison before wider rollout). It also names a specific, numeric condition under which the recommendation itself should flip (more than six hand-maintained endpoints, or two-plus sprints of pure maintenance). These are checkable thresholds, not generic caveats.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

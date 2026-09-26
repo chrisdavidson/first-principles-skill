@@ -1,0 +1,29 @@
+## Decision usefulness
+
+The document reaches an unambiguous, executable position: refactor into a modular monolith, don't split into services, and it backs this with a concrete guardrail action (add a dependency-direction fitness check to CI). It specifies the conditions under which the recommendation holds (a 6-person team with no sub-team split, ~1,200 DAU) and gives explicit triggers under which the advice would change. A reader could act on this today — adopt the guardrail, and revisit only if one of the named flip conditions occurs. This clears the bar for **Rigorous**.
+
+## Evidence grounding
+
+Some load-bearing claims are grounded in visible reasoning: the DAU-to-req/s estimate is derived from a stated basis (1,200 DAU), and the appeal to Fowler's "microservices premium" is attributed to a named source. But the central quantitative argument — a weighted trade-off scoring modular monolith at 101 versus 93, 88, and 56, with the claim that this ordering "holds under any single-criterion weight change" — is asserted with no visible criteria, weights, or scoring shown, despite doing heavy lifting for the conclusion. Similarly, the "~18 hrs/week" and "3–13% of team capacity" overhead figures are presented as fact with no stated derivation. Since these unsupported figures are central to, not peripheral to, the recommendation, this falls to **Hand-wavy**.
+
+## Assumption surfacing
+
+The document does more than gesture at assumptions: it explicitly names the load-bearing one — that the 6 engineers do not already operate as informal sub-teams — flags it as "not stated in your prompt," and follows through on what happens if it's wrong ("Conway's Law flips the verdict toward partial or targeted service extraction"). It also names secondary assumptions in the "flips if" list (no measured scaling pain, no compliance-isolation need). Engaging directly with the most consequential assumption and stating the consequence of it being false earns **Rigorous**.
+
+## Calibration
+
+The document states an overall confidence level ("Medium") and explicitly ties that ceiling to the one open variable it identifies, which is good practice. However, confidence doesn't uniformly track evidence quality: the unsupported weighted-trade-off scores and overhead-hour estimates are stated as flatly as the better-grounded req/s calculation, with no hedge marking them as rougher. This is a case of confidence running slightly ahead of shown support in a couple of places, consistent with **Sound**.
+
+## Falsifiability
+
+The "This flips if" section gives three specific, checkable conditions (team splits into 2+ sub-teams needing independent deploy cadence; a component develops a *measured* scaling or compliance need vertical scaling can't meet; the modular monolith produces *measured* deploy contention or test-suite pain) rather than generic caveats. These are concrete enough that someone could go and check whether they've occurred, and the document adds a further specific unstated-variable check ("if the 6 engineers already operate as 2–3 sub-teams"). This meets **Rigorous**.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

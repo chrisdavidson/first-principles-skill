@@ -1,0 +1,19 @@
+**Decision usefulness:** The document reframes the question sharply ("don't evaluate this as 'can I afford the pay cut'") and gives the reader concrete machinery to act with: a four-item gate where any single hit means decline, followed by a six-criteria trade-off for what remains. That gate is genuinely actionable — a reader can check each item and get a decline/proceed answer. But the document stops short of a verdict on the actual question (take the offer or not): the final weighing is explicitly handed back to the reader ("only you can weight"), so the practical edge is blunt on the part of the decision that matters most once the gate is cleared. That lands it as sound rather than rigorous — directionally clear, but under-specified at the point where a reader most needs a landing.
+
+**Evidence grounding:** The base-rate claims (75% of VC-backed firms never return cash; common stock subordinated to preferred liquidation preferences) are named as coming from VC-failure data, and the Fermi estimate on dilution (~0.3–0.4% for hire #4/5) is explicitly flagged as an estimate rather than fact — good practice. But the actual arithmetic behind "central expected value at under 10% of cumulative pay cut" isn't shown: the exit-odds weighting and the dollar assumptions behind the Fermi estimate stay invisible, so the reader is asked to trust a compressed output rather than see the estimate built. Most of what the conclusion leans on is grounded or flagged, but the headline number's derivation is exactly the kind of thing that was available to show and wasn't.
+
+**Assumption surfacing:** The document names specific, load-bearing assumptions rather than gesturing generically — that the stated equity percentage is real and unverified, that alternate income doesn't exist, that runway only depletes after income stops. It goes further than naming: it actually tests the most consequential one (equity value near zero) against base rates and a bounded estimate, and ties the cap-table assumption directly to a decline condition ("don't take the offer's equity % on faith"). That combination of specific naming plus active engagement with the assumption that does the most work is what separates this from a document that merely lists caveats.
+
+**Calibration:** Confidence tracks support well throughout. The zero-modal-outcome claim is stated with high confidence because it rests on base rates that don't depend on company specifics — and the document says so explicitly. The dilution/EV figures are hedged as "rough" and an "estimate." The subjective back half (skill fit, mission fit, risk tolerance) is correctly left unweighted rather than forced into false precision. The document is consistently explicit about which parts it knows structurally versus which parts it's inferring or can't resolve for the reader.
+
+**Falsifiability:** The four-item gate is not a generic caveat — each item is a specific, checkable condition ("no cap table reviewed," "no alternate household income," role doesn't build transferable skill, decision driven by external pressure rather than the reader's own read) that, if true, flips the recommendation to decline regardless of the rest of the analysis. That's a genuine statement of what would overturn the recommendation, concrete enough for the reader to go check against their own situation, rather than a boilerplate "further diligence needed."
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Sound
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

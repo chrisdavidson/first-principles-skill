@@ -1,0 +1,21 @@
+## Criterion-by-criterion assessment
+
+**1. Decision usefulness — Rigorous.** The document reaches a clear, actionable position ("don't approve the purchase yet") and pairs it with a concrete next step: a time-boxed 1–2 week diagnostic with a specific list of what to profile (queue-wait vs. execution, serial vs. parallel test config, cache-hit rate, flaky-rerun time, full-suite-vs-changed-scope, residual CPU-bound compute). It also names a hard decision gate and a monitoring cadence (30/60/90-day check-ins with a named owner) for the parts hardware can't fix. A reader could hand this to an engineer and start work tomorrow — it isn't a survey of options, it's an instruction.
+
+**2. Evidence grounding — Sound.** Most of the argument is grounded in reasoning the reader can follow in view: the Amdahl's Law logic is laid out rather than asserted, and the diagnostic-cost estimate is explicitly labeled "illustrative." But two load-bearing figures are stated as fact without a visible basis: the "8-core runner costs 3.67x more per minute than a 2-core one" claim (attributed only to unspecified "GitHub Actions pricing," with no table or link, and the implied per-minute rates aren't shown) and the claim that developer wait-time cost "runs an order of magnitude higher annually" than the diagnostic cost, which has no computation or source behind it at all. These are exactly the kind of figures that were easy to ground (a cited rate, a back-of-envelope wait-time calc) but weren't.
+
+**3. Assumption surfacing — Rigorous.** The document identifies its single most consequential unknown up front — the composition of the 47 minutes (CPU-bound vs. serial vs. overhead vs. flaky reruns) — and states plainly that this determines whether the proposed fix can even work. It doesn't just name this assumption; it engages with it directly, using it to structure the entire recommendation and to define the exact condition under which the conclusion would flip. It also separately flags a second, unexamined assumption (that the batching habit will self-reverse once latency drops) and marks it as something to monitor rather than assume.
+
+**4. Calibration — Sound.** The document explicitly separates known facts (duration, batching behavior) from what's unmeasured, and attaches an overall "MEDIUM" confidence label tied to a specific gap in evidence — this is real calibration, not decoration. It loses a point because that discipline isn't applied uniformly: the "order of magnitude higher" wait-time-cost claim and the 73%-breakeven threshold are delivered with the same flat, assertive register as the well-supported claims, even though they rest on unshown arithmetic and an unsourced ratio. A fully calibrated version would have flagged those as rougher estimates the way it flagged the $8k–$30k figure as "illustrative."
+
+**5. Falsifiability — Rigorous.** The confidence paragraph states precisely what would overturn the recommendation: a timing profile showing more than 80% of the 47 minutes is genuinely parallelizable, CPU-bound work with negligible flakiness/caching/scope contamination. This is specific enough that someone could run the diagnostic and check it against this exact threshold — it isn't a generic "more research needed" hedge, it's a stated falsification condition tied to the same diagnostic the document already recommends running.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

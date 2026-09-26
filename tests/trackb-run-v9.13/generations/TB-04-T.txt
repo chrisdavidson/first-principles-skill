@@ -1,0 +1,34 @@
+Here's the analysis, distilled from the full first-principles breakdown:
+
+## The real question isn't "which is best" — it's what's actually being decided
+
+The framing hides three things worth separating out first:
+1. **These aren't mutually exclusive.** Stockholm and London both reinvest congestion-charge revenue into transit and cycling — real cities run these as a portfolio, not a single pick.
+2. **"20% fewer car trips" is a proxy, not the goal.** Tallinn's fare-free transit cut car *mode share* ~5% while total car vehicle-km actually *rose* ~31% (trips got longer) and walking fell ~40%. You can hit the trip-count metric while missing the thing it's supposed to represent (congestion, emissions, safety).
+3. **Each lever intervenes on a different point:** pricing changes the cost of driving, free transit changes the cost of the alternative, cycle lanes change the safety/comfort of a third mode entirely.
+
+## What the evidence actually shows
+
+| | Speed | Ceiling/effect size | Revenue | Equity (unmitigated) | Depends on existing transit? |
+|---|---|---|---|---|---|
+| **Congestion pricing** | Fastest — Stockholm cut cordon traffic 20-25% within the 2006 trial; London ~10-15% within weeks | Bounded by how many car trips already have a viable alternative | Net positive | Regressive by construction (flat charge = higher % of a lower income) | Somewhat |
+| **Free transit** | Slow — Tallinn's fare elimination itself only drove ~1.2 of 14 ridership-growth points; the rest was concurrent service/frequency investment | Weakest on car trips specifically | Net negative (funding gap) | Progressive gains for non-workers, but bundled with mode substitution away from walking | Fully — you're subsidizing capacity that must already exist |
+| **Protected cycle lanes** | Slowest — Seville's gains (0.6%→7% mode share) took a 6-year build-out, concentrated in years 4-6 | Independent ceiling, geography-limited | Revenue-neutral | Neutral-ish, but excludes long-distance/less-able commuters | Independent |
+
+## The decisive fact: it isn't the lever, it's the city
+
+The single variable that determines which option can even hit 20% in three years is **the city's own pre-existing mode-viable share of car-commute trips** — the fraction of car trips that already have a realistic transit or bike substitute. This is a geography/infrastructure fact, not a policy choice, and it's largely fixed over a 3-year window.
+
+- If that share is well above 20% (dense, legacy-transit city): it's a **demand-side** problem — pricing or fare policy can plausibly move it.
+- If that share is near or below 20% (car-dependent, low-density city): **no pricing or fare policy can hit the target alone** — there's nothing to shift trips onto. The binding constraint is infrastructure coverage, which is inherently the slow lever.
+
+**A city cannot answer this question about itself without running its own travel-survey / origin-destination data first.** That's the actual first step, before any of the three options.
+
+## Recommended decision sequence
+
+1. Measure mode-viable share and check hard knockouts: legal authority for cordon pricing, fiscal room to absorb free transit's funding gap.
+2. **Default to congestion pricing as the anchor lever wherever legally/fiscally available** — it wins a weighted trade-off across speed, effect size, revenue, equity, feasibility, and infrastructure-dependence (82 vs. cycle lanes' 70, free transit's 63), and the ranking is robust to reasonable reweighting.
+3. Reinvest the revenue into fare reductions and cycle-lane build-out rather than treating them as competitors.
+4. Pair the trip-count target with a directly-measured congestion/delay metric — Stockholm's own data shows volume and congestion can decouple (traffic fell, congestion still rose ~5% over 2006–2012), and a technically-successful program that doesn't feel successful to residents loses political durability fast.
+
+**Caveats worth flagging honestly:** this ranking is sensitive to one weak data point (Tallinn's fare-effect breakdown, which I couldn't verify at source — paywalled), and there's a live unresolved question of whether Stockholm/London's success was really about pre-existing transit viability or just enforcement intensity/charge level. Confidence throughout is medium, not high — appropriately, since this is fundamentally a decision that needs city-specific numbers no general analysis can supply.

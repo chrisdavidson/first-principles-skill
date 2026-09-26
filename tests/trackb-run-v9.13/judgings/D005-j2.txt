@@ -1,0 +1,19 @@
+**Decision usefulness:** The document lands on a specific, executable position — don't migrate to GraphQL, build a single governed REST BFF layer scoped to the three mobile clients — and backs it with three concrete numbered actions (run specific diagnostics, build the shared BFF with named governance properties, leave the other six clients alone). It also states plainly who this is for (a team facing the mobile round-trip complaint) and under what conditions the recommendation holds. A reader could pick this up and start executing today. This earns **Rigorous**.
+
+**Evidence grounding:** Several technical claims are reasonable and independently verifiable domain facts (HTTP/2 multiplexing, DataLoader being usable outside GraphQL, the existence and purpose of the BFF pattern), and one number is explicitly flagged as an estimate with its basis named ("roughly 120ms–2.5s depending on network tier and whether calls are serial — currently unknown"). But the document's central quantitative artifact — the weighted comparison table producing scores of 92, 63, and 42 — is presented with no visible arithmetic: the criteria are named but never scored individually, no weights are shown, and there's no way for a reader to check how those totals were derived. Since this table is the load-bearing justification for ruling out the other two options, and it's presented with a false air of precision while showing none of the underlying work, this pulls the criterion down substantially. This lands at **Hand-wavy**.
+
+**Assumption surfacing:** The document does real work here. It explicitly identifies and interrogates its most consequential assumption — that GraphQL is *necessary* rather than merely sufficient — and walks through why a REST BFF reaches the "identical round-trip floor." It also names the single fact the whole argument leans on ("3 of 9 clients are mobile") and says what happens if that ratio were different, and it flags specific unknowns (serial vs. parallel calls, HTTP version, cache behavior) as things to check before building rather than treating them as settled. This is assumption-naming plus engagement with the consequential one, which is **Rigorous**.
+
+**Calibration:** The overall recommendation is explicitly labeled "confidence: MEDIUM," and the document is careful to gate the final build step on diagnostics for facts it admits are currently unknown — that's confidence tracking support reasonably well. However, the trade-off table's precise-looking scores (92 vs. 63 vs. 42) project a level of rigor the document doesn't actually show, which runs ahead of what's demonstrated even as the prose around it stays appropriately hedged. That's a real but localized mismatch rather than a pervasive one, putting this at **Sound**.
+
+**Falsifiability:** The document names specific, checkable conditions that would overturn the recommendation — existing GraphQL infrastructure/expertise, a technical or contractual barrier to adding REST endpoints, or a partner/regulatory mandate for a GraphQL interface — and goes further with a concrete operational tripwire ("~15 bespoke mobile endpoints or 2+ new mobile screens/quarter") that tells the reader exactly when to revisit the rejected alternative. These are specific enough to go check against reality, not generic hedges. This is **Rigorous**.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

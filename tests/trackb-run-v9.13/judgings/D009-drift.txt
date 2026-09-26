@@ -1,0 +1,21 @@
+## Scoring
+
+**1. Decision usefulness — Rigorous.** The document lands on a specific, actionable position: treat the 62%→71% shift as a preliminary signal, not a validated result, and don't act on it (scale-up, publication, investment) until specific follow-up is obtained. It even names the exact next steps — get per-run data, a stated control protocol, confirmation all runs were reported — which is concrete enough for a reader to go execute. It also states who it's for and under what conditions the caution applies (anyone about to treat this yield jump as grounds for scale-up or investment decisions).
+
+**2. Evidence grounding — Sound.** Most of the load-bearing reasoning is shown rather than asserted: the causal claim is walked through via a list of specific confounds, and the significance argument is derived live for the reader (no SD given → can't compute power → n could be adequate or badly underpowered depending on the unknown). But the pivotal bracket — "plausible run-to-run SD for bench chemistry at 1–8 percentage points" — is simply asserted with no stated basis (no citation, no reasoning for why that specific range), even though a rough justification would have been easy to give. That one ungrounded figure, doing real work in the argument, keeps this out of the top band.
+
+**3. Assumption surfacing — Rigorous.** The document doesn't just gesture at "assumptions" generically — it names the specific unstated premises the naive reading depends on (constant/randomized confounds, a known dispersion, single-substrate generality, yield as the sole criterion of "better"), and it goes further to identify and directly engage the single most consequential one: the missing standard deviation. It bounds that unknown's effect concretely (n≈2 vs n≈13 depending on where the true SD falls) rather than just flagging that it's missing.
+
+**4. Calibration — Rigorous.** Confidence is carefully graded to match support throughout: flat certainty only for the raw observed numbers ("only this, at face value"), open uncertainty for the causal and significance questions ("you genuinely cannot tell which regime you're in"), and an explicit refusal to overcorrect into false confidence in the opposite direction (rejecting the "n=3 is obviously too small" claim as just as unwarranted as trusting the result outright). This distinguishes what's known from what's inferred rather than applying one confidence level uniformly.
+
+**5. Falsifiability — Rigorous.** The document identifies precisely what would resolve its uncertainty and change the conclusion — the run-to-run SD or raw per-run values — and explains mechanically how that number would settle both the power question and the causal-attribution question. It then converts this into a checkable action (ask the lab for that data plus the control protocol), rather than a generic call for "more research."
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

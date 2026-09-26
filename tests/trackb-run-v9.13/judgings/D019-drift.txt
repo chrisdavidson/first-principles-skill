@@ -1,0 +1,19 @@
+**Decision usefulness (C1 — Rigorous):** The document lands on a concrete, executable position — reject the binary timed-vs-take-home framing in favor of a construct-specific portfolio, retain brief unaided components only where the construct needs them, and expand take-home work only when paired with lightweight process verification. It goes further than a directional steer by naming a specific rollout sequence (start with TA-supported small/medium upper-division courses, defer large lecture courses), and it explicitly scopes who the recommendation is for (a typical research university's general curriculum) and where it would flip (licensure-style programs). A reader could act on this or reject it on stated terms.
+
+**Evidence grounding (C2 — Sound):** Several load-bearing claims are grounded well: the detection-ceiling argument is derived in view of the reader from the mechanism (a generator trained to minimize distance from human text is adversarial to a detector measuring that same distance), and the grading-capacity numbers are explicitly presented as a Fermi estimate with its inputs shown (12-minute spot-check, twice a term, 30-student course, share of TA allocation). But not everything clears the bar: the pre-AI cheating rate is attributed only to a named research "tradition" (ICAI/McCabe) without a specific figure's provenance, and the claim that "several institutions, e.g. in the Russell Group" have stopped treating detector scores as dispositive is asserted with a vague hedge and no identifiable source — a claim where a concrete citation was plausibly available and would have been easy to give.
+
+**Assumption surfacing (C3 — Rigorous):** The document names its load-bearing assumptions rather than leaving them implicit — that unaided-authorship was already a weak construct, that detection degrades structurally rather than temporarily, and that the capacity estimates are illustrative rather than measured. It engages the most consequential one, the detection-ceiling claim, by walking through the mechanism that supports it and then explicitly flagging it as an "unverified Bayes-error argument" whose confidence is lower than the directional recommendation's. Tying that same assumption to a specific falsification condition (a study showing detectors hold up under sustained paraphrase-evasion) counts as bounding it, not just gesturing at it.
+
+**Calibration (C4 — Rigorous):** The document explicitly separates its confidence levels rather than applying one uniform tone: it states "LOW-to-MEDIUM, asymmetric across the claim," treats the directional recommendation as resting on independently MEDIUM-confidence chains and therefore fairly solid, and marks the specific rollout-pace and capacity figures as resting on "lower-confidence, partly illustrative inputs." This is a genuine attempt to track where the support is strong versus thin, rather than either flat assertion or blanket hedging.
+
+**Falsifiability (C5 — Rigorous):** The "What would overturn this" section gives four conditions that are specific and checkable rather than generic: a primary-source study on detector accuracy under sustained paraphrase-evasion, an institutional study on actual grading-time cost, evidence that the pre-AI cheating statistic doesn't reflect individual-authorship violations, or a documented case where the portfolio approach was tried and failed against a real comparison group. Each names the kind of evidence and what it would need to show, which is enough for someone to actually go and check it.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

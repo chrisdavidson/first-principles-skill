@@ -1,0 +1,17 @@
+Here's the analysis, distilled from a full first-principles run (base rates checked against BLS and VC-failure data rather than assumed):
+
+**The two numbers you named aren't where this is actually decided.** Neither the 11-month runway nor the 30% pay cut is the load-bearing fact.
+
+**On the equity:** Base rates alone (75% of VC-backed companies never return cash to investors; common stock gets paid only after preferred stock's liquidation preference) mean the *modal* outcome for equity like this is zero — regardless of anything specific to this company. That's the one conclusion here that doesn't need company-specific data to trust. A rough Fermi estimate (hire #4/5 typically gets ~0.3-0.4% pre-dilution, weighted by realistic exit odds) puts central expected value at under 10% of the cumulative pay cut over a 4-year vest. The theoretical upside ceiling is real (low-to-high single-digit millions) but requires unicorn-level odds far below what the central estimate already assumes — so "it could be huge" is true and mostly beside the point.
+
+**On the runway:** Your 11 months only gets consumed once income actually stops — not while you're employed at reduced pay. So the real question isn't "do I have enough runway today," it's two separable questions: (1) does 70% of your current pay cover expenses now, and (2) if the startup fails, is 11 months enough to cover a realistic job search. The real checkpoint isn't today, it's the 12-month vesting cliff — before that, any equity is a forfeitable promise, not an asset.
+
+**Before doing any weighing, four independently-sufficient dealbreakers should gate the decision** — if any one is true, decline regardless of how everything else scores:
+1. No actual cap table / vesting terms reviewed (don't take the offer's equity % on faith)
+2. No alternate household income to extend runway if things go sideways
+3. The role wouldn't build transferable, externally-legible skill
+4. You're doing this for external pressure rather than your own read of the offer
+
+**Past that gate**, it's a real trade-off across six criteria that only you can weight: the financial EV (modest), concentration risk (your income and net worth both now depend on one employer surviving), reversibility, skill/optionality upside (broader scope at a tiny company genuinely does build transferable experience — this is a real, unpriced upside the financial estimate misses), fit with dependents/risk tolerance, and non-financial mission/satisfaction fit.
+
+**Bottom line:** don't evaluate this as "can I afford the pay cut" — evaluate it as a checklist-gated bet where the equity is very likely worth near-zero, the real financial ask is "am I comfortable this is basically a lottery ticket riding on top of a real skill-building experience," and the true risk clock starts only if/when the job actually ends, not today.

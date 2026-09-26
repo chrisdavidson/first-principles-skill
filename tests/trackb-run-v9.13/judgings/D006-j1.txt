@@ -1,0 +1,21 @@
+## Criterion-by-criterion assessment
+
+**1. Decision usefulness — Rigorous.** The document doesn't just rank the three levers; it produces an executable sequence: measure the city's pre-existing mode-viable share of car trips, check hard legal/fiscal knockouts, default to congestion pricing as the anchor lever *wherever legally/fiscally available*, reinvest revenue rather than treating levers as competitors, and pair the trip-count target with a congestion-delay metric. It also states explicitly when the recommendation flips (car-dependent, low-density city near/below the 20% mode-viable threshold means infrastructure, not pricing, is the binding constraint). A reader could execute or reject this without needing to fill in missing steps.
+
+**2. Evidence grounding — Hand-wavy.** Several numbers are tied to named, checkable real-world cases (Stockholm's 2006 cordon trial, London's early-weeks effect, Seville's multi-year mode-share build-out), which is better than bare assertion. But the single figure the top recommendation actually leans on — the weighted trade-off score of 82 (pricing) vs. 70 (cycle lanes) vs. 63 (free transit) — is stated with no visible weighting scheme, no shown criteria breakdown, and no derivation a reader could inspect or re-run; "robust to reasonable reweighting" is asserted, not demonstrated. Since this is the figure the decisive recommendation rests on, and it has no stated origin, the document falls into "figures with no stated origin" territory despite doing better elsewhere.
+
+**3. Assumption surfacing — Rigorous.** The document names its single load-bearing assumption explicitly — that the binding constraint is the city's pre-existing mode-viable share of car trips — and then engages with it directly by bounding both directions (above the threshold, it's tractable via demand-side levers; at or below it, no pricing/fare policy can work at all). It goes further and flags a live alternative explanation it hasn't ruled out (whether Stockholm/London's results reflect transit viability or just enforcement intensity/charge level), which is exactly the kind of stress-testing of the most consequential assumption the top band asks for.
+
+**4. Calibration — Sound.** The closing paragraph explicitly downgrades overall confidence to "medium, not high" and gives a reason tied to the nature of the problem, and it separately flags one specific data point (Tallinn's fare-effect breakdown) as weak and unverified at source. That's real differentiation between what's solid and what's shaky. But the decisive weighted score is presented with more assurance ("wins... and the ranking is robust to reasonable reweighting") than its lack of visible derivation supports, so confidence runs slightly ahead of what was shown in at least that one place.
+
+**5. Falsifiability — Rigorous.** The document identifies a specific, checkable fact that would overturn its own recommendation: if a city's measured mode-viable share of car trips is at or below ~20%, congestion pricing cannot be the anchor lever regardless of preference, because there's nothing to shift trips onto. It also flags a second concrete open question — whether Stockholm/London's results were driven by pre-existing transit viability or by enforcement/charge level — that a future study could resolve and that would change how much weight the argument's central variable deserves. Both are specific enough to go and check, unlike a generic "more research is needed."
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

@@ -1,0 +1,29 @@
+## Decision usefulness
+
+The document lands on an unambiguous position — scoped REST BFF for the 3 mobile clients, not a GraphQL migration — and follows it with concrete, executable steps: run three named diagnostics, build one shared governed BFF layer, leave the other 6 clients alone. It also specifies the conditions under which the recommendation applies (mobile being the minority of clients) and who would act on it. This is specific enough to execute or reject, placing it in the top band.
+
+## Evidence grounding
+
+The central logical move — that a hand-built REST aggregation endpoint and a GraphQL resolver both compose server-side and hit the same round-trip floor because "an HTTP response is only sent once the server handler finishes" — is genuinely derived in view of the reader, not asserted. Several supporting facts (HTTP/2 multiplexing, DataLoader as a portable batching technique, the BFF pattern's origin) are stated plainly and are the kind of established technical facts that don't strictly need a citation to be checkable. But the document also leans on a numeric scoring table (92/63/42) presented as "weighted, flip-test-checked" with no weights, criteria breakdown, or calculation shown — a load-bearing figure with no visible origin — and an appeal to "GraphQL's own documentation states..." without naming or quoting the source. That mix of well-derived core reasoning alongside unsupported dressing-up of the ranking keeps this at Sound rather than Rigorous.
+
+## Assumption surfacing
+
+The document does more than name its assumptions — it identifies which single fact the whole conclusion pivots on ("3 of 9 clients are mobile") and explicitly says how the answer would change if that ratio shifted. It also surfaces the unresolved unknowns behind its effort estimate (serial vs. parallel calls, HTTP version, cache state) and proposes concrete tests for them rather than treating them as settled. Naming the most consequential assumption and engaging with what happens if it's wrong is exactly what the top band asks for.
+
+## Calibration
+
+The recommendation is explicitly labeled "confidence: MEDIUM" and that label is tied to a real reason — the network/cache diagnostics haven't been run yet — with an effort estimate given as a range rather than a false point figure. That's good tracking of confidence to support. However, the scoring table's precise-looking values (92/63/42) project a level of certainty the rest of the document doesn't actually claim to have, and that one spot where confidence outruns what was shown keeps this at Sound instead of Rigorous.
+
+## Falsifiability
+
+The "what would flip this answer" section gives specific, checkable conditions — existing GraphQL infrastructure, a contractual barrier to new REST endpoints, a regulatory mandate for a GraphQL interface — and the pre-mortem adds a concrete numeric tripwire (~15 bespoke mobile endpoints or 2+ new custom screens per quarter) at which the recommendation should be revisited. These are specific enough for a reader to actually go check them against reality, not generic hedges, which is the top band.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

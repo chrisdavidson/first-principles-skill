@@ -1,0 +1,21 @@
+## Criterion-by-criterion assessment
+
+**1. Decision usefulness.** The document reaches a clear, specific position: the causal claim is not yet supported, and it must be treated as "hypothesis-generating" rather than validated. Crucially, it doesn't stop at the hedge — it specifies exactly what a reader needs to do next ("a properly powered, controlled or randomized, fully-disclosed replication that reports per-run variance... and states the total runs attempted"), and even flags which single missing number would resolve the question fastest. A reader deciding whether to act on the catalyst claim has a concrete next step, not just a shrug. This is **Rigorous**.
+
+**2. Evidence grounding.** The statistical reasoning is derived in view of the reader rather than asserted: the SEM shrinkage (σ/√3) is shown, and the two illustrative scenarios (SD≈3pp vs. SD≈10pp) are explicitly flagged as conditional bounds rather than presented as known fact. The thermodynamic claim (ΔG°=−RT ln K fixes K, independent of catalyst) is a load-bearing but well-established physical principle, and the document is careful to frame its applicability as conditional ("if this reaction runs to full equilibrium"). The underlying yield figures (62%→71%, n=3) are treated as given from the report under analysis, and the document never overstates what those figures alone can support. This is **Rigorous**.
+
+**3. Assumption surfacing.** The document names its assumptions explicitly rather than gesturing at them generically: no variance data, no disclosed controls, no disclosure of total runs attempted, and (for the thermodynamic argument) the assumption that the reaction runs to full equilibrium. It doesn't just list these — it engages with the most consequential one quantitatively, bounding the signal-to-noise ratio under two plausible SD scenarios to show the assumption is genuinely decisive rather than a formality. This is **Rigorous**.
+
+**4. Calibration.** Confidence is explicitly graded to match support: the correlation is stated as "established," the causal claim is explicitly marked as unsupported, and the thermodynamic point is stated as a hard physical constraint (appropriately, since it follows from settled principles) while the empirical claims are hedged in proportion to the actual gaps identified. The document distinguishes what's known (the observed gap) from what would need to be shown (causation) at every step, with no place where the stated confidence outruns or lags what's actually demonstrated. This is **Rigorous**.
+
+**5. Falsifiability.** The document states, specifically and checkably, what would overturn its "not yet causal" verdict: a controlled/randomized, fully disclosed replication reporting per-run variance (or a formal significance test) and the total number of runs attempted. This is not a generic "more research is needed" caveat — it names the exact missing artifacts (variance figure, control list, run count) whose disclosure would change the verdict, and even ranks the variance figure as the one that would "settle it fastest." This is **Rigorous**.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

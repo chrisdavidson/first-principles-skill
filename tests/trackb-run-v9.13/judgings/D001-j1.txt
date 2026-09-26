@@ -1,0 +1,19 @@
+**Decision usefulness (C1):** The document reaches an unambiguous position — don't approve the hardware purchase yet — and pairs it with a concrete, executable next step: a time-boxed 1–2 week diagnostic with a named list of things to measure (queue-wait vs. execution, serial vs. parallel config, cache-hit rate, flaky-rerun time, full-vs-changed-scope execution). It also names who acts on it (whoever approves the purchase) and states the exact condition under which the recommendation flips. This is specific enough to be executed or rejected on its own terms. **Rigorous.**
+
+**Evidence grounding (C2):** Several load-bearing numbers are handled well — the 8-core/2-core cost ratio is attributed to GitHub Actions pricing and its implication (the ~73% speedup breakeven) is derivable by the reader from the stated ratio, and the 80–240 engineer-hour diagnostic cost is explicitly flagged as "illustrative." But the claim that "developer wait-time cost from the status quo runs an order of magnitude higher annually" — which does real work in justifying the diagnostic's cost-effectiveness — is asserted with no visible calculation, no headcount or build-frequency assumption, nothing the reader could check, even though that support would have been easy to sketch. That gap, plus the pricing multiplier being cited rather than shown, keeps this out of the top band. **Sound.**
+
+**Assumption surfacing (C3):** The document identifies the single most consequential unexamined assumption very precisely — that the composition of the 47 minutes (CPU-bound vs. serial vs. fixed overhead vs. flaky reruns vs. missing caching vs. suite scope) is unknown — and doesn't just name it, it turns it into the actual mechanism of the recommendation (diagnose before buying) and gives the specific threshold at which it would resolve differently. It also separately flags a second assumption (that the batching habit will reverse once CI is fast) and marks it as needing active monitoring rather than being assumed away. Both the most consequential assumption and a secondary one are engaged, not just listed. **Rigorous.**
+
+**Calibration (C4):** Confidence is stated explicitly ("MEDIUM") and tied to a specific missing measurement, and the hedging throughout tracks what's actually known: the 47-minute figure and batching behavior are treated as solid, the composition of that time is treated as genuinely unknown, and speculative claims (habit persistence, deploy-risk externality) are flagged with "may" rather than asserted flatly. The confidence expressed doesn't outrun what's been shown anywhere in the document. **Rigorous.**
+
+**Falsifiability (C5):** The document states precisely what would overturn its recommendation — a timing profile showing more than 80% of the 47 minutes is genuinely parallelizable CPU-bound work with negligible flakiness/caching/scope issues — which is a concrete, checkable test rather than a generic caveat. It also names a distinct organizational failure mode (the diagnostic being overridden as "delay") and prescribes a hard gate against it, which is itself a checkable commitment. **Rigorous.**
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

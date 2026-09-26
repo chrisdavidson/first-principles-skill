@@ -1,0 +1,21 @@
+## Scoring of `analysis.md`
+
+**1. Decision usefulness — Rigorous.** The document doesn't stop at "it depends" — it converts the binary "move or don't" question into a specific default (bounded, reversible trial before full relocation) plus explicit conditions under which the more drastic option is warranted (both jobs truly location-bound, escalating need, no local-care alternative). It also specifies who must clear which gates before acting, and names what the framework does *not* cover (relational/values-based reasons, acute-crisis cases). A reader facing this decision has a concrete procedure to run, not just a list of considerations.
+
+**2. Evidence grounding — Hand-wavy.** The document's central "key finding" — that moving into the same region captures "~90% of the total possible time savings" and full co-location adds only "1–20 minutes" further — is presented as fact but its derivation is never shown; it's labeled a "Fermi check" without the Fermi math behind it, so the reader cannot verify the number or see where it comes from. The claim that parental decline is "event-punctuated, not a smooth slope," which drives the recommendation to revisit rather than decide once, is likewise asserted with no supporting basis. Since these are the two claims the rest of the argument leans on hardest, and neither has a visible origin, this falls to the "figures with no stated origin" band rather than merely one or two ungrounded asides.
+
+**3. Assumption surfacing — Rigorous.** The document explicitly separates what is assumed from what is known: it treats the parents' trajectory (stable vs. escalating vs. already-crisis) as the pivotal unexamined variable and engages it directly, giving different guidance for each case rather than assuming one. It also flags assumptions that a reader might quietly smuggle in — that proximity is wanted (told to ask, not infer), that the move is really about caregiving and not something else — and names them as things to test rather than premises to accept. The closing confidence note further separates load-bearing assumptions (family-specific dynamics) from mechanics it treats as more solid.
+
+**4. Calibration — Sound.** The document ends with an explicit, differentiated confidence statement rather than uniform hedging or uniform assertion, which is good practice. But the differentiation itself is miscalibrated in one consequential spot: it claims "HIGH" confidence specifically on the "distance/latency mechanics" — which is exactly the 90%/1–20-minute figure identified above as unsupported. Declaring high confidence in a number whose basis was never shown is confidence running ahead of what was demonstrated, even though the rest of the document's hedging (medium confidence on family-specific dynamics) is appropriately placed.
+
+**5. Falsifiability — Rigorous.** Rather than a generic "this could be wrong" caveat, the document builds specific, checkable gates that would flip its recommendation: an unescalating, non-location-bound, locally-serviceable situation keeps the answer at "stay and adjust visits"; a confirmed escalating trajectory with no local alternative flips it toward relocation; an already-acute crisis flips it away from staged trial toward immediate action. Each of these is something a reader could actually go check (ask the parents, check job constraints, check whether needs are escalating) rather than a rhetorical hedge that would apply to any decision document.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

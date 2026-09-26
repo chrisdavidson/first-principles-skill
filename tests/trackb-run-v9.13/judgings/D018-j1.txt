@@ -1,0 +1,19 @@
+## Assessment
+
+**1. Decision usefulness.** The document opens with an unambiguous verdict ("No — not now") and immediately follows with an executable recommendation: keep the single deployable, impose specific modularity practices (clear module boundaries, no cross-module direct DB access), and set numeric extraction triggers. It's clear who this applies to (a ~6-engineer team at ~1,200 DAU) and under what conditions the answer would flip. A reader could act on this today without needing to fill in gaps. This is the top band.
+
+**2. Evidence grounding.** Several load-bearing claims are properly sourced or explained: Conway's Law is invoked correctly and applied to the specific team size, Fowler's monolith-first pattern is named with its rationale, the Segment case is cited with an honest caveat about its limits as evidence, and the Google SRE on-call rotation minimum is a specific, checkable figure used correctly. However, two numbers the conclusion leans on are asserted without visible derivation: the Fermi estimate jumps from "~1,200 DAU" to "0.8–28 req/s" without showing the intermediate arithmetic (requests-per-user, peak multiplier, etc.), and the weighted trade-off scores (112 / 96 / 36 across six criteria) are stated as a bottom line with no visible weights or per-criterion scoring shown. Both would have been easy to show and aren't. That combination of solid sourcing elsewhere alongside two omitted-but-available derivations places this in the middle band rather than the top.
+
+**3. Assumption surfacing.** The document explicitly names the assumption that most drives sensitivity — the DAU figure — as an assumption, and goes further than merely flagging it: it states what happens if the assumption is wrong ("the throughput argument weakens and the calculus shifts") and gives a concrete way to check it ("worth checking against actual analytics"). It also surfaces the assumption that "nothing here evidences" differential subsystem scaling needs. This satisfies the top band's requirement to engage with the most consequential assumption, not just list it.
+
+**4. Calibration.** Confidence is stated explicitly and differentially rather than as one flat number: "MEDIUM overall," with two specific sub-arguments (Conway's-law fit, monolith-first evidence) called out as independently HIGH-confidence and load-bearing enough to hold the conclusion alone. The weakest link (the DAU figure) is identified as exactly that — weakest — rather than being presented with the same confidence as the rest. This differentiation between what's solid and what's inferred is what the top band asks for.
+
+**5. Falsifiability.** The document names concrete reversal conditions: a subsystem's load or release cadence diverging from the rest, the org splitting into 2+ independently-run teams, or headcount crossing ~8–10 engineers. Two of these (team split, headcount threshold) are genuinely checkable facts, not vague gestures, and the document separately flags that the recommendation should be re-examined against actual traffic analytics. "Load diverges sharply" is a little soft, but the set as a whole is specific enough that someone could go check it against real data, which is what distinguishes this from generic caveat language.
+
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===

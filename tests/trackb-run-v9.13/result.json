@@ -1,0 +1,170 @@
+{
+  "conditions": {
+    "domain_spread": false,
+    "exceeds_drift": false,
+    "statistical": false
+  },
+  "domain_count": 4,
+  "domains_in_direction": 2,
+  "drift_pairs": [
+    [
+      13,
+      13
+    ],
+    [
+      13,
+      14
+    ],
+    [
+      14,
+      13
+    ],
+    [
+      10,
+      13
+    ],
+    [
+      12,
+      12
+    ],
+    [
+      14,
+      14
+    ],
+    [
+      14,
+      12
+    ],
+    [
+      12,
+      12
+    ],
+    [
+      12,
+      10
+    ],
+    [
+      13,
+      13
+    ],
+    [
+      14,
+      14
+    ],
+    [
+      14,
+      14
+    ],
+    [
+      11,
+      13
+    ],
+    [
+      13,
+      12
+    ],
+    [
+      14,
+      14
+    ],
+    [
+      15,
+      15
+    ],
+    [
+      8,
+      13
+    ],
+    [
+      12,
+      12
+    ],
+    [
+      14,
+      13
+    ],
+    [
+      12,
+      12
+    ]
+  ],
+  "drift_threshold": 1.8,
+  "in_run_drift": 0.9,
+  "mean_difference": 0.35,
+  "measured": "2026-09-25",
+  "model": "claude-sonnet-5",
+  "n_per_arm": 10,
+  "n_prompts": 10,
+  "observed_effect": "agent arm scored +0.35 points higher on a 15-point rubric across 10 paired problems",
+  "p_value": 0.564453,
+  "per_prompt_differences": {
+    "TB-01": 0.5,
+    "TB-02": -2.5,
+    "TB-03": 2.0,
+    "TB-04": -1.5,
+    "TB-05": 1.0,
+    "TB-06": 0.5,
+    "TB-07": 2.0,
+    "TB-08": 1.0,
+    "TB-09": 2.0,
+    "TB-10": -1.5
+  },
+  "per_prompt_scores": {
+    "TB-01": {
+      "C": 12.5,
+      "T": 13.0,
+      "domain": "software"
+    },
+    "TB-02": {
+      "C": 14.0,
+      "T": 11.5,
+      "domain": "software"
+    },
+    "TB-03": {
+      "C": 12.0,
+      "T": 14.0,
+      "domain": "software"
+    },
+    "TB-04": {
+      "C": 14.0,
+      "T": 12.5,
+      "domain": "policy"
+    },
+    "TB-05": {
+      "C": 12.0,
+      "T": 13.0,
+      "domain": "policy"
+    },
+    "TB-06": {
+      "C": 13.5,
+      "T": 14.0,
+      "domain": "policy"
+    },
+    "TB-07": {
+      "C": 11.5,
+      "T": 13.5,
+      "domain": "science"
+    },
+    "TB-08": {
+      "C": 14.0,
+      "T": 15.0,
+      "domain": "science"
+    },
+    "TB-09": {
+      "C": 8.5,
+      "T": 10.5,
+      "domain": "personal"
+    },
+    "TB-10": {
+      "C": 13.5,
+      "T": 12.0,
+      "domain": "personal"
+    }
+  },
+  "preregistered_threshold": "paired permutation p < 0.05; effect > 2.0x in-run drift; direction holds in >= 3 of 4 domains",
+  "reason": "p=0.5645 not < 0.05; effect 0.350 does not exceed 2.0x in-run drift (1.800); only 2 of 4 domains in direction (need 3)",
+  "run_id": "trackb-run-v9.13",
+  "status": "null",
+  "unparseable_fraction": 0.0,
+  "voided_cells": []
+}

@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+This document reaches a clear, actionable position: measure the city's mode-viable share and legal/fiscal knockouts first, then default to congestion pricing as the anchor lever wherever available, with revenue reinvested into transit fares and cycle lanes, paired with a directly measured congestion metric rather than trip-count alone. It states explicitly who this is for (a city facing this three-option choice) and under what condition the default flips (when mode-viable share is near or below 20%, pricing/fare policy alone cannot work and the binding constraint becomes infrastructure coverage). A reader could execute this sequence or reject it on stated grounds. This meets the top band.
+
+## Criterion 2: Evidence grounding
+
+Several numbers are asserted with no visible origin: Stockholm's 20-25% and London's 10-15% traffic reductions, Seville's 0.6%→7% mode-share shift, and Tallinn's mode-share/VKT effects are all stated as fact with no citation or dataset reference. Most damagingly, the "weighted trade-off" scores (82 vs. 70 vs. 63) that anchor the core recommendation appear with no shown weights, no computation, and no stated methodology — a load-bearing figure presented with false precision. The document does flag one specific weak point (the Tallinn ridership breakdown, "couldn't verify at source — paywalled"), which is a genuine act of grounding-awareness, but this is the exception rather than the rule; the bulk of the quantitative claims that carry the argument have no stated origin a reader could check.
+
+## Criterion 3: Assumption surfacing
+
+The document identifies and names its single load-bearing assumption explicitly — that pre-existing mode-viable share of car-commute trips is the decisive variable — and does not just gesture at it: it bounds the two cases (share above vs. below 20%) and traces what each implies for which lever can work. It goes further and interrogates the most consequential assumption underlying its own evidence base, flagging as unresolved "whether Stockholm/London's success was really about pre-existing transit viability or just enforcement intensity/charge level." That is exactly the kind of engagement with the most consequential assumption the top band asks for.
+
+## Criterion 4: Calibration
+
+The document differentiates confidence in specific places — flagging the Tallinn figure as an unverifiable weak data point and flagging the transit-viability-vs-enforcement question as a live unresolved uncertainty — while treating the Stockholm/London speed findings as comparatively solid. But this differentiation sits alongside a blanket closing statement ("Confidence throughout is medium, not high") that flattens those distinctions back out, and the fabricated-looking precision of the 82/70/63 scores is presented with more apparent confidence than its (absent) derivation warrants. The calibration signal is present but inconsistent rather than tracking support point-by-point.
+
+## Criterion 5: Falsifiability
+
+The document gives a specific, checkable condition under which its own recommendation fails: if a city's measured mode-viable share is at or below 20%, congestion pricing cannot hit the target and the "default to pricing" advice does not apply — a reader can go measure this and know whether the recommendation holds for their case. It also flags a second specific, checkable uncertainty (whether the Stockholm/London evidence reflects transit-viability or enforcement/charge-level effects) that bears directly on whether the ranking generalizes. Both are concrete enough to investigate, not generic hedges, which meets the top band.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

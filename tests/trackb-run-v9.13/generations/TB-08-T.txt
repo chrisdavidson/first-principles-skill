@@ -1,0 +1,15 @@
+## What the report supports vs. what it doesn't
+
+**Supported:** an observed correlation — the runs using the catalyst showed higher measured yield (62%→71%, a 9-point / ~14.5% relative increase) than the comparison runs.
+
+**Not yet supported:** that the catalyst *caused* this increase. Three gaps block that stronger claim:
+
+1. **No variance data.** With n=3, the standard error only shrinks to ~58% of the single-run SD (SEM=σ/√3). Without a reported SD, the identical 9-point gap could be a large, clearly real effect (if SD≈3pp, signal/noise ratio ≈3.7) or statistically indistinguishable from noise (if SD≈10pp, ratio ≈1.1). This single missing number is the most decisive fact.
+2. **No disclosed controls.** The report doesn't say whether reagent batch, operator, temperature, or workup/measurement method were held constant between catalyst and non-catalyst runs. Any of those could produce the same pattern without the catalyst playing any role.
+3. **No disclosure of total runs attempted.** If these three are a favorably-selected subset of a larger set of attempts, the 9-point gap is a biased, inflated estimate.
+
+**A separate physical constraint:** a catalyst changes reaction *rate*, not the equilibrium constant (ΔG°=−RT ln K is fixed by reactant/product energies). So if this reaction runs to full equilibrium, the catalyst cannot have raised a thermodynamic yield ceiling — even a confirmed, real increase would have to be explained by kinetics (more product within the same reaction time), suppression of a side reaction, or one of the confounds above, not by "the catalyst made more product possible."
+
+**What would actually justify the causal claim:** a properly powered, controlled or randomized, fully-disclosed replication that reports per-run variance (or a formal significance test) and states the total runs attempted — ideally repeated by a second operator or reagent batch.
+
+**Bottom line:** treat "the catalyst raised the yield" as a hypothesis-generating observation, not a validated finding. Correlation is established; causation is not, and the missing variance figure is what would settle it fastest.

@@ -1,0 +1,29 @@
+## Criterion 1 — Decision usefulness
+
+The document reaches a clear, specific position: roughly 1,400 km² centrally (0.3%–4.6% of territory) under an annual-balance reading of "supply," and a verdict that land is not the binding constraint. It states the condition under which this holds (annual-balance vs. instantaneous autonomy) and names the real open variable. What it doesn't do is translate that into an instruction a reader could execute or reject — it identifies the decisive question (does the grid need solar-only autonomy?) but stops short of saying what to do with that answer once known, or explicitly stating who the intended reader is. That leaves the practical edge slightly blunt. **Sound.**
+
+## Criterion 2 — Evidence grounding
+
+Several load-bearing numbers appear — the Cuba/Sweden per-capita figures, the 210–6,250 km² and 1.5–14,000 km² ranges, the 20–22% vs. 33.7% efficiency figures — but none carry a visible origin. The claim that "three independent calculation routes... triangulate to the same order of magnitude" is exactly the kind of derivation a reader would need to see to trust the headline figure, and it is asserted rather than shown. Nothing here looks fabricated, but the central quantitative claims rest on assertion rather than visible derivation or citation. **Hand-wavy.**
+
+## Criterion 3 — Assumption surfacing
+
+The document explicitly names its two load-bearing assumptions — which demand level applies, and what "supply" means — and calls them out as the dominant swing factors rather than incidental details. It goes further and engages the more consequential one directly, bounding its effect ("a further 1–10x multiplier") and flagging it as "the least-resolved variable in the whole estimate." A secondary assumption (availability of land net of ecological/rights/military claims) is also surfaced, if less thoroughly engaged. **Rigorous.**
+
+## Criterion 4 — Calibration
+
+Confidence is graded rather than uniform: the order-of-magnitude headline is stated fairly plainly, the storage-autonomy multiplier is explicitly flagged as weakly supported, and softer claims (rooftop offset, efficiency gains) are hedged with "plausibly" and "modestly." This tracks reasonably well with how much support is actually visible for each. The one place confidence runs slightly ahead of its shown support is the central 1,400 km² figure itself, presented with more assurance ("centrally") than the undisclosed derivation behind it would strictly license. **Sound.**
+
+## Criterion 5 — Falsifiability
+
+The closing line is specific rather than generic: it identifies exactly what would overturn the "land isn't binding" verdict — whether the country requires true solar-only grid autonomy rather than annual-balance supply — and ties that condition to a concrete, checkable consequence (the range balloons to ~1.5–14 thousand km², up to ~20% of territory in edge cases). This is a real, checkable pivot condition rather than a boilerplate caveat like "further research is needed." **Rigorous.**
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Sound
+C2: Hand-wavy
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

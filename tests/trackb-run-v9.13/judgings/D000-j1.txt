@@ -1,0 +1,29 @@
+## Decision usefulness
+
+The document reaches an explicit, executable position: sequence all three levers rather than picking one, with a concrete Year 1–2 priority (a single bonded, connected bike-lane package on highest-volume corridors), a parallel move (redirect transit subsidy toward frequency instead of blanket free fares, reserving free fares for targeted equity groups), and an immediate but low-cost action (start congestion-pricing legal groundwork, explicitly not expecting payoff inside the window). It also states its own scope conditions (a no-rail city, target/timeline as given) and provides a five-factor decision rule for how the recommendation would change for a different city. A reader tasked with allocating a real budget could act on this or reject it point by point. This lands in the top band.
+
+## Evidence grounding
+
+Most of the load-bearing numbers are tied to named precedents the reader can trace: NYC's 5.75-year legislative-to-launch timeline, Seville's 80km/18-month build, London/NYC zone-traffic reductions of ~10–11%, Tallinn's ~5-point decline. That is real grounding. But several figures central to the argument are dropped in without visible basis: the ~23% farebox-revenue-loss figure that anchors the fiscal case against free transit, the $150K–$1M/mile bike-lane cost range, and the framing claim that "the latent pool of convertible car trips is large and mostly untouched," which drives the entire second section's thesis. These are asserted as fact rather than sourced or flagged as estimates at the point of use, even though the closing caveats retroactively flag some (though not all) of the shakier inputs. That mix of solid sourcing and unsupported load-bearing numbers is a sound-but-imperfect showing rather than rigorous.
+
+## Assumption surfacing
+
+The document names several of its own load-bearing assumptions rather than leaving them implicit: that the city lacks pre-existing tolling authority, that it is a "no-rail city (as stipulated here)," and that the precedents used are essentially single-case evidence (n=1) for each lever. It goes further than naming by engaging with what happens if these don't hold — e.g., explaining that congestion pricing's effect would be smaller without rail capacity to absorb diverted trips, and that a polycentric city with low downtown-trip concentration would get little from pricing even with authority. The one clearly load-bearing assumption left unexamined as an assumption is the "large untouched latent pool" claim, which is stated as established fact rather than flagged and stress-tested. Given that the most consequential assumptions are engaged even though one slips through unflagged, this sits at the top band.
+
+## Calibration
+
+The document is explicit that overall confidence is MEDIUM and explains why, distinguishing which specific inputs are shakier (Tallinn's underlying study, local trip-distance data, actual legal-authority status) from which are treated as firmer (documented legislative timelines, build-out speeds). It also calibrates within the argument itself, not just at the end — e.g., noting that headline pricing numbers "suggest" rather than guarantee a given city's result once the no-rail condition is applied, and treating the Tallinn effect as tentative because it draws on secondary reporting. This differentiation between well-supported and thin claims, rather than uniform confidence throughout, is what the top band asks for.
+
+## Falsifiability
+
+The document doesn't isolate a single dedicated "here's what would overturn this" statement, but it distributes genuinely checkable falsification conditions throughout: congestion pricing's inclusion depends on the city actually holding or obtaining tolling authority; its value depends on downtown trip concentration; bike lanes' value depends on the trip-distance distribution being short/medium-haul; free-transit's rejection depends on farebox dependency and fiscal cushion. It closes by naming four specific missing inputs (local trip-distance data, local transit load-factor data, actual state tolling-authority status, a direct read of the Tallinn study) whose absence caps confidence — someone could go verify each one and the recommendation would move accordingly. This is more concrete than a generic "more research is needed" hedge, so it earns the top band, even though the document stops short of stating precisely which findings would flip the recommendation outright.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

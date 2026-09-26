@@ -1,0 +1,33 @@
+## Should you replace REST with GraphQL? No — the round-trip problem doesn't require it.
+
+**Reframed question:** The real decision isn't "REST vs. GraphQL." It's whether the fix for mobile's 4–6 round trips should be *scoped* to the clients that actually have the problem, or applied as a full 9-client protocol migration.
+
+### Ground truths (sourced, not asserted)
+- 9 total clients, 3 mobile, and the round-trip complaint is specifically a mobile-screen problem — nothing indicates the other 6 clients share it.
+- GraphQL's own documentation states its value proposition as eliminating multiple calls by composing a response server-side into exactly what the client asked for.
+- The Backends-For-Frontends (BFF) pattern exists for exactly this symptom — it was designed specifically because mobile wants "different calls, fewer calls" than desktop — and is REST-compatible.
+- HTTP/2 already supports multiplexing multiple exchanges over one connection, so the transport isn't the bottleneck.
+- GraphQL's N+1/backend-fan-out fix (DataLoader) is a resolver/service-layer batching discipline — it's explicitly documented as useful outside GraphQL too, i.e., it's a technique, not a GraphQL-exclusive property.
+
+### The key move: challenge the assumption that GraphQL is *necessary*
+An HTTP response is only sent once the server handler finishes — so a hand-built REST aggregation endpoint (BFF) and a GraphQL resolver are both fully capable of doing all the composition server-side and returning one screen-shaped payload in one round trip. **Both reach the identical round-trip floor.** GraphQL's real, distinct advantage is letting client engineers reshape queries without a backend redeploy as screens evolve — that's a future-iteration-speed benefit, not a fix for today's round-trip count.
+
+### The actual trade-off (weighted, flip-test-checked)
+Scoped fix (REST BFF for the 3 mobile clients) vs. additive GraphQL layer vs. full 9-client migration, scored on blast radius, effort, time-to-value, future flexibility, operational risk, and long-term coherence:
+
+| Option | Score |
+|---|---|
+| **Scoped REST BFF (mobile only)** | **92** |
+| Additive GraphQL layer (mobile only) | 63 |
+| Full 9-client GraphQL migration | 42 |
+
+No plausible reweighting of those criteria reverses the ranking. A full migration drags in 6 client teams with no complaint, plus new GraphQL-specific operational failure modes, for a win a much cheaper option already captures.
+
+### Recommendation (confidence: MEDIUM)
+1. **Before building anything**, run three near-free diagnostics: a network trace (are the 4–6 calls serial or already parallelized?), an HTTP-version check, and a client-side cache audit. This is currently unknown and materially changes the size of the win (roughly 120ms–2.5s depending on network tier and whether calls are serial).
+2. **Build one shared, governed REST aggregation/BFF layer** for the mobile screens — not one-off endpoints per screen — with server-side batched fetching, an owner, and a contract-review step.
+3. **Don't touch the other 6 clients or migrate the platform.**
+
+**What would flip this answer:** if your org already has real GraphQL infrastructure/expertise, if there's a technical/contractual barrier to adding new REST endpoints, or if a partner/regulatory contract already mandates a GraphQL interface — any of those change the trade-off scoring materially. Also worth naming: the single fact most load-bearing here is "3 of 9 clients are mobile" — if that ratio were much higher, a platform-wide investment would look better.
+
+**Pre-mortem risk called out explicitly:** an ungoverned BFF can quietly re-fragment into endpoint sprawl just like the original problem. Tripwire: if you cross ~15 bespoke mobile endpoints or 2+ new mobile screens/quarter each needing a custom one, that's the signal to revisit the additive-GraphQL option — not before.

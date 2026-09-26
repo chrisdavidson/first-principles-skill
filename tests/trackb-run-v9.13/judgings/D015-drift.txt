@@ -1,0 +1,19 @@
+**Decision usefulness (3 — Rigorous):** The document reaches a clear, specific position ("No — not as a full 9-client replacement") and turns it into an executable plan: diagnose first (check HTTP/2, trace the call graph for sequential vs. independent calls), build mobile-scoped BFF endpoints only, gate the rollout on a measured p95 pilot, and pre-commit to a concrete trigger for revisiting GraphQL. A reader could hand this to an engineering team and have them start work tomorrow; scope (which clients, which endpoints) and conditions of applicability are explicit throughout.
+
+**Evidence grounding (2 — Sound):** Several load-bearing claims are grounded with enough specificity to check — the BFF pattern's origin and purpose, the DataLoader N+1 example (13 calls reduced to 4), and the structural claims about REST/GraphQL caching and versioning are all real, verifiable technical facts stated plainly enough for a reader to go confirm. However, the weighted-scoring table that produces the headline numbers (41/71/92/80) uses weights and per-cell scores (5, 4, 3, 2, 1...) that are never justified — no stated method for how "Migration cost" got a 3 for GraphQL-mobile versus a 4 for BFF, for instance. Since the recommendation partly leans on this table's ranking, the unsupported figures are a real gap, keeping this out of the top band.
+
+**Assumption surfacing (3 — Rigorous):** The document doesn't just gesture at uncertainty — it names specific assumptions (the reported 9-client/3-mobile/4-6-round-trip figures, the team's GraphQL/batching familiarity, current REST granularity and caching setup, and whether backend code is isolated per client) and explains how each would change the recommendation if wrong. Critically, it engages with the most consequential one: the unverified round-trip figures are tied directly back to the step-1 diagnostic that would test them, rather than left as an inert caveat.
+
+**Calibration (3 — Rigorous):** The document is confident where the underlying facts are well-established (the mechanics of BFF, N+1, caching/versioning tradeoffs) and explicitly downgrades its confidence elsewhere — closing with "Confidence: medium," naming exactly what caps it (unverified figures) and what would resolve that. This differentiation between settled technical claims and inferred/estimated ones (the table, the recommendation's specifics) is exactly the kind of tracking the top band asks for.
+
+**Falsifiability (3 — Rigorous):** The recommendation comes with concrete, checkable overturn conditions rather than generic hedges: a required measured p95 latency comparison before scaling past one pilot screen (which would falsify the "BFF beats GraphQL" bet if the aggregation endpoint doesn't actually cut latency), and a specific numeric fallback trigger (>6 hand-maintained endpoints, or >2 consecutive sprints of pure maintenance) that would flip the recommendation toward a scoped GraphQL layer. Both are specific enough that someone could actually go check them.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

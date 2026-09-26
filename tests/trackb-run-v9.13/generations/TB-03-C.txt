@@ -1,0 +1,19 @@
+## Recommendation: Refactor to a modular monolith, defer microservices
+
+**Bottom line:** Don't split the deployable. Enforce clean internal module boundaries within the existing monolith, and hold off on network-separated services until a concrete trigger appears. Confidence: **Medium** (direction is robust; certainty is capped by one open variable — see below).
+
+**Why:**
+- **The real variable is communication structure, not headcount or user count.** Conway's Law says architecture mirrors how the org communicates — a 6-person team with no sub-team split has no natural service seam to mirror, regardless of how big the user base gets.
+- **1,200 DAU implies roughly 0.2–4 req/s at peak** — several orders of magnitude below what a single app-server instance handles. There's no scaling pressure to solve.
+- **Microservices would tax capacity you don't have spare.** A plausible 6-service split brings ~18 hrs/week of pipeline, monitoring, and contract-maintenance overhead — roughly 3–13% of total team capacity — spent before any feature work.
+- **Fowler's own justification for the "microservices premium"** (org-coordination complexity, multi-tenancy, or scale) requires complexity this team doesn't have yet. Paying the premium now buys nothing.
+- In a weighted trade-off across four options, modular monolith (101) edges out status quo (93), partial extraction (88), and full microservices (56) — and that ordering holds under any single-criterion weight change.
+
+**This flips if:**
+- The team splits into 2+ sub-teams each needing independent deploy cadence.
+- A specific component develops a *measured* scaling or compliance-isolation need that vertical scaling can't meet.
+- The modular monolith itself produces measured, undeniable pain (deploy contention, unbearable test-suite time) that internal modularity can't fix.
+
+**The one thing that could reverse this:** if the 6 engineers already operate as 2–3 sub-teams each owning a distinct domain (not stated in your prompt), Conway's Law flips the verdict toward partial or targeted service extraction aligned to those teams. Worth confirming before committing to the modular-monolith path.
+
+**Guardrail if you go this route:** add a dependency-direction architecture-fitness check to CI, or the new module boundaries will erode back into a tangled monolith over time.

@@ -1,0 +1,24 @@
+The analysis is done. Here's the synthesized result:
+
+## Recommendation: Don't do a binary swap — move to a construct-specific, capacity-sequenced portfolio model
+
+**The core reframe:** the debate is usually posed as "timed exams vs. take-home, because of AI." Two findings undercut that framing entirely:
+
+1. **Take-home's authorship assumption was already broken before AI existed.** Decades of academic-integrity survey data (ICAI/McCabe tradition) show self-reported cheating rates above 60% pre-AI. AI didn't create the vulnerability that unsupervised written work can't verify who actually did it — it just made violating that assumption dramatically cheaper and more available. That matters because it means the fix isn't "counter AI specifically," it's "stop relying on unverifiable unaided authorship as a construct," which was already a weak foundation.
+
+2. **AI-text detection is not a temporary engineering gap — it's a structurally degrading ceiling.** Generative models are trained to minimize the statistical distance between their output and human-authored text. That's precisely the distance a detector has to measure. So detection accuracy doesn't just happen to be unreliable today (it is — several institutions, e.g. in the Russell Group, have already stopped treating detector scores as dispositive); it gets *worse* as models improve, because the generator's training objective is directly adversarial to the detector's job. Betting policy on "better detectors are coming" is betting against the thing that's actively working against you.
+
+**What the trade-off analysis favors instead:** a portfolio that assigns format to what a course is actually trying to measure (recall/speed vs. synthesis/process), retaining brief timed/unaided components only where the construct genuinely needs them, and expanding take-home work specifically where it's paired with lightweight process verification — checkpoints, drafts, brief oral spot-checks — rather than trusting the final artifact alone or a detector score.
+
+**The real constraint on rollout speed: grading capacity.** A Fermi estimate puts a modest process-verification design (a ~12-minute spot-check, twice a term, 30-student upper-division course) at roughly 9% of a typical TA term allocation — easily absorbable. Scaled to large lecture courses or courses with no TA support, the same design can consume 38%+ of a term's budget or become infeasible outright. So this isn't something to mandate universally at once; it should be sequenced, starting with TA-supported small/medium upper-division courses.
+
+**Trade-offs accepted, not hidden:**
+- Slower, staged rollout rather than an immediate universal switch.
+- A new equity burden from live-verification components (e.g., students with caregiving obligations or unreliable connectivity being disadvantaged by oral spot-checks) — needs explicit mitigation, not left as a byproduct.
+- Detection tools remain a corroborating signal only, never a stand-alone guarantee, indefinitely.
+
+**Confidence: LOW-to-MEDIUM, asymmetric across the claim.** The directional recommendation — construct-specific formats, detection-skepticism, rejecting the binary framing — rests on three independently MEDIUM-confidence chains and is fairly solid. The specific *rollout pace and capacity numbers* rest on lower-confidence, partly illustrative inputs (an unverified Bayes-error argument about detection limits, and estimated rather than measured grading-time figures) and would need real data to firm up.
+
+**What would overturn this:** a primary-source-confirmed study showing detector accuracy holds up under sustained paraphrase-evasion; an institutional grading-time study showing process verification is far more (or less) expensive than estimated here; evidence the pre-AI cheating statistic doesn't actually reflect individual-authorship violations on written work; or a documented case where this portfolio approach was tried elsewhere and didn't improve integrity outcomes relative to a real comparison group.
+
+One explicit scope note from the analysis: this recommendation is for a typical research university's general curriculum — programs where the construct is closer to licensure-style unaided recall (e.g., some nursing or bar-adjacent programs) would rationally weight timed, unaided assessment higher, and the trade-off could come out differently there.

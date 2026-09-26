@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches a specific, actionable position: training-data disclosure alone is a weak, gameable proxy that will produce "compliance theater" rather than fairer hiring outcomes, and it becomes useful only if paired with mandatory outcome/bias audits. This is more than a general observation — it disaggregates the vague policy question into three concrete interpretations (name sources / publish raw data / publish provenance documentation), traces what each would mechanically produce, and lands on a recommendation a policymaker could actually act on (don't legislate disclosure in isolation; bundle it with output auditing, as precedent already does). It is clear who this is for (someone evaluating or drafting such a rule) and under what conditions the recommendation holds. This clears the bar for the top band.
+
+## Criterion 2: Evidence grounding
+
+Much of the argument is derived in view of the reader — the three-way disambiguation of "publish training data sources," the cost/feasibility analysis of each branch, and the structural claim that bias is a property of the full pipeline rather than the training corpus alone are all reasoned through rather than asserted. Specific supporting facts (EU AI Act Art. 10/13, NYC Local Law 144, the Amazon resume-tool episode) are real and appropriately used as illustrations. However, one load-bearing claim — the breakdown of what "hiring AI systems today" actually consist of (mostly fine-tuned/prompted general LLMs vs. bespoke models) — is stated flatly as fact with no source or explicit estimate flag, despite being fairly central to the "training data ≠ decision logic" argument. That gap keeps this out of the top band.
+
+## Criterion 3: Assumption surfacing
+
+The document is explicit about its load-bearing assumptions rather than letting them pass silently. It flags the ambiguity in the premise itself and treats each disambiguation as a named branch to be tested rather than assumed. It also explicitly marks the interpretive leap about the rule's purpose ("The aim is presumably...") rather than treating it as given, and it engages with the most consequential assumption — that disclosure targets the right causal lever — by walking through why bias arises from labels, thresholds, and deployment context rather than corpus content alone. This is active engagement with, not just naming of, the assumptions the conclusion depends on.
+
+## Criterion 4: Calibration
+
+Confidence generally tracks support well: predictive claims about vendor behavior are hedged ("would likely just exit the jurisdiction"), while the structural/definitional argument is stated with more confidence, and the Amazon example is flagged as "well documented" rather than overstated. The exception is the claim about the current composition of hiring AI systems, which is delivered with the same flat confidence as the well-supported structural argument despite having no visible basis — a case where the stated confidence runs slightly ahead of what's shown. This is a single, contained lapse rather than a pattern.
+
+## Criterion 5: Falsifiability
+
+The document does specify a condition under which its conclusion would flip: if the rule also mandates outcome/bias audits, the training-data disclosure piece stops being the load-bearing (and failing) mechanism and becomes a useful supporting input instead. That's a genuinely checkable condition — a reader can go look at whether a given proposal includes audit requirements. But this appears as an embedded scope qualifier on the recommendation rather than a deliberate statement of what would change the author's mind about the broader argument (e.g., the claim that bias is a property of the whole pipeline, or that audits themselves are effective, are never given their own falsification conditions). It gestures at real, checkable conditions without making the full argument's vulnerabilities explicit.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Sound
+=== TRACKB-SCORELINE-END ===
+```

@@ -1,0 +1,21 @@
+Analysis complete. Here are the per-criterion assessments:
+
+**1. Decision usefulness (Rigorous).** The document doesn't answer "move or not" with a single verb, but it reaches a genuinely actionable position: don't commit to full relocation, run a specific 6-step diagnostic (functional assessment, cost out alternatives, ask the parents, weight by reversibility, re-score, pre-name triggers), and it states the condition that flips the whole recommendation (an acute health event already having occurred). A reader has concrete next actions to take this week, and the document is explicit about who it's for and when its default breaks.
+
+**2. Evidence grounding (Hand-wavy).** The load-bearing comparisons — "runway... often years" vs. "adjustment period... months," and the claim that a structured six-criterion comparison "favored staying-and-scaling-support over full relocation" — are asserted as conclusions without showing the underlying scores, weights, or reasoning that produced them. The closing disclaimer admits these are "general consensus, not verified against your specifics," which is honest, but honesty about the absence of grounding is not the same as grounding: the central numeric claims still rest on unshown work.
+
+**3. Assumption surfacing (Rigorous).** The document repeatedly names its own load-bearing assumptions rather than hiding them: it flags that the clock comparison assumes parents are "currently in reasonably good health" and states what happens if that's false; it labels the comparison-table result as running on "generic weighting" and tells the reader to rerun it with real numbers; and the closing section explicitly lists which ground truths are assumed versus verified (ages, health status, distance, finances). The most consequential assumption is engaged, not just listed.
+
+**4. Calibration (Rigorous).** Confidence is differentiated rather than uniform: the procedure and reframe are presented with confidence, while the actual object-level answer for this family is explicitly capped "LOW" with a stated reason (no real ages/health/finances plugged in). This distinction between "the method is sound" and "the numbers are unverified" is exactly the kind of tracking the top band asks for.
+
+**5. Falsifiability (Rigorous).** The document names specific, checkable conditions that would overturn its default: an already-occurred acute health event inverts the urgency finding; a real (non-generic) weighting in step 5 could flip which option wins; and the pre-mortem lists concrete failure signatures (compressed timeline, correlated job risk, teen disruption, sibling withdrawal) that would indicate the choice went wrong. These are specific enough for a reader to actually go check, not generic hedges.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches an unambiguous position ("No — not as a full 9-client replacement") and follows it with a concrete, sequenced action plan: diagnose the call graph, build mobile-scoped BFF endpoints, gate rollout on a measured p95 comparison, and name specific numeric triggers (">6 endpoints" or ">2 consecutive sprints of pure maintenance") for revisiting the decision. It's clear who this is for (the team building mobile screens) and under what conditions the recommendation holds or should flip. This is specific enough to execute or reject outright. **Rigorous.**
+
+## Criterion 2: Evidence grounding
+
+Several load-bearing claims are grounded with visible reasoning — the BFF pattern's origin and purpose, the mechanism by which GraphQL relocates rather than removes aggregation work, and the caching/versioning tradeoffs are each explained rather than merely asserted. However, some specific figures (the "13 vs 4" DataLoader example, the individual 1–5 cell scores in the weighted table, the claim that "no plausible reweighting flips the ranking") are presented as fact without a traceable source or shown derivation, even though a citation or a worked sensitivity check would have been easy to include. This is a document where most of what the conclusion leans on is grounded, but a couple of specific numbers are asserted rather than sourced. **Sound.**
+
+## Criterion 3: Assumption surfacing
+
+The document explicitly separates its load-bearing assumptions into a dedicated section ("What this analysis couldn't verify"), naming specific ones: whether the other six clients have similar pain, the team's GraphQL familiarity, actual endpoint granularity, and code-path isolation. It goes further by engaging the single most consequential assumption — whether the reported round trips are independent or causally sequential — by building a diagnostic step specifically to test it, and by noting how the "zero blast radius" conclusion would weaken if backend code paths aren't isolated. This meets the bar of naming assumptions and testing the most consequential one. **Rigorous.**
+
+## Criterion 4: Calibration
+
+The document closes with an explicit, reasoned confidence level ("medium"), and correctly attributes the cap to unverified input figures rather than to the architectural reasoning, which shows some real distinction between what it knows and what it's inferring. But in a couple of places confidence runs ahead of what's actually shown — most notably the claim that "no plausible reweighting flips the ranking," which is asserted rather than demonstrated via any actual sensitivity check on the table's weights. This is a document that is broadly calibrated but overshoots its support in a place or two. **Sound.**
+
+## Criterion 5: Falsifiability
+
+The document states a specific, checkable test that would overturn or gate the recommendation: a measured p95 latency comparison before scaling past a pilot screen, and it goes further by pre-committing to numeric fallback triggers (more than six bespoke endpoints, or two-plus sprints of pure maintenance) at which point the recommendation should flip toward a scoped GraphQL layer. These are concrete enough that a reader could actually go and check them later, not generic hedges. **Rigorous.**
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

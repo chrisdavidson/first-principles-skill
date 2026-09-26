@@ -1,0 +1,16 @@
+## Answer: No — not now
+
+**Recommendation:** Keep the single deployable. Impose internal modularity discipline (clear module boundaries, no cross-module direct DB access) and set explicit, numeric extraction triggers rather than adopting microservices preemptively.
+
+**Why, in brief:**
+
+- **"Scales better"** — false at this scale. Fermi estimate: ~1,200 DAU brackets to roughly 0.8–28 req/s peak, 2–3 orders of magnitude below what a single process handles. Vertical/horizontal scaling of the monolith solves this; decomposition only pays off when *different subsystems* need to scale at different ratios, which nothing here evidences yet.
+- **"Improves team autonomy"** — doesn't apply. Conway's Law says architecture mirrors org structure. Six engineers is one communication unit; there's no second team for a service boundary to grant autonomy from. Splitting services ahead of a team split fights the org's actual shape.
+- **"We'll need it eventually, so do it now"** — backwards. Fowler's monolith-first pattern holds because good boundaries are hard to guess correctly before real usage exposes them, and a wrong boundary is far more expensive to undo once services are independently deployed (Segment's 140+-service case is the existence proof, though not a scale-predictive one for a 6-person team).
+- **The actual constraint microservices would hit immediately is on-call sustainability, not throughput or coordination.** Google SRE's minimum sustainable rotation is 6–8 people *per rotation*. Six engineers is already at or below that floor for *one* rotation — adding independently-paged services now would breach it before any real trigger occurred.
+
+A weighted trade-off across six criteria (operational sustainability, velocity, scale headroom, reversibility, Conway's-law fit, preserved optionality) puts a modular monolith at 112, staying undisciplined at 96, and full microservices at 36 — and the modular monolith wins or ties on every single criterion, so no reasonable reweighting flips it.
+
+**Named reversal triggers:** revisit if a subsystem's load or release cadence diverges sharply from the rest, the org splits into 2+ independently-run teams, or headcount crosses ~8–10 engineers.
+
+**Confidence: MEDIUM overall** (two sub-arguments — Conway's-law fit and the monolith-first evidence — are independently HIGH-confidence and would hold the recommendation even if the others were weaker). The most decision-sensitive number is the DAU figure itself; if real traffic is materially higher than assumed, the throughput argument weakens and the calculus shifts — worth checking against actual analytics before treating this as settled.

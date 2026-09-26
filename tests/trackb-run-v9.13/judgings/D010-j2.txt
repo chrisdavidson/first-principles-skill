@@ -1,0 +1,21 @@
+## Scoring `analysis.md`
+
+**1. Decision usefulness — Rigorous.** The document doesn't just survey the "move closer to aging parents" question — it converts it into an actionable procedure: reframe the goal as latency not distance, run four go/no-go gates, and default to specific staged/reversible options (temporary housing, deferred home purchase, one adult moving first) before committing to full relocation. It states who this applies to (the stable/chronic-need case) and explicitly carves out when the whole framework doesn't apply (an already-acute crisis, where staging should be skipped). A reader has concrete next moves — check the gates, pick a staged option, set a sibling-renegotiation cadence — rather than a menu of considerations to weigh alone.
+
+**2. Evidence grounding — Hand-wavy.** Several claims the argument leans on are stated with unusual numeric precision but no visible derivation: "~90% of the total possible time savings" from a same-region move, and "~1–20 minutes" of further gain from closing the remaining distance, are labeled a "Fermi check" but no actual estimate — no assumed drive times, distances, or response-time thresholds — is shown for the reader to inspect or challenge. Other load-bearing generalizations, such as decline being "event-punctuated, not a smooth slope" and proximity typically making the mover "the default sole caregiver," are presented as established patterns without support. These aren't peripheral claims — the 90% figure is the "key finding" that the rest of the staged logic is built on, so its ungrounded precision undercuts the whole document's evidentiary footing.
+
+**3. Assumption surfacing — Rigorous.** The document is unusually explicit about what it's assuming and why it matters. It names the load-bearing assumption that need is "escalating, not assumed to be" as one of the four hard gates, and separately flags that the entire framework assumes a stable/chronic case rather than an acute crisis — then states what happens if that's wrong ("skip the trial and act directly"). It also flags that parental desire for proximity must be asked rather than inferred, and that the relational/values case for living near family is a deliberate scope exclusion, not something the model accounts for. The most consequential assumption (trajectory: stable vs. escalating) is actively engaged rather than just listed.
+
+**4. Calibration — Sound.** The closing line explicitly splits confidence — HIGH on "distance/latency mechanics," MEDIUM on anything resting on this specific family's dynamics — which shows real differentiation rather than uniform hedging or uniform assertion. But that HIGH-confidence bucket is where the ungrounded 90%/1–20-minute figures live, so the stated confidence runs somewhat ahead of what the document actually shows for that piece, even though the broader qualitative point (diminishing returns past "same region") is more defensible than the precise numbers attached to it.
+
+**5. Falsifiability — Rigorous.** The four go/no-go gates function as genuine, checkable falsification conditions rather than generic caveats: if the parents don't actually want increased proximity, if the destination isn't career/school-viable, if the need isn't genuinely escalating, or if the move is secretly solving a different problem, the recommendation to relocate doesn't hold. The document also states a specific condition that would overturn its own staging advice — an already-acute crisis — and names exactly what would need checking to validate the medium-confidence parts (direct verification with the actual parents and siblings, not assumption). These are concrete enough for a reader to go test them, not boilerplate hedges.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

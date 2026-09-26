@@ -1,0 +1,17 @@
+Full analysis is in. Short answer: **buying faster runners is probably attacking a symptom, not the cause — don't approve the purchase yet.**
+
+## Why
+
+The 47-minute duration and the batching behavior are both facts, but *what's actually inside those 47 minutes* is not known — no one's stated whether it's genuine CPU-bound test execution, serial (unparallelized) steps, fixed overhead (checkout/install/queue-wait), flaky-test reruns, missing caching, or a monorepo test suite that's grown to run everything on every change. That composition is the single most important unmeasured fact here, because it determines whether faster hardware even can help.
+
+**Amdahl's Law is the hard constraint leadership's proposal ignores:** speedup from more/faster hardware is capped by the *non-parallelizable* fraction of the work. If most of the 47 minutes is fixed overhead, serial steps, or flaky-test reruns, buying 4x or 8x faster runners barely moves the needle — you're paying recurring money against a ceiling you haven't measured. Concretely (GitHub Actions pricing): an 8-core runner costs 3.67x more per minute than a 2-core one, so unless the pipeline gets more than 73% faster, you're spending *more* on CI, not less.
+
+**Recommendation: run a 1–2 week, time-boxed diagnostic first** — profile queue-wait vs. execution time, serial vs. parallel test config, cache-hit rate, flaky-test rerun time, full-suite-vs-changed-scope execution, and residual CPU-bound compute. Let those findings pick the fix, which may include faster runners as one component but is unlikely to be the whole answer. A rough cost comparison: the diagnostic is a one-time ~80–240 engineer-hours (~$8k–$30k illustrative); developer wait-time cost from the status quo runs an order of magnitude higher annually — so diagnosis is cheap insurance against misspending on hardware that doesn't fix the ceiling.
+
+**Two things faster runners can't fix at all, regardless of what the diagnostic finds:**
+- **The batching habit may not reverse on its own.** It may have already become workflow habit (bigger PRs, different review cadence) independent of latency — that needs to be *monitored* post-fix (named owner, 30/60/90-day check-ins), not assumed away.
+- **Batching's deploy-risk externality is untouched by pipeline speed.** Bigger merged batches are strictly harder to bisect when something breaks — that's a property of batch size, not CI duration. If you care about that risk, it needs its own fix (e.g., encouraging smaller merges once CI is fast), separate from any hardware purchase.
+
+**Real risk in practice:** leadership overrides "diagnose first" as delay and buys hardware anyway, since a purchase order is organizationally easier to approve than committing engineering time to investigate — worth naming and time-boxing the diagnostic tightly (a hard 2-week decision gate) so it doesn't read as open-ended stalling.
+
+**Confidence: MEDIUM.** This would flip toward "just buy the runners" if a timing profile shows >80% of the 47 minutes is genuinely parallelizable CPU-bound work with negligible flakiness/caching/scope issues — in that specific case hardware is close to a direct fix. Absent that measurement, the recommendation is to measure first.

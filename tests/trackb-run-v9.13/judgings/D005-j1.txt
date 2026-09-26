@@ -1,0 +1,29 @@
+## Decision usefulness
+
+The document lands on a specific, executable recommendation: build one shared, governed REST BFF for the three mobile clients, leave the other six clients untouched, and do not migrate the platform to GraphQL. It sequences the recommendation (diagnostics first, then build, then explicit non-action) and states who it's for and under what conditions ("if your org already has real GraphQL infrastructure/expertise..."). A reader could take this to an engineering team and start work tomorrow. This is a **Rigorous (3)**.
+
+## Evidence grounding
+
+Several load-bearing claims are actually derived in front of the reader rather than asserted — most notably the core argument that a hand-built REST BFF and a GraphQL resolver both hit the same round-trip floor because "an HTTP response is only sent once the server handler finishes," which is shown reasoning, not a citation. Facts like HTTP/2 multiplexing and DataLoader being a general batching technique are stated as settled facts drawn from common technical knowledge without a specific source, but they're used correctly and are the kind of claim "easy to verify." The weak point is the decision-table scores (92/63/42): these are presented as the outcome of a "weighted, flip-test-checked" process, but the weights and per-criterion sub-scores that produced those numbers are never shown, so the reader can't see where they came from even though showing them would have been easy. That gap — otherwise well-grounded reasoning undercut by one un-derived quantitative artifact the conclusion leans on — matches **Sound (2)**.
+
+## Assumption surfacing
+
+The document explicitly names its most consequential assumption — that the round-trip complaint is mobile-specific and "nothing indicates the other 6 clients share it" — and then interrogates the other candidate assumption (that GraphQL is structurally necessary to solve the problem) with a worked argument rather than a wave of the hand. It goes further by bounding sensitivity: it flags that the mobile/total-client ratio is the single most load-bearing fact and states what would happen if that ratio were different. It also surfaces the unknowns that gate the whole recommendation (serial vs. parallel calls, HTTP version, cache state) and treats them as assumptions to be tested rather than facts. This engagement with the most consequential assumption, plus explicit bounding, earns **Rigorous (3)**.
+
+## Calibration
+
+The recommendation carries an explicit MEDIUM confidence label, and the document is careful to mark what it doesn't yet know (the diagnostics gate, the estimated 120ms–2.5s win range tied to stated conditions). That tracks evidence reasonably well. However, the trade-off table is asserted with more confidence than its shown work supports — "no plausible reweighting of those criteria reverses the ranking" is a strong claim made without displaying the weights or sub-scores that would let a reader check it. That's a place where stated confidence runs ahead of the visible support, even though the rest of the document is well-calibrated. This is **Sound (2)**.
+
+## Falsifiability
+
+The document states concrete, checkable conditions that would overturn its recommendation: existing GraphQL infrastructure/expertise, a technical or contractual barrier to adding REST endpoints, or a partner/regulatory mandate for a GraphQL interface. It goes further with an operational tripwire — crossing roughly 15 bespoke mobile endpoints or adding 2+ new mobile screens per quarter needing custom endpoints — that gives a reader a specific, monitorable number to check the recommendation against later, not just at decision time. These are specific enough that someone could actually go verify them, which is **Rigorous (3)**.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

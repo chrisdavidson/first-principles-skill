@@ -1,0 +1,30 @@
+Here's the analysis, synthesized from the full first-principles run (ground truths sourced from London/NYC congestion-pricing data, NYC's implementation timeline, Seville's bike-network build, Tallinn's fare-free experiment, and US transit/trip-distance data):
+
+## The 20%-in-3-years target is itself the first problem
+
+Bracketing each lever's own documented real-world effect size — congestion pricing (0–6%, mostly undelivered inside 3 years), free transit (2–5%), bike lanes (1–4%) — no single lever, and no plausible combination, reaches 20% citywide within 3 years. The empirical ceiling from every precedent examined (London/NYC ~10–11%, but that's *zone* traffic not citywide; Tallinn ~5%; Seville ~9% over 6+ years) sits well under the target. The city should either revise the target/timeline or treat 20% as an aspirational multi-year goal with year-3 milestones.
+
+## What actually differentiates the three levers isn't effect size — it's which constraint you can relax
+
+The latent pool of convertible car trips is large and mostly untouched by any of the three options — the levers aren't competing for a scarce pool of willing switchers. What separates them is institutional architecture:
+
+- **Congestion pricing** — biggest headline effect, revenue-generating, but its binding constraint is a multi-year legal/political gauntlet. NYC took ~5.75 years from legislative authorization to launch, and most of that was environmental review, a gubernatorial pause, and litigation — not construction. A city without pre-existing tolling authority should assume it won't be operating inside 3 years.
+- **Free transit** — fast to implement, but its binding constraint is fiscal: eliminating fares removes ~23% of a mid-size agency's operating revenue with no automatic replacement, and the best evidence (Tallinn) shows a modest ~5-point car-use decline mostly drawing from *former pedestrians*, not drivers — i.e., it's not clearly solving the actual barrier (frequency/coverage, not price).
+- **Protected bike lanes** — the only option fully within existing municipal authority, buildable in the 3-year window (Seville built 80km in 18 months), at bounded capital cost ($150K–$1M+/mile). Its constraint is execution speed and network *completeness* — a disconnected, ward-by-ward network fails to reach the threshold that converts latent short-trip demand into ridership.
+
+## What should determine the choice for a given city
+
+1. **Existing legal/tolling authority** — if the city (or state) doesn't already have congestion-pricing authority, that lever can't deliver inside 3 years regardless of merit; it becomes a "start the groundwork now, expect payoff later" item, not a near-term lever.
+2. **Trip-distance distribution** — how much of the commute-shed is short/medium distance (bikeable) vs. long-distance sprawl determines how much bike infrastructure can realistically move the needle.
+3. **Farebox dependency and fiscal cushion** — a system that can't absorb losing ~23% of operating revenue shouldn't do blanket fare elimination; targeted/means-tested fare relief plus frequency investment is the better use of the same dollars.
+4. **Downtown/job-center trip concentration** — congestion pricing only works if there's a definable zone capturing a meaningful share of trips; a polycentric, low-concentration city gets little from it even with authority in hand.
+5. **Existing rail vs. bus-only capacity** — a no-rail city (as stipulated here) has less capacity to absorb diverted car trips than London/NYC did, so pricing's effect will be smaller than those headline numbers suggest.
+
+## Recommended approach
+
+Don't choose one — **sequence all three**, driven by which constraint each relaxes fastest:
+- Year 1–2 priority: build one connected protected bike-lane network across the highest-volume corridors (funded as a single bonded package, not piecemeal, since incompleteness is the main failure mode).
+- Parallel: redirect transit money toward frequency/span-of-service rather than blanket free fares; reserve free/reduced fares for targeted equity populations.
+- Immediately, low-cost: start the legal/political groundwork for congestion pricing, accepting its payoff likely lands after year 3, and structure it to survive a change of administration (the single biggest failure mode for that lever historically).
+
+**Caveats:** this leans on real but limited precedent (NYC/London for pricing, Seville for bike lanes, Tallinn for free transit — each essentially n=1), and several inputs (Tallinn's academic study, local trip-distance data, the city's actual legal-authority status) were flagged as unverified rather than confirmed. Confidence on the overall conclusion is MEDIUM, capped by those gaps — the four things that would most sharpen it are local trip-distance data, local transit load-factor data, the actual state tolling-authority status, and a direct read of the Tallinn study rather than secondary reporting.

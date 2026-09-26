@@ -1,0 +1,21 @@
+## Bottom line
+
+For a 10-million-person country, powering 100% of annual electricity demand from utility-scale solar PV takes roughly **~1,400 km² centrally** (range ~210–6,250 km²), which works out to **0.3%–4.6% of national territory** across real countries of comparable population (Sweden-sized down to Belgium-sized), climbing toward **~20%** only in the small-territory, resource-poor edge cases.
+
+That's small-to-modest and generally feasible under an *annual energy balance* reading of "supply" — i.e., total yearly generation matches total yearly demand, with the grid otherwise balancing supply and demand over time.
+
+## The real swing factor isn't solar physics — it's framing
+
+Two assumptions dominate the answer far more than panel efficiency or land-use engineering ever could:
+
+1. **Which demand level applies.** Real ~10M-population countries span a 7x range in per-capita electricity use (Cuba ~1,770 kWh/yr vs. Sweden ~12,870 kWh/yr), which alone swings the land estimate several-fold.
+2. **What "supply" means.** If it means literal instantaneous, PV-only, storage-backed autonomy (no gas backup, no imports, no other generation) rather than annual balance, the land requirement can balloon to **~1.5–14 thousand km²** — a further 1–10x multiplier driven by how much storage overbuild a no-backup solar-only grid needs. This is the least-resolved variable in the whole estimate.
+
+## Other findings worth flagging
+
+- Three independent calculation routes (capacity-based, generation-based, household-benchmark-scaled) triangulate to the same order of magnitude, so the headline number isn't an artifact of one method.
+- Rooftop/dual-use siting (floating solar, brownfield, parking canopies) can plausibly offset ~25–50% of the greenfield land need, but doesn't eliminate it.
+- Future panel efficiency gains (current ~20–22% vs. the ~33.7% Shockley–Queisser physical ceiling) only modestly shrink land use, since row spacing and access corridors — not panel area — dominate site footprint.
+- This estimate covers only the PV site footprint, not transmission/grid-reinforcement land, and doesn't account for whether "available" desert/marginal land is actually free of competing ecological, land-rights, or military claims — in practice, these non-arithmetic factors are often the real bottleneck, not km² math.
+
+**Verdict:** land area itself is not the binding constraint for a country of this size under normal (annual-balance) framing — it's a solvable, if politically contested, siting problem. The open question that actually decides feasibility is whether the country needs true solar-only grid autonomy or can rely on some non-solar backup/storage/imports.

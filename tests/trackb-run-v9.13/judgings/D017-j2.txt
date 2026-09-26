@@ -1,0 +1,19 @@
+**1. Decision usefulness — Rigorous.** The document reaches an explicit, actionable position: reject the training-data-source disclosure rule and replace it with a mandatory outcome/disparate-impact audit requirement, explicitly ruling out a hybrid (audit + light disclosure) as not offering any advantage. This is specific enough for a regulator to act on directly — it names the failing mechanism, the reason it fails, and a concrete substitute mechanism with a real-world analog (NYC LL144). The bottom-line paragraph restates the operative recommendation plainly, leaving little ambiguity about what a reader should do with it.
+
+**2. Evidence grounding — Sound.** Much of the reasoning is grounded in view of the reader: the argument that source lists don't reveal disparate outcomes is a traceable logical step tied to the four-fifths rule, and the claim about foundation-model architectures undermining a single-source disclosure model is derived rather than merely asserted. However, the pivotal comparative claim carrying the recommendation — that the audit approach "scores far higher... no reasonable reweighting of priorities flips that ranking" — is stated as a conclusion without showing the underlying comparison or criteria, even though a simple sketch of that reweighting would have been easy to include. That gap is load-bearing enough to keep this out of the top band.
+
+**3. Assumption surfacing — Rigorous.** The document names its assumptions rather than gesturing at them generically: it flags "the goal the regulator presumably has" as a presumption rather than a given, and explicitly lists the specific preconditions the audit-based fix depends on (representative audit samples, funded enforcement, locally relevant demographic categories). It goes further and engages the most consequential of these by noting that existing audit regimes show enforcement gaps even with a stronger mechanism, which is exactly the kind of bounding the top band asks for.
+
+**4. Calibration — Sound.** The document is mostly well-calibrated — it is confident about the core definitional critique (disclosure doesn't yield outcome data), which is well-supported by the argument given, and it explicitly downgrades its confidence in the caveat section, converting the audit recommendation from an absolute claim into a comparative one. But the claim that no reasonable reweighting of priorities changes the audit-over-disclosure ranking is delivered with a confidence that outruns the (absent) supporting comparison discussed above, which is a specific place where stated certainty exceeds shown support.
+
+**5. Falsifiability — Rigorous.** The document states concrete, checkable conditions under which its recommendation would fail to deliver: whether audit samples reflect actual deployment populations, whether enforcement is funded, and whether demographic categories cover locally relevant discrimination risks. These are specific enough that a reader could go verify them against a real audit regime's design, rather than being generic caveats that could be pasted onto any policy proposal — it also explicitly narrows the claim to a comparative one rather than an absolute guarantee, which is itself a falsifiable framing.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

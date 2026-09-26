@@ -1,0 +1,23 @@
+This is a general reasoning question, not a coding task, so I'll just work through it directly.
+
+**Ground truths first**
+
+1. "Publish training data sources" is ambiguous between at least three very different obligations: (a) name the datasets/providers used, (b) publish the actual data or a representative sample, (c) publish documentation about the data's provenance, collection method, and demographic composition. Most real proposals (and most existing law — e.g., EU AI Act Art. 10/13, NYC Local Law 144) mean something close to (c), because (b) collides immediately with IP and privacy law, and (a) alone is close to meaningless (see below).
+
+2. Hiring AI systems today are mostly not trained end-to-end on labeled hiring outcomes. They're overwhelmingly: (i) general-purpose LLMs fine-tuned or prompted for resume screening, (ii) resume-parsing/keyword-matching systems on top of commodial NLP models, (iii) occasionally a bespoke model trained on a company's own historical hiring data. So "the training data" for the AI component and "the decision logic that actually discriminates or doesn't" are frequently not the same thing.
+
+**What would actually follow, mechanically**
+
+- If the rule targets (a) — naming sources: compliance is cheap and near-costless to satisfy, but it's also nearly non-informative. "Trained on Common Crawl, Wikipedia, and licensed web text" tells a job applicant or regulator nothing about whether the system discriminates by race, gender, age, or disability proxies. Vendors comply, box gets checked, nothing about hiring fairness changes.
+
+- If the rule targets (b) — publish the actual data: for large foundation models this is either impossible (data is petabytes, much of it licensed/scraped under contested terms) or actively harmful (personal data of millions of people, copyrighted text, trade secrets). Vendors serving hiring customers would likely just exit the jurisdiction or refuse to disclose, litigate, or restructure as "general purpose AI" not "specifically for hiring" to dodge scope — a classic boundary-drawing problem the EU AI Act already had to solve with a tiered definition of "AI system used in employment."
+
+- If the rule targets (c) — provenance documentation, demographic composition stats, known limitations: this is the version that could be enacted and could matter, but only conditionally — see below.
+
+**Would it achieve the stated aim (reducing discriminatory/harmful hiring AI)?**
+
+The aim is presumably: let people (regulators, applicants, employers) detect and prevent biased or ungrounded hiring decisions. Training-data disclosure is a *necessary-but-radically-insufficient* lever for that, for a structural reason: bias in a hiring model is a property of the joint distribution of (training data, model architecture, fine-tuning, deployment context, decision threshold), not of the training data in isolation. A perfectly representative, bias-audited dataset can still produce a discriminatory model if the objective function, proxy features, or deployment thresholds encode bias — this is well documented (Amazon's scrapped resume tool learned bias from *labels*, i.e., historical hiring outcomes, not from generic pretraining text). Conversely, publishing training data doesn't let anyone *compute* discrimination without also running outcome audits on the deployed system.
+
+So the second-order effect: a regulator who wants disclosure-as-an-end will get compliance theater — a data-source datasheet — while the mechanism that actually catches biased hiring AI (which is *outcome auditing*: does the system's accept/reject rate differ by protected class, holding qualifications constant) goes unaddressed unless the rule separately mandates it. This is exactly why NYC Local Law 144 and the EU AI Act pair training-data documentation requirements with mandatory *bias audits on outputs* — the people who wrote those rules apparently already ran into this same gap.
+
+**Bottom line**: Training-data disclosure alone is a weak, easily-gamed proxy for the actual policy goal (non-discriminatory hiring), it imposes real costs and IP/privacy conflicts if read literally, and it will mostly produce paperwork rather than behavior change — unless bundled with output/outcome auditing requirements, in which case the training-data piece becomes a useful *supporting* input (for root-causing why an audit found disparate impact) rather than the load-bearing mechanism.

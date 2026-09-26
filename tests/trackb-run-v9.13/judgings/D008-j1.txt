@@ -1,0 +1,21 @@
+## Criterion-by-criterion assessment
+
+**1. Decision usefulness — Rigorous.** The document reaches an unambiguous position ("No, not yet") and backs it with a concrete, executable next step: spend 3–5 days splitting the 47 minutes into queue-wait/execution/network/retry-overhead, then commit spend to whichever fix the data supports. It further specifies two named failure modes with concrete mitigations (a dated commitment, explicit sign-off on the timebox). A reader — evidently someone advising leadership on a purchase decision — could execute this plan or reject it outright; nothing here is generic enough to apply to an unrelated problem.
+
+**2. Evidence grounding — Hand-wavy.** Several supporting claims are reasonable domain assertions presented plainly (e.g., that CI platforms typically log stage-level timing by default), which is acceptable as background reasoning rather than a load-bearing fact. But the document also leans on a specific, load-bearing figure — "a weighted trade-off... scored diagnose-first at 92 vs. buy-now's 43 — and that ranking is robust; no single-factor reweighting flips it" — with no visible scoring method, no stated criteria or weights, and no way for the reader to reconstruct or check it. This is precisely a figure with no stated origin used to reinforce the central recommendation's robustness, which caps this criterion regardless of the soundness of the surrounding prose.
+
+**3. Assumption surfacing — Sound.** The single most consequential assumption — that the composition of the 47 minutes is unknown and could be dominated by queue wait, IO, flakiness, or CPU — is not just named but is the entire engine of the argument, and the document explicitly engages with what happens if that assumption resolves differently (different fixes for different root causes). It also surfaces two second-order risks (the diagnostic being deprioritized, or leadership overriding it) and pairs each with a mitigation. However, other assumptions the plan quietly depends on — that logging exists at the needed granularity, that 3–5 days is actually enough, that engineers are available to do it — pass unremarked, keeping this short of the top band.
+
+**4. Calibration — Sound.** The document is explicit about its own ceiling: "Confidence: MEDIUM throughout — capped because the one fact that would settle this... isn't knowable from the information given," which correctly ties the stated confidence to a specific, named evidence gap rather than asserting it generically. This is undercut in one place, though: the 92-vs-43 trade-off score is asserted with a confidence ("robust... no single-factor reweighting flips it") that outstrips the complete absence of shown methodology behind it, so the confidence expressed there runs ahead of what was actually demonstrated.
+
+**5. Falsifiability — Sound.** The recommendation is structured so that its own outcome is contingent on a specific, checkable diagnostic — "commit spend to whichever fix the data actually supports" — and the mapping between root cause and remedy (queue congestion → parallel capacity, flakiness → flaky-test remediation, CPU-bound → faster runners) is legible enough that a reader could run the diagnostic and see which branch applies. This falls short of the top band only because the document never states outright, as an explicit conditional, "if X% turns out to be CPU-bound execution, buying faster runners is the correct call" — the falsification condition is implicit in the plan rather than spelled out as a standalone claim.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Sound
+C4: Sound
+C5: Sound
+=== TRACKB-SCORELINE-END ===
+```

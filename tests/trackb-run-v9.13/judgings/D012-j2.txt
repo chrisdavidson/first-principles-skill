@@ -1,0 +1,29 @@
+## Criterion 1 — Decision usefulness
+
+The document reaches a clear, specific bottom line: for a ~10M-person country, PV land footprint centers around ~1,400 km² (0.3%–4.6% of territory) under an annual-balance reading of "supply," and it names the single variable that would change that answer — whether the grid needs true solar-only, storage-backed autonomy versus annual-balance with backup/imports. That's not a hedge dressed as an answer; it's a position a reader could act on directly (e.g., "land isn't the constraint here, go find out what the grid-autonomy requirement actually is"), stated with the conditions under which it holds. This lands in the top band.
+
+## Criterion 2 — Evidence grounding
+
+Nearly every load-bearing number — the 1,400 km² central estimate and its 210–6,250 km² range, the Cuba/Sweden per-capita figures, the 1.5–14k km² autonomy-case range, the 25–50% dual-use offset, the "three independent calculation routes triangulate" claim — is stated as settled fact with no visible derivation, source, or stated origin. The document reads as a bottom-line summary of work done elsewhere, but on its own terms, as presented, the reader has no way to see where these figures come from or check them. That places it in the lowest non-zero band: the conclusion rests substantially on unsupported figures, even though some of them (Shockley–Queisser ceiling, current panel efficiency) are common-knowledge quantities.
+
+## Criterion 3 — Assumption surfacing
+
+The document explicitly names the two assumptions the whole estimate turns on — which per-capita demand figure applies, and what "supply" means (annual balance vs. instantaneous autonomy) — rather than gesturing at uncertainty generically. It goes further and engages with the more consequential one: it bounds the effect (a further 1–10x multiplier), explains the mechanism (storage overbuild for a no-backup grid), and flags it outright as "the least-resolved variable in the whole estimate." That is exactly the kind of engagement the top band calls for.
+
+## Criterion 4 — Calibration
+
+For the most part confidence tracks support reasonably well: the document hedges the dual-use offset ("plausibly"), flags the supply-definition variable as unresolved, and separates the "normal framing" verdict from the "edge case" caveat. But the central 1,400 km² figure and the claim that three calculation routes "triangulate" are delivered with more confidence than the document shows support for, since no derivation accompanies them. That's a real but localized mismatch rather than a pervasive one, which fits the middle band.
+
+## Criterion 5 — Falsifiability
+
+The document doesn't just say "this could be wrong" — it identifies the specific, checkable condition that would overturn the "land isn't the binding constraint" verdict: whether the country in question requires literal solar-only grid autonomy rather than annual-balance supply, and it quantifies what that would do to the estimate (pushing it to 1.5–14k km², and toward ~20% of territory in resource-poor small-territory cases). A reader could go check that condition for a real country and know whether the verdict still holds. That specificity earns the top band.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

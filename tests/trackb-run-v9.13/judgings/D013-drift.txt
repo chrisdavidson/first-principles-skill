@@ -1,0 +1,21 @@
+## Assessment
+
+**1. Decision usefulness — Rigorous.** The document reaches an unambiguous position — the causal claim is not yet supported, correlation is — and pairs it with a concrete action plan: report per-run variance or a significance test, disclose controls, disclose total runs attempted, and ideally replicate across operator/batch. That's specific enough for a reader to execute (rerun the experiment properly) or reject (accept the finding as-is only as a hypothesis). It also bounds its own applicability by flagging the equilibrium condition under which the thermodynamic argument holds, which functions as a stated scope condition even without naming an explicit audience.
+
+**2. Evidence grounding — Rigorous.** The load-bearing numbers (62%→71%, 9pp/14.5% relative) are treated as given facts from the source report rather than invented, and every derived claim shows its work: the SEM shrinkage is explicitly computed (σ/√3), and the two illustrative SD scenarios (≈3pp vs ≈10pp) are clearly flagged as illustrative bounds rather than measured values, so the reader can see exactly which numbers are data and which are worked hypotheticals. The thermodynamic claim is grounded in a stated, correct physical law (ΔG°=−RT ln K) rather than asserted as opinion.
+
+**3. Assumption surfacing — Rigorous.** The document doesn't just gesture at uncertainty — it names three specific, load-bearing gaps (missing variance, missing controls, missing total-attempts disclosure) and explicitly identifies which one is most consequential ("this single missing number is the most decisive fact"), then engages that one quantitatively by bounding the signal-to-noise ratio under two scenarios. It also surfaces a separate, non-obvious assumption (that the reaction runs to full equilibrium) needed for the thermodynamic argument, rather than treating it as settled.
+
+**4. Calibration — Rigorous.** Confidence tracks support throughout: the correlation is stated flatly as established, the thermodynamic constraint is stated with full confidence (it rests on an undisputed physical law), while the causal claim is consistently and specifically hedged, down to conditional language ("could be... or... could be") tied to which unknown value would resolve it. Nothing here is uniformly assertive or uniformly hedged — the confidence level shifts appropriately claim-by-claim.
+
+**5. Falsifiability — Rigorous.** The closing section states, in checkable terms, exactly what would overturn the current "not yet causal" verdict: a properly powered design, controls or randomization, full disclosure of total runs attempted, and a reported variance figure or significance test — ideally cross-validated by a second operator or batch. These are concrete, checkable conditions specific to this experiment, not boilerplate like "more research is needed."
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

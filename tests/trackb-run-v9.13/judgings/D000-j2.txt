@@ -1,0 +1,21 @@
+## Criterion assessments
+
+**1. Decision usefulness — Rigorous.** The document doesn't just pick a lever; it gives a sequenced, time-boxed operational plan (bike-lane network as a single bonded package in years 1–2, transit money redirected to frequency/span rather than blanket fares, legal groundwork for pricing started immediately but explicitly not expected to pay off inside the window). It also states the conditions under which this holds (no pre-existing tolling authority, no rail network, a 3-year/20% target) and gives a five-factor checklist a reader could use to adapt the recommendation to a different city's facts. A reader could execute or reject this immediately.
+
+**2. Evidence grounding — Sound.** Most of the load-bearing numbers are tied to named precedents (NYC/London effect sizes and the 5.75-year authorization-to-launch timeline, Seville's 80km/18-month build and $150K–$1M/mile cost, Tallinn's ~5-point decline) rather than asserted in a vacuum, and the document is explicit about which inputs are unverified (the Tallinn study, local trip-distance data, legal-authority status). But a couple of claims central to the argument aren't given the same treatment — "the latent pool of convertible car trips is large and mostly untouched," which is the pivot of the whole second section, and the ~23% farebox-revenue figure — are stated as fact with no visible derivation or source, so it falls short of the top band.
+
+**3. Assumption surfacing — Rigorous.** The five-item "what should determine the choice" section is effectively a list of the conclusion's load-bearing assumptions (existing tolling authority, trip-distance distribution, farebox dependency, job-center concentration, rail vs. bus capacity), and the document doesn't just name them — it engages with the most consequential one directly, showing what happens if the city lacks tolling authority (pricing "can't deliver inside 3 years regardless of merit") and if it lacks rail capacity (pricing's effect shrinks below the headline numbers). The explicit "flagged as unverified" list reinforces that these aren't presented as settled facts.
+
+**4. Calibration — Rigorous.** Confidence is stated explicitly ("MEDIUM, capped by those gaps") and it tracks where the support is thinner: the empirical-ceiling argument in the first section is stated with more assertiveness because it's backed by cross-case numbers, while the recommended sequencing and the Tallinn-based fiscal claim are hedged ("each essentially n=1," "flagged as unverified rather than confirmed"). The document distinguishes the parts it treats as reasonably solid (the levers' bracketed effect sizes) from the parts it treats as inferential (which sequencing will actually work for an unspecified city).
+
+**5. Falsifiability — Rigorous.** Rather than a generic "more research needed," the closing paragraph names specific, checkable items tied to specific claims in the argument: local trip-distance data (which would confirm or undercut the bike-lane demand-conversion claim), local transit load-factor data, the city's actual state tolling-authority status (which would directly overturn the "assume it won't launch inside 3 years" claim), and a direct read of the Tallinn study rather than secondary reporting (which would test the free-transit fiscal argument). Each is specific enough that a reader could go verify it and know whether a particular piece of the recommendation should change.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

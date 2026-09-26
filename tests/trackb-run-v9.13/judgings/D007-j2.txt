@@ -1,0 +1,19 @@
+**Decision usefulness.** The document lands on a specific, actionable position: a rule requiring disclosure of "training data sources" alone is a weak, gameable proxy that will produce compliance paperwork rather than reduced discrimination, and it names the fix — pair provenance-style documentation (reading (c)) with mandatory outcome/bias audits, echoing what EU AI Act and NYC Local Law 144 already do. This is specific enough for a policymaker or advocate to act on (reject disclosure-only rules; insist on bundling with outcome audits) and it's explicit about which reading of the ambiguous mandate it's evaluating. That clears the bar for Rigorous.
+
+**Evidence grounding.** The core mechanical argument — that bias is a property of the joint distribution of data, architecture, fine-tuning, and deployment threshold, not of training data alone — is derived in view of the reader through the (a)/(b)/(c) breakdown and its consequences, which is well grounded. But several load-bearing factual anchors (the specific EU AI Act articles, NYC LL144, and the Amazon resume-tool episode) are asserted as settled fact ("well documented") with no citation or link, when a citation would have been easy to give. Since the argument leans on these examples without sourcing them, this sits at Sound rather than Rigorous.
+
+**Assumption surfacing.** The document explicitly opens by naming its load-bearing assumptions as assumptions — the three-way ambiguity in what "publish training data sources" even means, and the empirical claim about what hiring-AI systems are typically built from — and then works through the consequences of each reading rather than picking one silently. It also flags the policy's presumed aim as an assumption ("The aim is presumably..."). This active engagement with the most consequential ambiguity, rather than a generic gesture, meets the Rigorous bar.
+
+**Calibration.** Confidence is mostly well-tracked: inferred intent is hedged ("presumably," "likely"), while the structural claim about bias being data+model+deployment jointly is asserted more firmly because it's argued from first principles in the text. However, the specific legal citations and the Amazon case are delivered with the same flat confidence as the derived reasoning, despite having no visible support — an unhedged assertion sitting next to a well-earned one. That mismatch, mirroring the evidence gap above, keeps this at Sound rather than Rigorous.
+
+**Falsifiability.** The document does contain one genuinely checkable conditional: the recommendation flips if the rule already bundles outcome/bias audits, in which case training-data disclosure becomes a useful supporting input rather than a weak substitute — someone could go check the actual rule text against that condition. But this covers only one branch of the argument; other load-bearing premises (e.g., the claim about what most hiring-AI systems are architecturally today) are never given a "here's what would prove this wrong" treatment. The falsification content is present and non-generic but partial, which fits Sound rather than Rigorous.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Sound
+=== TRACKB-SCORELINE-END ===
+```

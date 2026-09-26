@@ -1,0 +1,19 @@
+**Decision usefulness (C1):** The document reaches a clear, actionable position: reject the training-data-source disclosure rule in favor of a mandatory outcome/disparate-impact audit requirement, with the hybrid option explicitly ruled out as non-improving. That's specific enough for a regulator or policy drafter to execute or reject outright, and it's anchored to a concrete real-world mechanism (NYC's Local Law 144) rather than a vague direction like "improve transparency." The conditions under which the recommendation holds are also sketched (it beats disclosure regardless of reasonable reweighting of priorities). This clears the bar for Rigorous.
+
+**Evidence grounding (C2):** Much of the core argument is grounded in visible derivation rather than citation — the claim that source lists can't support a four-fifths-style disparate-impact calculation is reasoned out in front of the reader, and the "single-source architecture" critique of foundation-model-based tools is similarly derived rather than asserted. The reference to Local Law 144 is a real, checkable analog. However, the second-order claims — that vendors face no technical incentive to change behavior, and especially that fixed compliance costs will "advantage large incumbents" — are stated as settled predictions with no supporting data or mechanism-level derivation beyond a one-line assertion, even though that kind of claim (compliance cost economics) typically has evidence or at least a fuller argument available. That keeps it just short of the top band.
+
+**Assumption surfacing (C3):** The document explicitly names the load-bearing assumption behind the current rule (that hiring AI has a single, disclosable training-data source) and shows why a growing share of real systems violate it. It goes further in the caveat section, naming the specific preconditions the audit-based alternative depends on — representative audit samples, funded enforcement, adequate demographic categories — and engages with the most consequential of these by noting that existing audit regimes show enforcement gaps even under stronger mechanisms. That is assumption-naming plus engagement with the biggest one, which is the Rigorous standard.
+
+**Calibration (C4):** Confidence tracks support well: the critique of source disclosure is stated with high confidence and is backed by a derivation the reader can follow, while the audit-based alternative is explicitly downgraded from "this solves the problem" to "this is the better mechanism, not a guaranteed fix" — the document says outright that its claim is comparative, not absolute, and grounds that hedge in a specific reason (unverified real-world preconditions). This differentiated confidence across the two halves of the argument is exactly what the top band asks for.
+
+**Falsifiability (C5):** The document earns partial credit here. For the audit-based recommendation, it gives genuinely checkable conditions under which that piece would fail (unrepresentative samples, unfunded enforcement, missing demographic categories) — not generic hedging. But for its central comparative claim — that outcome audits beat source disclosure — it asserts robustness ("no reasonable reweighting of priorities flips that ranking") without saying what evidence or scenario would overturn that ranking itself. So one load-bearing claim has a specific falsification path and the other is presented as essentially settled, which lands the document between the generic-caveat band and the fully checkable one.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Sound
+=== TRACKB-SCORELINE-END ===
+```

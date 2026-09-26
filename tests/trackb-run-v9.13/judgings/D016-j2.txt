@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document doesn't hand down a flat "take it" or "don't," but it does more than survey considerations — it gives a specific decision procedure: treat the equity at $0, run a runway calculation, work through a named diligence checklist, and apply a closing regret-test to force the actual call. A reader could execute each step. What keeps it short of the top band is that the final decision is explicitly deferred to the reader's own answer to the regret question rather than resolved by the document itself — the recommendation is a test to apply, not a verdict. That's directionally clear and executable, but its practical edge is blunted at the last step, which is the definition of the middle band.
+
+## Criterion 2: Evidence grounding
+
+The central quantitative claim — an 11-month cushion "covers roughly 15-16 months" once income drops 30% — is asserted without showing the arithmetic that produces it, and the relationship between a cushion sized against current spending and a partial (not total) income cut isn't derived in view of the reader; it's stated as a conclusion. This is the number the whole risk-tolerance argument leans on ("that's real slack"), so it's load-bearing, and its origin isn't visible or checkable from the text. Other claims (equity being illiquid and dilutable, startups needing runway to survive) are general and not really in need of sourcing, but the one number that matters most for the verdict is opaque.
+
+## Criterion 3: Assumption surfacing
+
+The most consequential assumption — that equity should be valued at $0 — is named explicitly and argued for (illiquid, unpriced, dilutable), which is exactly the kind of engagement the top band wants. But a second load-bearing assumption, that a year at a startup is cleanly "reversible" and that "startup experience reads well" on a resume, is asserted flatly as fact rather than flagged as a premise that could fail (e.g., in a tighter hiring market, or for someone whose stable-job path had a narrowing return window). One key assumption is surfaced and tested; a second is not.
+
+## Criterion 4: Calibration
+
+Confidence tracks support reasonably well in places: the equity-at-$0 stance is stated firmly and backed with reasons, and the runway figure is hedged with "roughly." But the claim that startup experience "reads well" is delivered with the same flat confidence as the reasoned points, despite being closer to folk wisdom than to anything derived earlier in the document. That's a small but real mismatch between stated and warranted confidence, not a systemic problem.
+
+## Criterion 5: Falsifiability
+
+The document doesn't state a checkable evidence threshold ("if the startup has under N months of runway, don't go"), but it comes close: the diligence list (the startup's own runway, equity terms including cliff/strike/down-round treatment, and whether the reader's role is core or cuttable) gives the reader specific, checkable things to go find out that would bear directly on whether the "real slack" framing holds. The closing regret-test is more introspective than evidentiary, though, and stops short of naming a concrete finding that would flip the recommendation — it gestures at the right conditions without fully pinning them down as a check someone else could adjudicate.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Sound
+C2: Hand-wavy
+C3: Sound
+C4: Sound
+C5: Sound
+=== TRACKB-SCORELINE-END ===
+```

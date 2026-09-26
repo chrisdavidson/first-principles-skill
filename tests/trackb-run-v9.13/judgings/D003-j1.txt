@@ -1,0 +1,21 @@
+## Criterion-by-criterion assessment
+
+**1. Decision usefulness — Sound.** The document reframes the question sharply ("don't evaluate this as 'can I afford the pay cut'") and gives an actionable first move: four gating conditions that, if any hold, mean decline outright. That part is executable. But past the gate, the document explicitly refuses to weigh the remaining six criteria ("only you can weight"), leaving the actual accept/decline call unresolved. A reader walks away with a sharper frame and a screening checklist, but not a terminal recommendation — directionally clear, practically blunt at the point of final action.
+
+**2. Evidence grounding — Hand-wavy.** The opening line claims base rates were "checked against BLS and VC-failure data," but no figures, citations, or derivations from those sources appear anywhere in the body. The load-bearing numbers — 75% of VC-backed companies returning nothing, 0.3–0.4% pre-dilution equity for hire #4/5, an EV "under 10% of the cumulative pay cut," a "12-month vesting cliff" — are all stated as facts with no visible origin or shown arithmetic connecting inputs to the stated outputs. Flagging the equity estimate as "rough" signals awareness of uncertainty, but that is not the same as showing where the numbers came from, which is what the conclusion actually rests on.
+
+**3. Assumption surfacing — Sound.** The four dealbreakers explicitly name assumptions the reader must verify (unreviewed cap table, no alternate income, transferability of skills, motivation source) and state consequences if they don't hold. The single most consequential assumption — that the equity is worth near-zero — gets real engagement via the base-rate-plus-Fermi argument. But other load-bearing assumptions, like the 12-month cliff figure or the achievability of "a realistic job search" within 11 months, are asserted flatly rather than flagged as assumptions at all, so the treatment is uneven rather than comprehensive.
+
+**4. Calibration — Sound.** The document distinguishes confidence levels in places — treating the base-rate claim as near-certain ("doesn't need company-specific data to trust") while explicitly labeling the equity-value figure a "rough" estimate and separately noting the upside "requires unicorn-level odds." That's real calibration work. But it also states some estimated figures (the 12-month cliff, the dilution percentage) with the same flat confidence as its firmer claims, so the tracking between stated confidence and actual support isn't consistent throughout.
+
+**5. Falsifiability — Hand-wavy.** There's no explicit statement of what would overturn the central conclusion that the equity is "very likely worth near-zero" or that the checklist-gated framing is the right one. The closest the document comes is functional rather than stated as falsification: the dealbreaker list implies that reviewing the actual cap table could change the inputs, and the vesting-cliff line marks a point after which the equity's status changes. These are checkable triggers embedded in the argument, but the document never frames them as "here's what would prove this analysis wrong" — it reads as settled reasoning rather than a claim held open to revision.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Sound
+C2: Hand-wavy
+C3: Sound
+C4: Sound
+C5: Hand-wavy
+=== TRACKB-SCORELINE-END ===
+```

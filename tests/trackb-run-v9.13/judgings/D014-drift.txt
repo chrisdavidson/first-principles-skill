@@ -1,0 +1,19 @@
+**Decision usefulness:** The document names a specific recommendation (a spot-audited mixed portfolio — several take-home tasks plus at least one proctored/witnessed checkpoint — varied by discipline and stakes) rather than settling for "it depends." It also states the conditions of application explicitly (policy should differ by purpose, discipline, and channel; high-stakes free-text certification needs more authentication than low-stakes or already-live-channel work), and it even specifies an operational starting point (set the spot-check rate conservatively, tighten based on measured data). A reader with authority over exam policy could act on this directly. This clears the top band.
+
+**Evidence grounding:** The document is unusually disciplined about labeling provenance for its factual table — each empirical claim is marked "read at source," "reported, not opened at source," or explicitly "unverified this session," and the single most load-bearing empirical premise (that current LLMs produce convincing discipline-appropriate writing cheaply) is flagged as unverified and named as the fact that would flip the conclusion. That part is rigorous. But the actual tiebreaker between the top two options — the weighted-criteria scores of 81 vs. 75 vs. 74 — is presented as a bottom-line result with no visible weights or per-criterion sub-scores, and the Fermi estimate of "50–75 vs. 10–25 added hours" is asserted without showing the arithmetic behind it, only that it is a Fermi estimate. Since these two numeric results carry real weight in choosing the specific recommendation over its closest competitor, and their origin isn't shown, this falls short of rigorous even though most of the supporting factual claims are well sourced.
+
+**Assumption surfacing:** The document doesn't just gesture at assumptions — it isolates the single assumption the whole conclusion depends on (that current AI can already produce convincing discipline-appropriate work cheaply), explicitly flags it as unverified and stipulated rather than demonstrated, and states outright what happens if it's wrong ("the single fact that would flip the whole conclusion"). It also surfaces secondary assumptions (e.g., the signaling-theory claim about credential trust) with their own confidence markers. This is exactly the kind of engagement with the most consequential assumption the top band calls for.
+
+**Calibration:** Confidence isn't asserted uniformly despite the one blanket "MEDIUM" label up top — the document differentiates in practice: sourced facts are treated as solid, the near-zero-cost premise is treated as an explicit unverified stipulation, the signaling-theory claim is marked as reported-not-verified, and the recommendation itself is framed as provisional (start conservative, tighten with data) rather than final. The confidence expressed at each point tracks how much support is actually behind it, which is what distinguishes calibration from mere hedging.
+
+**Falsifiability:** The closing section states two concrete, checkable conditions that would overturn the conclusion: a documented case of a current-generation model failing against a real course's rubric, or independent testing showing next-generation detectors have closed the false-positive/bias gap. Both are specific enough that someone could actually go verify them, not generic "further research needed" language, and the document is explicit that neither was checked this session.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

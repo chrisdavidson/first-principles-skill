@@ -1,0 +1,21 @@
+## Criterion-by-criterion assessment
+
+**1. Decision usefulness.** The document reaches a clear, actionable position: don't pick one lever, sequence all three on a specific timeline (bike-lane network as a bonded package in years 1–2, redirected transit money toward frequency rather than blanket free fares, and legal groundwork for congestion pricing started immediately with an explicit expectation that payoff lands after year 3). It also states who the five decision-factors are for and under what conditions each lever applies (e.g., "if the city... doesn't already have congestion-pricing authority, that lever can't deliver inside 3 years"). A reader with this decision in front of them could execute or reject each piece of the recommendation. This lands in the top band.
+
+**2. Evidence grounding.** Figures are attributed to named precedents throughout (London/NYC, Tallinn, Seville, NYC's legislative timeline) rather than asserted from nowhere, and the header names the general data sources the numbers were drawn from. But individual figures (the $150K–$1M/mile cost band, the ~23% farebox-revenue figure, the 0–6%/2–5%/1–4% effect-size brackets) are stated without a visible derivation or citation the reader could check, and the closing caveat concedes that the Tallinn evidence in particular rests on "secondary reporting" of an unverified academic study — a hedge that arrives only after that same evidence was used mid-document as "the best evidence." Most load-bearing claims are grounded in a named source, but the support is asserted rather than shown, which keeps this out of the top band.
+
+**3. Assumption surfacing.** The document explicitly flags some load-bearing conditions as assumptions — most notably "a no-rail city (as stipulated here)" — and engages with the consequence ("pricing's effect will be smaller than those headline numbers suggest"). The five "what should determine the choice" factors likewise function as named contingencies the conclusion depends on. However, the single most load-bearing claim in the whole piece — that "the latent pool of convertible car trips is large and mostly untouched by any of the three options," which is what licenses the entire "it's not a competition for scarce switchers" framing — is asserted as settled fact, never flagged as an assumption or tested. A similarly unexamined assumption is that a city has the fiscal and administrative capacity to pursue all three levers in parallel. Naming some assumptions while leaving the most consequential one unmarked keeps this at the middle band.
+
+**4. Calibration.** The document does distinguish overall: it states an explicit MEDIUM confidence, caps it against named gaps (local trip-distance data, local load-factor data, actual tolling-authority status, secondary vs. primary Tallinn evidence), and treats the 20% target itself as clearly unreachable based on convergent precedent, which is a case of confidence tracking strong support. But within the body, several claims are delivered with more assertiveness than the later caveat justifies — e.g., Tallinn's mechanism is described flatly ("shows a modest ~5-point car-use decline mostly drawing from *former pedestrians*") before the closing section admits that same study was "flagged as unverified rather than confirmed." That gap between in-body assertiveness and end-of-document hedging is a real but limited miscalibration, placing this in the middle band.
+
+**5. Falsifiability.** The closing caveat does more than gesture at uncertainty — it names the four specific inputs that would sharpen or potentially overturn the analysis (local trip-distance data, local transit load-factor data, the city's actual state tolling-authority status, and a direct read of the Tallinn study rather than secondary reporting). These are concrete enough that a reader could go verify each one and see the conclusion shift as a result, rather than a generic "more research is needed" hedge that could be pasted onto any analysis. This meets the top band.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Sound
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

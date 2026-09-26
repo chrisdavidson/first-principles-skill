@@ -1,0 +1,21 @@
+## Evaluation
+
+**1. Decision usefulness — Rigorous.** The document reaches a clear, specific position: ~1,400 km² centrally (0.3–4.6% of territory) for a 10M-person country under an annual-balance reading of "supply," and states plainly that land is *not* the binding constraint under that framing. It names the population/territory scale the claim applies to (Sweden-to-Belgium sized), flags the one condition under which the answer flips (autonomy vs. annual balance), and closes on a concrete open question a reader would need to resolve before acting. A reader deciding whether land scarcity is a real obstacle to a 100%-solar plan could act on this directly.
+
+**2. Evidence grounding — Hand-wavy.** The headline figures (1,400 km², the 0.3–4.6% range, Cuba/Sweden per-capita numbers, the 33.7% Shockley–Queisser ceiling, the 25–50% dual-use offset) are all asserted rather than derived or sourced in the text. The claim that "three independent calculation routes... triangulate to the same order of magnitude" is stated as a fact about the underlying work but none of the three routes, their inputs, or their arithmetic are shown, so the reader cannot verify the central number or the multipliers themselves — only take them on faith.
+
+**3. Assumption surfacing — Rigorous.** The document explicitly names its two load-bearing assumptions (which per-capita demand level applies, and what "100% supply" means) rather than gesturing at them generically, and it engages with the most consequential one directly — quantifying that a stricter autonomy reading balloons the estimate to ~1.5–14 thousand km² and calling it out as "the least-resolved variable in the whole estimate."
+
+**4. Calibration — Rigorous.** Confidence is not uniform: the central annual-balance estimate is presented with more assurance (backed by the triangulation claim and a bounded range), while the storage-autonomy scenario is explicitly marked as the weakest, least-resolved part of the analysis. The document also downgrades its own scope appropriately at the end, noting that non-arithmetic factors (land rights, ecological/military claims) rather than the km² math may be the real practical bottleneck — a sign it is tracking where its own analysis is strong versus thin.
+
+**5. Falsifiability — Rigorous.** The closing verdict identifies a specific, checkable fork: whether the country requires true solar-only grid autonomy versus relying on some non-solar backup/storage/imports, and it has already quantified what each branch implies for land area (modest vs. potentially binding). This is more than a generic caveat — it tells the reader exactly which real-world fact would overturn the "land isn't the constraint" conclusion and roughly by how much.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

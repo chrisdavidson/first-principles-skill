@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document lands on a specific, actionable recommendation: replace the "training-data sources" disclosure requirement with a mandatory outcome/disparate-impact audit modeled on the four-fifths-rule logic behind NYC's Local Law 144. This is concrete enough for a policymaker to actually adopt or reject — it names the mechanism, contrasts it with the status quo rule, and even rules out a middle option (a disclosure-plus-audit hybrid) as strictly dominated. It also scopes its own claim honestly as comparative ("would beat a source-disclosure rule... not that it would solve the problem outright"), which sharpens rather than blunts the recommendation's practical edge. This reaches the top band: a reader drafting or reviewing this rule has a clear, executable next step.
+
+## Criterion 2: Evidence grounding
+
+The central logical claim — that disclosing data provenance doesn't let anyone compute disparate selection rates — is derived in view of the reader rather than merely asserted, and the incumbent-advantage argument is reasoned through a visible fixed-cost mechanism. But several other load-bearing claims are simply stated as fact with no stated origin: that foundation-model pretraining data is "often undisclosed by the model vendor itself," and especially that "existing audit regimes show enforcement gaps even with a stronger mechanism than disclosure alone" — a claim doing real work in the final caveat but resting on nothing the reader can inspect. These are the kind of claims for which support was plausibly available and easy to gesture at, but wasn't given, which keeps this out of the top band.
+
+## Criterion 3: Assumption surfacing
+
+The document does more than gesture at assumptions — it isolates the specific preconditions its recommendation depends on (audit samples matching deployment populations, funded enforcement, demographic categories covering locally relevant risk) and explicitly engages with what happens if they fail: the conclusion downgrades from "solves the problem" to "beats the alternative." It also flags the regulator's implicit goal ("the goal the regulator presumably has") as a presumption rather than treating it as given. Naming the most consequential assumption and following through on its consequences for the strength of the claim is exactly what the top band asks for.
+
+## Criterion 4: Calibration
+
+Confidence is mostly well-matched to support: the logical/definitional point (disclosure ≠ outcome evidence) is stated with justified strength, while the real-world payoff of the proposed fix is explicitly downgraded and separated from the comparative claim. That said, "no reasonable reweighting of priorities flips that ranking" is a strong, totalizing claim asserted without showing the sensitivity analysis that would back it — confidence running slightly ahead of what's actually demonstrated in one place, even as the surrounding caveats are well-judged elsewhere.
+
+## Criterion 5: Falsifiability
+
+The closing caveat does real falsifiability work: it lists specific, checkable conditions — whether audit samples reflect actual deployment populations, whether enforcement is funded, whether demographic categories cover the locally relevant risk — under which the recommended fix would fail to deliver. This isn't a generic hedge; it names the particular facts someone could go verify to see whether the comparative claim holds, which is what distinguishes a checkable condition from a boilerplate caveat.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

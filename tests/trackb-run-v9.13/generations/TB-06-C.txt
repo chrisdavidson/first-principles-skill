@@ -1,0 +1,43 @@
+# Should a university replace timed exams with take-home assessments given AI writing tools?
+
+**Short answer: No — not as a blanket swap.** The question contains a false binary, and the variable actually under threat isn't "timed vs. take-home," it's *authentication strength*. The recommended design is a **spot-audited mixed portfolio per course** (several take-home tasks + at least one proctored/witnessed checkpoint), weighted by discipline and stakes — not a university-wide format mandate in either direction. Confidence: **MEDIUM** throughout, with the specific gaps stated below.
+
+## Why the framing is wrong
+
+Reformulated core question: given that AI can now produce fluent, discipline-appropriate writing at near-zero cost, which policy best preserves *verification of individual competence* — and is "timed exam vs. take-home" even the right axis?
+
+Two assumptions collapse under inspection:
+- **The binary is false.** At least five other formats already exist in practice: oral exam/viva, proctored digital exam, practical/lab/studio work, portfolio-with-process-log, project-plus-defense.
+- **AI's effect isn't uniform.** Leverage is highest on unconstrained free-text writing and lowest on live, synchronous, or physical channels — you can't covertly outsource a real-time oral defense to an LLM without a separately detectable act (e.g., a hidden earpiece).
+
+## Key ground truths (with what's verified vs. flagged)
+
+| Finding | Status |
+|---|---|
+| Turnitin's AI-detector: marketed <1% false-positive rate, admitted ~4% sentence-level in practice | Read at source (Inside Higher Ed) |
+| A Stanford study found detectors flagged non-native-English-speaker essays as AI-generated ~61% of the time | Read at source (The Markup) |
+| OpenAI discontinued its own AI-text classifier in 2023, citing "low rate of accuracy" | Read at source (TechCrunch) |
+| Pre-AI "contract cheating" (someone else does the work) already ran ~3.5–17% of students | Read at source (meta-analyses via Wikipedia) |
+| Current LLMs can produce convincing, discipline-appropriate writing at near-zero cost | **Unverified this session** — stipulated from the premise of your question, not independently benchmarked. **This is the single fact that would flip the whole conclusion if false.** |
+| Credential value depends on external parties trusting the verification process (signaling theory) | Reported, not opened at source |
+
+## The core reasoning chain
+
+1. **Unauthorized assistance during unproctored writing predates AI** (3.5–17% baseline). What changed isn't the vulnerability — it's the *cost and skill barrier* to exploiting it, which collapsed from "find and pay a ghostwriter" to "type a prompt." → **The real variable is authentication strength, not format.**
+2. **No current AI-text detector is reliable enough to serve as enforcement evidence** — three independent sources (vendor's own admission, an academic study, the original developer's own discontinued tool) agree, and the errors aren't random: they concentrate on non-native English speakers. A policy leaning on detectors is leaning on a tool that also gets *worse* as generative fidelity improves, not better.
+3. **Scoring the realistic options** (proctored status quo / take-home + mandatory full oral defense / modernized proctored digital exam / spot-audited mixed portfolio) against six weighted criteria (integrity, validity, cost, accessibility, wellbeing, scalability) — after excluding pure unauthenticated take-home outright, since it fails the authentication must-have before any scoring — the spot-audited mixed portfolio wins (81 vs. 75 for full oral defense, 74 for status quo), and the margin survives a flip-test on the weights.
+4. **Set the spot-check rate conservatively at first**, tightening only once false-accusation and external-trust data are actually measured — because reputational damage from a perceived integrity failure is asymmetric (easy to lose, slow to rebuild), and because a full-coverage oral-defense requirement is a real capacity problem: a Fermi estimate puts full-coverage authentication at ~50–75 added faculty/TA hours per 300-student course per cycle, versus ~10–25 hours for a spot-check design.
+5. **Policy should differ by purpose, discipline, and channel** — not be a single rule. High-stakes free-text certification needs the most authentication; low-stakes formative work, oral/practical disciplines, and already-live-channel assessments need less.
+
+## What this recommendation costs, and where it can fail
+
+Accepted trade-offs: added faculty/TA time, a redesign transition period, and residual risk that an initial spot-check rate set too low lets some AI-assisted work through — mitigated by treating the rate as something to tighten based on measurement, not something to get right on the first try.
+
+A pre-mortem on a *blanket*, poorly-implemented rollout surfaced five real failure clusters, each with a fix baked into the design above rather than left as a hope:
+- **Authentication gap** if spot-check coverage is inconsistent across instructors → fix: a centrally audited minimum coverage rate, not instructor discretion.
+- **Faculty capacity blown out** → fix: spot-check, not full coverage, plus centralized tooling/training.
+- **Human reviewers reproducing the same bias as AI detectors** (flagging on stylistic hunches) → fix: require a second corroborating signal before any integrity finding counts — extending the "no sole-evidence" rule from AI detectors to humans.
+- **Accessibility pathways disappearing** for students whose accommodations depend on a proctored/timed format → fix: keep an explicit opt-in proctored pathway rather than removing it university-wide.
+- **Uneven implementation eroding external trust** over a multi-year horizon → fix: a published implementation standard plus an annual employer/alumni pulse survey as an early tripwire, rather than waiting for an accreditation cycle.
+
+**What would overturn this conclusion:** a documented case of a current-generation model failing to produce convincing work against a real course's rubric (undermines the premise entirely, GT-6), or independent testing showing next-generation detectors have actually closed the false-positive/bias gap (would revive detector-based enforcement as a viable backstop). Neither was checked at source this session — both are named explicitly as open verification paths rather than assumed.

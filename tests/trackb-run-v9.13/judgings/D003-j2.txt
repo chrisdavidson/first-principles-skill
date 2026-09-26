@@ -1,0 +1,19 @@
+**1. Decision usefulness (Sound).** The document reaches real positions — the equity is worth near-zero in expectation, the runway clock doesn't start until the job actually ends, and there's a set of gating conditions that make the decision easy in the common case. But the final instruction to the reader is not a specific action: past the gate, it hands back "a real trade-off across six criteria that only you can weight," which is directionally useful but stops short of landing a recommendation the reader could execute or reject outright. The reframing is sharp, but the terminal move is explicitly punted.
+
+**2. Evidence grounding (Hand-wavy).** The opening line claims the analysis was "checked against BLS and VC-failure data rather than assumed," but no such data actually appears — the reader never sees a source, a figure, or a derivation. The two numbers the whole equity conclusion leans on (75% of VC-backed companies never return cash; hire #4/5 typically gets ~0.3–0.4% pre-dilution) are stated as flat facts with no origin given, even though the document's framing implies they are sourced. That gap between claimed rigor and shown rigor is exactly what keeps this out of the top band.
+
+**3. Assumption surfacing (Sound).** Several load-bearing assumptions are named rather than buried: that the offered equity percentage is trustworthy without seeing the cap table, that runway is only consumed once income stops, that vesting before the 12-month cliff makes the equity a non-asset. The most consequential of these (the equity number itself) is engaged directly — "don't take the offer's equity % on faith" — but most of the other named assumptions (household income, skill transferability, motivation) are listed as gate conditions rather than tested or bounded for what happens if they're wrong.
+
+**4. Calibration (Sound).** Confidence is mostly tracked to support: the modal-zero equity outcome is flagged as the one conclusion that "doesn't need company-specific data to trust," while the Fermi estimate is explicitly labeled "rough" and the upside ceiling is called out as requiring odds "far below" the central estimate. This distinguishes derived claims from inferred ones in places. It falls short of the top band because the specific figures (0.3–0.4%, under 10% of cumulative pay cut) are delivered with more apparent precision than their unshown grounding supports.
+
+**5. Falsifiability (Sound).** The four "independently-sufficient dealbreakers" and the vesting-cliff checkpoint function as concrete, checkable conditions that would change the recommendation — a reader can go verify the cap table or household-income situation and get a decisive answer. But the document never states what would overturn its own core analytical claims (the base-rate equity valuation, the Fermi estimate), only what would gate the overall decision. That's a real, specific mechanism short of a full test of the conclusion itself.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Sound
+C2: Hand-wavy
+C3: Sound
+C4: Sound
+C5: Sound
+=== TRACKB-SCORELINE-END ===
+```

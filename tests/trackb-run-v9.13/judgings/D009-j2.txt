@@ -1,0 +1,21 @@
+## Scoring
+
+**1. Decision usefulness — Rigorous.** The document reaches an unambiguous position ("treat as a preliminary signal... not a validated result to act on") and pairs it with a concrete, executable next step: ask the lab for per-run data, a stated control protocol, and confirmation that all runs performed were reported. It's clear who this is for (someone about to act on the yield claim — scale-up, publication, investment) and under what condition the verdict would flip (once the missing SD and protocol are supplied). A reader could literally go do the three things it asks for.
+
+**2. Evidence grounding — Sound.** The core numeric claim (62%→71%, 9-point absolute / ~14.5% relative) is simple, correct arithmetic laid out in view of the reader, and the confound list (substrate lot, operator, reagent lot, yield-calculation method) is presented as plausible alternatives rather than asserted fact. The soft spot is the specific SD bracket ("1–8 percentage points... bench chemistry") and the derived sample-size range ("~2 runs" to "~13 runs") — these carry real precision and do real argumentative work, but no formula, citation, or worked calculation is shown for how those numbers were reached, so they read as informed guesses dressed in more specificity than their stated basis supports.
+
+**3. Assumption surfacing — Rigorous.** The document doesn't just gesture at "assumptions" — it names the specific ones the argument depends on (no confound control demonstrated, no dispersion estimate given, single substrate/batch/scale, yield-only comparison) and goes further by identifying and correcting a *reader's* likely wrong assumption (that n=3 is "obviously too small"), explaining why that's an equal and opposite error to trusting the raw numbers. It then engages the single most consequential unknown — the missing SD — in depth, showing what changes depending on its value.
+
+**4. Calibration — Rigorous.** Confidence tracks support throughout: the raw association is stated flatly as fact, causal attribution and statistical significance are explicitly marked as unknowable given what's reported, and the document actively resists both overclaiming ("nothing more" than an association) and overcorrecting (refusing to declare n=3 invalid). It distinguishes observed numbers from inferred conclusions at every step rather than applying uniform confidence.
+
+**5. Falsifiability — Rigorous.** The document identifies a specific, checkable piece of evidence — the run-to-run SD or raw per-run values — that would resolve the open questions, and explains concretely how it would resolve them (low SD → n=3 adequate and gap likely real; high SD → underpowered and gap indeterminate). This is paired with the further checkable request for a stated control protocol and confirmation that no runs were dropped. These are specific enough that someone could act on them and see the verdict change, not generic hedging.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

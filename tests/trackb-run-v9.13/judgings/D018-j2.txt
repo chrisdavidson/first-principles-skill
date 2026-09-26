@@ -1,0 +1,21 @@
+## Assessment
+
+**1. Decision usefulness — Rigorous.** The document opens with an unambiguous position ("No — not now") and a concrete prescription: keep the monolith, add internal modularity discipline, and set specific numeric triggers for revisiting the decision. It names who it's for (an implicit six-engineer team) and the conditions under which the answer would change (headcount, org split, subsystem divergence). A reader could act on this immediately — either implement the modularity discipline and adopt the triggers, or reject the recommendation on stated terms.
+
+**2. Evidence grounding — Sound.** Several load-bearing claims are properly sourced or attributed: Conway's Law is invoked correctly, Fowler's monolith-first pattern is named along with a concrete counter-example (Segment) that the document itself flags as non-generalizing, and Google SRE's minimum-rotation-size figure grounds the on-call argument. However, two important numbers are asserted without visible derivation: the Fermi estimate's translation from "~1,200 DAU" to "0.8–28 req/s" is labeled an estimate but its arithmetic basis (requests per user, peak ratio, etc.) is never shown, and the weighted trade-off scores (112, 96, 36) that anchor the closing paragraph appear with no visible per-criterion scoring or weighting shown to the reader. These are figures a reader is asked to trust rather than check, which keeps this from the top band.
+
+**3. Assumption surfacing — Rigorous.** The document explicitly identifies its most consequential assumption — the DAU figure — names it as such, and engages with it directly: "if real traffic is materially higher than assumed, the throughput argument weakens and the calculus shifts." It also surfaces the team-size/org-structure assumption implicitly through the reversal triggers (headcount crossing 8–10, an org split), rather than treating current team shape as a permanent fact.
+
+**4. Calibration — Rigorous.** Confidence is stated explicitly ("MEDIUM overall") and is differentiated internally: two sub-arguments (Conway's-law fit, monolith-first evidence) are separately marked HIGH-confidence and identified as robust enough to carry the conclusion alone, while the DAU-dependent throughput argument is flagged as the weakest link. This is a genuine gradient tied to where the support is strongest and weakest, not a uniform confidence level applied across the board.
+
+**5. Falsifiability — Rigorous.** The "Named reversal triggers" section gives conditions specific enough to check against reality: a numeric headcount threshold (~8–10 engineers), a structural condition (org splits into 2+ independently-run teams), and a load/cadence-divergence condition. These are tied to the document's own reasoning (team size drives the Conway's-law and on-call arguments) rather than being generic hedges, and the closing line about checking the DAU figure against real analytics adds a second, concrete falsification path for the weakest sub-argument.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

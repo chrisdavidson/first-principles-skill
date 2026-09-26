@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document doesn't hand down a flat "take it" or "don't take it," but it converts the abstract question into an executable procedure tied to the reader's own situation: run the runway math (11 months → ~15-16 months at the cut), treat equity as zero, diligence four named specifics about the startup, then apply a concrete regret test ("if this exact startup fails in 12 months... do you still think taking the swing was correct?"). That test is a real decision rule — it resolves to an actionable yes/no once the reader answers it honestly, and it is scoped explicitly to this reader's stated cushion, pay cut, and age. This clears the bar for **Rigorous**: the recommendation is specific enough to execute, and the conditions under which it applies are named.
+
+## Criterion 2: Evidence grounding
+
+The central numeric claim (11-month cushion stretching to roughly 15-16 months under a 30% cut) is arithmetic the reader can reconstruct in view of the text, and the "equity = $0" claim is backed by stated reasoning (illiquid, unpriced, dilutable) rather than asserted flatly. However, a load-bearing piece of the optionality argument — "a year at a startup is reversible... and 'startup experience' reads well" — is presented as settled fact with no support, even though it's the kind of claim that's easy to hedge or qualify and isn't self-evidently true across all employers or fields. That gap, alongside otherwise well-grounded math, places this at **Sound**.
+
+## Criterion 3: Assumption surfacing
+
+The single most consequential assumption — that equity should be valued at zero for this decision — is explicitly named as an assumption and engaged with (why it's worth zero, and what follows if the decision secretly depends on it paying off anyway). But other assumptions the argument leans on, such as the runway math holding constant spending patterns, or that "startup experience" reliably reads well to future employers, pass by asserted as fact rather than flagged as assumptions. Naming and engaging the biggest one while leaving smaller ones unremarked is the **Sound** band, not the top band.
+
+## Criterion 4: Calibration
+
+Confidence mostly tracks the visible support: the runway arithmetic is stated plainly because it's shown, the equity valuation is stated plainly because reasoning is given, and the final regret test is deliberately non-committal because the writer can't know the reader's risk tolerance. The one place confidence outruns support is the reversibility claim, delivered with the same flat certainty as the derived math despite having no stated basis. One clear instance of confidence exceeding support, amid otherwise tracked calibration, fits **Sound**.
+
+## Criterion 5: Falsifiability
+
+The document gives two checkable conditions under which its own recommendation would be wrong, not generic caveats: "if the decision only works when the equity pays off, it's not a decision, it's a bet" (specific, checkable against the reader's own reasoning), and the closing regret test, which explicitly states that a "yes" supports the math and a "no" means "no equity upside fixes that." These are concrete enough that the reader can actually go check which bucket they're in, rather than a hedge that could be pasted onto any career decision. That earns **Rigorous**.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Sound
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

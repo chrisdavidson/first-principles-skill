@@ -1,0 +1,21 @@
+## Scoring
+
+**1. Decision usefulness — Rigorous.** The document doesn't just weigh in on "move or don't"; it converts the question into a staged decision procedure with a specific default (reversible/staged commitment before full relocation), four named go/no-go gates, and an explicit carve-out for who this applies to (stable-need families, not acute-crisis ones) and when the default flips (escalating trajectory, both jobs location-bound, no local-care alternative). A reader facing this decision has concrete next actions: ask the parents directly, check job/school viability, run a bounded trial, put caregiving-load renegotiation on a recurring schedule. That's specific enough to execute or reject.
+
+**2. Evidence grounding — Hand-wavy.** The pivot the whole argument turns on — "getting into the same region... captures ~90% of the total possible time savings" while next-door only adds "1–20 minutes" — is labeled as a "theoretical-limit/Fermi check" but the calculation itself never appears: no assumed distances, travel speeds, or arithmetic the reader can inspect or dispute. This is exactly a load-bearing figure with no stated origin, and it's the figure the document leans on hardest (it's what justifies treating "move closer" and "co-locate" as different decisions in the first place). The qualitative claims about punctuated decline and sibling-burden drift are reasonable but similarly asserted rather than sourced.
+
+**3. Assumption surfacing — Rigorous.** The document names its load-bearing assumptions explicitly rather than gesturing at them generically: that the caregiving need is escalating (vs. stable) is called out as an assumption to verify rather than infer, is built into a recurring-revisit requirement, and gets its own go/no-go gate ("the need is genuinely escalating, not assumed to be"). It does the same for the parents' actual wishes ("don't infer this — ask, and re-ask") and for whether the move is secretly solving a different problem. The most consequential assumption (trajectory) is not just named but actively engaged — the whole staging logic is a hedge against it being wrong.
+
+**4. Calibration — Sound.** The closing line differentiates confidence by claim type rather than asserting uniform certainty, which is the right instinct: HIGH confidence is reserved for "distance/latency mechanics" and MEDIUM for family-specific dynamics needing direct verification. But this is where grounding and calibration collide: the HIGH-confidence bucket is exactly the un-derived 90%/1–20-minute Fermi figure from criterion 2, so the stated confidence runs somewhat ahead of what was actually shown for that claim, even as the overall calibration instinct (separating mechanics from family-specific inference) is sound.
+
+**5. Falsifiability — Rigorous.** Rather than a generic "this could be wrong" hedge, the document gives checkable conditions under which its own default recommendation flips: full relocation wins instead of staging when the jobs are truly location-bound *and* need is escalating *and* no local-care alternative exists; and the entire staged-trial approach is explicitly suspended if the situation is already an acute crisis rather than the stable-need case assumed throughout. These are conditions a reader could actually go check against their own situation, not boilerplate caveats.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

@@ -1,0 +1,21 @@
+## Criterion assessments
+
+**1. Decision usefulness — Rigorous.** The document rejects the binary framing and lands on a specific, executable recommendation: a spot-audited mixed portfolio (multiple take-home tasks plus at least one proctored/witnessed checkpoint), with the spot-check rate set conservatively and tightened later based on measurement, and explicit guidance that the policy should vary by discipline, stakes, and channel. A reader — a curriculum committee, say — could take this and implement it, reject it, or argue with a specific weighting, rather than being left with a general lean.
+
+**2. Evidence grounding — Sound.** Several load-bearing claims are well grounded: the detector false-positive and bias figures are attributed to named sources (Inside Higher Ed, The Markup, TechCrunch), the pre-AI contract-cheating baseline is sourced to meta-analyses, and — notably — the single most consequential factual premise (that current LLMs produce convincing discipline-appropriate writing) is explicitly flagged as unverified rather than smuggled in as fact. But the numeric scoring that actually decides the recommendation — "81 vs. 75 ... vs. 74," said to survive a "flip-test on the weights" — and the Fermi-estimate hour ranges are asserted without showing the underlying criteria, weights, or calculation, so the reader can't check the figure that most directly drives the conclusion.
+
+**3. Assumption surfacing — Rigorous.** The document doesn't just list assumptions generically; it isolates the single assumption the whole conclusion depends on ("Current LLMs can produce convincing, discipline-appropriate writing at near-zero cost"), labels it explicitly as stipulated rather than verified, and states plainly that this is "the single fact that would flip the whole conclusion if false." That is exactly the kind of targeted engagement with the most consequential premise the top band asks for, and it's echoed again in the closing falsifiability section rather than mentioned once and dropped.
+
+**4. Calibration — Sound.** The per-claim status table (read-at-source vs. unverified-this-session vs. reported-not-opened) does real work distinguishing what the document knows from what it's inferring, and the overall "MEDIUM" confidence label is paired with named gaps rather than asserted blankly. The place this slips is the decisive scoring comparison (81/75/74) and the "survives a flip-test" claim, which are stated with more assurance than their shown support justifies within this document — a local mismatch between confidence and visible grounding, not a systemic one.
+
+**5. Falsifiability — Rigorous.** The closing section names two specific, checkable conditions that would overturn the conclusion: a documented case of a current model failing to produce convincing work against a real rubric, or independent testing showing a new detector generation has actually closed the false-positive/bias gap. Both are concrete enough that someone could go verify them, not generic hedges — and they map directly back to the assumption and evidence gaps identified earlier in the document rather than being bolted on.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```
