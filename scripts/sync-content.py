@@ -1095,7 +1095,8 @@ def generate_agent(spine_meta: dict, tool_map: dict) -> dict[Path, str]:
     Assembles the agent body from shared/ sources in this order:
       1. shared/agent/input-contract.md (verbatim prepend — before H1)
       2. shared/spine/SKILL-body.md expanded for the 'agent' surface
-      3. ## Companion Techniques header + 6 ## Procedure blocks (TOOLS order)
+      3. ## Companion Techniques header + one ## Procedure block per slug in
+         TOOLS, inlined verbatim (TOOLS order)
 
     The output-template.md and validation-rubric.md spine appendices are NO
     LONGER inlined into the agent body (Phase 34-02, Path B). They are emitted
@@ -1125,7 +1126,10 @@ def generate_agent(spine_meta: dict, tool_map: dict) -> dict[Path, str]:
         hint="shared/agent/input-contract.md is required; add it per Phase 23 D-02",
     )
 
-    # --- Companion Techniques: 7 ## Procedure sections in TOOLS order ---
+    # --- Companion Techniques: one ## Procedure section per slug in TOOLS ---
+    # Count is derived from TOOLS, never restated: the two comments this
+    # replaced read "6" and "7" against a live value of len(TOOLS), and
+    # disagreed with each other as well as with the artifact.
     companion_header = "\n## Companion Techniques\n\n"
     companion_blocks = "".join(
         _rewrite_detail_link(_extract_procedure(slug), slug, AGENT_REF_PREFIX) + "\n"

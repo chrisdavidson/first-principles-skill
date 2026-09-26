@@ -120,6 +120,42 @@ class RetractedClaim:
 # ---------------------------------------------------------------------------
 REGISTRY: tuple[RetractedClaim, ...] = (
     RetractedClaim(
+        literal="are *not* inlined into the agent body",
+        retracted_by="2026-09-26 pivot evaluation",
+        corrected=(
+            "False against the shipped artifact. `generate_agent()` appends a "
+            "`## Companion Techniques` section carrying each technique's "
+            "`## Procedure` block inlined verbatim, one per slug in TOOLS -- "
+            "`_extract_procedure()`'s own docstring says so: 'each slug's "
+            "## Procedure block is inlined verbatim.' Verified by grep on "
+            "first-principles/agents/first-principles.md: every technique's "
+            "first Procedure step is present, and the count of '## Procedure' "
+            "headings equals len(TOOLS). What is genuinely on-demand is "
+            "output-template.md, validation-rubric.md and the -detail.md "
+            "appendices."
+        ),
+        # Registered because this claim was not merely wrong, it was
+        # load-bearing for reasoning about what the model has in context. The
+        # prior text went further than asserting it -- it WARNED the reader
+        # that the substituted phrase 'the inlined fishbone procedure' invited
+        # the opposite conclusion. A reader trusting that warning would
+        # conclude the trade-off weight-locking prescription was not in the
+        # always-loaded body, when it is (line 865), which inverts the reading
+        # of why that prescription was ignored at emission time.
+    ),
+    RetractedClaim(
+        literal="rather than in the body itself",
+        retracted_by="2026-09-26 pivot evaluation",
+        corrected=(
+            "docs/ARCHITECTURE.md's wording of the same retracted claim. The "
+            "full ## Procedure blocks ARE in the body; see the entry above."
+        ),
+        # Same false claim, different wording, different file. Registered
+        # separately because RETRACT-01 bars literals, never semantics -- the
+        # defect class it was built for is precisely one retracted claim
+        # resurfacing in a second place under a reworded form (58-CR-01).
+    ),
+    RetractedClaim(
         literal="feeding only a MEDIUM- or LOW-confidence chain",
         retracted_by="999.164",
         corrected=(
