@@ -2625,7 +2625,30 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('docs/TESTING.md', '4'): ('999.69', 3, 'CANNOT-REACH (no harvest field): `_COMPOSER_FOCUS_CEILING: int = 4`, the bolded "`_COMPOSER_FOCUS_CEILING=4`" heading, and "the value itself stays 4" -- `scripts/_battery_core.py`\'s own constant (its `== 4` comparison elsewhere on this page is already stripped structurally). Re-verified live this plan: `python3 scripts/check-routing-battery.py --describe`\'s `locked_constants` exposes only the four routing thresholds -- no field for `_COMPOSER_FOCUS_CEILING` exists today. Deferred as cannot-reach residue (D-06 proviso 2).'),
     ('docs/TESTING.md', '5'): ('999.73', 1, 'NOT A COUNT CLAIM: "--repeat 5 --min-pass 3" (the routing-battery run command) -- the sibling CLI flag value to \'3\' immediately above, in the same reproduced shell command. Out of Phase 26\'s D-E quantity-shaped scope, same disposition as \'3\'. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('docs/gates/CONF-SURFACE.md', '1'): ('999.69', 20, 'NOT A COUNT CLAIM: twenty occurrences, none a count -- the pronoun "one" ("one at a time", "a deeper one", "one real, one ..."), plan-task and test ordinals ("plan 21-20 Task 1", "Task 1 lowered it", "per test 1\'s own framing", "**Test 1 (capability, not correction).**"), and `docs/PROCESS.md` section citations ("§1", "§1.1", "§1.2") that the citation-shape stripper does not consume. None states a population total. This residue predates Phase 40 and was covered only by coincidence: `derived_counts`\' `chain_termini_uncorroborable` read 1 while `docs/ARCHITECTURE.md`\'s battery growth chain was missing VAL-05\'s hop. The Phase 40 code review (CR-02) added that hop, the derived count returned to 0, and the residue surfaced as a live finding.'),
-    ('CLAUDE.md', '23'): ('999.69', 2, 'FROZEN HISTORICAL COUNT + PHASE CITATION (docs/PROCESS.md \u00a72\'s exception, D-06 proviso 3): "the 23 v8.18 milestone requirements registered as matrix rows at Phase 4" and "matrix rows at Phase 23 / REL-03" -- one arrow-free historical requirement count and one phase-number citation, both long-standing in the historical requirements-ledger paragraph, the same exception as \'15\'/\'18\' above. Neither is a current-fact claim about the battery. Both were previously covered by coincidental in-fence corroboration from the battery total (23); that broke at v9.8.0 when RETRACT-01\'s registration moved the total to 24 -- the identical uncovering the \'26\' entry records for COLLIDE-01\'s retirement. Ledgered rather than reworded, because rewording a frozen historical count to dodge a coincidence would falsify the record it states.'),
+    ('docs/gates/CONF-SURFACE.md', '5'): ('999.73', 4, 'NOT A COUNT CLAIM: four occurrences, none a population total -- the bound enumerator "**(5) The deferred-literal-ledger is an enumerated PER-HIT permit**" and its two back-references ("bound (5)\'s sibling argument", "bound (5)"), plus the pre-commit-gate ordinal "pre-commit gate 5 (`gen-gate-docs.py --check`)" and its repeats. An enumerator and an ordinal, neither stating how many of anything exist. Occurrence count emitted by `--emit-containment-ledger`, never hand-typed. SURFACED BY CASCADE, and the cause is worth recording because it is this mechanism eating its own tail: removing the stale (\'CLAUDE.md\', \'23\') key immediately above dropped the generated `containment_ledger_frozen_historical` field from 5 to 4, which removed the only in-fence `5` on this page, which uncovered residue that had been present and unnoticed all along. That is a FOURTH live instance of backlog 999.75 (containment matching by digit value, never by provenance), and the first produced by remediating a previous instance of the same class -- the shape docs/PROCESS.md section 1 names as the reason the depth rule exists. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own shape-stripper recognises enumerator and ordinal shapes.'),
+    # ('CLAUDE.md', '23') REMOVED at the EVIDENCE-01/TRACKB-01 registration,
+    # and as with ('CLAUDE.md', '17') above, the reason matters more than the
+    # removal. Its underlying claims were NOT fixed: "the 23 v8.18 milestone
+    # requirements registered as matrix rows at Phase 4" and "matrix rows at
+    # Phase 23 / REL-03" are still a frozen historical count and a phase
+    # citation, hand-maintained, with no harvest field behind either. The
+    # finding disappeared because registering two new CI jobs
+    # (gen-evidence-card, check-trackb-comparative) moved the CI-job total to
+    # 23, so an UNRELATED generated `23` now sits inside a fence and the
+    # containment test -- which matches by digit value, never by provenance --
+    # reads both occurrences as corroborated by it.
+    #
+    # That is the third recorded live instance of backlog 999.75
+    # ("containment's 'contained' test matches by digit value, not by
+    # provenance"), after ('CLAUDE.md', '17') and ('CLAUDE.md', '16'), and the
+    # second produced accidentally by an unrelated change in the same session.
+    # Recorded here rather than silently dropped, because the ledger's own
+    # removal advice ("its underlying prose was likely already fixed") is FALSE
+    # in this case, and following it without checking would retire a true
+    # disclosure. The entry is removed only because
+    # `containment_ledger_staleness_problems()` treats a ledger key with no
+    # matching live finding as an error rather than a pass; if the CI-job total
+    # ever moves off 23, this key must come back.
 }
 
 # The ledger's pinned maximum size and key-set digest. Standing rule, in
@@ -2875,10 +2898,41 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # One occurrence count raised, `('CLAUDE.md', '22')` 1 -> 2, for the reworded
 # tally sentence. Max lowered to the live size in this same commit so the
 # shrink is locked in; digest re-pinned below.
+#
+# Net 21 -> 21 at the EVIDENCE-01/TRACKB-01 registration, via one removal and
+# one addition -- recorded as two movements rather than a no-op, because the
+# key set changed and the digest below proves it.
+#
+# (a) Lowered 21 -> 20: registering two
+# new CI jobs moved the CI-job total onto 23, which coincidentally re-covered
+# `('CLAUDE.md', '23')`'s two frozen historical occurrences in-fence and made
+# that key stale. Removed per the same discipline plan 26-06 Task 2 applied to
+# `('CLAUDE.md', '43')` and plan 26-07 Task 2 applied to the two '14' keys --
+# and, as in both of those, the underlying prose was NOT fixed. See the removed
+# key's own block above for the full record, which is retained precisely
+# because the ratchet cannot distinguish a key that lapsed by coincidence from
+# one whose claim was genuinely closed.
+#
+# (b) Raised 20 -> 21: removal (a) dropped the generated
+# `containment_ledger_frozen_historical` field from 5 to 4, deleting the only
+# in-fence `5` on docs/gates/CONF-SURFACE.md and uncovering four enumerator/
+# ordinal occurrences there that had been coincidentally corroborated all
+# along. Genuinely new as a FINDING, not as prose: no line of that page
+# changed. Entry emitted by `--emit-containment-ledger`, then hand-adjudicated,
+# per this ledger's standing rule. The cascade -- remediating one instance of
+# 999.75 immediately producing another -- is recorded in the entry's own reason
+# rather than smoothed over, since it is evidence about the containment
+# mechanism's design and not merely bookkeeping.
 _CONTAINMENT_LEDGER_MAX: int = 21
 
+# Re-pinned in the same commit as the 21 -> 20 shrink above, per this
+# mechanism's own standing rule. The key removed is ('CLAUDE.md', '23'); its
+# claim was not fixed, only coincidentally re-covered in-fence. Never
+# recompute this digest to make a failing check pass -- it is recomputed here
+# because the key set legitimately changed, and the removed key's own comment
+# block above states exactly which key and why.
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:de7ae628f9f748b857f5133a86d3640df12f79b363e71e108aa2c21ceee36cca"
+    "sha256:65bf4e47bc279c962b92f4a25a93c7a51b9c13de538f5c67d08c69618c4676a1"
 )
 
 

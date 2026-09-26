@@ -89,6 +89,23 @@ The v3.8 enhanced successor adds four things the original does not have:
 
 [![Validation](https://github.com/chrisdavidson/first-principles-skill/actions/workflows/validation.yml/badge.svg)](https://github.com/chrisdavidson/first-principles-skill/actions/workflows/validation.yml) [![Version](https://img.shields.io/github/v/tag/chrisdavidson/first-principles-skill?label=version&color=blue)](./CHANGELOG.md) [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE) [![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-blueviolet)](docs/GETTING-STARTED.md)
 
+## Does it work?
+
+**[Read the evidence →](docs/EVIDENCE.md)**
+
+A short, honest page: what has actually been measured about this agent, each reading
+carried with its sample size, its date, and the known blind spots of the instrument
+that produced it.
+
+It publishes no overall quality score, and the reason is the first thing on it. We
+built a conformance rubric, then checked whether it predicted whether an analysis was
+actually *right*. It did not — the most arithmetically accurate document in the sample
+failed the rubric, and the least accurate passed. Publishing that score anyway would
+have been the easier choice.
+
+Every figure on that page is re-read from its source each time the page is built, so a
+number that goes stale breaks the build instead of quietly misleading you.
+
 ## Install
 
 From the Claude Code plugin marketplace — no clone required:

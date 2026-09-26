@@ -776,6 +776,78 @@ ENTRIES: tuple[GateEntry, ...] = (
             "control_count",
         ),
     ),
+    GateEntry(
+        key="EVIDENCE-01",
+        gate_id="EVIDENCE-01",
+        extra_ids=(),
+        mechanism=_ci("gen-evidence-card"),
+        ci_job="gen-evidence-card",
+        script="scripts/gen-evidence-card.py",
+        run_command=(
+            "python3 scripts/gen-evidence-card.py --self-test && "
+            "python3 scripts/gen-evidence-card.py --check"
+        ),
+        summary=(
+            "Every figure published on `docs/EVIDENCE.md` — the project's public, "
+            "general-audience measurement record — is re-read from its cited source "
+            "at generation time, and the committed page must reproduce a fresh render "
+            "byte-for-byte. The pinned-literal mechanism is what makes the page "
+            "falsifiable rather than merely typed: edit a source so it no longer says "
+            "what the card claims and generation FAILS instead of publishing a stale "
+            "number (verified by mutation, not assumed). This is a product-surface "
+            "guard by `docs/PROCESS.md` §2's claim-audience cut — the card asserts "
+            "measured facts to a reader outside the build loop — so a stale figure "
+            "there is a product defect, not an apparatus one. The card publishes no "
+            "composite quality score by construction (control C11 asserts it), "
+            "because `docs/v8.7-correctness-spot-check.md` measured that rubric "
+            "conformance does not predict correctness; a score assembled from "
+            "conformance readings would look like quality and demonstrably is not. "
+            "The comparative Track B section renders only on a `cleared` "
+            "pre-registered result (C06/C07): a null or inconclusive run publishes "
+            "nothing, enforced mechanically so it cannot be relitigated against a "
+            "disappointing number afterwards."
+        ),
+        consumes=(
+            "registered_surfaces",
+            "checked_files",
+            "population_floors",
+            "control_ids",
+            "control_count",
+        ),
+    ),
+    GateEntry(
+        key="TRACKB-01",
+        gate_id="TRACKB-01",
+        extra_ids=(),
+        mechanism=_ci("check-trackb-comparative"),
+        ci_job="check-trackb-comparative",
+        script="scripts/check-trackb-comparative.py",
+        run_command="python3 scripts/check-trackb-comparative.py --self-test",
+        summary=(
+            "Offline controls for the pre-registered agent-vs-unaided comparative "
+            "harness — the project's first measurement against NOT using its own "
+            "agent, every prior 'A/B' here having contrasted two versions of the "
+            "same agent body. Two controls carry the integrity of the whole design. "
+            "C01 fails if `docs/trackb-neutral-rubric.md` ever acquires a format "
+            "token: scoring against the agent's own output contract would mark the "
+            "control arm `Absent` for not being in the agent's format, producing a "
+            "large and meaningless result, so rubric neutrality is the comparison's "
+            "integrity rather than a stylistic preference. C13 asserts this script's "
+            "pinned protocol constants still agree with the pre-registration's own "
+            "stated text — a pre-registration whose executable form has drifted from "
+            "it is not a pre-registration, and no other gate in this tree can see "
+            "that drift. C08/C09/C10 are the threshold's own falsifiability set: a "
+            "noise-sized effect must NOT clear, a run with no drift-control arm must "
+            "NOT clear, and a real effect MUST clear, so the bar is reachable in "
+            "both directions. Offline and deterministic; it never invokes `claude` "
+            "and the live run is manual and separate."
+        ),
+        consumes=(
+            "registered_surfaces",
+            "control_ids",
+            "control_count",
+        ),
+    ),
 )
 
 

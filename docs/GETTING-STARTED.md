@@ -81,6 +81,13 @@ The trigger phrases above route to the agent only intermittently. Measured on 20
 agent was reached on roughly **one prompt in seventeen** built from its own documented triggers,
 while explicit dispatch worked. See `dispatch-attribution-findings.md` — removed from the tree in the 2026-08-16 docs prune; read it at its last tag with `git show v8.17:docs/dispatch-attribution-findings.md`.
 
+> **Age of this reading, stated rather than left to be discovered.** The one-in-seventeen figure
+> is from 2026-07-27 and has not been re-measured since; the agent body, its routing description
+> and the shipped skill set have all changed across several releases in the interval. Read it as
+> *the last time this was measured*, not as a current rate — the direction of the finding (explicit
+> dispatch is reliable, phrase routing is not) is what the advice below rests on, and that
+> direction has not been contradicted by any reading since.
+
 **The reliable way to run a full analysis is the slash command:**
 
 ```

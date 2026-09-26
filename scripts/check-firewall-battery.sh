@@ -647,6 +647,37 @@ gate "PROV-ROLLUP" \
     "python3 scripts/check-provenance-rollup.py --self-test" \
     "python3 scripts/check-provenance-rollup.py --dir shared/examples"
 
+# EVIDENCE-01 — the public Evidence Card's every published figure is re-read
+#               from its cited source, and the committed page reproduces a
+#               fresh render byte-for-byte. This is a product-surface guard,
+#               not an apparatus one: docs/EVIDENCE.md asserts measured facts
+#               to a reader outside the build loop, which is exactly the
+#               claim-audience cut docs/PROCESS.md section 2 draws, so a
+#               figure there going stale is a product defect.
+#               Runs --self-test first (WR-05 ordering: the generator's own
+#               controls must pass before its output is compared to anything),
+#               then --check. One tally slot, two commands.
+gate "EVIDENCE-01" \
+    "gen-evidence-card.py --self-test + --check" \
+    "python3 scripts/gen-evidence-card.py --self-test" \
+    "python3 scripts/gen-evidence-card.py --check"
+
+# TRACKB-01 — the pre-registered comparative harness's own offline controls.
+#             Registered in the battery specifically so control C13 runs on
+#             every commit: C13 asserts that this script's pinned protocol
+#             constants still agree with docs/trackb-preregistration.md's
+#             stated text. A pre-registration whose executable form has
+#             silently drifted from it is no longer a pre-registration, and
+#             that drift is invisible to every other gate in this tree.
+#             C01 is the other load-bearing one: it fails if the neutral
+#             rubric ever acquires a format token, which would make the
+#             comparison reward the agent's output shape rather than its
+#             reasoning. Offline and deterministic — it spends nothing and
+#             never invokes `claude`; the live run is manual and separate.
+gate "TRACKB-01" \
+    "check-trackb-comparative.py --self-test" \
+    "python3 scripts/check-trackb-comparative.py --self-test"
+
 # ---------------------------------------------------------------------------
 # Invariant re-confirm (D-07) — byte-frozen constants in _battery_core.py.
 #
@@ -813,6 +844,12 @@ _FROZEN_PATHS=(
     'tests/hop-validity-v9.6'
     'tests/baseline-reading-v9.6'
     'tests/rebaseline-reading-v9.6'
+    # Track B comparative run (2026-09-25) -- the project's first measurement
+    # against NOT using the agent, and the baseline the evidence-grounding
+    # Phase 1 work must move. Frozen because it is a before-reading: a later
+    # phase that edited these captures could manufacture an improvement.
+    'tests/trackb-run-v9.13'
+    'tests/trackb-catalog-v9.13.md'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null

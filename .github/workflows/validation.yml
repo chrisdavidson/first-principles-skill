@@ -315,3 +315,30 @@ jobs:
       - run: uv sync --locked --group dev
       - run: uv run python3 scripts/check-provenance-rollup.py --self-test
       - run: uv run python3 scripts/check-provenance-rollup.py --dir shared/examples
+
+  gen-evidence-card:
+    name: gen-evidence-card (EVIDENCE-01)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --locked --group dev
+      - run: uv run python3 scripts/gen-evidence-card.py --self-test
+      - run: uv run python3 scripts/gen-evidence-card.py --check
+
+  check-trackb-comparative:
+    name: check-trackb-comparative (TRACKB-01)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --locked --group dev
+      - run: uv run python3 scripts/check-trackb-comparative.py --self-test

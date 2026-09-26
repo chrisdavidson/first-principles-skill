@@ -42,6 +42,8 @@ For the full at-a-glance gate inventory — every gate mapped to its owning scri
 | CONF-SURFACE | [`docs/gates/CONF-SURFACE.md`](gates/CONF-SURFACE.md) | `python3 scripts/gen-gate-docs.py --self-test && python3 scripts/gen-gate-docs.py --check` |
 | RETRACT-01 | [`docs/gates/RETRACT-01.md`](gates/RETRACT-01.md) | `python3 scripts/check-retracted-claims.py --self-test && python3 scripts/check-retracted-claims.py` |
 | PROV-ROLLUP | [`docs/gates/PROV-ROLLUP.md`](gates/PROV-ROLLUP.md) | `python3 scripts/check-provenance-rollup.py --self-test && python3 scripts/check-provenance-rollup.py --dir shared/examples` |
+| EVIDENCE-01 | [`docs/gates/EVIDENCE-01.md`](gates/EVIDENCE-01.md) | `python3 scripts/gen-evidence-card.py --self-test && python3 scripts/gen-evidence-card.py --check` |
+| TRACKB-01 | [`docs/gates/TRACKB-01.md`](gates/TRACKB-01.md) | `python3 scripts/check-trackb-comparative.py --self-test` |
 <!-- END GENERATED -->
 
 ## Routing battery (developer tools — not in CI)
