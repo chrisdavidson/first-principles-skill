@@ -282,6 +282,16 @@ reader**. Three things follow, and none of them is a body edit:
    position than this item originally claimed and close to the pivot's own §2.3b conclusion by
    a different route. The other limitations of `check-provenance.py` the pivot recorded are
    untouched by this finding and still stand.
+4. **Delegation is not guaranteed: one miss in eleven attempts.** `TB-05` first returned an
+   undelegated direct answer (§3.4, erratum §4a). An agent that is never invoked cannot help,
+   whatever its output quality, so this is a product-relevant reading rather than an apparatus
+   one — but **n=1 does not justify changing routing**, and nothing here does. The existing
+   routing battery (`scripts/check-routing.py`, the DELEGATE / NO-DELEGATE boundary) is the
+   instrument that would settle it, read by aggregate K-of-N across repeats rather than by a
+   single observation, exactly as `CLAUDE.md` requires of every live reading in this tree.
+   Recording the rate and leaving routing alone is the proportionate response to one
+   observation; acting on it would be the over-correction this project's own process rules
+   warn about.
 
 ## 6. A registration decision, recorded rather than left silent
 

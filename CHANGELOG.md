@@ -13,6 +13,68 @@ installed session.
 
 ## [Unreleased]
 
+**No version stamps are bumped by this entry, deliberately.** `shared/` and
+`first-principles/` are byte-identical to `v9.12.0` — verified with
+`git diff v9.12.0..HEAD -- first-principles/ shared/`, which is empty. The shipped plugin did
+not change, so bumping the 17 stamps would advertise a change that did not happen. Everything
+below is measurement apparatus and the published record of what it measured.
+
+### Fixed — a measurement that was reading the wrong artifact
+
+- **Track B's arm T scored the orchestrator's summary, not the agent's document**
+  ([`docs/trackb-transport-erratum.md`](docs/trackb-transport-erratum.md)). Under
+  `--plugin-dir`, `claude -p` stdout is the main session's summary of the agent's analysis.
+  All ten arm-T captures of the v9.13 run are summaries: **0 of 6 contract sections and 0
+  `GT-N` identifiers across all ten**, against 6 of 6 and 947 identifiers when the same ten
+  prompts are captured at the agent. The §7 extraction check could not see it — a summary
+  carries no rubric text and runs 282–699 words, far above the 120-word floor. That check
+  catches a *truncation*; this is a *substitution* of one well-formed document for another.
+  The frozen run is left untouched and the erratum travels with it, carrying seven falsifiers.
+- **A second, independent reason that run's arm T is unclear.** Plain `-p` records no tool
+  use, so for **7 of its 10 cells it cannot be determined whether the agent ran at all**.
+  Three cells prove dispatch by describing it; the rest are consistent with either a
+  summarised document or an undelegated direct answer.
+
+### Added — guards, so neither can recur unnoticed
+
+- **`check-trackb-comparative.py` C18/C19** — `extraction_problems()` gains an opt-in
+  `plugin_arm` check requiring the agent's output contract, and C19 re-runs it against the
+  frozen captures, all ten of which must void. The check is **per arm and must stay so**: the
+  control is unaided and never carries the contract, so applying it symmetrically would void
+  every control cell. Both failure directions are mutation-verified. 17 → 19 controls.
+- **`scripts/check-emission-stage-a.py`** — captures the subagent's own document via
+  `--output-format stream-json`, reads it mechanically, and refuses a capture that is not the
+  agent's. 16 controls, mutation-verified; deliberately registered in neither the battery nor
+  CI, and [the findings](docs/emission-phase1-stage-a-findings.md) §6 records why.
+- **`tests/emission-stage-a-v9.14/`** — the first captures of the agent's own document, frozen,
+  with each orchestrator summary kept beside the document it was made from, and `TB-05`'s
+  voided first attempt retained rather than tidied away.
+
+### Measured
+
+- **The agent already does what a proposed milestone was going to teach it to do.** Nine of ten
+  prompts produce the full six-section contract, with locked weights, anchored scales,
+  reconciled arithmetic and a sensitivity check. **No agent-body edit was made**, and the
+  pre-registration forbids the follow-on stage on this reading.
+- **Where the document goes.** Streamed into the session transcript in **9 of 10** runs; only
+  1 of 10 arrives solely as a collapsed tool result. Print mode specifically is what discards
+  it. This measures what the transport carries, never what a UI renders.
+- **Dispatch failed once in eleven attempts.** Recorded, not acted on: `n=1` does not justify
+  a routing change, and the routing battery read by aggregate K-of-N is the instrument that
+  would settle it.
+
+### Retracted — three claims of my own, corrected in place
+
+- That the trade-off weight-locking prescription was present and ignored (registered in
+  RETRACT-01; refuted on its own specimen).
+- That the agent emits no URLs (registered; it emitted 14 on the specimen prompt).
+- That the evidence on what a user sees pointed the wrong way (retracted by measurement:
+  9 of 10 streamed).
+
+**Deferred, and named so it is not forgotten:** this work registers no
+`docs/requirements-matrix.md` rows. That convention attaches to a milestone release, and there
+is no release here. A future release that carries these changes owes the rows.
+
 ## [9.12.0] — 2026-09-25
 
 Unphased release: **v9.12.0 The Exemplars Audited**. Twenty-one backlog commits, no milestone
