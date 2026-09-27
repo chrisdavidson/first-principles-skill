@@ -106,6 +106,19 @@ def generate(text: str, plugin_dir: Path, raw_path: Path) -> str:
     return proc.stdout
 
 
+def loaded_body(jsonl: str) -> list[str]:
+    """Paths of every `first-principles` plugin the run's init event reports loading."""
+    for line in jsonl.splitlines():
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if obj.get("type") == "system" and obj.get("subtype") == "init":
+            return [p.get("path", "") for p in obj.get("plugins") or []
+                    if p.get("name") == "first-principles"]
+    return []
+
+
 def void_problems(doc: str, jsonl: str) -> list[str]:
     probs = stage_a.capture_problems(doc, from_subagent=bool(doc.strip()))
     if stage_a.agent_dispatches(jsonl) == 0:
@@ -143,6 +156,11 @@ def cmd_run(dirs: dict[str, Path]) -> int:
                 print(f"[pause] {s}: usage-limit/transport stub kept; re-run to resume",
                       flush=True)
                 return 3
+            # Transport integrity, not a void: a run on the wrong body must never be scored.
+            if loaded_body(jsonl) != [str(dirs[arm])]:
+                print(f"[abort] {s}: loaded {loaded_body(jsonl)}, expected {dirs[arm]}",
+                      flush=True)
+                return 5
             doc, orch = stage_a.extract_subagent_text(jsonl)
             probs = void_problems(doc, jsonl)
             if not probs:
