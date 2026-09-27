@@ -424,6 +424,107 @@ def cmd_run(out_dir: Path) -> int:
     return cmd_read(out_dir)
 
 
+# ---------------------------------------------------------------------------
+# Live-output conformance -- a RECORDED READING, never a gate
+# ---------------------------------------------------------------------------
+
+_CONFORMANCE_FIELDS: tuple[tuple[str, str], ...] = (
+    ("untraced_claims", "conclusion_claims"),
+    ("malformed_chain_blocks", "chain_blocks"),
+    ("nonconforming_verdict_cells", "verdict_cells"),
+)
+
+
+def _rel(path: Path) -> str:
+    """Repo-relative POSIX path, tolerant of a relative --out-dir."""
+    try:
+        return path.resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def conformance_reading(doc_dir: Path) -> dict:
+    """Run the shipped defect detector over the frozen live corpus.
+
+    **This is a reading, not a gate, and nothing here changes an exit code.**
+    Emission rates are K-of-N live observations, and
+    `docs/v8.7-constraint-teardown.md` section 2 item 3 bars those from gating. The
+    reading is deterministic only because the corpus is frozen; re-running the AGENT
+    would not reproduce it, which is exactly why it may not gate.
+
+    The detector is `check-quality-harness.detect_defects` -- the same instrument
+    `report-conformance.py` uses on the v9.0 surface, reused rather than
+    reimplemented so the two readings are comparable.
+
+    **Unreadable documents are counted, never dropped.** A document that abandons the
+    output contract entirely raises `SectionResolutionError` and contributes to no
+    numerator or denominator, so conformance rates are conditional on readability and
+    a total abandonment cannot lower any of them. Reporting `unreadable` beside the
+    rates is what stops that reading as a clean bill of health.
+    """
+    import importlib.util as _ilu
+    import sys as _sys
+
+    spec = _ilu.spec_from_file_location(
+        "_qh_for_conformance", REPO_ROOT / "scripts" / "check-quality-harness.py")
+    qh = _ilu.module_from_spec(spec)
+    _sys.modules["_qh_for_conformance"] = qh
+    spec.loader.exec_module(spec and qh)
+
+    totals: dict[str, int] = {}
+    scored = 0
+    unreadable: list[str] = []
+    for doc in sorted(doc_dir.glob("TB-*.md")):
+        if doc.name.endswith(".orchestrator.md"):
+            continue
+        text = doc.read_text(encoding="utf-8")
+        if not text.strip():
+            continue
+        try:
+            d = qh.detect_defects(text, doc.stem)
+        except Exception:  # noqa: BLE001 -- any parse refusal is "unreadable"
+            unreadable.append(doc.stem)
+            continue
+        scored += 1
+        for num, den in _CONFORMANCE_FIELDS:
+            for field in (num, den):
+                v = d.get(field, 0)
+                totals[field] = totals.get(field, 0) + (v if isinstance(v, int) else 0)
+
+    rates = {}
+    for num, den in _CONFORMANCE_FIELDS:
+        n, m = totals.get(num, 0), totals.get(den, 0)
+        rates[num] = {
+            "numerator": n,
+            "denominator": m,
+            "rate_pct": (round(100.0 * n / m, 1) if m else None),
+        }
+    return {
+        "corpus": _rel(doc_dir),
+        "documents_scored": scored,
+        "documents_unreadable": len(unreadable),
+        "unreadable_ids": unreadable,
+        "rates": rates,
+        "is_a_gate": False,
+    }
+
+
+def cmd_conformance(out_dir: Path) -> int:
+    r = conformance_reading(out_dir / "documents")
+    n = r["documents_scored"]
+    print(f"\nlive-output conformance reading -- {r['corpus']}")
+    print(f"  N = {n} scored, {r['documents_unreadable']} unreadable "
+          f"{r['unreadable_ids'] or ''}")
+    print("  (a recorded reading with its N, never a gate)\n")
+    for field, v in r["rates"].items():
+        pct = "n/a" if v["rate_pct"] is None else f"{v['rate_pct']:5.1f}%"
+        print(f"  {field:<30}{v['numerator']:>4}/{v['denominator']:<5} = {pct}")
+    print("\n  Rates are conditional on readability: an unreadable document "
+          "contributes to\n  no denominator, so contract abandonment cannot lower any "
+          "rate above.")
+    return 0
+
+
 def cmd_reextract(out_dir: Path) -> int:
     """Re-derive documents/ from the cached raw/ transcripts. No live calls.
 
@@ -801,6 +902,67 @@ def _c16_delivery_route_separates_streamed_from_handback() -> str | None:
     return None
 
 
+def _c17_conformance_reading_is_computed_not_hardcoded() -> str | None:
+    """The reading must come from the corpus. A hardcoded rate is the defect this
+    whole workstream exists to close -- a number that cannot move is not a reading."""
+    import tempfile
+    six = ("## Problem Essence\nx\n## Assumptions Table\nx\n## Ground Truths\nx\n"
+           "## Derivation Chains\nx\n## Abandoned Reasoning\nx\n## Conclusion\nx\n")
+    with tempfile.TemporaryDirectory() as td:
+        d = Path(td) / "documents"
+        d.mkdir()
+        (d / "TB-01.md").write_text(six + "word " * 200, encoding="utf-8")
+        r = conformance_reading(d)
+    if r["documents_scored"] + r["documents_unreadable"] != 1:
+        return (f"C17: a one-document corpus produced "
+                f"{r['documents_scored']}+{r['documents_unreadable']} documents")
+    live = conformance_reading(REPO_ROOT / "tests" / "emission-stage-a-v9.14" / "documents")
+    if live["documents_scored"] == r["documents_scored"]:
+        return "C17: the reading did not change with the corpus -- it is not computed"
+    return None
+
+
+def _c18_unreadable_documents_are_counted_not_dropped() -> str | None:
+    """A document abandoning the contract must be COUNTED, not silently excluded.
+
+    Dropping it flatters every rate: total abandonment would leave the population
+    instead of lowering anything. `TB-08` is the live instance -- dispatched, reasoned,
+    and carrying 2 of 6 section headings with no traceable identifiers.
+    """
+    r = conformance_reading(REPO_ROOT / "tests" / "emission-stage-a-v9.14" / "documents")
+    if r["documents_unreadable"] < 1:
+        return ("C18: no unreadable document reported, but TB-08 abandons the contract "
+                "-- unreadable documents are being dropped silently")
+    if "TB-08" not in r["unreadable_ids"]:
+        return f"C18: unreadable ids {r['unreadable_ids']} do not name TB-08"
+    return None
+
+
+def _c19_the_reading_is_not_a_gate() -> str | None:
+    """Emission rates are K-of-N live readings, barred from gating by
+    `docs/v8.7-constraint-teardown.md` section 2 item 3. If this ever gates, that bar
+    has been crossed silently."""
+    r = conformance_reading(REPO_ROOT / "tests" / "emission-stage-a-v9.14" / "documents")
+    if r.get("is_a_gate") is not False:
+        return "C19: the reading no longer declares itself a non-gate"
+    src = (REPO_ROOT / "scripts" / "check-emission-stage-a.py").read_text(encoding="utf-8")
+    body = src.split("def cmd_conformance", 1)[1].split("\ndef ", 1)[0]
+    if "return 1" in body or "SystemExit" in body:
+        return "C19: cmd_conformance can now return a failing exit code -- it gates"
+    return None
+
+
+def _c20_every_reported_rate_states_its_denominator() -> str | None:
+    """A rate without its denominator is the shape this repository bars."""
+    r = conformance_reading(REPO_ROOT / "tests" / "emission-stage-a-v9.14" / "documents")
+    for field, v in r["rates"].items():
+        if "denominator" not in v or "numerator" not in v:
+            return f"C20: {field} reports a rate with no numerator/denominator"
+        if v["denominator"] == 0 and v["rate_pct"] is not None:
+            return f"C20: {field} reports a percentage over an empty denominator"
+    return None
+
+
 _CONTROLS = (
     ("C01", _c01_summary_is_rejected_document_is_not),
     ("C02", _c02_orchestrator_capture_is_rejected),
@@ -818,6 +980,10 @@ _CONTROLS = (
     ("C14", _c14_handback_frame_and_usage_are_stripped),
     ("C15", _c15_the_document_handback_wins_over_a_follow_up),
     ("C16", _c16_delivery_route_separates_streamed_from_handback),
+    ("C17", _c17_conformance_reading_is_computed_not_hardcoded),
+    ("C18", _c18_unreadable_documents_are_counted_not_dropped),
+    ("C19", _c19_the_reading_is_not_a_gate),
+    ("C20", _c20_every_reported_rate_states_its_denominator),
 )
 
 
@@ -871,7 +1037,7 @@ def describe() -> dict:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("command", nargs="?", default="plan",
-                    choices=["plan", "run", "read", "reextract"])
+                    choices=["plan", "run", "read", "reextract", "conformance"])
     ap.add_argument("--out-dir", type=Path,
                     default=REPO_ROOT / "tests" / "emission-stage-a-v9.14")
     ap.add_argument("--self-test", action="store_true")
@@ -890,6 +1056,8 @@ def main(argv: list[str] | None = None) -> int:
             return cmd_run(args.out_dir)
         if args.command == "reextract":
             return cmd_reextract(args.out_dir)
+        if args.command == "conformance":
+            return cmd_conformance(args.out_dir)
         return cmd_read(args.out_dir)
     except StageAError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)

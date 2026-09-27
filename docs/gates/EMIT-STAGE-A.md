@@ -3,8 +3,8 @@
 <!-- GENERATED:FACTS -->
 ## Facts
 
-- `control_ids` (16): `C01`, `C02`, `C03`, `C04`, `C05`, `C06`, `C07`, `C08`, `C09`, `C10`, `C11`, `C12`, `C13`, `C14`, `C15`, `C16`
-- `control_count`: `16`
+- `control_ids` (20): `C01`, `C02`, `C03`, `C04`, `C05`, `C06`, `C07`, `C08`, `C09`, `C10`, `C11`, `C12`, `C13`, `C14`, `C15`, `C16`, `C17`, `C18`, `C19`, `C20`
+- `control_count`: `20`
 - `registered_surfaces` (2): `docs/emission-phase1-preregistration.md`, `tests/trackb-catalog-v9.13.md`
 - `checked_files` (2): `tests/emission-stage-a-v9.14/raw/*.jsonl`, `tests/emission-stage-a-v9.14/documents/*.md`
 - `locked_constants` (4 entries): `MIN_SECTIONS`=4, `MIN_WORDS`=120, `MODEL`='claude-sonnet-5', `N_PROMPTS`=10
