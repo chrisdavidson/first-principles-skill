@@ -178,3 +178,19 @@ The grounds are independent of the verdict and checkable:
 when the framed extraction is empty. It fires on exactly the nine legacy captures and on none in
 `tests/w4-paired/` or `tests/emission-stage-a-v9.14/`. The frozen w4-paired extractor is
 untouched.
+
+## 9. Phase 1 registration — 2026-09-27, before the first Phase 1 generation
+
+Recorded here, not amended: every value below is one §5 left to fill.
+
+- **Selected fix:** F2, by the §4 table on the Phase 0 reading
+  ([`docs/abandonment-phase0-reading.md`](abandonment-phase0-reading.md)): H1 holds, dispatch
+  side not implicated.
+- **`control` body:** `fe7fbba6`. **`fix` body:** `c9619457` on branch `abandonment-f2` — F2
+  verbatim in `shared/spine/SKILL-body.md`, regenerated, `sync-content.py --check` clean. The two
+  plugin trees differ by F2's seven lines, in the source and in the generated agent (line 53).
+- **Runner:** `tests/abandonment/run_phase1.py`, which reuses Phase 0's definitions and the
+  w4-paired extractor. Verified before the run: on frozen attempts it classifies a known
+  abandonment, a known kept run, a routing miss and a recovered persisted hand-back correctly;
+  the decision rule can report a reduction (0/30 vs 5/30, p = 0.026) and can decline one
+  (2/30 vs 4/30, p = 0.335).
