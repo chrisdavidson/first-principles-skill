@@ -116,3 +116,28 @@ W4's question for that axis as not attributable to the body at this N, and says 
   measured that conformance does not predict correctness.
 - **A reading, never a gate** — K-of-N live readings are barred from gating by
   `docs/v8.7-constraint-teardown.md` §2 item 3.
+
+## 10. Amendments
+
+### Amendment 1 — 2026-09-27, after 8 of 30 generations and before any defect was read
+
+**A transport defect in extraction, handled under §8, not a protocol change.** When the agent's
+report exceeds about 50 KB, the harness stores the Agent tool's result as `<persisted-output>`
+and the transcript keeps only a 2 KB preview. `extract_subagent_text` read that preview as the
+document, so `TB-06.new.r1`'s first attempt voided at 302 words. The orchestrator had Read the
+persisted file in the same run, so the full report is in the transcript: rebuilt, it is 7,446
+words with all six sections and no capture problem.
+
+- **Extraction.** `tests/w4-paired/run_paired.py`'s `recover_persisted` rebuilds a persisted
+  report from that read-back. A report that was persisted and never read back is a **transport
+  failure**, never a void. Checked against every capture on hand, 19 in all: it changes exactly
+  one, and both genuine voids (`TB-02.new.r3` attempt 1 here, and the frozen `TB-08`) stay void.
+  With the read-back removed, the same capture classifies as a transport failure.
+- **Cell rule, fixed now.** A cell's document is its **first** attempt that is neither a
+  transport failure nor a void, and every cell is rebuilt from `raw/` by one command
+  (`reextract`) so that no attempt is chosen by hand. For `TB-06.new.r1` that is attempt 1,
+  recovered; the retry the §8 rule launched is kept in `raw/` and not scored.
+- **Contract abandonment is reported over attempts, not cells.** A void that a retry replaces
+  still happened, and the cell rule would otherwise hide it.
+
+Arms, prompts, repeats, instrument, outcomes and the §7 decision rule are unchanged.

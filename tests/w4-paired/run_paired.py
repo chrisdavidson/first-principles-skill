@@ -119,6 +119,70 @@ def loaded_body(jsonl: str) -> list[str]:
     return []
 
 
+_PERSISTED = "<persisted-output>"
+
+
+def _tool_result_text(block: dict) -> str:
+    c = block.get("content")
+    if isinstance(c, str):
+        return c
+    return "".join(x.get("text", "") for x in c or [] if isinstance(x, dict))
+
+
+def recover_persisted(jsonl: str) -> str | None:
+    """Rebuild a hand-back the harness persisted to disk instead of inlining.
+
+    Amendment 1 (docs/w4-paired-preregistration.md section 10). Over ~50 KB the Agent
+    tool's result is stored as `<persisted-output>` and the transcript keeps a 2 KB
+    preview, which `extract_subagent_text` then reads as the document. The orchestrator
+    Read that file in the same run, so its full text is in the transcript as a
+    line-numbered JSON array; this re-assembles it. Returns None when the report was
+    persisted and never read back -- a transport failure, never a void.
+    """
+    persisted, reads = False, []
+    for line in jsonl.splitlines():
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if obj.get("type") != "user":
+            continue
+        for b in obj.get("message", {}).get("content", []) or []:
+            if not (isinstance(b, dict) and b.get("type") == "tool_result"):
+                continue
+            s = _tool_result_text(b)
+            if stage_a._HANDBACK_MARK not in s:
+                continue
+            if _PERSISTED in s:
+                persisted = True
+            else:
+                reads.append(s)
+    if not persisted:
+        return None
+    for s in reads:
+        body = "\n".join(re.sub(r"^\s*\d+\t", "", ln) for ln in s.splitlines())
+        try:
+            arr = json.loads(body)
+        except json.JSONDecodeError:
+            continue
+        text = "".join(x.get("text", "") for x in arr
+                       if isinstance(x, dict) and x.get("type") == "text")
+        if stage_a._HANDBACK_MARK in text:
+            return stage_a._deframe_handback(text)
+    return ""
+
+
+def extract(jsonl: str) -> tuple[str, str, str]:
+    """(document, orchestrator, status) -- status is 'ok', 'recovered' or 'transport'."""
+    doc, orch = stage_a.extract_subagent_text(jsonl)
+    rec = recover_persisted(jsonl)
+    if rec is None:
+        return doc, orch, "ok"
+    if rec:
+        return rec, orch, "recovered"
+    return doc, orch, "transport"
+
+
 def void_problems(doc: str, jsonl: str) -> list[str]:
     probs = stage_a.capture_problems(doc, from_subagent=bool(doc.strip()))
     if stage_a.agent_dispatches(jsonl) == 0:
@@ -161,7 +225,7 @@ def cmd_run(dirs: dict[str, Path]) -> int:
                 print(f"[abort] {s}: loaded {loaded_body(jsonl)}, expected {dirs[arm]}",
                       flush=True)
                 return 5
-            doc, orch = stage_a.extract_subagent_text(jsonl)
+            doc, orch, _status = extract(jsonl)
             probs = void_problems(doc, jsonl)
             if not probs:
                 break
@@ -178,6 +242,48 @@ def cmd_run(dirs: dict[str, Path]) -> int:
                 return 4
         print(f"[gen] {s} {len(doc.split())}w {'VOID' if probs else 'ok'}", flush=True)
     return cmd_read()
+
+
+def cmd_reextract() -> int:
+    """Rebuild every cell's document from `raw/`, under Amendment 1's cell rule.
+
+    A cell's document is its FIRST attempt (`.attempt1.jsonl`, then `.jsonl`) that is
+    neither a transport failure nor a void. If every attempt voids, the cell is void.
+    The rule is fixed before any defect is read, so choosing an attempt can never
+    depend on what the detector would say about it.
+    """
+    log = []
+    for pid, arm, rep in schedule():
+        s = stem(pid, arm, rep)
+        attempts = [p for p in (RAW / f"{s}.attempt1.jsonl", RAW / f"{s}.jsonl") if p.is_file()]
+        if not attempts:
+            continue
+        chosen = None
+        for p in attempts:
+            jsonl = p.read_text(encoding="utf-8")
+            doc, orch, status = extract(jsonl)
+            probs = [] if status == "transport" else void_problems(doc, jsonl)
+            log.append({"cell": s, "attempt": p.name, "status": status, "void": probs})
+            if status != "transport" and not probs:
+                chosen = (doc, orch, [])
+                break
+            if status != "transport":
+                chosen = (doc, orch, probs)          # void; a later attempt may replace it
+        if chosen is None:
+            continue
+        doc, orch, probs = chosen
+        (DOCS / f"{s}.md").write_text(doc, encoding="utf-8")
+        (DOCS / f"{s}.orchestrator.md").write_text(orch, encoding="utf-8")
+        void_marker = DOCS / f"{s}.void"
+        if probs:
+            void_marker.write_text("\n".join(probs) + "\n", encoding="utf-8")
+        elif void_marker.exists():
+            void_marker.unlink()
+    (HERE / "attempts.json").write_text(json.dumps(log, indent=2) + "\n", encoding="utf-8")
+    for e in log:
+        print(f"{e['cell']:<16}{e['attempt']:<32}{e['status']:<11}"
+              f"{'VOID ' + e['void'][0][:40] if e['void'] else 'ok'}")
+    return 0
 
 
 # --- reading ------------------------------------------------------------------------
@@ -263,15 +369,29 @@ def cmd_read() -> int:
             parts.append(f"{a} {x}/{y}")
         tag = "  (reported only: contracts differ)" if field == "untraced_claims" else ""
         print(f"{field:<30} " + "  ".join(parts) + tag)
+    # Contract abandonment is counted over ATTEMPTS, not cells: a void retried into a
+    # readable document still happened, and the cell rule would otherwise hide it.
+    abandon = {a: [0, 0] for a in ARMS}
+    attempts_path = HERE / "attempts.json"
+    if attempts_path.is_file():
+        for e in json.loads(attempts_path.read_text(encoding="utf-8")):
+            if e["status"] == "transport":
+                continue
+            arm = e["cell"].split(".")[1]
+            abandon[arm][1] += 1
+            abandon[arm][0] += bool(e["void"])
+        print("contract abandonment (void attempts / scored attempts): "
+              + "  ".join(f"{a} {abandon[a][0]}/{abandon[a][1]}" for a in ARMS))
     (HERE / "result.json").write_text(json.dumps(
         {"summary": summary, "unreadable": unreadable, "void": void,
+         "abandonment_attempts": abandon,
          "leading_gt_malformed": lead, "malformed": mal}, indent=2) + "\n", encoding="utf-8")
     return 0
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("command", choices=("plan", "run", "read"))
+    ap.add_argument("command", choices=("plan", "run", "reextract", "read"))
     ap.add_argument("--old", type=Path)
     ap.add_argument("--new", type=Path)
     a = ap.parse_args()
@@ -279,6 +399,8 @@ def main() -> int:
         return cmd_plan()
     if a.command == "read":
         return cmd_read()
+    if a.command == "reextract":
+        return cmd_reextract()
     if not (a.old and a.new):
         ap.error("run needs --old and --new plugin directories")
     return cmd_run({"old": a.old.resolve(), "new": a.new.resolve()})
