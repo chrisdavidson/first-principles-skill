@@ -13,11 +13,24 @@ installed session.
 
 ## [Unreleased]
 
-**No version stamps are bumped by this entry, deliberately.** `shared/` and
-`first-principles/` are byte-identical to `v9.12.0` — verified with
-`git diff v9.12.0..HEAD -- first-principles/ shared/`, which is empty. The shipped plugin did
-not change, so bumping the 17 stamps would advertise a change that did not happen. Everything
+**The shipped plugin has changed since `v9.12.0` in one respect, and no version stamp has been
+bumped yet.** `git diff v9.12.0..HEAD -- first-principles/ shared/` shows only the agent's
+`disallowedTools` widening (see *Changed — the shipped agent* below). Until that commit the two
+trees were byte-identical to `v9.12.0` and this entry deliberately bumped nothing; the release
+that carries this change owes the 17 stamps and the requirements-matrix rows. Everything else
 below is measurement apparatus and the published record of what it measured.
+
+### Changed — the shipped agent
+
+- **The agent can no longer delegate to itself.** `disallowedTools` widens from `[Write, Edit]`
+  to `[Write, Edit, Agent, SendMessage, ListAgents]`. In 6 of 20 Phase 1 runs of the
+  abandonment A/B, the analysis agent had dispatched `first-principles:first-principles` from
+  inside itself, received the inner copy's report truncated to its tail, and tried
+  `SendMessage`/`ListAgents` to recover it ([reading](docs/abandonment-phase1-reading.md)).
+  GATE-01 now pins the exact list, and fails if any entry is removed or added. Verified live
+  against a positive control: told to call `Agent` and `ListAgents`, the `v9.12.0`-body agent
+  did both; the new agent reports neither exists. The body names no use for them; the trade-off
+  is that no sub-agent of any type can be dispatched, and every observed dispatch was to itself.
 
 ### Fixed — a measurement that was reading the wrong artifact
 
