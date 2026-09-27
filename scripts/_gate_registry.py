@@ -298,9 +298,10 @@ ENTRIES: tuple[GateEntry, ...] = (
         ),
         summary=(
             "Agent structural checks — 8 frontmatter/body assertions on the shipped "
-            "agent, including the exact `maxTurns` value (60), not merely its "
-            "presence. The live leg targets the repo-anchored `AGENT_FILE` constant, "
-            "so the gate is cwd-independent and cannot be silently re-pointed."
+            "agent, including the exact `maxTurns` value (60) and the exact "
+            "`disallowedTools` list, not merely their presence. The live leg targets "
+            "the repo-anchored `AGENT_FILE` constant, so the gate is cwd-independent "
+            "and cannot be silently re-pointed."
         ),
         consumes=(
             "branch_roster",

@@ -4,6 +4,6 @@ agent:
   license: MIT
   metadata:
     version: "9.12.0"
-  disallowedTools: [Write, Edit]
+  disallowedTools: [Write, Edit, Agent, SendMessage, ListAgents]
   maxTurns: 60
   AskUserQuestion: permitted

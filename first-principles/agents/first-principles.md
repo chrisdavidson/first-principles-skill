@@ -7,6 +7,9 @@ metadata:
 disallowedTools:
 - Write
 - Edit
+- Agent
+- SendMessage
+- ListAgents
 maxTurns: 60
 AskUserQuestion: permitted
 ---

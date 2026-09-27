@@ -39,6 +39,11 @@ _MARKER_RE = re.compile(r"\{\{.*?\}\}")
 # _assert_live_coverage() to mutate the text this run actually read.
 _NAME_KEY_RE = re.compile(r"^name:.*$\n", re.MULTILINE)
 
+# The `- Agent` disallowedTools list entry, used by _assert_live_coverage()'s
+# second mutation (quick task 260927-ngb) to prove the disallowedTools value
+# clause is engaging the shipped file's actual content.
+_DISALLOWED_AGENT_LINE_RE = re.compile(r"^- Agent\s*$\n", re.MULTILINE)
+
 # Expected locked values
 _EXPECTED_NAME = "first-principles"
 _MAX_DESCRIPTION_LEN = 1024
@@ -47,6 +52,13 @@ _MAX_DESCRIPTION_LEN = 1024
 # exists (as Check 5 did before) lets the value silently drift — a `60 -> 20`
 # edit passed every gate in the battery undetected.
 _EXPECTED_MAX_TURNS = 60
+# Quick task 260927-ngb: tests/abandonment/phase1/raw/ shows 6 of 20 Phase 1
+# runs where the subagent called `Agent` with
+# subagent_type: first-principles:first-principles from inside itself, then
+# tried SendMessage/ListAgents to chase the truncated hand-back. Checking
+# only that `disallowedTools` is present (as Check 4 did before) let any
+# entry — including these three — be silently dropped with every gate green.
+_EXPECTED_DISALLOWED_TOOLS: tuple[str, ...] = ("Write", "Edit", "Agent", "SendMessage", "ListAgents")
 _REQUIRED_PHRASES = [
     "first principles",
     "challenge assumptions",
@@ -82,8 +94,10 @@ _CHECK_DESCRIPTIONS: tuple[str, ...] = (
     "Check 2: 'name' key present and equals the locked identity "
     "(skipped under --skip-name-check)",
     "Check 3: 'description' is a non-empty string within the max-length budget",
-    "Check 4: 'disallowedTools' key is present",
-    "Check 5: 'maxTurns' key is present; for the canonical identity only, "
+    "Check 4: 'disallowedTools' key is present; for the canonical identity "
+    "only, also equals the locked tool list (value clause skipped under "
+    "--skip-name-check)",
+    "Check 5: 'maxTurns' key is present; for the canonical identity only,"
     "also carries the locked value (value clause skipped under --skip-name-check)",
     "Check 6: body is non-empty after stripping whitespace",
     "Check 7: body contains no unresolved sync markers",
@@ -92,9 +106,10 @@ _CHECK_DESCRIPTIONS: tuple[str, ...] = (
 )
 
 # Indices into _CHECK_DESCRIPTIONS scoped out under --skip-name-check — a
-# published fact of GATE-01's CLAUDE.md row (Checks 2, 5's value clause, 8),
-# derived here rather than re-typed in prose on every surface that states it.
-_SKIP_NAME_CHECK_SCOPED_INDICES: tuple[int, ...] = (1, 4, 7)
+# published fact of GATE-01's CLAUDE.md row (Checks 2, 4's value clause, 5's
+# value clause, 8), derived here rather than re-typed in prose on every
+# surface that states it.
+_SKIP_NAME_CHECK_SCOPED_INDICES: tuple[int, ...] = (1, 3, 4, 7)
 
 # Phase 21-15 (CR-05): populated fresh on every `_check_agent_text()` call
 # with the index of every check that call actually reached (cleared as that
@@ -137,6 +152,9 @@ metadata:
 disallowedTools:
   - Write
   - Edit
+  - Agent
+  - SendMessage
+  - ListAgents
 maxTurns: 60
 AskUserQuestion: permitted
 ---
@@ -331,6 +349,50 @@ Non-empty body content for the candidate agent fixture.
 """
 
 
+def _remove_one_disallowed_tool_line(text: str, tool: str) -> str:
+    """Derive a mutation fixture from *text* by removing exactly one
+    `  - <tool>` line. Raises AssertionError — a self-test FAIL, not a
+    silent pass — if the substitution count is not exactly 1, so a fixture
+    that no longer names the tool it claims to remove cannot look like a
+    passing mutation.
+    """
+    pattern = re.compile(rf"^  - {re.escape(tool)}\n", re.MULTILINE)
+    mutated, count = pattern.subn("", text, count=1)
+    if count != 1:
+        raise AssertionError(
+            f"_remove_one_disallowed_tool_line: expected exactly 1 line "
+            f"matching '  - {tool}' in fixture text, found {count}"
+        )
+    return mutated
+
+
+# Self-test fixtures: _FIXTURE_VALID_CANONICAL with exactly one
+# disallowedTools entry removed — each must fail Check 4's value clause
+# ("'disallowedTools' must be exactly") rather than pass, proving GATE-01
+# catches any one of the three self-delegation tools being dropped.
+_FIXTURE_DISALLOWED_TOOLS_AGENT_REMOVED = _remove_one_disallowed_tool_line(
+    _FIXTURE_VALID_CANONICAL, "Agent"
+)
+_FIXTURE_DISALLOWED_TOOLS_SENDMESSAGE_REMOVED = _remove_one_disallowed_tool_line(
+    _FIXTURE_VALID_CANONICAL, "SendMessage"
+)
+_FIXTURE_DISALLOWED_TOOLS_LISTAGENTS_REMOVED = _remove_one_disallowed_tool_line(
+    _FIXTURE_VALID_CANONICAL, "ListAgents"
+)
+
+# Self-test fixture: _FIXTURE_VALID_CANONICAL with an extra entry appended —
+# must also fail Check 4's value clause, proving the check is an equality
+# test, not a subset test.
+if _FIXTURE_VALID_CANONICAL.count("  - ListAgents\n") != 1:
+    raise AssertionError(
+        "_FIXTURE_VALID_CANONICAL: expected exactly one '  - ListAgents' "
+        "line to append the fixture-n extra entry after"
+    )
+_FIXTURE_DISALLOWED_TOOLS_EXTRA = _FIXTURE_VALID_CANONICAL.replace(
+    "  - ListAgents\n", "  - ListAgents\n  - Bash\n", 1
+)
+
+
 def _require_python_version() -> None:
     if sys.version_info < (3, 12):
         sys.stderr.write(
@@ -428,11 +490,32 @@ def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
                 f"'description' length {len(description)} exceeds max {_MAX_DESCRIPTION_LEN} chars"
             )
 
-    # Check 4: disallowedTools key present
+    # Check 4: disallowedTools key present, and — for the canonical
+    # first-principles identity only — equals the locked tool list exactly.
+    # The value clause is scoped to skip_name_check like Checks 2/5/8: it is
+    # an identity-specific invariant (this agent's self-delegation block,
+    # quick task 260927-ngb), not a generic structural schema requirement
+    # every builder-generated candidate must share, so a candidate agent
+    # with a different tool pool is not penalized for it.
     if 3 < n_checks:
-        _EXECUTED_CHECK_INDICES.add(3)
+        # Index 3 is recorded as executed exactly when the skip_name_check-
+        # scoped value clause is in play (mirroring Check 5's gate below) —
+        # the key-presence half runs unconditionally and does not itself
+        # gate this append.
+        if not skip_name_check:
+            _EXECUTED_CHECK_INDICES.add(3)
         if "disallowedTools" not in frontmatter:
             failures.append("frontmatter missing required key 'disallowedTools'")
+        elif not skip_name_check and frontmatter.get("disallowedTools") != list(_EXPECTED_DISALLOWED_TOOLS):
+            got = frontmatter.get("disallowedTools")
+            expected = list(_EXPECTED_DISALLOWED_TOOLS)
+            got_set = set(got) if isinstance(got, list) else set()
+            missing = sorted(set(expected) - got_set)
+            extra = sorted(got_set - set(expected))
+            failures.append(
+                f"'disallowedTools' must be exactly {expected!r}, got {got!r} "
+                f"(missing={missing!r}, extra={extra!r})"
+            )
 
     # Check 5: maxTurns key present, and — for the canonical first-principles
     # identity only — carries the locked value. The value clause is scoped to
@@ -521,6 +604,30 @@ def _assert_live_coverage(text: str, agent_path: Path) -> None:
         )
         sys.exit(1)
 
+    # Second mutation (quick task 260927-ngb): strip the `- Agent`
+    # disallowedTools entry from the text this run actually read, and
+    # require the value-clause failure. Proves the disallowedTools pin is
+    # engaging this file's actual content, not merely a self-test fixture —
+    # the self-test fixtures are in-memory by design and never read the
+    # shipped tree.
+    agent_mutated, agent_substitutions = _DISALLOWED_AGENT_LINE_RE.subn("", text, count=1)
+    if agent_substitutions != 1:
+        sys.stderr.write(
+            f"check-agent: COVERAGE FAIL — could not locate a '- Agent' "
+            f"disallowedTools line to mutate in {agent_path}; the "
+            f"disallowedTools anti-vacuity control cannot run\n"
+        )
+        sys.exit(1)
+
+    agent_control_failures = _check_agent_text(agent_mutated)
+    if not any("'disallowedTools' must be exactly" in msg for msg in agent_control_failures):
+        sys.stderr.write(
+            f"check-agent: COVERAGE FAIL — stripping '- Agent' from "
+            f"{agent_path} did not produce the expected failure; the "
+            f"disallowedTools pin is NOT engaging this file\n"
+        )
+        sys.exit(1)
+
 
 def _validate_agent_file(agent_path: Path, skip_name_check: bool = False) -> None:
     """Validate the agent file at *agent_path*. Exits non-zero on failure."""
@@ -569,6 +676,7 @@ def describe() -> dict:
             "expected_name": _EXPECTED_NAME,
             "max_description_len": _MAX_DESCRIPTION_LEN,
             "expected_max_turns": _EXPECTED_MAX_TURNS,
+            "expected_disallowed_tools": list(_EXPECTED_DISALLOWED_TOOLS),
         },
         "checked_files": [str(AGENT_FILE.relative_to(REPO_ROOT))],
         "disclosed_bounds_anchors": ["live-coverage-anti-vacuity"],
@@ -598,6 +706,14 @@ def _run_self_test() -> None:
          "missing required key 'disallowedTools'"),
         ("fixture-h (missing trigger phrase)", _FIXTURE_MISSING_TRIGGER_PHRASE,
          "missing required trigger phrase"),
+        ("fixture-k (disallowedTools missing 'Agent')", _FIXTURE_DISALLOWED_TOOLS_AGENT_REMOVED,
+         "'disallowedTools' must be exactly"),
+        ("fixture-l (disallowedTools missing 'SendMessage')", _FIXTURE_DISALLOWED_TOOLS_SENDMESSAGE_REMOVED,
+         "'disallowedTools' must be exactly"),
+        ("fixture-m (disallowedTools missing 'ListAgents')", _FIXTURE_DISALLOWED_TOOLS_LISTAGENTS_REMOVED,
+         "'disallowedTools' must be exactly"),
+        ("fixture-n (disallowedTools has extra entry)", _FIXTURE_DISALLOWED_TOOLS_EXTRA,
+         "'disallowedTools' must be exactly"),
     ]
 
     wrong_passes: list[str] = []
@@ -631,11 +747,26 @@ def _run_self_test() -> None:
             "correctly passed (0 failures)"
         )
 
+    # Canonical positive control (quick task 260927-ngb): the fully valid
+    # fixture — which now carries all five disallowedTools entries — must
+    # produce zero failures under skip_name_check=False. Shares the same
+    # call the executed-check-index floor below needs anyway, so the return
+    # value is captured here rather than discarded.
+    #
     # Executed-check-index floor (Phase 21-15, CR-05), unconditional arm: run
     # the fully valid fixture with skip_name_check=False and assert every
     # index in _CHECK_DESCRIPTIONS was actually reached — not merely gated on
     # n_checks in the abstract.
-    _check_agent_text(_FIXTURE_VALID_CANONICAL, skip_name_check=False)
+    canonical_positive_failures = _check_agent_text(_FIXTURE_VALID_CANONICAL, skip_name_check=False)
+    if canonical_positive_failures:
+        print(
+            f"check-agent --self-test: canonical-positive-control FAIL — "
+            f"unexpected failures: {'; '.join(canonical_positive_failures)}"
+        )
+        wrong_passes.append("canonical-positive-control (unexpected failures)")
+    else:
+        print("check-agent --self-test: canonical-positive-control PASS — 0 failures")
+
     full_expected = set(range(len(_CHECK_DESCRIPTIONS)))
     full_problems = _index_roster_problems(_EXECUTED_CHECK_INDICES, full_expected)
     if full_problems:
@@ -697,7 +828,8 @@ def _run_self_test() -> None:
         sys.exit(1)
 
     total_fixtures = len(fixtures) + 1  # + fixture-i (the skip_name_check positive case)
-    total_controls = total_fixtures + 3  # + the two index-floor arms + the negative arm
+    # + canonical-positive-control + the two index-floor arms + the negative arm
+    total_controls = total_fixtures + 4
     print(
         f"check-agent --self-test: PASS ({total_fixtures} fixtures, "
         f"{total_controls} controls total)"
@@ -725,8 +857,9 @@ def main() -> None:
         "--skip-name-check",
         action="store_true",
         help=(
-            "skip name identity check (Check 2) and trigger-phrase check (Check 8); "
-            "use for builder-generated candidate agents"
+            "skip name identity check (Check 2), trigger-phrase check (Check 8), "
+            "and the value clauses of Check 4 (disallowedTools) and Check 5 "
+            "(maxTurns); use for builder-generated candidate agents"
         ),
     )
     parser.add_argument(
