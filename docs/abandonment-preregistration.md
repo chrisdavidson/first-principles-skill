@@ -194,3 +194,20 @@ Recorded here, not amended: every value below is one §5 left to fill.
   abandonment, a known kept run, a routing miss and a recovered persisted hand-back correctly;
   the decision rule can report a reduction (0/30 vs 5/30, p = 0.026) and can decline one
   (2/30 vs 4/30, p = 0.335).
+
+### Amendment 2 — 2026-09-27, during Phase 1, reporting only; the decision rule is unchanged
+
+After 7 of 60 cells, `TB-04.fix` scored **abandoned** by §2's definition, and it is not the
+Phase 0 pattern: the subagent made 20 tool calls and read the template. Its hand-back begins
+mid-section ("Speed is necessary but not sufficient.") and carries only the document's tail;
+the subagent streamed no text, and its own transcript was not persisted, so the earlier part is
+unrecoverable. The likeliest reading is a **delivery truncation**, not an abandoned contract.
+
+**It stays abandoned in the primary outcome.** Re-classifying it now, after seeing it, would move
+the result in the direction the fix arm is being tested for, which is exactly the post-hoc
+adjustment a pre-registration exists to prevent. Instead, `run_phase1.py read` gains a
+**truncated hand-back** detector — no streamed subagent text, no Problem Essence, and a first
+non-blank line that is not a heading — applied identically to both arms and reported as a
+sensitivity reading that decides nothing. Checked before use: it fires on `TB-04.fix`, on none of
+the four known genuine abandonments (each opens with a `#` title), and on none of 43 kept
+documents across w4-paired, Stage A and Phase 1.

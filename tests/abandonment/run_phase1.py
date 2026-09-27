@@ -98,6 +98,31 @@ def classify(raw_path: Path, arm: str) -> dict:
     return r
 
 
+def truncated_handback(raw_path: Path, doc: str) -> bool:
+    """A document delivered only as its TAIL -- reported, never decisive.
+
+    Seen first on TB-04.fix: the subagent used tools and read the template, streamed no text,
+    and its hand-back began mid-section ("Speed is necessary but not sufficient.") with only
+    Abandoned Reasoning and Conclusion present. The earlier part was written in a message the
+    hand-back does not carry and the transcript does not stream. Mechanical and symmetric:
+    no streamed subagent text, no Problem Essence, and the document's first non-blank line is
+    not a heading -- it opens mid-flow. (A first draft tested for a SUFFIX of the six sections
+    and missed TB-04.fix, whose tail mentions Ground Truths.) A reclassification here would
+    favour the arm under test, so it feeds only a sensitivity reading, never the
+    pre-registered decision.
+    """
+    streamed = False
+    for obj in p0._events(raw_path.read_text(encoding="utf-8")):
+        if obj.get("type") == "assistant" and obj.get("parent_tool_use_id"):
+            for b in obj.get("message", {}).get("content", []) or []:
+                if isinstance(b, dict) and b.get("type") == "text" and b.get("text", "").strip():
+                    streamed = True
+    first = next((ln.strip() for ln in doc.splitlines() if ln.strip()), "")
+    opens_mid_flow = bool(first) and not first.startswith("#")
+    no_opening = "Problem Essence" not in stage_a.sections_present(doc)
+    return (not streamed) and no_opening and opens_mid_flow
+
+
 def cmd_plan() -> int:
     s = schedule()
     print(f"abandonment Phase 1 -- plan (no spend): {len(PROMPTS)} prompts x {len(ARMS)} arms"
@@ -190,6 +215,9 @@ def cmd_read() -> int:
             "template_read": sum(r["template_read"] for r in rows.values()),
             "readable": readable, "A1": a1, "A2": a2,
             "abandoned_cells": sorted(k for k, v in scored.items() if v["outcome"] == "abandoned"),
+            "truncated_cells": sorted(
+                k for k, v in scored.items() if v["outcome"] == "abandoned"
+                and truncated_handback(RAW / v["scored"], rows[k].get("_doc", ""))),
         }
     c, f = stats["control"], stats["fix"]
     p = w4.fisher_one_sided(f["abandoned"], f["scored"], c["abandoned"], c["scored"],
@@ -211,6 +239,13 @@ def cmd_read() -> int:
           f"{c['abandoned']}/{c['scored']}  one-sided p={p:.3f}  -> {reading}")
     print(f"GUARDRAIL A1 {f['A1']} vs {c['A1']}, A2 {f['A2']} vs {c['A2']} "
           f"(fail at +{GUARDRAIL_DOCS})  -> {'PASS' if guard_ok else 'FAIL'}")
+    tc, tf = len(c["truncated_cells"]), len(f["truncated_cells"])
+    ps = w4.fisher_one_sided(f["abandoned"] - tf, f["scored"] - tf,
+                             c["abandoned"] - tc, c["scored"] - tc, greater_first=False)
+    print(f"SENSITIVITY (reported, never decisive) -- truncated hand-backs excluded from both arms:"
+          f" fix {f['abandoned'] - tf}/{f['scored'] - tf} vs control "
+          f"{c['abandoned'] - tc}/{c['scored'] - tc}  p={ps:.3f}"
+          f"  [truncated: fix {f['truncated_cells']}, control {c['truncated_cells']}]")
     ship = reduces and guard_ok
     print(f"PHASE 2  {'AUTHORISED' if ship else 'NOT AUTHORISED'}")
     (OUT / "result.json").write_text(json.dumps(
