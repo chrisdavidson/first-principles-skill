@@ -160,6 +160,7 @@ Exit codes:
 
 from __future__ import annotations
 
+import json
 import argparse
 import importlib.util
 import re
@@ -2187,6 +2188,36 @@ def _collect_inputs(args: argparse.Namespace) -> list[Path]:
     return paths
 
 
+_CONTROL_GROUPS: tuple[str, ...] = (
+    "structure", "harness", "packet", "parse", "blinding", "fixture", "emission",
+)
+
+
+def describe() -> dict:
+    """Pure self-description backing CHAIN-JUDGE (D-03 shape).
+
+    Scope note, because this gate's name invites the wrong reading: what is
+    REGISTERED is the offline `--self-test` only. The live semantic reading stays a
+    manual measurement and is deliberately not gated -- two passes over byte-identical
+    input agreed on 7 of 13 documents and reached 6 of 10 catalogued targets but not
+    the same 6, and no precision figure exists (blocked on 999.118). Gating an
+    unreproducible reading would manufacture exactly the false confidence this
+    instrument was built to detect.
+    """
+    return {
+        "control_ids": list(_CONTROL_GROUPS),
+        "control_count": len(_CONTROL_GROUPS),
+        "registered_surfaces": ["scripts/check-claim-chain-judge.py"],
+        "disclosed_bounds_anchors": [
+            "offline --self-test is gated; the live semantic reading is NOT",
+            "reach about 6 of 10, membership unstable across passes -- never a rate",
+            "no precision or false-positive figure exists, by design (999.118)",
+            "fabricated provenance is unreachable",
+            "anything outside sections 3/4/6 is outside the packet",
+        ],
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         description=(
@@ -2208,6 +2239,7 @@ def main(argv: list[str] | None = None) -> int:
         help="keep the live judge captures here (default: a temporary directory)",
     )
     ap.add_argument("--self-test", action="store_true", help="run the offline control suite")
+    ap.add_argument("--describe", action="store_true", help="emit this gate's self-description")
     ap.add_argument(
         "--inject",
         choices=INJECTIONS,
@@ -2217,6 +2249,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.inject:
         return self_test(args.inject)
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return 0
     if args.self_test:
         return self_test()
 

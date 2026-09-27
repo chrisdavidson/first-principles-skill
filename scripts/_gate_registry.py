@@ -777,6 +777,71 @@ ENTRIES: tuple[GateEntry, ...] = (
         ),
     ),
     GateEntry(
+        key="CHAIN-JUDGE",
+        gate_id="CHAIN-JUDGE",
+        extra_ids=(),
+        mechanism=_ci("check-claim-chain-judge"),
+        ci_job="check-claim-chain-judge",
+        script="scripts/check-claim-chain-judge.py",
+        run_command="python3 scripts/check-claim-chain-judge.py --self-test",
+        summary=(
+            "The offline control suite of the only instrument in this tree that judges "
+            "whether a conclusion's claim is SEMANTICALLY supported by the chain it "
+            "cites, rather than merely citing it. Control groups plus anti-masking "
+            "injections (counts in the table above are derived, never typed here), a "
+            "scripted judge, no `claude` call. **What is "
+            "registered is the `--self-test` only, and the distinction is the point.** "
+            "The live semantic reading stays a manual measurement and is deliberately "
+            "NOT gated: two passes over byte-identical input agreed on 7 of 13 "
+            "documents and each reached 6 of 10 catalogued targets but not the same 6, "
+            "and no precision figure exists by design (blocked on 999.118, whose "
+            "exemplars must be re-derived first because the obvious negative class is "
+            "not clean). Gating a reading that disagrees with itself would manufacture "
+            "exactly the false confidence this instrument exists to detect. Registered "
+            "at W2 2026-09-27 because it had shipped in no battery entry, no CI job and "
+            "no registry record — the same state 999.173's residual was in when "
+            "999.176's fourteen non-conforming exemplars shipped with the battery green."
+        ),
+        consumes=(
+            "control_ids",
+            "control_count",
+            "registered_surfaces",
+            "disclosed_bounds_anchors",
+        ),
+    ),
+    GateEntry(
+        key="EMIT-STAGE-A",
+        gate_id="EMIT-STAGE-A",
+        extra_ids=(),
+        mechanism=_ci("check-emission-stage-a"),
+        ci_job="check-emission-stage-a",
+        script="scripts/check-emission-stage-a.py",
+        run_command="python3 scripts/check-emission-stage-a.py --self-test",
+        summary=(
+            "Offline controls for the capture protocol that reads the AGENT'S OWN "
+            "document rather than the main session's summary of it. C18/C19's sibling "
+            "on the capture side: under `--plugin-dir`, `claude -p` stdout is the "
+            "orchestrator's summary, and all ten arm-T captures of the v9.13 run were "
+            "summaries carrying 0 of 6 contract sections and 0 ground-truth identifiers "
+            "(`docs/trackb-transport-erratum.md`). Controls cover subagent extraction, "
+            "multi-block joins, re-emitted documents, hand-back de-framing, and the "
+            "delivery-route reading. Two of them exist because they caught real bugs in "
+            "this script before it was trusted: C11 (keeping only the last text block "
+            "lost 3 of 6 sections) and C12 (concatenating a re-emission double-counted "
+            "every reading). C07 fails if the derivation detector is silently improved, "
+            "because its published 1-of-2 sensitivity would then be stale. Offline and "
+            "deterministic; the live capture run is manual and separate."
+        ),
+        consumes=(
+            "control_ids",
+            "control_count",
+            "registered_surfaces",
+            "checked_files",
+            "locked_constants",
+            "disclosed_bounds_anchors",
+        ),
+    ),
+    GateEntry(
         key="EVIDENCE-01",
         gate_id="EVIDENCE-01",
         extra_ids=(),

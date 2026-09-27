@@ -647,6 +647,25 @@ gate "PROV-ROLLUP" \
     "python3 scripts/check-provenance-rollup.py --self-test" \
     "python3 scripts/check-provenance-rollup.py --dir shared/examples"
 
+# CHAIN-JUDGE — the offline control suite of the only instrument here that judges
+#               SEMANTIC claim-to-chain support rather than citation presence.
+#               ONLY --self-test is registered: the live reading disagrees with
+#               itself across passes (6 of 10 reached, membership unstable) and
+#               has no precision figure, so gating it would manufacture the false
+#               confidence the instrument exists to detect. Registered at W2
+#               2026-09-27; it had shipped registered nowhere.
+gate "CHAIN-JUDGE" \
+    "check-claim-chain-judge.py --self-test (offline; live reading NOT gated)" \
+    "python3 scripts/check-claim-chain-judge.py --self-test"
+
+# EMIT-STAGE-A — offline controls for the capture protocol that reads the agent's
+#               own document instead of the orchestrator's summary of it. Two of
+#               its controls exist because they caught real extraction bugs in the
+#               script before anyone trusted its numbers.
+gate "EMIT-STAGE-A" \
+    "check-emission-stage-a.py --self-test" \
+    "python3 scripts/check-emission-stage-a.py --self-test"
+
 # EVIDENCE-01 — the public Evidence Card's every published figure is re-read
 #               from its cited source, and the committed page reproduces a
 #               fresh render byte-for-byte. This is a product-surface guard,

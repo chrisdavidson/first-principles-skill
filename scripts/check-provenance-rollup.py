@@ -1654,6 +1654,26 @@ def _collect_inputs(args: argparse.Namespace) -> list[Path]:
     return paths
 
 
+def _live_arm_subject_count() -> int:
+    """How many documents on the registered live arm actually carry a roll-up.
+
+    Delegates to `_files_with_rollup`, this module's OWN locator, rather than
+    re-scanning with a second regex. A first version of this helper did re-scan and
+    returned 1 where the gate reports 0: it matched
+    `shared/examples/product-business-2.md:134`, a line of PROSE discussing a
+    pre-check ("`?-marked: none` pre-check above is correct rather than an
+    oversight"). Two grammars for one form is the defect this repository keeps
+    paying for; there is one locator and this uses it.
+
+    Zero means check 2 -- the only failing check -- has nothing to check on that arm,
+    so its PASS is vacuous. That is published rather than hidden.
+    """
+    target = REPO_ROOT / "shared" / "examples"
+    if not target.is_dir():
+        return 0
+    return len(_files_with_rollup(sorted(target.glob("*.md"))))
+
+
 def describe() -> dict:
     """Pure, gate-agnostic self-description backing PROV-ROLLUP (D-03 shape).
 
@@ -1684,6 +1704,15 @@ def describe() -> dict:
             "fixtures": len(FIXTURES),
             "injections": len(INJECTIONS),
             "template_only_surfaces": len(_TEMPLATE_ONLY_SURFACES),
+            # The registered live arm's subject count, published rather than left
+            # implicit. Check 2 is this gate's only FAILING check and it fires only
+            # where a roll-up exists, so an arm with zero subjects passes vacuously
+            # and says nothing. Measured 2026-09-27: 0 of the 14 shipped exemplars
+            # carry a roll-up, so the live arm currently asserts nothing about them
+            # -- and no live corpus carries one either (backlog 999.181, 0 of 18).
+            # Publishing the number is what stops a vacuous PASS reading as a clean
+            # bill of health; the day an exemplar grows a roll-up this moves off 0.
+            "live_arm_rollup_subjects": _live_arm_subject_count(),
         },
         "disclosed_bounds_anchors": sorted(
             [

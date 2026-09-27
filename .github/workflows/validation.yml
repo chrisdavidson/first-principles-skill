@@ -302,6 +302,32 @@ jobs:
       - run: uv run python3 scripts/check-retracted-claims.py --self-test
       - run: uv run python3 scripts/check-retracted-claims.py
 
+  check-claim-chain-judge:
+    name: check-claim-chain-judge (CHAIN-JUDGE)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --locked --group dev
+      - run: uv run python3 scripts/check-claim-chain-judge.py --self-test
+
+  check-emission-stage-a:
+    name: check-emission-stage-a (EMIT-STAGE-A)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --locked --group dev
+      - run: uv run python3 scripts/check-emission-stage-a.py --self-test
+
   check-provenance-rollup:
     name: check-provenance-rollup (PROV-ROLLUP)
     runs-on: ubuntu-latest

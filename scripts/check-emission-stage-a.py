@@ -838,6 +838,36 @@ def self_test() -> int:
     return 0
 
 
+def describe() -> dict:
+    """Pure self-description backing EMIT-STAGE-A (D-03 shape).
+
+    Every field is DERIVED from this module's own rosters. A hand-typed count on a
+    generated doc page is the defect CONF-SURFACE exists to prevent.
+    """
+    return {
+        "control_ids": [cid for cid, _fn in _CONTROLS],
+        "control_count": len(_CONTROLS),
+        "registered_surfaces": [
+            str(PREREG.relative_to(REPO_ROOT)),
+            str(CATALOG.relative_to(REPO_ROOT)),
+        ],
+        "checked_files": [
+            "tests/emission-stage-a-v9.14/raw/*.jsonl",
+            "tests/emission-stage-a-v9.14/documents/*.md",
+        ],
+        "locked_constants": {
+            "MODEL": MODEL,
+            "MIN_WORDS": MIN_WORDS,
+            "MIN_SECTIONS": MIN_SECTIONS,
+            "N_PROMPTS": N_PROMPTS,
+        },
+        "disclosed_bounds_anchors": [
+            "derivation detector sensitivity is 1 of 2 at document level, hand-audited",
+            "delivery_route reads the transport, never what a UI renders",
+        ],
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("command", nargs="?", default="plan",
@@ -845,8 +875,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out-dir", type=Path,
                     default=REPO_ROOT / "tests" / "emission-stage-a-v9.14")
     ap.add_argument("--self-test", action="store_true")
+    ap.add_argument("--describe", action="store_true")
     args = ap.parse_args(argv)
 
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return 0
     if args.self_test:
         return self_test()
     try:
