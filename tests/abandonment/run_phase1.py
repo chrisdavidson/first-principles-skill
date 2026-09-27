@@ -215,9 +215,13 @@ def cmd_read() -> int:
             "template_read": sum(r["template_read"] for r in rows.values()),
             "readable": readable, "A1": a1, "A2": a2,
             "abandoned_cells": sorted(k for k, v in scored.items() if v["outcome"] == "abandoned"),
+            # Amendment 3: a delivery failure is a truncated hand-back OR a run interrupted
+            # before it wrote a document (under Stage A's word floor, e.g. the 7-word
+            # "[Request interrupted by user for tool use]" of TB-08.fix). Sensitivity only.
             "truncated_cells": sorted(
                 k for k, v in scored.items() if v["outcome"] == "abandoned"
-                and truncated_handback(RAW / v["scored"], rows[k].get("_doc", ""))),
+                and (truncated_handback(RAW / v["scored"], rows[k].get("_doc", ""))
+                     or len(rows[k].get("_doc", "").split()) < stage_a.MIN_WORDS)),
         }
     c, f = stats["control"], stats["fix"]
     p = w4.fisher_one_sided(f["abandoned"], f["scored"], c["abandoned"], c["scored"],
@@ -242,10 +246,10 @@ def cmd_read() -> int:
     tc, tf = len(c["truncated_cells"]), len(f["truncated_cells"])
     ps = w4.fisher_one_sided(f["abandoned"] - tf, f["scored"] - tf,
                              c["abandoned"] - tc, c["scored"] - tc, greater_first=False)
-    print(f"SENSITIVITY (reported, never decisive) -- truncated hand-backs excluded from both arms:"
+    print(f"SENSITIVITY (reported, never decisive) -- delivery failures (truncated or interrupted) excluded from both arms:"
           f" fix {f['abandoned'] - tf}/{f['scored'] - tf} vs control "
           f"{c['abandoned'] - tc}/{c['scored'] - tc}  p={ps:.3f}"
-          f"  [truncated: fix {f['truncated_cells']}, control {c['truncated_cells']}]")
+          f"  [delivery failures: fix {f['truncated_cells']}, control {c['truncated_cells']}]")
     ship = reduces and guard_ok
     print(f"PHASE 2  {'AUTHORISED' if ship else 'NOT AUTHORISED'}")
     (OUT / "result.json").write_text(json.dumps(

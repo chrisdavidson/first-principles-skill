@@ -211,3 +211,15 @@ non-blank line that is not a heading — applied identically to both arms and re
 sensitivity reading that decides nothing. Checked before use: it fires on `TB-04.fix`, on none of
 the four known genuine abandonments (each opens with a `#` title), and on none of 43 kept
 documents across w4-paired, Stage A and Phase 1.
+
+### Amendment 3 — 2026-09-27, during Phase 1, reporting only; the decision rule is unchanged
+
+`TB-08.fix`'s subagent read the template and the validation rubric, both successfully, and was
+then interrupted before writing anything: its entire hand-back is the 7-word harness string
+`[Request interrupted by user for tool use]`. That is no document at all, not an abandoned
+contract. As with Amendment 2, and for the same reason — excluding it would favour the arm under
+test — it **stays abandoned in the primary outcome**. The sensitivity reading widens from
+truncated hand-backs to **delivery failures**: a truncated hand-back, or a document under Stage
+A's 120-word floor. Applied to every abandonment on record, it separates four delivery failures
+(`TB-04.fix`, `TB-05.fix`, `TB-06.control`, `TB-08.fix`) from six genuine abandonments, each a
+real prose document of 852 to 3,544 words.
