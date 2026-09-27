@@ -63,13 +63,18 @@ below is measurement apparatus and the published record of what it measured.
   a routing change, and the routing battery read by aggregate K-of-N is the instrument that
   would settle it.
 
-### Retracted — three claims of my own, corrected in place
+### Retracted — four claims of my own, corrected in place
 
 - That the trade-off weight-locking prescription was present and ignored (registered in
   RETRACT-01; refuted on its own specimen).
 - That the agent emits no URLs (registered; it emitted 14 on the specimen prompt).
 - That the evidence on what a user sees pointed the wrong way (retracted by measurement:
   9 of 10 streamed).
+- That the live verdict-cell reading improved from v9.0 to v9.14
+  ([`docs/live-conformance-v9.14-reading.md`](docs/live-conformance-v9.14-reading.md),
+  Correction; registered in RETRACT-01). `Q-P2` holds 31 of v9.0's 33 nonconforming cells;
+  leaving out each corpus's largest contributor reverses the direction, 1.6% vs 9.7%, and so
+  does counting per document, 3 of 8 vs 6 of 9.
 
 **Deferred, and named so it is not forgotten:** this work registers no
 `docs/requirements-matrix.md` rows. That convention attaches to a milestone release, and there

@@ -176,6 +176,23 @@ REGISTRY: tuple[RetractedClaim, ...] = (
         exemptions=(("docs/emission-phase1-preregistration.md", 1),),
     ),
     RetractedClaim(
+        literal="Verdict conformance moving the right way",
+        retracted_by="2026-09-26 W4 review of the W3 live-conformance reading",
+        corrected=(
+            "A one-document artefact. The pooled nonconforming-verdict rate "
+            "(v9.0 33/153 -> v9.14 17/120) was read as an improvement consistent "
+            "with EMIT-01..03. Q-P2 holds 31 of v9.0's 33 cells; leaving out each "
+            "corpus's largest contributor gives 2/122 = 1.6% vs 10/103 = 9.7%, "
+            "and per document 3 of 8 vs 6 of 9 -- the direction reverses. Q-P2 "
+            "substituted its own vocabulary; every v9.14 failure leads with a "
+            "prescribed token and fails on a qualifier or a missing rationale, "
+            "which EMIT-01..03 (heading, em-dash separator, table columns) do not "
+            "target. See docs/live-conformance-v9.14-reading.md, Correction."
+        ),
+        # Registered at 0 occurrences everywhere: the correction paraphrases
+        # the withdrawn reading rather than quoting it, so no exemption.
+    ),
+    RetractedClaim(
         literal="are *not* inlined into the agent body",
         retracted_by="2026-09-26 pivot evaluation",
         corrected=(
