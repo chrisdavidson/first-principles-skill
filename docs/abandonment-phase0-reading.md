@@ -26,6 +26,11 @@ asking for a short answer.
 By the pre-registration's §4 table, **Phase 1 tests F2**: a six-section output contract stated at
 the top of the agent body, where a run that uses no tools still reads it.
 
+**Phase 1 did not reproduce the mechanism.** From an empty working directory, no attempt in either
+arm was one-shot, F2 showed no reduction (4 of 10 abandoned against 2 of 10), and most of what
+abandonment there was turned out to be delivery failure. H1 describes the frozen corpora above;
+it did not generalise. See [`docs/abandonment-phase1-reading.md`](abandonment-phase1-reading.md).
+
 | Body | Observable | One-shot | Abandoned | Abandoned among one-shot | Read the template |
 |---|---|---|---|---|---|
 | v9.0.0 (w4-paired) | 13 | 1 | 0 | 0 of 1 | 10 |

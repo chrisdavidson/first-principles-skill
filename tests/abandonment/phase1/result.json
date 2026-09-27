@@ -1,0 +1,52 @@
+{
+  "stats": {
+    "control": {
+      "cells": 15,
+      "scored": 10,
+      "abandoned": 2,
+      "exhausted": 5,
+      "routing_misses": 15,
+      "one_shot": 0,
+      "abandoned_one_shot": 0,
+      "template_read": 6,
+      "readable": 6,
+      "A1": 5,
+      "A2": 3,
+      "abandoned_cells": [
+        "TB-05.control",
+        "TB-06.control"
+      ],
+      "truncated_cells": [
+        "TB-06.control"
+      ]
+    },
+    "fix": {
+      "cells": 16,
+      "scored": 10,
+      "abandoned": 4,
+      "exhausted": 6,
+      "routing_misses": 18,
+      "one_shot": 0,
+      "abandoned_one_shot": 0,
+      "template_read": 9,
+      "readable": 5,
+      "A1": 2,
+      "A2": 3,
+      "abandoned_cells": [
+        "TB-04.fix",
+        "TB-05.fix",
+        "TB-07.fix",
+        "TB-08.fix"
+      ],
+      "truncated_cells": [
+        "TB-04.fix",
+        "TB-05.fix",
+        "TB-08.fix"
+      ]
+    }
+  },
+  "p_one_sided": 0.9296,
+  "reading": "no reduction detected at this N",
+  "guardrail_pass": true,
+  "phase2_authorised": false
+}

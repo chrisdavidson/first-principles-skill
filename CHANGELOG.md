@@ -74,6 +74,17 @@ below is measurement apparatus and the published record of what it measured.
   stores the Agent tool's result on disk; the w4-paired runner now rebuilds it from the
   orchestrator's read-back (pre-registration Amendment 1, fixed before any defect was read).
 
+- **Contract abandonment: the pre-registered fix did not work, and was not shipped**
+  ([`docs/abandonment-preregistration.md`](docs/abandonment-preregistration.md)). Phase 0,
+  offline over 50 observable runs, found every abandonment was a one-shot run (zero tool calls)
+  and published contract-emission reliability as a rate: v9.12.0 24/28, older bodies 22/22
+  ([reading](docs/abandonment-phase0-reading.md)). Phase 1 tested F2, the six-section contract
+  restated at the top of the body, against control: abandoned 4/10 vs 2/10, *no reduction
+  detected* ([reading](docs/abandonment-phase1-reading.md)). No run in Phase 1 was one-shot;
+  four of the six abandonments were delivery failures -- hand-backs carrying only the
+  document's tail, or a run interrupted before writing -- which no body edit can reach.
+  Phase 2 did not run.
+
 ### Retracted — four claims of my own, corrected in place
 
 - That the trade-off weight-locking prescription was present and ignored (registered in

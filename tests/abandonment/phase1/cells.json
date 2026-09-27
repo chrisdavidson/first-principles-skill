@@ -1,0 +1,242 @@
+{
+  "TB-01.control": {
+    "outcome": "kept",
+    "attempts": [
+      "TB-01.control.a1.jsonl"
+    ],
+    "scored": "TB-01.control.a1.jsonl"
+  },
+  "TB-01.fix": {
+    "outcome": "kept",
+    "attempts": [
+      "TB-01.fix.a1.jsonl"
+    ],
+    "scored": "TB-01.fix.a1.jsonl"
+  },
+  "TB-02.fix": {
+    "outcome": "kept",
+    "attempts": [
+      "TB-02.fix.a1.jsonl"
+    ],
+    "scored": "TB-02.fix.a1.jsonl"
+  },
+  "TB-02.control": {
+    "outcome": "kept",
+    "attempts": [
+      "TB-02.control.a1.jsonl"
+    ],
+    "scored": "TB-02.control.a1.jsonl"
+  },
+  "TB-03.control": {
+    "outcome": "kept",
+    "attempts": [
+      "TB-03.control.a1.jsonl"
+    ],
+    "scored": "TB-03.control.a1.jsonl"
+  },
+  "TB-03.fix": {
+    "outcome": "kept",
+    "attempts": [
+      "TB-03.fix.a1.jsonl"
+    ],
+    "scored": "TB-03.fix.a1.jsonl"
+  },
+  "TB-04.fix": {
+    "outcome": "abandoned",
+    "attempts": [
+      "TB-04.fix.a1.jsonl"
+    ],
+    "scored": "TB-04.fix.a1.jsonl"
+  },
+  "TB-04.control": {
+    "outcome": "kept",
+    "attempts": [
+      "TB-04.control.a1.jsonl"
+    ],
+    "scored": "TB-04.control.a1.jsonl"
+  },
+  "TB-05.control": {
+    "outcome": "abandoned",
+    "attempts": [
+      "TB-05.control.a1.jsonl"
+    ],
+    "scored": "TB-05.control.a1.jsonl"
+  },
+  "TB-05.fix": {
+    "outcome": "abandoned",
+    "attempts": [
+      "TB-05.fix.a1.jsonl"
+    ],
+    "scored": "TB-05.fix.a1.jsonl"
+  },
+  "TB-06.fix": {
+    "outcome": "kept",
+    "attempts": [
+      "TB-06.fix.a1.jsonl"
+    ],
+    "scored": "TB-06.fix.a1.jsonl"
+  },
+  "TB-06.control": {
+    "outcome": "abandoned",
+    "attempts": [
+      "TB-06.control.a1.jsonl"
+    ],
+    "scored": "TB-06.control.a1.jsonl"
+  },
+  "TB-07.control": {
+    "outcome": "kept",
+    "attempts": [
+      "TB-07.control.a1.jsonl",
+      "TB-07.control.a2.jsonl"
+    ],
+    "scored": "TB-07.control.a2.jsonl"
+  },
+  "TB-07.fix": {
+    "outcome": "abandoned",
+    "attempts": [
+      "TB-07.fix.a1.jsonl"
+    ],
+    "scored": "TB-07.fix.a1.jsonl"
+  },
+  "TB-08.fix": {
+    "outcome": "abandoned",
+    "attempts": [
+      "TB-08.fix.a1.jsonl"
+    ],
+    "scored": "TB-08.fix.a1.jsonl"
+  },
+  "TB-08.control": {
+    "outcome": "kept",
+    "attempts": [
+      "TB-08.control.a1.jsonl"
+    ],
+    "scored": "TB-08.control.a1.jsonl"
+  },
+  "TB-09.control": {
+    "outcome": "kept",
+    "attempts": [
+      "TB-09.control.a1.jsonl"
+    ],
+    "scored": "TB-09.control.a1.jsonl"
+  },
+  "TB-09.fix": {
+    "outcome": "kept",
+    "attempts": [
+      "TB-09.fix.a1.jsonl"
+    ],
+    "scored": "TB-09.fix.a1.jsonl"
+  },
+  "TB-10.fix": {
+    "outcome": "kept",
+    "attempts": [
+      "TB-10.fix.a1.jsonl"
+    ],
+    "scored": "TB-10.fix.a1.jsonl"
+  },
+  "TB-10.control": {
+    "outcome": "kept",
+    "attempts": [
+      "TB-10.control.a1.jsonl"
+    ],
+    "scored": "TB-10.control.a1.jsonl"
+  },
+  "Q-N1.control": {
+    "outcome": "exhausted",
+    "attempts": [
+      "Q-N1.control.a1.jsonl",
+      "Q-N1.control.a2.jsonl",
+      "Q-N1.control.a3.jsonl"
+    ],
+    "scored": null
+  },
+  "Q-N1.fix": {
+    "outcome": "exhausted",
+    "attempts": [
+      "Q-N1.fix.a1.jsonl",
+      "Q-N1.fix.a2.jsonl",
+      "Q-N1.fix.a3.jsonl"
+    ],
+    "scored": null
+  },
+  "Q-N2.fix": {
+    "outcome": "exhausted",
+    "attempts": [
+      "Q-N2.fix.a1.jsonl",
+      "Q-N2.fix.a2.jsonl",
+      "Q-N2.fix.a3.jsonl"
+    ],
+    "scored": null
+  },
+  "Q-N2.control": {
+    "outcome": "exhausted",
+    "attempts": [
+      "Q-N2.control.a1.jsonl",
+      "Q-N2.control.a2.jsonl",
+      "Q-N2.control.a3.jsonl"
+    ],
+    "scored": null
+  },
+  "Q-N3.control": {
+    "outcome": "exhausted",
+    "attempts": [
+      "Q-N3.control.a1.jsonl",
+      "Q-N3.control.a2.jsonl",
+      "Q-N3.control.a3.jsonl"
+    ],
+    "scored": null
+  },
+  "Q-N3.fix": {
+    "outcome": "exhausted",
+    "attempts": [
+      "Q-N3.fix.a1.jsonl",
+      "Q-N3.fix.a2.jsonl",
+      "Q-N3.fix.a3.jsonl"
+    ],
+    "scored": null
+  },
+  "Q-N4.fix": {
+    "outcome": "exhausted",
+    "attempts": [
+      "Q-N4.fix.a1.jsonl",
+      "Q-N4.fix.a2.jsonl",
+      "Q-N4.fix.a3.jsonl"
+    ],
+    "scored": null
+  },
+  "Q-N4.control": {
+    "outcome": "exhausted",
+    "attempts": [
+      "Q-N4.control.a1.jsonl",
+      "Q-N4.control.a2.jsonl",
+      "Q-N4.control.a3.jsonl"
+    ],
+    "scored": null
+  },
+  "Q-N5.control": {
+    "outcome": "exhausted",
+    "attempts": [
+      "Q-N5.control.a1.jsonl",
+      "Q-N5.control.a2.jsonl",
+      "Q-N5.control.a3.jsonl"
+    ],
+    "scored": null
+  },
+  "Q-N5.fix": {
+    "outcome": "exhausted",
+    "attempts": [
+      "Q-N5.fix.a1.jsonl",
+      "Q-N5.fix.a2.jsonl",
+      "Q-N5.fix.a3.jsonl"
+    ],
+    "scored": null
+  },
+  "Q-N6.fix": {
+    "outcome": "exhausted",
+    "attempts": [
+      "Q-N6.fix.a1.jsonl",
+      "Q-N6.fix.a2.jsonl",
+      "Q-N6.fix.a3.jsonl"
+    ],
+    "scored": null
+  }
+}

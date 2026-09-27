@@ -882,6 +882,12 @@ _FROZEN_PATHS=(
     # published readings left open; raw/ keeps every voided and superseded attempt,
     # and the runner beside them is the protocol that re-derives the cells.
     'tests/w4-paired'
+    # abandonment (2026-09-27) -- the Phase 0 reading over every frozen corpus with
+    # subagent events, and the Phase 1 A/B of F2 against control. Frozen because the
+    # published readings (docs/abandonment-phase0-reading.md, -phase1-reading.md) decided
+    # not to ship a body edit on this evidence; raw/ keeps every miss, truncated
+    # hand-back and interrupted run, which are most of what the run found.
+    'tests/abandonment'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null
