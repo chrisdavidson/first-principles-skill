@@ -152,3 +152,29 @@ gating by `docs/v8.7-constraint-teardown.md` §2 item 3.
   reported per arm.
 - **Form, not quality.** `docs/v8.7-correctness-spot-check.md` measured that conformance does not
   predict correctness.
+
+## 8. Amendments
+
+### Amendment 1 — 2026-09-27, Phase 0, made after seeing the output it corrects
+
+**Stated plainly: this amendment was made after the first Phase 0 run printed `H1: FAILS`, and
+it reverses that verdict.** It is recorded so the reversal can be checked rather than trusted.
+
+The first run scored all 8 `tests/live-conformance-v9.0/` captures and the
+`tests/quality-provenance-v8.24/` capture as **abandoned**, and those nine were the entire
+failure of both H1 conditions. The extractor had returned **0 words** for each. Those captures
+predate the `[Subagent hand-back]` frame: the document arrives as the plain `tool_result` of the
+main session's `Agent` call, which the Stage A extractor does not recognise.
+
+The grounds are independent of the verdict and checkable:
+
+- each corpus ships its own verbatim extraction beside the transcript (`<id>.md`), and every one
+  is that `tool_result` less a ~20-word trailer — 9 of 9;
+- `docs/conformance-baseline.md` scored all eight v9.0 documents `section_resolution OK`;
+- a 0-word extraction of a dispatched run is an extraction failure by any reading of §2, not a
+  document that dropped its headings.
+
+**Change:** `tests/abandonment/phase0_reading.py` falls back to that unframed `tool_result` only
+when the framed extraction is empty. It fires on exactly the nine legacy captures and on none in
+`tests/w4-paired/` or `tests/emission-stage-a-v9.14/`. The frozen w4-paired extractor is
+untouched.

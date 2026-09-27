@@ -44,6 +44,11 @@ the population rather than lowering any rate. Contract-emission reliability and 
 two different numbers, and only the second is a rate. Control C18 fails if unreadable documents
 stop being counted.
 
+**The first is now published as a rate too:** contract-emission reliability on the v9.12.0 body
+is 24 of 28 dispatched attempts across this corpus and the w4-paired run, against 22 of 22 on
+older bodies — see [`docs/abandonment-phase0-reading.md`](abandonment-phase0-reading.md). Every
+abandonment there is a run that used no tools at all.
+
 ## Against the older corpus
 
 `tests/live-conformance-v9.0/` predates v9.11's EMIT-01..03 work on verdict-cell emission shape.
