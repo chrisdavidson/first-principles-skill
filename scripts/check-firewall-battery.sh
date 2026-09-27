@@ -876,6 +876,12 @@ _FROZEN_PATHS=(
     # extraction rule re-derivable instead of re-spent. raw-attempt1/ holds TB-05's
     # voided first attempt -- the routing miss is evidence, not a mistake to tidy.
     'tests/emission-stage-a-v9.14'
+    # w4-paired (2026-09-27) -- the same five prompts on the v9.0.0 and v9.12.0
+    # bodies, the only paired body comparison of live output in this tree. Frozen
+    # because its reading (docs/w4-paired-reading.md) closes a question two
+    # published readings left open; raw/ keeps every voided and superseded attempt,
+    # and the runner beside them is the protocol that re-derives the cells.
+    'tests/w4-paired'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null

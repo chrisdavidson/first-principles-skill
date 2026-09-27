@@ -371,20 +371,33 @@ def cmd_read() -> int:
         print(f"{field:<30} " + "  ".join(parts) + tag)
     # Contract abandonment is counted over ATTEMPTS, not cells: a void retried into a
     # readable document still happened, and the cell rule would otherwise hide it.
-    abandon = {a: [0, 0] for a in ARMS}
+    # Two different failures, never pooled: a ROUTING MISS (the main session answered
+    # without dispatching the agent) says nothing about the body's output contract; an
+    # ABANDONMENT (dispatched, contract not emitted) does.
+    abandon = {a: [0, 0] for a in ARMS}       # [abandoned, dispatched attempts]
+    routing = {a: [0, 0] for a in ARMS}       # [never dispatched, attempts]
     attempts_path = HERE / "attempts.json"
     if attempts_path.is_file():
         for e in json.loads(attempts_path.read_text(encoding="utf-8")):
             if e["status"] == "transport":
                 continue
             arm = e["cell"].split(".")[1]
+            routing[arm][1] += 1
+            if e["void"] and e["void"][0] == "agent never dispatched":
+                routing[arm][0] += 1
+                continue
             abandon[arm][1] += 1
             abandon[arm][0] += bool(e["void"])
-        print("contract abandonment (void attempts / scored attempts): "
+        print("routing misses (never dispatched / attempts):       "
+              + "  ".join(f"{a} {routing[a][0]}/{routing[a][1]}" for a in ARMS))
+        print("contract abandonment (void / dispatched attempts):  "
               + "  ".join(f"{a} {abandon[a][0]}/{abandon[a][1]}" for a in ARMS))
+        p = fisher_one_sided(abandon["new"][0], abandon["new"][1],
+                             abandon["old"][0], abandon["old"][1], greater_first=True)
+        print(f"  (reported only, not a pre-registered outcome: one-sided p={p:.3f})")
     (HERE / "result.json").write_text(json.dumps(
         {"summary": summary, "unreadable": unreadable, "void": void,
-         "abandonment_attempts": abandon,
+         "abandonment_attempts": abandon, "routing_miss_attempts": routing,
          "leading_gt_malformed": lead, "malformed": mal}, indent=2) + "\n", encoding="utf-8")
     return 0
 

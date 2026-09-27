@@ -63,6 +63,17 @@ below is measurement apparatus and the published record of what it measured.
   a routing change, and the routing battery read by aggregate K-of-N is the instrument that
   would settle it.
 
+- **Whether v9.11/v9.12 changed chain or verdict hygiene: no difference detected at this N**
+  ([`docs/w4-paired-reading.md`](docs/w4-paired-reading.md), pre-registered in
+  [`docs/w4-paired-preregistration.md`](docs/w4-paired-preregistration.md)). The same five
+  prompts, three repeats each, on the v9.0.0 and v9.12.0 bodies: documents with a malformed
+  chain block 2/13 vs 2/14, with a nonconforming verdict cell 9/13 vs 8/14. Reported, not
+  decided: contract abandonment 0/13 vs 3/17 dispatched attempts (p = 0.17), and six routing
+  misses traced to the runner's working directory, not to either body.
+- **A persisted hand-back was being read as its 2 KB preview.** Over about 50 KB the harness
+  stores the Agent tool's result on disk; the w4-paired runner now rebuilds it from the
+  orchestrator's read-back (pre-registration Amendment 1, fixed before any defect was read).
+
 ### Retracted — four claims of my own, corrected in place
 
 - That the trade-off weight-locking prescription was present and ignored (registered in

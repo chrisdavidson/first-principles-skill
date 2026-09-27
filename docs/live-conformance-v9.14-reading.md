@@ -116,6 +116,11 @@ neither corpus can say whether they come from the body or from the prompts. That
 paired re-run pre-registered in [`docs/w4-paired-preregistration.md`](w4-paired-preregistration.md)
 exists to answer.
 
+**Answered, 2026-09-27: not the body, at this N.** Five prompts, three repeats, both bodies —
+malformed chain blocks 2 of 13 documents (v9.0.0) vs 2 of 14 (v9.12.0), nonconforming verdict
+cells 9 of 13 vs 8 of 14, both *no difference detected at this N* under the pre-registered rule.
+Both bodies produce both defects. See [`docs/w4-paired-reading.md`](w4-paired-reading.md).
+
 ## Limits
 
 - **One run per prompt, one model.** Within-arm variance is uncontrolled; this repository has

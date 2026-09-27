@@ -1,0 +1,12 @@
+Ground-truth check first: this repo (`first-principles-skill`) has **no TLS surface at all** — no Dockerfile, reverse-proxy config, or ACME/certbot reference anywhere in the tree. So there's no "our TLS setup" here to fix; what follows is general guidance for whatever service you actually meant.
+
+**The real bottleneck isn't calendar margin — it's a hidden seam.** A 90-day cert with certbot's default ~30-day renewal trigger already clears a realistic 2.5–12 day detect-and-fix window several times over. The actual failure mode is that "renewal succeeded at the CA" and "the live listener is serving the new cert" are two separate events in a certbot-style setup, and they can silently diverge (script breaks, reload hook never fires, host gets migrated without the timer).
+
+**Fastest reliable path, in order:**
+1. **If TLS already terminates at a managed LB/CDN** (e.g. AWS ELB/CloudFront with ACM) — check eligibility, don't build anything. ACM's managed renewal already handles DNS-validated certs tied to its own services (though it explicitly excludes ACME-issued certs, so don't layer one on top).
+2. **If you control the edge process** — adopt an ACME-capable reverse proxy like **Caddy or Traefik**. It does issuance, renewal, and hot-swapping the live cert in one in-process step — no cron job, no reload hook, no seam for step 1's failure mode to hide in. This scored 68 vs. 58 against certbot+webserver in a weighted trade-off, and the gap doesn't flip under any plausible re-weighting.
+3. **Only if you're stuck with an existing webserver you can't replace** — certbot on a timer, but bundle it with an explicit `--deploy-hook` *and* an independently end-to-end-tested monitoring alert (tested by actually triggering it once, not just configured). Certbot's renewal success alone is not sufficient.
+
+**Residual risks worth knowing about, not eliminated by any of this:** migrating to Caddy/Traefik usually means replacing your current TLS terminator (real cutover cost); using DNS-01 challenges trades cert-expiry risk for a smaller DNS-API-credential risk; and even the monitoring backstop in option 3 is worthless until you've verified it actually pages a human.
+
+Full chain-of-reasoning, ground truths with citations, trade-off math, and pre-mortem are in the agent's report above if you want to dig into any branch.

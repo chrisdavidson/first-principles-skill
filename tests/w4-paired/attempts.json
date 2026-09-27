@@ -1,0 +1,254 @@
+[
+  {
+    "cell": "TB-02.old.r1",
+    "attempt": "TB-02.old.r1.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "TB-02.new.r1",
+    "attempt": "TB-02.new.r1.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "TB-02.new.r2",
+    "attempt": "TB-02.new.r2.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "TB-02.old.r2",
+    "attempt": "TB-02.old.r2.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "TB-02.old.r3",
+    "attempt": "TB-02.old.r3.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "TB-02.new.r3",
+    "attempt": "TB-02.new.r3.attempt1.jsonl",
+    "status": "ok",
+    "void": [
+      "only 1 of 6 section headings (need >= 4) -- looks like a summary, not the document"
+    ]
+  },
+  {
+    "cell": "TB-02.new.r3",
+    "attempt": "TB-02.new.r3.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "TB-06.old.r1",
+    "attempt": "TB-06.old.r1.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "TB-06.new.r1",
+    "attempt": "TB-06.new.r1.attempt1.jsonl",
+    "status": "recovered",
+    "void": []
+  },
+  {
+    "cell": "TB-06.new.r2",
+    "attempt": "TB-06.new.r2.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "TB-06.old.r2",
+    "attempt": "TB-06.old.r2.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "TB-06.old.r3",
+    "attempt": "TB-06.old.r3.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "TB-06.new.r3",
+    "attempt": "TB-06.new.r3.jsonl",
+    "status": "recovered",
+    "void": []
+  },
+  {
+    "cell": "TB-10.old.r1",
+    "attempt": "TB-10.old.r1.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "TB-10.new.r1",
+    "attempt": "TB-10.new.r1.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "TB-10.new.r2",
+    "attempt": "TB-10.new.r2.attempt1.jsonl",
+    "status": "ok",
+    "void": [
+      "only 2 of 6 section headings (need >= 4) -- looks like a summary, not the document"
+    ]
+  },
+  {
+    "cell": "TB-10.new.r2",
+    "attempt": "TB-10.new.r2.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "TB-10.old.r2",
+    "attempt": "TB-10.old.r2.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "TB-10.old.r3",
+    "attempt": "TB-10.old.r3.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "TB-10.new.r3",
+    "attempt": "TB-10.new.r3.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "Q-P2.old.r1",
+    "attempt": "Q-P2.old.r1.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "Q-P2.new.r1",
+    "attempt": "Q-P2.new.r1.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "Q-P2.new.r2",
+    "attempt": "Q-P2.new.r2.attempt1.jsonl",
+    "status": "ok",
+    "void": [
+      "only 1 of 6 section headings (need >= 4) -- looks like a summary, not the document"
+    ]
+  },
+  {
+    "cell": "Q-P2.new.r2",
+    "attempt": "Q-P2.new.r2.jsonl",
+    "status": "ok",
+    "void": [
+      "agent never dispatched",
+      "not-from-subagent",
+      "only 0 of 6 section headings (need >= 4) -- looks like a summary, not the document",
+      "0 words (floor 120)"
+    ]
+  },
+  {
+    "cell": "Q-P2.old.r2",
+    "attempt": "Q-P2.old.r2.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "Q-P2.old.r3",
+    "attempt": "Q-P2.old.r3.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "Q-P2.new.r3",
+    "attempt": "Q-P2.new.r3.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "PR-N1.old.r1",
+    "attempt": "PR-N1.old.r1.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "PR-N1.new.r1",
+    "attempt": "PR-N1.new.r1.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "PR-N1.new.r2",
+    "attempt": "PR-N1.new.r2.jsonl",
+    "status": "ok",
+    "void": []
+  },
+  {
+    "cell": "PR-N1.old.r2",
+    "attempt": "PR-N1.old.r2.attempt1.jsonl",
+    "status": "ok",
+    "void": [
+      "agent never dispatched",
+      "not-from-subagent",
+      "only 0 of 6 section headings (need >= 4) -- looks like a summary, not the document",
+      "0 words (floor 120)"
+    ]
+  },
+  {
+    "cell": "PR-N1.old.r2",
+    "attempt": "PR-N1.old.r2.jsonl",
+    "status": "ok",
+    "void": [
+      "agent never dispatched",
+      "not-from-subagent",
+      "only 0 of 6 section headings (need >= 4) -- looks like a summary, not the document",
+      "0 words (floor 120)"
+    ]
+  },
+  {
+    "cell": "PR-N1.old.r3",
+    "attempt": "PR-N1.old.r3.attempt1.jsonl",
+    "status": "ok",
+    "void": [
+      "agent never dispatched",
+      "not-from-subagent",
+      "only 0 of 6 section headings (need >= 4) -- looks like a summary, not the document",
+      "0 words (floor 120)"
+    ]
+  },
+  {
+    "cell": "PR-N1.old.r3",
+    "attempt": "PR-N1.old.r3.jsonl",
+    "status": "ok",
+    "void": [
+      "agent never dispatched",
+      "not-from-subagent",
+      "only 0 of 6 section headings (need >= 4) -- looks like a summary, not the document",
+      "0 words (floor 120)"
+    ]
+  },
+  {
+    "cell": "PR-N1.new.r3",
+    "attempt": "PR-N1.new.r3.attempt1.jsonl",
+    "status": "ok",
+    "void": [
+      "agent never dispatched",
+      "not-from-subagent",
+      "only 0 of 6 section headings (need >= 4) -- looks like a summary, not the document",
+      "0 words (floor 120)"
+    ]
+  },
+  {
+    "cell": "PR-N1.new.r3",
+    "attempt": "PR-N1.new.r3.jsonl",
+    "status": "ok",
+    "void": []
+  }
+]

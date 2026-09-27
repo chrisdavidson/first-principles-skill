@@ -1,0 +1,69 @@
+{
+  "summary": {
+    "A1 malformed chain block": {
+      "old": [
+        2,
+        13
+      ],
+      "new": [
+        2,
+        14
+      ],
+      "p_one_sided": 0.7311,
+      "reading": "no difference detected at this N"
+    },
+    "A2 nonconforming verdict cell": {
+      "old": [
+        9,
+        13
+      ],
+      "new": [
+        8,
+        14
+      ],
+      "p_one_sided": 0.4018,
+      "reading": "no difference detected at this N"
+    }
+  },
+  "unreadable": {
+    "old": [],
+    "new": []
+  },
+  "void": {
+    "old": [
+      "PR-N1.old.r2",
+      "PR-N1.old.r3"
+    ],
+    "new": [
+      "Q-P2.new.r2"
+    ]
+  },
+  "abandonment_attempts": {
+    "old": [
+      0,
+      13
+    ],
+    "new": [
+      3,
+      17
+    ]
+  },
+  "routing_miss_attempts": {
+    "old": [
+      4,
+      17
+    ],
+    "new": [
+      2,
+      19
+    ]
+  },
+  "leading_gt_malformed": {
+    "old": 1,
+    "new": 1
+  },
+  "malformed": {
+    "old": 9,
+    "new": 2
+  }
+}
