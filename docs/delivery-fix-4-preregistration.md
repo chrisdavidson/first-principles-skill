@@ -51,3 +51,17 @@ Reported: output-limit cut-offs, template reads, in-place revisions, the pointer
 - **Twelve runs, four prompts.** All 12 passing shows compliance on this set, not a rate.
 - **A top-of-body statement did not reduce abandonment in `abandonment` Phase 1.** That was a
   different rule; whether position helps this one is exactly what this run tests.
+
+## 6. Amendment 1 — `delivery-fix-4b`, registered mid-run for the runs not yet observed
+
+`TB-02.r3` failed §3 on an instrument gap, not on delivery: its file equals the concatenated
+appends exactly and was read in full, but the agent also ran `readlink`, a read-only utility my
+replay's allowlist lacked, so the replay refused it and the run fails as registered. **By §4,
+`delivery-fix-4` is therefore not operational**, and it is reported that way.
+
+**`delivery-fix-4b`, prospective only:** it scores only the runs not yet in
+`tests/delivery-fix-4/cells.json` at this amendment's commit — `TB-02.r1`, `TB-02.r2` and
+`TB-02.r3` are excluded. **Provenance** holds when the file equals its appends exactly (no other
+write can have left a trace) **or** the replay reproduces it byte for byte; the replay's allowlist
+gains the read-only `readlink`, `date`, `file`, `which` and `env`. Everything else in §3 stands.
+**Operational** if every run it scores is delivered, with at least 9 scored.

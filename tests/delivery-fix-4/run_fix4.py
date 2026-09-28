@@ -36,7 +36,7 @@ def _verbs(command: str):
 
 
 fx._verbs = _verbs
-fx._SAFE_VERBS = fx._SAFE_VERBS | {"python3", "python"}
+fx._SAFE_VERBS = fx._SAFE_VERBS | {"python3", "python", "readlink", "date", "file", "which", "env"}
 _row_v3 = fx.row
 
 
@@ -45,6 +45,10 @@ def row(key: str, cell: dict) -> dict:
     j["verbatim_v3"] = j["verbatim"]
     j["delivered"] = bool(j["file"] and j["sections"] >= fx.CONTRACT and j["caller_read"]
                           and j["provenance"] is True)
+    # delivery-fix-4b (Amendment 1): provenance also holds when the file equals its appends
+    # exactly -- no other write can have left a trace -- and read-only utilities replay.
+    j["delivered_4b"] = bool(j["file"] and j["sections"] >= fx.CONTRACT and j["caller_read"]
+                             and (j["verbatim"] or j["provenance"] is True))
     return j
 
 
