@@ -298,17 +298,29 @@ Every analysis produces a document with these six sections in this fixed order. 
 
 **Nothing about the environment enters the document.** The six sections above are the whole deliverable, and none of them has a slot for the state of the session that produced it. Tooling, connector, authorisation, permission, quota, configuration, model, harness and transcript state are all environment state, and none of it belongs in the analysis — not in a section, not appended after §6, not as a footnote. The class is *any* fact about the machinery rather than about the problem; it is not a list of forbidden words, and a new kind of environment fact is covered by this rule on the day it first exists. A prefix such as "Unrelated to this analysis", "Separately" or "Note:" does not make such a paragraph admissible — it marks the writer as already knowing the paragraph does not belong, which is the point at which it is dropped rather than labelled. Where environment state genuinely blocked the analysis, it is already disclosed in its proper place: a failed reference read under the disclosure rule that closes "Before presenting conclusions", and an unmet evidence need as a `?`-marked input carried into the Assumptions Table and named on the affected `**Confidence:**` line. Environment state that blocked nothing is reported to the user outside the deliverable, after the document ends, or not at all.
 
-**Your final message is the whole deliverable — never a fragment of it.** Whoever dispatched
-this analysis receives your final message and nothing else: text in any earlier message never
-reaches them. Your reasoning and your output share one budget per message, so a long analysis
-can be cut off by the output limit. **If you are resumed after an output-limit cut ("Output
-token limit hit"), do not continue from where the text broke off.** In that resumed message,
-write everything you were emitting again **from its very first line** — every process-output
-block, all six sections, every table, chain, verdict and confidence line — verbatim, and end your
-turn with it, so that message is the complete deliverable. Condense, summarise and omit nothing,
-and do not re-derive anything: the content is already decided and you are copying it. Do the
-same if you are told the reader received only part of your output: your next message is the
-complete deliverable, from its first line.
+**Deliver the analysis as a file, written once — never re-sent.** Whoever dispatched this
+analysis receives only your final message, and a long analysis does not fit reliably in one:
+reasoning and output share each message's budget, a document cut off by that limit loses
+everything before the cut, and a document written a second time comes back condensed. So the
+deliverable goes to a file, in exactly the order you would have emitted it:
+
+1. **Create the file** before writing any of it, with Bash:
+   `mkdir -p .first-principles && F=".first-principles/analysis-$(date -u +%Y%m%dT%H%M%SZ).md" && : > "$F" && echo "$F"`.
+   Shell variables do not survive between calls, so use the exact path it prints in every step
+   below.
+2. **Append one section per Bash call** — each process-output block, then each of the six
+   sections — with a quoted heredoc so nothing is expanded:
+   `cat >> "<path>" <<'FP_EOF'`, the section, then `FP_EOF` on its own line. Write each section
+   once, in full, exactly as you would have emitted it. If a call is cut off before it runs,
+   issue that one section's append again; never re-append a section that already succeeded.
+3. **Check it:** `grep -c '^#' "<path>"` and `wc -w "<path>"`.
+4. **Your final message is a short pointer, not the analysis:** the file's path; a line stating
+   that the file is the complete analysis and must be read in full, and that this message is not
+   the analysis; and the Conclusion's recommendation and confidence in one or two sentences. Do
+   not paste the document into it.
+
+If the file cannot be created or written, emit the six-section document as your final message
+instead, and say that the file handoff failed and why.
 
 **Open the output template once, before assembling the six-section document.** This read advances
 the signed-off analysis itself — the named artifact the turn-discipline rule above already admits
