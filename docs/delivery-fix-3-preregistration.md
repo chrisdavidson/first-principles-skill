@@ -44,3 +44,30 @@ fallback; the pointer message's length; the words the main session received from
 - **A file in the working directory is a side effect,** accepted by the user's choice.
 - **Verbatim-to-appends is not verbatim-to-intent:** it proves nothing was rewritten between writing
   and delivery, not that each section was complete when first written.
+
+## 6. Amendment 1 — `delivery-fix-3b`, registered mid-run for the runs not yet observed
+
+**What happened.** Of the first 4 scored runs, 3 were *delivered* and `TB-03.r1` was not — on one
+criterion only. Its file carried all six sections and the main session read it, but its text did
+not equal the concatenated appends, because **the agent revised its own file in place** during its
+self-audit: it inserted a missing assumption row (A17) with `sed -i`, rewrote one Conclusion line,
+and corrected verdict cells (`Unresolved —` → `Challenge —`) into the prescribed vocabulary. The
+file ended longer than the appends (8,349 against 8,082 words). Nothing was regenerated or lost.
+§3's *verbatim* was written to catch regeneration, and did not anticipate deliberate revision.
+
+**The v3 verdict stands as registered.** By §4, `TB-03.r1` makes v3 **not operational** under
+`delivery-fix-3`, and that is how it is reported. This amendment does not re-score it.
+
+**`delivery-fix-3b`, prospective only.** It scores **only the runs whose result is not yet in
+`tests/delivery-fix-3/cells.json` at this amendment's commit** — the four already scored are
+excluded (`TB-02.r1`, `TB-02.r2`, `TB-02.r3`, `TB-03.r1`). It replaces *verbatim* with
+**provenance**: replay every Bash command the agent issued against the file, in order, on an empty
+copy; the result must equal the delivered file byte for byte, so every byte came from the agent's
+own recorded writes — appends and in-place edits alike — and nothing entered or left the file any
+other way. Replay refuses any command whose verbs are not a listed file-and-text set, and such a
+run fails. Tamper controls, run before this amendment: a one-character change, a removed last
+section and an appended line each make the replay **not** match.
+
+**Success rule for `delivery-fix-3b`:** every run it scores is complete (6 sections), read by the
+main session, and provenance-true; **at least 6** such runs; if fewer than 6 unobserved runs remain
+when `delivery-fix-3` ends, the same four prompts are run again until 6 are scored.

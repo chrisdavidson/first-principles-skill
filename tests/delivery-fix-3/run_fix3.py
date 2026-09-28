@@ -55,6 +55,72 @@ def appended_payloads(agent_dir: Path) -> tuple[list[str], int]:
     return bodies, cutoffs
 
 
+_SAFE_VERBS = {"F", "cat", "sed", "grep", "awk", "wc", "head", "tail", "printf", "echo",
+               "mkdir", ":", "ls", "cut", "sort", "tr", "nl", "true", "realpath", "pwd",
+               "test", "[", "stat", "du", "diff", "cmp", "basename", "dirname"}
+
+
+def _verbs(command: str) -> set[str] | None:
+    """The command word of every statement, quote-aware: the first token after each control
+    operator (newline ; & | && ||). Quoted text -- sed scripts, table rows -- is never a verb."""
+    import shlex
+    command = command.replace("\\\n", " ")        # a backslash-newline continues one statement
+    lex = shlex.shlex(command, posix=True, punctuation_chars=";&|\n")
+    lex.whitespace = " \t"
+    lex.whitespace_split = True
+    verbs, expect = set(), True
+    try:
+        for tok in lex:
+            if tok and set(tok) <= set(";&|\n"):
+                expect = True
+            elif expect:
+                verbs.add(tok.split("=", 1)[0] if "=" in tok else tok)
+                expect = False
+    except ValueError:
+        return None
+    return verbs
+
+
+def replay_matches(agent_dir: Path, file_path: Path) -> tuple[bool | None, str]:
+    """Replay every Bash command the agent issued against the file, in order, on an empty copy.
+
+    (True, '') when the replayed file equals the delivered one byte for byte: every byte came
+    from the agent's own recorded writes -- appends AND in-place edits -- and nothing else.
+    (None, why) when a command cannot be replayed safely (an unlisted verb). Reporting only:
+    delivery-fix-3's pre-registered `verbatim` is the decisive definition.
+    """
+    import subprocess, tempfile
+    name = file_path.name
+    cmds = []
+    for f in sorted(agent_dir.glob("agent-*.jsonl")):
+        for obj in p0._events(f.read_text(encoding="utf-8")):
+            if obj.get("type") != "assistant":
+                continue
+            for b in obj.get("message", {}).get("content", []) or []:
+                if isinstance(b, dict) and b.get("type") == "tool_use" and b.get("name") == "Bash":
+                    c = str(b.get("input", {}).get("command", ""))
+                    if name in c or '"$F"' in c or ".first-principles" in c:
+                        cmds.append(c)
+    with tempfile.TemporaryDirectory() as td:
+        sandbox = Path(td) / ".first-principles"
+        sandbox.mkdir()
+        target = sandbox / name
+        target.write_text("")
+        for c in cmds:
+            c2 = re.sub(r'F="[^"]*' + re.escape(name) + '"', f'F="{target}"', c)
+            c2 = re.sub(r'"?[^"\s]*\.first-principles/' + re.escape(name) + '"?', f'"{target}"', c2)
+            if "$(date" in c2:                       # the creation step: already created above
+                continue
+            body = re.sub(r"<<\s*'FP_EOF'\n.*?\nFP_EOF", "<<'FP_EOF'", c2, flags=re.S)
+            verbs = _verbs(body)
+            if verbs is None:
+                return None, "command could not be tokenised"
+            if not verbs <= _SAFE_VERBS | {""}:
+                return None, f"unreplayable verb(s): {sorted(verbs - _SAFE_VERBS)}"
+            subprocess.run(["bash", "-c", c2], cwd=td, capture_output=True, text=True, timeout=60)
+        return target.read_text(encoding="utf-8") == file_path.read_text(encoding="utf-8"), ""
+
+
 def caller_read(jsonl: str, filename: str) -> tuple[bool, int]:
     """(did the MAIN session read the file?, words it received from that read)."""
     ids, words = set(), 0
@@ -112,6 +178,8 @@ def row(key: str, cell: dict) -> dict:
                                    f.name if f else "\0")
     j = judge(f.read_text(encoding="utf-8") if f else None, bodies, read)
     received, _ = dl.received_by_caller((RAW / cell["scored"]).read_text(encoding="utf-8"))
+    rep = replay_matches(Path(str(base) + ".agent"), f) if f else (False, "no file")
+    j.update(provenance=rep[0], provenance_note=rep[1])
     j.update(cutoffs=cutoffs, files=len(files), read_words=read_words,
              pointer_words=len(received.split()),
              fallback_sections=len(stage_a.sections_present(received)))
@@ -170,11 +238,11 @@ def cmd_read() -> int:
     rows = {k: row(k, v) for k, v in cells.items() if v["outcome"] == "scored"}
     print("delivery-fix-3 -- reading (a recorded reading with its N, never a gate)\n")
     print(f"{'run':<9}{'file':>6}{'sections':>9}{'verbatim':>9}{'read':>6}{'words':>7}{'appends':>8}"
-          f"{'cutoffs':>8}{'pointer w':>10}  verdict")
+          f"{'cutoffs':>8}{'pointer w':>10}{'replay':>8}  verdict")
     for k, r in rows.items():
         print(f"{k:<9}{str(r['file']):>6}{r['sections']:>9}{str(r['verbatim']):>9}"
               f"{str(r['caller_read']):>6}{r.get('file_words', 0):>7}{r.get('appends', 0):>8}"
-              f"{r['cutoffs']:>8}{r['pointer_words']:>10}  {'DELIVERED' if r['delivered'] else 'NOT DELIVERED'}")
+              f"{r['cutoffs']:>8}{r['pointer_words']:>10}{str(r['provenance']):>8}  {'DELIVERED' if r['delivered'] else 'NOT DELIVERED'}")
     ok = [k for k, r in rows.items() if r["delivered"]]
     cut = [k for k, r in rows.items() if r["cutoffs"]]
     verdict = ("OPERATIONAL -- every run delivered the complete, verbatim file to the caller"
@@ -182,6 +250,9 @@ def cmd_read() -> int:
                "NOT OPERATIONAL -- a run did not deliver the complete, verbatim file to the caller")
     print(f"\ndelivered {len(ok)}/{len(rows)}   runs with a cut-off {len(cut)} {cut or ''}"
           f"   exhausted {sum(v['outcome'] == 'exhausted' for v in cells.values())}")
+    prov = [k for k, r in rows.items() if r["file"] and r["sections"] >= CONTRACT and r["caller_read"] and r["provenance"]]
+    print(f"REPORTED, NOT DECIDED -- complete, read, and every byte replayed from the agent's own "
+          f"recorded writes (appends and in-place edits): {len(prov)}/{len(rows)}")
     print(f"VERDICT  {verdict}")
     (HERE / "result.json").write_text(json.dumps(
         {"rows": rows, "delivered": ok, "cutoffs": cut, "verdict": verdict}, indent=2) + "\n",
