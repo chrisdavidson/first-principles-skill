@@ -1,0 +1,143 @@
+{
+  "TB-01.r1": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-01.r1.a1.jsonl"
+    ],
+    "scored": "TB-01.r1.a1.jsonl"
+  },
+  "TB-01.r2": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-01.r2.a1.jsonl"
+    ],
+    "scored": "TB-01.r2.a1.jsonl"
+  },
+  "TB-02.r1": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-02.r1.a1.jsonl"
+    ],
+    "scored": "TB-02.r1.a1.jsonl"
+  },
+  "TB-02.r2": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-02.r2.a1.jsonl"
+    ],
+    "scored": "TB-02.r2.a1.jsonl"
+  },
+  "TB-03.r1": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-03.r1.a1.jsonl"
+    ],
+    "scored": "TB-03.r1.a1.jsonl"
+  },
+  "TB-03.r2": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-03.r2.a1.jsonl"
+    ],
+    "scored": "TB-03.r2.a1.jsonl"
+  },
+  "TB-04.r1": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-04.r1.a1.jsonl"
+    ],
+    "scored": "TB-04.r1.a1.jsonl"
+  },
+  "TB-04.r2": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-04.r2.a1.jsonl"
+    ],
+    "scored": "TB-04.r2.a1.jsonl"
+  },
+  "TB-05.r1": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-05.r1.a1.jsonl"
+    ],
+    "scored": "TB-05.r1.a1.jsonl"
+  },
+  "TB-05.r2": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-05.r2.a1.jsonl"
+    ],
+    "scored": "TB-05.r2.a1.jsonl"
+  },
+  "TB-06.r1": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-06.r1.a1.jsonl"
+    ],
+    "scored": "TB-06.r1.a1.jsonl"
+  },
+  "TB-06.r2": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-06.r2.a1.jsonl"
+    ],
+    "scored": "TB-06.r2.a1.jsonl"
+  },
+  "TB-07.r1": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-07.r1.a1.jsonl"
+    ],
+    "scored": "TB-07.r1.a1.jsonl"
+  },
+  "TB-07.r2": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-07.r2.a1.jsonl"
+    ],
+    "scored": "TB-07.r2.a1.jsonl"
+  },
+  "TB-08.r1": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-08.r1.a1.jsonl",
+      "TB-08.r1.a2.jsonl"
+    ],
+    "scored": "TB-08.r1.a2.jsonl"
+  },
+  "TB-08.r2": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-08.r2.a1.jsonl"
+    ],
+    "scored": "TB-08.r2.a1.jsonl"
+  },
+  "TB-09.r1": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-09.r1.a1.jsonl"
+    ],
+    "scored": "TB-09.r1.a1.jsonl"
+  },
+  "TB-09.r2": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-09.r2.a1.jsonl"
+    ],
+    "scored": "TB-09.r2.a1.jsonl"
+  },
+  "TB-10.r1": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-10.r1.a1.jsonl"
+    ],
+    "scored": "TB-10.r1.a1.jsonl"
+  },
+  "TB-10.r2": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-10.r2.a1.jsonl"
+    ],
+    "scored": "TB-10.r2.a1.jsonl"
+  }
+}

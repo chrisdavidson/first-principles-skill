@@ -98,6 +98,15 @@ below is measurement apparatus and the published record of what it measured.
   document's tail, or a run interrupted before writing -- which no body edit can reach.
   Phase 2 did not run.
 
+- **What reaches the caller: an incomplete document in 5 of 20 runs, every one a length
+  continuation** ([`docs/delivery-reading.md`](docs/delivery-reading.md), pre-registered in
+  [`docs/delivery-preregistration.md`](docs/delivery-preregistration.md)). On the body with
+  self-delegation blocked (0 delegation calls in 20), the main session receives exactly the
+  agent's final text message; where the document ran over one message and continued in the
+  next, the earlier part never arrived. The pre-registered figure, 0 of 20, measured streamed
+  text the caller never receives; Amendment 1 corrects it, against the body. First captures to
+  keep the agent's own transcript.
+
 ### Retracted — four claims of my own, corrected in place
 
 - That the trade-off weight-locking prescription was present and ignored (registered in

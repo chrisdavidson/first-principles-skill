@@ -888,6 +888,11 @@ _FROZEN_PATHS=(
     # not to ship a body edit on this evidence; raw/ keeps every miss, truncated
     # hand-back and interrupted run, which are most of what the run found.
     'tests/abandonment'
+    # delivery (2026-09-28) -- the first captures here that keep the AGENT'S OWN
+    # transcript (raw/<run>.agent/), so what the agent wrote can be compared with what
+    # the caller received. Frozen because docs/delivery-reading.md's 5/20 is falsifiable
+    # only against them.
+    'tests/delivery'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null

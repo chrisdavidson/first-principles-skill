@@ -108,6 +108,46 @@ def agent_messages(agent_dir: Path) -> list[dict]:
     return out
 
 
+def received_by_caller(jsonl: str) -> tuple[str, str]:
+    """What the MAIN SESSION's model actually receives from the agent (Amendment 1).
+
+    The Phase 1 extractor joins every streamed subagent block, but streamed blocks never enter
+    the caller's context. The caller receives one of two things: when the Agent call runs
+    asynchronously (every run in this corpus), the `summary` of the completed
+    `task_notification`; when it runs synchronously, the framed `[Subagent hand-back]`
+    tool result. In all 20 runs here it equals the agent's LAST text message exactly.
+    """
+    note = ""
+    for obj in p0._events(jsonl):
+        if obj.get("type") == "system" and obj.get("subtype") == "task_notification" \
+                and obj.get("status") == "completed":
+            note = str(obj.get("summary") or "")
+    if note:
+        return note, "notification"
+    hb = ""
+    for text in stage_a._handbacks(jsonl):
+        hb = text
+    return hb, "handback" if hb else "none"
+
+
+def length_continuation(msgs: list[dict]) -> bool:
+    """Two consecutive text messages with no tool call between -- a document that ran over one
+    message's output and continued in the next."""
+    return any(msgs[i]["text"] and msgs[i + 1]["text"] and not msgs[i]["tools"]
+               for i in range(len(msgs) - 1))
+
+
+def classify_caller(received: str, msgs: list[dict]) -> dict:
+    """Amendment 1's primary: contract sections the agent wrote vs sections the caller got."""
+    emitted = "\n".join(m["text"] for m in msgs if m["text"])
+    se = len(stage_a.sections_present(emitted))
+    sr = len(stage_a.sections_present(received))
+    return {"caller_status": "whole" if sr >= se else "lost",
+            "sections_received": sr, "sections_lost": max(0, se - sr),
+            "received_words": len(received.split()),
+            "length_continuation": length_continuation(msgs)}
+
+
 def classify_delivery(delivered: str, msgs: list[dict]) -> dict:
     """Section 3's definitions, first match wins: interrupted, split, whole."""
     texts = [m["text"] for m in msgs if m["text"]]
@@ -208,6 +248,8 @@ def cmd_read() -> int:
         msgs = agent_messages(agent_dir) if agent_dir.is_dir() else []
         rows[key] = classify_delivery((DOCS / f"{key}.md").read_text(encoding="utf-8"), msgs)
         rows[key]["agent_transcript"] = bool(msgs)
+        received, channel = received_by_caller((RAW / v["scored"]).read_text(encoding="utf-8"))
+        rows[key].update(classify_caller(received, msgs), channel=channel)
     print("delivery -- reading (a recorded reading with its N, never a gate)\n")
     print(f"{'run':<10}{'status':<13}{'msgs':>5}{'stranded':>9}{'sec emit':>9}{'sec dlvr':>9}"
           f"  delegation / tools between text")
@@ -219,15 +261,28 @@ def cmd_read() -> int:
     count = lambda s: sum(r["status"] == s for r in rows.values())
     fail = count("split") + count("interrupted")
     missing = [k for k, r in rows.items() if not r["agent_transcript"]]
-    print(f"\nDELIVERY FAILURE RATE  {fail}/{n}  (split {count('split')}, interrupted "
-          f"{count('interrupted')}, whole {count('whole')})   reference: Phase 1, 4/20, pre-fix")
+    lost = [k for k, r in rows.items() if r["caller_status"] == "lost"]
+    cont = [k for k, r in rows.items() if r["length_continuation"]]
+    print("\ncaller side (Amendment 1 -- what the main session's model receives):")
+    for k, r in rows.items():
+        if r["caller_status"] == "lost" or r["length_continuation"]:
+            print(f"  {k:<10} via {r['channel']:<12} sections lost {r['sections_lost']}"
+                  f"  received {r['received_words']}w  length-continuation {r['length_continuation']}")
+    print(f"\nCALLER DELIVERY FAILURE RATE  {len(lost)}/{n}   "
+          f"(length continuation in {len(cont)}/{n}; lost among them "
+          f"{len([k for k in lost if k in cont])}/{len(cont)})")
+    print(f"pre-registered rate (streamed text, which the caller never receives)  {fail}/{n}  "
+          f"(split {count('split')}, interrupted {count('interrupted')}, whole {count('whole')})"
+          f"   reference: Phase 1, 4/20, pre-fix")
     print(f"abandoned (no contract even in the agent's own text): "
           f"{sum(r['abandoned'] for r in rows.values())}/{n}")
     print(f"self-delegation calls: {sum(len(r['delegation_calls']) for r in rows.values())}"
           f"   exhausted cells: {sum(v['outcome'] == 'exhausted' for v in cells.values())}"
           f"   runs missing the agent transcript: {missing or 0}")
     (HERE / "result.json").write_text(json.dumps(
-        {"rows": rows, "delivery_failures": fail, "n": n, "split": count("split"),
+        {"rows": rows, "caller_delivery_failures": len(lost), "caller_lost": lost,
+         "length_continuation": cont,
+         "delivery_failures": fail, "n": n, "split": count("split"),
          "interrupted": count("interrupted"), "missing_agent_transcript": missing},
         indent=2) + "\n", encoding="utf-8")
     return 0
@@ -255,6 +310,21 @@ def self_test() -> int:
         "abandoned is not split: no contract in the agent's own text either":
             (lambda r: r["status"] == "whole" and r["abandoned"])(
                 classify_delivery("# My outline\n" + long, [{"text": "# My outline\n" + long, "tools": []}])),
+        "caller: the notification summary is what the caller receives":
+            received_by_caller(json.dumps({"type": "system", "subtype": "task_notification",
+                                           "status": "completed", "summary": "TAIL"}))
+            == ("TAIL", "notification"),
+        "caller: length continuation is detected, and a tool call breaks it":
+            length_continuation([{"text": head, "tools": []}, {"text": tail, "tools": []}])
+            and not length_continuation([{"text": head, "tools": ["Read"]},
+                                         {"text": tail, "tools": []}]),
+        "caller: a tail-only notification loses the head's sections":
+            (lambda r: r["caller_status"] == "lost" and r["sections_lost"] == 4)(
+                classify_caller(tail, [{"text": head, "tools": []}, {"text": tail, "tools": []}])),
+        "caller: a complete final re-send is whole":
+            classify_caller(head + "\n" + tail, [{"text": head, "tools": []},
+                                                 {"text": head + "\n" + tail, "tools": []}]
+                            )["caller_status"] == "whole",
         "delegation calls are counted":
             classify_delivery(tail, [{"text": "", "tools": ["Agent", "SendMessage"]},
                                      {"text": tail, "tools": []}])["delegation_calls"] == ["Agent", "SendMessage"],

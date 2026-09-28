@@ -71,3 +71,25 @@ the abandonment count; and the self-delegation count. **A recorded reading, neve
   different body, and before self-delegation was blocked.
 - **The probe shows the mechanism exists; this run shows its rate.** Whether an instruction such
   as "your final message is the complete document" removes it is a separate, pre-registered test.
+
+## 6. Amendments
+
+### Amendment 1 — 2026-09-28, after the run, and it makes the result worse
+
+§3 defined the **delivered document** as what the Phase 1 extractor reads. That extractor joins
+every *streamed* subagent text block — and streamed blocks never enter the main session's
+context. They are visible to an observer of the stream-json transcript, not to the model that
+composes the answer. By §3 as written, the run reads **0 of 20** delivery failures. That figure
+is an artefact of the definition, and is published only beside the corrected one.
+
+**What the caller receives, measured.** In every run here the Agent call ran asynchronously: it
+returned "Async agent launched" at once, and the report arrived later as the `summary` of a
+completed `task_notification`. In **all 20 runs that summary equals the agent's last text
+message exactly.** `tests/delivery/run_delivery.py` now reads that channel (falling back to a
+framed synchronous hand-back), and reports as the primary: the runs where the caller receives
+fewer contract sections than the agent wrote.
+
+**The corrected reading is 5 of 20, not 0.** This amendment moves the result against the body
+under test, so it cannot be a post-hoc rescue; the pre-registered figure is still printed, so the
+correction is checkable. Four offline controls cover the caller channel and a mutation that
+always reports `whole` fails them.
