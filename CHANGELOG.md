@@ -107,6 +107,14 @@ below is measurement apparatus and the published record of what it measured.
   text the caller never receives; Amendment 1 corrects it, against the body. First captures to
   keep the agent's own transcript.
 
+- **Keeping the analysis whole: three pre-registered fixes, none operational as registered, one
+  that removes truncation where it is followed.** Two instruction-only re-sends failed on fidelity
+  for one reason: a long document the agent writes again is regenerated, not copied (a re-send came
+  back 20-50% shorter per section). The file handoff (branch `delivery-fix`, not merged) had **0
+  output-limit cut-offs in 12 runs**, and every run that used it delivered a complete file the
+  caller read; it missed its bar because 2 of 12 runs ignored the rule and 4 revised their file in
+  place ([reading](docs/delivery-fix-3-reading.md)).
+
 ### Retracted — four claims of my own, corrected in place
 
 - That the trade-off weight-locking prescription was present and ignored (registered in

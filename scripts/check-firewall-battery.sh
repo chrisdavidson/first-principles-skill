@@ -893,6 +893,13 @@ _FROZEN_PATHS=(
     # the caller received. Frozen because docs/delivery-reading.md's 5/20 is falsifiable
     # only against them.
     'tests/delivery'
+    # delivery-fix, -2, -3 (2026-09-28) -- the three pre-registered attempts to keep the
+    # agent's analysis whole: two instruction-only re-sends (both lost fidelity -- a re-sent
+    # document is regenerated, not copied) and the file handoff (no cut-offs; not operational
+    # as registered). Frozen because each verdict is falsifiable only against these runs.
+    'tests/delivery-fix'
+    'tests/delivery-fix-2'
+    'tests/delivery-fix-3'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null
