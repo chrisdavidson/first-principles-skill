@@ -3,7 +3,7 @@ name: inversion
 description: Runs a focused inversion only — enumerates failure preconditions. Invoke via /inversion only.
 disable-model-invocation: true
 metadata:
-  version: "9.12.0"
+  version: "9.13.0"
 license: MIT
 ---
 # Focused Inversion Mode

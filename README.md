@@ -39,6 +39,13 @@ go silent.
 
 For the complete procedure with entry/exit criteria per phase and the exact output document structure, see [`first-principles/agents/first-principles.md`](first-principles/agents/first-principles.md). The agent body is the authoritative spec — the summary above orients; it defines. For a one-page working reference with each phase's exit gate, the assumption-type treatments, and the derivation-chain format, see [docs/METHODOLOGY-CHEATSHEET.md](docs/METHODOLOGY-CHEATSHEET.md).
 
+**Where the analysis lands.** The agent writes the complete signed-off analysis to
+`.first-principles/analysis-<UTC timestamp>.md` in your working directory, one section at a time,
+and its final message points to that file. A long analysis can exceed what a single message
+carries — before v9.13.0 the reader could receive only its last part — and writing it once,
+section by section, keeps it whole. Add `.first-principles/` to `.gitignore` if you do not want
+these files tracked.
+
 ## Companion tools
 
 Thirteen tools extend the methodology when the analysis calls for them. The eight companion-technique skills ship both as on-demand reference siblings of the agent (loaded automatically when the relevant trigger fires) and as standalone slash-only skills for direct invocation (`/first-principles:<name>`). The five focused-mode phase skills are slash-only stubs for direct phase invocation:

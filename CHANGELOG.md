@@ -13,13 +13,22 @@ installed session.
 
 ## [Unreleased]
 
-**The shipped plugin has changed since `v9.12.0` in one respect, and no version stamp has been
-bumped yet.** `git diff v9.12.0..HEAD -- first-principles/ shared/` shows the agent's
-`disallowedTools` widening, its file-based delivery (see *Changed — the shipped agent* below),
-and the plugin README's note on where that file lands. Until that commit the two
-trees were byte-identical to `v9.12.0` and this entry deliberately bumped nothing; the release
-that carries this change owes the 17 stamps and the requirements-matrix rows. Everything else
-below is measurement apparatus and the published record of what it measured.
+## [9.13.0] — 2026-09-28
+
+Unphased release: **v9.13.0 Delivered Whole**. Two changes to the shipped agent, both found by
+measuring the agent's **own** output rather than a summary of it, and both confirmed by a
+pre-registered live re-run before release:
+
+- **It can no longer delegate to itself.** `disallowedTools` gains `Agent`, `SendMessage` and
+  `ListAgents`; in 6 of 20 runs it had dispatched a copy of itself and lost the inner report.
+- **It delivers its analysis as a file, written once.** The caller receives only the agent's
+  final message, and a long analysis ran past the per-message output limit in 6 of 20 runs,
+  losing its opening in 5. The agent now appends its deliverable to
+  `.first-principles/analysis-<UTC>.md` one section per call and returns a short pointer; on the
+  four prompts that lost sections, **0 of 12** runs then reached the caller incomplete.
+
+The rest is measurement apparatus and the published record of what it measured — including three
+fixes that did **not** work and are recorded as such.
 
 ### Changed — the shipped agent
 
@@ -150,9 +159,13 @@ below is measurement apparatus and the published record of what it measured.
   leaving out each corpus's largest contributor reverses the direction, 1.6% vs 9.7%, and so
   does counting per document, 3 of 8 vs 6 of 9.
 
-**Deferred, and named so it is not forgotten:** this work registers no
-`docs/requirements-matrix.md` rows. That convention attaches to a milestone release, and there
-is no release here. A future release that carries these changes owes the rows.
+**The coverage headline does not move: `248 / 248 / 0 / 496`.** No requirements matrix rows are
+registered for this release, for the reason v9.12.0 gave: it is unphased work with no milestone
+requirement ids, and inventing ids after the fact to make the number grow would be the defect
+this project's gates exist to prevent. (An earlier draft of this entry said the release would
+owe the rows; that was written before checking the v9.12.0 precedent, and is withdrawn.)
+
+`FIREWALL: GREEN (29/29)`; `sync-content.py --check` clean; VERSION-01 green on all 17 stamps.
 
 ## [9.12.0] — 2026-09-25
 
