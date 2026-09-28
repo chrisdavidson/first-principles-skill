@@ -14,14 +14,27 @@ installed session.
 ## [Unreleased]
 
 **The shipped plugin has changed since `v9.12.0` in one respect, and no version stamp has been
-bumped yet.** `git diff v9.12.0..HEAD -- first-principles/ shared/` shows only the agent's
-`disallowedTools` widening (see *Changed — the shipped agent* below). Until that commit the two
+bumped yet.** `git diff v9.12.0..HEAD -- first-principles/ shared/` shows the agent's
+`disallowedTools` widening, its file-based delivery (see *Changed — the shipped agent* below),
+and the plugin README's note on where that file lands. Until that commit the two
 trees were byte-identical to `v9.12.0` and this entry deliberately bumped nothing; the release
 that carries this change owes the 17 stamps and the requirements-matrix rows. Everything else
 below is measurement apparatus and the published record of what it measured.
 
 ### Changed — the shipped agent
 
+- **The analysis is delivered as a file, written once.** The caller receives only the agent's
+  final message, and in 5 of 20 runs a long analysis hit the 64,000-token per-message output limit
+  — mostly reasoning — so the caller got only its tail ([reading](docs/delivery-reading.md)). Two
+  instruction-only re-sends failed on fidelity: a document written a second time comes back
+  condensed. The agent now appends its deliverable to `.first-principles/analysis-<UTC>.md` one
+  section per Bash call, and its final message is a short pointer. Across 12 runs of the four
+  affected prompts: **0 output-limit cut-offs**, and every run that used the file delivered a
+  complete document the caller read. It is merged **despite missing its pre-registered bar**, by
+  the maintainer's decision, because 2 of 12 runs ignored the rule — behaving exactly as the
+  previous body did — while no run that followed it lost anything
+  ([reading](docs/delivery-fix-3-reading.md)). Raising that compliance is the next piece of work.
+  `Write` and `Edit` stay disallowed; the file is written through Bash.
 - **The agent can no longer delegate to itself.** `disallowedTools` widens from `[Write, Edit]`
   to `[Write, Edit, Agent, SendMessage, ListAgents]`. In 6 of 20 Phase 1 runs of the
   abandonment A/B, the analysis agent had dispatched `first-principles:first-principles` from

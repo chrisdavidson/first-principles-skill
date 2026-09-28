@@ -48,6 +48,12 @@ Verify with `/doctor` inside Claude Code; the `first-principles` agent should ap
 Automatic delegation is not reliable in every session — prefer the explicit slash form when it
 matters.
 
+**Where the analysis lands.** A full analysis is written to
+`.first-principles/analysis-<UTC timestamp>.md` in the working directory, one section at a time,
+and the agent's final message points to that file. The file is the analysis: a long analysis can
+exceed what one message carries, and writing it once, section by section, keeps it whole. Add
+`.first-principles/` to `.gitignore` if you do not want these files tracked.
+
 ## More
 
 - [Getting started](https://github.com/chrisdavidson/first-principles-skill/blob/master/docs/GETTING-STARTED.md)
