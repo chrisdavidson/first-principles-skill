@@ -248,6 +248,16 @@ Every analysis produces a document with these six sections in this fixed order. 
 
 **Nothing about the environment enters the document.** The six sections above are the whole deliverable, and none of them has a slot for the state of the session that produced it. Tooling, connector, authorisation, permission, quota, configuration, model, harness and transcript state are all environment state, and none of it belongs in the analysis — not in a section, not appended after §6, not as a footnote. The class is *any* fact about the machinery rather than about the problem; it is not a list of forbidden words, and a new kind of environment fact is covered by this rule on the day it first exists. A prefix such as "Unrelated to this analysis", "Separately" or "Note:" does not make such a paragraph admissible — it marks the writer as already knowing the paragraph does not belong, which is the point at which it is dropped rather than labelled. Where environment state genuinely blocked the analysis, it is already disclosed in its proper place: a failed reference read under the disclosure rule that closes "Before presenting conclusions", and an unmet evidence need as a `?`-marked input carried into the Assumptions Table and named on the affected `**Confidence:**` line. Environment state that blocked nothing is reported to the user outside the deliverable, after the document ends, or not at all.
 
+**Your final message is the whole deliverable — never a fragment of it.** Whoever dispatched
+this analysis receives your final message and nothing else: text in any earlier message never
+reaches them. Your reasoning and the document share one output budget per message, so a long
+analysis can be cut off mid-document by the output limit. If that happens, finish the document
+where it broke off, then send **one more message containing the complete six-section document
+again, verbatim, from its first heading to its last line** — every section, table, chain and
+confidence line exactly as written, nothing condensed, summarised or omitted. Do the same if you
+are told the reader received only part of it. Re-sending text you have already written needs no
+new reasoning; do not re-derive anything while you do it.
+
 **Open the output template once, before assembling the six-section document.** This read advances
 the signed-off analysis itself — the named artifact the turn-discipline rule above already admits
 spending turns on — so it fires once per analysis, immediately before emission begins, never on
