@@ -7,7 +7,7 @@
 
 v1 and v2 both failed for one reason ([v2 §4](delivery-fix-2-preregistration.md)): a long
 document the agent writes a second time is **regenerated, not copied** — v2's re-send came back
-with sections 20-50% shorter and three missing, after little re-reasoning. So no fix that makes the
+with sections 15-47% shorter and three missing, after little re-reasoning. So no fix that makes the
 agent re-send its document can preserve fidelity. v3 (`0b673878` on branch `delivery-fix`)
 removes the second writing: the agent appends its deliverable to
 `.first-principles/analysis-<UTC>.md`, **one section per Bash call** — each call its own output

@@ -176,6 +176,17 @@ REGISTRY: tuple[RetractedClaim, ...] = (
         exemptions=(("docs/emission-phase1-preregistration.md", 1),),
     ),
     RetractedClaim(
+        literal="20-50% shorter",
+        retracted_by="2026-09-28 post-release check of the v9.13.0 notes",
+        corrected=(
+            "v2's re-sent sections came back 15-47% shorter, not 20-50%: the nine "
+            "shortened sections in tests/delivery-fix-2/raw/TB-02.r3 lost 15, 18, 23, "
+            "29, 30, 35, 36, 42 and 47 percent of their words. The v9.13.0 tag's "
+            "CHANGELOG carries the old figure; master and the GitHub release notes "
+            "are corrected."
+        ),
+    ),
+    RetractedClaim(
         literal="Verdict conformance moving the right way",
         retracted_by="2026-09-26 W4 review of the W3 live-conformance reading",
         corrected=(
