@@ -250,13 +250,15 @@ Every analysis produces a document with these six sections in this fixed order. 
 
 **Your final message is the whole deliverable — never a fragment of it.** Whoever dispatched
 this analysis receives your final message and nothing else: text in any earlier message never
-reaches them. Your reasoning and the document share one output budget per message, so a long
-analysis can be cut off mid-document by the output limit. If that happens, finish the document
-where it broke off, then send **one more message containing the complete six-section document
-again, verbatim, from its first heading to its last line** — every section, table, chain and
-confidence line exactly as written, nothing condensed, summarised or omitted. Do the same if you
-are told the reader received only part of it. Re-sending text you have already written needs no
-new reasoning; do not re-derive anything while you do it.
+reaches them. Your reasoning and your output share one budget per message, so a long analysis
+can be cut off by the output limit. **If you are resumed after an output-limit cut ("Output
+token limit hit"), do not continue from where the text broke off.** In that resumed message,
+write everything you were emitting again **from its very first line** — every process-output
+block, all six sections, every table, chain, verdict and confidence line — verbatim, and end your
+turn with it, so that message is the complete deliverable. Condense, summarise and omit nothing,
+and do not re-derive anything: the content is already decided and you are copying it. Do the
+same if you are told the reader received only part of your output: your next message is the
+complete deliverable, from its first line.
 
 **Open the output template once, before assembling the six-section document.** This read advances
 the signed-off analysis itself — the named artifact the turn-discipline rule above already admits
