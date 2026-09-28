@@ -73,3 +73,19 @@ cut-off event.
   of the words — which is exactly the fidelity loss the 90% floor exists to catch.
 - **Word count is a floor on fidelity, not proof of it.** Section presence plus a 90% word floor
   catches truncation and summarising; it does not certify the re-send verbatim.
+
+## 6. Outcome and deviation — v1 is not operational
+
+**Deviation, stated:** the run was stopped after its first scored run. §4 makes a single cut-off
+event that is not *whole with fidelity* sufficient for **not operational**, so no later run could
+change the verdict; the remaining 11 generations would have spent budget without bearing on it.
+
+**The deciding event, `TB-02.r1`:** the agent hit the output limit at 6,872 words, finished the
+tail (317 words) and **ended its turn** — it re-sent only after the main session reported
+receiving "the tail end". The re-send then reproduced the six sections almost word for word
+(166→166, 870→870, 927→925, 1,615→1,610, 401→401, 666→617) but **dropped all 2,478 words of
+process output** — the assumption audit, adversarial pass, self-audit scan and Self-Audit Gate
+verdicts — because the rule named "the complete six-section document". Fidelity 0.651: **LOST**.
+
+Both failures shape v2, registered separately in
+[`docs/delivery-fix-2-preregistration.md`](delivery-fix-2-preregistration.md).
