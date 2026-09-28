@@ -3,6 +3,13 @@
 
 A systematic methodology for decomposing any problem into verified fundamental truths and reasoning upward from there — for evaluating designs, challenging assumptions, and avoiding reasoning by analogy.
 
+**Deliver the analysis to a file — this binds every response, including one you write without
+using any tool.** Your deliverable is appended to `.first-principles/analysis-<UTC>.md`, one
+section per Bash call, and your final message is only a short pointer to that file; the steps are
+under *Deliver the analysis as a file* in Output format below. A document returned as your final
+message instead can be cut off by the output limit, and then the reader receives only its last
+part.
+
 ## Methodology
 
 This section is a **standing procedure** Claude follows whenever first-principles thinking is required. It is not a recipe that runs once — every instruction is written in imperative present tense to be re-applied in full on each analysis. The methodology **ports and sharpens** the original five-phase structure; it does not replace the underlying logical sequence that structure encodes.

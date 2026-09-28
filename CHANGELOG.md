@@ -33,8 +33,17 @@ below is measurement apparatus and the published record of what it measured.
   complete document the caller read. It is merged **despite missing its pre-registered bar**, by
   the maintainer's decision, because 2 of 12 runs ignored the rule — behaving exactly as the
   previous body did — while no run that followed it lost anything
-  ([reading](docs/delivery-fix-3-reading.md)). Raising that compliance is the next piece of work.
-  `Write` and `Edit` stay disallowed; the file is written through Bash.
+  ([reading](docs/delivery-fix-3-reading.md)). `Write` and `Edit` stay disallowed; the file is
+  written through Bash.
+- **The delivery rule is now stated at the top of the body, and every run followed it.** With the
+  rule moved before the Methodology, 12 of 12 runs of the same four prompts used the file — the
+  prompt whose runs had ignored it went from 1 of 3 to 3 of 3 — and the prospective
+  `delivery-fix-4b` registration scored **9 of 9 delivered**: a complete six-section file, read in
+  full by the caller, every byte replaying from the agent's own recorded writes, including its
+  in-place self-audit revisions. `delivery-fix-4` as first registered scored 11 of 12, failing one
+  run on a replay-allowlist gap (`readlink`), and is reported as not operational
+  ([reading](docs/delivery-fix-4-reading.md)). Against the starting point: the caller received an
+  incomplete document in 5 of 20 runs before any fix, and in 0 of 12 after.
 - **The agent can no longer delegate to itself.** `disallowedTools` widens from `[Write, Edit]`
   to `[Write, Edit, Agent, SendMessage, ListAgents]`. In 6 of 20 Phase 1 runs of the
   abandonment A/B, the analysis agent had dispatched `first-principles:first-principles` from

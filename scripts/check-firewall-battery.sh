@@ -900,6 +900,9 @@ _FROZEN_PATHS=(
     'tests/delivery-fix'
     'tests/delivery-fix-2'
     'tests/delivery-fix-3'
+    # delivery-fix-4 (2026-09-28) -- the compliance re-run that confirmed file delivery:
+    # 12 of 12 runs used the file; delivery-fix-4b (prospective) 9 of 9 delivered.
+    'tests/delivery-fix-4'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null
