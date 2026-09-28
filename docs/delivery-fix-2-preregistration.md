@@ -39,3 +39,22 @@ cut-off events LOST** — the 6 of the pre-fix `delivery` corpus and v1's `TB-02
 **Operational** if at least 3 cut-off events occur and every one is whole with fidelity; **not
 operational** if any is not; **inconclusive** below 3 events in 24 runs. A re-send that is itself
 cut off, and any no-cut-off run whose caller lost sections, are reported.
+
+## 4. Outcome and deviation — v2 is not operational
+
+**Deviation, stated:** as with v1, the run was stopped once a cut-off event had decided the
+verdict — after 3 of 12 runs (`TB-02.r1`, `TB-02.r2` without a cut-off; `TB-02.r3` with one).
+
+**v2 fixed the structure and failed on fidelity.** On `TB-02.r3` the agent was cut off at 64,000
+output tokens with 4,667 words written; resumed, it did exactly what v2 asked — restarted from the
+first line, wrote every section including process output, and ended its turn — and the caller
+received all 5,731 words. But the overlapping sections came back **shorter**: Ground Truths 751 →
+482 words, the classified assumptions table 750 → 612, conclusion C4 483 → 257, and conclusion C5
+(349 words), a five-whys chain (278) and one dead end (121) not at all. Fidelity 0.762: **LOST**.
+
+**The finding that matters more than the verdict.** The re-send spent 14,964 output tokens on
+5,731 words — it did not re-reason at length — and it still condensed. **A re-sent long document
+is regenerated, not copied.** Every instruction-only fix inherits this: v1 and v2 differ in when
+and what they re-send, and both lose fidelity because the second writing is a new writing. A
+fidelity-preserving fix has to deliver the text the agent already wrote, through a channel that
+does not depend on writing it again.
