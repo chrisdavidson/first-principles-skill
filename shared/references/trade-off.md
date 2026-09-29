@@ -25,7 +25,13 @@ direct decision, not a trade-off.
    comparison whose option set is all-change silently assumes change is
    warranted and reports that assumption back as a finding. If the status quo is
    genuinely unavailable — a contract expires, the hardware is failing — say so
-   in one line and list it as ruled out; do not omit it silently.
+   in one line and list it as ruled out; do not omit it silently. **Include a
+   composite too:** when the named options can be split or combined — part of
+   one and part of another, or one now and another later — list at least one
+   such composite as its own option. A comparison limited to the options as the
+   question named them cannot find that a mix of them is best. If the options
+   genuinely cannot combine, say why in one line and list the composite as ruled
+   out; do not omit it silently.
 
 2. **State the must-haves and apply them as knock-outs.** Before any scoring,
    name the conditions an option must satisfy to be viable at all. An option

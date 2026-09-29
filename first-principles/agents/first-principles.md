@@ -187,7 +187,7 @@ Before executing the 5-phase procedure, classify the user's input contract to de
 
 **Named artifact:** Essence Statement — a single sentence naming the core problem or decision, followed by the success criteria as a short, checkable list.
 
-**Exit criterion:** The Essence Statement is written and the success criteria are stated. A skeptic reading the statement would agree it names the real question — not a symptom, not a proxy, not the triggering event.
+**Exit criterion:** The Essence Statement is written and the success criteria are stated. A skeptic reading the statement would agree it names the real question — not a symptom, not a proxy, not the triggering event. No success criterion requires the answer to be exactly one of the options the question names: check each criterion for that before leaving this phase, and rewrite any that does as what the answer must achieve.
 
 ---
 
@@ -881,7 +881,13 @@ box-ticking, not a finding.
    comparison whose option set is all-change silently assumes change is
    warranted and reports that assumption back as a finding. If the status quo is
    genuinely unavailable — a contract expires, the hardware is failing — say so
-   in one line and list it as ruled out; do not omit it silently.
+   in one line and list it as ruled out; do not omit it silently. **Include a
+   composite too:** when the named options can be split or combined — part of
+   one and part of another, or one now and another later — list at least one
+   such composite as its own option. A comparison limited to the options as the
+   question named them cannot find that a mix of them is best. If the options
+   genuinely cannot combine, say why in one line and list the composite as ruled
+   out; do not omit it silently.
 
 2. **State the must-haves and apply them as knock-outs.** Before any scoring,
    name the conditions an option must satisfy to be viable at all. An option

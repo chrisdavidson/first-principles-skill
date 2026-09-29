@@ -137,7 +137,7 @@ Before executing the 5-phase procedure, classify the user's input contract to de
 
 **Named artifact:** Essence Statement — a single sentence naming the core problem or decision, followed by the success criteria as a short, checkable list.
 
-**Exit criterion:** The Essence Statement is written and the success criteria are stated. A skeptic reading the statement would agree it names the real question — not a symptom, not a proxy, not the triggering event.
+**Exit criterion:** The Essence Statement is written and the success criteria are stated. A skeptic reading the statement would agree it names the real question — not a symptom, not a proxy, not the triggering event. No success criterion requires the answer to be exactly one of the options the question names: check each criterion for that before leaving this phase, and rewrite any that does as what the answer must achieve.
 
 ---
 
