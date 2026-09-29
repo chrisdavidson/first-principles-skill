@@ -13,6 +13,19 @@ installed session.
 
 ## [Unreleased]
 
+### Measured
+
+- **Every worked example re-run on v9.13.0 and compared with the shipped one**
+  ([reading](docs/example-rerun-reading.md), [protocol](docs/example-rerun-protocol.md)). All
+  14 delivered a complete file the caller read, with no cut-off. The re-runs are stronger on
+  evidence — sources fetched and quoted, unverified inputs marked — and catch points the examples
+  miss, including **a defect in the shipped `estimate-fermi` example**: its cost rebuild omits
+  the turbine, generator and charging equipment, then compares with lithium-ion's installed-system
+  price. The examples are cleaner on form (live defect rates 9% / 14% / 15%, near zero in the
+  curated examples). Two re-runs contain real errors (an arithmetic slip in `science-engineering`;
+  a missed hybrid option in `software-systems-2`), and `self-application`'s re-run is excluded as
+  contaminated — it read the example it was compared against.
+
 ## [9.13.0] — 2026-09-28
 
 Unphased release: **v9.13.0 Delivered Whole**. Two changes to the shipped agent, both found by

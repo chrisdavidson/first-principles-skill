@@ -1,0 +1,5 @@
+{
+  "prompt": "Analyze this from first principles and tell me whether it holds. The claim: \"Adding a Redis read-through cache in front of our Postgres-backed product-listings API will cut p95 latency and reduce database load enough to defer the otherwise-scheduled Postgres vertical-scale upgrade for at least two quarters.\" Who is asserting it: our platform team lead, in an architecture-review document circulated ahead of the quarterly capacity-planning meeting; the document cites peak read-QPS on the listings endpoint and the next-tier Postgres instance cost. What decision hinges on it: whether to (a) approve a two-engineer-week effort to ship the Redis cache and cancel the vertical-scale upgrade work for this and the next quarter, or (b) execute the scheduled upgrade now and revisit caching later as an independent optimisation. The decision is reversible at the cache-rollout boundary, but the scheduled upgrade has a procurement lead time that makes a late reversal expensive.",
+  "source": "file",
+  "words": 8908
+}

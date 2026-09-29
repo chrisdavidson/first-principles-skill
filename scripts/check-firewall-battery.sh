@@ -903,6 +903,11 @@ _FROZEN_PATHS=(
     # delivery-fix-4 (2026-09-28) -- the compliance re-run that confirmed file delivery:
     # 12 of 12 runs used the file; delivery-fix-4b (prospective) 9 of 9 delivered.
     'tests/delivery-fix-4'
+    # example-rerun (2026-09-28/29) -- every worked example re-run on v9.13.0 and compared
+    # with the shipped one (docs/example-rerun-reading.md), including the supplementary
+    # full-context re-run. Frozen because the reading's findings -- among them a defect in
+    # the shipped estimate-fermi example -- are checkable only against these runs.
+    'tests/example-rerun'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null

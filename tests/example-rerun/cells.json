@@ -1,0 +1,86 @@
+{
+  "composed-inversion-second-order": {
+    "outcome": "file",
+    "attempts": [
+      "composed-inversion-second-order.a1.jsonl"
+    ]
+  },
+  "decompose-irreducibility": {
+    "outcome": "file",
+    "attempts": [
+      "decompose-irreducibility.a1.jsonl"
+    ]
+  },
+  "estimate-fermi": {
+    "outcome": "file",
+    "attempts": [
+      "estimate-fermi.a1.jsonl"
+    ]
+  },
+  "ishikawa-fishbone": {
+    "outcome": "file",
+    "attempts": [
+      "ishikawa-fishbone.a1.jsonl"
+    ]
+  },
+  "personal-general-2": {
+    "outcome": "file",
+    "attempts": [
+      "personal-general-2.a1.jsonl"
+    ]
+  },
+  "personal-general": {
+    "outcome": "file",
+    "attempts": [
+      "personal-general.a1.jsonl"
+    ]
+  },
+  "product-business-2": {
+    "outcome": "file",
+    "attempts": [
+      "product-business-2.a1.jsonl"
+    ]
+  },
+  "product-business": {
+    "outcome": "file",
+    "attempts": [
+      "product-business.a1.jsonl"
+    ]
+  },
+  "science-engineering-2": {
+    "outcome": "file",
+    "attempts": [
+      "science-engineering-2.a1.jsonl"
+    ]
+  },
+  "science-engineering": {
+    "outcome": "file",
+    "attempts": [
+      "science-engineering.a1.jsonl"
+    ]
+  },
+  "self-application": {
+    "outcome": "file",
+    "attempts": [
+      "self-application.a1.jsonl"
+    ]
+  },
+  "software-systems-2": {
+    "outcome": "file",
+    "attempts": [
+      "software-systems-2.a1.jsonl"
+    ]
+  },
+  "software-systems": {
+    "outcome": "file",
+    "attempts": [
+      "software-systems.a1.jsonl"
+    ]
+  },
+  "theoretical-limit-carnot": {
+    "outcome": "file",
+    "attempts": [
+      "theoretical-limit-carnot.a1.jsonl"
+    ]
+  }
+}
