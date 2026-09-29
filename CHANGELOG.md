@@ -13,6 +13,15 @@ installed session.
 
 ## [Unreleased]
 
+## [9.14.0] — 2026-09-29
+
+Unphased release: **v9.14.0 Regressions Resolved**. Two changes to the shipped plugin, both
+found by re-running every worked example on v9.13.0: the agent body gains five rules that
+resolve the re-run's four agent regressions, spread over Phase 1, the trade-off option set,
+Phase 3, Phase 4 and Phase 5 Recompute, with each affected example passing its check in both of
+two runs; and the `estimate-fermi` worked example no longer omits the turbine and generator from
+its cost rebuild.
+
 ### Fixed — a shipped worked example taught a flawed cost comparison
 
 - **`estimate-fermi` no longer concludes that molten-salt storage is cost-competitive with
@@ -64,6 +73,11 @@ installed session.
   curated examples). Two re-runs contain real errors (an arithmetic slip in `science-engineering`;
   a missed hybrid option in `software-systems-2`), and `self-application`'s re-run is excluded as
   contaminated — it read the example it was compared against.
+
+**The coverage headline does not move: `248 / 248 / 0 / 496`.** Unphased, like v9.12.0: no
+milestone requirement ids exist for this release, so no matrix row registers or changes.
+
+`FIREWALL: GREEN (29/29)`; `sync-content.py --check` clean; VERSION-01 green on all 17 stamps.
 
 ## [9.13.0] — 2026-09-28
 
