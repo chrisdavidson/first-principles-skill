@@ -73,6 +73,9 @@ incomplete — the bracket, not the single central value, is the deliverable.
 
 **Apply the decision-resolution stop criterion.** The estimate is "good enough"
 when both the bracket's lower and upper ends drive the same decision. If the
+decision compares the estimate with another figure, first check that both price
+the same scope on the same basis — matching units are not enough — and price
+whatever one side covers and the other does not. If the
 bracket spans an order of magnitude and straddles the decision threshold, tighten
 the dominant uncertain factor with a better measurement or escalate the
 uncertainty explicitly.
