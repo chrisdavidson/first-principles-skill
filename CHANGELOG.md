@@ -13,6 +13,21 @@ installed session.
 
 ## [Unreleased]
 
+### Fixed — a shipped worked example taught a flawed cost comparison
+
+- **`estimate-fermi` no longer concludes that molten-salt storage is cost-competitive with
+  lithium-ion.** Its installed-cost rebuild priced the thermal store — tanks, salt, piping, pumps,
+  heat exchanger — and, after converting to an electrical basis, compared it with lithium-ion's
+  whole-system installed price, leaving out the turbine and generator that turn stored heat back
+  into electricity. With the power block priced from NREL/TP-5500-57625 Table 1
+  ($1,000–1,200/kW_e, read at source), the molten-salt system costs ~$279–384 per kWh_e at a
+  four-hour duration against lithium-ion's $150–300, and breaks even only at ~3.7–18 hours. The
+  example now carries a system-boundary step (Step 6b), a real abandoned path, and a revised
+  conclusion; `decompose-irreducibility`'s cost verdict and the `estimate-detail.md` reference,
+  which repeated the comparison, are corrected, and the reference gains the failure mode
+  "comparing figures that price different scopes". Four retracted phrasings registered in
+  RETRACT-01. Found by the v9.13.0 example re-run.
+
 ### Measured
 
 - **Every worked example re-run on v9.13.0 and compared with the shipped one**

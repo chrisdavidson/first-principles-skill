@@ -224,7 +224,7 @@
       "rollups_checked": 1,
       "rollup_inversions": 0,
       "hop_arithmetic_checked": 0,
-      "hop_arithmetic_unparsed": 0,
+      "hop_arithmetic_unparsed": 1,
       "hop_arithmetic_mismatches": 0,
       "marked_untraced_claims": 0,
       "silent_untraced_claims": 0
@@ -854,7 +854,7 @@
       "rollups_checked": 1,
       "rollup_inversions": 0,
       "hop_arithmetic_checked": 0,
-      "hop_arithmetic_unparsed": 0,
+      "hop_arithmetic_unparsed": 1,
       "hop_arithmetic_mismatches": 0,
       "marked_untraced_claims": 0,
       "silent_untraced_claims": 0

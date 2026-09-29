@@ -19,7 +19,9 @@ GT-5 and GT-6: molten-salt TES capital cost ≈ $20–50/kWh installed vs. lithi
 underlying unit-factors, showing *why* those numbers hold and making the uncertainty source
 explicit, then amortises it over cycle life to show why molten-salt's *levelised* cost is so
 low. The bracketed result becomes the Phase 4 quantitative derivation chain step that anchors
-the cost-competitiveness conclusion.
+the cost-competitiveness conclusion — and, as Step 6b shows, rebuilding the figure from its
+factors is also what exposes that the GT-5/GT-6 comparison, taken at face value, puts a
+storage-only price against a whole-system price.
 
 ---
 
@@ -228,14 +230,13 @@ silently into a ratio.
 | Thermal (as rebuilt) | ~$34.4/kWh_th | ~$44/kWh_th |
 | **Electrical (÷ 0.412)** | **~$83/kWh_e** | **~$107/kWh_e** |
 
-**Decision-resolution check:** on the common electrical basis, the **installed-only** upper bound
-(~$83/kWh_e) sits ~1.8× below the lithium-ion lower bound (150 ÷ 83.5 = 1.80), and the
-installed-plus-O&M upper bound (~$107/kWh_e) sits ~1.4× below it (150 ÷ 106.8 = 1.40). The
-cost-competitiveness conclusion survives at both scopes, and the conversion factor still dominates
-the margin rather than the capital rebuild: at η ≈ 0.29 the installed-plus-O&M arm crosses
-$150/kWh_e and the conclusion reverses. **That reversal threshold does not depend on which
-efficiency is chosen** — it is 44 ÷ 150 = 0.293 either way — so re-anchoring the factor widened the
-margin without moving the point at which the conclusion breaks.
+**Decision-resolution check — on the storage-only boundary:** on the common electrical basis,
+the **installed-only** upper bound (~$83/kWh_e) sits ~1.8× below the lithium-ion lower bound
+(150 ÷ 83.5 = 1.80), and the installed-plus-O&M upper bound (~$107/kWh_e) sits ~1.4× below it
+(150 ÷ 106.8 = 1.40). **That comparison is not yet like for like, and Step 6b shows it does not
+survive.** Dividing by η moves the store's cost onto an electrical basis; it does not buy the
+turbine and generator that make electricity out of the stored heat, and GT-6 is the installed
+price of a whole battery system that delivers electricity.
 
 > **What this step is doing in a worked example.** The earlier version of this analysis compared
 > $34.4/kWh_th directly against $150/kWh_e and reported the conclusion clearing by ~4.4×. That
@@ -243,11 +244,58 @@ margin without moving the point at which the conclusion breaks.
 > read the quotient as a margin. The defect is invisible to inspection because both quantities are
 > spelled "$/kWh" — which is the whole reason Step 4's unit-cancellation discipline exists, and the
 > reason it has to be applied to the *comparison* and not only to the rebuild that feeds it.
-Amortised, the gap widens on the thermal basis: molten-salt's long cycle
-life drives its levelised cost to ~$0.0014–0.0055/kWh_th delivered. That column is not compared
-against GT-6 — GT-6 states an installed capital cost, not a levelised one, and the decision is
-resolved at Step 6a on installed capital with the basis conversion applied. Molten-salt TES is
-cost-competitive under all combinations of factor uncertainty. The estimate is decision-grade.
+### Step 6b — Price the equipment the electrical basis requires (system-boundary check)
+
+A unit check asks whether two quantities are in the same units; a **boundary check** asks whether
+they cost the same *scope*. `system_factor` (Step 3) covers the tanks, insulation, foundations,
+piping, pumps and the salt-to-steam heat exchanger — the **store**. Storage that returns
+electricity also needs the **power block** — the steam turbine, generator and their auxiliaries —
+and none of it is in the rebuild. GT-8 prices it at **$1,000–1,200 per kW_e** of turbine capacity.
+
+A per-kW cost becomes a per-kWh cost through the discharge duration `h`:
+
+    power_block_per_kWh_e = power_block_per_kW_e ÷ h      [$/kW_e ÷ h = $/kWh_e]
+
+GT-6 is a utility-scale battery price; taking the common four-hour duration for it (h = 4) —
+an assumption, A-8 below — the like-for-like comparison is:
+
+| Installed, per kWh_e | Store (Step 6a) | + power block (÷ 4 h) | **System** | vs lithium-ion $150–300/kWh_e |
+|---|---|---|---|---|
+| Lower (best case for molten-salt) | ~$29.1 | +$250 | **~$279** | 1.9× above the floor; 0.93× the ceiling |
+| Central | ~$50.0 | +$275 | **~$325** | above the whole range |
+| Upper | ~$83.5 | +$300 | **~$384** | 2.6× above the floor |
+
+**Decision-resolution check — on the system boundary:** at a four-hour duration, molten-salt TES
+is **not** cost-competitive with lithium-ion. Only the most favourable molten-salt case edges under
+the most expensive lithium-ion case (279 < 300); every other pairing puts molten-salt above.
+
+**The conclusion now turns on duration, not on η.** The store is cheap per kWh and the power block
+is expensive per kW, so the system cost falls as `h` rises. Setting `store + power_block ÷ h`
+equal to the lithium-ion price gives the break-even duration `h = power_block ÷ (Li-ion − store)`:
+~3.7 h at the most favourable pairing (1,000 ÷ (300 − 29.1)), ~6.3 h at the central values
+(1,100 ÷ (225 − 50.0)), and ~18 h at the least favourable (1,200 ÷ (150 − 83.5)). And η no longer
+decides anything: even at a physically impossible η = 1 the upper store figure plus the four-hour
+power block is ~$34 + $300 = ~$334/kWh_e, still above the $150 floor.
+
+**Two omissions, both in molten-salt's favour, so neither can rescue the old conclusion.** GT-8's
+figures are for a 115 MWe reference plant; a 5 MWh store at a four-hour duration drives a turbine
+of roughly 0.5 MW_e (5,000 kWh_th × 0.412 ÷ 4 h ≈ 515 kW_e), where cost per kW is higher, not
+lower. And the charging heater — the equipment that turns electricity into stored heat — is not
+priced here at all. Each only adds cost to the molten-salt side.
+
+> **A second boundary error, corrected here.** The previous version of this example stopped at
+> Step 6a and concluded that molten-salt TES is cost-competitive with lithium-ion "once both sides
+> are placed on a common electrical basis". The basis conversion was right; the comparison was
+> not, because it set a store's cost against a whole system's price. Like the ~4.4× margin before
+> it, the defect was invisible to inspection — both figures read "$/kWh_e" — and it was caught by
+> re-running the problem on a later agent, which priced the power conversion the example had left
+> out.
+
+Amortised over cycle life, the **store** alone reaches ~$0.0014–0.0055/kWh_th delivered — a
+measure of how cheap it is to hold heat, not of the cost of delivered electricity, and not compared
+against GT-6, which is an installed capital cost. The capital question is resolved at Step 6b: at
+the durations lithium-ion is usually bought for, molten-salt storage is dearer; at long durations,
+it is cheaper.
 
 ---
 
@@ -275,9 +323,15 @@ they are what the Step 5 bracket's width measures.
 
 A fourth input is new and is of a different kind: **GT-7? — the thermal-to-electric conversion factor (≈ 0.412)**, introduced at Step 6a. The first three set the *width* of the capital bracket; GT-7? sets
 whether the comparison against GT-6 is meaningful at all, because GT-5's kWh is thermal and GT-6's
-is electrical. It is carried `?`-marked as **GT-7?**, it caps chain C1 at MEDIUM, and it is the one input whose
-refinement would change the decision — the sensitivity named on C1's `**Confidence:**` line is
-η ≈ 0.29, not a movement in any capital factor.
+is electrical. It is carried `?`-marked as **GT-7?** and caps chain C1 at MEDIUM. Once the power block is priced
+(Step 6b) it no longer decides the comparison: the conclusion holds at any η.
+
+Two further inputs enter at Step 6b. **GT-8**, the power-block cost, read at source for this
+revision. And **A-8, a four-hour discharge duration** for the comparison — the usual duration for a
+utility-scale lithium-ion system, taken as the basis on which GT-6's per-kWh price is quoted. A-8 is
+the input the conclusion now turns on, which is why Step 6b states the result as a break-even
+duration rather than a single verdict. GT-8's reference plant is 115 MWe and this system is about
+0.5 MW_e; carrying the large-plant cost is an assumption that favours molten-salt.
 
 ---
 
@@ -310,73 +364,82 @@ refinement would change the decision — the sensitivity named on C1's `**Confid
   factor for a delivered-energy comparison and the wrong one for the nameplate-to-nameplate
   conversion this drill performs against GT-6's installed capacity.
 
+- **GT-8** The power block of a molten-salt power tower — steam turbine, generator and
+  auxiliaries, dry-cooled — costs ≈ $1,000–1,200 per kW_e of gross turbine capacity; the steam
+  generation system (salt-to-steam heat exchangers and circulation pumps) is priced separately
+  as balance of plant at ≈ $350–365/kW_e — source: NREL, *Molten Salt Power Tower Cost Model for
+  the System Advisor Model (SAM)*, Turchi & Heath, NREL/TP-5500-57625 (2013), Table 1 (Tower
+  Roadmap and WorleyParsons $1,000/kW; SAM default $1,200/kW; balance of plant $350 and $365/kW),
+  for a 115 MWe reference plant with 10 hours of storage (Table 2). Read at source for this
+  revision. Only the power block is added in Step 6b: the balance-of-plant line is the salt-to-steam
+  exchanger that `system_factor` already includes, and counting it twice would bias the comparison
+  against molten-salt.
+
 ---
 
 ## 4. Derivation Chains
 
-### Conclusion C1: Molten-salt TES is cost-competitive with lithium-ion once both sides are on a common electrical basis
+### Conclusion C1: Molten-salt TES is not cost-competitive with lithium-ion at a four-hour duration once its power block is priced; it becomes competitive only at long durations
 
-GT-4 (Solar Salt stable 290–565 °C; c_p ≈ 1.52 kJ/(kg·°C) — direct measurement) + GT-5 (molten-salt TES installed capital ≈ $20–50/kWh — NREL direct measurement) + GT-6 (lithium-ion storage ≈ $150–300/kWh_e installed — BloombergNEF direct measurement) + GT-7? (thermal-to-electric conversion ≈ 0.412)
+GT-4 (Solar Salt stable 290–565 °C; c_p ≈ 1.52 kJ/(kg·°C) — direct measurement) + GT-5 (molten-salt TES installed capital ≈ $20–50/kWh — NREL direct measurement) + GT-6 (lithium-ion storage ≈ $150–300/kWh_e installed — BloombergNEF direct measurement) + GT-7? (thermal-to-electric conversion ≈ 0.412) + GT-8 (power block ≈ $1,000–1,200/kW_e — NREL/TP-5500-57625, read at source)
 → The unit-factor rebuild (material_mass 8.6 kg/kWh × cost_per_kg $0.40–0.80/kg × system_factor 3.5–5×, GT-4-anchored) reconstructs the installed-capital bracket from first principles — Lower ~$12.0/kWh, Central ~$20.6/kWh, Upper ~$34.4/kWh installed, or ~$17/~$28/~$44 per kWh once the separate lifetime O&M reserve of $5–10/kWh is added — overlapping the GT-5 range this rebuild explains rather than merely assumes over $20–$34.4/kWh, with the installed lower bound falling 40% below GT-5's $20/kWh floor. That shortfall is not resolved here: it may mean the lean-system factor values are optimistic, in which case the upper bound is understated in the same direction. The cost-competitiveness conclusion below is binding at the upper bound, not the lower, and only after the Step 6a basis conversion: the rebuilt bracket is $/kWh_th and GT-6 is $/kWh_e, so the installed upper bound converts to ~$83/kWh_e at η ≈ 0.412 and clears GT-6's $150/kWh_e floor by ~1.8×, not by the ~4.4× a direct division of the two unconverted figures reports. If the installed upper bound were itself understated by the same 40% ($34.4 → ~$57/kWh_th → ~$139/kWh_e), the installed-only conclusion would narrow to ~1.1× rather than reverse — it takes a ~44% understatement ($34.4 → ~$62/kWh_th) to cross the floor on that arm. The same 40% applied to the O&M-inclusive upper bound ($44 → ~$73/kWh_th → ~$178/kWh_e) DOES reverse it, so the fragility is real but sits on the wider scope, not the narrower one [Assumes: GT-7? η_th→e ≈ 0.412]
 → Amortising the installed-capital bracket over cycle life (8,000–12,000 cycles) converts one-time capital into levelised cost per kWh delivered — Lower ~$0.0014/kWh, Central ~$0.0028/kWh, Upper ~$0.0055/kWh
-→ Molten-salt TES is cost-competitive with lithium-ion (GT-6) across the rebuilt bracket once both sides are placed on a common electrical basis — the installed-only upper bound converts to ~$83/kWh_e and sits ~1.8× below the lithium-ion installed lower bound ($150/kWh_e), and adding the lifetime O&M reserve leaves it ~$107/kWh_e, ~1.4× below; the margin is dominated by the carried η_th→e ≈ 0.412 rather than by the capital rebuild, and the reversal threshold on the wider scope (η ≈ 0.29) is set by the cost figures alone and so is unchanged by the choice of efficiency [Assumes: GT-7? η_th→e ≈ 0.412].
+→ On the storage-only boundary the installed upper bound converts to ~$83/kWh_e at η ≈ 0.412 and sits ~1.8× below the lithium-ion floor, but that sets the cost of a store against the installed price of a whole battery system, and a store returns no electricity without a power block
+→ Adding the power block at a four-hour discharge (A-8), $1,000–1,200/kW_e ÷ 4 h = $250–300/kWh_e, puts the molten-salt system at ~$279 / ~$325 / ~$384 per kWh_e (lower / central / upper) against lithium-ion's $150–300/kWh_e, so only the most favourable molten-salt case edges under the most expensive lithium-ion case [Assumes: A-8 four-hour duration]
+→ The system cost falls as duration rises because the store is cheap per kWh and the power block is costly per kW, so the break-even is a duration — ~3.7 h at the most favourable pairing, ~6.3 h at the central values, ~18 h at the least favourable — and the verdict no longer depends on η, since even η = 1 leaves the four-hour upper case at ~$334/kWh_e
+→ Molten-salt TES is not cost-competitive with lithium-ion at a four-hour duration, and becomes competitive only at long durations; the large-plant power-block cost and the unpriced charging heater both favour molten-salt, so neither can reverse this [Assumes: A-8 four-hour duration]
 
-**Pre-check:** head GT-4, GT-5, GT-6, GT-7? · ?-marked: GT-7? · lowest cited: none · Inputs ceiling: MEDIUM
+**Pre-check:** head GT-4, GT-5, GT-6, GT-7?, GT-8 · ?-marked: GT-7? · lowest cited: none · Inputs ceiling: MEDIUM
 
 **Confidence:** MEDIUM — GT-7? (the thermal-to-electric conversion factor, ≈ 0.412) is carried
-rather than read at source here, and after the Step 6a basis conversion the conclusion rests on it
-rather than on the capital rebuild. On the common electrical basis the installed-only upper bound
-(~$83/kWh_e) clears the lithium-ion floor by ~1.8× and the O&M-inclusive upper bound (~$107/kWh_e)
-by ~1.4×; at η ≈ 0.29 the second arm crosses $150/kWh_e and the conclusion reverses. The ceiling is
-MEDIUM because a `?`-marked input sits on the head, and the band stays there because the wider
-scope's margin is still thin enough for a single input to decide it. Verification path: opening
-OSTI 1035342 Table 2 in this analysis, or a measured or quoted efficiency for the specific power
-block, either of which would move η off `?` and re-open HIGH if the margin held. The earlier HIGH on
-this line was read against a ~4.4× margin that a basis error had manufactured; this is the same
-conclusion at its real width, not a new finding.
+rather than read at source here, and a `?`-marked input on the head caps the chain at MEDIUM.
+It no longer decides the verdict: once GT-8's power block is priced the four-hour conclusion holds
+at any η. What the verdict does turn on is A-8, the four-hour duration — the break-even runs from
+~3.7 h to ~18 h — so the conclusion is stated per duration rather than as a single answer.
+Verification path: opening OSTI 1035342 Table 2 would move η off `?`; a power-block quotation at
+this system's ~0.5 MW_e scale would replace GT-8's large-plant figure, and would move the
+break-even durations up, not down.
 
 ---
 
 ## 5. Abandoned Reasoning
 
-Nothing material here — the unit-factor decomposition (Step 2) was the only rebuild path
-considered; the factor set (material_mass, cost_per_kg, system_factor) is the standard
-installed-cost decomposition for tank-based thermal storage and no competing decomposition
-was tried and discarded.
+### Dead End: Comparing the store's cost with the battery's installed price
+
+**What was tried:** Converting the rebuilt store cost to an electrical basis (Step 6a) and setting it
+directly against lithium-ion's installed price (GT-6), which reports molten-salt ~1.4–1.8× cheaper.
+
+**Why abandoned:** GT-6 is the price of a whole battery system that delivers electricity; the
+rebuild prices only the store. The equipment that turns stored heat back into electricity is
+missing from one side, and pricing it (GT-8, Step 6b) reverses the four-hour verdict.
+
+**What it ruled out:** Any cost comparison whose two sides do not cover the same equipment —
+the boundary check that Step 6b makes explicit.
 
 ---
 
 ## 6. Conclusion
 
-**Recommended approach:** Treat the molten-salt TES installed-cost rebuild (chain C1) as
-decision-grade for the *capital* question — the rebuilt installed-only bracket
-[$12.0–$34.4/kWh_th], and the [$17–$44/kWh_th] band that adds the lifetime O&M reserve, both hold
-under every combination of factor uncertainty. Do **not** treat the comparison against lithium-ion
-as settled at the same confidence: that comparison runs through the Step 6a basis conversion, and
-its margin is ~1.4× at the O&M-inclusive scope, with the reversal threshold at η ≈ 0.29. Before
-committing, either read the design-point efficiency at source (OSTI 1035342, Table 2) or obtain a
-measured efficiency for the specific power block; further refinement of the capital factors would
-not move the decision, and refinement of η would.
+**Recommended approach:** Per chain C1, treat molten-salt TES as **not** cost-competitive with
+lithium-ion for four-hour storage: once the power block is priced the system costs ~$279–384 per
+kWh_e against lithium-ion's $150–300. Consider it where the discharge is long — the break-even runs from
+~3.7 h to ~18 h — and size the decision on duration rather than on the store's per-kWh cost.
 
-**Key insight:** The unit-factor rebuild (chain C1) explains *why* the GT-5 installed-cost
-range holds rather than treating it as an unexplained given, and the amortisation over cycle
-life (8,000–12,000 cycles) shows that molten-salt's long cycle life widens the
-cost-competitiveness gap further at the levelised-cost level than at the installed-capital
-level alone.
+**Key insight:** In chain C1 the store is cheap per kWh and the power block is costly per kW, so
+the comparison is decided by discharge duration and by what equipment each price covers — not by
+the store's installed cost, which the unit-factor rebuild explains and which was never in doubt.
 
-- The bracket width (chain C1) reflects the uncertainty in
-  salt-procurement cost, the system multiple, and the O&M reserve: [$12.0–$34.4/kWh] installed,
-  [$17–$44/kWh] once the lifetime O&M reserve is added; cycle life additionally
-  drives the levelised spread.
-- Cross-technique continuity (chain C1): the five-whys reduce-to-primitives drill produced
-  GT-4, which anchored the Solar Salt specific heat and operating window that chain C1's
-  `material_mass` factor derives from.
+- The store's bracket (chain C1) reflects the uncertainty in salt-procurement cost, the system
+  multiple and the O&M reserve: [$12.0–$34.4/kWh_th] installed, [$17–$44/kWh_th] with the lifetime
+  O&M reserve; cycle life additionally drives the levelised spread of holding heat.
+- Cross-technique continuity (chain C1): the five-whys reduce-to-primitives drill produced GT-4,
+  which anchored the Solar Salt specific heat and operating window that chain C1's `material_mass`
+  factor derives from.
 
 **Pre-check:** head C1 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
 
 **Confidence:** MEDIUM — matches chain C1, which is capped at MEDIUM by GT-7? (the carried-not-read
-thermal-to-electric conversion factor). Raising the bracket's precision further would require
-tightening `cost_per_kg`, the `system_factor`, and the O&M reserve with current procurement and
-engineering quotes — but that is not what the conclusion now turns on, so it would not raise this
-band. The verification that would is reading the design-point efficiency at source (OSTI 1035342,
-Table 2) or obtaining a measured efficiency for the specific power block.
+thermal-to-electric conversion factor), although the verdict no longer depends on it. The input
+that decides the answer is the discharge duration (A-8): the recommendation is stated for four
+hours and the break-even is given as a range for the others. A power-block quotation at this
+system's scale would sharpen that range, and could only move it toward longer durations.

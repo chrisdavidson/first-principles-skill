@@ -176,6 +176,34 @@ REGISTRY: tuple[RetractedClaim, ...] = (
         exemptions=(("docs/emission-phase1-preregistration.md", 1),),
     ),
     RetractedClaim(
+        literal="cost-competitive under all combinations of factor uncertainty",
+        retracted_by="2026-09-29 example re-run, estimate-fermi system-boundary error",
+        corrected=(
+            "Molten-salt TES is not cost-competitive with lithium-ion at a four-hour duration. The $20-50/kWh figure prices a thermal store per kWh of heat; lithium-ion's $150-300/kWh is a whole battery system's installed price per kWh of electricity. Converted to electricity and with the power block priced (NREL/TP-5500-57625 Table 1, $1,000-1,200/kW_e), the molten-salt system is ~$279-384/kWh_e at four hours; break-even ~3.7-18 h. See shared/examples/estimate-fermi.md Step 6b and docs/example-rerun-reading.md."
+        ),
+    ),
+    RetractedClaim(
+        literal="keeps the cost-competitiveness conclusion stable",
+        retracted_by="2026-09-29 example re-run, estimate-fermi system-boundary error",
+        corrected=(
+            "Molten-salt TES is not cost-competitive with lithium-ion at a four-hour duration. The $20-50/kWh figure prices a thermal store per kWh of heat; lithium-ion's $150-300/kWh is a whole battery system's installed price per kWh of electricity. Converted to electricity and with the power block priced (NREL/TP-5500-57625 Table 1, $1,000-1,200/kW_e), the molten-salt system is ~$279-384/kWh_e at four hours; break-even ~3.7-18 h. See shared/examples/estimate-fermi.md Step 6b and docs/example-rerun-reading.md."
+        ),
+    ),
+    RetractedClaim(
+        literal="favors molten-salt TES on a",
+        retracted_by="2026-09-29 example re-run, estimate-fermi system-boundary error",
+        corrected=(
+            "Molten-salt TES is not cost-competitive with lithium-ion at a four-hour duration. The $20-50/kWh figure prices a thermal store per kWh of heat; lithium-ion's $150-300/kWh is a whole battery system's installed price per kWh of electricity. Converted to electricity and with the power block priced (NREL/TP-5500-57625 Table 1, $1,000-1,200/kW_e), the molten-salt system is ~$279-384/kWh_e at four hours; break-even ~3.7-18 h. See shared/examples/estimate-fermi.md Step 6b and docs/example-rerun-reading.md."
+        ),
+    ),
+    RetractedClaim(
+        literal="remains directionally favorable to molten-salt TES",
+        retracted_by="2026-09-29 example re-run, estimate-fermi system-boundary error",
+        corrected=(
+            "Molten-salt TES is not cost-competitive with lithium-ion at a four-hour duration. The $20-50/kWh figure prices a thermal store per kWh of heat; lithium-ion's $150-300/kWh is a whole battery system's installed price per kWh of electricity. Converted to electricity and with the power block priced (NREL/TP-5500-57625 Table 1, $1,000-1,200/kW_e), the molten-salt system is ~$279-384/kWh_e at four hours; break-even ~3.7-18 h. See shared/examples/estimate-fermi.md Step 6b and docs/example-rerun-reading.md."
+        ),
+    ),
+    RetractedClaim(
         literal="20-50% shorter",
         retracted_by="2026-09-28 post-release check of the v9.13.0 notes",
         corrected=(

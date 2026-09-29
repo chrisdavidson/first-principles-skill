@@ -42,9 +42,16 @@ magnitude and serves as a sanity check on the published range.
 - **Upper bound:** $50/kWh — high-end procurement, shorter effective cycle life
   (8,000 cycles accounting for partial-discharge years).
 
-**Decision-resolution check:** The bracket [$20–$50/kWh] vs. utility-scale
-lithium-ion [$150–$300/kWh] keeps the cost-competitiveness conclusion stable
-across the entire bracket — estimate is good enough to drive this decision.
+**Decision-resolution check:** Before the bracket [$20–$50/kWh] can decide a
+comparison against utility-scale lithium-ion [$150–$300/kWh], check that both
+figures price the same thing. They do not. The bracket is a thermal store's cost
+per kWh of *heat*; the lithium-ion figure is a whole battery system's installed
+price per kWh of *electricity*. Convert the heat to electricity (divide by the
+heat-to-power efficiency) and add the turbine and generator that conversion needs,
+and at a four-hour duration the comparison reverses — molten-salt storage is
+dearer, and cheaper only at long durations. The estimate worked example carries
+this through. A bracket is decision-grade only when what it prices is what the
+decision compares.
 
 ---
 
@@ -54,6 +61,12 @@ across the entire bracket — estimate is good enough to drive this decision.
 and using that as the material-cost factor is reasoning by analogy, not from
 first principles. Every factor must bottom out at a physical constant, a definition,
 or a direct measurement — not a comparison to a past project.
+
+**Comparing figures that price different scopes.** Two costs in the same units
+("$/kWh") can still cover different equipment or different energy: the store
+against the whole system, heat against electricity. Units cancelling is necessary,
+not sufficient — before comparing, list what each figure includes, and price
+whatever one side has and the other lacks.
 
 **Omitting the bracket.** Reporting only a central estimate without lower and upper
 bounds is an incomplete Fermi drill. The bracket is the entire point: it makes

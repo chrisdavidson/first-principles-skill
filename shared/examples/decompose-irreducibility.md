@@ -177,11 +177,14 @@ Each factor decomposes further:
   **Stop — physical law / definition (inorganic salt chemistry; no electrochemical
   cycling degradation by construction). Irreducible.**
 
-**Branch verdict — C3:** The capital cost comparison favors molten-salt TES on a
-per-kWh-installed basis (by roughly 5–10×). The LCOS comparison is verified in
-direction but not in magnitude without project-specific discount rates, capacity
-factors, and operating cost data. Mark as `Assumed — partially verified` pending
-those site-specific inputs.
+**Branch verdict — C3:** Each capital figure is verified, but **the two are not comparable as
+stated.** The molten-salt figure is the cost of a thermal store per kWh of *heat*; the
+lithium-ion figure is the installed price of a whole battery system per kWh of *electricity*.
+Put on one basis and one scope — convert the heat to electricity and add the turbine and
+generator that make it — and molten-salt TES is dearer than lithium-ion at a four-hour discharge,
+cheaper only at long durations (the estimate worked example does this in its Steps 6a–6b). Mark
+as `Assumed — not supported as stated`; the LCOS inputs below would refine the magnitude, not
+restore the direction.
 
 ---
 
@@ -194,12 +197,12 @@ those site-specific inputs.
 | C1c — heat-to-electricity (Rankine) | Physical law (2nd law / Carnot) + published turbine data | Verified |
 | **C1 — round-trip efficiency > 85%** | Refuted by C1c physical-law anchor (≈38%, not 85%) | **Refuted** |
 | C2 — molten-salt stability window | Direct measurement (phase diagrams, plant records) | Verified |
-| C3 — LCOS vs. lithium-ion | Direct measurement (cost surveys); site-specific factors missing | Partially verified |
+| C3 — LCOS vs. lithium-ion | Direct measurement (cost surveys); the two figures cover different equipment and bases | Not supported as stated |
 
 **Key finding:** The claim's 85% round-trip electricity efficiency is physically
 impossible at these operating temperatures — it is refuted by the Carnot limit,
-which is irreducible. The cost-competitiveness comparison (C3) is directionally
-supported but not fully verified without site-specific LCOS inputs.
+which is irreducible. The cost-competitiveness comparison (C3) is not supported as stated: it
+set a thermal store's cost against a whole battery system's price.
 
 ---
 
@@ -341,8 +344,8 @@ discarded.
 
 - The computed round-trip figure (chain C1) is closer to a ceiling than a floor: the ~38% figure already uses optimistic conversion efficiencies for C1a and C1b (97% and 99%); only C1c is fundamentally bounded, so future engineering improvement in C1a or C1b cannot close the remaining gap to 85%.
 - A system reporting an 85% "round-trip" efficiency for thermal storage is very likely measuring heat-in to heat-out, not electricity-in to electricity-out — no chain — flagged assumption only.
-- The LCOS comparison (C3) remains directionally favorable to molten-salt TES but depends on two unverified inputs — the tank-specific thermal loss rate and the project-specific financial inputs — that this drill does not resolve — no chain — flagged assumption only.
+- The cost comparison (C3) does not favour molten-salt TES at a four-hour discharge: its capital figure omits the turbine and generator a lithium-ion system's price already covers, and once they are priced molten-salt is dearer below a break-even duration of roughly 4–18 hours (the estimate worked example, Step 6b) — no chain — flagged assumption only.
 
 **Trade-offs acknowledged:** Accepting the Carnot-bounded ~38% round-trip figure (chain C1) instead of the claimed 85% changes the economic case for the system: a lower usable round-trip efficiency means more installed capacity is needed to deliver the same net electricity output, which raises the effective cost per kWh delivered relative to the capital-cost comparison in C3.
 
-**Confidence:** MEDIUM — HIGH on the refutation itself (chain C1); MEDIUM overall because the corrected round-trip figure's effect on the cost-competitiveness conclusion (C3) still depends on the unresolved GT-7? and GT-8? inputs.
+**Confidence:** MEDIUM — HIGH on the refutation itself (chain C1); MEDIUM overall because the claim's second half, cost-competitiveness (C3), is not settled by this drill: its direction is resolved against the claim by the estimate worked example, and the project-specific inputs GT-7? and GT-8? that would size the gap remain unverified.
