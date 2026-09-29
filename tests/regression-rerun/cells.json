@@ -1,0 +1,50 @@
+{
+  "science-engineering.r1": {
+    "outcome": "file",
+    "attempts": [
+      "science-engineering.r1.a1.jsonl"
+    ]
+  },
+  "science-engineering.r2": {
+    "outcome": "file",
+    "attempts": [
+      "science-engineering.r2.a1.jsonl"
+    ]
+  },
+  "software-systems-2.r1": {
+    "outcome": "file",
+    "attempts": [
+      "software-systems-2.r1.a1.jsonl"
+    ]
+  },
+  "software-systems-2.r2": {
+    "outcome": "file",
+    "attempts": [
+      "software-systems-2.r2.a1.jsonl"
+    ]
+  },
+  "theoretical-limit-carnot.r1": {
+    "outcome": "file",
+    "attempts": [
+      "theoretical-limit-carnot.r1.a1.jsonl"
+    ]
+  },
+  "theoretical-limit-carnot.r2": {
+    "outcome": "file",
+    "attempts": [
+      "theoretical-limit-carnot.r2.a1.jsonl"
+    ]
+  },
+  "personal-general-2.r1": {
+    "outcome": "file",
+    "attempts": [
+      "personal-general-2.r1.a1.jsonl"
+    ]
+  },
+  "personal-general-2.r2": {
+    "outcome": "file",
+    "attempts": [
+      "personal-general-2.r2.a1.jsonl"
+    ]
+  }
+}

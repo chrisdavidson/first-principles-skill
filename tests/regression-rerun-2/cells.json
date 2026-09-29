@@ -1,0 +1,14 @@
+{
+  "software-systems-2.r1": {
+    "outcome": "file",
+    "attempts": [
+      "software-systems-2.r1.a1.jsonl"
+    ]
+  },
+  "software-systems-2.r2": {
+    "outcome": "file",
+    "attempts": [
+      "software-systems-2.r2.a1.jsonl"
+    ]
+  }
+}

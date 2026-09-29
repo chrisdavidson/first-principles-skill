@@ -908,6 +908,11 @@ _FROZEN_PATHS=(
     # full-context re-run. Frozen because the reading's findings -- among them a defect in
     # the shipped estimate-fermi example -- are checkable only against these runs.
     'tests/example-rerun'
+    # regression-rerun, -2 (2026-09-29) -- two runs of each example whose re-run regressed,
+    # on the fixed body (docs/regression-rerun-reading.md). Frozen because each "resolved"
+    # verdict is checkable only against these runs.
+    'tests/regression-rerun'
+    'tests/regression-rerun-2'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null

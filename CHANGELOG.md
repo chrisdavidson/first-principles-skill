@@ -28,7 +28,31 @@ installed session.
   "comparing figures that price different scopes". Four retracted phrasings registered in
   RETRACT-01. Found by the v9.13.0 example re-run.
 
+### Changed — the shipped agent: five rules from the example re-run's regressions
+
+- **Phase 1:** a success criterion states what the answer must achieve, never its shape — it may
+  not require the answer to be exactly one of the named options — and the exit criterion checks
+  every criterion for that. When the question is a choice between options, a split or combination
+  is tested before scoring.
+- **Trade-off, step 1:** the option set includes at least one composite (part of one and part of
+  another, or one now and another later), or says in one line why none can exist.
+- **Phase 3:** ids keep their hyphen (`GT-1`, never `GT1`), and every figure is labelled measured,
+  published design value, or estimate.
+- **Phase 4:** two rates, returns or prices are put on the same basis — nominal or real, before or
+  after tax, same scope — before they are compared; the estimate procedure's decision-resolution
+  step checks the same.
+- **Phase 5 Recompute** covers every intermediate figure a hop combines; a figure scaled up by a
+  factor above one cannot come out below its base.
+
 ### Measured
+
+- **The regressions are resolved: each affected example passed its check in both of two runs**
+  ([reading](docs/regression-rerun-reading.md),
+  [protocol](docs/regression-rerun-protocol.md)). The hybrid-option rule needed a second attempt:
+  as first written it passed one run and failed the other, so it was revised and re-run under a
+  new registration rather than re-scored. Two caveats are recorded, one per run: a Carnot
+  ground truth still says "achieves" of a design figure, and one `software-systems-2` criterion
+  now presupposes a split.
 
 - **Every worked example re-run on v9.13.0 and compared with the shipped one**
   ([reading](docs/example-rerun-reading.md), [protocol](docs/example-rerun-protocol.md)). All
