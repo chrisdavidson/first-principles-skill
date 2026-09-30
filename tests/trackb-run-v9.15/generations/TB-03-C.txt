@@ -1,0 +1,22 @@
+No.
+
+At 1,200 DAU with one deployable and six engineers, the case for microservices doesn't hold up on any of the usual justifications:
+
+**The problems microservices solve don't exist here yet**
+- *Independent scaling* — 1,200 DAU is small enough that a monolith runs comfortably on a couple of instances. There's no component so hot it needs to scale separately from the rest.
+- *Independent deployability for large orgs* — that matters when dozens of teams step on each other in one repo/deploy pipeline. Six engineers sharing one deployable don't have that contention. You can all ship through one pipeline without blocking each other in practice.
+- *Team autonomy / Conway's Law alignment* — splitting services makes sense when you have separate teams that own separate domains and want to stop coordinating. Six people is one team. There's no organizational boundary to encode into service boundaries.
+
+**What it costs you instead**
+- Distributed systems tax: network calls replacing function calls, partial failure handling, retries/timeouts/circuit breakers, eventual consistency where you used to have a transaction.
+- Operational surface area: N services means N deploy pipelines, N sets of logs/metrics/dashboards, service discovery, inter-service auth, versioned API contracts between services.
+- With six engineers, you don't have the headcount to dedicate people to platform/infra work that microservices demand (someone owns the service mesh, someone owns the CI/CD templates, someone owns on-call runbooks per service). That work competes directly with product work.
+- Debugging a user-facing bug now means tracing a request across services instead of reading a stack trace.
+
+**The usual counterargument, and why it doesn't apply yet**
+Sometimes teams reach for microservices preemptively "for when we scale." But splitting later, once you actually have the pain (a specific component with distinct scaling needs, a specific team boundary, a specific deploy-contention problem), is cheaper than un-splitting a premature decomposition. Boundaries drawn before you understand real usage patterns are usually wrong and expensive to redraw once services exist and have separate data stores.
+
+**What I'd suggest instead**
+Stay on the monolith, but keep internal boundaries clean — modules with clear interfaces, no reaching across module boundaries into another module's internals. That gets you most of the benefit (encapsulation, easier reasoning, a plausible extraction path later) with none of the distributed-systems cost. If a specific piece later needs independent scaling or a separate on-call/ownership boundary, you extract *that one piece* — you don't decompose everything up front.
+
+If there's a specific pain point driving this (a slow deploy pipeline, a noisy-neighbor scaling issue, a team split on the horizon), that's worth naming — it would change the answer for that one piece, not the overall architecture.

@@ -1,0 +1,19 @@
+**Decision usefulness (C1):** The document lands on a specific, executable recommendation — build a scoped GraphQL/BFF gateway in front of existing REST, limited to the 3 mobile clients, with dataloader batching built in from day one — rather than resolving the abstract "REST vs GraphQL" question it was framed around. It states who acts on it (mobile teams, one backend team) and under what conditions the recommendation would expand (mobile teams happier after ~6 months, other teams asking organically). This is specific enough to execute or reject, so it earns the top band.
+
+**Evidence grounding (C2):** Most of the load-bearing technical claims are derived in view of the reader rather than asserted — the mechanism behind resolver N+1, why HTTP caching breaks under GraphQL-over-POST, and why sequential dependent lookups survive a paradigm switch are all explained rather than stated as bare fact. However, at least one load-bearing figure — "Realistically this is a 12–18 month coexistence period regardless of which option you pick" — is presented with unhedged specificity and no stated basis, despite being exactly the kind of number that was easy to flag as a rough estimate. That keeps it out of the top band.
+
+**Assumption surfacing (C3):** The document explicitly names the load-bearing assumption behind the whole recommendation — that the cause of the round-trip problem is knowable and matters for which fix works — and tests it by enumerating three candidate causes and showing that GraphQL only addresses two of them. It goes further in the closing paragraph, naming two additional assumptions (that the 6 non-mobile clients are costly to migrate; that round-trips is the only driver) and stating precisely what happens to the recommendation if either is false. That is genuine engagement with consequential assumptions, not just a gesture at them.
+
+**Calibration (C4):** Confidence tracks support throughout: causal claims about the round-trip problem are explicitly hedged ("almost certainly one of"), well-established engineering tradeoffs (caching, N+1, query-cost attacks) are stated plainly because they're not in dispute, and the recommendation itself is framed as reversible and provisional rather than final. The closing section separates what is known (the stated client split) from what is being inferred (root cause, migration cost), which is exactly the distinction the top band asks for.
+
+**Falsifiability (C5):** The document ends by naming concrete, checkable conditions that would overturn the recommendation — if the 6 non-mobile clients turn out to be low-maintenance/internal, or if a second driver beyond round-trip count exists (e.g., versioning pain, backend fragmentation) — rather than a generic "more research needed" caveat. These are specific enough that a reader could go verify them against their own org, which is what the top band requires.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

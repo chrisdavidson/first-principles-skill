@@ -1,0 +1,21 @@
+## Scoring
+
+**1. Decision usefulness — Rigorous.** The document lands on a concrete, executable recommendation: negotiate a composite of a smaller pay cut (~15% instead of 30%), additional equity or accelerated vesting, a time-boxed trial period, and an explicit 6-month milestone checkpoint. It states who this applies to and under what conditions (the "Band: LOW overall" caveat and the "Would change it" list at the top), and it goes further than a bare verdict by specifying a fallback (full commitment if the staged ask is a dealbreaker) and a pre-mortem with named plan changes. A reader could walk into a negotiation with this and know exactly what to ask for.
+
+**2. Evidence grounding — Sound.** Most of the load-bearing factual claims are carefully sourced and honestly graded: GT-1 and GT-3 are marked "read at source," GT-2, GT-4, and GT-5 are marked as secondary or flagged when a direct-source fetch returned 403/404, and GT-6 is labeled "unverified but common knowledge." This transparency about provenance is unusually disciplined. However, the central quantitative argument for the top-line recommendation — the weighted trade-off table showing the composite option scoring 94 against 69/69/72/82 for the alternatives — presents only totals with no visible weights or per-criterion scores, so the reader cannot check the arithmetic behind the single most decision-driving number in the document. That gap, on an otherwise well-grounded document, keeps it out of the top band.
+
+**3. Assumption surfacing — Rigorous.** The document names its assumptions explicitly in a dedicated section (18 total, with the key ones spelled out: "stable job" isn't zero-risk, the 30% cut isn't the full comp delta, equity value isn't straightforward, the choice isn't binary, age 34 isn't a deadline, reversibility is partial). It doesn't stop at naming them — it engages the most consequential one (job-search duration relative to runway) directly, building the entire C1 derivation chain and the pre-mortem's "runway mismatch" item around testing and bounding it.
+
+**4. Calibration — Rigorous.** Confidence is stated per derivation chain (each marked LOW) with reasons given each time — unverified secondary data, an unruled-out rival hypothesis, capped inheritance from earlier steps — rather than a blanket disclaimer. Crucially, it distinguishes what is robust from what isn't: the *mechanics* of the weighted scoring and the general framework ("robust and would likely survive most factual specifics") are held apart from the *person-specific numeric verdict*, which is explicitly downgraded because of missing cap-table, vesting, and burn-rate data. That's confidence tracking the actual source of uncertainty rather than uniform hedging.
+
+**5. Falsifiability — Rigorous.** The document closes with a specific, checkable falsification condition: the recommendation flips to "decline outright" if, once the real cap table, vesting terms, and runway data are obtained, the equity proves near-worthless, negotiation proves impossible, and the runway floor isn't met net of the pay cut. This is a conjunctive, checkable test tied to named artifacts (cap table, vesting language, burn rate) rather than a generic caveat, and it's reinforced by the pre-mortem's itemized failure clusters, each paired with a concrete plan change.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

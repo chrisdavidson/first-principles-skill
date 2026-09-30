@@ -1,0 +1,19 @@
+**Decision usefulness (Rigorous):** The document reaches a genuinely actionable, two-branch recommendation — adopt the pricing-plus-cycle-lanes composite where road-pricing authority exists, and pursue a named set of alternative demand-management tools (employer transit benefits, parking-pricing reform, pursuing pricing authorization as a parallel track) where it doesn't — rather than settling for a single universal answer or a survey of options. It states plainly who the recommendation is for (a stipulated generic mid-sized city profile, with the stipulation disclosed rather than hidden) and under what condition each branch applies (legal authority to price roads). A reader with a real city in hand could check which branch applies to them and act on the corresponding instructions immediately.
+
+**Evidence grounding (Rigorous):** Every numeric claim that does real work in the argument is either tied to a named, quoted source (Stockholm's ~22% cordon reduction, London's ~15%+ reduction, Toronto's 24%-switched-from-driving figure, Tallinn's 1.2-point ridership effect), derived transparently in front of the reader (the Fermi bracket for cycle-lane effectiveness, the weighted trade-off table with score justifications), or explicitly marked as a lower-confidence, delegate-reported estimate when its provenance is weaker (the four `?`-suffixed ground truths on trip-distance share, farebox recovery, bike-lane capex, and pricing revenue-positivity). Nothing load-bearing is asserted as bare fact with no visible basis, and the document is candid about which of its own inputs are thinnest (e.g., flagging Tallinn's single-news-article backbone as weaker than the other unsuffixed sources).
+
+**Assumption surfacing (Rigorous):** The document names a long list of specific, load-bearing assumptions (cross-city transferability, legal pricing authority, transit spare capacity, additivity of free-transit and cycling effects, and others) rather than gesturing generically at uncertainty. Critically, it doesn't stop at naming: it actively tests the single most consequential assumption — that findings from London/Stockholm/Tallinn/Toronto transfer to a generic city — by inverting it and deriving concrete, checkable preconditions (a definable chokepoint, a meaningful short-trip share, sufficient baseline car mode share) whose failure would undercut the whole analysis.
+
+**Calibration (Rigorous):** Confidence is not uniform: it is explicitly graded per line of reasoning (HIGH inputs but MEDIUM overall for the individual-lever chains, dropping to LOW for the trade-off and final recommendation because those rest on a disclosed normative judgment rather than settled evidence). The document is willing to say its own headline recommendation is LOW confidence and to explain exactly why — a value-weighting question, not a data gap — which is a stronger calibration signal than simply hedging everywhere or asserting uniformly.
+
+**Falsifiability (Rigorous):** The document states concrete, checkable conditions that would overturn its conclusions: a rigorously measured post-implementation study showing near-zero commuter-specific reduction despite an 18-month, materially-deterrent tariff would undercut the pricing-effectiveness chain, and a second rigorous fare-free case substantially exceeding Tallinn's ~1-point effect would undercut the free-transit-is-weak chain. These are specific enough that someone could actually go run the check, not generic "more research is needed" language.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

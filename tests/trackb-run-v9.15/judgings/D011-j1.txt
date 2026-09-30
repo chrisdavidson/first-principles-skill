@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches a clear, concrete position: verify three specific facts (parents' documented care-need acuity, paid-care substitutability at their location, and the parents' own stated preference) before weighing any job or school cost, then run a trade-off among whichever options survive, stagger the two job changes rather than making them simultaneous, and only fall back to an explicit values trade-off if a genuine tie remains. Each step names a concrete action a reader could take this week (a geriatric/functional assessment, two or three calls to local home-care agencies, a direct conversation with the parents), and the document is explicit about scope — the numerical option ranking is an illustrative baseline that a real family must re-run with its own numbers, but the procedure itself does not depend on that ranking to be actionable. This is executable, not just directionally suggestive. **Rigorous.**
+
+## Criterion 2: Evidence grounding
+
+Numeric and factual claims are traced to named sources with confirmed wording (AARP, Pew, Education Week, a conference slide deck), and the document distinguishes read-at-source claims from three explicitly flagged, weaker ones (GT-6?, GT-7?, GT-8?) that are labeled "reported-by-delegate" or "unreachable," with the confidence of every chain that depends on them downgraded accordingly. Even a background modelling constant (traffic speed) is flagged as an assumed order-of-magnitude figure rather than presented as measured fact. Nothing load-bearing is asserted as plain fact without either a source, a derivation, or an explicit estimate flag. **Rigorous.**
+
+## Criterion 3: Assumption surfacing
+
+Assumptions are enumerated individually (A1–A20), typed (physical law, current constraint, untested belief, convention), and each carries a verdict and a verification path. Critically, the single most consequential assumption — that the parents' need is acute and not substitutable by paid care — is not just named but tested: the document computes exactly how much a single weight in the trade-off matrix would have to change for the ranking to flip, and shows that flip condition is structurally identical to that assumption failing. Other assumptions (parental consent, financial buffer, sibling support) are similarly priced into specific chain recomputations rather than left as a flat list. **Rigorous.**
+
+## Criterion 4: Calibration
+
+Confidence levels (HIGH/MEDIUM) are assigned per chain and explicitly derived from the chain's weakest cited input — the one chain built entirely on arithmetic and uncontested physical bounds is rated HIGH, while every chain that touches a flagged, unverified ground truth is capped at MEDIUM, with the specific downstream chains inheriting that cap explicitly stated. The final conclusion's confidence is pinned to its weakest contributing chain rather than rounded up. This is a genuine, checkable tracking of confidence to support, not a uniform tone applied regardless of evidence quality. **Rigorous.**
+
+## Criterion 5: Falsifiability
+
+The document states a specific condition under which its central conclusion would be wrong (the procedure fails to outperform simply deciding by unexamined convention, on the family's own stated criteria). Beyond that, it names concrete, checkable actions that would raise or lower confidence in individual chains (a working citation for the decline-trajectory study, a route-specific moving quote, an industry-specific job-search estimate), and runs a pre-mortem that generates specific failure scenarios per stakeholder and converts each into either a named plan change or an explicitly accepted, mitigated risk. These are specific enough to check against, not generic hedges. **Rigorous.**
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

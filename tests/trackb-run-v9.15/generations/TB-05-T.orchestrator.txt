@@ -1,0 +1,53 @@
+Here is the complete first-principles analysis:
+
+## Answer
+
+**Recommendation:** Expect a bare "publish training data sources" hiring-AI rule to produce vague, categorical vendor disclosures rather than itemized data accounting (chain C1), and expect that disclosure — however complete — to be logically incapable of revealing discriminatory bias, since bias is a property of outcome/feature statistics that source-naming doesn't convey (chain C2); the closest real-world analogue shows this class of mandate gets ≈5% real compliance, self-selected toward favorable results (chain C3). Net effect: real compliance costs and modest secondary transparency value, not the anti-discrimination outcome usually cited to justify it.
+
+**Band:** LOW
+
+**Would change it:** The actual statutory/implementing-rule text of a specific proposal (resolving whether it mandates a granular, outcome-linked schema and real enforcement); a working primary-source citation for the Title VII disparate-impact standard behind chain C2; and post-enactment compliance data for the specific rule, analogous to the NYC Local Law 144 field study.
+
+## 1. Problem Essence
+
+**Core problem:** When a regulator requires hiring AI to publish training-data sources, what concrete institutional behavior actually follows, and does the resulting information regime give anyone the ability to detect or reduce discriminatory bias — the aim such rules are consistently justified by?
+
+## 2. Assumptions Table (key items)
+
+- The rule is read as a public naming/categorization duty, not raw-data release, developer-facing or employer-facing — the plain reading matched by both real analogues found.
+- No mandated granular schema, no independent audit/verification mechanism, no private right of action, no accessible aggregation layer for job seekers/researchers — all assumed absent by default, since the prompt describes a generic proposal. These are the load-bearing gaps: if a real statute closes them, the conclusion doesn't hold as stated.
+
+## 3. Ground Truths
+
+- **NYC Local Law 144** requires employers to post a bias-audit *summary*, not training data or sources.
+- A 2024 field study found only ≈5% of 267 covered employers actually posted the required disclosure — "null compliance" — and of those, 96% showed favorable (non-adverse) results, consistent with self-selective, litigation-avoidant posting rather than genuine transparency.
+- **EU AI Act Art. 53(1)(d)**, the closest real analogue to "publish training-data sources," resolved in practice into a banded/categorical template (data-size bands, cutoff dates, yes/no source-category flags) — not an itemized accounting.
+- Title VII disparate-impact analysis (the "four-fifths rule") is fundamentally a comparison of **outcome/selection-rate statistics** across protected groups — a property of how data is filtered, labeled, and modeled, not of which organizations supplied it.
+- Logical corollary: identical source lists can accompany opposite bias profiles, and different source lists can accompany identical bias profiles. **A source name carries no fixed relationship to the statistics that define discrimination.**
+- Hiring-AI training data commonly contains real applicants' PII; UK ICO findings on recruitment-AI vendors flagged purpose-limitation/minimization problems in that exact data flow — a structural reason regulators keep disclosure at the category level rather than requiring raw data.
+
+## 4. Derivation Chains
+
+**C1 (confidence LOW):** Absent a mandated granular schema, the rule would most plausibly be satisfied through vague, categorical disclosures ("internal applicant records," "a licensed resume database") rather than itemized data-source accounting — this is exactly what happened under the EU's comparable, more elaborately templated mandate.
+
+**C2 (confidence MEDIUM — the analysis's most robust component):** Training-data-source disclosure, however complete and accurate, is *not logically capable* of revealing discriminatory bias, because the legal/statistical test for discrimination is about outcome-rate differentials, and source names don't encode that.
+
+**C3 (confidence LOW):** Real-world compliance with this class of mandate has been low (~5%) and self-selected toward favorable results (LL144 evidence); a new rule modeled on the same disclosure-only structure would predictably reproduce that pattern — duties get routed to compliance counsel as litigation/PR risk management, not substantive audits, and the people the rule is meant to inform are the least likely to encounter complete, findable disclosures.
+
+**C4 (confidence LOW):** The same pressure that keeps disclosure at the category-name level (avoiding collision with data-protection/purpose-limitation law over real applicants' PII) is itself why the rule can't *also* serve as a precise bias-detection instrument. Privacy protection and bias-diagnostic power pull required specificity in opposite directions — a single "publish your sources" duty can't cleanly serve both.
+
+## 5. Abandoned Reasoning (dead ends explicitly ruled out)
+
+- **"Sunlight alone deters bad practice"** — contradicted directly by the ~5% compliance evidence.
+- **"A named source itself can be a bias red flag"** — doesn't generalize, since most hiring data is idiosyncratic employer records, not a standardized public dataset with attached bias literature.
+- **"Publish the raw training data"** reading — rejected as the operative interpretation, since it would collide even harder with privacy law and matches neither real-world analogue's actual wording.
+
+## 6. Conclusion
+
+**Recommended approach:** Read the rule as most likely implemented without a mandated statistical/outcome schema, independent verification, or enforcement funding. Expect: (1) categorical, low-specificity disclosures, not itemized accounting; (2) disclosure that cannot by itself reveal bias, since bias is an outcome/feature-statistics property that source-naming doesn't carry; (3) low, self-selected real-world compliance mirroring the closest analogue. **The rule as commonly proposed would generate compliance activity and modest secondary transparency value, but would not achieve the anti-discrimination/accountability aim usually invoked to justify it.**
+
+**Key insight:** This isn't just a weak-enforcement problem — it's a structural tension. The specificity that would make source disclosure diagnostic of bias is largely the same specificity that collides with data-protection law's purpose-limitation principles for the real people in that data. The version of the disclosure most useful for the stated aim is also the version regulators and firms have the strongest independent reasons *not* to require or publish.
+
+**Trade-offs acknowledged:** The duty isn't worthless — it has secondary value for copyright/privacy enforcement and for cross-referencing named datasets with independently documented bias properties in narrow cases. But its likely design also risks crowding out political appetite for the instrument that would actually fit the stated aim: outcome-based bias audits with independent verification and enforcement funding.
+
+**Confidence:** LOW overall — the two weakest chains (C1, C3) are scoped to a generic rule design that hasn't been drafted anywhere yet, so a genuinely better-designed statute (granular outcome-linked schema + real verification + enforcement teeth) is a live, unsettled rival this analysis doesn't rule out. **C2 is the most robust piece** — its logical core (source-naming ≠ bias-detection) holds regardless of enforcement design.

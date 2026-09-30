@@ -1,0 +1,65 @@
+Here's the complete first-principles analysis on REST vs. GraphQL:
+
+## Answer
+
+**Recommendation:** Do not replace REST with GraphQL wholesale. Build a REST-based, mobile-scoped aggregation/BFF layer that composes each affected mobile screen's data into one call, leaving the other 6 client integrations untouched, and treat a full GraphQL migration as an explicitly deferred decision — triggered later by real cross-client demand for flexible querying, not by the mobile complaint alone.
+
+**Confidence: MEDIUM** — capped by an unresolved future-demand assumption behind the "defer GraphQL" half of the plan, and by an unverified mobile-RTT estimate. **Would change it:** observing the deferred-GraphQL trigger actually occur (a new client or redesign requesting flexible querying), or measuring real production RTT telemetry from the 3 mobile apps.
+
+## 1. Problem Essence
+
+The triggering request ("replace REST with GraphQL") is a proposed *solution*, not the problem. The actual question: is there a narrower architectural fix for the mobile round-trip complaint that doesn't force the other 6 clients to migrate? Success criteria required: (1) collapse 4-6 round trips toward ~1, (2) don't degrade the 6 non-mobile clients, (3) cost proportionate to benefit, (4) fix the root cause (lack of per-screen aggregation) not just mask it, (5) the answer doesn't have to be "REST" or "GraphQL" exclusively.
+
+## 2. Assumptions challenged (14 total, table below is abridged to the load-bearing ones)
+
+| Assumption | Verdict | Why |
+|---|---|---|
+| "GraphQL eliminates round trips" | **Discard** | Overstated — reduces client↔server calls to one, but doesn't eliminate round trips categorically |
+| "REST inherently requires 4-6 round trips" | **Discard** | Property of *this* API's resource granularity, not of REST as a style |
+| "GraphQL resolvers automatically avoid backend fan-out" | **Discard** | Naive resolvers reproduce the N+1 problem server-side unless batching (DataLoader) is built |
+| "GraphQL responses stay CDN-cacheable like REST GETs" | **Discard** | Standard GraphQL deployments POST everything, bypassing HTTP/CDN caching by default |
+| "A REST-based BFF layer can achieve the same round-trip collapse without a protocol change" | **Accept** | Verified against the BFF pattern definition |
+| "The other 6 clients are unaffected regardless of which fix is chosen" | **Challenge** | True only for scoped fixes; false for a full replacement, which forces all 9 to migrate |
+
+Several genuinely unresolved premises were flagged rather than hand-waved: whether the 4-6 calls are sequentially dependent vs. parallelizable, whether underlying services already expose enough data for a BFF layer, and whether future demand for flexible querying will spread beyond mobile.
+
+## 3. Ground truths (read at source, not recalled)
+
+- **GT-2** (graphql.org): GraphQL collapses multiple resource fetches into one request — real, but a client-facing mechanism only.
+- **GT-3** (Sam Newman, BFF pattern): a dedicated per-experience aggregation backend is architecture-agnostic — it can sit in front of REST or GraphQL services alike.
+- **GT-4** (graphql/dataloader): naive GraphQL resolvers reproduce N+1 fan-out server-side (up to 13 DB calls for a 3-level nested query) unless batching is deliberately implemented.
+- **GT-5** (Apollo docs): GraphQL's default POST-everything transport isn't CDN-cacheable, unlike REST GETs.
+- **GT-6**: only the 3 mobile clients report the round-trip complaint — the other 6 are silent.
+- **GT-7**: a full replacement necessarily means building a GraphQL server *and* migrating all 9 client codebases across every platform stack.
+- **GT-8?** (unverified estimate): mobile RTT ~50-300ms — used only for bracketing, flagged as unmeasured.
+
+## 4. Key derivation chains
+
+- **C2 (HIGH):** GraphQL fixes the client-facing round trips only *if* backend batching is deliberately built — it's sufficient, not automatic.
+- **C3 (HIGH):** A REST-based, mobile-scoped BFF is architecturally sufficient to fix the complaint without touching the other 6 clients.
+- **C4 (MEDIUM):** the weighted trade-off (below) shows the composite option wins robustly; confidence capped because the "defer GraphQL" half rests on an unresolved future-demand assumption.
+
+**Trade-off scoring** (weighted 1-5 across time-to-relief, blast radius, flexibility, cost, operational complexity, ecosystem value):
+
+| Option | Score |
+|---|---|
+| Full GraphQL replacement (all 9 clients) | 39 |
+| Mobile-scoped GraphQL gateway | 61 |
+| REST-based mobile BFF/aggregation | 75 |
+| **Composite: REST BFF now, GraphQL deferred** | **80** |
+
+A flip test confirmed no single-criterion reweighting within a valid range changes this ranking — it's a robust result, not a narrow win.
+
+## 5. Rejected paths
+
+- **Do nothing** — fails the basic requirement trivially.
+- **Client-side parallelization only** — cuts wall-clock latency but not call count or orchestration complexity; a network-dependent mitigation, not a fix.
+- **Full GraphQL replacement as the default "modernization" move** — scores lowest (39) once weighed against the other 6 clients' total non-involvement and the real migration cost (GT-7).
+
+## 6. Adversarial pass (pre-mortem)
+
+Given a hypothetical 6-months-out failure, the one **fatal** cluster identified: the "defer GraphQL" decision quietly becoming permanent because nobody owns re-checking the trigger condition. That converted directly into a plan change: **calendar an explicit quarterly review of the deferral trigger**, so it doesn't silently rot into "never."
+
+---
+
+**Bottom line:** the "REST vs. GraphQL" framing was a false binary — the actual lever is per-screen data aggregation, which a REST BFF layer delivers at far lower cost and blast radius than a protocol-wide swap, with GraphQL kept on the table as a scoped, evidence-triggered future decision rather than dismissed or defaulted into.

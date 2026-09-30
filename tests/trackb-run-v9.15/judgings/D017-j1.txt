@@ -1,0 +1,29 @@
+## Criterion 1: Decision Usefulness
+
+The document reaches an unambiguous, executable position: build a REST-based, mobile-scoped aggregation/BFF layer now, leave the other six client integrations untouched, and treat a full GraphQL migration as an explicitly deferred decision gated on a named trigger condition. This is specific enough that an engineering team could start scoping the work directly from the recommendation, and the document names who bears the consequences (the platform/backend team taking on new coupling, the mobile engineers who benefit) and under what condition the recommendation would change (a fourth client or redesigned existing client demanding flexible querying). Nothing here is hedged into uselessness or generic enough to apply to any decision of this shape. **Rigorous.**
+
+## Criterion 2: Evidence Grounding
+
+The load-bearing technical claims are each tied to a specific external source with a quoted passage the reader could go check (GraphQL's single-request model from graphql.org, the BFF pattern from Sam Newman's site, the N+1 resolver problem from the DataLoader README, the POST-caching gap from Apollo's docs), and the one number that isn't sourced — mobile RTT range — is explicitly labeled an unverified order-of-magnitude estimate with its basis stated, and every downstream conclusion that depends on it is capped accordingly. The trade-off scoring table assigns numeric weights that are the analyst's own judgment rather than externally sourced, but the document treats them as reasoned scoring rather than smuggling them in as fact, and ties each score back to a specific ground truth. **Rigorous.**
+
+## Criterion 3: Assumption Surfacing
+
+The assumptions table names fourteen distinct load-bearing assumptions individually rather than gesturing at "conditions holding," and the most consequential ones are engaged rather than merely listed: the sequential-vs-parallel round-trip assumption is bounded with an explicit both-branches-still-hold analysis, the future cross-client demand assumption is carried forward as a named, checkable trigger rather than resolved by fiat, and the trade-off's weight-legitimacy assumption is stress-tested with a flip test. This goes beyond naming assumptions into testing what happens if the consequential ones are wrong. **Rigorous.**
+
+## Criterion 4: Calibration
+
+Confidence is expressed per chain (HIGH vs. MEDIUM) and the gap between them tracks a specific, named cause each time — chains resting only on read-at-source ground truths are rated HIGH, while chains that lean on an unverified RTT estimate or an untestable future-demand premise are explicitly downgraded to MEDIUM, with a stated path to what would lift them. The document distinguishes throughout between what it has sourced and what it is inferring, and does not let the overall recommendation's confidence outrun the weakest link it depends on. **Rigorous.**
+
+## Criterion 5: Falsifiability
+
+The document states, in concrete and checkable terms, what would overturn the recommendation: a closing falsification condition (the aggregation layer failing to collapse round trips to ~1-2, or imposing cost/risk on the other six clients comparable to a full replacement) and a set of named tripwires with owners and review cadences (e.g., six months elapsing with no scheduled review of the deferred-GraphQL trigger). These are specific enough that someone could actually go check them later, not generic caveats that would fit any analysis. **Rigorous.**
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

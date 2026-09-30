@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches an unambiguous, specific recommendation — not "it depends" but a named three-part hybrid (grade-load-bearing secured/timed component, take-home for extended/authentic tasks, ~10% unpredictable accommodation-inclusive oral defense), with an explicit instruction that its integrity property must never rest on AI-text detection. The recommendation names the option-space it rejects (pure replacement, unchanged status quo), states the margin by which it beat the alternative (81 vs. 76), and specifies operational conditions under which it applies (grade weight must stay load-bearing, accommodations designed in from rollout). A reader — a provost or academic-integrity committee — could take this to a policy meeting and either implement it or reject it on stated grounds. This clears the top band: **Rigorous**.
+
+## Criterion 2: Evidence grounding
+
+Nearly every load-bearing factual claim carries a named source with a read-at-source location (PMC identifiers, arXiv IDs, survey release pages), and the document is unusually disciplined about distinguishing what it verified directly from what it took on a search-engine summary — the latter are explicitly marked with "?" and "reported-by-delegate" (GT-5?, GT-6?, GT-8?), and their downstream effect on confidence is tracked rather than laundered into unmarked fact. The numeric weights and per-option scores in the trade-off table are the one soft spot — they're judgment calls with only a one-line rationale each — but they function as stated normative weightings rather than disguised factual claims, and the document flags their weakest link (GT-8? driving the Equity score) rather than hiding it. **Rigorous**.
+
+## Criterion 3: Assumption surfacing
+
+The seventeen-row assumption table names each assumption individually, types it, and gives it a verdict — several are discarded or actively challenged with reasoning (A1 detector reliability discarded against GT-2; A6 capability ceiling discarded against GT-4), not merely logged and set aside. The most consequential assumptions are stress-tested rather than just listed: the inversion pass derives the hybrid's failure preconditions (A9–A13), and the pre-mortem carries several of them through to named tripwires and disposition. This is exactly the "engages with at least the most consequential one" bar the top band asks for, applied to more than one assumption. **Rigorous**.
+
+## Criterion 4: Calibration
+
+Confidence is assigned per conclusion (HIGH for C1/C6, MEDIUM for C2–C5) and the gap between them is explained by what's actually different in their support — C1 rests on two read-at-source figures combined directly, while C3/C4/C5 are explicitly capped by unverified GT-5?/GT-8? or by inheriting a capped parent's rating. The document distinguishes established fact (94% undetected, bar-exam percentile) from forward-looking inference (future real-time AI coaching during oral defense, explicitly labeled "speculative-but-foreseeable"). Confidence tracks support rather than being applied uniformly. **Rigorous**.
+
+## Criterion 5: Falsifiability
+
+The "Would change it" list names three specific, checkable events (a primary-source read of two specific literatures that could move a specific 5-point margin; institution-specific evidence that resourcing/sampling can't be sustained; emergence of real-time oral-defense-defeating AI). Beyond that, the appendix's Falsification paragraph states a concrete joint condition — two named tripwires (grade-weight erosion, under-administered viva rate) firing within 2–3 years — under which the recommendation should be judged to have been wrong. These are checkable against specific institutional data, not generic "further research needed" language. **Rigorous**.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

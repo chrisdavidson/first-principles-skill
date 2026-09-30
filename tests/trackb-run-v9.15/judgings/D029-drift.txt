@@ -1,0 +1,19 @@
+**Decision usefulness (C1):** The document lands on a specific, executable recommendation — not "consider a hybrid" but a named hybrid with concrete components: a grade-load-bearing secured/timed component, take-home reserved for extended/authentic tasks, and an unpredictable ~10% sampled, accommodation-inclusive oral defense, with an explicit design rule that its integrity property must never rest on AI-text detection. It states the conditions under which the recommendation holds (secured component must stay load-bearing, viva sampling must stay unpredictable, resourcing must persist) and names who would act on it (institutional policy owners — registrar, Provost, Teaching & Learning office appear as explicit owners of tripwires). A reader could take this document and either implement the design or reject it on stated grounds. This clears the top band.
+
+**Evidence grounding (C2):** Nearly every load-bearing claim is either read at source with a named location (GT-1, GT-2, GT-3, GT-4, GT-7, each with a specific document/section) or explicitly marked as unverified/delegate-reported (GT-5?, GT-6?, GT-8?) and then treated accordingly — downweighted, flagged, and named as the specific cause of a confidence downgrade rather than smuggled in as settled fact. The final recommendation's confidence rating is explicitly capped because two of its inputs are unverified, which is exactly the discipline the top band asks for: numbers come from somewhere visible, and where they don't, that gap is disclosed and its consequence traced through the argument.
+
+**Assumption surfacing (C3):** The assumptions table names seventeen distinct load-bearing assumptions, types them, and gives each a verdict (Accept/Challenge/Discard) with reasoning tied to a ground truth. The single most consequential assumption — that AI-detector clearance can safeguard take-home integrity — is not just named but actively tested and discarded against direct evidence (GT-1, GT-2), and its failure is traced forward into every downstream chain. Other assumptions (resourcing persistence, viva predictability, rational student response to sampling) are also engaged rather than merely listed, with specific failure conditions given.
+
+**Calibration (C4):** Confidence is graded per chain (HIGH vs MEDIUM) and the grading tracks the actual support: chains resting only on read-at-source data are HIGH, chains that lean on unverified or delegate-reported ground truths are explicitly capped at MEDIUM, and the document states which specific unverified input is responsible for each cap. The final recommendation is honestly reported as MEDIUM rather than inflated to match the confidence of the problem-diagnosis chains (C1, HIGH) it depends on — a distinction between "the problem is well-established" and "the fix is optimal" that the document draws explicitly rather than blurring.
+
+**Falsifiability (C5):** The document goes beyond a generic caveat: it states a specific, checkable joint condition for the hybrid recommendation being wrong (secured-component grade weight not sustained above a stated floor AND viva-sampling rate not actually administered, both within 2-3 years, with named tripwires and owners), and separately lists what primary-source evidence would change specific sub-scores (the retrieval-practice and accommodation-efficacy literature) enough to flip the trade-off's five-point margin. These are conditions someone could actually go and check, not boilerplate about "further research."
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

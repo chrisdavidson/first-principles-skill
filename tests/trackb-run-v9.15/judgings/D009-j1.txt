@@ -1,0 +1,21 @@
+## Assessment
+
+**1. Decision usefulness.** The document reaches an explicit, actionable position: land is a solved, non-binding input for a moderate-or-lower-density 10-million-person country, and planning effort should shift to storage/firming, grid buildout, siting/interconnection economics, and capital. It names who this applies to (a Portugal-like, not Bangladesh-like, country) and under what condition the recommendation would flip (density). A reader tasked with deciding where to focus policy or investment attention could act on this directly. That specificity and scoping puts it in the top band.
+
+**2. Evidence grounding.** Several load-bearing figures are sourced with provenance (NREL 2013 land-per-GWh figure, Wikipedia per-capita consumption, Shockley-Queisser physical limit), and the document is unusually transparent about which numbers are not: 9 of 14 "ground truths" are explicitly marked `?` as "unverified, search-only," including central inputs to the headline computation (ground-coverage ratio, performance ratio, GHI values, the agricultural-land-share claim). This disclosure is honest, but the "basis" given for the flagged figures is thin — "search-only" names no actual source, so a reader can't go check where 0.40–0.50 GCR or ">1/3 agricultural land" came from. That keeps several load-bearing numbers short of being genuinely traceable, even though nothing is misrepresented as solid.
+
+**3. Assumption surfacing.** This is a clear strength. The document maintains an explicit assumptions table with verdicts (Accept / Challenged / Rejected), and it identifies and repeatedly engages the single most consequential assumption — that land is computed from annual-average energy balance rather than instantaneous/diurnal/seasonal matching (A2) — flagging it "on every load-bearing hop" and building a second-order discussion of what that assumption leaves uncovered (storage, firming, grid overbuild). Other assumptions (A3, A6, A10) are also named and individually adjudicated rather than gestured at generically.
+
+**4. Calibration.** The confidence banding tracks the actual support closely: individual derivation chains are marked MEDIUM, the final synthesis step is marked LOW, and the document is explicit that the arithmetic itself is well-verified (an independent recompute reproduced every figure) while the *overall* confidence is capped by a specific, named source of doubt — the density-dependent rival scenario — rather than by vague unease. It distinguishes "what it knows" (the arithmetic chain, cross-checked two ways) from "what it's inferring" (that the typical country is not land-scarce) with real granularity.
+
+**5. Falsifiability.** The "Would change it" section is concrete and checkable: resolving the agricultural-land-share figure at primary source, and rerunning the same chain for a named small, high-density country. The document goes further by actually running a partial version of that check itself (the Bangladesh-density substitution, which flips the conclusion at ≥7.7%–45% of territory), showing exactly what evidence would overturn or rescope the recommendation and how much it would take. This is specific enough that a reader could go verify it rather than a generic "further research needed" caveat.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

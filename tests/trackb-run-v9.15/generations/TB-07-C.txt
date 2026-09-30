@@ -1,0 +1,49 @@
+## Setting up the Fermi estimate
+
+**1. Electricity demand.** Per-capita electricity consumption varies ~10x across countries: developing (~1,500 kWh/yr), developed-moderate (~6,000 kWh/yr, e.g. Germany/Japan-ish), developed-heavy (~12,000 kWh/yr, e.g. US/Canada with lots of AC/heating/industry electrified). For 10 million people:
+
+| Scenario | kWh/capita/yr | Annual demand | Avg. power |
+|---|---|---|---|
+| Low | 1,500 | 15 TWh | 1.7 GW |
+| Medium | 6,000 | 60 TWh | 6.9 GW |
+| High | 12,000 | 120 TWh | 13.7 GW |
+
+I'll carry the medium case (60 TWh/yr) as the headline number, since it's representative of a moderately electrified developed nation.
+
+**2. Land-yield of solar PV.** Build this from physics, not a quoted statistic:
+
+- Panel efficiency (modern, ~2024-era commercial): ~20%. At the STC reference irradiance of 1,000 W/m², that's 200 W of rated (nameplate) power per m² of *panel*.
+- Real average irradiance for a decent-to-good solar climate: ~4-5 kWh/m²/day → capacity factor of roughly 15-20% (this is the ratio of average output to nameplate rating).
+- Panels don't cover the ground continuously — rows must be spaced to avoid self-shading, plus roads/substations/setbacks eat space. Effective packing ("ground coverage ratio") for fixed-tilt utility arrays is typically ~15-40% of the gross land parcel, not the ~90%+ you'd assume from panel dimensions alone.
+
+Multiplying through (nameplate density × 8760 h/yr × capacity factor), this lands at roughly **50-150 GWh of electricity per km² per year** for utility-scale solar — which matches what real deployed solar farms actually produce per unit of project land, so it's a reasonable anchor. I'll use **80 GWh/km²/yr** as a central value.
+
+**3. Land area required.**
+
+Land = Annual demand ÷ Yield per km²
+
+- Low scenario: 15,000 GWh ÷ 80 ≈ **190 km²**
+- Medium scenario: 60,000 GWh ÷ 80 ≈ **750 km²**
+- High scenario: 120,000 GWh ÷ 80 ≈ **1,500 km²**
+
+With the yield range (50-150 GWh/km²/yr) instead of the point estimate, the medium case spans roughly **400-1,200 km²**.
+
+## What that number means
+
+A 10-million-person country, if it isn't a city-state, typically has a land area somewhere between ~20,000 km² (dense/small, e.g. Israel-scale) and ~100,000+ km² (e.g. Portugal, Czechia, Hungary, Jordan-scale). Against those:
+
+- At 100,000 km² of territory: ~750 km² is **~0.75%** of the country.
+- At 20,000 km² (a small, dense country): ~750 km² is **~3.5%** — still modest, but starts competing meaningfully with agriculture, cities, and protected land in a tightly packed nation.
+
+So the headline conclusion: **raw land area is not the binding constraint.** Even generously sized, the physical footprint needed to *balance annual energy* with solar alone is under a few percent of national territory for almost any country in this population range — well within the "technically available" envelope, especially since a substantial share could go on already-disturbed land (rooftops, parking lots, degraded/marginal land, dual-use agrivoltaics, reservoir-floating panels) rather than requiring new greenfield conversion.
+
+## Why "land is available" ≠ "fully feasible" — the actual bottlenecks
+
+The land calculation above only balances *annual* energy, treating day and night, summer and winter, as fungible. That's the load-bearing assumption, and it's false for a 100%-solar-only system:
+
+1. **Intermittency/storage, not space, is the real constraint.** Solar produces nothing at night and much less in winter at higher latitudes. To cover this without any other generation source, you need either massive overbuild of PV capacity (multiplying the land number by perhaps 2-4x to bank enough surplus on good days) or massive storage (batteries for diurnal shifting, plus something like pumped hydro or hydrogen for seasonal shifting). Multi-day and seasonal storage at that scale is the genuinely hard, expensive, and materials-intensive part — not the panel footprint.
+2. **Cost and build-rate**, not acreage, typically gate real-world deployment: capital for panels+inverters+storage+transmission, permitting timelines, grid interconnection capacity, and the sheer pace of manufacturing and construction needed to build hundreds of km² of infrastructure in a useful timeframe.
+3. **Geographic mismatch**: the "good" 80 GWh/km²/yr yield assumes decent-to-good insolation; a cloudy, high-latitude country gets meaningfully less per km² and worse seasonal skew (more land needed, and storage problem gets worse, not better).
+4. **Land competition is local, not just aggregate**: even at <1% of national territory, siting matters — proximity to transmission, avoiding prime farmland/ecologically sensitive land, and local acceptance can bind well before the country "runs out of land" in the aggregate sense.
+
+**Bottom line:** the geometric/land-area case for 100%-solar is easy — a few hundred to ~1,500 km², typically under 1-3% of a country's territory, is not a serious obstacle. What actually determines feasibility is whether you can economically store or overbuild your way through solar's daily and seasonal gaps — that's an engineering-and-cost problem, not a land-scarcity problem.

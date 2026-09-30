@@ -1,0 +1,19 @@
+**Criterion 1 — Decision usefulness:** The document opens with an unambiguous "No." and closes with a concrete instruction: stay on the monolith, enforce clean internal module boundaries, and extract only the specific piece that later needs it. This is specific enough to execute or reject, and it explicitly ties the recommendation to the stated conditions (1,200 DAU, six engineers, one deployable), so the reader knows exactly when this advice applies. This lands in the **Rigorous** band.
+
+**Criterion 2 — Evidence grounding:** Most of the load-bearing argument is reasoned out in view of the reader rather than merely asserted — the operational-cost claims (N pipelines, N dashboards, service mesh ownership, cross-service debugging) are each explained causally rather than dropped as bald assertions, and the "split later is cheaper than un-splitting" claim is given a supporting mechanism (boundaries drawn before real usage patterns are understood tend to be wrong). But the foundational claim that "1,200 DAU is small enough that a monolith runs comfortably on a couple of instances" is asserted with no supporting math or estimate (e.g., no back-of-envelope requests/sec figure), despite being easy to sketch and central to the "the problems don't exist yet" section. That gap keeps it out of the top band. **Sound.**
+
+**Criterion 3 — Assumption surfacing:** The document does name and engage its single most consequential assumption — that there's no hidden pain point already driving the question — and explicitly says this would change the answer if false. It does not, however, surface other assumptions the argument leans on (e.g., that team size and traffic won't grow sharply soon, that "a couple of instances" is really sufficient capacity). One assumption is identified and engaged while others pass unremarked, which is the **Sound** band rather than Rigorous.
+
+**Criterion 4 — Calibration:** The tone is confident and fairly uniform across the document — the cost arguments, the capacity claim, and the "none of the distributed-systems cost" characterization of the recommended approach are all delivered with the same assertive register, without much visible distinction between what's well-supported and what's a rougher inference (the capacity claim in particular is stated as flatly as the well-reasoned operational-cost points). The closing paragraph does introduce an appropriately weaker, conditional register for the one place genuine uncertainty exists. That one gradation keeps it from being purely uniform, but confidence doesn't clearly track strength of support elsewhere. **Sound.**
+
+**Criterion 5 — Falsifiability:** The closing paragraph names specific, checkable conditions that would change the recommendation — a slow deploy pipeline, a noisy-neighbor scaling issue, a concrete team split on the horizon — rather than a generic "circumstances may differ" caveat. It also states a concrete trigger for partial reversal (extract a specific piece once it needs independent scaling or its own on-call boundary). These are specific enough that a reader could go check whether they hold. **Rigorous.**
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Sound
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

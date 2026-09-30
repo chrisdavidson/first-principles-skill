@@ -1,0 +1,42 @@
+## What assessment is actually for
+
+Before comparing formats, fix the target. University assessment typically serves three distinct, sometimes conflicting purposes:
+
+1. **Certification** — verifying to third parties (employers, licensing boards, grad programs) that the credential-holder actually has a capability, independent of who or what helped produce any single artifact.
+2. **Formative feedback** — helping the student find and close gaps in their own understanding.
+3. **Behavioral steering** — assessment format shapes how students study; badly chosen formats teach the wrong habits.
+
+A format that's good for (2) or (3) can be worthless for (1), and vice versa. This matters because "timed exam vs. take-home" is usually debated as if one format could serve all three, when the honest answer is that no single format does.
+
+## The actual threat model, stated precisely
+
+Capable writing assistants don't threaten all assessments equally. They specifically break any assessment that is **(a) unsupervised** and **(b) evaluated primarily on the quality/coherence of a written artifact**, because they sever the link between "the artifact is good" and "the person submitting it understands the material." Once that link breaks, the assessment stops measuring the construct it claims to measure — it measures something closer to "did you have access to a chatbot," which is now ~universal and therefore useless as a discriminator.
+
+Apply that test to each format:
+
+- **Timed, proctored, closed-book written exam**: (a) is false — supervision is the whole point. The threat model doesn't touch it. Its validity problems (test anxiety, rewarding speed over depth, poor ecological validity relative to real work) are unchanged from the pre-LLM era.
+- **Unsupervised take-home essay/problem set**: (a) and (b) are both true. This is the format *most exposed* to the exact threat that motivated the question. A student can paste the prompt into an assistant and submit polished, coherent, often correct-looking output with near-zero understanding, and the grader has no reliable way to tell.
+
+This yields a conclusion that inverts the premise embedded in the question: **the rise of capable writing assistants is an argument for keeping some form of supervised, unaided assessment, not for abandoning it in favor of take-homes.** A blanket switch to take-homes right now would make the integrity problem worse, not better, unless the take-home is redesigned around the new reality rather than just moved home.
+
+## The real axes being conflated
+
+"Timed exam" bundles three independent variables that the question treats as one:
+
+| Axis | Timed exam (typical) | Take-home (typical) |
+|---|---|---|
+| Time pressure | Yes | No |
+| Supervision | Yes | No |
+| Tool access | None | Unrestricted (unenforceable otherwise) |
+
+You can decouple these. A timed, *proctored*, open-AI exam (assess what someone produces with tool access, under time pressure, in a controlled room) is a coherent format. So is an untimed take-home paired with a mandatory oral defense (untimed research, but the defense re-supervises the authorship question). Neither of these is "timed written exam" or "take-home" in the pure sense the question poses — which suggests the binary itself is the wrong frame.
+
+## What should actually change
+
+Given the above, the rigorous recommendation isn't "keep exams" or "switch to take-homes" — it's: **match the format to which of the three purposes the specific course/assessment is serving, and stop assuming format choice is independent of AI-tool policy.**
+
+- Where the goal is certifying *unaided* individual competence (foundational courses, licensing-adjacent material, prerequisite gatekeeping) — keep or expand supervised assessment: timed written exams, oral exams/vivas, in-class writing with process capture (e.g., version history). These are the formats LLMs haven't degraded.
+- Where the goal is assessing *research and synthesis skill*, and tool-augmented work is realistically what the field's practitioners will do — take-homes are defensible, but only if redesigned: explicit, disclosed AI use as part of the task; grading criteria that reward critical evaluation/fact-checking of AI output rather than fluent prose; personalized, non-generic prompts that resist generic LLM answers; and ideally a short oral component to re-establish the authorship link that unsupervised written work lost.
+- What should be retired either way is the *unmodified*, unsupervised take-home essay evaluated mainly on written coherence — that format was already weak and is now close to non-functional as a certification instrument, regardless of whether it's replaced by exams or by something else.
+
+**Bottom line**: don't frame it as replacing exams with take-homes. Frame it as auditing each assessment against what it's supposed to certify, then noting that capable writing assistants have specifically broken unsupervised written work — which cuts toward preserving supervised formats for anything certification-critical, and redesigning (not merely relocating) anything that stays a take-home.

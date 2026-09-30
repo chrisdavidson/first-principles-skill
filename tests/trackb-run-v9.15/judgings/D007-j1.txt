@@ -1,0 +1,21 @@
+## Scoring analysis.md
+
+**1. Decision usefulness (Rigorous — 3):** The document reaches an explicit position ("No — don't approve a blanket 'buy faster runners' purchase") and backs it with a concrete action plan: instrument the pipeline to find the serial/parallel split, run the software bundle and pipeline-split option in parallel, and reserve hardware spend for stages where profiling confirms it's warranted. It also states the condition under which the recommendation flips ("When hardware would in fact be right"), which makes clear who the document is for (whoever is deciding on the CI hardware purchase) and under what conditions the advice holds. A reader could execute this tomorrow.
+
+**2. Evidence grounding (Sound — 2):** Some load-bearing claims are grounded in view of the reader — the Amdahl's Law argument is self-contained reasoning, the numeric bracket (14–30.5 min) is explicitly flagged as "illustrative" and tied to an unknown parallel fraction, and the Shopify case study is named as a source rather than asserted anonymously. But other claims the conclusion leans on are stated flatly with no visible support in this document: the "~10–15 minute threshold that actually seems to matter," the characterization of batching as "a step-function response to context-switch cost," and the claim that the five-option ranking "survives a flip test against any single-criterion reweighting" are all asserted rather than shown — the derivation lives in a separate file not included here.
+
+**3. Assumption surfacing (Rigorous — 3):** The document explicitly names its most consequential assumption — that the serial/parallel split of the 47 minutes is unknown — and doesn't just flag it but acts on it, making "instrument the pipeline first" the lead recommendation precisely because this is "the single highest-leverage unknown in the whole analysis." It goes further and bounds the assumption with a specific reversal condition (>80% CPU-bound, already-parallel, no headroom). This is more than naming; it's testing and bounding the assumption that matters most.
+
+**4. Calibration (Sound — 2):** The document states its confidence explicitly ("Confidence: LOW across the board") and then immediately differentiates within that band — the qualitative direction of the conclusion is called "comparatively robust" while the specific numbers are flagged as ungrounded in real pipeline data. This is real differentiation, not uniform hedging, and it's consistent with how the numeric bracket was already qualified as "illustrative" earlier. It falls short of the top band because the differentiation is compressed into one closing line rather than threaded per-claim throughout (e.g., the threshold and step-function claims discussed above are stated with unflagged confidence despite lacking shown support).
+
+**5. Falsifiability (Rigorous — 3):** The document gives a specific, checkable condition that would overturn its conclusion: if instrumentation shows the 47 minutes is dominated (>80%) by an already-maximally-parallel, purely CPU-bound stage with no caching/selection/sharding headroom, hardware becomes the right call. This isn't a generic caveat — it names the exact measurement (profiling the serial/parallel split) and the exact threshold that would flip the recommendation, so a reader knows precisely what to go check.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

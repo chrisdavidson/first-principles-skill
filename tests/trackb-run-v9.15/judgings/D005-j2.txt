@@ -1,0 +1,29 @@
+## Decision usefulness
+
+The document reaches a clear, specific position: congestion pricing as the primary lever, paired with cycling infrastructure and transit investment funded by the pricing revenue, with free transit demoted to a supporting role. It doesn't stop at "it depends" — it names the three factors that would actually swing the choice for a specific city (commute-distance distribution, transit spare capacity, political durability) and says what to check for each. A reader could take this and either act on the recommendation as given or go gather the named data to refine it. That's an executable position with stated conditions of applicability, which is the top band.
+
+## Evidence grounding
+
+The argument's spine is a set of quantitative claims — Tallinn's free-transit mode shift, London's 15-30% reduction, Stockholm's ~20%, cycle lanes' "single-digit" effect over three years — and every one of these numbers is asserted with a hedge word ("roughly," "typically," "most estimates") but no stated origin: no source, no study named, no indication of where the figure comes from or how it was derived. These are exactly the load-bearing claims the whole recommendation depends on (the case for congestion pricing rests entirely on its effect size being uniquely large), and none of them has a visible basis a reader could check. That places it in the band where the conclusion rests substantially on figures with no stated origin.
+
+## Assumption surfacing
+
+The document is explicit about what it's assuming and flags the most consequential one directly: it names commute-distance distribution as "the single biggest input" and tells the reader to pull that data before deciding, rather than treating it as settled. It also engages substantively with a second load-bearing assumption — that displaced drivers have somewhere to go — by reasoning through what happens if transit capacity is insufficient ("pricing without capacity investment just causes gridlock resentment and reversal risk"). Naming the assumptions and working through the consequences of the most important one being wrong is exactly what the top band asks for.
+
+## Calibration
+
+Confidence is generally tracked to support: hedging language surrounds the effect-size estimates, and the closing paragraph explicitly separates the "generic evidence base" from what would be needed to pin down a recommendation for an actual city, signaling awareness of the gap between the two. But there's a mismatch between the apparent precision of some figures (e.g., "15-30%," "~20%") and the fact that no basis for them is given — numbers are stated with a specificity that outruns their unexamined support, even while verbally hedged. That's a one-or-two-place overrun rather than a systematic problem, consistent with the middle band.
+
+## Falsifiability
+
+The document identifies specific, checkable conditions that would flip its own recommendation rather than generic caveats: "If most commutes are short (<5km), cycling infrastructure punches above its weight and pricing may be overkill" names a concrete, verifiable fact (the commute-distance distribution) that would directly overturn the "congestion pricing as primary lever" conclusion. It pairs this with transit-capacity and political-capital conditions that likewise point to data a reader could actually go collect. This is specific enough to check, not a boilerplate "further research is needed," which puts it in the top band.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

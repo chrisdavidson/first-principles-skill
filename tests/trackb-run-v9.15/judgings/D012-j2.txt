@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches a clear, sequenced position: verify three specific facts before weighing cost trade-offs, then choose among five named options (not a binary), stagger any job changes if pursued, and treat a residual tie as a values call rather than a facts call. Each step is concrete enough to execute — "documented functional/ADL assessment," "two or three real calls to local home-care agencies," "ask them directly" — and the document states under what condition the headline option (full relocation) actually wins. This is specific enough for a reader to act on or reject. **Rigorous.**
+
+## Criterion 2: Evidence grounding
+
+Some claims are grounded in visible reasoning — the "compression of response latency" argument is derived in front of the reader, and two limitations (cost figures being unread web-search brackets, a key citation returning HTTP 403) are explicitly flagged with their basis. But several load-bearing claims are simply asserted without the reader seeing the work: that "strengthen support" and "parents relocate" outscore full relocation under baseline conditions, that staggering "roughly halves" peak financial exposure, and that there are "at least seven" ways relocation could backfire (only four are actually listed). These are exactly the kind of figures the reader would need to see derived or sourced, and instead they point to an external file. **Sound.**
+
+## Criterion 3: Assumption surfacing
+
+The document names its single most consequential assumption explicitly — that care-need acuity is the pivotal unverified fact — and doesn't just gesture at it: it specifies how to test it (ADL assessment, agency calls, direct question to the parents) and states how the ranking changes depending on the answer. It also flags a second load-bearing condition (baseline/illustrative numbers vs. the family's real figures) as something that must be replaced before the conclusion can be trusted. This goes beyond naming toward engaging with the assumption's consequences. **Rigorous.**
+
+## Criterion 4: Calibration
+
+Confidence is stated explicitly (MEDIUM) and tied to concrete reasons rather than asserted globally — unread cost sources and an unreachable citation are named as the specific things capping it. The document also distinguishes a claim it treats as structurally solid (the latency-compression logic) from claims it flags as provisional (the illustrative option scores, the cost brackets), and it separately lists what would be needed to move from MEDIUM to HIGH. Confidence tracks support rather than being uniform. **Rigorous.**
+
+## Criterion 5: Falsifiability
+
+The document states specific, checkable conditions that would overturn or sharpen its conclusion: a real moving-company quote, an industry-specific job-search estimate, a working source on decline trajectories, and the family actually running the three verifications with its own numbers instead of baseline figures. It also states the structural condition under which the recommendation flips (care need verified acute and not substitutable by paid care) rather than offering a generic "more research needed" caveat. **Rigorous.**
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

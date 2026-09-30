@@ -1,0 +1,19 @@
+**Decision usefulness (C1 — Rigorous):** The document doesn't just survey considerations — it hands the reader an ordered, executable procedure: get a documented ADL assessment, make two or three real calls to home-care agencies, ask the parents directly, *then* run the job/school trade-off across five named options (not a false binary), and if it's still a tie, stagger any simultaneous job changes and treat the remainder as a values call. Each step is concrete enough to either be done or explicitly rejected, and the document states the conditions under which its ranking flips (baseline vs. acute care need), so a reader knows exactly what to do next.
+
+**Evidence grounding (C2 — Sound):** The document is self-aware about its weakest links — it flags that two cost figures are unread web-search brackets and that a key decline-trajectory citation returned an HTTP 403, which is exactly the kind of "estimate flagged with its basis given" the top band wants. But several load-bearing claims get no such treatment: "roughly halving the household's peak financial exposure" and "at least seven concrete, plausible ways relocating makes things worse" are asserted without derivation or an enumerated list in view of the reader, even though the document indicates a fuller derivation exists elsewhere. That gap between what's flagged and what's silently asserted keeps it out of the top band.
+
+**Assumption surfacing (C3 — Rigorous):** The single assumption the whole conclusion pivots on — that care-need acuity, not job/school cost, is the deciding variable — is named explicitly and then actually tested rather than just asserted: step 1 is a concrete procedure to verify it, and the "baseline vs. acute" framing shows precisely what happens to the ranking if the assumption is wrong. The latency-compression argument similarly isolates and names the assumption that needs matter (latency-sensitive vs. administrative/emotional) that paid care can't substitute for.
+
+**Calibration (C4 — Rigorous):** Confidence is stated numerically as MEDIUM and immediately tied to specific, named reasons it isn't higher (unread cost sources, one unreachable citation), and the document distinguishes illustrative baseline figures from facts the family still needs to gather. The physical/structural argument (latency compression as the real mechanism) is stated with more confidence than the dollar figures, and that differential tracks where the actual support is stronger.
+
+**Falsifiability (C5 — Rigorous):** The closing section states, item by item, exactly what would move confidence from MEDIUM to HIGH: a real moving-company quote for the specific route, an industry-specific job-search estimate, a working source for the decline-trajectory research, and the family actually completing the three verifications with its own numbers instead of illustrative ones. These are checkable actions tied to this specific decision, not generic caveats that could be pasted onto any analysis.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches a clear, specific position — the 62%→71% result is a "preliminary, promising signal, not an established, causal, reproducible improvement" — and pairs it with concrete next actions: request per-run data or a variance/SD/CI/p-value, confirm what was held constant between conditions, and gather further independent (ideally randomized/blinded) replicates before committing resources to scale-up or publication. This is specific enough for a reader to actually go do something (make the request, or hold off on scale-up) or to reject it outright, and it scopes the conditions under which it applies (a resourcing/publication decision, not a purely scientific curiosity). This clears the bar for Rigorous.
+
+## Criterion 2: Evidence grounding
+
+Every load-bearing fact traces to an identified origin: the two headline numbers and the absence of variance data are read directly off the given prompt (GT-1, GT-2); the ~50% relative SE of a 3-run SD estimate and the t*≈4.303 critical value are derived or looked up with the computation shown (GT-3, GT-4); the confounding argument rests on a stated logical definition (GT-5); and the mean's sensitivity to one anomalous run is an arithmetic derivation shown in full (GT-6). No figure is asserted without a visible basis, and the document explicitly refuses to invent a plausible-sounding SD rather than compute a fabricated p-value. This is Rigorous.
+
+## Criterion 3: Assumption surfacing
+
+The document names nine specific, load-bearing assumptions (comparability of yield definitions, what was held constant, run independence, non-selective reporting, distributional shape, etc.) rather than gesturing generically, and it goes further than merely listing them: it tests whether the conclusion actually depends on the shakiest one (A9, approximate normality) and shows the endpoint survives even if that assumption fails, and it engages the single most consequential one (A2, the confound) as the entire basis of a dedicated derivation chain (C2). That is exactly the "test/bound/say what happens if wrong" behavior the top band asks for — Rigorous.
+
+## Criterion 4: Calibration
+
+Confidence is stated in explicit, differentiated terms (HIGH for the narrow, cleanly-supported significance claim; MEDIUM for the causal, reproducibility, and headline claims) and the differentiation is earned rather than decorative: each MEDIUM is tied to a specific, named unresolved rival (possible unreported controls, possible prior variance data), while the HIGH rating is reserved for the one claim with no live rival and no unpriced assumption. The document is careful to separate what it can compute from the given data (nothing is statistically significant as given) from what it is inferring (that the effect is nonetheless a real, worth-pursuing signal). This is Rigorous.
+
+## Criterion 5: Falsifiability
+
+The document states, in checkable terms, exactly what would overturn or upgrade its conclusion: the lab disclosing per-run data or a variance/CI/p-value showing the gap clears conventional significance despite n=3's low power, and confirmation that only catalyst presence differed (or was randomized) across runs. These are not generic "more research is needed" caveats — they name the specific missing artifacts (a variance statistic, a methodology disclosure) and the specific threshold (p<0.05) that would flip the verdict. This is Rigorous.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

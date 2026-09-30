@@ -1,0 +1,21 @@
+## Evaluation
+
+**1. Decision usefulness.** The document reaches a specific, executable position: negotiate a composite path with a concrete illustrative number (~15% pay cut instead of 30%), added equity or accelerated vesting, a time-boxed trial, and an explicit ~6-month milestone checkpoint tied to named observable conditions (cash runway secured, product-market signal, team stability). It states who the recommendation is for (the candidate weighing this specific offer) and under what conditions it holds (contingent on the cap table, vesting terms, burn rate, and dependents being confirmed, with the framework/verdict distinction spelled out). A reader could walk into a negotiation and act on this today. That clears the bar for Rigorous.
+
+**2. Evidence grounding.** Most load-bearing empirical claims are genuinely sourced and their provenance is disclosed at a granular level — GT-1 and GT-3 are marked read-at-source with the specific section read, while GT-2, GT-4, GT-5, and GT-6 are explicitly flagged `?` as delegate-reported or unverified, including two documented failed attempts to reach primary sources (403/404). This is unusually careful. However, the numeric trade-off matrix in chain C3 — which directly produces the headline "composite wins by 12 points" result — assigns 1–5 scores to each option on each criterion (e.g., Stay: downside protection 5, equity EV 1, career capital 2...) with no stated derivation or rationale for any individual cell. These numbers are load-bearing for the final recommendation but are asserted rather than derived or explicitly flagged as estimates with a stated basis, which is a real gap under this criterion's own standard ("numbers come from somewhere the reader can see"). That keeps it a notch below the top band.
+
+**3. Assumption surfacing.** The document names its load-bearing assumptions explicitly and at length — an 18-row table classifying each by type (convention, untested belief, current constraint), with a verdict and a verification path per row. It goes beyond naming: the most consequential assumptions (household burn rate, the startup's willingness to negotiate, cap-table/dilution specifics) are actively tested or bounded, with explicit statements of what happens if they're wrong (e.g., the LOW confidence band is directly tied to which assumptions remain open). This matches the Rigorous description closely.
+
+**4. Calibration.** Confidence is explicitly banded (LOW throughout) but the document distinguishes what is strongly supported from what is not within that banding — it separates a "general framework" it treats as robust (don't binarize, price job-search timing, discount headline equity) from a "person-specific numeric verdict" it treats as weak, and each chain states precisely which unverified input caps its confidence and what would raise it. This is confidence tracking evidence with real texture rather than a flat assertive or flatly hedged posture, so it earns the top band.
+
+**5. Falsifiability.** The document states a specific, checkable falsification condition at the end: the conclusion is false if the cap table shows near-zero equity EV, negotiation proves impossible, and the household's minimum runway floor isn't met — in which case the answer flips to decline outright. This names concrete facts a reader could go and check, not a generic caveat, satisfying the Rigorous band.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

@@ -913,6 +913,14 @@ _FROZEN_PATHS=(
     # verdict is checkable only against these runs.
     'tests/regression-rerun'
     'tests/regression-rerun-2'
+    # trackb-run-v9.15 (2026-09-30) -- the superseding agent-vs-unaided run under
+    # docs/trackb-2-preregistration.md: the first capture of the agent's OWN
+    # delivered document (not an orchestrator summary) scored against an unaided
+    # control, with dispatch recorded per cell. Frozen because docs/trackb-2-reading.md's
+    # computed status is falsifiable only against these captures; raw/ keeps every
+    # attempt including both usage-limit-pause specimens and the mid-run
+    # is_limit_stub() false positive this run's own manifest/cells.json record.
+    'tests/trackb-run-v9.15'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null

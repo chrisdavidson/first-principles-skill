@@ -1,0 +1,29 @@
+## Decision usefulness
+
+The document lands on a clear, specific position: a bare "publish training data sources" rule will most likely produce categorical rather than itemized disclosures, cannot logically reveal bias regardless of completeness, and will see low, self-selected compliance — net result, real cost without the anti-discrimination payoff the rule is sold on. It goes further than diagnosis, stating what would actually have to be true of a real proposal (mandated granular outcome-linked schema, verification, enforcement funding, private right of action) for the aim to be achievable, which gives a reader evaluating any concrete bill a checklist to apply. The scope is explicit throughout (the rule "as commonly proposed," A1/A6), so the reader knows exactly when the conclusion does and doesn't bind. The one soft spot is that the "recommendation" is phrased as a forecast rather than an instruction to a named actor, but it is specific enough to be applied or rejected against a real proposal, which is what the criterion asks. This earns the top band.
+
+## Evidence grounding
+
+Nearly every load-bearing claim is either a direct, quoted read-at-source citation (LL144's posting duty, the Wang et al. compliance field study, EU AI Act Art. 53 text) or explicitly flagged with a "?" and downgraded in confidence when the source was secondary or unreachable (GT-4's Title VII framing after two failed direct-citation attempts, GT-6's EU template description, GT-9's ICO finding). The document even runs an arithmetic recompute on its own cited percentages. This is the rare case where uncertain figures are treated as uncertain rather than smuggled in as fact, which is exactly what the top band asks for.
+
+## Assumption surfacing
+
+The assumptions table names ten specific, load-bearing assumptions by type (convention, untested belief, current constraint), and the inversion procedure explicitly derives the failure conditions the conclusion depends on rather than gesturing at "assuming things hold." The most consequential ones (no verification mechanism, no outcome-linked schema, no enforcement teeth) are not just named but tested via a full premise-negation exercise that generates rival causal stories from five stakeholder viewpoints and dispositions each as a scope-limit or residual risk. This is substantive engagement with the assumptions the conclusion actually rests on, not decorative labeling.
+
+## Calibration
+
+Confidence is tracked per inference chain and tied to why: the purely logical chain (source-naming cannot convey outcome statistics) is rated higher than the chains that depend on an as-yet-undrafted rule's design choices, and the headline conclusion is explicitly capped at the level of its weakest contributing chains rather than rounded up. The document distinguishes what it derived deductively from what it is projecting from analogy, and it says so plainly at the point of use (e.g., flagging that GT-4's legal citation couldn't be verified directly and discounting that chain accordingly). Confidence tracks the actual strength of support throughout.
+
+## Falsifiability
+
+The document states a specific, checkable falsification condition: post-enactment measurement showing that a materially large share of covered entities produce granular, outcome-relevant disclosures and that adverse-impact ratios improve, with the improvement attributable to the disclosure requirement itself rather than to accompanying enforcement. It also names, up front, exactly what evidence would move it (statutory/implementing-rule text, a working primary citation for the disparate-impact standard, post-enactment compliance data analogous to the LL144 study). These are concrete enough that someone could actually go check them, not generic hedges.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

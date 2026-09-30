@@ -1,0 +1,19 @@
+This is a statistics question, not a coding task, so let me just reason through it directly.
+
+**What can reasonably be concluded:**
+- In this lab's specific setup, under these specific conditions (substrate, scale, operator, equipment, batch of reagents), the observed yields with the new catalyst (mean 71%) were higher than with the old one (mean 62%) across the three runs reported.
+- The catalyst is a plausible candidate worth further investigation.
+
+**What should NOT be concluded:**
+
+1. **Statistical significance is unaddressed.** Three runs per condition (assuming 62% and 71% are each means of three) gives essentially no power to distinguish signal from noise unless the spread (standard deviation) is tiny relative to the 9-point gap. Without reported variance, error bars, or a p-value/confidence interval, "71% > 62%" could easily be within normal run-to-run variation. A 9-point swing from batch-to-batch variability, ambient humidity, reagent lot, stirring rate, etc., is entirely plausible in many reactions.
+
+2. **No causal claim is justified without proper controls.** Was this run head-to-head (same day, same reagent lots, same operator, randomized order) or old runs vs. new runs done later, possibly with other things also having changed (fresher reagents, a different technician, seasonal temperature)? If the catalyst wasn't the only variable that changed, the improvement can't be attributed to it specifically.
+
+3. **Generalization beyond the tested conditions is unwarranted.** Three runs at presumably one scale, one substrate, one set of conditions doesn't establish that the catalyst improves yield generally — not across substrates, scale-up (bench vs. pilot vs. plant), temperature/pressure ranges, or with different reagent purities.
+
+4. **Practical/economic significance is a separate question from the yield number.** Even a "real" 9-point improvement doesn't tell you about cost (catalyst price, loading, recyclability), purity/selectivity of product, byproduct formation, safety, or whether the catalyst is compatible with downstream steps.
+
+5. **Reproducibility and independence of the "three runs" matters.** Were they three independent batches, or three aliquots/workups from one reaction? Only independent runs count as replicates; measuring the same pot three times just characterizes analytical error, not the catalyst's true effect.
+
+**Bottom line:** The result is a promising preliminary observation, not proof. The next step should be reporting the variance/spread of each condition's runs, running a proper statistical test (even a simple t-test appropriate for n=3, though a larger n would help), controlling for confounds, and testing across a wider range of conditions before concluding the catalyst genuinely and reliably raises yield.

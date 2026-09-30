@@ -1,0 +1,24 @@
+## Answer
+
+**Recommendation:** Treat the 62%→71% result as a preliminary, promising signal — not as an established, causal, reproducible improvement. Request per-run data or a variance statistic, confirmation of what was held constant between the two sets of runs, and further independent replicates before committing resources.
+
+**Confidence: MEDIUM** — three of the four supporting chains are capped by a live, unruled-out rival rather than a flawed input.
+
+**Would change it:** The lab disclosing (a) per-run data or an SD/CI/p-value for both conditions, and (b) confirmation that only catalyst presence differed between the compared runs.
+
+### What can be concluded
+- The reported runs show a positive association between catalyst presence and higher yield in this lab's data (9-point gap: 71% vs. 62%).
+- That's it — everything past this is unconfirmed.
+
+### What cannot be concluded, and why
+1. **Not statistically significant (in fact, not even testable).** No SD, CI, or p-value was reported for either condition. This isn't "weak evidence of significance" — it's literally uncomputable from what's given. Even a future test built on n=3 alone would carry ~50% relative uncertainty in the estimated SD (standard formula: SE(s) ≈ s/√(2(n−1)), which at n=3 gives s/2), and the significance bar at df=2 is unusually high (t* ≈ 4.303 vs. 1.96 at large n).
+2. **Not causally attributable to the catalyst specifically.** Nothing confirms that catalyst presence was the *only* variable that differed between the two sets of runs. If temperature, reagent lot, operator, or timing also varied, the gap could be partly or wholly a confound.
+3. **Not established as reproducible.** With n=3, the mean is highly sensitive to any single anomalous run (each run contributes 1/3 of the mean directly) — a single lucky or unlucky run could account for much of the observed 9-point gap.
+
+### What this doesn't rule out
+The 9-point jump is large enough that it *could* still be real — a large effect size can be believable even without formal significance testing if it exceeds plausible measurement noise. This is a live, unresolved rival to the cautious reading, not a settled point either way.
+
+### Single highest-value next step
+Ask the lab for per-run yield data or a variance statistic, plus confirmation of what was controlled between the two conditions — before deciding whether to invest further in the catalyst.
+
+Full analysis with assumptions table, ground-truth derivations, dead ends considered, and adversarial pass: `/tmp/claude-1000/trackb2-scratch/TB-08-T/.first-principles/analysis-20260930T121617Z.md`

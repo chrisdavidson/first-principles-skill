@@ -1,0 +1,21 @@
+# Analysis of `analysis.md`
+
+**1. Decision usefulness — Sound.** The document reaches a clear position: source-of-data disclosure rules are a "category mismatch" for the stated goal and, if the goal is genuinely to prevent discriminatory hiring AI, should be paired with or replaced by outcome-based auditing (disparate impact testing on actual applicant/hire data). That is directionally actionable — a regulator reading this knows roughly what to do differently. But it stops short of specifying how such auditing would be structured, triggered, or enforced, and it doesn't pin down who exactly is meant to act (a legislator drafting the rule? a regulator interpreting an existing one? an advocate lobbying for amendment?). The recommendation is real but under-specified enough to fall short of "executable as stated."
+
+**2. Evidence grounding — Sound.** Since this is a "general reasoning question" with no external data to cite, the document grounds its claims mechanistically rather than empirically — e.g., the proxy-discrimination claim (employment gaps, zip codes, college names as bias vectors) is derived in view of the reader with a stated causal path, and the vagueness prediction is tied to named incentives (IP protection, gaming resistance). This is the right kind of grounding for a first-principles question. But some claims are asserted with less derivation than others — the incumbent-entrenchment effect and the "floor against worst practices" claim are stated as conclusions with only a sentence of support, not built up the way the central proxy-discrimination argument is. That unevenness keeps it out of the top band.
+
+**3. Assumption surfacing — Sound.** The single most consequential assumption — that "the goal" is preventing discriminatory outcomes rather than, say, satisfying a transparency norm for its own sake — is explicitly named ("If the goal is 'prevent discriminatory hiring AI'...") and the document shows what happens to its conclusion under that framing. That's real engagement with the load-bearing premise. Other assumptions, though, pass as flat assertions rather than flagged premises: that vendors behave as incentive-maximizing actors, that litigation discovery is a meaningful secondary channel, that source and outcome are only "loosely correlated." These aren't tested or bounded, just asserted.
+
+**4. Calibration — Sound.** The document generally hedges where the claim is speculative ("likely," "may," "mostly second-order") and is more assertive where the argument has been built up over several paragraphs (the source/outcome category mismatch). That's appropriate differentiation. There is at least one place where confidence runs slightly ahead of support: the incumbent-entrenchment claim is stated as flat fact ("Small vendors and open-source model users face disproportionate burden... large vendors... produce boilerplate") before being softened only in the following clause ("so it may entrench incumbents"), which reads as more certain than the one-sentence argument behind it warrants.
+
+**5. Falsifiability — Absent.** Nowhere does the document say what evidence would overturn its conclusion, what a regulator or researcher could go check, or under what observed outcome the source-disclosure rule would turn out to be more effective than the analysis credits (e.g., some threshold of litigation-driven accountability actually materializing). The conclusion is delivered as a reasoned but closed analysis, with no checkable condition attached — not even a generic caveat gesturing at possible error.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Sound
+C2: Sound
+C3: Sound
+C4: Sound
+C5: Absent
+=== TRACKB-SCORELINE-END ===
+```

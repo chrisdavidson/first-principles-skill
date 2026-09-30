@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches a clear, specific position: congestion pricing as the primary lever, paired with cycling infrastructure and transit investment funded by pricing revenue, with free transit relegated to a supporting role rather than a standalone strategy. This is concrete enough to execute or reject — a reader knows what to actually propose. It also makes plain who it is for (a city needing to hit a specific 20%-in-3-years target) and under what conditions the recommendation would shift (short vs. long commute distributions, existing transit spare capacity, political capacity to sustain a pricing fight). The closing hedge about needing city-specific data to "pin down" specifics doesn't erase the core recommendation — it sharpens the conditions of application. **Band: Rigorous.**
+
+## Criterion 2: Evidence grounding
+
+Most load-bearing claims are tied to named, identifiable cases (Tallinn, London, Stockholm, Singapore) rather than asserted in a vacuum, and the document flags its figures as rough ("Evidence base (roughly)") rather than presenting them as precise facts. That said, the numbers themselves (e.g., "15-30%", "2-5%") carry no stated origin a reader could actually check, and at least one claim — "see: several US cities' failed attempts" — is offered as support for a real risk (pricing without capacity causing reversal) but names no cities and gives no basis at all. This is a load-bearing claim asserted where a specific example was clearly available. **Band: Sound.**
+
+## Criterion 3: Assumption surfacing
+
+The document does more than gesture generically — it identifies specific, consequential dependencies and traces their failure modes: congestion pricing "only works if displaced drivers have somewhere to go," and the document works through what happens if that's false (gridlock resentment, reversal risk). It does the same for trip-length distribution in point 1 (short commutes favor cycling infrastructure; long/dispersed commutes require pricing). The closing section explicitly names the assumption that the "generic evidence base" transfers to the reader's actual city, and identifies exactly which local facts would need to hold for the recommendation to stand. This is assumption-naming plus engagement with the most consequential ones, not just a disclaimer. **Band: Rigorous.**
+
+## Criterion 4: Calibration
+
+Confidence broadly tracks the strength of the underlying comparisons — the strong claim that congestion pricing is "the only single lever with a real chance of hitting 20% alone" is backed by a real order-of-magnitude gap between cited effect sizes, and softer claims (e.g., about free transit's ceiling) are hedged with "typically" and "usually." But confidence occasionally outruns what's shown: the aside about "several US cities' failed attempts" is stated as though established while carrying none of the specificity given to the successful examples, and a few political-economy claims ("cycle lanes are politically cheaper per unit") are asserted flatly without the same evidentiary treatment as the headline mode-shift figures. **Band: Sound.**
+
+## Criterion 5: Falsifiability
+
+The document goes beyond generic caveats: it names the specific data that would overturn or redirect its recommendation — commute-distance distribution (which could make pricing "overkill" if commutes are short), existing transit spare capacity (which determines whether pricing is viable at all), and the city's political capacity to sustain a multi-year fight. These are checkable, city-specific facts a reader could actually go verify, not boilerplate "more research is needed" language, and the document is explicit that obtaining them is what would pin down the recommendation rather than leaving it generic. **Band: Rigorous.**
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

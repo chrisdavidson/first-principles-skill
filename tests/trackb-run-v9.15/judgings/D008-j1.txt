@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document lands on an explicit, actionable position: land area is a non-binding input to full solar-PV electrification for a moderate-or-lower-density 10-million-person country, with planning effort redirected toward storage/firming, grid buildout, siting economics, and capital. It states who this applies to (explicitly scoped away from small, land-scarce, high-density outliers after the adversarial pass surfaced that as a live rival) and under what conditions it holds (annual-average energy balance, not minute-by-minute supply). A reader deciding whether to worry about land availability when planning solar buildout has a clear, boundary-conditioned answer to act on, not a survey of possibilities.
+
+## Criterion 2: Evidence grounding
+
+Every numeric claim traces to a named source, and the document is unusually disciplined about distinguishing three tiers of support: read-at-source (quoted directly, e.g. GT-1, GT-2, GT-4), reported-by-delegate (search-summarized, not opened, e.g. GT-5, GT-6, GT-9), and outright unverified domain knowledge (GT-11). Nothing load-bearing is asserted as bare fact — even the central chain (C1→C4, ≈610 km²) carries its ?-marked inputs forward into a stated MEDIUM confidence rather than presenting a clean number. The independent cross-check (GT-1's empirical land-use survey landing within ~12% of the physics-derived estimate) gives the headline figure a second, independently-sourced leg to stand on.
+
+## Criterion 3: Assumption surfacing
+
+The assumptions table (A1–A12) names each assumption's type, and critically, the single most consequential one — A2, that land is computed from annual energy balance rather than instantaneous demand-matching — is not just flagged but actively tested: it is bounded in chain C8's second- and third-order extensions (what grid operators, policymakers, and landowners actually have to do to cover that gap), and the document explicitly checks what happens to the conclusion if A2 fails (the conclusion strengthens rather than breaks). Other assumptions (A6, A10, A4) are also engaged rather than merely listed, with several explicitly rejected as sufficient on their own (A6: land availability is necessary but not sufficient for feasibility).
+
+## Criterion 4: Calibration
+
+Confidence is tracked chain-by-chain and demonstrably moves with the evidence rather than sitting at a uniform default: eight of nine chains sit at MEDIUM for specific, named reasons (a ?-marked input or an upstream MEDIUM-rated dependency), while C8 is explicitly downgraded from MEDIUM to LOW mid-document once the adversarial pass surfaces a live, unresolved rival (the density-mismatch case). The overall Conclusion's band is then pulled down to LOW to match its weakest contributing chain rather than reporting a more comfortable blended number. This is confidence that visibly responds to a specific finding, not a static hedge applied everywhere.
+
+## Criterion 5: Falsifiability
+
+The document states a concrete, checkable falsification condition: the conclusion is wrong if a representative country's land requirement, computed the same way, exceeds a double-digit percentage of territory once restricted to grid-accessible, non-protected, non-urban land — and it names the specific mechanism (density mismatch, suitable-land-vs-total-land gap) that would produce that failure, along with a stated verification path (recompute the same chain for a named high-density country). This is far more specific than a generic "further research needed" caveat; it identifies the exact variable (population density / suitable-land fraction) whose value would flip the answer, and shows the arithmetic of what that flip would look like (Bangladesh-density substitution pushing the worst case to ~45% of territory).
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

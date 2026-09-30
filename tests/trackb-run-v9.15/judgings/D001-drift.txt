@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches an unambiguous, executable recommendation: keep the single deployable, adopt an enforced modular monolith (module ownership plus a CI-gated dependency-direction rule), and treat one narrowly-scoped service extraction as the next step "once a concrete need is evidenced" rather than now. It names who this is for (a 6-engineer team at ~1,200 DAU) and under what conditions the recommendation would change (headcount past ~10-12, a team split, a component with a divergent scaling/compliance profile, a regulatory mandate, or load exceeding the estimated bracket by an order of magnitude). A reader could hand this to an engineering team and start executing tomorrow — write the linter, define module boundaries, instrument telemetry, schedule the quarterly trigger review. This clears the top band: **Rigorous**.
+
+## Criterion 2: Evidence grounding
+
+Most of the document's load-bearing claims are genuinely grounded: Conway's Law and the Fowler "MonolithFirst" claims are quoted with named sources, the Segment case is sourced to a specific article with the analysis explicitly declining to over-claim scale-matching, the communication-channel math is shown as arithmetic, and the load estimate is a visible Fermi calculation with its weakest link (the capacity-anchor benchmark) honestly flagged as reported-by-delegate rather than independently verified. That said, the mechanism that actually decides the closest and most consequential call in the document — the weighted trade-off scoring that separates "modular monolith only" (109) from "modular monolith plus staged extraction" (99) — rests on 28 per-option, per-criterion point values that are never individually derived or sourced; only the *weights* are stress-tested via the flip-test, not the underlying scores themselves. That is a real, load-bearing gap sitting right at the point of maximum decision sensitivity. This keeps the document from clearing "every claim is grounded" and lands it at **Sound**.
+
+## Criterion 3: Assumption surfacing
+
+The assumptions table names 23 distinct assumptions, types each one, and records a verdict (accept/challenge/discard) with reasoning rather than leaving them as background noise. Critically, the document doesn't just list assumptions — it engages with the most consequential ones: A-21 (near-term load staying in bracket) is pressure-tested via the Fermi estimate and named as the single most sensitive input; A-16/A-17/A-18 are each traced through to specific chain confidence penalties and named verification paths. This is exactly the "name it and engage with the most consequential one" behavior the top band asks for, applied to more than one assumption. **Rigorous**.
+
+## Criterion 4: Calibration
+
+Confidence is not uniform: chain C2 is explicitly rated lower (LOW) than the sibling chains (MEDIUM) for a stated reason — an unverified benchmark input plus a live, unaddressed rival hypothesis about usage mix — and the final conclusion's confidence is pinned to its weakest contributing chain rather than rounded up. The document distinguishes self-derived, recomputable arithmetic (channel counts, the Fermi bracket, the flip-test) from claims it had to take on lesser authority (the two-pizza heuristic, the Team Topologies citation it couldn't actually read). This differentiation is consistent and specific enough, even though the trade-off matrix's ungrounded score values (per Criterion 2) are a spot where the stated "Inference axis is clean" claim for chain C5 slightly outruns what was actually shown. On balance the confidence-tracking is careful and fine-grained throughout the document. **Rigorous**.
+
+## Criterion 5: Falsifiability
+
+The document states a specific, checkable falsification condition: the conclusion is false if, within two quarters, measured request load or a named component's isolation need exceeds the estimated bracket by an order of magnitude, or if a concrete regulatory/compliance boundary requiring physical separation is identified. These are conditions someone could actually go and check (instrument telemetry, watch for a specific compliance flag) rather than generic hedges, and they're tied to the specific mechanism (GT-7?, chain C2) whose fragility the document already flagged elsewhere. **Rigorous**.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

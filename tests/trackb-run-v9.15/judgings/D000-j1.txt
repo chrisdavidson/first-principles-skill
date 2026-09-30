@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches an unambiguous position — treat the result as a preliminary signal, not an established finding — and pairs it with three concrete, executable asks: per-run data or a variance statistic, confirmation of what was held constant, and additional independent replicates, explicitly tied to a "before committing resources to scale-up" decision point. A reader deciding whether to fund further work on this catalyst could hand this recommendation to the reporting lab verbatim and know exactly what to request. The recommendation is neither generic nor hedged into uselessness — it names the specific missing artifacts rather than gesturing at "more research." This meets the top band: a reader can act on it directly.
+
+## Criterion 2: Evidence grounding
+
+Every number the conclusion depends on is either drawn verbatim from the prompt (GT-1, GT-2, with the absence of a variance statistic explicitly confirmed by re-reading) or derived in view of the reader with the arithmetic shown (GT-3's SE-of-SD computation, GT-4's t-critical lookup, GT-6's partial-derivative argument). Where a formula is an approximation rather than exact, the document says so and flags exactly where that matters (GT-3's note that it is "least accurate at very small n"). The one place a genuinely unsupported number appears — the "1–2 percentage points" measurement-noise estimate in the adversarial pass — is explicitly framed as a rival hypothesis under exploration, not asserted as a load-bearing fact for the conclusion. Nothing the recommendation leans on is asserted without a stated origin.
+
+## Criterion 3: Assumption surfacing
+
+Nine assumptions are individually named, typed, and given a verdict rather than lumped into a generic disclaimer. The two most consequential ones are actively engaged rather than just listed: A2 (whether catalyst presence was the only variable that differed) is the causal crux, and the document builds an entire chain (C2) around what follows if it's false; A9 (approximate normality) is explicitly stress-tested, with the document showing the conclusion is directionally robust even if that assumption fails. This is closer to bounding/testing than to mere naming, which is what the top band asks for.
+
+## Criterion 4: Calibration
+
+Confidence is not uniform — C1 is rated HIGH because no rival contests its narrow, computability-scoped claim, while C2, C3, and the headline conclusion are explicitly capped at MEDIUM because of named, still-live rivals (undocumented controls, unknown historical variance). Each MEDIUM rating states specifically what would move it to HIGH. This differentiation, tied to the actual strength of each sub-claim's support rather than applied as a blanket hedge, is exactly what distinguishes calibrated confidence from uniform assertiveness or uniform caution.
+
+## Criterion 5: Falsifiability
+
+The document states, in specific and checkable terms, what would overturn its conclusion: the lab disclosing per-run yield data or a variance statistic showing the gap clears conventional significance, together with confirmation that only catalyst presence varied between conditions. This is not a generic "further research is needed" — it names the exact data points whose disclosure would flip the verdict, and ties each one back to a specific chain in the analysis. That is a checkable falsification condition, not a rhetorical caveat.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

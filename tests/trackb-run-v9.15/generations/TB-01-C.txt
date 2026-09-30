@@ -1,0 +1,44 @@
+## Framing the actual problem
+
+The stated pain point isn't "REST is bad" — it's "mobile screens take 4–6 round trips." Those are different problems, and conflating them is the first thing to check before reaching for a paradigm swap.
+
+Ask: *why* 4-6 round trips? Almost certainly one of:
+- REST resources map to backend entities, not to screens — a mobile "profile" screen needs data from `/user`, `/orders`, `/preferences`, `/notifications`, etc., each its own call.
+- No server-side aggregation endpoints exist, so the client does the joining.
+- Some calls are sequential because response N determines the request N+1 (e.g., get user → get user's org → get org's billing).
+
+GraphQL directly attacks the first two (client specifies a nested shape, server resolves it in one round trip). It does **not** fix the third — dependent/sequential lookups still serialize inside the resolver graph, they just move server-side (which is still a win, since server-to-server calls are cheaper than client-to-server, but it's not magic).
+
+## The scope mismatch
+
+This is the part that matters most: **6 of your 9 clients have not raised this complaint.** "Replace REST with GraphQL" is a full-surface-area migration — every client team touches it, every backend team rewrites their access layer, every existing integration (webhooks, partner APIs, internal tooling, monitoring, caching) gets re-derived. You'd be paying a 9-client migration cost to fix a 3-client problem.
+
+That asymmetry is a strong signal the framing should shift from "REST vs GraphQL" to "how do we fix mobile aggregation," with GraphQL as one candidate answer, not the premise.
+
+## Options, evaluated against the actual complaint
+
+| Option | Fixes round-trip count? | Blast radius | New failure modes |
+|---|---|---|---|
+| **Full REST→GraphQL replacement** | Yes | All 9 clients, all backend teams | Resolver N+1 (needs dataloaders), loss of HTTP caching, query cost/depth attacks, harder rate limiting, big ops learning curve |
+| **GraphQL gateway in front of existing REST** (BFF-style, strangler fig) | Yes, for whoever adopts it | Mobile teams + a thin new gateway layer; REST untouched underneath | Gateway becomes a new dependency/SPOF; still need dataloader discipline to avoid N+1 against REST backends |
+| **Mobile-specific BFF (plain REST, hand-aggregated endpoints)** | Yes | Mobile teams + one backend team | Endpoint sprawl if not disciplined; less flexible than GraphQL for evolving screens |
+| **Generic REST aggregation/batch endpoint** (`POST /batch` or JSON:API compound docs) | Partially | Small — additive to existing API | Less ergonomic than GraphQL for deeply nested/varying shapes |
+| **HTTP/2 multiplexing + parallelizing client calls** | Reduces *latency* impact, not call *count* | None — client-side only | Doesn't fix the root cause, just masks it |
+
+The BFF/gateway options score close to full GraphQL on "fixes the complaint" while being an order of magnitude smaller in blast radius, because they're additive rather than a replacement.
+
+## Costs a full replacement introduces that are easy to underweight
+
+- **Caching**: REST gets HTTP/CDN caching for free. GraphQL over POST doesn't, unless you adopt persisted queries + GET, which is its own project.
+- **N+1 at the resolver layer**: GraphQL's flexibility means a naive resolver graph re-introduces the same round-trip problem, just hidden inside the server. You need dataloader-style batching discipline from day one, or you've moved the problem, not solved it.
+- **Security/ops maturity**: unrestricted GraphQL queries let a client ask for an arbitrarily expensive nested query. You need query cost analysis / depth limiting before this is production-safe at 9-client scale — that's real work, not a checkbox.
+- **Org cost**: 9 client teams need to learn a new query paradigm, tooling (codegen, normalized caches like Apollo/Relay), and debugging model (errors are HTTP 200 with an `errors` array, which trips up existing monitoring/alerting built around status codes).
+- **Incrementality**: you cannot cut over 9 clients atomically. Realistically this is a 12–18 month coexistence period regardless of which option you pick, so "replace" is aspirational — the honest framing is "add," at least initially.
+
+## Recommendation
+
+Don't frame this as REST-vs-GraphQL for the whole API surface. Start with a **GraphQL (or plain aggregating BFF) gateway scoped to the 3 mobile clients**, sitting in front of your existing REST services, built with dataloader batching from day one. That's the smallest change that directly targets the round-trip complaint, it's reversible, and it gives you real data (adoption friction, ops cost, whether teams actually like it) before deciding whether the other 6 clients should ever move.
+
+The main tradeoff: this leaves you running two paradigms rather than one, which is a real ongoing cost — but it's smaller than the cost of a forced full migration for clients that never asked for one. If, after 6 months, the mobile teams are clearly happier and the other client teams start asking for the same thing organically, that's your signal to expand it — not a plan decided up front.
+
+What would change this recommendation: if you told me the 6 non-mobile clients are internal/low-maintenance (so migration cost there is trivial), or if there's a second driver beyond round-trips (e.g., you also want to kill REST versioning pain, or unify a fragmented multi-service backend), the calculus shifts toward a broader migration being worth it.

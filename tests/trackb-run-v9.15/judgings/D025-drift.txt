@@ -1,0 +1,21 @@
+## Scoring
+
+**1. Decision usefulness — Rigorous.** The document lands on a clear, specific position: a bare "publish training data sources" mandate will produce categorical, low-specificity disclosures (C1), that such disclosure is logically incapable of revealing discriminatory bias regardless of completeness (C2), and that real-world compliance under this class of rule is low and self-selected (C3) — net effect, compliance cost without the anti-discrimination outcome the rule is meant to secure. It scopes exactly when this applies ("the rule as commonly proposed," absent a mandated schema, verification, or enforcement funding) and states what a stronger design would need (granular outcome-linked schema, independent verification, enforcement funding, private right of action), giving a reader evaluating a real proposal a concrete checklist to apply it against. This clears the bar for a specific, executable-or-rejectable position tied to explicit conditions.
+
+**2. Evidence grounding — Rigorous.** The load-bearing numeric and definitional claims are each traced to a named source (NYC DCWP's AEDT page, the Wang et al. compliance field study, the EU AI Act's Article 53(1)(d) text, EEOC/29 CFR framing for disparate impact), with exact quoted language for the ones read directly. Where a source could not be opened, the document flags this explicitly with a `?` marker and records the specific failed retrieval attempts (EEOC 404, eCFR redirect-block) rather than silently asserting the claim as settled fact. Figures are recomputed against their sources (14/267≈5%, etc.) rather than taken on faith. This is the kind of visible sourcing-or-flagged-estimate treatment the top band calls for.
+
+**3. Assumption surfacing — Rigorous.** The assumptions table names ten distinct assumptions by type (convention, untested belief, current constraint), and the inversion procedure explicitly surfaces the five conditions on which the central conclusion depends, tagging them load-bearing and tracing which chains they feed. The most consequential ones are genuinely engaged rather than just listed: the document states what happens if A5/A9 (enforcement design) turn out false ("this chain's endpoint does not survive unchanged"), and scopes C1/C2/C4 explicitly around A6/A1's specificity assumption. This is assumption-testing, not just assumption-naming.
+
+**4. Calibration — Rigorous.** Confidence is differentiated chain by chain and tied to named gaps: C2, resting only on a logical entailment (source names don't carry outcome statistics) plus an unread primary legal citation, is rated MEDIUM and explicitly called "the most robust component"; C1, C3, and C4, which depend on assumptions about a not-yet-drafted rule's design, are rated LOW with the specific missing evidence named in each case. The headline conclusion's LOW rating is explicitly derived from its weakest contributing chains rather than asserted independently. This tracks strength of support rather than applying uniform confidence.
+
+**5. Falsifiability — Rigorous.** The document states a specific, checkable falsification condition: post-enactment measurement showing that a materially large share of covered entities comply with granular, outcome-relevant disclosure and that measured adverse-impact ratios improve, with the improvement attributable to the disclosure requirement itself rather than to accompanying enforcement. It also lists concrete artifacts that would change the analysis — actual statutory text, a working primary citation for the Title VII standard, post-enactment compliance data analogous to the LL144 study — each tied to a specific chain's weak point rather than a generic call for "more research."
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

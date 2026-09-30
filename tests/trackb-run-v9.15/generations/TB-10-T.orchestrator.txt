@@ -1,0 +1,32 @@
+## First-Principles Analysis: Should the family relocate near ageing parents?
+
+**Bottom line:** The job and school costs — the things this kind of decision usually gets argued about — are almost never the variable that actually decides it. The ranking of options flips entirely on one largely unverified fact: **how acute the parents' care need really is, and whether paid care can substitute for it.** Confidence: **MEDIUM** (capped by a few unread cost/duration sources, flagged below).
+
+### What should actually drive the decision, in order
+
+1. **Verify three specific, checkable facts *before* weighing any job or school cost:**
+   - The parents' actual care-need acuity and trajectory — get a documented functional/ADL assessment, not a family impression. (Impressions can't distinguish "stable" from "early decline"; a dated clinical record can.)
+   - Whether paid/professional in-home care is actually available, adequate, and affordable near the parents — settled by two or three real calls to local home-care agencies, not national averages.
+   - The parents' own preference — ask them directly whether they want more proximity/oversight or value their independence and existing community more. Don't infer this from guilt or affection.
+
+2. **Only then run the job/school/financial trade-off** — and only among the options that survive step 1. Critically, the real option set isn't binary. Five options were scored: stay as-is, stay-and-strengthen-support (better paid care + tech + more visits), a staged/partial move, full relocation, or the parents relocating to you instead. Under a baseline (non-acute) scenario, **"strengthen support" and "parents relocate" both outscore full relocation** — full relocation only wins once the care need is verified as acute *and* not substitutable by paid care.
+
+3. **If job changes do happen, stagger them rather than doing both simultaneously** — this preserves the full benefit of relocating while roughly halving the household's peak financial exposure.
+
+4. **If a genuine tie remains after all that, it's a values call, not a facts call** — whose career yields, how much risk the household accepts. The analysis explicitly doesn't try to resolve this with more research; it names it as the honest handoff point.
+
+### The key physical insight
+
+What proximity actually buys is a **compression of response latency** (multi-hour gap down to minutes, for things like falls or medication timing) — not more total caregiving hours, which stay capped by ordinary work-and-sleep constraints no matter where you live. So the case for moving is only as strong as the fraction of the parents' needs that are genuinely latency-sensitive, as opposed to administrative, financial, or emotional-support needs that phone/video/paid help can cover just as well.
+
+### Two conventions the analysis explicitly rejects
+
+- "Moving is obviously the loving/responsible choice" and its mirror "not moving is neglect" — both collapse under inversion: there are at least seven concrete, plausible ways relocating makes things *worse* (need turns out minor, parent resents losing autonomy, career damage outlasts the actual need, move gets reversed at double cost, etc.).
+- "This is a move-or-don't-move binary" — false. The staged option and the reverse-relocation option materially change the answer and are dropped by a binary framing.
+
+### What would sharpen this from MEDIUM to HIGH confidence
+- A real quote from a moving company for the specific route, and a job-search estimate specific to each adult's actual industry (two cost figures were only web-search brackets, not read at source).
+- A working source for research on decline trajectories (one key citation was unreachable — HTTP 403).
+- The family actually running the three verifications in step 1 with its own facts rather than illustrative baseline numbers.
+
+The full analysis (assumptions table, ground-truth citations, derivation chains, abandoned reasoning, pre-mortem) is saved at `/tmp/claude-1000/trackb2-scratch/TB-10-T/.first-principles/analysis-20260930T124236Z.md` if you want to dig into any chain's reasoning.

@@ -1,0 +1,21 @@
+# Scoring of analysis.md
+
+**1. Decision usefulness — Sound.** The document reaches a real position: the financial risk is survivable almost regardless of outcome, equity should be valued near zero, and the actual decision should turn on conviction in the team/product rather than the spreadsheet. It backs this with concrete, executable steps (work out the exact monthly income delta, ring-fence 2-3 months of fixed-cost runway, check vesting terms and funding stage). But it stops short of a specific call to accept or decline, and its terminal move is to hand the real decision back to the reader via a question ("What's pulling you toward or away from it right now?"). The closing heuristic — decide on conviction, not money — is sound but general enough that it would fit almost any startup-joining decision of this shape, which keeps it out of the top band.
+
+**2. Evidence grounding — Sound.** The central financial reasoning is derived in view of the reader: the 11-month/70%-salary numbers are explicitly worked through to produce the "25-35+ months against the real shortfall" estimate, with the derivation shown rather than asserted. However, two load-bearing claims are stated as flat fact with no visible support: the "12-18 months" base rate for startup failure, and the generalization that "people who regret joining startups usually regret the team or boredom... not the pay cut itself." Both are used to steer the reader's final judgment and both could easily have been flagged as estimates or omitted; their presence as unsourced assertions is exactly what keeps this at Sound rather than Rigorous.
+
+**3. Assumption surfacing — Sound.** The most consequential assumption — that equity in a four-person startup is worth treating as zero for planning purposes — is not just named but actively engaged: the document explains what follows from it and warns against a deal that only works if the assumption is wrong. The 30% pay-cut figure is also explicitly flagged as conditional ("If the pay cut is 30%..."). But other assumptions the argument leans on — the failure base rate, the implicit assumption that the reader has no dependents or unusual fixed obligations — are asserted or left as open questions rather than surfaced as assumptions the conclusion depends on, so the treatment is uneven rather than complete.
+
+**4. Calibration — Sound.** Confidence is generally well-matched to support: the runway estimate is given as a range with visible hedging ("probably 25-35+ months... unless..."), and the equity valuation is framed as a planning heuristic rather than a certainty. But confidence outruns the evidence in a couple of spots — the failure-rate figure and the claim about what people typically regret are delivered with the same flat assertiveness as the derived financial math, even though neither has any stated basis. That mismatch, rather than a uniform failure of calibration, is what caps this at Sound.
+
+**5. Falsifiability — Sound.** The document does gesture at conditions that would undercut its own framing — most concretely, the note that the "you can afford to try" conclusion fails "if the 30% cut alone pushes you into a monthly deficit even before touching savings," which is specific enough to actually go compute. Vesting cliff, funding stage, and reemployment risk are also flagged as facts that would change the risk picture. But these are scattered through the reasoning as asides rather than pulled together into an explicit statement of what would overturn the recommendation, so it acknowledges wrongness and gestures at checkable conditions without fully assembling them into a clean falsification test.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Sound
+C2: Sound
+C3: Sound
+C4: Sound
+C5: Sound
+=== TRACKB-SCORELINE-END ===
+```

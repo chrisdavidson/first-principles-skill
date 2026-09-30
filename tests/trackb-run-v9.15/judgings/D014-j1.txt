@@ -1,0 +1,21 @@
+## Assessment
+
+**1. Decision usefulness — Rigorous.** The document lands on a specific, actionable position: expect a bare disclosure mandate to produce vague categorical vendor naming rather than itemized accounting, expect that disclosure to be structurally incapable of revealing bias, and expect low, self-selected compliance — netting "compliance costs and modest secondary transparency value, not the anti-discrimination outcome usually cited to justify it." It states the conditions under which this holds (a generic rule lacking a granular outcome-linked schema, audit mechanism, or enforcement funding) and even names the counter-designs that would flip the conclusion. A reader deciding whether to support or redesign such a rule has something concrete to act on or contest.
+
+**2. Evidence grounding — Sound.** Several load-bearing claims are tied to identifiable real-world anchors — NYC Local Law 144, the EU AI Act Art. 53(1)(d) template, the Title VII four-fifths rule — which gives the reader something to check against. But the numbers doing the heaviest lifting (≈5% compliance, 267 employers, 96% favorable) are attributed only to "a 2024 field study" with no name, author, or link, and the UK ICO claim about recruitment-AI vendors is similarly unanchored. These are plausible rather than fabricated, but they're asserted as fact where a citation would have been easy to give, which keeps this out of the top band.
+
+**3. Assumption surfacing — Rigorous.** The document devotes an explicit section to naming its load-bearing assumptions (no mandated schema, no audit mechanism, no private right of action, no accessible aggregation layer) and directly engages the most consequential one, stating plainly that "if a real statute closes them, the conclusion doesn't hold as stated." This is exactly the kind of bounded, named engagement the top band asks for rather than a generic gesture at uncertainty.
+
+**4. Calibration — Rigorous.** Confidence is differentiated rather than uniform: C1 and C3 are marked LOW because they extrapolate from a different regulatory context, while C2 is marked MEDIUM and explicitly flagged as "the most robust piece" because its logical core doesn't depend on empirical extrapolation. The overall LOW confidence is justified by naming exactly which sub-claims are weak and why, distinguishing inference from established fact throughout.
+
+**5. Falsifiability — Rigorous.** The "Would change it" section names three specific, checkable things: the actual statutory/rule text, a primary-source citation for the Title VII standard, and post-enactment compliance data analogous to the LL144 study. These are concrete enough that a reader could go verify them and potentially overturn the conclusion, rather than generic caveats that could be pasted onto any analysis.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

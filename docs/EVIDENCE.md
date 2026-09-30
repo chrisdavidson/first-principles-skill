@@ -93,6 +93,25 @@ What this does not say: Conditional on the agent having been dispatched — it i
 
 ---
 
+## Compared against not using it
+
+The question any measurement above leaves open: does the analysis come out
+better than the same model answering the same problem without this plugin?
+
+**agent arm scored +3.40 points higher on a 15-point rubric across 10 paired problems**
+
+*Sample: 10 per arm · Measured: 2026-09-30 · Run: `trackb-run-v9.15`*
+
+**Caveat:** The scored arm-T document is identifiable by its format with near certainty, so this result cannot separate reasoning quality from a format or halo effect.
+
+*Partial context, not part of the threshold: the same effect measured on the orchestrator's final message instead of the delivered file differs by +0.60 points.*
+
+The effect threshold and the full analysis plan were fixed in writing
+before any run took place — see [the pre-registration](trackb-2-preregistration.md).
+The pre-registered threshold was: paired permutation p < 0.05; effect > 2.0x in-run drift; direction holds in >= 3 of 4 domains.
+
+---
+
 ## What this page does not claim
 
 - **No overall quality score.** See the first section.
@@ -103,9 +122,6 @@ What this does not say: Conditional on the agent having been dispatched — it i
 - **Nothing about how often the agent is reached automatically.** Phrase-based
   routing is unreliable; use the slash command. The last measurement of that rate
   is old and labelled as such in [Getting Started](GETTING-STARTED.md).
-- **No comparison against not using the plugin.** A controlled comparison
-  against an unaided baseline is not published here. Nothing on this page
-  should be read as evidence that the agent outperforms an ordinary answer.
 
 ---
 

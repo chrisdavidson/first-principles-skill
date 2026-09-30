@@ -1,0 +1,63 @@
+{
+  "argv_c_template": [
+    "claude",
+    "-p",
+    "--model",
+    "claude-sonnet-5",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--permission-mode",
+    "acceptEdits",
+    "--allowedTools=Read,Glob,Grep,WebFetch,WebSearch,Bash(*)",
+    "--settings",
+    "{\"enabledPlugins\": {\"first-principles@first-principles-skill\": false, \"bm@buildomator\": false}}",
+    "<prompt>"
+  ],
+  "argv_judge_template": [
+    "claude",
+    "-p",
+    "--model",
+    "claude-sonnet-5",
+    "--permission-mode",
+    "acceptEdits",
+    "--allowedTools=Read,Glob,Grep",
+    "--settings",
+    "{\"enabledPlugins\": {\"first-principles@first-principles-skill\": false, \"bm@buildomator\": false}}",
+    "You are scoring exactly one analysis document, `analysis.md`, found in your current working directory, against the rubric in `rubric.md`, also in your current working directory. Read both files in full, then score the document on each of the rubric's five criteria exactly as it instructs, writing one short paragraph per criterion before your final block.\n\nScore this document entirely on its own terms, as the only document you have ever been given to evaluate. Close your response with exactly the fixed block the rubric specifies and nothing after it."
+  ],
+  "argv_t_template": [
+    "claude",
+    "-p",
+    "--model",
+    "claude-sonnet-5",
+    "--plugin-dir",
+    "/home/chrisdavidson/Projects/first-principles-skill/first-principles",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--permission-mode",
+    "acceptEdits",
+    "--allowedTools=Read,Glob,Grep,WebFetch,WebSearch,Bash(*)",
+    "--settings",
+    "{\"enabledPlugins\": {\"first-principles@first-principles-skill\": false, \"bm@buildomator\": false}}",
+    "/first-principles:first-principles-analysis <prompt>"
+  ],
+  "blinding_seed": 20260929,
+  "body_sha256": "6c33364b80e61476a38b08c0e451f95e80a863518500763b9366aa7e0ced46cb",
+  "head_sha": "8f0d5a311c6757706db985b702cb528687571547",
+  "isolation_settings": {
+    "enabledPlugins": {
+      "bm@buildomator": false,
+      "first-principles@first-principles-skill": false
+    }
+  },
+  "model": "claude-sonnet-5",
+  "protocol": "trackb-2",
+  "resumed_utc": [
+    "2026-09-30T11:30:26.385328Z",
+    "2026-09-30T13:19:48.155453Z"
+  ],
+  "run_id": "trackb-run-v9.15",
+  "started_utc": "2026-09-30T04:44:15.611346Z"
+}

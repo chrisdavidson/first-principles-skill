@@ -1,0 +1,21 @@
+## Scoring
+
+**1. Decision usefulness — Rigorous.** The document opens with an unambiguous position ("No.") and closes with a concrete, executable recommendation: stay on the monolith, enforce clean internal module boundaries, and extract only the specific piece that later needs it. It's scoped explicitly to the reader's situation (six engineers, one deployable, 1,200 DAU) and even flags the specific conditions under which the recommendation would need to be revisited. A reader could act on this immediately.
+
+**2. Evidence grounding — Sound.** Most of the argument is transparently derived rather than merely asserted — the costs of microservices (N pipelines, N dashboards, service mesh ownership, cross-service debugging) are laid out as visible reasoning the reader can check step by step, and the "team autonomy" and "independent deployability" points are argued from stated definitions rather than dropped in as bare claims. But the load-bearing premise that current scale poses no problem — "1,200 DAU is small enough that a monolith runs comfortably on a couple of instances" — is asserted without any supporting arithmetic (e.g., an estimated request rate), even though that support would have been easy to produce. That's a claim the conclusion leans on, presented as fact with no visible derivation.
+
+**3. Assumption surfacing — Rigorous.** The document doesn't just gesture at uncertainty generically; it identifies the specific assumption its recommendation depends on — that no hidden pain point (slow deploy pipeline, noisy-neighbor scaling, a team split) is actually driving the question — and explicitly states what happens if that assumption is false ("it would change the answer for that one piece, not the overall architecture"). That is engagement with the most consequential assumption, named specifically rather than as boilerplate.
+
+**4. Calibration — Sound.** The tone is largely flat and declarative throughout, which risks uniform confidence, but the document does distinguish what it's confident about (the general cost/benefit calculus at this scale) from what it's inferring (that no exceptional pain point exists), and it flags that latter point as the place its confidence could be wrong. This differentiation keeps it from being purely uniform, but it's a single instance of hedging rather than a throughline — the DAU-scale claim, for instance, gets the same flat certainty as the well-argued cost analysis despite being less supported.
+
+**5. Falsifiability — Rigorous.** The closing paragraph names concrete, checkable conditions that would overturn the recommendation for a specific component — a slow deploy pipeline, a noisy-neighbor scaling issue, or a looming team split — rather than a generic "circumstances may vary" caveat. Someone could actually go check for these things, which is what distinguishes this from a boilerplate hedge.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

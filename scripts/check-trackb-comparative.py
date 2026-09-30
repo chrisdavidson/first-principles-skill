@@ -1472,7 +1472,11 @@ def cmd_recompute_2(out_dir: Path) -> int:
         prompts, domain_of, pool, cells, voided_cells,
         model=manifest["model"], measured_date=manifest["started_utc"][:10],
     )
-    fresh = {**record, **extra}
+    # Round-trip through JSON before comparing: the live record holds Python
+    # tuples (e.g. drift_pairs) that a JSON list will never `==` even when
+    # every element matches -- comparing both sides post-serialisation is
+    # what "reproduces result.json" actually means.
+    fresh = json.loads(json.dumps({**record, **extra}))
 
     existing_path = out_dir / "result.json"
     if not existing_path.is_file():

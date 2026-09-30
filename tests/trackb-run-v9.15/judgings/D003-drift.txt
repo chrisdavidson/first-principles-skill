@@ -1,0 +1,21 @@
+# Scoring: analysis.md
+
+**1. Decision usefulness — Rigorous.** The document opens with an explicit position ("no, not yet") and closes with a concrete, ordered action plan (profile the pipeline, fix caching/flaky tests, split into fast/slow tiers, shard the fast tier, then re-measure) rather than a general discussion. It also states the condition under which the original proposal would become correct ("if the remaining bottleneck is genuinely CPU-bound... faster runners are a legitimate and easy final lever") and names its audience directly ("Bottom line for leadership"). A reader could execute this plan tomorrow or reject it on its own terms.
+
+**2. Evidence grounding — Sound.** Most of the argument is grounded in reasoning the reader can follow in real time — the compute-bound-vs-not distinction is derived, not asserted, and the list of common bottleneck categories is explicitly flagged as drawn from experience ("In almost every org I've seen..."), which counts as a stated basis. But a couple of load-bearing figures are dropped in without support: the "2–4x per-minute price" claim and "47 min → single digits is common" are stated as fact with no origin given, even though such figures (actual vendor pricing tiers, or a concrete before/after case) would have been easy to cite.
+
+**3. Assumption surfacing — Rigorous.** The document explicitly names the assumption the original proposal rests on (that the bottleneck is compute-bound and scales with clock speed/cores) and tests it against alternatives — I/O, network, sequential structure, redundant work. It also surfaces a second, arguably more consequential assumption — that shaving minutes off CI fixes the batching behavior — and directly interrogates it ("Even if you cut CI to 20 minutes with faster hardware... the batching habit may persist"), including what the real threshold likely is instead.
+
+**4. Calibration — Rigorous.** Confidence is modulated appropriately throughout: definitional claims (faster hardware only helps compute-bound work) are stated flatly because they are close to tautological, while empirical generalizations about typical causes and typical savings are consistently hedged with "often," "usually," "common," and "typically" rather than presented as guaranteed outcomes. The document also separates what it's confident about (the diagnostic logic) from what it's inferring (which specific bottleneck applies here), rather than asserting a diagnosis it hasn't seen the data for.
+
+**5. Falsifiability — Rigorous.** The document doesn't just gesture at uncertainty — it specifies a concrete test that would overturn its own recommendation: profile the pipeline, fix caching/tiering/sharding, then re-measure; if the bottleneck that remains is genuinely CPU-bound and already parallelized, buying faster runners becomes the right call. That's a specific, checkable procedure a reader could actually go run, not a generic "further investigation needed" caveat.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

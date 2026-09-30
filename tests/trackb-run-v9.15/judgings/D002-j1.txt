@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches a clear, specific position: negotiate a composite (roughly a 15% cut instead of 30%, more equity or accelerated vesting, a time-boxed trial, and an explicit ~6-month milestone checkpoint) rather than treating this as an immediate accept/decline. That recommendation is concrete enough to execute — it names an approximate target percentage, a structure, and a checkpoint horizon — and the document states plainly for whom and under what conditions it applies (this specific person's stated facts, with named exceptions where the recommendation would flip). The heavy hedging elsewhere in the document is about the certainty of the underlying numeric inputs, not about what action to take next, so it doesn't blunt the practical edge. This clears the top band.
+
+## Criterion 2: Evidence grounding
+
+Most of the load-bearing factual claims are genuinely well-grounded: external statistics (startup failure causes, equity dilution/exit-probability methodology, founder ownership medians, emergency-fund norms) each carry an explicit provenance tag distinguishing "read-at-source" from "reported-by-delegate," and the document is honest about two failed direct-source attempts (403/404) rather than silently upgrading their confidence. Where a headline dollar figure could mislead (the $105k/year naive equity value), the document explicitly flags it as illustrative of a methodology rather than a number to rely on. However, the pivotal artifact that actually produces the headline recommendation — the six-criterion, five-option weighted trade-off table in chain C3 — assigns 1–5 scores to each option-criterion cell with no shown derivation for why, say, "Stay" gets a Career capital score of 2 versus "Composite" getting 5. The arithmetic built on top of those scores is faithfully rechecked, but the scores themselves are asserted judgment calls dressed in a quantitative frame, and they are the direct input to the "94 vs. 69" comparison the conclusion leans on hardest. That is a real, load-bearing gap in an otherwise strong grounding record.
+
+## Criterion 3: Assumption surfacing
+
+The document names its assumptions individually and specifically rather than generically — an 18-row table with type, treatment, verdict, and verification path per assumption — and it goes further than merely naming: the most consequential assumptions (e.g., household burn-rate stability, the startup's willingness to negotiate) are explicitly bounded, tied to confidence ratings, and traced to what would resolve them. Assumptions surfaced mid-argument (rows 15–18) are captured at the point they arise rather than retrofitted. This meets the top band's bar of engaging with the most consequential assumption, not just listing it.
+
+## Criterion 4: Calibration
+
+Confidence is expressed at every level and is broadly tied to the strength of what's behind it — the document is consistent about rating every chain LOW and explains why, and it draws a genuinely useful distinction between the robustness of the general framework (don't binarize, discount headline equity, price job-search timing) and the much weaker confidence in the person-specific numeric verdict. That said, there is at least one place where stated confidence outruns what was actually demonstrated: the document frames the C3 ranking as "robust... not a near-tie" on the strength of a flip test that only perturbs the criterion *weights*, while treating that as evidence the trade-off conclusion itself is solid — without flagging that the underlying 1–5 *scores* (the ones noted as ungrounded in Criterion 2) were never stress-tested at all. That's a specific spot where the confidence language runs slightly ahead of the actual support.
+
+## Criterion 5: Falsifiability
+
+The document states a precise, checkable condition under which its conclusion is wrong: if the startup's cap table shows near-zero realistic equity value, negotiation proves impossible, and the household's true minimum runway isn't met net of the pay cut, the correct answer flips from "negotiate a composite" to "decline outright." This names the specific facts a reader could go verify and the specific combination that would overturn the recommendation, rather than a generic "more research is needed" caveat. That satisfies the top band cleanly.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

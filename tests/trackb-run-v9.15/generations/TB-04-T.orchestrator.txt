@@ -1,0 +1,26 @@
+Here is the complete first-principles analysis.
+
+## Answer
+
+**Recommendation:** Where the city has (or can obtain) road-pricing authority, adopt the **composite**: congestion pricing on the core commute corridor, with revenue funding a protected cycle-lane network and low-income transit-fare relief — rather than the raw trade-off's mechanically tied "free transit" result. Where road-pricing authority is unavailable, **no combination of these three levers alone reaches 20% within three years**.
+
+**Confidence: LOW.** Would change with: a clarified answer to whether hitting the literal 20% target should dominate cost/equity/speed/feasibility, not primarily more transport-policy evidence.
+
+### The core finding
+Each lever's individual effect is well-established at MEDIUM confidence:
+- **Congestion pricing** — fast once live (~15–22% cordon-traffic reduction within a month, per London/Stockholm), but reaching "live" historically eats 2–3 years of a fresh 3-year mandate.
+- **Free transit alone** — near-zero car-trip reduction (Tallinn: ridership gains came mostly from former *pedestrians*, not drivers — traffic stayed "basically the same").
+- **Protected cycle lanes** — small ceiling: a Fermi estimate brackets 0.1%–1.8% of car-commute trips converted in 3 years, an order of magnitude short of 20% on its own.
+
+**What actually decides the choice isn't more data — it's a values call.** A weighted trade-off across Effectiveness, Speed, Cost, Feasibility, Equity, and Robustness produces an *exact tie* between free transit and the pricing+cycling composite (74 vs. 74). A single one-point shift in how much weight "Effectiveness" gets, on a 1–5 scale, flips the winner entirely. Free transit wins on Speed/Feasibility/Equity/optics; the composite wins on actually moving the metric the mandate names. Since the mandate is specifically about cutting car trips 20% — not a general transit-improvement goal — the analysis treats Effectiveness as the dominant criterion and recommends the composite, but flags this as a normative interpretation, not a fact.
+
+### What should determine the choice, concretely
+1. **Does the city have (or can it get) legal authority to price roads within the window?** If not, pricing and the composite are off the table, and the honest conclusion is that none of the three levers gets you to 20% — you'd need to add parking-pricing reform, employer-side measures, or pursue pricing authorization as a separate track.
+2. **Geographic fit** — a definable commute chokepoint/cordon (for pricing) and a meaningful share of commutes under ~5 miles (for cycling's ceiling to matter at all).
+3. **Political durability** — can the policy survive an election/budget cycle for the full 3 years without reversal?
+4. **How the mandate itself is read** — as an overriding constraint (favors pricing/composite) versus one co-equal value among several (favors free transit).
+
+### Key risks flagged in the pre-mortem
+Procurement/legal delays eating the effect window; cycle lanes built on low-friction streets that miss actual commute corridors; transit capacity not expanded on feeder corridors before pricing starts (converting "reduction" into "displacement"); exemption creep shrinking the effectively priced population; and measuring cordon traffic rather than actual commuter mode share.
+
+The full analysis (assumptions table, 10 ground truths with provenance, 6 derivation chains, abandoned reasoning, and adversarial pass) is saved at `/tmp/claude-1000/trackb2-scratch/TB-04-T/.first-principles/analysis-20260930T054354Z.md`.

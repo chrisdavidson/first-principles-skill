@@ -1,0 +1,21 @@
+# Criterion-by-criterion assessment
+
+**1. Decision usefulness — Rigorous.** Section 6 does not stop at "it depends": it gives an explicit, ordered sequence a reader can execute — verify care-need acuity via a documented functional assessment, verify paid-care substitutability via calls to local agencies, verify the parents' own preference via a direct conversation, only then run the job/school/financial trade-off among the surviving options, stagger rather than simultaneously execute the two job changes, and resolve any remaining near-tie as an explicit values call. Each step names a concrete action (a phone call, a conversation, an assessment) rather than a vague sentiment, and the document is explicit about scope: the trade-off's anchor scores are illustrative and a specific family must re-score with its own numbers before acting. That is a recommendation that can be followed or rejected, with its conditions of applicability stated.
+
+**2. Evidence grounding — Rigorous.** Nearly every load-bearing claim is traced to a labeled ground truth that is either read-at-source with a quoted phrase (GT-1 through GT-5), an uncontested arithmetic/physical constant disclosed as such (GT-9–GT-11), or explicitly flagged with a `?` as a delegate-reported bracket whose basis and limitation are stated in the open (GT-6, GT-7, GT-8, including a disclosed 403 fetch failure for GT-8). The confidence ratings on each derivation chain are visibly driven by which of these tiers the chain depends on, so the grounding isn't just asserted — it's load-bearing in the document's own accounting.
+
+**3. Assumption surfacing — Rigorous.** The twenty-row assumptions table names each assumption's type (physical law, convention, untested belief, current constraint), gives it a verdict, and states how to verify it. Critically, the document doesn't merely list assumptions — it engages the most consequential ones directly: the five-whys decomposition isolates exactly which sub-claim of "proximity helps" is verified versus assumed, the inversion pass stress-tests the "relocating is the loving choice" convention against seven concrete failure conditions, and the trade-off's flip-test prices exactly how false a specific assumption (care-need acuity) would need to be to change the recommendation.
+
+**4. Calibration — Rigorous.** Confidence is assigned per chain and explicitly tracks its inputs: the one chain built entirely on arithmetic and uncontested constants is rated HIGH, while every chain touching a `?`-marked, delegate-reported, or unreachable source is capped at MEDIUM, with the cap's origin named each time (e.g., "capped by citing C3 (MEDIUM) and by GT-8?'s unverified, delegate-reported status"). The final conclusion's confidence is explicitly set to the weakest chain it depends on rather than smoothed upward, and the document distinguishes what is independently verifiable (GT-2, GT-10, GT-11) from what is inferred or inherited.
+
+**5. Falsifiability — Rigorous.** Beyond the generic idea that the conclusion "could be wrong," the document states a specific falsification test for the headline recommendation (the procedure is false if a family that runs it ends up no better off than a matched family that decided by unexamined convention) and, at the chain level, names exactly which ground truth would most directly overturn the recommendation (GT-8?) along with a concrete verification path (a non-paywalled mirror or the published journal source). These are checkable conditions tied to specific inputs, not boilerplate caveats.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

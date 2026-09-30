@@ -1,0 +1,29 @@
+## Decision usefulness
+
+The document reaches a clear, specific position rather than a survey of considerations: adopt the composite (congestion pricing on the core corridor, funding a protected cycle-lane network and low-income transit relief) where road-pricing authority exists, and pursue complementary demand-management tools alongside free transit/cycle lanes where it does not. This is concrete enough to execute — it names the specific package, the mechanism (revenue recycling), and the conditions under which each branch applies (authority available vs. unavailable). It also explicitly states who bears the residual judgment call (whoever owns the city's mandate, on how to weight the 20% target against cost/equity/speed/feasibility) rather than leaving that ambiguous. This meets the top band: a reader has an executable recommendation and knows exactly what condition would make them choose the alternative.
+
+## Evidence grounding
+
+Nearly every load-bearing number is traced to a named source with a quoted passage (Stockholm's ~22%, London's ~15%+, Toronto's 55%/24% split, Tallinn's 1.2pp), and the document distinguishes sources it directly opened ("read-at-source") from those it took on secondhand report ("reported-by-delegate," marked with "?"). Where it relies on estimates rather than data — the cycle-lane adoption-rate factor in the Fermi bracket, the illustrative budget anchor — it says so explicitly and gives the reasoning behind the number rather than presenting it as fact. Subjective inputs to the trade-off table (Feasibility/Equity cells) are labeled "(preference)" rather than smuggled in as evidence. This consistent practice of sourcing-or-flagging, all the way down to the numbers the final recommendation depends on, satisfies the rigorous band.
+
+## Assumption surfacing
+
+The document names eighteen distinct assumptions, ties each to the specific conclusion chain it's load-bearing for, and does not stop at listing them: it runs an inversion pass against the single most consequential one (cross-city transferability, A-8), derives concrete necessary preconditions from that inversion, and then engages at length with the assumption that actually decides the recommendation — that the 20% target should dominate the other five criteria (A-18) — including a flip-test showing how sensitive the conclusion is to that stance. This goes beyond naming assumptions generically; it identifies which one the argument turns on and shows what happens if it's read differently.
+
+## Calibration
+
+Confidence is assigned per chain (HIGH/MEDIUM/LOW) with stated reasons tied to specific weaknesses — a single-case generalization, an untested spare-capacity assumption, secondhand figures — rather than applied uniformly. Critically, the document keeps its most assertive-sounding output (the final recommendation) capped at LOW and explains precisely why: it inherits a mechanical tie plus an unresolved normative premise, not weak data on the underlying levers, which are independently rated MEDIUM. That distinction — knowing which parts of the analysis are solid and which parts are contingent on an unresolved value judgment — is exactly what tracking confidence to support requires.
+
+## Falsifiability
+
+Beyond generic caveats, the document states a concrete falsification condition for its core empirical premise: a rigorously measured post-implementation study showing near-zero commuter reduction despite an 18-month, materially-deterrent pricing regime, or a second free-transit case clearing the ~1pp Tallinn ceiling by a wide margin. It also identifies the single ground truth whose reversal would most change the conclusion (GT-4) and states what a check would look like. These are checkable, decision-specific conditions, not boilerplate that could be pasted onto any analysis.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

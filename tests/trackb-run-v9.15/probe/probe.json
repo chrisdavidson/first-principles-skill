@@ -1,0 +1,41 @@
+{
+  "arm_c_init_ok": true,
+  "arm_t_dispatched": true,
+  "arm_t_init_ok": true,
+  "plugins": {
+    "arm_c": [
+      {
+        "name": "agents-md",
+        "path": "builtin",
+        "source": "agents-md@builtin"
+      },
+      {
+        "name": "telemetry",
+        "path": "builtin",
+        "source": "telemetry@builtin"
+      }
+    ],
+    "arm_t": [
+      {
+        "name": "first-principles",
+        "path": "/home/chrisdavidson/Projects/first-principles-skill/first-principles",
+        "source": "first-principles@inline",
+        "version": "9.14.0"
+      },
+      {
+        "name": "agents-md",
+        "path": "builtin",
+        "source": "agents-md@builtin"
+      },
+      {
+        "name": "telemetry",
+        "path": "builtin",
+        "source": "telemetry@builtin"
+      }
+    ]
+  },
+  "problems": {
+    "arm_c": [],
+    "arm_t": []
+  }
+}

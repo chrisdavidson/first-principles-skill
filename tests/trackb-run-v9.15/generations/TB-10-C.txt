@@ -1,0 +1,48 @@
+This isn't a coding task, so here's the analysis directly.
+
+## Reframe the question first
+
+"Should we move closer to ageing parents" is really a bundle of separate decisions being evaluated as one. That's the first source of bad reasoning: people either let one dominant emotion (guilt, or fear of change) decide everything, or they get paralyzed comparing incommensurable things (a school's quality vs. a parent's loneliness). Split it into the actual separate questions:
+
+1. What does eldercare *actually* require, and does physical proximity solve it?
+2. What are the real (not catastrophized, not minimized) costs to each family member?
+3. Is this decision reversible, and on what timeline does it need to be made?
+
+## 1. Interrogate the premise: does proximity solve the actual problem?
+
+Before comparing job/school costs, get concrete about *why* proximity is being considered:
+
+- Is a parent currently in decline, or is this anticipatory ("someday they'll need help")? These call for very different responses. Anticipatory moves are making a large, hard-to-reverse bet on a future that's uncertain in timing and severity.
+- What specific need would proximity address — routine social contact, emergency response, hands-on daily care, decision-making support? Each has different solutions, and moving is the most expensive way to solve most of them.
+- Compare against alternatives that don't require uprooting two careers and two kids: paid in-home care, other relatives sharing the load, technology (medical alert systems, cameras, check-in calls), the parents moving instead (they have less tying them in place than a working family with school-age kids), or a "closer but not that close" compromise (90 minutes instead of 6 hours, enabling weekend visits without full relocation).
+
+If the honest answer is "we don't actually know what they'll need or when," that's information — it argues for a reversible, low-commitment step now (more frequent visits, setting up support infrastructure) rather than the maximal move.
+
+## 2. Get real about costs — per person, not averaged
+
+The household tends to average out costs ("it'll be fine overall"), which erases the fact that costs land unevenly on individuals who don't get an equal vote.
+
+- **Each adult's job**: Is this a lateral move, a step back, or career-ending in that market? Whose career absorbs more of the hit — and is that split by genuine circumstance or by default/gender pattern? An unexamined default here is a decision, not a neutral fact.
+- **Each child**: Age matters enormously. A 4-year-old and a 15-year-old experience "change schools" completely differently — the teenager has an existing social identity and possibly exams/college trajectory at stake; the younger child mostly doesn't. Don't treat "the children" as a unit.
+- **The parents being moved toward**: Do they actually want this? Increased proximity can mean increased obligation and reduced autonomy for them too — this is sometimes more about the adult child's guilt/anxiety than the parents' actual wishes. Ask them directly and take the answer seriously, including if it's "we're fine, don't uproot your family."
+- **Financial**: cost of living delta, cost of two job searches, cost of selling/buying a home, lost equity in current jobs (seniority, vesting, network).
+
+## 3. Reversibility and timing
+
+This is the crux of "first principles" here: the size of the commitment should match the certainty of the need.
+
+- A cross-country move with two new jobs and new schools is close to irreversible in practice — even if you could technically move back, you can't uneat the disrupted years.
+- Eldercare need is not static — it escalates. A decision optimized for parents' *current* state (still independent) may be wrong within 2-3 years, and a decision optimized for a hypothetical crisis may waste years of the kids' stability for a crisis that doesn't materialize on that timeline.
+- So: what's the actual trigger point? If parents are healthy now, is there a defined signal (a diagnosis, a fall, a specific functional decline) that would prompt re-evaluation — and can the family commit to *that* rather than deciding once now and being stuck?
+
+## What should actually drive it
+
+Not "who guilts loudest" or "what's the average inconvenience" but:
+
+1. **A specific, honestly-assessed care need**, not a generalized "they're getting older" anxiety.
+2. **Confirmation from the parents themselves** that proximity is what they want and would use — not assumed.
+3. **A real comparison against non-relocation alternatives**, sized to the actual need.
+4. **Individual-level cost accounting** for each family member, especially the teenager (if any) and whichever spouse's career is more exposed — with those costs actually named out loud, not smoothed over.
+5. **A bias toward the reversible option** when uncertainty is high — proximity can often be increased in steps (more visits → part-time remote work near parents → full move) rather than jumped to in one irreversible leap.
+
+The failure mode to watch for: making a maximal, permanent decision to resolve a diffuse emotional state (guilt, fear) when the actual problem is specific, current, and solvable with something much smaller.

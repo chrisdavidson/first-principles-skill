@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches a clear, defensible position — the yield improvement is "a promising preliminary observation, not proof" — and closes with a concrete punch list of next steps: report the variance/spread of each condition's runs, run an appropriate statistical test (it even names a t-test as adequate for n=3), control for confounds, and test across a wider range of conditions. That is more than a generic "do more research" — a reader could hand this list to a lab as a work plan. It falls short of the top band because the recommendation stays a menu of categories rather than a single prioritized action, and the document never states explicitly who it is for or under exactly what conditions the "promising candidate" framing would already be actionable (e.g., is this enough to justify moving to pilot scale, or not even that?). This lands as **Sound**.
+
+## Criterion 2: Evidence grounding
+
+Most of the load-bearing statistical reasoning is derived in view of the reader rather than asserted: the claim that three runs give "essentially no power to distinguish signal from noise" is explicitly conditioned on the spread relative to the 9-point gap, and the reliance on "62% and 71% are each means of three runs" is flagged as an assumption rather than stated as fact. However, a few claims that carry real weight in the argument — e.g., that a 9-point swing "from batch-to-batch variability, ambient humidity, reagent lot, stirring rate, etc., is entirely plausible in many reactions" — are asserted as general domain knowledge without any basis given (no typical variance figures, no reference class), even though such support would have been easy to gesture at. This mix of well-derived and loosely-asserted claims places it at **Sound**.
+
+## Criterion 3: Assumption surfacing
+
+The document is explicit about the assumptions its argument rests on: that the two percentages are means of three runs each, that the comparison may not have been head-to-head/controlled, and that "three runs" may not mean three independent batches. Critically, it doesn't just name the most consequential assumption (that the gap reflects real signal rather than noise) — it bounds it: the whole argument turns on "unless the spread ... is tiny relative to the 9-point gap," which tells the reader exactly what would have to be true for the observation to already be meaningful. That combination of naming and bounding the load-bearing assumption is what the top band asks for, so this scores **Rigorous**.
+
+## Criterion 4: Calibration
+
+The document is careful to separate what it treats as established ("under these specific conditions... yields were higher... across the three runs reported") from what it treats as merely plausible or unproven (causality, generalizability, practical significance, replicate independence), consistently hedging with words like "plausible," "presumably," "could easily be," and "entirely plausible" exactly where the underlying support is thin, while stating the observed numbers themselves flatly since those aren't in question. Its final "bottom line" explicitly distinguishes a preliminary observation from proof rather than rounding one into the other. This sustained tracking of confidence to support throughout the document merits **Rigorous**.
+
+## Criterion 5: Falsifiability
+
+Rather than a generic caveat, the document specifies concrete evidence that would overturn or confirm its skepticism: reported variance/error bars showing the spread is small relative to the 9-point gap, a p-value or confidence interval from a proper test, confirmation that runs were independent batches rather than repeated measurements of one pot, and confirmation the comparison was controlled (same day, reagents, operator, randomized order). Each of these is something a reader could actually go check against the lab's records, not a platitude that would fit any study. That specificity — naming the exact data that would flip the conclusion from "unproven" to "supported" — is what the top band requires, so this scores **Rigorous**.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Sound
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

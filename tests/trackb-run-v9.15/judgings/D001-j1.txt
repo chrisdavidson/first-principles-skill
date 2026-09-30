@@ -1,0 +1,29 @@
+### 1. Decision usefulness
+
+The document reaches an unambiguous, specific position: keep the single deployable, enforce a modular monolith with a concrete mechanism (an automated dependency-direction rule wired into CI as a merge gate), and treat a single narrowly-scoped service extraction as the next step only once a concrete need is evidenced — while explicitly rejecting a broad microservice architecture at this team's current size and load. It names who this applies to (a 6-engineer team at ~1,200 DAU) and states the conditions under which the recommendation would change (headcount past ~10-12, a team split, a component with a divergent scaling/compliance profile, a compliance mandate, or an order-of-magnitude load overshoot). A reader could execute this today — start the CI lint work, treat any extraction proposal against the stated bar — or reject it on stated terms. This lands in the top band.
+
+### 2. Evidence grounding
+
+Much of the load-bearing material is genuinely grounded: Conway's Law and Fowler's "MonolithFirst" are quoted and checked against source, the communication-channel arithmetic is shown and re-derived, the distributed-systems-overhead claim (GT-8) is decomposed into definitional constituents rather than asserted, and the Fermi load estimate is shown step by step with its own uncertainty flagged. However, the actual mechanism that produces the headline recommendation — the weighted trade-off's per-option, per-criterion scores (the raw 1-5 values behind O1=38, O2=95, O3=109, O4=99) — is never derived or sourced in view of the reader; only the arithmetic on top of those scores is shown and re-verified. That is a load-bearing gap: the reader can audit the math but not where the inputs to the math came from. Combined with two secondary ground truths (GT-5, GT-6) resting on unopened secondary sources, this keeps the document a notch below the top band.
+
+### 3. Assumption surfacing
+
+This is the document's strongest area. Twenty-three assumptions are named individually, typed (convention / current constraint / untested belief), given an explicit verdict (accept, challenge, discard) with a reason, and the most consequential ones are actively tested rather than passively noted — the "microservices are needed for scale" assumption is discarded via the Fermi calculation, the "build now to avoid later migration" assumption is discarded against the cited case evidence, and the assumptions each derivation chain leans on (team stays one unit, no platform hire planned, boundaries not yet proven, engineers will follow the new discipline) are traced through to what would falsify them. This clearly meets the top band.
+
+### 4. Calibration
+
+Confidence is expressed at a fine grain and tracks its own stated support: chains resting on a clean, unflagged evidence base but one unexamined assumption are rated MEDIUM with the assumption named as the reason; the chain relying on an unverified benchmark figure and an unaddressed rival explanation is rated LOW, explicitly lower than the others; the overall conclusion is pinned to its weakest contributing chain rather than rounded up. The document distinguishes self-derived, independently-checkable arithmetic from delegate-reported figures throughout, and doesn't let the impressive apparatus inflate its stated confidence beyond MEDIUM anywhere. This is calibrated in the way the top band asks for.
+
+### 5. Falsifiability
+
+The document states, up front and again at the end, specific and checkable conditions that would overturn the recommendation: headcount crossing roughly 10-12 engineers or a team split, a named component showing a divergent scaling/latency/compliance profile, an identified regulatory or contractual boundary requiring physical separation, or measured request load exceeding the estimated bracket by an order of magnitude within two quarters. These are concrete enough that a reader could actually go and check them against instrumentation or org changes, rather than generic caveats. This meets the top band.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

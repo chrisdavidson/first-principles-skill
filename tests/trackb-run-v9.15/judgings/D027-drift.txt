@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches a clear, non-hedging position — the yield difference is a "promising preliminary observation, not proof" — and backs it with a concrete list of next steps (report variance/spread, run a significance test appropriate to n=3, control for confounds, widen the test conditions) rather than leaving the reader with vague considerations. This is directionally sharp and mostly executable. What keeps it from the top band is that it never states who the recommendation is for or under what conditions it applies (a scale-up decision? a publication decision? a go/no-go on further R&D spend?), and the recommended actions, while listed, aren't prioritized or given concrete targets (e.g., no proposed sample size or significance threshold). This lands as **Sound**.
+
+## Criterion 2: Evidence grounding
+
+Nearly every load-bearing claim is derived in front of the reader rather than asserted. The core statistical claim — that three runs give "essentially no power to distinguish signal from noise unless the spread... is tiny relative to the 9-point gap" — is reasoned through rather than stated as fact, and the document is explicit about what it does and doesn't know (e.g., flagging that it is "assuming 62% and 71% are each means of three runs"). The confound and replication concerns are likewise built from first principles (what would have to be true for the comparison to be valid) rather than cited as external authority. There's no fabricated support and no unearned numeric claims. This is **Rigorous**.
+
+## Criterion 3: Assumption surfacing
+
+The document explicitly names its load-bearing assumptions rather than treating them as given: that the 71%/62% figures are means of the reported three runs, that the comparison was head-to-head rather than confounded by time/operator/reagent-lot drift, and that the three runs are independent replicates rather than repeated measurements of one batch. It doesn't just list these — it engages with the most consequential one (statistical power/variance) by explaining concretely what happens if it's wrong ("could easily be within normal run-to-run variation"). This is **Rigorous**.
+
+## Criterion 4: Calibration
+
+Confidence throughout tracks what's actually supported. The raw observation (new catalyst outperformed old across the three reported runs) is stated plainly and without hedging, since it's simply what was reported. Everything built on top of it — significance, causality, generalizability, economic relevance — is explicitly downgraded to "plausible," "entirely plausible," "unwarranted," or "a separate question," matching how thin the support actually is at each step. The bottom line explicitly separates what is known (an observed gap) from what is inferred (that it's real and attributable to the catalyst). This is **Rigorous**.
+
+## Criterion 5: Falsifiability
+
+Rather than a generic "more research is needed" caveat, the document specifies checkable conditions: report the variance/spread of each condition's runs, run a test appropriate to n=3, verify whether the runs were independent batches versus repeated measurements of one pot, and check whether other variables changed alongside the catalyst. Each of these is something a reader could concretely go and check to confirm or overturn the "promising but unproven" conclusion — e.g., if the variance turns out small relative to the 9-point gap and confounds are ruled out, the conclusion strengthens; if not, it evaporates. This is **Rigorous**.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Sound
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

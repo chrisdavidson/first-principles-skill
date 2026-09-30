@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document lands on a specific, sequenced recommendation: reject a hardware-only purchase as the primary fix, instrument the pipeline immediately to find the serial/I/O-vs-parallel split, run a named software/process bundle (caching, test-impact selection, flaky-test quarantine, pre/post-merge split) in parallel, and reserve a targeted runner upgrade for stages instrumentation confirms are CPU-bound. Each element of the recommendation is tied to a specific reason for its inclusion or exclusion, and the conditions under which the call would flip are stated concretely (an instrumentation result showing >80% CPU-bound, unparallelized load). A reader with budget authority could execute this plan or reject it on its stated terms without needing to ask what to do next. This clears the top band.
+
+## Criterion 2: Evidence grounding
+
+The load-bearing numbers are traceable to named sources with an explicit distinction between what was read at source (GitHub's pricing page, the Shopify engineering post) and what is weaker secondary or delegate-reported material (the interruption-cost research, the corroborating caching benchmarks), with the weaker material explicitly kept non-load-bearing or discounted in the confidence write-up rather than smuggled in as fact. The core scenario premise (47 minutes, batching) is flagged as an unverified given rather than presented as independently confirmed. The one place where the grounding is thinnest — the 1-5 anchor scores feeding the trade-off ranking in chain C4 — is disclosed as a judgment call (A10) and stress-tested with a reweighting flip test rather than asserted outright. This is grounding done in view of the reader, not just claimed.
+
+## Criterion 3: Assumption surfacing
+
+Eleven assumptions are named, typed, and given individual verdicts (accepted, challenged, or discarded) rather than waved through uniformly. Critically, the single assumption the whole recommendation actually turns on — the pipeline's unmeasured serial/I/O-versus-parallel split — is explicitly identified as the most consequential unresolved input, is traced through to every chain it affects, and is paired with a concrete verification step (per-stage instrumentation) and a stated reversal condition if it comes out the other way. That is engagement with the load-bearing assumption, not just a listing of it.
+
+## Criterion 4: Calibration
+
+Every conclusion carries a formally low confidence rating, but the confidence write-ups decompose why in a differentiated way rather than applying one blanket discount: a mathematical law is treated as solid even inside an otherwise low-rated chain, a delegate-sourced behavioral claim is flagged as weaker, and the final synthesis explicitly separates "the numeric confidence band is low" from "the qualitative ranking is comparatively robust to reweighting" — two distinct claims held at two different confidence levels rather than collapsed into one. That is confidence tracking evidence axis by axis, which is what distinguishes real calibration from uniform hedging.
+
+## Criterion 5: Falsifiability
+
+The document states a specific, checkable condition that would overturn the recommendation — pipeline instrumentation showing the 47 minutes is dominated (e.g., over 80%) by an already-maximally-parallelized, purely CPU-bound stage with no caching or selection headroom — and repeats this same concrete test at multiple points (the top-line answer, the conclusion's trade-offs, and a dedicated falsification section), always tied to the same measurable instrument rather than a generic caveat. This is a test someone could actually go run, which is what the top band asks for.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

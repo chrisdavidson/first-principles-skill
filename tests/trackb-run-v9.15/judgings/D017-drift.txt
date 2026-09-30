@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document lands on a specific, executable recommendation: build a REST-based, mobile-scoped aggregation/BFF layer now, leave the other six client integrations untouched, and explicitly defer full GraphQL adoption until a named trigger condition (broader cross-client demand for flexible querying) materializes. This is concrete enough to hand to an engineering team — it names the architecture, the scope (mobile only), and the parties affected (platform/backend team, mobile engineers). It also states the conditions under which the recommendation would be revisited rather than leaving that open-ended. This clears the bar for **Rigorous**.
+
+## Criterion 2: Evidence grounding
+
+The load-bearing external claims (GraphQL's single-request model, the BFF pattern, the N+1 resolver problem, POST-request cache bypass) are each given a specific source and an actual quoted passage, not just a citation stub. Where no external source applies, the claim is derived in view of the reader from definitions (RTT additivity, the necessary scope of a full migration) rather than asserted. The one number without a firm source — mobile RTT range — is explicitly flagged as an unverified order-of-magnitude estimate with its bracketing logic shown, rather than presented as measured fact. This matches the top band's description almost exactly: every load-bearing claim is either derived, sourced, or flagged as an estimate with its basis given.
+
+## Criterion 3: Assumption surfacing
+
+Assumptions are not just listed but individually typed, and the ones that actually feed the conclusion are engaged rather than passed over: the single most consequential one (future cross-client demand for flexible querying) is explicitly identified as the premise that caps the final confidence rating, with a stated reason it can't be resolved today and a stated path to resolving it later. Several other assumptions are priced into cost or confidence brackets rather than silently assumed away (e.g., the possibility that round trips are already parallelized, or that underlying services need schema changes). This is engagement with consequential assumptions, not just naming them, which is the top band's requirement.
+
+## Criterion 4: Calibration
+
+Confidence is not uniform: two lines of reasoning are rated higher than two others, and in each case the document names the specific reason for the gap — an unverified estimate in one case, an unresolved future-tense premise in the other — rather than a blanket hedge. Notably, the document also distinguishes which part of the recommendation the uncertainty actually threatens (the near-term build is not contingent on the uncertain premise; only the deferred half of the plan is), which is a more precise calibration than simply attaching one confidence label to the whole conclusion. This tracks evidence strength across the document rather than running uniformly ahead or behind it.
+
+## Criterion 5: Falsifiability
+
+The document states a concrete falsification condition for its central conclusion — the plan is wrong if the delivered endpoints don't collapse round trips to roughly 1–2 per screen, or if delivering them ends up costing about as much as the full replacement would have. That is checkable against a real outcome, not a generic caveat. It goes further than the minimum by also naming specific tripwire conditions with owners and review cadences (e.g., a calendared check on whether the deferred decision is ever actually revisited), which turns "this could be wrong" into a set of things someone could actually go and monitor.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

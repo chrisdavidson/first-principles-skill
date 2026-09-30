@@ -1,0 +1,21 @@
+## Criterion assessments
+
+**1. Decision usefulness — Rigorous.** The document reaches a specific, actionable position: don't frame the choice as a binary between exams and take-homes; audit each assessment against which of three purposes it serves, and apply concrete redesign criteria (disclosed AI use, grading that rewards critical evaluation of AI output, personalized prompts, an oral component) to any take-home that survives. It also names who acts on it (course/assessment designers) and under what conditions each branch applies (certification-critical vs. research-synthesis goals). A reader designing an assessment could execute against this directly.
+
+**2. Evidence grounding — Sound.** Most of the argument's weight is carried by an explicit logical derivation performed in view of the reader — the threat-model definition, then its application to each format's definitional properties (proctored ⇒ supervised, take-home ⇒ unsupervised) — which counts as grounded reasoning rather than bare assertion. But a few load-bearing side-claims are stated as fact with no visible support and no flag as estimate: that chatbot access is "~universal," that graders have "no reliable way to tell," and that pre-LLM exam validity problems are "unchanged." These are plausible but easy-to-support claims (adoption surveys, detection-accuracy literature) that are simply asserted.
+
+**3. Assumption surfacing — Sound.** The document does real work surfacing one consequential assumption: it explicitly identifies that "timed exam vs. take-home" bundles three independent variables (time pressure, supervision, tool access) and that the question's binary framing assumes these travel together — then tests that by constructing counterexamples (proctored open-AI exam; untimed take-home plus oral defense) that decouple them. That is genuine engagement, not gesture. But other assumptions the conclusion also leans on — that AI detection is unreliable, that the three-purpose taxonomy is exhaustive, that access is near-universal — pass unremarked as settled premises rather than being named and tested.
+
+**4. Calibration — Hand-wavy.** The document is uniformly assertive throughout ("The threat model doesn't touch it," "yields a conclusion that inverts the premise," "close to non-functional as a certification instrument") regardless of whether the underlying claim is a tight logical entailment (strong support) or an unverified empirical premise like near-universal AI access (thin support). There is no place where the prose visibly downshifts confidence to match weaker backing, and no explicit marking of which conclusions are derived versus inferred/estimated.
+
+**5. Falsifiability — Absent.** Nothing in the document states what evidence would overturn its conclusion or under what discoverable circumstances the recommendation would be wrong. The whole piece is presented as a settled reframing with no acknowledgment that its premises (e.g., detection unreliability, the three-purpose taxonomy, the universality claim) could themselves be checked and found wanting.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Sound
+C4: Hand-wavy
+C5: Absent
+=== TRACKB-SCORELINE-END ===
+```

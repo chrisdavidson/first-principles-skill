@@ -1,0 +1,21 @@
+## Assessment
+
+**1. Decision usefulness — Rigorous.** The document lands on a specific, executable recommendation: negotiate a composite (roughly a 15% cut instead of 30%, additional equity or accelerated vesting, a time-boxed trial, and an explicit ~6-month milestone checkpoint), stated plainly in the Answer and restated in the Conclusion with the same specifics. It doesn't stop at "it depends" — it names the concrete terms to ask for and the checkpoint structure, and states plainly who this is for (the person facing the decision, under the stated facts) while flagging exactly which unknowns would change the numeric particulars. A reader could walk into a negotiation with this.
+
+**2. Evidence grounding — Sound.** Much of the document is unusually well-grounded for a document of this kind: GT-1 and GT-3 are marked read-at-source with a specific read-location, and GT-2/GT-4/GT-5/GT-6 are explicitly flagged as delegate-reported or unverified, including two logged failed attempts (403, 404) to reach primary sources — genuinely superior to simply asserting numbers. However, the mechanism that actually produces the headline recommendation — the weighted trade-off table in chain C3 — assigns 1–5 scores to each option on six criteria without stating why any individual cell takes the value it does (why is Stay's "Career capital" a 2 and Join-now's a 5? why is Composite's "Speed" a 3?). The weights themselves are also asserted without rationale. Since this table is the load-bearing computation behind the specific recommendation, and its inputs are presented as fact without visible support that would have been easy to give, this falls short of full rigor.
+
+**3. Assumption surfacing — Rigorous.** The Assumptions Table names eighteen specific assumptions, classifies each by type and treatment, and states a verdict and verification path for each rather than gesturing generically. Crucially, the most consequential ones are actually engaged rather than just listed: the sensitivity analysis states directly what happens to the equity valuation (chain C2) if the "population base rate" assumption is wrong for this specific company, and the household-burn-rate assumption underlying chain C1 is named as the chain's explicit weakest link with a stated verification step.
+
+**4. Calibration — Rigorous.** Confidence is graded per chain (LOW throughout) with a stated reason each time — an unverified premise, a failed source read, or a live unresolved rival explanation — rather than applied uniformly by default. The document also draws a real distinction between what it's confident in and what it isn't: it separates the "general framework" (judged robust and likely to survive most factual specifics) from the "person-specific numeric verdict" (explicitly downgraded because of named missing inputs: cap table, vesting language, true burn rate, dependents). That separation is exactly the kind of tracking-of-support-to-confidence the top band asks for.
+
+**5. Falsifiability — Rigorous.** The closing Falsification statement gives a conjunctive, checkable condition under which the recommendation reverses: near-zero realistic equity value, no room to negotiate, and a household runway floor that isn't met — stated specifically enough that the reader could go verify each leg and know when to flip from "negotiate" to "decline outright." This is not a generic hedge; it names the exact facts that would overturn the conclusion.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

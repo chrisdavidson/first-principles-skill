@@ -1,0 +1,164 @@
+{
+  "TB-01-C": {
+    "attempts": [
+      "TB-01-C.a1.jsonl"
+    ],
+    "outcome": "scored",
+    "reclassified_by": "docs/trackb-2-preregistration.md#mid-run-mechanics-correction-2026-09-30 -- attempt 1 was a genuine complete answer misclassified as a usage-limit stub by is_limit_stub()'s regex fallback; adopted as the scored attempt after the fix.",
+    "words": 871
+  },
+  "TB-01-T": {
+    "attempts": [
+      "TB-01-T.a1.jsonl"
+    ],
+    "delivered": "analysis-20260930T044518Z.md",
+    "dispatched": true,
+    "outcome": "scored",
+    "words": 8155
+  },
+  "TB-02-C": {
+    "attempts": [
+      "TB-02-C.a1.jsonl"
+    ],
+    "outcome": "scored",
+    "words": 629
+  },
+  "TB-02-T": {
+    "attempts": [
+      "TB-02-T.a1.jsonl"
+    ],
+    "delivered": "analysis-20260930T050929Z.md",
+    "dispatched": true,
+    "outcome": "scored",
+    "words": 8278
+  },
+  "TB-03-C": {
+    "attempts": [
+      "TB-03-C.a1.jsonl"
+    ],
+    "outcome": "scored",
+    "words": 441
+  },
+  "TB-03-T": {
+    "attempts": [
+      "TB-03-T.a1.jsonl"
+    ],
+    "delivered": "analysis-20260930T052004Z.md",
+    "dispatched": true,
+    "outcome": "scored",
+    "words": 9089
+  },
+  "TB-04-C": {
+    "attempts": [
+      "TB-04-C.a1.jsonl"
+    ],
+    "outcome": "scored",
+    "words": 784
+  },
+  "TB-04-T": {
+    "attempts": [
+      "TB-04-T.a1.jsonl"
+    ],
+    "delivered": "analysis-20260930T054354Z.md",
+    "dispatched": true,
+    "outcome": "scored",
+    "words": 8956
+  },
+  "TB-05-C": {
+    "attempts": [
+      "TB-05-C.a1.jsonl"
+    ],
+    "outcome": "scored",
+    "words": 588
+  },
+  "TB-05-T": {
+    "attempts": [
+      "TB-05-T.a1.jsonl"
+    ],
+    "delivered": "analysis-20260930T055754Z.md",
+    "dispatched": true,
+    "outcome": "scored",
+    "words": 7397
+  },
+  "TB-06-C": {
+    "attempts": [
+      "TB-06-C.a1.jsonl"
+    ],
+    "outcome": "scored",
+    "words": 770
+  },
+  "TB-06-T": {
+    "attempts": [
+      "TB-06-T.a1.limit-stub.jsonl",
+      "TB-06-T.a2.jsonl"
+    ],
+    "delivered": "analysis-20260930T113908Z.md",
+    "dispatched": true,
+    "outcome": "scored",
+    "words": 9860
+  },
+  "TB-07-C": {
+    "attempts": [
+      "TB-07-C.a1.jsonl"
+    ],
+    "outcome": "scored",
+    "words": 778
+  },
+  "TB-07-T": {
+    "attempts": [
+      "TB-07-T.a1.jsonl"
+    ],
+    "delivered": "analysis-20260930T115003Z.md",
+    "dispatched": true,
+    "outcome": "scored",
+    "words": 9778
+  },
+  "TB-08-C": {
+    "attempts": [
+      "TB-08-C.a1.jsonl"
+    ],
+    "outcome": "scored",
+    "words": 402
+  },
+  "TB-08-T": {
+    "attempts": [
+      "TB-08-T.a1.jsonl"
+    ],
+    "delivered": "analysis-20260930T121617Z.md",
+    "dispatched": true,
+    "outcome": "scored",
+    "words": 6061
+  },
+  "TB-09-C": {
+    "attempts": [
+      "TB-09-C.a1.jsonl"
+    ],
+    "outcome": "scored",
+    "words": 474
+  },
+  "TB-09-T": {
+    "attempts": [
+      "TB-09-T.a1.jsonl"
+    ],
+    "delivered": "analysis-20260930T122337Z.md",
+    "dispatched": true,
+    "outcome": "scored",
+    "words": 6995
+  },
+  "TB-10-C": {
+    "attempts": [
+      "TB-10-C.a1.jsonl"
+    ],
+    "outcome": "scored",
+    "words": 828
+  },
+  "TB-10-T": {
+    "attempts": [
+      "TB-10-T.a1.jsonl"
+    ],
+    "delivered": "analysis-20260930T124236Z.md",
+    "dispatched": true,
+    "outcome": "scored",
+    "words": 13287
+  }
+}

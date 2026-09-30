@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches an unambiguous position ("no, not yet") and backs it with an ordered, executable action sequence: profile the pipeline, fix caching/flaky tests, split into fast/slow tiers, shard the fast tier, then re-measure before considering runners. It states who this is for ("bottom line for leadership") and gives the explicit condition under which the original ask (faster runners) becomes correct. A reader could hand this to an engineering team and start executing step 1 tomorrow. This lands in the top band.
+
+## Criterion 2: Evidence grounding
+
+The diagnostic framework (compute-bound vs. I/O/serial/flaky causes) is grounded in the definitional logic of what faster hardware can and cannot fix, which is derived rather than merely asserted. But several load-bearing numbers — "often 2–4x per-minute price," "47 min → single digits is common," "often sub-10-minutes" — are presented as fact with their only stated basis being "in almost every org I've seen," a vague appeal to unspecified experience rather than a source, calculation, or clearly-scoped estimate the reader can inspect. Since the cost-comparison argument in section 2 leans directly on these unsupported figures, this falls to the hand-wavy band.
+
+## Criterion 3: Assumption surfacing
+
+The document names its single most consequential assumption explicitly — that the recommendation "only works if the bottleneck is compute-bound work that scales with clock speed/cores" — and then engages with what happens if that assumption is false, walking through I/O, network, sequential structure, and redundant work as alternative bottlenecks with different implications. It also surfaces a second, subtler assumption in section 3 (that speed alone resolves the batching behavior) and interrogates it rather than asserting it. Naming the load-bearing assumption and testing it earns the top band.
+
+## Criterion 4: Calibration
+
+Confidence is hedged with words like "often," "typically," "usually," and "can vary" around the empirical claims, and the document distinguishes conditional conclusions ("if the remaining bottleneck is genuinely CPU-bound... faster runners are a legitimate... lever") from firmer logical claims (that an outcome metric isn't a diagnosis). That said, the specific numeric claims flagged as ungrounded in Criterion 2 are stated with a confidence that outruns their thin anecdotal basis — "often 2–4x" and "common" read as settled ranges rather than rough guesses. This is broadly calibrated with a couple of places where stated confidence exceeds the shown support, placing it in the sound band.
+
+## Criterion 5: Falsifiability
+
+The document gives a specific, checkable test for overturning its own recommendation: profile the pipeline, apply the cheap fixes, then re-measure — "if the remaining bottleneck is genuinely CPU-bound compute that's already parallelized and cached, faster runners are a legitimate and easy final lever." This isn't a generic "more research is needed" caveat; it names the exact procedure and the exact condition that would flip the conclusion, specific enough that someone could go run it and get a yes/no answer. That meets the top band.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

@@ -1,0 +1,29 @@
+## Criterion 1 — Decision usefulness
+
+The document lands on a specific, conditional recommendation: adopt a congestion-pricing + cycle-lane + fare-relief composite where road-pricing authority exists, and explicitly states that none of the three levers reaches 20% where it doesn't — with named alternatives (parking-pricing reform, employer-side measures, pursuing authorization as its own track) rather than a shrug. It also states who the recommendation is for and under what conditions it applies (legal authority, geographic fit, political durability, how the mandate is read). A reader could act on this or reject it on stated grounds. **Rigorous.**
+
+## Criterion 2 — Evidence grounding
+
+Most of the load-bearing numbers are either attributed to a named source (London/Stockholm cordon reductions, the Tallinn free-transit natural experiment) or explicitly flagged as a derived estimate (the cycle-lane "Fermi estimate" bracket). That said, the pivotal quantitative result driving the recommendation — the weighted trade-off scoring that produces the 74-vs-74 tie between free transit and the composite — is asserted in this document without showing the weights or the derivation; the reader is told it exists but can't see it here. That gap, on an otherwise reasonably sourced document, keeps it just short of the top band. **Sound.**
+
+## Criterion 3 — Assumption surfacing
+
+The document names its load-bearing assumptions explicitly and concretely (road-pricing authority, a definable chokepoint, a meaningful short-commute share, political durability across an election cycle, and — critically — how literally the "20%" mandate should be read). It goes further than merely listing these: it identifies the values call (how much weight "Effectiveness" gets) as the single assumption the whole conclusion pivots on, shows that a one-point shift flips the recommendation, and states plainly that treating Effectiveness as dominant is a normative choice the analysis made, not a fact it found. **Rigorous.**
+
+## Criterion 4 — Calibration
+
+Confidence is stated at multiple grains rather than uniformly: MEDIUM for each lever's individual empirical effect, LOW for the overall recommendation, with an explicit account of *why* the overall confidence is lower than the underlying evidence (it hinges on a values call, not on more data). This tracks the actual shape of the support — firmer where individual effects are drawn from documented natural experiments, weaker where the recommendation depends on an interpretive weighting decision. **Rigorous.**
+
+## Criterion 5 — Falsifiability
+
+The document doesn't just say it could be wrong — it names the specific thing that would overturn its recommendation: a clarified answer on whether the literal 20% target should dominate cost/equity/speed/feasibility considerations, explicitly distinguished from "more transport-policy evidence" (i.e., it identifies the crux as a values question, not an empirical one, and says so). It supplements this with a pre-mortem of concrete failure modes (procurement delay eating the window, cycle lanes sited off actual commute corridors, feeder-capacity shortfalls converting reduction into displacement, exemption creep, mismeasurement via cordon counts rather than mode share) that are specific enough to check against rather than generic hedges. **Rigorous.**
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

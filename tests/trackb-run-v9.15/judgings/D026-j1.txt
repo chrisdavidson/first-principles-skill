@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches a clear, stated position — "raw land area is not the binding constraint" — and backs it with a bottom-line summary redirecting attention to storage/cost economics rather than acreage. It specifies the population/territory range the conclusion applies to (10M people, 20,000–100,000 km² countries) and gives concrete magnitudes (a few hundred to ~1,500 km², under 1–3% of territory). What keeps it from the top band is that it stops short of an actionable recommendation for a specific decision-maker — it answers "is land the bottleneck?" but doesn't say what a reader should therefore do (e.g., which lever to pursue, what to stop worrying about, what to fund). It's a well-formed analytic conclusion rather than a directive one.
+
+## Criterion 2: Evidence grounding
+
+Most of the load-bearing numbers are derived transparently in front of the reader — panel efficiency, irradiance, capacity factor, and ground-coverage ratio are multiplied through explicitly to reach the 50–150 GWh/km²/yr yield figure, and the reasoning for each factor is given. This is the document's strongest area. However, a couple of claims are asserted without shown support where it would have been easy to give: the per-capita consumption anchors ("Germany/Japan-ish," "~12,000 kWh/yr") are presented as categorical estimates without a source, and the check that the derived yield "matches what real deployed solar farms actually produce" is asserted rather than shown. These are minor but real gaps against an otherwise well-grounded derivation.
+
+## Criterion 3: Assumption surfacing
+
+The document explicitly flags its single most consequential assumption — that the land calculation balances only *annual* energy, treating day/night and seasonal variation as fungible — and states plainly that this assumption is false for a real 100%-solar system. It then engages with the consequence in detail (overbuild multipliers, storage requirements, seasonal vs. diurnal shifting), rather than merely naming it and moving on. Secondary assumptions (climate/insolation quality, siting constraints) are also named, if more briefly. This satisfies the top band: the load-bearing assumption is identified and actively worked through, not just mentioned.
+
+## Criterion 4: Calibration
+
+The document generally hedges in proportion to its certainty — ranges (low/medium/high, 50–150 GWh/km²/yr) are carried through rather than collapsed into false precision, and words like "roughly," "typically," and "perhaps" appear where the underlying numbers are soft. But confidence runs slightly ahead of support in the bottleneck discussion: claims like storage being "the genuinely hard, expensive, and materials-intensive part" are delivered with the same assertive tone as the physics-derived land numbers, despite having no quantification or derivation behind them. This is a real but contained slippage rather than a pervasive mismatch.
+
+## Criterion 5: Falsifiability
+
+The document doesn't state a checkable test for its own conclusion, but it does more than offer generic caveats — it names specific mechanisms that would move the numbers (a cloudy, high-latitude country reduces yield and worsens seasonal skew; local siting constraints can bind well before the national-aggregate land limit does). A reader could take these and go check them against their own country's climate or land-use map, which gives the caveats some real teeth. What's missing is a precise threshold or piece of evidence that would flip the headline conclusion ("land isn't the constraint") itself, so it falls short of full checkability.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Sound
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Sound
+=== TRACKB-SCORELINE-END ===
+```

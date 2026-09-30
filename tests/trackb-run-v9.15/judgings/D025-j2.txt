@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document lands on a clear, specific position: read a bare "publish training-data sources" hiring-AI rule as likely to produce categorical vendor disclosures, incapable by construction of revealing bias, with low self-selected compliance — and it draws the actionable corollary that outcome-based bias audits with independent verification and enforcement funding are the better-fitting instrument for the stated aim. This is specific enough for a reader to act on: it tells them what to expect from this class of rule and what an alternative design would need to include. The scope conditions are stated with unusual precision (the rule "as commonly proposed," without a mandated schema, verification, or enforcement funding), so a reader knows exactly when the conclusion applies and when it doesn't. The main soft spot is that the intended reader/decision is never named outright (regulator drafting the bill? advocate deciding whether to support it?) — it must be inferred from context. Given how sharply everything else is specified, this lands in the top band.
+
+## Criterion 2: Evidence grounding
+
+Nearly every load-bearing claim carries a named, checkable source, and — critically — the document distinguishes claims it verified directly (quoted, read-at-source citations for GT-1, GT-2, GT-3, GT-5) from those it could not (GT-4, GT-6, GT-9 are explicitly `?`-flagged as resting on secondary summaries, with the specific failed retrieval attempts logged rather than papered over). Numbers that feed the argument (the ≈5%/4% compliance figures, the 96% favorable-result figure) are attributed to a specific field study rather than asserted, and the document even re-derives the arithmetic behind them. Where a claim is analytic rather than empirical (that a source name cannot logically entail bias statistics), it correctly treats that as not needing a citation instead of dressing it up with one. This is the rigorous band: claims are either sourced, derived in view of the reader, or flagged as estimates with their basis given.
+
+## Criterion 3: Assumption surfacing
+
+The assumptions table names ten specific, load-bearing assumptions (obligated party, enforcement design, schema granularity, absence of a private right of action, etc.), typed by kind, and an explicit inversion procedure is used to surface the conditions under which the conclusion would fail. Critically, the document doesn't just list these — it engages with the most consequential ones directly: it states what happens to chain C3 "if A5/A9 fail" (stronger verification and a private right of action), and scopes C1/C2/C4 explicitly around what would change if the schema were mandated to be granular. That is testing and bounding the load-bearing assumptions, not just naming them, which is what the top band requires.
+
+## Criterion 4: Calibration
+
+Confidence is not uniform: it is assigned per chain and tracks exactly where the support is thin. The purely logical chain (C2, that source-naming cannot entail bias statistics) is rated higher than the chains that depend on untested guesses about a not-yet-drafted statute's enforcement design (C1, C3, C4, all LOW), and the reasons are stated concretely each time (an unread primary citation, a reported-by-delegate source, a live unsettled rival). The headline conclusion is capped at LOW because it inherits from its weakest contributing chains rather than being asserted with more confidence than its parts warrant. This differentiation — strong where the logic is self-contained, explicitly weaker where it rests on undrafted statutory detail — is exactly what the top band asks for.
+
+## Criterion 5: Falsifiability
+
+The document states, twice, what would overturn its conclusion in checkable terms: at the top, three concrete things that would raise confidence (actual statutory text, a working Title VII citation, post-enactment compliance data), and later a specific falsification condition — post-enactment measurement finding both high granular-disclosure compliance and improved adverse-impact ratios attributable to the disclosure requirement itself. These are not generic caveats; they name the specific data someone could go collect and the specific result that would falsify the claim, which is what distinguishes this from a routine "further research is needed."
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

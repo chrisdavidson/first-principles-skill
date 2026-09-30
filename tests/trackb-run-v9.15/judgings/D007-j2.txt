@@ -1,0 +1,21 @@
+## Scoring
+
+**1. Decision usefulness — Rigorous.** The document reaches an explicit, actionable position ("No — don't approve a blanket 'buy faster runners' purchase as the primary fix") and follows it with a concrete sequence of next steps: instrument the pipeline to find the serial/parallel split, run the software/process bundle and pipeline split in parallel, and reserve hardware spend for stages profiling confirms are CPU-bound and already parallelized. It also states the condition under which the opposite call would be correct (>80% CPU-bound, no headroom elsewhere), which tells the reader exactly when the recommendation does and doesn't apply. A reader with authority over this purchase could act on this today.
+
+**2. Evidence grounding — Sound.** Some load-bearing claims are genuinely grounded: the Amdahl's Law argument is explained in view of the reader rather than just asserted, and the Shopify case study is cited with specific, checkable numbers (45→18 min p95) attributed to a named source. But several of the numbers the conclusion actually leans on — the 14–30.5 minute bracket for an "illustrative" 8-core upgrade, the ~10–15 minute batching threshold, and the "5-option ranking survives a flip test" claim — are asserted with only a pointer to derivation work done in an external file, not shown here. Support was evidently available (the document references derivation chains and a weighted comparison) and would have been easy to surface at least in summary form, which is what keeps this at Sound rather than Rigorous.
+
+**3. Assumption surfacing — Rigorous.** The document names its most consequential unknown explicitly — the true serial-vs-parallel split of the 47 minutes — and calls it out as "the single highest-leverage unknown in the whole analysis," then builds the entire recommendation around resolving it first. It also surfaces a second load-bearing assumption (that batching behavior responds to a step-function threshold rather than smoothly to average wait) and flags that the analysis is generic, without team-specific profiling data. Engaging with the most consequential assumption by making it the immediate next action, rather than just naming it, meets the top band.
+
+**4. Calibration — Rigorous.** The document doesn't apply uniform confidence: it distinguishes the qualitative conclusion ("hardware-only underperforms a software-led approach"), which it calls "comparatively robust," from the specific numbers, which it explicitly flags as ungrounded in the reader's actual pipeline. Hedged language ("seems to matter," "illustrative," "doesn't rule this out") is applied specifically to the claims that are weakest, while the core recommendation and its rationale are stated plainly. This differentiation between what's inferred generically and what would need local verification is exactly what the criterion asks for.
+
+**5. Falsifiability — Rigorous.** The document states a specific, checkable condition that would overturn its own conclusion: if instrumentation shows the 47 minutes is dominated (>80%) by an already-maximally-parallel, purely CPU-bound stage with no remaining caching/selection/sharding headroom, hardware becomes the right call. This is concrete enough that a reader could actually go profile the pipeline and check it, rather than a generic "more research is needed" caveat.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

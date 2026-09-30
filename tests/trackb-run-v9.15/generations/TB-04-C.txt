@@ -1,0 +1,31 @@
+This is a policy-analysis question, not a coding task, so here's the analysis directly.
+
+## Start with what "cut commuter car journeys by 20%" actually requires
+
+20% is a large, specific behavioral shift in three years. That rules out anything whose effect is small, slow, or diffuse. So the first filter is: **which interventions can plausibly move a number that big, that fast?** Evidence base (roughly):
+
+- **Free public transit**: fare removal alone typically shifts mode share by low single digits (Tallinn's free transit cut car trips ~a few %; most estimates are 2-5% mode shift, mostly from walking/cycling, not from cars). Fare is usually not the binding constraint on car use — time, reliability, and coverage are. Cheap intervention, weak lever.
+- **Congestion pricing**: has the strongest track record for large, fast reductions — London (~15-30% in the charging zone), Stockholm (~20%), Singapore. It directly taxes the behavior you want to reduce, so the effect size matches the target. But it's politically expensive and regressive unless designed carefully.
+- **Protected cycle lanes**: high leverage for trips under ~5km, but citywide car-trip reduction from cycling infrastructure alone is usually single-digit percentages over 3 years, because it only captures short trips and requires network completeness (isolated lanes underperform connected networks by a lot).
+
+**So on raw effect-size-vs-target-size logic, congestion pricing is the only single lever with a real chance of hitting 20% alone; the other two are complements, not substitutes.**
+
+## What should actually determine the choice
+
+1. **City geometry and trip-length distribution.** If most commutes are short (<5km), cycling infrastructure punches above its weight and pricing may be overkill. If commutes are long/dispersed (sprawl), cycling can't carry the load and you need pricing + transit capacity. Pull actual commute-distance data before deciding — this is the single biggest input.
+
+2. **Existing transit capacity/quality.** Congestion pricing only works if displaced drivers have somewhere to go. London/Stockholm succeeded because they had transit capacity to absorb the diverted trips. If your transit system is already crowded or has poor coverage, pricing without capacity investment just causes gridlock resentment and reversal risk (see: several US cities' failed attempts). Free transit alone without capacity is similarly self-defeating — you can't induce demand into a full system.
+
+3. **Political economy and reversibility.** Congestion pricing needs sustained political will — it's visible, resented up front, and its benefits (less congestion, revenue) show up later. Cycle lanes are politically cheaper per unit but contentious block-by-block (parking removal fights). Free transit is the most popular but also the easiest to defund later and the hardest to reverse-engineer if it doesn't work (you've given up fare revenue you need for capacity). Ask: does this council have the political capital to sustain a pricing scheme through the backlash cycle, or does it need a win with fewer entrenched opponents?
+
+4. **Budget and what it needs to fund.** Free transit is a permanent operating subsidy (fare revenue lost forever, or funded from general taxes) — cheap to announce, expensive to sustain, and doesn't fund capacity expansion. Congestion pricing *generates* revenue, which can fund transit capacity or cycling infrastructure — this is why the highest-performing real-world programs (Stockholm, London) pair pricing with reinvestment. Cycle lanes are capital cost, front-loaded, low ongoing cost.
+
+5. **Equity impact.** Congestion pricing is regressive unless revenue is recycled progressively (discounts, transit investment for lower-income commuters). Free transit is progressive by default. Cycle lanes benefit whoever lives near the network and is physically able to cycle — often better-off, closer-in residents first, unless network is built equity-first.
+
+6. **Time to effect vs. the 3-year deadline.** Cycle lane networks take 2-3 years to build to the density where they matter — you're cutting it close for a standalone strategy. Congestion pricing can go live in ~1 year (Stockholm did a trial in months) and shows effect immediately. Free transit can launch fast but effect plateaus quickly and low.
+
+## Bottom line
+
+The choice isn't really "pick one" — the evidence strongly suggests **congestion pricing as the primary lever** (it's the only one sized to a 20% target on its own), **with cycling infrastructure and transit investment funded by the pricing revenue as the release valve** that makes the pricing politically sellable and practically absorbable. Free transit alone is the weakest lever for this specific target and is better used as a component (e.g., fare discounts for those displaced by pricing) than a standalone strategy.
+
+The actual deciding factors for *this* city: commute-distance distribution, current transit spare capacity, and whether the political system can sustain a pricing fight for 3 years. If you have data on any of those for your city, that's what would pin down the recommendation rather than the generic evidence base.

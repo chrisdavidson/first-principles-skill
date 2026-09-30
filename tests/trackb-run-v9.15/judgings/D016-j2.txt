@@ -1,0 +1,17 @@
+**Decision usefulness:** The document lands on a specific, executable recommendation — negotiate a ~15% cut plus more equity/accelerated vesting plus a time-boxed trial with a 6-month checkpoint — rather than resting on a binary accept/decline. It names who it's for, states the conditions under which the recommendation would flip ("Would change it"), and even anticipates how to handle the case where negotiation itself isn't possible. This is specific enough to execute or reject, so it earns the top band.
+
+**Evidence grounding:** Several load-bearing figures are sourced and explicitly tiered by confidence (CB Insights shutdown-cause data marked "read at source"; the 80,000 Hours equity-discounting methodology likewise; other figures explicitly flagged as "secondary," "unverified," or the product of failed direct-source lookups). That tiering is a real strength. However, the central quantitative argument for the composite recommendation — the weighted trade-off table with totals of 69/69/72/82/94 and the claim that this ranking survives any single-criterion weight change — is asserted with no visible weights, per-criterion scores, or arithmetic shown to the reader. That is a load-bearing claim presented as a bare figure with no traceable origin, which keeps this from the top band despite the otherwise disciplined sourcing elsewhere.
+
+**Assumption surfacing:** The document names 18 assumptions explicitly as assumptions and goes further than merely listing them — it actively challenges several of the most consequential ones (that "stable" implies low risk, that the 30% cut is the full economic delta, that age 34 forecloses options, that the choice is reversible or not). It also flags which unresolved assumptions are load-bearing (dependents, true burn rate, startup's willingness to negotiate) rather than quietly assuming them away. This satisfies the rigorous band.
+
+**Calibration:** Confidence is stated at multiple levels of granularity rather than as one blanket hedge — each derivation chain (C1–C4) carries its own LOW rating tied to a specific reason (an unverified GT, an untested assumption), and the conclusion separately distinguishes the framework's robustness ("would likely survive most factual specifics") from the person-specific numeric verdict's fragility (missing cap table, vesting terms, burn rate). This tracks support rather than defaulting to uniform hedging or false confidence, meeting the rigorous standard.
+
+**Falsifiability:** The document states a concrete falsification condition: the recommendation flips to "decline outright" if, after obtaining the real cap table, vesting terms, and runway data, the equity turns out near-zero value AND negotiation proves impossible AND the runway floor isn't met net of the pay cut. This is specific enough that the reader could actually go verify each clause, rather than a generic "further research needed" caveat, satisfying the top band.
+
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===

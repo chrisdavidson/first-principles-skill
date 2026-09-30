@@ -1,0 +1,19 @@
+**Decision usefulness (C1):** The document lands on a specific, actionable recommendation — do not approve hardware as the primary fix; instrument the pipeline, run a named software/process bundle (caching, test-impact selection, flaky-test quarantine) in parallel, split into fast pre-merge/slow post-merge gates, and treat a targeted runner upgrade as a secondary lever gated on confirmed CPU-bound stages. It states the conditions under which this applies (general analysis absent team-specific profiling) and the condition under which it would reverse (>80% CPU-bound, unparallelized, no caching headroom). A reader could hand this to an infra team and have them execute step one tomorrow. This clears the top band.
+
+**Evidence grounding (C2):** Load-bearing numbers are traceable to named sources — GitHub's per-core pricing table and Shopify's published engineering post are both read-at-source with the specific figures quoted. Where evidence is weaker (a general interruption-recovery study, secondary-source build-caching benchmarks), the document downgrades and explicitly flags those items as reported-by-delegate rather than treating them as equivalent to the primary sources, and it further marks two of them as non-load-bearing rather than letting them prop up the core argument. Illustrative inputs (team size, parallel-fraction bracket) are labeled as illustrative rather than presented as fact. Nothing load-bearing is asserted as bare fact with no stated origin.
+
+**Assumption surfacing (C3):** The document names its assumptions explicitly, assigns each a type and a verification path, and repeatedly engages with the single most consequential one — this team's actual serial/parallel split — tracing how it constrains every downstream conclusion and naming the one measurement that would resolve it. It doesn't stop at listing assumptions; it says what happens if the load-bearing one turns out false (the recommendation reverses).
+
+**Calibration (C4):** Confidence is not uniform — it is explicitly lower wherever the underlying support is thinner (a general, non-CI-specific behavioral study) and treated as firmer where the input is a mathematical identity or a directly-read source. The overall recommendation is held at a modest confidence level throughout rather than overstated, while a narrower claim (the qualitative ranking of options) is distinguished as comparatively more robust than the numeric confidence alone would suggest, and that distinction itself is explained rather than asserted.
+
+**Falsifiability (C5):** The document states a concrete, checkable condition that would overturn the recommendation — a specific instrumentation result (the pipeline found to be dominated by an already-maximally-parallel, purely CPU-bound stage with no caching/selection headroom) — rather than a generic "further research needed" hedge. It also names the single measurement that would resolve the largest remaining uncertainty. This is specific enough that a reader could go run the check and know which way it cuts.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

@@ -1,0 +1,19 @@
+**Decision usefulness (Rigorous).** The document reaches a clear, actionable position: the data support a "promising preliminary observation, not proof," and it says concretely what to do next — report the variance/spread of each condition, run a statistical test appropriate to n=3, control for confounds (same day, same reagent lot, same operator, randomized order), verify the runs are independent batches, and test across a broader range of substrates/scales before drawing a general conclusion. It also explicitly scopes what the current data do support ("in this lab's specific setup, under these specific conditions... the observed yields... were higher") and what they don't, so a reader knows both what to conclude now and what conditions that conclusion is limited to. This is specific enough to execute rather than a generic gesture toward "more research."
+
+**Evidence grounding (Rigorous).** The document doesn't import outside facts that need sourcing; instead it derives its claims in front of the reader using the numbers given (71% vs. 62%, three runs each) and transparent statistical reasoning — e.g., explaining exactly why a 9-point gap is uninformative absent variance data ("unless the spread... is tiny relative to the 9-point gap"). Where it relies on an unstated premise (that 62%/71% are means of three runs), it flags this explicitly as an assumption rather than asserting it as fact. Nothing is presented as a fact without visible reasoning behind it.
+
+**Assumption surfacing (Rigorous).** Multiple load-bearing assumptions are named explicitly rather than gestured at: that the reported figures are means of three runs, that the comparison was head-to-head with matched confounds, that the "three runs" are independent batches rather than repeated measurements of one batch, and that results at one scale/substrate generalize. The most consequential of these — the absence of variance data undermining any significance claim — is engaged in depth (point 1), not just listed, with the document reasoning through what would have to be true for the gap to be real versus noise.
+
+**Calibration (Rigorous).** The document's confidence tracks its support throughout: it is assertive about the purely statistical point (small n with no reported variance genuinely cannot establish significance — a matter of logic, stated firmly), while it is explicitly hedged on empirical unknowns it cannot resolve from the prompt alone (whether confounds were controlled, whether runs were independent, whether the catalyst is compatible downstream), each flagged with "was this...", "if...", "could be." The closing line ("promising preliminary observation, not proof") accurately compresses this mixed confidence rather than rounding up or down.
+
+**Falsifiability (Rigorous).** The document specifies, concretely and checkably, what would be needed to overturn its skeptical stance: report the per-condition variance (if the spread is small relative to the 9-point gap, the effect looks real; if not, it doesn't), run a significance test suited to n=3, rerun with matched confounds and independent batches, and replicate across substrates and scales. These are not generic "more research is needed" caveats — each is a specific, actionable check tied to a specific way the current conclusion could be wrong (noise, confounding, non-independence, or narrow generalization).
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

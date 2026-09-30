@@ -1,0 +1,19 @@
+**1. Decision usefulness — Rigorous.** The document lands on a clear, actionable position ("no, not yet") and backs it with a concrete sequence of steps (profile, fix caching, split into fast/slow tiers, shard, re-measure) that a team could execute directly, in order. It also names its audience ("Bottom line for leadership") and states the condition under which the opposite recommendation would hold (if the bottleneck turns out to be compute-bound and already parallelized/cached). That combination of a specific recommendation plus stated scope conditions meets the bar for the top band.
+
+**2. Evidence grounding — Hand-wavy.** Several of the claims doing real work for the argument are asserted with no visible origin: premium runners costing "often 2–4x per-minute price," "47 min → single digits is common," and the batching threshold being "often sub-10-minutes." These aren't flagged as estimates with a stated basis, nor derived in view of the reader — they're delivered as settled facts. The closest thing to sourcing is "in almost every org I've seen," which is an appeal to unverifiable personal experience rather than a derivation or citation. Since these figures are load-bearing for the cost-benefit case against buying runners, and they carry no stated origin, this sits in the "figures with no stated origin" band rather than higher.
+
+**3. Assumption surfacing — Rigorous.** The document explicitly names the load-bearing assumption ("the fix only works if the bottleneck is compute-bound work that scales with clock speed") and doesn't just flag it — it proposes a concrete test (stage-by-stage profiling) to resolve it before acting. It also surfaces a second assumption, that speed alone fixes the batching behavior, and engages with what happens if that's wrong ("even if you cut CI to 20 minutes... the batching habit may persist"). Naming and actively testing/bounding the most consequential assumption is exactly what the top band asks for.
+
+**4. Calibration — Sound.** For the most part, confidence tracks support: the document is appropriately tentative about the behavioral threshold ("usually," "often," "sometimes achieved") and reserves firm confidence for the structural argument (metric vs. mechanism, cost dynamics) that it can reason through directly. But in a couple of places the confidence outruns what's shown — "in almost every org I've seen" and "this alone often kills the batching behavior" are stated with more certainty than the anecdotal basis supports, without acknowledging that this specific team's situation might differ. That keeps it just short of fully rigorous calibration.
+
+**5. Falsifiability — Rigorous.** The document doesn't just gesture at being wrong; it gives a specific, checkable test: profile after implementing caching, tiering, and parallelization, and if the remaining bottleneck is genuinely CPU-bound and already parallelized/cached, faster runners become the correct next move. That's a concrete condition the reader could go verify and that would flip the recommendation, rather than a generic "further investigation needed" caveat.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

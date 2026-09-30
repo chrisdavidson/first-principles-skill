@@ -1,0 +1,83 @@
+## Answer
+
+**Recommendation:** Do not fully replace timed exams with take-home assessments, and do not leave the pure-timed-exam status quo unchanged either — adopt a hybrid: a grade-load-bearing secured/timed component, take-home format for extended/authentic tasks, and an unpredictable, accommodation-inclusive sampled oral defense, with its integrity resting on the secured component and the viva, never on AI-text detection (chain C4).
+
+**Band (from §6):** MEDIUM.
+
+**Would change it:** A primary-source read of the retrieval-practice and accommodation-efficacy literature (chain C4); institution-specific evidence that viva-sampling or secured-component resourcing cannot be sustained (chain C5); or evidence that real-time AI coaching capable of defeating live oral defense has emerged (chain C5).
+
+## 1. Problem Essence
+
+**Core problem:** Given that generative AI can now produce unsupervised written work that is largely undetectable and often graded higher than genuine student writing, does replacing timed, invigilated written exams with take-home assessments preserve — or degrade — a university's ability to certify that a student's degree reflects that student's own demonstrated competence, and is there a format allocation that does better than either named option alone?
+
+**Success criteria:**
+1. The recommendation states, for each named option (timed-exam-only, take-home-only, and any hybrid/composite), whether it preserves the link between the credential and the individual student's own demonstrated competence, given current (2026) AI writing capability and current (2026) AI-detection reliability.
+2. The recommendation names the specific assessment format(s) assigned to each of the competing goods this decision must balance — integrity/certification validity, retention/pedagogical value, authentic-task representativeness, and equity/accessibility — rather than declaring one goal an unconditional winner over the others.
+3. The recommendation states an observable condition under which the recommended format mix would change (a falsification / "would change it" condition), so the answer is not a permanent verdict dressed as a first-principles conclusion.
+
+## 2. Assumptions Table
+
+| Assumption | Type | Treatment | Verdict | Verification |
+|---|---|---|---|---|
+| A1: AI-text detectors can reliably distinguish AI-written from student-written text, so a take-home model can be safeguarded by requiring detector clearance | untested belief | verify or flag unverified | Discard — contradicted directly by GT-2 (61.22% average false-positive rate on non-native-English writing) and by detector vendors' own admission of an active arms race against paraphrasing/"humanizer" tools (Turnitin AIR-1) | GT-2, read at source |
+| A2: timed, invigilated written exams test only rote memorization and have no independent pedagogical value once resource-rich "authentic" tasks are available | convention | explicitly challenge before use | Challenge — retrieval-practice literature (GT-5?) indicates a distinct, durable retention benefit tied to closed-resource recall, not merely an inferior version of take-home work | GT-5?, unverified — flagged |
+| A3: students mostly will not use AI on unsupervised take-home work if simply instructed not to (honor-code sufficiency) | untested belief | verify or flag unverified | Discard — contradicted by GT-3 (88% of surveyed UK undergraduates used GenAI on assessed work in 2025; 18% pasted AI text directly in) and GT-6? (contract-cheating rates rising, take-home/unsupervised format specifically implicated) | GT-3, read at source; GT-6?, unverified — flagged |
+| A4: removing timed exams is a pure equity improvement with no offsetting equity cost | convention | explicitly challenge before use | Challenge — GT-8? shows a mixed picture: timed conditions are a real anxiety trigger for some students, but unsupervised take-home formats carry their own inequities (home-environment disparity, GT-2's bias against non-native English writers under any detector-based enforcement) | GT-8?, unverified — flagged |
+| A5: a university can feasibly add a secured, timed or live-proctored component to every assessment at scale without prohibitive cost | current constraint | record expiry conditions | Accept — expires (partially) once scalable, validated AI-assisted oral-assessment grading tools exist; today, full invigilation of everything is not feasible, but *sampled* proctoring/oral defense (GT-7) is | GT-7, read at source, for the sampling proposal; the AI-assisted-grading claim itself unverified — flagged |
+| A6: LLM writing capability is limited to short-form or generic content and will not extend to discipline-specific, professional-level unsupervised writing tasks | untested belief | verify or flag unverified | Discard — GT-4 shows GPT-4 passing a professional bar exam (68th-90th percentile) including full essay and performance-test components, i.e., capability already spans complex, professional-level written and applied-reasoning tasks | GT-4, read at source |
+| A7: AI-detector unreliability is a temporary engineering problem, so a university should wait for better detectors rather than redesign assessment now | convention | explicitly challenge before use | Challenge — the bias is structural (worst precisely against the population a university must not wrongly accuse) and detectors face active, purpose-built evasion tools (paraphrasers/"humanizers"), so overall accuracy improving would not by itself close the equity/evidentiary problem | GT-2, read at source, for the bias finding; the arms-race dynamic reported-by-delegate — unverified — flagged |
+| A8: a hybrid model's sampled oral-defense (viva) component is procedurally fair only if disability/anxiety/language accommodations are designed in from the outset, not bolted on afterward | current constraint | record expiry conditions | Accept — expires only if/when a validated inclusive-by-default oral-assessment protocol exists; until then this is a non-negotiable design requirement, not an optional add-on | GT-7, read at source (the cited proposal states this condition explicitly) |
+| A9 (surfaced via Phase 2 inversion, precondition P1): a hybrid model's secured/timed component retains a grade weight high enough to be load-bearing (cannot be compensated away by take-home performance) over time | untested belief | verify or flag unverified | Accept — flagged; this is a design requirement whose failure is the single most-cited pre-mortem risk (Cluster 1) | unverified — flagged; no institution-specific evidence available to this analysis |
+| A10 (inversion precondition P2): the viva-sampling mechanism remains unpredictable to students (not pre-announced or self-selectable) | untested belief | verify or flag unverified | Accept — flagged; failure here is pre-mortem Cluster 3's "gaming the known mechanism" risk | unverified — flagged |
+| A11 (inversion precondition P3): institutional resourcing for faculty time (viva administration, secured-exam design/grading) persists beyond the initial policy rollout | current constraint | record expiry conditions | Accept — expires if a dedicated, protected budget line is written into the rollout plan rather than drawn from existing TA/faculty hours; absent that, this is pre-mortem Cluster 2's central risk | unverified — flagged; institution-specific |
+| A12 (inversion precondition P4): oral-defense (viva) grading is reliable and consistent across examiners | untested belief | verify or flag unverified | Challenge — a specific reliability figure (Cronbach's α ≈ 0.75-0.80 for structured oral formats) surfaced in initial search results but could not be confirmed by opening the cited source directly; treated as unverified rather than used as a ground truth | unverified — flagged; source not confirmed on direct read attempt |
+| A13 (inversion precondition P6): live, real-time AI assistance during an oral defense can be prevented or detected for the years the hybrid model is expected to remain standard | current constraint | record expiry conditions | Challenge — no ground truth in this analysis establishes this is currently happening at scale, but the capability trend documented in GT-1/GT-4 makes it a foreseeable medium-term threat to the viva's own integrity value | unverified — flagged; forward-looking, no direct evidence either way |
+| A14 (surfaced Phase 4, chain C3): the closed-resource recall condition specifically — not "assessment occurring" in general — is what drives the testing-effect/retrieval-practice benefit, so take-home format does not reproduce it | untested belief | verify or flag unverified | Accept — flagged; a plausible reading of the retrieval-practice literature summary (GT-5?) but not independently confirmed at the primary source | unverified — flagged |
+| A15 (surfaced Phase 4, chain C4): the six locked trade-off criteria (integrity, pedagogical value, authentic-task fit, equity, feasibility, AI-resilience) are jointly sufficient, with no material seventh criterion omitted | untested belief | verify or flag unverified | Accept — flagged; criteria were derived from the Phase 2 fishbone's six-category sweep (People, Process, Technology, Environment, Information, Resources), which gives reasonable but not exhaustive coverage | unverified — flagged; scope limit of this analysis |
+| A16 (surfaced Phase 4, chain C5): students respond as rational, incentive-sensitive actors to the sampled-viva mechanism, rather than discounting a low-probability risk and ignoring it | untested belief | verify or flag unverified | Accept — flagged; behavioral-economics literature on low-probability-risk discounting suggests this is not guaranteed, which is exactly why pre-mortem Cluster 3 treats gaming as a live, not merely hypothetical, risk | unverified — flagged |
+| A17 (surfaced Phase 4, chain C2): findings drawn primarily from UK higher-education contexts (GT-1, GT-3, GT-7) generalize to other national/institutional contexts | untested belief | verify or flag unverified | Accept — flagged; treated as a live rival to C2 rather than settled, since no ground truth in this analysis establishes cross-national generalization | unverified — flagged |
+
+## 3. Ground Truths
+
+- **GT-1** In a blind study, GPT-4-generated submissions were injected into unsupervised, window-timed take-home exams across five undergraduate psychology modules at a UK university. 94% of the AI submissions went undetected by examiners (97% under stricter criteria); AI submissions scored on average half a grade boundary higher than real students; 83.4% chance AI submissions would outperform a random selection of real student submissions. — Scarfe et al., *PLOS ONE*, 2024 (read at source, PMC11206930).
+- **GT-2** Across seven AI-text detectors tested on 91 TOEFL essays by non-native English speakers, average false-positive rate was 61.22%; on 88 US 8th-grade essays by native speakers, ~5.19%. — Liang et al., *Patterns*, 2023 (read at source, arXiv:2304.02819v3).
+- **GT-3** Survey of 1,041 UK undergraduates: 88% used GenAI on assessments in 2025 (up from 53% in 2024); 18% included AI text directly; 76% believed their institution would detect AI use. — HEPI/Kortext 2025 (read at source).
+- **GT-4** GPT-4 scored ~297/400 on the Uniform Bar Exam (68th-90th percentile); 4.2/6.0 on both essay and performance-test components; 75.7% on multiple-choice. — Katz et al. (read at source, PMC10894685).
+- **GT-5?** Retrieval-practice literature reports ~2.5x better recall under test conditions vs. restudying, with durable benefits — reported-by-delegate, sources not opened.
+- **GT-6?** Contract cheating rose from ~3.5% to ~15.7% historically; take-home/unsupervised format specifically implicated; UNSW detected cheating roughly doubled post-COVID — reported-by-delegate, sources not opened.
+- **GT-7** Proposal to randomly sample ~10% of students per assessment for a short oral defense, with accommodations for disability/anxiety/language built in from the outset. — *Times Higher Education* (read at source).
+- **GT-8?** Extended time is the most common testing accommodation; timed conditions cited as a top anxiety trigger; but evidence on performance differences is mixed and equity researchers favor inclusive-by-default design over reactive accommodation — reported-by-delegate, sources not opened.
+
+## 4. Derivation Chains (summary)
+
+- **C1 (HIGH):** Detector-gated take-home is not a working safeguard — it misses most AI submissions (GT-1) and wrongly flags non-native English writers (GT-2).
+- **C2 (MEDIUM):** The AI-substitution problem already extends beyond take-home's current share and is largely invisible (C1 + GT-3).
+- **C3 (MEDIUM):** Timed, closed-resource recall has distinct pedagogical value that pure take-home replacement would forfeit (GT-5?).
+- **C4 (MEDIUM):** A hybrid model beats both pure options in a locked, weighted trade-off (81 vs. 76 vs. status quo; full take-home knocked out on the integrity must-have).
+- **C5 (MEDIUM):** The hybrid's integrity is durable only under specific design/resourcing conditions and is time-bound against future AI capability.
+- **C6 (HIGH):** LLM capability already spans complex, professional-level unsupervised writing tasks (GT-4), discarding A6.
+
+*(Full derivation text, confidence rationale, and rival-resolution for each chain is in the source file at `/tmp/claude-1000/trackb2-scratch/TB-06-T/.first-principles/analysis-20260930T113908Z.md`.)*
+
+## 5. Abandoned Reasoning
+- Relying on AI-text detectors as the primary safeguard — ruled out by GT-2's structural bias and the detector-evasion arms race.
+- "Wait for better detectors" as a neutral default — not neutral; GT-1 shows the failure is happening now.
+- Full replacement (Option A) — knocked out on the integrity must-have before scoring.
+- Unmodified status quo — scored lower than the hybrid (76 vs. 81) in the weighted trade-off.
+- Treating retrieval-practice value alone as dispositive — would be a single-axis argument ignoring equity and authenticity costs.
+
+## 6. Conclusion
+
+**Recommended approach:** Adopt a hybrid model — grade-load-bearing secured/timed component + take-home for extended/authentic tasks + unpredictable, accommodation-inclusive sampled (~10%) oral defense, with integrity resting on the secured component and the viva, never on AI detection.
+
+**Key insight:** The intuitive "timed exams vs. take-home" framing hides that the assumed safeguard for take-home — AI detection — is measurably non-functional today, and fails worst against exactly the population it would be most damaging to wrongly accuse; the substitution problem is already occurring undetected at a 94% rate in real-world use.
+
+**Trade-offs acknowledged:** The hybrid forgoes some retention benefit of an all-timed regime and costs more faculty time; its equity and integrity benefits are conditional on resourcing and design discipline this analysis cannot verify any specific institution will deliver.
+
+**Confidence:** MEDIUM — capped by two unverified ground truths (GT-5? retrieval-practice size, GT-8? accommodation efficacy). The trade-off margin (5 points) is real but not large, and sensitivity analysis shows it is specifically the Equity criterion — resting on GT-8? — that would need to flip for the status quo to win instead.
+
+**Would change it:** (a) primary-source reads of the retrieval-practice and accommodation-efficacy literature; (b) institution-specific evidence that resourcing for the hybrid can't be sustained; (c) evidence that real-time AI coaching capable of defeating live oral defense has emerged.
+
+---
+
+The full report — including the trade-off scoring table, fishbone brainstorm, inversion pass, pre-mortem (five failure clusters with tripwires and dispositions), adversarial sensitivity/rival analysis, and self-audit gate — is saved at `/tmp/claude-1000/trackb2-scratch/TB-06-T/.first-principles/analysis-20260930T113908Z.md` if you want to dig into any section further.

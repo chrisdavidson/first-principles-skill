@@ -1,0 +1,21 @@
+## Scoring of analysis.md
+
+**1. Decision usefulness — Rigorous.** The document lands on a specific, executable recommendation: build a REST-based, mobile-scoped BFF/aggregation layer for the three affected mobile clients, leave the other six client integrations untouched, and explicitly defer a full GraphQL migration pending a named trigger condition. It states who the fix is for (the mobile round-trip complaint specifically) and under what conditions the deferred half applies, and even attaches an operational mechanism (a calendared quarterly review) so the recommendation doesn't quietly decay into inaction. A reader could hand this to an engineering team and start scoping work immediately.
+
+**2. Evidence grounding — Sound.** Several load-bearing claims are genuinely sourced (graphql.org, Sam Newman's BFF pattern writeup, the DataLoader repo, Apollo's docs on transport/caching), and one figure (mobile RTT ~50-300ms) is explicitly flagged as an unverified estimate used only for bracketing — exactly the kind of honest labeling the top band wants. However, the trade-off scoring table that anchors the final "composite wins robustly" claim (scores of 39/61/75/80, plus a "flip test" asserted to confirm robustness) shows only totals, not the per-criterion scores or weights that produced them. Since this table is the most quantified piece of support for the headline recommendation and its arithmetic isn't visible to the reader, this is a real gap rather than a minor one, which keeps the document out of the top band despite otherwise solid sourcing.
+
+**3. Assumption surfacing — Rigorous.** The document doesn't just list assumptions generically; it names specific candidate assumptions, assigns each a verdict (Accept/Discard/Challenge) with a reason, and separately calls out which premises remain genuinely unresolved (sequential vs. parallelizable calls, backend data availability, future cross-client demand). Critically, it identifies the single most consequential unresolved assumption — future demand for flexible querying — as the exact thing the "defer GraphQL" half of the plan rests on, and follows through on it in the adversarial pass, converting the risk into a concrete mitigation (the quarterly trigger review) rather than leaving it as a caveat.
+
+**4. Calibration — Rigorous.** Confidence is stated at the top (MEDIUM) with an explicit account of what caps it, and individual derivation chains are separately tagged (HIGH, HIGH, MEDIUM) with the MEDIUM one tied to the specific unresolved assumption driving it. The document also distinguishes sourced facts from an explicitly-flagged unverified estimate (GT-8), so confidence visibly tracks the strength of what's underneath each claim rather than being applied uniformly.
+
+**5. Falsifiability — Rigorous.** The document states concrete, checkable conditions that would overturn or revise the conclusion: observing the deferred-GraphQL trigger actually fire (a new client or redesign requesting flexible querying), or pulling real production RTT telemetry from the three mobile apps to replace the bracketed estimate. These are specific enough that someone could actually go check them, rather than generic "more research needed" hedging, and the pre-mortem section adds a further checkable failure condition (the deferral silently becoming permanent) paired with a concrete mitigation.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

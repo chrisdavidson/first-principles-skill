@@ -1,0 +1,19 @@
+**1. Decision usefulness.** The document lands on a specific, executable recommendation — keep the single deployable, enforce a modular monolith with named mechanisms (module ownership, an automated dependency-direction CI gate), and treat one narrowly-scoped service extraction as the next step "once a concrete need is evidenced," explicitly rejecting broad microservice adoption. It states who this is for (a 6-engineer team at ~1,200 DAU) and under what conditions the advice holds. A reader could act on this tomorrow — adopt the CI gate, assign module owners — without needing to resolve further ambiguity. This is Rigorous.
+
+**2. Evidence grounding.** Most load-bearing claims are carefully sourced or explicitly flagged by provenance quality: Conway's Law and Fowler's "MonolithFirst" are read and quoted at primary source, the Segment case is sourced with an explicit caveat limiting how it's used, and weaker inputs (the two-pizza-team heuristic, the Fermi capacity-anchor benchmark) are honestly marked as delegate-reported rather than independently verified. However, the single most decision-critical fact in the document — the weighted trade-off scores (38 / 95 / 109 / 99) that directly select "modular monolith" as the winning option — is presented as a finished result with no visible weights, per-criterion scores, or derivation the reader can inspect within this document. That is exactly the kind of load-bearing number that "would have been easy to give" support for, and it wasn't shown here. This gap keeps the criterion at Sound rather than Rigorous.
+
+**3. Assumption surfacing.** The document names 23 discrete assumptions, classifies each by type and treatment, and reaches an explicit verdict on each rather than leaving them as background noise. It goes further than merely naming them: the most consequential ones (e.g., near-term load staying in-bracket, engineers actually following enforced boundary discipline, the monolith not already being too tangled to modularize) are tested, bounded, or tied directly to a stated trigger condition for revisiting the recommendation. This is Rigorous.
+
+**4. Calibration.** Confidence is not asserted once and left uniform — each derivation chain carries its own rating (C1/C3/C4/C5 at MEDIUM, C2 at LOW), each with a stated reason tied to a specific gap (an unverified benchmark, an assumption about team stability). The document even discloses, up front, that one of its own internal audit criteria scored below its rigor threshold, and explains why. This differentiates what is known from what is inferred throughout rather than defaulting to either uniform confidence or uniform hedging. This is Rigorous.
+
+**5. Falsifiability.** The "Revisit immediately if" list gives concrete, checkable triggers — headcount passing roughly 10–12, the team splitting into 2+ groups, a component showing a materially different scaling/compliance profile, an external mandate for physical separation, or measured load exceeding the estimate by an order of magnitude. These are specific enough that someone could actually go check them, not generic caveats that would apply to any analysis. This is Rigorous.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

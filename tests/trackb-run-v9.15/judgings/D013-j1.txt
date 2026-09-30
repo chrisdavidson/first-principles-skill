@@ -1,0 +1,19 @@
+**1. Decision usefulness.** The document reaches an unambiguous, executable recommendation: keep the single deployable, stand up an enforced modular monolith with module ownership and a CI-enforced dependency-direction gate, and treat one narrow service extraction as the next step only once a concrete need is evidenced — explicitly rejecting broad microservice adoption at this team size and DAU. It names who this is for (a fixed 6-engineer team at ~1,200 DAU) and under what conditions the choice would flip. A reader could hand this to an engineering team and start implementing the CI gate tomorrow. This lands solidly in the top band.
+
+**2. Evidence grounding.** Nearly every load-bearing figure is either derived in front of the reader (the n(n-1)/2 channel count, the Fermi load estimate), sourced with a named origin (Conway 1968, Fowler's "MonolithFirst," the Segment InfoQ case with specific before/after numbers), or explicitly flagged as weaker along with why (GT-7's capacity-anchor benchmark is marked "reported-by-delegate, not independently fetched," and this weakness is precisely why chain C2 is capped at LOW rather than silently trusted). Weak or failed sources (GT-5, GT-6) are marked with "?" and, notably, are not actually used in any derivation chain — the document doesn't lean on what it couldn't verify. That combination of sourcing plus honest flagging of estimate provenance is exactly what the top band asks for.
+
+**3. Assumption surfacing.** The 23-row assumptions table names each assumption individually, classifies its type, and states a verdict rather than leaving it implicit. Critically, the most consequential ones are engaged rather than just listed: A-21 (near-term load growth staying in-bracket) is explicitly called "the most sensitive input in the analysis," A-16/A-20 (team staying undivided / headcount growth) are converted into named trigger conditions, and A-19 (whether engineers will actually follow enforced boundaries) is flagged as a real erosion risk addressed in a later pass. This is sustained engagement with the load-bearing assumptions, not a decorative list.
+
+**4. Calibration.** Confidence is stated per-chain rather than globally, and it visibly tracks support: C2, which rests on an unverified capacity benchmark, is marked LOW while the better-grounded chains are MEDIUM, and the overall band (MEDIUM) is derived from the weakest link rather than rounded up. The document also distinguishes near-definitional claims (GT-8, "by definition") from inferred or estimated ones (the Fermi bracket) and says so in those terms. This tracking of expressed confidence to actual support is the hallmark of the top band.
+
+**5. Falsifiability.** The "Revisit immediately if" list gives specific, checkable triggers — headcount crossing ~10-12 or a team split, a named component showing a different scaling/compliance profile, a compliance/procurement mandate, or measured load exceeding the estimated bracket by an order of magnitude — each of which a reader could actually go verify against real telemetry or org changes. This is well beyond a generic "more research is needed" caveat; it specifies exactly what observation would overturn the recommendation.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

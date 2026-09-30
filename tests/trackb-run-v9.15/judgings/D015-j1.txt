@@ -1,0 +1,19 @@
+**1. Decision usefulness — Sound.** The document doesn't resolve to a single concrete verdict ("move" or "don't move") because it treats the question as a decision *procedure* rather than a single fact pattern with a determinate answer — reasonably, since no specifics of a particular family are given. What it does offer is actionable: a five-point checklist, concrete alternatives to a full move (paid care, tech, "90 minutes not 6 hours," parents relocating instead), and a default lean ("bias toward the reversible option," incremental steps like visits → remote work near parents → full move). A reader could genuinely act on this. But because the final output is a process and a directional lean rather than a specific call a reader could simply execute or reject, it falls short of the top band's requirement that the recommendation be "specific enough to be executed or rejected" — it stays one level of abstraction above that.
+
+**2. Evidence grounding — Hand-wavy.** The document is mostly normative/structural reasoning rather than fact-based argument, so the bar applies mainly to the load-bearing claims it does make as fact: that eldercare need "escalates" and a proximity-based decision "may be wrong within 2-3 years," that teenagers are categorically more disrupted by a move than young children, and the implication that career-cost splits default along "gender pattern." These are plausible but asserted flatly, with no stated basis, no flag as estimate, and no visible derivation — exactly the pattern the rubric's "1" band describes.
+
+**3. Assumption surfacing — Rigorous.** The document's strongest feature. Its entire first section is devoted to naming and interrogating the load-bearing assumption that proximity actually solves the underlying problem, and it doesn't stop at naming it — it tests it against alternatives and follows the "we don't actually know" branch to a different recommendation. It does the same for the assumption that the parents want increased proximity ("ask them directly... including if it's 'we're fine'") and for the assumption that career costs should default to one spouse. Multiple consequential assumptions are both named and engaged with, not just gestured at.
+
+**4. Calibration — Sound.** Confidence is generally well-matched to support: the document is careful to distinguish "a parent currently in decline" from "anticipatory" worry, and repeatedly makes the recommendation conditional on what turns out to be true. But a few claims are delivered with more certainty than their backing warrants — the flat claim that a 4-year-old and a 15-year-old's experiences differ in the stated way, or the "2-3 years" figure — sit alongside the otherwise appropriately hedged reasoning without any signal that they're softer than the rest.
+
+**5. Falsifiability — Rigorous.** The document names a concrete, checkable trigger for revisiting its own recommendation: "a diagnosis, a fall, a specific functional decline" as the signal that should prompt re-evaluation, rather than a generic "circumstances may change." This is tied directly to the document's central recommendation (favor reversible, staged commitment over one irreversible leap), so it specifies what would make the current course of action wrong and how a reader would know.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Sound
+C2: Hand-wavy
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches a clear, specific position: a source-disclosure rule is "necessary-but-nowhere-near-sufficient," and it names a concrete alternative/supplement — outcome-based disparate impact auditing using actual applicant/hire data — rather than settling for a vague "more transparency is needed." It frames its recommendation conditionally ("If the goal is 'prevent discriminatory hiring AI'..."), which both specifies the condition under which the recommendation applies and keeps the claim honest rather than universal. A regulator reading this has something to do: don't stop at source disclosure, add or substitute outcome auditing. This clears the bar for Rigorous — the recommendation is specific enough to execute or reject, and the applicable conditions are stated.
+
+## Criterion 2: Evidence grounding
+
+This is a reasoning exercise rather than an empirical one, and the document is honest about that framing up front. Its load-bearing claims are mostly derived in view of the reader through mechanism-level argument (e.g., why employment gaps, zip codes, and college names function as proxies; why litigation discovery gives the rule indirect value) rather than asserted as bare fact. That said, several consequential claims — vendors will "likely aggregate and vague-ify disclosures," small vendors face "disproportionate burden" — are stated as probable outcomes without much derivation or any acknowledgment that they're extrapolations rather than demonstrated mechanisms. Most of the argument is grounded in visible reasoning, but a few load-bearing predictions are asserted past what the reasoning shown actually establishes.
+
+## Criterion 3: Assumption surfacing
+
+The document surfaces one central assumption explicitly and productively — that the regulation's goal is preventing discriminatory outcomes, not merely creating a paper trail — and it engages with this by exploring what changes if the goal is instead "a hook for downstream accountability." That is real engagement with the most consequential fork in the analysis. However, other assumptions the argument leans on (that the "actual harm mechanism" is proxy discrimination from lawful data rather than dirty sourcing, that regulators conflate provenance with fairness) are presented as established fact rather than flagged as premises. The most consequential assumption is examined; others pass unremarked.
+
+## Criterion 4: Calibration
+
+The document's confidence generally tracks the strength of its reasoning: sweeping claims are frequently qualified with "likely," "usually," "may," "presumably," and the second-order effects are explicitly labeled as more speculative than the core mechanism argument. But a few claims are delivered with more certainty than their support warrants — "the actual harm mechanism in hiring AI is usually not 'bad source'" is stated flatly as if settled, when it is itself a modeling choice about how bias typically arises. This is broadly calibrated with a couple of spots where assertiveness outruns the backing given.
+
+## Criterion 5: Falsifiability
+
+Nowhere does the document say what observation would overturn its central claim — that source disclosure is decoupled from outcome fairness — or under what conditions the recommended outcome-auditing approach might itself fail or prove unnecessary. There is no equivalent of "if disparate-impact audits turned out to correlate tightly with source category, this analysis would be wrong," nor any generic hedge about uncertainty. The conclusion is presented as a settled diagnosis of the rule's mechanism, with no signal of what evidence a reader could go check to test it.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Sound
+C4: Sound
+C5: Absent
+=== TRACKB-SCORELINE-END ===
+```

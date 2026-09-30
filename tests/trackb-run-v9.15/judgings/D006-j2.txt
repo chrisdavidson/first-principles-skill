@@ -1,0 +1,21 @@
+## Assessment of `analysis.md`
+
+**1. Decision usefulness — Rigorous.** The document doesn't just pick a side in "exam vs. take-home"; it reframes the question and still lands somewhere actionable. It names three distinct purposes assessment can serve, then attaches concrete formats to each: supervised formats (timed exams, oral vivas, in-class writing with version history) for certifying unaided competence in "foundational courses, licensing-adjacent material, prerequisite gatekeeping"; redesigned take-homes (disclosed AI use, grading criteria that reward critique of AI output, personalized prompts, an oral component) for research/synthesis assessment; and explicit retirement of the unmodified unsupervised take-home essay regardless of format. A reader responsible for redesigning a course's assessment could take this document and act on it directly — it specifies both the recommendation and the conditions under which each branch applies.
+
+**2. Evidence grounding — Sound.** The document's central analytic move — defining the threat model as "(a) unsupervised and (b) evaluated on written-artifact quality" and then testing each format against it — is derived in view of the reader, not just asserted. But several load-bearing supporting claims are stated as flat fact with no basis given: that graders have "no reliable way to tell" AI-assisted work from understood work (no mention of detection tools or their limits), that chatbot access is "now ~universal," and that tool-access restrictions are "unenforceable otherwise." These are plausible and commonly accepted in this discourse, but they are asserted rather than sourced or flagged as estimates, and support would have been easy to add.
+
+**3. Assumption surfacing — Sound.** The document does real work surfacing one consequential assumption: that "timed exam" and "take-home" are atomic, opposed categories. It unbundles this into three independent axes (time pressure, supervision, tool access) and shows concrete hybrid formats that recombine them, directly undercutting the binary the question poses. That is genuine engagement with the most load-bearing assumption in the prompt. But other assumptions the argument depends on — that detection is genuinely impossible, that oral components and version-history capture scale practically, that "unenforceable" is really unenforceable — pass without being named or tested.
+
+**4. Calibration — Hand-wavy.** The document is written in a uniformly assertive register throughout: "The threat model doesn't touch it," "yields a conclusion that inverts the premise," "close to non-functional as a certification instrument." Scattered soft words like "typical," "often," and "~universal" read as stylistic hedges rather than a deliberate signal of where the argument is well-supported versus speculative. There is no visible difference in confidence between the more analytically solid claims (the axes decomposition) and the more assumption-laden ones (undetectability, unenforceability) — everything is delivered with the same flat certainty.
+
+**5. Falsifiability — Absent.** Nowhere does the document state what evidence or circumstance would change its conclusion. The one conditional clause present — that a blanket take-home switch would backfire "unless the take-home is redesigned" — is a scope qualifier built into the recommendation itself, not a statement of what would overturn the thesis. The piece closes on a confident restatement of its "bottom line" with no acknowledgment that the framing or the recommendation could be wrong.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Sound
+C4: Hand-wavy
+C5: Absent
+=== TRACKB-SCORELINE-END ===
+```

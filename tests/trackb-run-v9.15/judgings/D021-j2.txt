@@ -1,0 +1,19 @@
+**Criterion 1 — Decision usefulness.** The document names a specific recommendation (a hybrid with a grade-load-bearing secured/timed component, take-home for authentic tasks, and an unpredictable ~10%-sampled, accommodation-inclusive oral defense) rather than a general endorsement of "balance." It states the conditions under which the recommendation holds (current 2026 AI writing capability and detector reliability, per the Problem Essence section) and gives enough operational detail — sampling rate, what the timed component must never rely on, how accommodations are built in — that an institution could actually implement or reject it. This lands in the Rigorous band.
+
+**Criterion 2 — Evidence grounding.** The load-bearing claims driving the strongest chains (detector unreliability, real-world AI-assisted cheating rates, LLM capability ceiling) are each tied to a specific, read-at-source citation (GT-1 through GT-4, with study details, sample sizes, and outlet given). Where support is thinner, the document does not quietly assert it — it marks those ground truths with "?" and labels them "reported-by-delegate, sources not opened" (GT-5?, GT-6?, GT-8?), and even walks back a specific figure (the Cronbach's α estimate in A12) once it couldn't be confirmed at the source. This distinction between confirmed and flagged-estimate claims is exactly what the top band asks for, so this scores Rigorous.
+
+**Criterion 3 — Assumption surfacing.** The seventeen-row assumptions table names each load-bearing premise individually, classifies it (untested belief, convention, current constraint), and states a verdict — several are actively discarded on the strength of contrary evidence (A1, A3, A6), not just noted and left alone. The most consequential ones (detector reliability, honor-code sufficiency, resourcing persistence) are genuinely tested against the ground truths rather than gestured at. This is Rigorous.
+
+**Criterion 4 — Calibration.** Confidence is stated at both the global level (MEDIUM, explicitly capped by the two unverified ground truths) and the chain level (individual chains marked HIGH or MEDIUM depending on how solid their supporting evidence is), and the document explains which specific criterion (equity, resting on GT-8?) would have to flip for the conclusion to change. The gap between well-evidenced chains (C1, C6) and weaker ones (C3, resting on a flagged ground truth) is made visible rather than smoothed over. This is Rigorous.
+
+**Criterion 5 — Falsifiability.** The "Would change it" section gives three concrete, checkable conditions: primary-source confirmation of two flagged literatures, institution-specific evidence that resourcing can't be sustained, and evidence of real-time AI coaching defeating oral defense. These are specific enough that a reader could go verify or refute them, rather than generic hedges about "further research." This is Rigorous.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

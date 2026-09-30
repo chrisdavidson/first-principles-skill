@@ -1,0 +1,19 @@
+**1. Decision usefulness (Sound).** The document answers a clear implicit question — is land area a binding constraint for a ~10M-person country running on 100% solar? — and lands on an unambiguous position: no, land is not the constraint, even under generous demand assumptions, and the real bottleneck is storage/overbuild economics, cost, build-rate, and geographic siting. It scopes the claim usefully (population range, small-dense vs. large-sparse countries, high-latitude/cloudy exceptions). What keeps it from the top band is that it stops at diagnosis: it redirects attention to "storage and cost" as the actual gating factor but never turns that into something a reader could execute or reject (no specific storage capacity, overbuild ratio, or next step is committed to as a recommendation) — the practical edge is directionally clear but blunt.
+
+**2. Evidence grounding (Sound).** Most of the load-bearing numbers are derived in view of the reader rather than asserted: the per-capita demand scenarios are anchored to named countries, and the solar yield figure is explicitly built up from physics (panel efficiency, irradiance, capacity factor, ground coverage ratio) rather than quoted as a fact. Estimates are flagged as estimates and carried through as ranges. However, two load-bearing moves fall short: the actual multiplication behind "50-150 GWh/km²/yr" is asserted as a result rather than shown step-by-step, and the claim that this "matches what real deployed solar farms actually produce" — used explicitly to validate the central estimate as "a reasonable anchor" — is presented with no source or figure the reader can check, even though such support would have been easy to give.
+
+**3. Assumption surfacing (Rigorous).** The document does more than name an assumption generically — it identifies the single assumption the whole calculation depends on ("treating day and night, summer and winter, as fungible... that's the load-bearing assumption, and it's false"), flags it explicitly as false for the scenario under discussion, and then spends a full section engaging with the consequences (overbuild multipliers, storage requirements, geographic mismatch, siting competition). This is a direct, specific treatment of the most consequential assumption, which is exactly what the top band asks for.
+
+**4. Calibration (Sound).** Confidence generally tracks the strength of the underlying support: the headline land conclusion is hedged with ranges and sensitivity checks (different country sizes, demand scenarios), and the document is appropriately more assertive about the robust part of the argument (land is a small percentage across a wide range of inputs) than about softer claims. That said, confidence runs slightly ahead of visible support in a couple of places — the unsourced "matches real deployed solar farms" claim, and the flatly stated "cost and build-rate... typically gate real-world deployment" — both delivered with more certainty than their given backing warrants.
+
+**5. Falsifiability (Sound).** The document acknowledges specific conditions under which its conclusion weakens — a cloudy, high-latitude country getting a worse yield, or a small dense country where the land share rises to ~3.5% — and even supplies enough of the underlying parameters (demand range, yield range, country-area range) that a reader could in principle recompute the sensitivity themselves. But it never states a crisp threshold ("if yield falls below X or the country is smaller than Y km², land becomes binding") that would let someone go check a specific number against the claim; the caveats gesture at the right conditions without being fully checkable tests.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Sound
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Sound
+=== TRACKB-SCORELINE-END ===
+```

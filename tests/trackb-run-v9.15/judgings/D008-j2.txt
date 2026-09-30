@@ -1,0 +1,29 @@
+## Criterion 1: Decision Usefulness
+
+The document reaches a clear, stated position — land area is a non-binding, "solved" input to full solar-PV electrification for a representative moderate-or-lower-density 10-million-person country, with a central estimate (~610 km², <1% of territory) and an explicit range (60–3,600 km²). It goes further than landing on a number: it tells the reader what to do with that fact — stop worrying about land and redirect planning effort toward storage/firming, grid buildout, siting economics, and capital — and it states exactly whom the recommendation is for (moderate-or-lower population density) and where it stops applying (small, land-scarce, high-density outliers, with a worked Bangladesh-density counterexample showing the conclusion would flip). That combination of a specific number, a specific redirection of effort, and an explicit domain of applicability is exactly what a reader deciding whether to worry about solar land-use needs to act on.
+
+## Criterion 2: Evidence Grounding
+
+Nearly every load-bearing number is traceable to a named source, and the document is unusually disciplined about distinguishing three tiers of support: figures read directly at source (the demand figures, the module-efficiency range, the empirical land-use survey), figures relayed from a search summary without the underlying page being opened (marked `?` and labeled "reported-by-delegate"), and figures that are pure physical law (solar constant, Shockley–Queisser limit). Where a fetch failed (the LBNL PDF, the tritec-energy GHI page), that failure is disclosed rather than papered over, and the unverified figures are visibly walked through downstream to see which conclusions they affect. Nothing is presented as bare fact with no origin; even the weakest inputs carry a stated basis and a named verification path.
+
+## Criterion 3: Assumption Surfacing
+
+The document identifies a dozen assumptions individually (from the representativeness of a single per-capita figure, to the annual-energy-balance simplification, to the geographic generalizability of US/European siting data), classifies each by type, and states what would happen if a given assumption failed rather than just flagging it. The most consequential one — that annual energy balance stands in for real minute-by-minute supply-demand matching (A2) — is not just named but pushed hard: it's tagged inline at every load-bearing hop, and its failure mode is worked out in detail (storage overbuild, permitting bottlenecks, local land-price pressure) rather than left as a footnote. Other assumptions (US-derived rooftop and siting data generalizing to other countries) are similarly tested against their likely direction of error rather than just mentioned.
+
+## Criterion 4: Calibration
+
+Confidence is not uniform: the physics-based estimate and its empirical cross-check are treated with more confidence than chains resting on unopened sources, and the headline conclusion is explicitly downgraded once a specific weakness is found — the density-representativeness of the Portugal comparator — with the reasoning for the downgrade spelled out rather than asserted. The document distinguishes "this is corroborated by an independent method" from "this rests on a single unopened source" throughout, and the final confidence rating is derived from, and matches, the weakest link actually identified rather than defaulting to either blanket certainty or blanket hedging.
+
+## Criterion 5: Falsifiability
+
+The document states a specific, checkable condition under which its conclusion would be wrong: if the same computation, restricted to grid-accessible, non-protected, non-urban land, yields a double-digit percentage of national territory for a representative country. It doesn't stop at the abstract condition — it demonstrates the test by substituting a Bangladesh-density country into the same arithmetic and showing the central and worst-case figures jump to 7.7% and ~45% of territory, i.e., it shows concretely what evidence would overturn the recommendation and how someone could go check it against a real country's numbers. This is well past a generic "further research is needed" caveat.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

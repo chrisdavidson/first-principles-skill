@@ -1,0 +1,29 @@
+## Decision usefulness
+
+The document reaches a clear, stated position ("treat as a preliminary, promising signal — not... causal, reproducible") and translates it into a concrete next action: request per-run data or a variance statistic, confirm what was held constant, and get further replicates before committing resources. This is specific enough for a reader to actually execute — it names the artifacts to request, not just "gather more evidence" in the abstract. The "Single highest-value next step" section makes the actionable core unmissable. The conditions under which the recommendation applies (a resourcing/investment decision, prior to further data) are reasonably clear from context, even if not spelled out with a named audience. This lands in the top band.
+
+## Evidence grounding
+
+Most of the load-bearing reasoning is derived in view of the reader rather than asserted: the claim that a 9-point gap is statistically uncomputable is backed by naming exactly what's missing (SD/CI/p-value), the sensitivity-to-small-n claim is backed by the "each run is 1/3 of the mean" arithmetic, and the significance-bar claim is backed by an explicit SE(s) formula. However, the statistical mechanics have a soft spot: the document invokes both a per-condition n=3 framing (each run = 1/3 of *that* mean) and a df=2 t-test threshold, without clarifying whether the design is paired, one-sample, or two-sample — for two independent n=3 groups df would normally be 4, not 2. That ambiguity means one of the numbers a reader might most want to lean on (t* ≈ 4.303) isn't fully traceable from what's shown. That's a real but narrow gap against an otherwise well-grounded argument, keeping it just short of the top band.
+
+## Assumption surfacing
+
+The three "what cannot be concluded" points each name a specific assumption the reported conclusion would need — that variance is known, that catalyst presence was the only thing that varied, and that the mean is stable across runs — and each is not just named but engaged with: the confound point spells out concrete alternative variables (temperature, reagent lot, operator, timing) and their consequence for the causal read, and the small-n point explains mechanistically why the mean is fragile. The most consequential assumption (no confound) gets direct engagement rather than a passing mention. This satisfies the top band's bar of naming and engaging rather than gesturing.
+
+## Calibration
+
+The document distinguishes what's flatly unknowable ("not even testable," stated with full confidence because that's simply a fact about missing inputs) from what's genuinely uncertain and argued both ways — the "What this doesn't rule out" section explicitly declines to resolve the live tension between "could still be real" and "cautious reading," rather than quietly picking a side. The overall MEDIUM confidence label is justified by name-checking exactly which chains are blocked by a "live, unruled-out rival" rather than by a flaw. Confidence tracks support throughout rather than running uniformly hot or cold.
+
+## Falsifiability
+
+The "Would change it" section states precisely what evidence would overturn the cautious read: per-run data or an SD/CI/p-value for both conditions, and confirmation that catalyst presence was the only variable that differed. Both are checkable — a reader would know exactly what to go obtain and how its presence or absence changes the verdict. This is not a generic caveat; it is tied to the specific gaps identified earlier in the document.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

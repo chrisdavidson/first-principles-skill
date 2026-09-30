@@ -1,0 +1,361 @@
+[gen] TB-01-T attempt 1 ...
+[gen] TB-02-T attempt 1 ...
+[gen] TB-03-T attempt 1 ...
+[gen] TB-04-T attempt 1 ...
+[gen] TB-05-T attempt 1 ...
+[gen] TB-06-T attempt 1 ...
+[pause] TB-06-T: usage-limit stub. Resume with:
+  python3 scripts/check-trackb-comparative.py --run --protocol trackb-2 --out tests/trackb-run-v9.15 --scratch /tmp/claude-1000/trackb2-scratch --model claude-sonnet-5
+[pause] usage-limit stub at tests/trackb-run-v9.15/raw/TB-06-T.a1.limit-stub.jsonl
+Resume with:
+  python3 scripts/check-trackb-comparative.py --run --protocol trackb-2 --out tests/trackb-run-v9.15 --scratch /tmp/claude-1000/trackb2-scratch --model claude-sonnet-5
+RUN_EXIT=3
+[gen] TB-06-T attempt 2 ...
+[gen] TB-07-T attempt 1 ...
+[gen] TB-08-T attempt 1 ...
+[gen] TB-09-T attempt 1 ...
+[gen] TB-10-T attempt 1 ...
+[gen] TB-01-C attempt 1 ...
+[pause] TB-01-C: usage-limit stub. Resume with:
+  python3 scripts/check-trackb-comparative.py --run --protocol trackb-2 --out tests/trackb-run-v9.15 --scratch /tmp/claude-1000/trackb2-scratch --model claude-sonnet-5
+[pause] usage-limit stub at tests/trackb-run-v9.15/raw/TB-01-C.a1.limit-stub.jsonl
+Resume with:
+  python3 scripts/check-trackb-comparative.py --run --protocol trackb-2 --out tests/trackb-run-v9.15 --scratch /tmp/claude-1000/trackb2-scratch --model claude-sonnet-5
+RUN_EXIT=3
+[gen] TB-02-C attempt 1 ...
+[gen] TB-03-C attempt 1 ...
+[gen] TB-04-C attempt 1 ...
+[gen] TB-05-C attempt 1 ...
+[gen] TB-06-C attempt 1 ...
+[gen] TB-07-C attempt 1 ...
+[gen] TB-08-C attempt 1 ...
+[gen] TB-09-C attempt 1 ...
+[gen] TB-10-C attempt 1 ...
+[judge] D024 j1 ...
+[judge] D024 j2 ...
+[judge] D024 drift ...
+[judge] D017 j1 ...
+[judge] D017 j2 ...
+[judge] D017 drift ...
+[judge] D003 j1 ...
+[judge] D003 j2 ...
+[judge] D003 drift ...
+[judge] D010 j1 ...
+[judge] D010 j2 ...
+[judge] D010 drift ...
+[judge] D018 j1 ...
+[judge] D018 j2 ...
+[judge] D018 drift ...
+[judge] D001 j1 ...
+[judge] D001 j2 ...
+[judge] D001 drift ...
+[judge] D005 j1 ...
+[judge] D005 j2 ...
+[judge] D005 drift ...
+[judge] D022 j1 ...
+[judge] D022 j2 ...
+[judge] D022 drift ...
+[judge] D020 j1 ...
+[judge] D020 j2 ...
+[judge] D020 drift ...
+[judge] D025 j1 ...
+[judge] D025 j2 ...
+[judge] D025 drift ...
+[judge] D006 j1 ...
+[judge] D006 j2 ...
+[judge] D006 drift ...
+[judge] D029 j1 ...
+[judge] D029 j2 ...
+[judge] D029 drift ...
+[judge] D026 j1 ...
+[judge] D026 j2 ...
+[judge] D026 drift ...
+[judge] D008 j1 ...
+[judge] D008 j2 ...
+[judge] D008 drift ...
+[judge] D027 j1 ...
+[judge] D027 j2 ...
+[judge] D027 drift ...
+[judge] D000 j1 ...
+[judge] D000 j2 ...
+[judge] D000 drift ...
+[judge] D028 j1 ...
+[judge] D028 j2 ...
+[judge] D028 drift ...
+[judge] D002 j1 ...
+[judge] D002 j2 ...
+[judge] D002 drift ...
+[judge] D015 j1 ...
+[judge] D015 j2 ...
+[judge] D015 drift ...
+[judge] D011 j1 ...
+[judge] D011 j2 ...
+[judge] D011 drift ...
+[judge] D019 j1 ...
+[judge] D019 j2 ...
+[judge] D007 j1 ...
+[judge] D007 j2 ...
+[judge] D013 j1 ...
+[judge] D013 j2 ...
+[judge] D004 j1 ...
+[judge] D004 j2 ...
+[judge] D014 j1 ...
+[judge] D014 j2 ...
+[judge] D021 j1 ...
+[judge] D021 j2 ...
+[judge] D009 j1 ...
+[judge] D009 j2 ...
+[judge] D023 j1 ...
+[judge] D023 j2 ...
+[judge] D016 j1 ...
+[judge] D016 j2 ...
+[judge] D012 j1 ...
+[judge] D012 j2 ...
+{
+  "caveat": "The scored arm-T document is identifiable by its format with near certainty, so this result cannot separate reasoning quality from a format or halo effect.",
+  "conditions": {
+    "domain_spread": true,
+    "exceeds_drift": true,
+    "statistical": true
+  },
+  "counts": {
+    "attempted_primary": 60,
+    "extraction_voids_secondary": 0,
+    "unparseable_primary": 0,
+    "voided_cells": 0
+  },
+  "directional_prediction": {
+    "observed_diff_by_criterion": {
+      "C1": 0.3,
+      "C2": 1.05,
+      "C3": 0.35,
+      "C4": 0.85,
+      "C5": 0.85
+    },
+    "prediction": "largest on Assumption Surfacing (C3) and Falsifiability (C5), smallest on Decision Usefulness (C1)"
+  },
+  "domain_count": 4,
+  "domains_in_direction": 4,
+  "drift_pairs": [
+    [
+      13,
+      13
+    ],
+    [
+      15,
+      15
+    ],
+    [
+      12,
+      14
+    ],
+    [
+      15,
+      15
+    ],
+    [
+      12,
+      12
+    ],
+    [
+      14,
+      14
+    ],
+    [
+      13,
+      12
+    ],
+    [
+      15,
+      15
+    ],
+    [
+      9,
+      8
+    ],
+    [
+      15,
+      15
+    ],
+    [
+      8,
+      8
+    ],
+    [
+      15,
+      15
+    ],
+    [
+      11,
+      11
+    ],
+    [
+      15,
+      15
+    ],
+    [
+      15,
+      14
+    ],
+    [
+      15,
+      15
+    ],
+    [
+      10,
+      10
+    ],
+    [
+      13,
+      14
+    ],
+    [
+      11,
+      12
+    ],
+    [
+      15,
+      15
+    ]
+  ],
+  "drift_threshold": 0.7,
+  "in_run_drift": 0.35,
+  "inter_rater_agreement": {
+    "exact_band_agreement_rate": 0.55,
+    "mean_abs_diff_per_criterion": {
+      "C1": 0.1,
+      "C2": 0.15,
+      "C3": 0.05,
+      "C4": 0.25,
+      "C5": 0.05
+    },
+    "mean_abs_diff_total": 0.5,
+    "n_pairs": 20
+  },
+  "mean_difference": 3.4,
+  "measured": "2026-09-30",
+  "model": "claude-sonnet-5",
+  "n_per_arm": 10,
+  "n_prompts": 10,
+  "observed_effect": "agent arm scored +3.40 points higher on a 15-point rubric across 10 paired problems",
+  "p_value": 0.001953,
+  "per_criterion_means": {
+    "C": {
+      "C1": 2.7,
+      "C2": 1.75,
+      "C3": 2.65,
+      "C4": 2.05,
+      "C5": 2.15
+    },
+    "T": {
+      "C1": 3.0,
+      "C2": 2.8,
+      "C3": 3.0,
+      "C4": 2.9,
+      "C5": 3.0
+    }
+  },
+  "per_prompt_differences": {
+    "TB-01": 1.5,
+    "TB-02": 3.0,
+    "TB-03": 1.0,
+    "TB-04": 2.5,
+    "TB-05": 6.0,
+    "TB-06": 7.0,
+    "TB-07": 3.5,
+    "TB-08": 1.0,
+    "TB-09": 4.0,
+    "TB-10": 4.5
+  },
+  "per_prompt_scores": {
+    "TB-01": {
+      "C": 13.5,
+      "T": 15.0,
+      "domain": "software"
+    },
+    "TB-02": {
+      "C": 12.0,
+      "T": 15.0,
+      "domain": "software"
+    },
+    "TB-03": {
+      "C": 12.5,
+      "T": 13.5,
+      "domain": "software"
+    },
+    "TB-04": {
+      "C": 12.5,
+      "T": 15.0,
+      "domain": "policy"
+    },
+    "TB-05": {
+      "C": 9.0,
+      "T": 15.0,
+      "domain": "policy"
+    },
+    "TB-06": {
+      "C": 8.0,
+      "T": 15.0,
+      "domain": "policy"
+    },
+    "TB-07": {
+      "C": 11.5,
+      "T": 15.0,
+      "domain": "science"
+    },
+    "TB-08": {
+      "C": 14.0,
+      "T": 15.0,
+      "domain": "science"
+    },
+    "TB-09": {
+      "C": 9.5,
+      "T": 13.5,
+      "domain": "personal"
+    },
+    "TB-10": {
+      "C": 10.5,
+      "T": 15.0,
+      "domain": "personal"
+    }
+  },
+  "preregistered_threshold": "paired permutation p < 0.05; effect > 2.0x in-run drift; direction holds in >= 3 of 4 domains",
+  "preregistration": "docs/trackb-2-preregistration.md",
+  "reason": "all three pre-registered conditions met",
+  "run_id": "trackb-run-v9.15",
+  "secondary_means": {
+    "TB-01": 14.0,
+    "TB-02": 13.5,
+    "TB-03": 14.5,
+    "TB-04": 14.0,
+    "TB-05": 14.0,
+    "TB-06": 14.5,
+    "TB-07": 14.0,
+    "TB-08": 14.5,
+    "TB-09": 14.0,
+    "TB-10": 14.0
+  },
+  "secondary_summary_gap": 0.6,
+  "status": "cleared",
+  "supersedes": "trackb",
+  "unparseable_fraction": 0.0,
+  "void_fraction": 0.0,
+  "voided_cells": [],
+  "words_per_arm": {
+    "C": {
+      "max": 871,
+      "mean": 656.5,
+      "median": 699.5,
+      "min": 402
+    },
+    "T": {
+      "max": 13287,
+      "mean": 8785.6,
+      "median": 8617.0,
+      "min": 6061
+    }
+  }
+}
+
+status: cleared -- all three pre-registered conditions met
+RUN_EXIT=0

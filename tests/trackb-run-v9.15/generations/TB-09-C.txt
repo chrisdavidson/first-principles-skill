@@ -1,0 +1,16 @@
+This is a personal decision question, not a coding task, so let me just think it through with you directly.
+
+**The financial math first, since it's concrete.** 11 months of runway at *current* spending, but your spending won't be zero at the startup — you'll be earning 70% of your old salary. So the real question isn't "how long until I run out," it's "how long can I sustain the *gap* between old and new income." If the pay cut is 30%, your effective burn from savings is much slower than 11 months implies — probably 25-35+ months of runway against the actual shortfall, unless the 30% cut alone pushes you into a monthly deficit even before touching savings. Work out that monthly delta precisely; it's the single most important number here, more important than the 11-month headline figure.
+
+**Equity is a lottery ticket, not compensation — price it that way.** At a four-person startup, treat the equity's expected value as close to zero for planning purposes. Don't do this deal if the math only works when you assume the equity pays off. It should be a bonus scenario, not the reason you can afford rent.
+
+**What actually derisks this:**
+- Can you get 2-3 months of true fixed-cost runway (rent, insurance, debt minimums) explicitly set aside as untouchable, separate from "savings" in the abstract?
+- What's your reemployment risk if the startup fails in 12-18 months (which is the base rate)? Is your skillset/industry one where you can walk back into a similar role quickly, or does a gap/startup detour hurt you in your specific field?
+- Vesting cliff and cadence, founder equity splits, and whether there's already institutional funding or you're pre-seed/bootstrapped — this changes the risk profile enormously.
+
+**The non-financial variables usually matter more at this stage of a decision:** do you actually believe in the founders and the specific four people, do you have real conviction in the market they're attacking, and — separately from money — do you want the experience of being early at a company for its own sake (skills, autonomy, story), independent of whether it makes you rich? People who regret joining startups usually regret the *team* or *boredom with the problem*, not the pay cut itself. People who regret *not* joining usually regret it because they wanted the experience and didn't get it, not because they left money on the table.
+
+A useful framing: at 34 with 11 months saved, you can survive this financially almost regardless of outcome. So the decision should be made on conviction in the team/product and what you want your next 2-3 years to look like — not on spreadsheet risk, because the spreadsheet says you can afford to try.
+
+What's pulling you toward or away from it right now — is it the money, the team, or something else?

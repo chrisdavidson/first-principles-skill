@@ -1,0 +1,19 @@
+**Criterion 1 — Decision usefulness.** The document reaches an explicit, actionable position: source-disclosure rules are "aimed at the wrong layer" for preventing discriminatory hiring AI, and it names what should replace or supplement them — "outcome-based auditing — disparate impact testing on protected classes, using actual applicant/hire data." It identifies the actor the recommendation is for (a regulator) and the condition under which it applies (if the goal is preventing discriminatory outcomes rather than mere transparency). This is specific enough that a reader could act on it or reject it, placing it in the top band.
+
+**Criterion 2 — Evidence grounding.** Most of the load-bearing claims carry a stated mechanism rather than sitting as bare assertions — the central claim that source disclosure doesn't touch proxy discrimination is worked through with a concrete example (employment gaps, zip codes, college names as proxies), and each of the four second-order effects is attached to a one- or two-clause causal story (compliance advantage → floor effect; discoverable list → litigation hook; IP/gaming incentives → vague disclosures). None of this is sourced to any external data, study, or real case, and a few claims (notably the incumbent-entrenchment point) are thinner assertions with little derivation behind them. This is grounded via visible reasoning more than via evidence, which is adequate but short of rigorous.
+
+**Criterion 3 — Assumption surfacing.** The document frames its central move as conditional — "if the goal is 'prevent discriminatory hiring AI'" — which makes the key premise about regulatory intent visible, and it goes on to test the load-bearing assumption that harm typically comes from proxy discrimination rather than bad sourcing, arguing it rather than just stating it. But this isn't explicitly flagged as "an assumption" so much as argued as fact, and other assumptions it depends on (that outcome auditing is itself feasible and effective, that "usually" the mechanism is proxy bias rather than tainted data) pass without being named or bounded.
+
+**Criterion 4 — Calibration.** Confidence tracks support reasonably well: the core logical claim (source disclosure and outcome fairness are only loosely correlated) is stated flatly because it's argued at length, while the more speculative second-order predictions are consistently hedged with "likely," "may," and "mostly second-order." This differentiation is real but not signposted or examined explicitly — there's no moment where the document says which of its claims it holds less confidently and why, so it falls short of the top band.
+
+**Criterion 5 — Falsifiability.** Nowhere does the document say what would overturn its conclusion, what evidence would show the rule is doing more than it credits it for, or under what observation the "wrong layer" diagnosis would be wrong. It closes with a summary of predicted effects presented as settled, with no checkable condition and no acknowledgement that the analysis itself could be mistaken.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Sound
+C4: Sound
+C5: Absent
+=== TRACKB-SCORELINE-END ===
+```

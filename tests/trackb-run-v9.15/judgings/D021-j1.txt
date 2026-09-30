@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches a specific, named position — a hybrid of a grade-load-bearing secured/timed component, take-home for extended/authentic tasks, and an unpredictable ~10% sampled oral defense with accommodations built in — and states explicitly what is rejected (pure take-home, unmodified status quo) and why. This is concrete enough for an institution to act on: it names format allocations, a sampling rate, and a non-negotiable design constraint (integrity never resting on AI detection). The "would change it" conditions further bound when the recommendation applies. This clears the bar for **Rigorous**.
+
+## Criterion 2: Evidence grounding
+
+Most load-bearing claims are tied to identifiable sources with specifics a reader could chase down (GT-1 Scarfe et al./PLOS ONE, GT-2 Liang et al./Patterns, GT-3 HEPI/Kortext, GT-4 Katz et al.), and the document is careful to flag weaker claims as "reported-by-delegate, sources not opened" (GT-5?, GT-6?, GT-8?) rather than passing them off as solid. However, the central tie-breaking evidence for choosing a hybrid over the alternatives — the "81 vs. 76 vs. status quo" weighted trade-off score cited in chain C4 and repeated in the Conclusion — is asserted here with no derivation shown; the scoring table itself lives only in an external file the reader is told about but cannot see in this document. Since that figure is doing real work in the final recommendation and its origin is stated but not shown, this lands at **Sound** rather than the top band.
+
+## Criterion 3: Assumption surfacing
+
+The assumptions table is extensive and goes well past naming: each of seventeen assumptions is typed (untested belief / convention / current constraint), given an explicit treatment, and either discarded, challenged, or accepted-with-expiry-conditions against a specific ground truth or flagged as unverified. The most consequential assumptions (detector reliability, honor-code sufficiency, AI capability ceiling) are actively tested against evidence rather than passively logged. This is **Rigorous**.
+
+## Criterion 4: Calibration
+
+The stated confidence (MEDIUM) is explicitly tied to what is and isn't verified — the document names the two unverified ground truths capping it, distinguishes HIGH-confidence chains (C1, C6, resting on directly-read sources) from MEDIUM ones resting on flagged or delegate-reported evidence, and even identifies which single criterion (equity, resting on GT-8?) would need to flip for the alternative to win. This is a genuine tracking of confidence to support rather than a uniform hedge or a uniform assertion, meeting **Rigorous**.
+
+## Criterion 5: Falsifiability
+
+The "would change it" conditions are specific and checkable rather than generic: primary-source verification of two named literatures, institution-specific evidence that resourcing can't be sustained, or evidence that real-time AI coaching capable of defeating a live oral defense has emerged. Each names a concrete thing someone could go look for, not a boilerplate caveat that would apply to any document. This is **Rigorous**.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

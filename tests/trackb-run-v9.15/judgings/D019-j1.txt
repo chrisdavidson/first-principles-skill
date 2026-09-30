@@ -1,0 +1,29 @@
+## Decision usefulness
+
+The document reaches a specific, executable recommendation: build a REST-based, mobile-scoped BFF/aggregation layer for the affected screens, leave the other six client integrations alone, and treat full GraphQL migration as an explicitly deferred decision with a named trigger condition. It states who acts on it (whoever owns the mobile round-trip complaint) and under what conditions the recommendation would change (real cross-client demand for flexible querying). This is concrete enough to execute or reject, not a survey of options. **Rigorous.**
+
+## Evidence grounding
+
+Most load-bearing claims are sourced or explicitly flagged: GT-2 through GT-5 cite specific external references (graphql.org, the BFF pattern literature, the DataLoader project, Apollo docs), and GT-8 is explicitly marked as an unverified estimate used only for bracketing. However, the trade-off scoring table — which directly produces the ranking the final recommendation leans on (80 vs. 75 vs. 61 vs. 39) — presents only the totals. The reader is told the weighting dimensions but never sees the per-option, per-criterion scores that sum to those totals, so the numbers that decide the close call between "REST BFF alone" and "composite" cannot actually be checked. That is a load-bearing figure asserted without visible derivation, in a document that otherwise takes care to source things. **Sound.**
+
+## Assumption surfacing
+
+The document names fourteen candidate assumptions and shows a verdict-with-reasoning table for the load-bearing subset, rather than treating them as generically noted caveats. Critically, it identifies the single most consequential assumption — that GraphQL demand will eventually spread beyond mobile — and engages with it rather than just flagging it: the confidence rating is explicitly capped by it, and the adversarial pass converts it into a concrete mitigation (a calendared quarterly review of the deferral trigger). This is engagement with the assumption's consequences, not just its existence. **Rigorous.**
+
+## Calibration
+
+Confidence is stated at multiple granularities rather than as one blanket number: overall MEDIUM, with individual derivation chains marked HIGH (C2, C3) or MEDIUM (C4), and the MEDIUM cap is tied to two specific, named weak points (the future-demand assumption and the unverified RTT figure) rather than asserted vaguely. This differentiation — strong confidence where the support is strong (the architectural sufficiency arguments), weaker where it is thin (the deferral bet) — is exactly what the top band asks for. **Rigorous.**
+
+## Falsifiability
+
+The document states two concrete, checkable conditions that would change its conclusion: observing the deferred-GraphQL trigger actually fire (a new client or redesign requesting flexible querying), or measuring real production RTT telemetry from the three mobile apps that contradicts the bracketed estimate. Both are specific enough that a reader could go verify them, not generic hedges. **Rigorous.**
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

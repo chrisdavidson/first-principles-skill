@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document lands on a specific, executable recommendation — build a REST-based, mobile-scoped aggregation/BFF layer now, leave the six non-mobile client integrations untouched, and defer a broader GraphQL migration until a named trigger condition (cross-client demand for flexible querying) materializes. This is concrete enough that an engineering team could start building against it tomorrow: it names the architecture pattern, the scope boundary, and the condition under which the deferred option should be revisited. It also identifies who is affected (platform/backend team, mobile engineers, the six untouched client teams) and under what conditions the recommendation holds versus should be revisited. This clears the bar for the top band.
+
+## Criterion 2: Evidence grounding
+
+The load-bearing external claims — that GraphQL collapses client-side calls to one request, that naive resolvers reproduce an N+1 problem server-side, that GraphQL's default POST transport defeats HTTP/CDN caching, and that the BFF pattern decouples client-facing aggregation from backend protocol — are each given a specific source, a quoted passage, and a read-location, rather than being asserted as free-floating fact. Where a number is not independently verifiable (mobile RTT range, the trade-off's criterion weights), the document does not pass it off as measured: it is explicitly labeled an order-of-magnitude estimate or an analyst input, with its basis stated and its downstream effect on confidence tracked. This is the specific behavior the top band asks for — numbers either come from a visible source or are flagged with their basis given.
+
+## Criterion 3: Assumption surfacing
+
+The assumptions table names fourteen distinct load-bearing assumptions individually rather than gesturing at uncertainty in general, and the two most consequential ones are genuinely engaged rather than just listed: the future-demand trigger (A-13) is bounded by naming exactly what observed event would resolve it, and the sequential-vs-parallel round-trip assumption (A-11) is priced by showing the conclusion holds under both branches. This is more than naming premises — it tests what happens if they're wrong, which is what separates surfacing from merely disclosing.
+
+## Criterion 4: Calibration
+
+Confidence is not uniform: chains resting on directly-quoted, read-at-source mechanisms (C2, C3) are rated higher than the chain rebuilt on an unverified RTT estimate (C1) or one extending into an unresolved future-demand premise (C4), and the final recommendation's confidence is explicitly capped by the weaker of its supporting chains rather than inheriting the strength of its best input. The document is also honest about what would specifically move a rating up (production RTT telemetry, an observed trigger event), which is the distinguishing feature of the top band rather than a generic "more data needed."
+
+## Criterion 5: Falsifiability
+
+The closing falsification statement is concrete and checkable: the conclusion is false if the shipped aggregation layer doesn't bring the round-trip count to roughly 1–2 per screen, or if it imposes cost/risk on the other six clients comparable to what full replacement would have. This is paired with named tripwires (endpoint-count thresholds, a calendared trigger review, specific owners and review cadences) that turn the caveat into something someone could actually go check on a schedule, rather than a vague acknowledgment that things could go wrong.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

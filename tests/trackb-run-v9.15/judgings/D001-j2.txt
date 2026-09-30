@@ -1,0 +1,29 @@
+## Decision usefulness
+
+The document lands on a specific, executable recommendation: keep the single deployable, but implement an enforced modular monolith with an automated dependency-direction rule wired into CI as a merge gate, and treat a single narrowly-scoped service extraction as the next step once a concrete need is evidenced — explicitly rejecting broad microservice adoption. It names who this is for (a fixed 6-engineer team at ~1,200 DAU) and lists concrete conditions under which the recommendation should be revisited (headcount past 10-12, a team split, a component with a distinct scaling/compliance profile, a mandated physical separation, or load exceeding the estimated bracket by an order of magnitude). A reader could execute this today and would know precisely when to reconsider it. This clears the top band.
+
+## Evidence grounding
+
+Much of the load-bearing material is unusually well grounded: Conway's Law and the Fowler "MonolithFirst" claims are quoted from primary sources, the Segment case is sourced with an explicit refusal to estimate an unstated team-size figure, and the load estimate is a Fermi calculation whose arithmetic is shown and independently recomputed. Uncertain inputs (the throughput benchmark, the two-pizza heuristic, Team Topologies) are consistently flagged as reported-by-delegate rather than passed off as verified. However, the numeric trade-off matrix that directly produces the headline decision (28 individual 1–5 scores across four options and seven criteria) is asserted without any shown basis for the individual cell values — only the arithmetic recombination of those cells is checked (recompute, flip-test), not their origin. Since this matrix is what chain C5 — the chain the final recommendation rests on most directly — actually turns on, this is a real gap in an otherwise strongly sourced document, keeping it just short of the top band.
+
+## Assumption surfacing
+
+Assumption surfacing is extensive and genuinely engaged with rather than merely listed: 23 named assumptions are typed, given a verdict, and several are actively discarded or challenged rather than rubber-stamped as accepted. The most consequential ones (team staying a single unit, no platform hire, boundaries being unproven) are each traced into a specific chain, and the adversarial "plan has already failed" section stress-tests what happens if the team's discipline erodes or growth outpaces the estimate. This is a live, working assumption set that shapes the analysis rather than a decorative list.
+
+## Calibration
+
+Confidence is differentiated by chain (MEDIUM, MEDIUM, MEDIUM, LOW, MEDIUM) and tied explicitly to what is and isn't shown, and the final conclusion is capped at MEDIUM to match its weakest contributing chain rather than stated with unearned confidence. That said, the confidence discussion for chain C5 declares its "inference axis... clean" on the grounds that no hop rests on an undeclared premise beyond the load-estimate flag — but this overlooks that the trade-off matrix's individual cell scores (noted above as ungrounded) are themselves an unexamined input to that same chain. That is a real, if narrow, place where the stated confidence runs slightly ahead of what the document actually shows, which keeps this just below the top band.
+
+## Falsifiability
+
+The document states concrete, checkable conditions that would overturn the recommendation: measured load exceeding the estimated bracket by an order of magnitude within two quarters, a specific component surfacing a distinct scaling/compliance profile, or an identified regulatory/procurement requirement forcing physical separation. These are specific enough that a reader could actually go check them, not generic hedges, and they are echoed consistently between the Conclusion section and the adversarial pass's dedicated falsification statement.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

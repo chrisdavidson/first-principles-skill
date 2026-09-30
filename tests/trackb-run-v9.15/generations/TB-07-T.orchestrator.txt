@@ -1,0 +1,93 @@
+Here is the completed first-principles analysis.
+
+## Answer
+
+**Recommendation:** For a representative 10-million-person country of moderate-or-lower population density, land area is a solved, non-binding input to full solar-PV electrification: the computed requirement is roughly 60–3,600 km² (≈610 km² central case), well under 5%, typically under 1%, of a Portugal-sized country's territory. The real constraints are storage/intermittency, grid buildout, siting economics, and capital — not land.
+
+**Band:** LOW (see Conclusion section below for why — the low band is itself an important finding, not a weakness to gloss over).
+
+**Would change it:** Resolving the agricultural-land-share figure at primary source, and computing this same chain for a named small, high-density country — a live rival the adversarial pass identified but did not settle — would move the band without changing the core direction.
+
+---
+
+## 1. Problem Essence
+
+**Core problem:** From first-principles physical quantities alone (solar irradiance, module efficiency, real-world performance losses, and panel-packing density on the ground) — not from analogy to what any specific country currently does — how much land area would a representative 10-million-person country need to devote to utility-scale solar PV generation to cover its total annual electricity consumption, and does the resulting figure make full solar-PV electrification land-constrained, or does it shift the binding constraint elsewhere?
+
+**Success criteria:** (1) a land-area figure derived from an explicit physical chain, not asserted; (2) bracketed across high-latitude/high-consumption and sun-belt/low-consumption cases; (3) cross-checked against a real-world empirical land-use survey; (4) compared against a concrete national land area and land-use category; (5) an explicit statement of whether land is the binding constraint, and what the calculation leaves out.
+
+---
+
+## 2. Assumptions Table (highlights)
+
+| Assumption | Verdict |
+|---|---|
+| A1: A single per-capita/resource figure can represent a generic 10M-person country | Accept — bracketed, not hidden |
+| A2: Land computed from **average annual energy balance**, not instantaneous/diurnal/seasonal matching | **Challenged** — the single highest-stakes simplification; treated as a necessary-but-not-sufficient lower bound, flagged inline on every load-bearing hop |
+| A3: 2012–13 US land-use survey still representative today | Accept, with expiry noted — module efficiency has risen since, so it's a conservative floor |
+| A6: Physical land availability alone is an adequate proxy for real-world feasibility | **Rejected** as sole criterion — retained only as one necessary, not sufficient, condition |
+| A10: "Suitable" land ≈ total national territory for percentage comparisons | **Challenged** — real siting competes for a much smaller usable subset than total territory |
+
+(Full table has 12 entries, A1–A12, each with type/treatment/verdict/verification — available in the source file if you want the complete list.)
+
+---
+
+## 3. Ground Truths (key figures, with provenance)
+
+- **GT-1** (read at source, NREL 2013): fixed-tilt utility PV requires ≈2.8 acres of land per GWh/yr of annual generation.
+- **GT-2** (read at source, 2024–25): commercial module efficiency 13–25%, mono typically 15–20%.
+- **GT-4** (read at source, Wikipedia): per-capita annual electricity consumption — world avg 3,860 kWh; USA 13,060; Canada 16,090; Japan 8,370; Germany 6,190; India 1,420.
+- **GT-5?/GT-6?** (unverified, search-only): ground-coverage ratio ≈0.40–0.50; performance ratio ≈75–90% (typical ≈82%).
+- **GT-7?** (unverified): Portugal — 92,225 km², 10.75M people — used as a concrete real-world comparator.
+- **GT-9?** (unverified): agricultural land covers >1/3 of world land area.
+- **GT-10?/GT-11?** (unverified): mid-latitude GHI ≈1,500 kWh/m²/yr; desert/sun-belt GHI ≈2,200–2,500 kWh/m²/yr.
+- **GT-12/GT-13** (physical law): solar constant ≈1,361 W/m² (AM1.5 ≈1,000 W/m²); Shockley–Queisser single-junction efficiency ceiling ≈33.7%.
+
+9 of 14 ground truths are `?`-marked (unverified beyond search-summary), which is why the analysis caps out at MEDIUM/LOW rather than HIGH confidence — this is disclosed, not hidden.
+
+---
+
+## 4. Derivation Chains
+
+**C1 — Land-yield, central case:** GHI(1,500) × efficiency(20%) × PR(82%) = 246 kWh/m² panel/yr → × GCR(40%) = **≈98 GWh/km²/yr**. *(MEDIUM)*
+
+**C2 — Independent cross-check:** GT-1's 2.8 acres/GWh/yr converts to ≈88 GWh/km²/yr — agrees with C1 within **≈12%**, with the gap direction matching the expected efficiency improvement since the 2012–13 survey. *(MEDIUM)*
+
+**C3 — Realistic yield range:** best case (desert GHI, high efficiency) ≈228 GWh/km²/yr; worst case (high-latitude, low efficiency) ≈45 GWh/km²/yr — a **~5-fold range**, driven mostly by latitude. *(MEDIUM)*
+
+**C4 — Central-case land requirement:** 10M people × 6,000 kWh/yr (Germany-like) = 60,000 GWh/yr demand ÷ 98 GWh/km²/yr = **≈610 km²**. *(MEDIUM)*
+
+**C5 — Full country-archetype range:** pairing best/worst yield with lowest/highest demand cases gives **≈62 km² to ≈3,580 km²**, a ~58-fold spread. *(MEDIUM)*
+
+**C6 — Theoretical-limit sensitivity:** the absolute Shockley–Queisser thermodynamic ceiling (ideal GCR=PR=1) gives an ultimate floor of **≈74 km²**; a "best demonstrated" real-technology tier gives **≈325 km²**. Ordering: 610 km² (conventional) > 325 km² (best demonstrated) > 74 km² (ideal). Most of the reachable headroom is *already captured* by current commercial tech — land isn't going to shrink by orders of magnitude through better cells. *(MEDIUM)*
+
+**C7 — As a share of national territory:** central case = **0.66%** of Portugal's land area; worst case = **3.9%**. In every scenario, well under 5%, typically under 1%. *(MEDIUM)*
+
+**C8 — The headline finding:** Since agricultural land alone covers over a third of a typical country's territory, a ≈0.66% solar footprint is smaller still relative to already-disturbed land. **Land area is not the binding physical constraint** — but this rests on an annual-average-balance assumption (A2), not minute-by-minute supply. Second-order: grid operators must overbuild capacity and add storage/transmission beyond the land number; the real bottleneck shifts to permitting/interconnection-queue position; cheapest grid-adjacent sites get used first, creating local land-price/conflict pressure even as the national percentage stays low. *(LOW — see below)*
+
+**C9 — Rooftop can't substitute:** even at a generous US-derived rooftop-potential ceiling (≈39% of demand), at least ≈61% of demand — and most of C4's land figure — still needs ground-mounted PV. *(MEDIUM)*
+
+---
+
+## 5. Abandoned Reasoning
+
+- **CSP instead of/alongside PV** — abandoned: the question specifies PV alone; CSP uses a different resource (DNI) and land-use profile.
+- **Deriving land from nameplate capacity + generic capacity factor** — abandoned: that would reason from an already-aggregated industry statistic rather than first principles; reserved instead as the independent cross-check (C2).
+- **Treating annual-average balance as sufficient evidence that land "solves" full solar supply** — abandoned: would silently assume unlimited storage/grid backstop; this is exactly why A2 is flagged everywhere and why C8's second-order extension exists.
+- **Anchoring to a single named country** instead of a bracketed generic case — abandoned: the user asked for a generic case with latitude/consumption sensitivity; a single point estimate would hide the legitimate order-of-magnitude spread.
+
+---
+
+## 6. Conclusion
+
+**Recommended approach:** For a representative, moderate-or-lower-density 10-million-person country (Portugal-like, not a small land-scarce, high-density outlier), treat land area as a **solved, non-binding input**. The computed requirement — roughly 60–3,600 km², ≈610 km² central case — is well under 5%, typically under 1%, of national territory and smaller still against agricultural land. Planning effort belongs elsewhere: diurnal/seasonal storage and firming capacity, grid and transmission buildout, siting/interconnection-queue economics, and capital/manufacturing throughput.
+
+**Key insight:** The popular framing "solar needs too much land" inverts the actual constraint ordering. A first-principles physics estimate and an independent 2013 empirical survey agree within ≈12% that solar's land footprint is a rounding error against national territory — and even jumping to the absolute thermodynamic ceiling only shrinks the requirement a further ~8-fold, not by orders of magnitude, because most of the reachable headroom is already captured by current commercial modules. The question that actually gates full solar-only supply is not "is there enough land" but "how is the sun's absence at night and in winter covered" — and land-area arithmetic cannot answer that.
+
+**Trade-offs acknowledged:** This analysis does not solve the storage/firming problem it identifies — the land figures are panel footprint under an annual-average-balance assumption, not a fully islanded minute-by-minute solar-only grid; real firming requires nameplate overbuild, weeks-scale storage, or import interconnection, each with its own uncosted footprint. The low end of the bracket rests on an unverified desert-irradiance figure, and the rooftop-offset figure is a single US-derived study extrapolated to a generic country. Even the "small percentage of national territory" framing understates local land competition, since usable, grid-adjacent sites are a much smaller subset of total territory than the percentage suggests.
+
+**Confidence: LOW.** Not because the arithmetic is shaky (an independent recompute during the adversarial pass reproduced every figure with no error), but because of a genuine unresolved rival surfaced during self-adversarial testing: **a small, land-scarce, high-density 10-million-person country could have land as a real, binding constraint.** Substituting a Bangladesh-like density (≈1,265 people/km²) instead of Portugal's (≈117 people/km²) turns the central case into ≈7.7% of territory and the worst case into ≈45% — no longer "well under 5%." The conclusion above is therefore explicitly scoped to moderate-or-lower-density countries; that scope qualifier is load-bearing, not decorative.
+
+---
+
+*The full analysis, including the assumption audit, adversarial-pass record (recompute, sensitivity, rival, causes, clusters, disposition, falsification condition), and the six-criterion self-audit gate (cleared "Rigorous" on all six), is saved at `.first-principles/analysis-20260930T115003Z.md` in this working directory.*

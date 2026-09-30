@@ -1,0 +1,19 @@
+**1. Decision usefulness (Sound):** The document reaches a clear, stated position — "raw land area is not the binding constraint" — and backs it with a bolded bottom line. But it stops short of telling a reader what to actually *do*: it identifies that storage/overbuild economics is the real problem without saying what threshold of cost or storage capacity would make 100%-solar viable, or what the next analytical or policy step should be. It's directionally decisive but the practical edge is blunt — useful for reframing the question, less so for acting on it.
+
+**2. Evidence grounding (Sound):** Most of the load-bearing numbers are derived in view of the reader — panel efficiency, irradiance, capacity factor, and ground-coverage ratio are each given and multiplied through explicitly to produce the 50-150 GWh/km²/yr yield figure, and the per-capita demand tiers are anchored to named country examples. A couple of claims are asserted without shown support, though: "matches what real deployed solar farms actually produce" has no figure or source attached, and the 2-4x overbuild multiplier for intermittency is offered as a bare "perhaps" with no derivation. These are minor relative to the overall transparency of the calculation chain.
+
+**3. Assumption surfacing (Rigorous):** The document explicitly identifies its own load-bearing assumption — that the land calculation "only balances *annual* energy, treating day and night, summer and winter, as fungible" — and directly labels it "the load-bearing assumption" before explaining why it's false and what would be needed to fix it (overbuild or storage). It goes further and surfaces secondary assumptions too (insolation quality, siting/transmission proximity, cost and build-rate), naming each as a real constraint rather than a generic caveat.
+
+**4. Calibration (Rigorous):** Confidence tracks the strength of support throughout. The physics-derived yield and land-area figures are presented with ranges (low/medium/high scenarios, 50-150 GWh/km²/yr) rather than false precision, and the headline conclusion is explicitly checked against both ends of that range before being asserted with confidence — which is warranted, since the conclusion holds even at the pessimistic end (1,500 km² against a 20,000 km² country is still under 10%). Where the document is less sure — storage economics, geographic mismatch, siting friction — it uses softer language ("perhaps," "meaningfully less," "can bind") rather than overclaiming.
+
+**5. Falsifiability (Sound):** The document gestures at conditions that would weaken or overturn its conclusion — a small, dense, cloudy, high-latitude country pushes the land share toward the single digits and worsens the seasonal storage problem — and these are pointed at specific, checkable real-world cases rather than vague hedges. However, it never states a precise threshold (e.g., a yield or land-area-share cutoff) at which the "land is not the constraint" verdict would actually flip, so the falsification condition is directionally identified but not made fully checkable.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Sound
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Sound
+=== TRACKB-SCORELINE-END ===
+```

@@ -1,0 +1,23 @@
+This is a general reasoning question with no coding involved, so I'll just think it through directly.
+
+**What "publish training data sources" actually means in practice**
+
+The rule would require disclosure of *where the data came from* — e.g., "resume databases licensed from X," "public LinkedIn profiles scraped in 2024," "historical hiring records from client companies 2015–2023." That's a fundamentally different thing from disclosing *what's in the data* (its demographic composition, label quality, or the patterns the model learned). Source disclosure and content/behavior disclosure are decoupled, and the gap between them determines whether the rule does anything.
+
+**What would actually follow**
+
+1. **Compliance theater is cheap to produce.** Vendors publish source lists ("licensed HR datasets, public job postings, historical applicant records") that satisfy the letter of the rule without revealing anything about how the model weighs features or whether it discriminates. Knowing a model trained on "10 years of company X's hiring decisions" tells you almost nothing about whether it encodes bias — you'd need to know outcomes, labels, and feature importance, not provenance.
+
+2. **The actual harm mechanism in hiring AI is usually not "bad source," it's proxy discrimination learned from *lawful* data.** A model trained on legitimate historical hiring records can still learn to penalize employment gaps (proxy for disability/caregiving), zip codes (proxy for race), or college names (proxy for class) — none of which requires a disreputable data source. A regulator focused on source transparency is solving for data provenance when the target problem is disparate impact in outcomes. This is a category mismatch between the mechanism of harm and the mechanism of the rule.
+
+3. **Real effects that would follow, mostly second-order:**
+   - Vendors with genuinely defensible data (licensed, consented, documented) get a compliance advantage over those scraping gray-market data — so it does function as a floor against the worst data-sourcing practices (unlicensed scraping, purchased data of dubious consent).
+   - It creates a paper trail useful for *litigation discovery* after the fact — plaintiffs' lawyers can request the list and follow up with subpoenas for what's actually in those sources. So the rule's value may be indirect: it's a hook for downstream accountability, not a direct fix.
+   - Vendors will likely aggregate and vague-ify disclosures ("various publicly available and licensed sources") to protect trade secrets and avoid revealing exploitable info about their model, especially since IP concerns and gaming concerns (candidates reverse-engineering what the model rewards) push toward minimal disclosure.
+   - Small vendors and open-source model users face disproportionate burden documenting provenance chains, while large vendors with legal teams produce boilerplate — so it may entrench incumbents rather than open the field up.
+
+**Would it achieve the goal?**
+
+If the goal is "prevent discriminatory hiring AI," this rule is aimed at the wrong layer. It's necessary-but-nowhere-near-sufficient: it can screen out the most obviously tainted data sources, but it doesn't touch the actual failure mode (learned proxy bias from clean-looking data), doesn't require outcome auditing, and doesn't require explaining what the model does with the data. A regulator actually targeting discriminatory outcomes would pair this with (or replace it with) **outcome-based auditing** — disparate impact testing on protected classes, using actual applicant/hire data — since that measures the thing that matters regardless of data provenance.
+
+So: the rule would produce compliance documents, marginal deterrence against the sketchiest data practices, and a discovery trail for later lawsuits — but by itself it would not detect or prevent the biased outcomes it's presumably meant to prevent, because source transparency and outcome fairness are only loosely correlated.

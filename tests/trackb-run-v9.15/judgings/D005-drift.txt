@@ -1,0 +1,21 @@
+## Criterion Assessments
+
+**1. Decision usefulness — Rigorous.** The document doesn't just survey the three options; it lands on a specific structural recommendation (congestion pricing as the primary lever, cycling/transit as revenue-funded complements) and names the exact conditions under which that recommendation would flip (short vs. long commute distributions, existing transit spare capacity, political capital for a multi-year pricing fight). A reader could take this and either act on it or productively reject it by supplying the three missing data points the document itself flags as decisive. That's a specific, executable position, not a hedge.
+
+**2. Evidence grounding — Hand-wavy.** The argument's central move — that congestion pricing is the only lever "sized" to a 20% target — leans entirely on a cluster of numeric claims (Tallinn "a few %", London "15-30%", Stockholm "~20%", Singapore unquantified) that are hedged with words like "roughly" and "typically" but never given a stated origin: no source, no year, no indication of how these figures were derived or where a reader could go verify them. Hedging language flags these as approximations, but flagging isn't the same as grounding — the rubric's top band requires the basis to be given, and none is. Since these figures are exactly what the load-bearing claim in the document rests on, this falls short of "most claims grounded."
+
+**3. Assumption surfacing — Rigorous.** The document explicitly names its key dependencies as conditional ("if most commutes are short...", "congestion pricing only works if displaced drivers have somewhere to go") rather than folding them into the conclusion as settled fact. It goes further than merely naming them: it engages the most consequential one — transit capacity — by stating the failure mode if it's wrong ("pricing without capacity investment just causes gridlock resentment and reversal risk"), and it flags commute-distance distribution as "the single biggest input" to the whole analysis, which is itself a form of ranking and testing assumptions rather than listing them generically.
+
+**4. Calibration — Sound.** Confidence does track evidence in places — the document is markedly more assertive about congestion pricing (calling it the option with "the strongest track record") than about free transit (called "the weakest lever"), and it closes by explicitly separating its "generic evidence base" from the city-specific data that would actually pin down the answer. But the bottom-line claim that pricing is "the only single lever with a real chance of hitting 20% alone" is stated with more certainty than the underlying ungrounded percentage estimates can really support, and that gap between assertiveness and evidentiary thinness isn't flagged at the point it occurs.
+
+**5. Falsifiability — Rigorous.** The document gives concrete, checkable conditions that would overturn or reshape its recommendation rather than generic caveats: if median commute distance is under ~5km, cycling infrastructure "may be overkill" for pricing; if transit capacity is already saturated, pricing "without capacity investment just causes gridlock." These are specific enough that a reader could go pull commute-distance and transit-capacity data and know which way it cuts the conclusion — this is a real test, not a "further research is needed" placeholder.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

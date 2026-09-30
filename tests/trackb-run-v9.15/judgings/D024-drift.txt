@@ -1,0 +1,21 @@
+## Scoring of `analysis.md`
+
+**1. Decision usefulness — Rigorous.** The document lands on a concrete, executable recommendation: build a GraphQL-or-aggregating-BFF gateway scoped specifically to the 3 mobile clients, sitting in front of the existing REST layer, with dataloader batching in place from the start. It names who this is for (mobile teams first, not a full 9-client cutover), what "done" looks like, and explicitly separates this from the broader REST-vs-GraphQL framing it rejects. A reader could hand this to an engineering team and start scoping work tomorrow.
+
+**2. Evidence grounding — Sound.** Most of the load-bearing claims are reasoned out in front of the reader rather than just stated — the breakdown of why round trips happen, the caching/N+1/security costs of full GraphQL adoption, and the comparison table all show the logic rather than asserting a verdict. However, a few figures are dropped in without stated basis, most notably the "12–18 month coexistence period regardless of which option you pick" — a specific-sounding number with no visible derivation, where a sentence of justification (team count, typical migration cadence) would have been easy to add.
+
+**3. Assumption surfacing — Rigorous.** The document is explicit about the assumptions carrying its conclusion: it flags that "why 4–6 round trips" is itself unverified and enumerates the candidate causes, and closes by naming exactly which unstated conditions would flip the recommendation (whether the 6 non-mobile clients are low-maintenance, whether there's a second driver beyond round-trips). It engages the most consequential assumption — that this is fundamentally a 3-client problem, not a 9-client one — head-on rather than in passing.
+
+**4. Calibration — Sound.** Confidence generally tracks support: causal claims about round-trip sources are hedged ("almost certainly one of"), while well-established technical facts (HTTP caching behavior, resolver N+1, error-handling via `errors` arrays) are stated flatly because they don't need hedging. The exception is the 12–18 month migration-timeline claim, delivered with more certainty ("realistically... regardless of which option you pick") than its lack of grounding warrants — a case of confidence running slightly ahead of what was shown.
+
+**5. Falsifiability — Rigorous.** The closing section states specific, checkable conditions that would overturn the recommendation: if the 6 non-mobile clients turn out to be internal/low-maintenance, or if there's a second driver beyond round-trip count (REST versioning pain, backend fragmentation). These aren't generic caveats — they name facts a reader could actually go verify, and say what the answer would do to the conclusion.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

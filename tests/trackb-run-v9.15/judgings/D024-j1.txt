@@ -1,0 +1,21 @@
+## Scoring
+
+**1. Decision usefulness — Rigorous.** The document lands on a specific, executable recommendation: don't do a full REST→GraphQL migration; instead stand up a GraphQL or aggregating BFF gateway scoped to the three mobile clients, built with dataloader batching from day one, and treat expansion to the other six clients as a later, evidence-gated decision. It names who this is for (mobile teams first, backend teams second), what "done" looks like (round-trip count fixed, reversible), and even sequences a follow-up decision point (6-month check-in). A reader could act on this immediately or reject it on stated grounds.
+
+**2. Evidence grounding — Sound.** The central numeric fact driving the argument (3 of 9 clients complaining) is treated as given and used correctly to derive the scope-mismatch argument — that's solid. The technical claims about GraphQL (resolver N+1, loss of HTTP caching without persisted queries, query-cost/depth attack surface, HTTP-200-with-errors-array breaking status-code monitoring) are standard, well-reasoned-in-view facts rather than bare assertions. But a few load-bearing figures are stated with more precision than support: "12–18 month coexistence period" is asserted flatly with no derivation of where that range comes from, and the org-cost claims (tooling learning curve, debugging model shift) are plausible but not quantified or sourced. These are minor relative to the argument's core, keeping it out of the top band.
+
+**3. Assumption surfacing — Rigorous.** The document explicitly flags its causal diagnosis as inferred rather than known ("Ask: *why* 4-6 round trips? Almost certainly one of...") rather than presenting one cause as fact. It surfaces the load-bearing assumption behind the whole recommendation — that the other six clients' silence means low migration urgency there — and directly interrogates it in the closing paragraph by naming the specific condition that would overturn it (whether those six clients are actually low-maintenance, or whether a second driver like versioning pain exists). That's engagement with the most consequential assumption, not just a mention.
+
+**4. Calibration — Sound.** Confidence generally tracks support: the scope-mismatch argument (strong, since it rests on given data) is stated forcefully ("this is the part that matters most"), while the root-cause diagnosis and org-cost claims are appropriately hedged ("almost certainly," "realistically"). The one place this slips is the specific "12–18 month" figure and some of the itemized costs in that section, which are delivered in a flat, listy tone that reads more confident than the underlying support (none given) warrants — a minor overrun rather than a pattern.
+
+**5. Falsifiability — Rigorous.** The closing paragraph states, concretely and specifically, what would overturn the recommendation: if the six non-mobile clients are internal/low-maintenance (making their migration cost trivial), or if a second driver beyond round-trip count exists (e.g., killing REST versioning pain or unifying a fragmented backend). Both conditions are things the reader could actually go check, not generic hedging — this satisfies the checkability bar the rubric asks for.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

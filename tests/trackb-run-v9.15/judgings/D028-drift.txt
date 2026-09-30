@@ -1,0 +1,21 @@
+Both files reviewed. Here is the assessment.
+
+**1. Decision usefulness — Sound.** The document doesn't tell the reader "take the job" or "don't," but it does land on a clear, specific reframing: the financial risk is survivable regardless of outcome, so the decision should turn on conviction in the team/product rather than the spreadsheet. It backs this with concrete diagnostic steps (compute the monthly income-gap delta, price equity at near-zero, check vesting/funding stage) tied to the reader's actual numbers (34, 11 months runway, 30% cut, four-person team). That's actionable, but it stops short of a final call and closes by punting the last step back to the reader with a question — hence sound rather than rigorous.
+
+**2. Evidence grounding — Sound.** The core runway math is derived in view of the reader (11 months headline vs. 25–35+ months against the real shortfall, with the derivation shown and a stated exception condition). But the "12-18 months" startup-failure base rate is dropped in as flat fact with no source or basis, and it's load-bearing for the reemployment-risk point — this is exactly the kind of unsupported figure the rubric flags, keeping it out of the top band.
+
+**3. Assumption surfacing — Sound.** The document explicitly names key assumptions — equity's expected value is treated as near-zero for planning, and the 30%-cut arithmetic is flagged as contingent ("unless the 30% cut alone pushes you into a monthly deficit"). It engages with the most consequential one (the burn-rate assumption) by telling the reader exactly what to compute. But other claims, like the 12-18 month failure base rate, are asserted as settled fact rather than surfaced as assumptions, so it doesn't clear the bar for full rigor.
+
+**4. Calibration — Sound.** Confidence generally tracks support: the runway estimate is hedged with "probably" and an explicit escape clause, equity valuation is framed as a planning convention rather than a hard number. The one miscalibration is the base-rate claim, stated with flat certainty despite having no visible grounding — a local overreach rather than a pervasive one, which keeps this at sound.
+
+**5. Falsifiability — Sound.** The document gives one genuinely checkable condition that would overturn its central financial claim — "unless the 30% cut alone pushes you into a monthly deficit," directly tied to a number the reader can go compute. It does not, however, state what would overturn the higher-level recommendation (decide on conviction, not money), so the falsifiability is present but partial rather than comprehensive.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Sound
+C2: Sound
+C3: Sound
+C4: Sound
+C5: Sound
+=== TRACKB-SCORELINE-END ===
+```

@@ -1,0 +1,88 @@
+The full first-principles analysis is complete. Here it is in full:
+
+## Answer
+
+**Recommendation:** Don't treat this as an immediate binary accept/decline. Negotiate a composite path: a smaller pay cut (e.g., ~15% instead of 30%) combined with more equity or accelerated vesting, plus a short, time-boxed trial or diligence period before full resignation, with an explicit ~6-month milestone checkpoint. This beats "stay" and "join now" under weighted trade-off scoring, and that ranking is robust to any single-criterion weight change.
+
+**Band:** LOW overall.
+
+**Would change it:** The startup's actual cap table/valuation/liquidation-preference terms; the exact vesting/cliff/acceleration language in writing; your true household burn rate vs. a bare-bones figure and whether dependents affect risk tolerance; and whether the startup is willing to negotiate at all.
+
+## 1. Problem Essence
+
+This is not a binary "stay or go" choice — it's how to allocate financial runway, negotiate terms, and stage a commitment to maximize expected long-run career/financial value while keeping the downside recoverable, given you're converting guaranteed cash comp into equity of uncertain, back-loaded, probably-modest expected value.
+
+**Success criteria:** correctly price the financial downside as *startup failure + job-search time relative to runway*, not the pay cut alone; value equity realistically (discounted for dilution, exit-probability base rates, illiquidity); treat the decision space as more than two options; account for non-monetary effects (career capital, optionality, re-employability); produce a decision framework naming conditions under which each path is correct, rather than a single verdict independent of facts this analysis lacks.
+
+## 2. Assumptions Table (18 total)
+
+Key challenges to the framing:
+- **"Stable job" ≠ guaranteed security** — no job has zero layoff risk; "stable" really means lower short-term probability of disruption.
+- **The 30% cut may not be the full economic delta** — total comp (benefits, retirement match, PTO, existing equity) needs comparison, not just base salary.
+- **Equity value is not straightforward** — needs % fully-diluted ownership, strike price/tax treatment, valuation, dilution path, exit-probability base rates.
+- **This isn't binary** — negotiating a smaller cut, more equity, a trial arrangement, or a deferred start are all live options.
+- **Age 34 is not "last chance"** — rejected as an absolute; you likely have 25–30+ working years left. The real risk is runway and skill-relevance, not age.
+- **Reversibility is partial, not zero** — the specific job isn't recoverable identically, but you can leave the startup later and re-enter the labor market.
+- Several load-bearing but unverified items were flagged rather than resolved: whether you have dependents/shared obligations, whether household burn rate stays constant through a hypothetical search, whether the startup would even negotiate, and whether your interest is contingent solely on securing a trial.
+
+## 3. Ground Truths
+
+- **GT-1** (read at source, CB Insights): among 431 VC-backed shutdowns since 2023, cited causes were running out of capital (70%), poor product-market fit (43%), bad timing (29%), unsustainable unit economics (19%). "Ran out of capital" is usually the *final* cause, not the root one.
+- **GT-2?** (secondary): ~70% of a 2008–2010 VC-backed cohort had failed by observation date.
+- **GT-3** (read at source, 80,000 Hours): only ~20% of companies reaching Series A get a successful exit; naive amortized equity value (~$105k/yr in their worked example) discounts to a realistic ~$21k/yr once success-probability and dilution are applied. This is a *methodology*, not a number to plug in directly — rerun it with your own grant's terms.
+- **GT-4?** (secondary, and a direct-source attempt returned 403 Forbidden): founder ownership post-Series-A is ~30–37% median; by Series C, median employee option pool exceeds median founder ownership.
+- **GT-5?** (secondary, direct-source attempts returned 404): standard guidance is 3–6 months' expenses as an emergency fund, sometimes up to 12 months in uncertain conditions or single-income households.
+- **GT-6?** (unverified but common knowledge): standard 4-year vesting with a 1-year cliff.
+- **GT-7** (derived, no citation needed): because salary continues while employed at the startup, your 11-month runway is the *second* line of defense — against startup failure followed by a job search — not the first line of defense against the pay cut itself.
+- **GT-8**: no single statistic answers how long *your* job search would take if the startup failed; this is a genuine open uncertainty, not resolved either way.
+
+## 4. Derivation Chains
+
+**C1 — The dominant financial risk is job-search timing, not the pay cut itself.** Since salary continues while employed, and 70% of failed startups cite running out of capital, the real question is: how many months would a comparable job search take in your field? If comfortably under 11 months, runway is adequate; if it approaches or exceeds 11, it's thin. **Confidence: LOW** — rests on an unverified assumption about stable household burn rate, and a live rival reading (the pay cut itself could be risky if your savings rate is already thin) isn't ruled out.
+
+**C2 — The equity's realistic value is likely a small fraction of the headline pitch.** Combining GT-3's discounting methodology with GT-4's dilution data, any headline equity pitch from a 4-person pre-Series-A startup should be discounted for further dilution and a well-below-100% exit probability. Compare equity against the annualized cash value of the foregone salary, not against its undiscounted "if acquired for $X" figure. **Confidence: LOW** — GT-4 is unverified at source, and this specific startup could beat population base rates (no diligence performed).
+
+**C3 — A negotiated composite dominates both "stay" and "join now."** Weighted trade-off scoring across downside protection, equity/upside EV, career capital, reversibility, information gained pre-commitment, and speed:
+
+| Option | Weighted total |
+|---|---|
+| Stay | 69 |
+| Join full-time now | 69 |
+| Negotiate smaller cut + equity | 72 |
+| Deferred/trial arrangement | 82 |
+| **Composite (smaller cut + more equity + short trial + 6-month checkpoint)** | **94** |
+
+Flip test: no single-criterion weight change within the 1–5 scale reverses this ranking — it's a robust result, not a near-tie. **Confidence: LOW** — capped by C1/C2 and by GT-5 being unverified at source, though the scoring mechanics themselves are sound.
+
+**C4 — Negotiate the composite as mutual risk-reduction, with a fallback.** Second-order effects: a small founding team may read a staged ask as low commitment and could rescind or shrink the offer; equity stays illiquid for years even in success. So frame the ask as mutual risk-reduction, and be prepared to accept full commitment without a trial if founders treat it as a dealbreaker. **Confidence: LOW** (inherits C3's cap).
+
+## 5. Abandoned Reasoning
+
+- Pure cash-only expected-value framing — discarded for ignoring career capital and optionality.
+- "Trust your gut" — unfalsifiable, rejected outright.
+- Applying general startup failure-rate statistics directly to this specific company — population base rates aren't a substitute for this company's specific facts.
+- Using GT-3's naive (non-probability-adjusted) equity figure as the comparator — the discounted figure is the correct one.
+
+## 6. Conclusion
+
+**Recommended approach:** Negotiate a composite — smaller cut (~15%), more equity/accelerated vesting, a short trial period, and a 6-month milestone checkpoint tied to observable startup health (runway secured, product-market signal, team stability).
+
+**Key insight:** The dominant risk isn't the 30% cut in isolation — it's the combination of startup failure *and* a job search exceeding your 11-month runway. This reframes the real question from "can I absorb a pay cut" to "how many months would re-employment realistically take, and does my runway cover that with margin."
+
+**Trade-offs acknowledged:** The equity is very likely worth substantially less than its headline pitch once realistic exit probabilities and dilution are applied. Separately, a staged/hedged ask carries real risk — it can signal reduced commitment to a small team and could shrink or cost the offer, so frame it as mutual risk-reduction with a fallback to full commitment.
+
+**Confidence: LOW overall.** The general framework (don't binarize, price job-search timing not the cut, discount headline equity, negotiate a staged commitment) is robust and would likely survive most factual specifics. The person-specific numeric verdict is LOW because key inputs are missing: this startup's cap table/valuation/preference stack, exact vesting terms, your true household burn rate, and whether dependents affect your risk tolerance.
+
+## Pre-mortem: how this goes wrong in 6 months
+
+Five structural failure clusters were identified, each with a disposition:
+1. **Cliff/vesting timing** — leaving or being let go before the 1-year cliff yields zero equity. → *Plan change:* negotiate accelerated vesting on involuntary termination without cause; price a pre-cliff departure as a real total-loss scenario.
+2. **Preference-stack/dilution risk** — "successful" exits can still pay common holders little. → *Plan change:* get the cap table and preference terms before finalizing.
+3. **Negotiation-signaling risk** — the safety mechanism itself could cost you the offer. → *Accepted risk, mitigated:* frame the trial as time-boxed and collaborative; be ready to go full commitment if it's a dealbreaker.
+4. **Runway mismatch** — true job-search duration after failure is unknown. → *Plan change:* confirm the 11-month figure against bare-bones burn, and identify a reduced-burn contingency.
+5. **Role/pivot risk** — a 4-person startup's specific role may not survive even if the company does. → *Accepted risk, mitigated:* use the trial/first 60–90 days to directly assess fit rather than relying on the pitch.
+
+**Falsification condition:** The conclusion flips from "negotiate a composite" to "decline outright" if, after obtaining the real cap table, vesting terms, and runway data, the equity shows near-zero realistic value **and** no negotiation is possible **and** your true minimum runway floor isn't met net of the pay cut.
+
+---
+The full analysis, including the self-audit trail, is saved at `/tmp/claude-1000/trackb2-scratch/TB-09-T/.first-principles/analysis-20260930T122337Z.md` if you want to revisit it.

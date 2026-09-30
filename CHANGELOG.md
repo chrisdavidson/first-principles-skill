@@ -51,6 +51,34 @@ installed session.
   was the false claim. `docs/CONFIGURATION.md`'s row for the key is removed. Two phrasings of the
   claim are registered in RETRACT-01.
 
+### Measured — Track B re-run (trackb-2)
+
+- **The superseding agent-vs-unaided comparison is `cleared`**
+  ([reading](docs/trackb-2-reading.md), [pre-registration](docs/trackb-2-preregistration.md)).
+  Compared the agent's own delivered document against an unaided answer to the byte-identical
+  prompt, same model, same rubric, same 10-prompt catalog as the superseded `trackb` run: mean
+  difference **+3.40** on a 15-point rubric, exact paired permutation *p* = 0.001953, effect
+  well clear of twice the in-run judge drift (0.35), holding in direction in 4 of 4 domains. The
+  result carries a disclosed format-tell caveat — the scored arm-T document is identifiable by
+  its own contract format with near certainty, so the result cannot separate reasoning quality
+  from a format or halo effect — published alongside the effect on `docs/EVIDENCE.md`, not as a
+  footnote.
+- **Supersedes `tests/trackb-run-v9.13/`**, whose `null` result measured the wrong artifact: its
+  arm-T captures were the main session's summaries of the agent's analysis, not the agent's own
+  document (`docs/trackb-transport-erratum.md`). This run captures the agent's delivered file
+  directly, via stream-json, with dispatch recorded per cell.
+- **`docs/EVIDENCE.md` changed**: it now renders the "Compared against not using it" section for
+  the first time in this project's history, mechanically gated on the recorded `cleared` status
+  (`gen-evidence-card.py` controls C06/C07/C12/C13).
+- One mid-run mechanics fix, disclosed rather than silently patched: `is_limit_stub()`'s regex
+  fallback misclassified a genuine, complete arm-C answer as a usage-limit stub because it
+  mentioned "rate limiting" in its own prose; fixed, and the affected attempt adopted as its
+  cell's scored capture rather than re-generated (`docs/trackb-2-preregistration.md`'s "Pre-run
+  amendments").
+
+`FIREWALL: GREEN (29/29)` after this commit. The coverage headline does not move (unphased, no
+milestone requirement ids for this quick task).
+
 ## [9.14.0] — 2026-09-29
 
 Unphased release: **v9.14.0 Regressions Resolved**. Two changes to the shipped plugin, both

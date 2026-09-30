@@ -1,0 +1,29 @@
+## 1. Decision usefulness
+
+The document lands on a specific, executable recommendation: a hybrid model with a grade-load-bearing secured/timed component, take-home reserved for extended/authentic tasks, and an unpredictable, accommodation-inclusive ~10% sampled oral defense, with an explicit design constraint (integrity must rest on the secured component and the viva, never on AI-text detection). It names who the recommendation is for (a university deciding on assessment format under 2026 AI conditions) and under what conditions it applies (current detector reliability, current LLM writing capability). A reader could implement or reject this recommendation directly — it specifies percentages, which component carries certification weight, and what the integrity mechanism must and must not depend on. This clears the top band.
+
+## 2. Evidence grounding
+
+Five of the eight ground truths are read at source with a specific, checkable location (PMC IDs, an arXiv version number, a named release page), and their figures are quoted rather than paraphrased loosely. The remaining three (GT-5, GT-6, GT-8) are explicitly marked with a "?" and labeled "reported-by-delegate: search-engine summary; cited sources not opened," with a named research line or hosting institution given as the basis even where the primary source wasn't opened. Critically, this unverified status is not just disclosed once and forgotten — it visibly propagates into every downstream confidence rating that depends on it (chains C3, C4, C5 are capped at MEDIUM specifically because of GT-5?/GT-8?). That is close to the ideal described by the rubric: numbers come from somewhere the reader can see, and where they don't, the gap is flagged with its basis and its consequences tracked rather than laundered into an unqualified claim.
+
+## 3. Assumption surfacing
+
+The document maintains an explicit assumptions table of seventeen named, typed assumptions, each with a verdict (Accept/Challenge/Discard) and a stated verification path. Several of the most consequential assumptions are directly tested against evidence rather than merely listed — e.g., the belief that detector-gated take-home is safe is discarded against GT-1/GT-2, and the belief that AI capability is limited to short-form content is discarded against GT-4. Assumptions surfaced later in the reasoning (A9–A17) are tied to specific derivation steps via inline `[Assumes: An]` tags and cross-checked in an audit table. This goes beyond naming assumptions generically — it engages the load-bearing ones with evidence and explicitly tracks what happens if a given assumption is wrong (e.g., A14's effect on chain C3's conclusion if it fails narrowly).
+
+## 4. Calibration
+
+Confidence is stated per conclusion (HIGH/MEDIUM) and it visibly tracks the strength of the inputs: chains built only on read-at-source ground truths (C1, C6) are rated HIGH, while chains that lean on any "?"-marked ground truth are capped at MEDIUM, with an explicit rule that a chain can't outrank the weakest chain it cites. The document further distinguishes what it knows (GT-1's measured 94% undetected rate) from what it's inferring (extrapolating that finding to "any university's full portfolio," flagged as resting on an unverified generalization assumption). The final recommendation's MEDIUM confidence is explicitly traced to the two weakest contributing ground truths rather than asserted flatly, and the sensitivity analysis pinpoints exactly which criterion's score depends on the shakiest evidence.
+
+## 5. Falsifiability
+
+The document states concrete, checkable conditions that would overturn the recommendation: a primary-source read of the retrieval-practice and accommodation literature that could shift specific scored criteria by named amounts; institution-specific evidence that resourcing/sampling preconditions fail; or evidence that real-time AI coaching capable of defeating a live oral defense has emerged. Beyond this, the closing "Falsification" paragraph goes further than a generic caveat, defining a joint, trackable condition (secured-component grade weight falling below a stated floor and the viva sampling rate falling short of its designed rate, both within 2–3 years) with named tripwires and owners — the kind of specificity that lets someone actually go and check, not a boilerplate hedge.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

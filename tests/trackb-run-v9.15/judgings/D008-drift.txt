@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches an explicit, specific position — land area is a solved, non-binding input to 100%-solar electrification for a representative, moderate-or-lower-density 10-million-person country, with the real constraints named as storage/intermittency, grid buildout, siting economics, and capital. It states precisely who this applies to and under what conditions (scoped away from small, land-scarce, high-density outliers, with Portugal named as the representative density case), and tells the reader where to redirect planning effort. This is specific enough to be acted on or rejected by someone actually making an electrification-planning decision, and the scope qualifier is treated as load-bearing rather than a hedge that blunts the recommendation. This clears the top band.
+
+## Criterion 2: Evidence grounding
+
+Every numerical input is traceable to a named source, and the document distinguishes sharply between figures read directly at source (GT-1, GT-2, GT-4), figures summarized via search and explicitly flagged as such (nine of fourteen ground truths carry a "?" and a "reported-by-delegate" or "unverified" tag with the cited source named), and physical constants accepted as ground truth. Even where a fetch failed (the LBNL PDF, the tritec-energy GHI page), the document records the failure and what stood in for it rather than quietly asserting the figure as solid. Because every load-bearing number either has a shown derivation, a named source, or an explicit estimate-with-basis flag, this satisfies the top band despite heavy reliance on unverified secondary figures — the reliance itself is visible, not hidden.
+
+## Criterion 3: Assumption surfacing
+
+Twelve assumptions are individually named, typed, and given an explicit verdict and verification status. The single most consequential one — that land can be sized from annual energy balance rather than instantaneous demand-matching (A2) — is identified as the highest-stakes simplification, explicitly challenged rather than accepted by default, tagged inline at every load-bearing hop that depends on it, and pushed through a second- and third-order consequence chain (C8) rather than left as a footnote. Other assumptions (geographic generalization, technology representativeness, land-suitability vs. total-territory) are also named and given individual treatment rather than bundled into a generic disclaimer. This meets the top band.
+
+## Criterion 4: Calibration
+
+Confidence is tracked per sub-conclusion and explicitly tied to the specific shortfall causing it — capped by whichever unverified input or lower-confidence upstream chain feeds it — rather than being uniform. Critically, the document shows its calibration moving in response to new information: chain C8's band is revised downward from MEDIUM to LOW mid-document once the adversarial pass surfaces an unresolved rival (land as a binding constraint for high-density countries), and the overall conclusion's band is revised to match. Confidence is also shown running appropriately high where corroboration is strongest (the independent empirical/physics cross-check agreeing within ~12%) and appropriately low where a named finding remains genuinely unsettled. This distinguishes what is known from what is inferred throughout, meeting the top band.
+
+## Criterion 5: Falsifiability
+
+The document states, in checkable terms, what would overturn its conclusion: an opening line naming exactly which unresolved fact (GT-9's agricultural-land-share figure at primary source) and which uncomputed comparison (the same chain run for a named small, high-density country) would move the finding, and a closing falsification condition specifying the exact threshold ("exceeds a double-digit percentage of total territory once restricted to grid-accessible, non-protected, non-urban land") that would falsify it. These are specific enough that a reader could go and check them, rather than generic caveats that could be pasted onto any analysis. This meets the top band.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

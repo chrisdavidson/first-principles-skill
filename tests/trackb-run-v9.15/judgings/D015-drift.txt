@@ -1,0 +1,29 @@
+## Decision usefulness
+
+The document doesn't hand the reader a "move" or "don't move" verdict, but that's the right call for a question this contingent — instead it converges on an actionable default: don't make the maximal, permanent decision now; take the smallest reversible step consistent with the actual (not anticipated) need, escalating only on defined triggers. It specifies who this is for (a family weighing relocation near aging parents) and under what conditions the recommendation shifts (active decline vs. anticipatory worry; high uncertainty vs. confirmed need). The closing five-point list and the named failure mode ("making a maximal, permanent decision to resolve a diffuse emotional state") give a reader concrete things to check their own reasoning against and act on. This clears the bar for **Rigorous**.
+
+## Evidence grounding
+
+Most of the document's claims are asserted from general plausibility rather than derived or sourced: "eldercare need is not static — it escalates," "moving is the most expensive way to solve most of them," "a cross-country move... is close to irreversible in practice." These read as reasonable priors, but none are shown to the reader — no data on eldercare trajectories, relocation costs, or career-reentry difficulty backs them, and no claim is flagged as an estimate with a stated basis. The reasoning has internal coherence, but the factual scaffolding it leans on is presented as fact without visible support anywhere in the piece. That lands at **Hand-wavy**.
+
+## Assumption surfacing
+
+This is the document's strongest dimension. It explicitly interrogates the load-bearing assumption that proximity solves the actual problem, walks through what specific need proximity would address, and tests it against named alternatives (paid care, tech, parents relocating, a partial-distance compromise). It also surfaces a second consequential assumption — that costs and the decision to move fall out "naturally" rather than by unexamined default — flagging the gender-pattern risk explicitly, and a third — that the parents actually want this — insisting it be checked rather than presumed. Multiple consequential assumptions are not just named but engaged with (bounded, tested, or given a fallback). That is **Rigorous**.
+
+## Calibration
+
+The document is generally careful to hedge where its claims are genuinely uncertain ("if the honest answer is 'we don't actually know'," "may be wrong within 2–3 years," "sometimes more about the adult child's guilt... than the parents' actual wishes"), and it distinguishes confirmed need from anticipatory anxiety rather than treating them alike. But a few claims are stated with more flatness than their support warrants — "moving is the most expensive way to solve most of them" and "close to irreversible in practice" are delivered as settled rather than as judgment calls. The mismatch is occasional rather than pervasive, so this sits at **Sound**.
+
+## Falsifiability
+
+The document goes beyond generic caveats by naming concrete, checkable triggers that would change the recommended course: a diagnosis, a fall, or a specific functional decline as the signal to re-evaluate, and "we don't actually know what they'll need or when" as itself information that argues against the maximal move. This gives a reader something to actually watch for and check against, not just an acknowledgment that things could change. That specificity earns **Rigorous**.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

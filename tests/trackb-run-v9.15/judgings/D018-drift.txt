@@ -1,0 +1,39 @@
+## Criterion 1: Decision usefulness
+
+The document opens with an unambiguous "No" and closes with a concrete alternative — stay on the monolith, enforce clean internal module boundaries, and extract only the specific piece that develops a real scaling or ownership problem. The conditions under which the answer holds are stated up front (1,200 DAU, one deployable, six engineers), so a reader knows exactly when this advice applies and can act on it without further translation. This lands in the top band: the recommendation is specific enough to execute or reject, not just directionally right.
+
+**C1: Rigorous**
+
+## Criterion 2: Evidence grounding
+
+Several claims are logically derived in view of the reader — e.g., "N services means N deploy pipelines" follows definitionally from what microservices are, and the org-boundary argument follows from "six people is one team." But the load-bearing premise that "1,200 DAU is small enough that a monolith runs comfortably on a couple of instances" is asserted flatly with no reference point (no ballpark of what a monolith can typically absorb, no basis given), even though such a reference would have been easy to supply. Most of the argument's weight rests on sound, visible reasoning, with this one central figure asserted rather than grounded.
+
+**C2: Sound**
+
+## Criterion 3: Assumption surfacing
+
+The document doesn't label its assumptions explicitly, but its closing paragraph does identify the single most consequential unstated condition — that there isn't already a specific pain point (slow pipeline, noisy-neighbor scaling, an impending team split) — and says plainly that such a condition "would change the answer for that one piece, not the overall architecture." That's real engagement with the load-bearing assumption. Other assumptions the argument leans on (e.g., that six engineers and 1,200 DAU represent a stable trajectory rather than a snapshot mid-inflection) pass without comment.
+
+**C3: Sound**
+
+## Criterion 4: Calibration
+
+The body is delivered in a flatly assertive register throughout, without distinguishing which claims are settled engineering consensus versus judgment calls specific to this case. The closing paragraph does inject a genuine, non-generic hedge tied to concrete conditions, which keeps this from being uniformly overconfident — but within the main argument itself there's no visible gradation between the well-supported claims (definitional costs of N services) and the more asserted one (the DAU capacity claim from C2).
+
+**C4: Sound**
+
+## Criterion 5: Falsifiability
+
+Rather than a generic "this could be wrong," the document names three concrete, checkable conditions that would overturn the recommendation for the relevant piece: a slow deploy pipeline, a noisy-neighbor scaling issue, or a team split on the horizon. A reader can go check for the presence of any of these against their own situation, which is exactly the kind of specificity the top band asks for.
+
+**C5: Rigorous**
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Sound
+C4: Sound
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

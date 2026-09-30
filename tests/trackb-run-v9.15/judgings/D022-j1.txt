@@ -1,0 +1,29 @@
+## Decision usefulness
+
+The document reaches a genuinely specific, conditional recommendation: adopt the composite (pricing + cycle lanes + low-income transit relief) where road-pricing authority exists, and pursue named supplementary tools (employer-side transit benefits, parking-pricing reform, or pursuing pricing authorization as a parallel track) where it doesn't. The gating condition (road-pricing authority) is stated explicitly, so a reader knows which branch applies to their situation, and the first branch is concrete enough to be executed (a specific lever, a specific revenue use, specific corridors). The second branch is somewhat less granular but still names concrete directions rather than trailing off into generality. This clears the bar for Rigorous: a clear position, specific enough to act on, with explicit conditions of applicability.
+
+## Evidence grounding
+
+Nearly every numeric claim in the document is either tied to a named source with a quoted passage (the four "read-at-source" ground truths), explicitly marked as unverified/reported-by-delegate (the four `?`-suffixed ground truths), or flagged as an illustrative estimate (the Fermi-bracket inputs in chain C3, the budget anchor in A-13). Preference-based scoring cells in the trade-off table are explicitly labeled "(preference)" rather than presented as fact. The one soft spot is the aside "GT-3 and related multi-city studies" in chain C3, which broadens an otherwise well-cited claim without naming those studies — but this is a minor, non-load-bearing embellishment (the Fermi bracket's own insensitivity analysis shows the conclusion doesn't hinge on this figure's precision), not a fabricated or centrally load-bearing gap. This is close enough to the letter of the top band to score Rigorous.
+
+## Assumption surfacing
+
+Eighteen assumptions are individually named, typed, and given a verdict, and the single most consequential one — that findings from four specific cities transfer to a generic mid-sized city — is not just flagged but actively tested via an inversion pass that derives concrete, checkable preconditions (chokepoint geography, trip-distance distribution, baseline mode share) and traces each into the chains that depend on it. This is a textbook instance of engaging with, rather than merely naming, the load-bearing assumption, which is exactly what separates the top band from the one below it.
+
+## Calibration
+
+Confidence is assigned per chain (MEDIUM for C1/C2/C3/C6, LOW for C4/C5) with distinct, non-boilerplate justifications each time — a short "Inference axis" for one, a thin "Rivals axis" for another, delegate-sourced ground truths for a third. Nothing in the document is rated HIGH, but this is defended rather than reflexive: even well-documented empirical inputs (Stockholm, London) are capped at MEDIUM because the generalization step, not the underlying data, is what's weak, and the document says so explicitly. The final conclusion's LOW rating is traced to a specific, named normative gap (A-18) rather than diffused hedging. This tracks evidence rather than running uniformly ahead or behind it.
+
+## Falsifiability
+
+The document states a specific, checkable falsification condition for its core empirical premise ("a rigorously measured post-implementation study finds either (a) commuter-specific car-trip reduction essentially at zero despite the pricing system operating for at least 18 months at a materially deterrent tariff, or (b) a second independent free-transit case... achieves a car-mode-shift effect substantially above the ~1 percentage-point range found in GT-4"), and supplements it with chain-level verification notes naming exactly what evidence would move each estimate (e.g., a second documented pricing-scheme launch timeline, a primary NHTS source for the trip-distance figure). These are specific enough that someone could actually go check them, which is the top band's defining feature.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

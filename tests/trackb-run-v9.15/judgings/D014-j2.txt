@@ -1,0 +1,21 @@
+## Criterion-by-criterion assessment
+
+**1. Decision usefulness — Rigorous.** The document reaches an explicit, actionable position: a bare "publish training data sources" rule will produce vague categorical disclosures, will be structurally incapable of revealing bias, and will see low self-selected compliance, netting "compliance costs and modest secondary transparency value, not the anti-discrimination outcome usually cited to justify it." The "Recommended approach" section translates this into three concrete expectations a reader can check a real proposal against, and the scope conditions (a generic rule lacking a mandated outcome-linked schema) are stated up front, so the reader knows exactly when the recommendation does and doesn't apply.
+
+**2. Evidence grounding — Sound.** Most load-bearing claims are tied to named, checkable reference points: NYC Local Law 144, EU AI Act Art. 53(1)(d), the Title VII four-fifths rule, and UK ICO findings on recruitment-AI vendors. This is well above bare assertion. But the single most load-bearing empirical fact — the ~5% compliance / 96% favorable-results statistic driving chain C3 — is attributed only to "a 2024 field study" with no author, title, or venue, leaving a reader unable to verify the number that the LOW-confidence-but-central prediction rests on. That gap, on the claim doing the most work, keeps this out of the top band.
+
+**3. Assumption surfacing — Rigorous.** Section 2 names the load-bearing assumptions explicitly (public naming duty vs. raw-data release; absence of a granular schema, audit mechanism, private right of action, or aggregation layer) and states directly what happens if they're wrong ("these are the load-bearing gaps: if a real statute closes them, the conclusion doesn't hold as stated"). The most consequential assumption — no mandated schema — is the one the whole analysis pivots on, and the document says so rather than burying it.
+
+**4. Calibration — Rigorous.** Confidence is assigned per inferential step (C1 LOW, C2 MEDIUM, C3 LOW, C4 LOW) rather than uniformly, and the differentiation tracks the actual evidentiary basis: C2, a logical claim (source names don't encode outcome statistics), is rated more confidently than C1/C3, which depend on how an undrafted statute would be written. The closing confidence note explicitly separates what's known deductively from what's being extrapolated from analogues, which is exactly the distinction this criterion rewards.
+
+**5. Falsifiability — Rigorous.** The "Would change it" line names three specific, checkable things: the actual statutory/implementing-rule text (and specifically whether it mandates a granular outcome-linked schema), a primary-source citation for the Title VII standard behind chain C2, and post-enactment compliance data for the specific rule analogous to the LL144 study. These are concrete enough that someone could go find them and know whether the conclusion survives, not generic hedges.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

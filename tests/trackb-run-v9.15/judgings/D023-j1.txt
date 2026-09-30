@@ -1,0 +1,21 @@
+## Evaluation
+
+**1. Decision usefulness — Rigorous.** The document lands on an explicit, actionable position: treat the result as a preliminary signal, not a proven effect, and before committing further resources, go get specific missing data (per-run values or a variance statistic, plus confirmation that catalyst presence was the only thing that varied between runs). This is concrete enough that a reader could hand it to the lab as a checklist and know exactly what to ask for, and the closing "single highest-value next step" pins down the one action that matters most. The conditions under which the recommendation applies (before further investment decisions) are also stated.
+
+**2. Evidence grounding — Rigorous.** The claims the conclusion leans on are derived in view of the reader rather than asserted: the SD-estimation uncertainty at n=3 is shown via the SE(s) ≈ s/√(2(n−1)) formula, and the elevated significance bar is grounded with the actual t* value at df=2 versus the large-sample 1.96 threshold. The raw 62%/71% figures are treated as given inputs and not embellished with unsupported precision. Where the document can't compute something (significance), it says so plainly rather than papering over it with a vague qualifier.
+
+**3. Assumption surfacing — Rigorous.** The document identifies the load-bearing gaps explicitly — that nothing confirms catalyst presence was the only variable that differed, and that n=3 makes the mean highly sensitive to a single anomalous run — and it engages with the most consequential of these (the confound possibility) by naming concrete candidate confounds (temperature, reagent lot, operator, timing) and explaining how each would undermine causal attribution. It doesn't just gesture at "assuming conditions hold"; it says which specific assumption is doing the work.
+
+**4. Calibration — Rigorous.** Confidence is explicitly graded (MEDIUM) and tied to a stated reason, and the document is careful to separate what it's sure of (a raw association exists in the reported numbers) from what it isn't (significance, causality, reproducibility), even flagging a countervailing consideration (the gap could still be real despite lacking formal significance) rather than collapsing into uniform certainty or uniform hedging.
+
+**5. Falsifiability — Rigorous.** The "Would change it" section states exactly what evidence would overturn the cautious reading — per-run data or an SD/CI/p-value, and confirmation of what was held constant — in terms specific enough that someone could actually go request that data and check. This isn't a generic "more research needed" caveat; it names the precise missing artifacts.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

@@ -1,0 +1,24 @@
+The full analysis is done. Here's the result:
+
+## Answer: No — don't approve a blanket "buy faster runners" purchase as the primary fix
+
+**The core problem with leadership's framing:** it conflates "make CI faster" with "make CI fast enough to stop batching." Those are different bars, and hardware spend doesn't obviously clear the second one.
+
+**Why hardware alone is the wrong lead:**
+
+1. **Amdahl's Law caps it.** Whatever fraction of the 47 minutes is serial/I/O-bound (checkout, dependency restore, container startup, artifact upload) doesn't move no matter how fast the runners are. Faster hardware only attacks the parallelizable portion.
+
+2. **The only real precedent available points the other way.** Shopify's published case study (45→18 min p95) got there entirely through caching, test-impact selection, and fixing flaky tests — not hardware.
+
+3. **The cost/benefit math doesn't resolve.** An illustrative 8-core upgrade lands the pipeline somewhere between 14–30.5 minutes depending on the true parallel fraction — a bracket wide enough to straddle the ~10–15 minute threshold that actually seems to matter for stopping batching behavior (which looks like a step-function response to context-switch cost, not a smooth function of average wait).
+
+4. **A locked, weighted comparison across five options** — hardware-only, a software/process bundle, a pipeline split (fast pre-merge / slower post-merge), status quo, and a composite — ranks the composite highest and hardware-only 4th of 5. This ranking survives a flip test against any single-criterion reweighting.
+
+**Recommendation:** Instrument the pipeline first (find the actual serial-vs-parallel split — this is the single highest-leverage unknown in the whole analysis). In parallel, run the software/process bundle plus the pipeline split. Use targeted hardware upgrades only where profiling confirms a genuinely CPU-bound, already-parallelized stage.
+
+**When hardware would in fact be right:** if instrumentation shows the 47 minutes is dominated (>80%) by an already-maximally-parallel, purely CPU-bound stage with no caching/selection/sharding headroom — the analysis doesn't rule this out, it just says don't buy runners without checking first.
+
+**Confidence: LOW** across the board — this is a general analysis with no team-specific profiling data, so the qualitative conclusion (hardware-only underperforms a software-led approach) is comparatively robust, but the specific numbers aren't grounded in your actual pipeline.
+
+Full analysis with assumptions table, ground truths, derivation chains, and adversarial pre-mortem is saved at:
+`/tmp/claude-1000/trackb2-scratch/TB-02-T/.first-principles/analysis-20260930T050929Z.md`

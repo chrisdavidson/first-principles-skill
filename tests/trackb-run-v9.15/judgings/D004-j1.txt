@@ -1,0 +1,29 @@
+## Decision usefulness
+
+The document reaches a clear, conditional recommendation — adopt the composite (congestion pricing + cycle lanes + low-income transit relief) where road-pricing authority exists, and explicitly states that no combination of the three levers reaches 20% where it doesn't, with concrete next moves (parking-pricing reform, employer-side measures, pursuing authorization) named for that branch. It specifies who the recommendation is for and the condition that gates it, and closes with a checklist of what a reader would still need to confirm (legal authority, geographic fit, political durability, how the mandate should be read). This is specific enough to execute or reject, not a general-purpose answer that could fit any transport question. **Rigorous.**
+
+## Evidence grounding
+
+Most load-bearing claims are grounded: the congestion-pricing effect is tied to named cases (London, Stockholm), the free-transit claim is tied to a specific case (Tallinn) with the mechanism stated (ridership gains came from pedestrians, not drivers), and the cycle-lane ceiling is explicitly labeled a Fermi estimate rather than presented as measured fact. The one gap is the weighted trade-off that decides the tie-break: the document asserts a "74 vs 74" score across six criteria and a recommendation that hinges on treating Effectiveness as dominant, but the scoring itself isn't shown in this document — only its outcome and sensitivity ("a single one-point shift... flips the winner"). That's a load-bearing number whose derivation isn't in view of the reader here, even though it's flagged as coming from a fuller analysis. **Sound.**
+
+## Assumption surfacing
+
+The document names its load-bearing assumptions explicitly and distinguishes them from findings: legal/road-pricing authority, geographic fit (chokepoint, commute-distance distribution), political durability, and — most consequentially — how the mandate itself should be weighted (literal 20% as dominant vs. one value among several). It doesn't just gesture at this last one; it walks through what happens under each reading and states plainly that its own recommendation follows from treating Effectiveness as dominant, calling this "a normative interpretation, not a fact." That is direct engagement with the single assumption the whole recommendation turns on. **Rigorous.**
+
+## Calibration
+
+Confidence is stated at two levels and they track different amounts of support: each lever's individual effect is tagged "MEDIUM confidence" (grounded in named cases or a flagged estimate), while the overall recommendation is tagged "LOW confidence" specifically because it depends on an unresolved values call, not on missing transport-policy evidence. That's a meaningful distinction rather than uniform hedging — the document is confident about the empirical pieces and honest that the synthesis is a coin flip absent a values decision. **Rigorous.**
+
+## Falsifiability
+
+The document states precisely what would overturn its recommendation: a clarified answer on whether the literal 20% target should dominate the other five weighted criteria, and it quantifies the fragility of its own tie-break ("a single one-point shift... flips the winner entirely"). That's a checkable condition tied to a specific mechanism (the weighting scheme), not a generic caveat — a reader could go interrogate the weights and see the conclusion flip. **Rigorous.**
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

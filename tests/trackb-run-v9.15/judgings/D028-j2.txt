@@ -1,0 +1,19 @@
+**1. Decision usefulness — Sound (2).** The document reframes the question sharply (the real constraint is the income gap, not the 11-month headline) and lands on a clear directional claim: the financial risk is survivable, so the decision should turn on conviction in the team/product rather than the spreadsheet. That's a real position, and it's paired with a concrete checklist (fixed-cost runway, reemployment risk, vesting/funding terms) a reader could act on. But it stops short of a specific recommendation to join or not join, and it closes by handing the decision back to the reader with a question rather than executing the logic it built — the practical edge is blunted right at the point of commitment.
+
+**2. Evidence grounding — Hand-wavy (1).** Several of the load-bearing numbers are asserted with no visible origin: the "25-35+ months of runway" figure is offered without the underlying salary/expense math being shown (the document tells the reader to go compute it rather than deriving it in view of the reader), and the "12-18 months" startup-failure base rate is stated flatly as fact with no source. The equity-near-zero valuation is a reasonable heuristic but is also simply asserted. Since the core argument ("you can survive this financially") rests on figures presented without stated basis, this falls into the band where load-bearing claims lack visible support.
+
+**3. Assumption surfacing — Sound (2).** The document explicitly treats "equity value ≈ 0" as a deliberate planning assumption and stress-tests it ("don't do this deal if the math only works when you assume the equity pays off"), which is real engagement with the most consequential assumption. It also flags a boundary condition on the runway claim (the 30% cut alone could already force a deficit). But other assumptions — the 12-18 month failure base rate, that the pay cut is exactly 30% and stable, that 2-3 months of fixed-cost runway is achievable — are used without being flagged as assumptions at all.
+
+**4. Calibration — Sound (2).** Hedging is applied unevenly: the runway multiplier is appropriately qualified ("probably," "unless"), but the startup failure base rate and some of the risk framing are delivered with flat, unqualified confidence despite having no stated support. This is a middling mismatch rather than a pervasive one — most of the document's confident claims (equity is a lottery ticket, financial survivability) are reasonably well-matched to the strength of the underlying reasoning, but one or two claims run ahead of what's shown.
+
+**5. Falsifiability — Sound (2).** The document does better than generic caveats: it names a specific, checkable condition that would undercut its central financial claim (if the pay cut alone pushes the reader into a monthly deficit before touching savings, the "11 months is actually irrelevant" framing collapses), and it flags that vesting terms and funding stage would materially change the risk picture. But it never ties these back explicitly to "here is what would make my recommendation wrong" — they read as additional due-diligence items rather than a stated falsification test for the conclusion itself.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Sound
+C2: Hand-wavy
+C3: Sound
+C4: Sound
+C5: Sound
+=== TRACKB-SCORELINE-END ===
+```

@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches a clear, specific position: treat the 62%→71% shift as a preliminary signal rather than an established causal improvement, and it names exactly what to do about that position — request per-run data or a variance/SD statistic for both conditions, confirm what was held constant between the compared runs, and obtain further independent (ideally randomized/blinded) replicates before committing resources to scale-up or publication. This is concrete enough for a reader to actually execute (send these three specific requests to the lab, hold off on resourcing decisions until answered) rather than a generic gesture toward "more research." The recommendation also states the condition under which it applies (before committing resources to scale-up/publishing a causal claim), giving it a clear audience and scope.
+
+## Criterion 2: Evidence grounding
+
+Every load-bearing claim traces to a visible source: the two empirical facts (means, absence of variance data) are sourced directly to the prompt text with an explicit statement that the prompt was re-checked for missing terms; the statistical claims (SE-of-SD at n=3, the t-critical value at df=2) are derived with the formula and arithmetic shown in view of the reader, not merely asserted; the confounding claim rests on a stated logical definition. The one illustrative figure that isn't strictly derived — the statistician's "measurement noise often 1–2 points" — is explicitly framed as an unresolved rival hypothesis rather than smuggled in as fact, and it is not load-bearing for the actual conclusion. No claim the conclusion depends on is left as a bare assertion.
+
+## Criterion 3: Assumption surfacing
+
+The document maintains an explicit table of nine named assumptions, distinguishing which are used by which chain, and it doesn't stop at naming them: the most consequential one for the causal claim (that nothing besides the catalyst differed between conditions) is directly engaged in the confidence discussion for C2, and two assumptions used inside derivation chains (A9, A5) are each tested for whether the conclusion survives if the assumption is false — in both cases the document shows the conclusion is robust or strengthens under failure rather than merely flagging the assumption and moving on.
+
+## Criterion 4: Calibration
+
+Confidence is stated per sub-conclusion (HIGH for the narrow computability claim, MEDIUM for the causal-attribution, replication-adequacy, and headline conclusions) and the gap between bands is tied to a specific, named cause each time — a live, unruled-out rival (undocumented controls, unknown historical variance) rather than a vague hedge. The strongest claim (that significance is currently uncomputable) is the one held to strict, narrow scope and given the highest confidence, while broader claims about causation and reproducibility are explicitly marked as resting on unresolved gaps. Confidence tracks support consistently rather than running uniformly hot or cold.
+
+## Criterion 5: Falsifiability
+
+The document states up front, and again in a dedicated section, exactly what would overturn its conclusion: the lab supplying per-run yield data or a variance/CI/p-value showing the gap clears significance despite n=3's low power, together with confirmation that catalyst presence was the only variable that differed. This is specific enough that someone could actually go check it against what the lab eventually discloses, rather than a generic "further research is needed" that could be pasted onto any result.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

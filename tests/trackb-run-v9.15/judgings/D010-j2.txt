@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches a clear, specific position: do not approve a blanket runner purchase; instrument the pipeline, run a named software/process bundle (caching, test-impact selection, flaky-test quarantine) in parallel with splitting the pipeline into a fast pre-merge gate and slower post-merge suite, and treat a runner upgrade as a secondary lever gated on confirmed CPU-bound stages. Each element is concrete enough to execute or reject on its own, the ordering is explicit (what happens first vs. in parallel), and the document states the condition under which the recommendation would reverse. This is more than directionally clear — it gives a reader an actionable sequence with a stated trigger for revisiting it.
+
+## Criterion 2: Evidence grounding
+
+Load-bearing numbers are traced to sources the reader can check (GitHub's published per-core pricing table, Amdahl's Law as a derivable mathematical identity, a named Shopify engineering case study with specific before/after figures), and the arithmetic built from them is independently recomputed and verified within the document. Weaker sources (Gloria Mark's interruption-recovery research, remote-caching benchmarks, DORA survey figures) are explicitly flagged as delegate-reported or unconfirmed at the primary source, and are kept non-load-bearing where their reliability doesn't support more. Illustrative figures (team size, run volume, parallel-fraction bracket) are labeled as illustrative with their basis stated rather than presented as fact.
+
+## Criterion 3: Assumption surfacing
+
+The assumptions table names eleven specific assumptions, types them, and assigns each a verdict (accept/challenge/discard) with a stated verification path rather than leaving them as generic hedges. The single most consequential assumption — this team's actual serial/I/O-versus-parallel split — is identified as such explicitly, is shown to drive multiple downstream conclusions, and is given a concrete bounding test (per-stage instrumentation) rather than just being flagged and dropped.
+
+## Criterion 4: Calibration
+
+Confidence is scored per line of reasoning rather than uniformly, and the stated confidence tracks the strength of what supports it: claims resting on a mathematical identity or a directly-quoted pricing table are treated differently from claims resting on a delegate-reported psychology finding applied to a new context. Notably, the document distinguishes a low numeric confidence band (driven by missing team-specific data) from a separately-argued claim that the qualitative ranking is comparatively robust to reweighting — a distinction that shows the confidence expressed is doing real work rather than being applied as a blanket qualifier.
+
+## Criterion 5: Falsifiability
+
+The document states a specific, checkable condition under which its conclusion would be wrong: if instrumentation shows the pipeline's duration is dominated (e.g., over 80%) by an already-maximally-parallel, purely CPU-bound stage with no caching/selection/sharding headroom, hardware becomes the correct primary lever. This is tied to a concrete measurement a reader could actually go perform, not a generic "further study needed" caveat, and it is stated more than once in materially the same checkable form.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```

@@ -1,0 +1,21 @@
+# Scoring: analysis.md
+
+**Criterion 1 — Decision usefulness.** The document doesn't answer "move or don't move" with a yes/no, but that's because it correctly identifies the question as under-specified and restructures it into one that can actually be acted on. It lands on a concrete operating rule — default to reversible, staged responses (more visits, support infrastructure, a "closer but not that close" compromise, defined trigger points) rather than a maximal permanent move, unless a specific current care need and parental confirmation already exist — and closes with a five-item checklist a reader could literally walk through. It also names who it's for (a family facing this specific bundle of tradeoffs) and the conditions under which the framework's answer shifts (anticipatory vs. active decline). That's specific enough to execute or reject. **Rigorous.**
+
+**Criterion 2 — Evidence grounding.** Several load-bearing claims are stated as fact with no visible basis: "eldercare need is not static — it escalates," and the claim that a decision "may be wrong within 2-3 years" both function as premises for the reversibility argument but carry no stated source, data point, or even a flagged "this is my estimate because…" The gender-pattern claim about career sacrifice and the generalization about teenagers' social stakes are plausible but similarly asserted rather than grounded. This is reasoned analysis rather than empirical claim-stacking, but where it does lean on quasi-factual assertions to support the conclusion, those assertions have no visible support. **Hand-wavy.**
+
+**Criterion 3 — Assumption surfacing.** This is the document's strongest dimension. It doesn't just gesture at uncertainty generically — it names specific assumptions that the "move closer" impulse rests on and interrogates them directly: whether proximity actually addresses the underlying need (the whole first section), whether the parents themselves want this ("this is sometimes more about the adult child's guilt/anxiety than the parents' actual wishes"), and whether a lopsided career sacrifice is "genuine circumstance" or an unexamined default. The most consequential assumption — that proximity is the right lever at all — gets sustained engagement, including a list of alternatives that would be moot if the assumption held trivially. **Rigorous.**
+
+**Criterion 4 — Calibration.** The document doesn't distinguish what it's confident about from what it's speculating on. Firm-sounding claims (the escalation dynamic, the 2-3 year window, the gendered-default point) are delivered in the same declarative register as the more clearly logical/structural points (reversibility should scale with certainty). Scattered hedge words ("may," "sometimes," "can") appear but aren't tied to any visible difference in evidentiary weight — they read as stylistic softening rather than calibrated signaling of what's known versus inferred. **Hand-wavy.**
+
+**Criterion 5 — Falsifiability.** The document does better than generic caveats: it proposes that the family identify "a defined signal (a diagnosis, a fall, a specific functional decline)" that would trigger re-evaluation of the reversible-first approach, which is a real, checkable condition rather than "circumstances may change." But it stops short of committing to those triggers itself — it poses them as a question the reader must answer ("what's the actual trigger point?") rather than staking out what specifically would make its own recommendation wrong. That's more than a gesture but less than a fully owned, checkable falsification condition. **Sound.**
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Hand-wavy
+C3: Rigorous
+C4: Hand-wavy
+C5: Sound
+=== TRACKB-SCORELINE-END ===
+```

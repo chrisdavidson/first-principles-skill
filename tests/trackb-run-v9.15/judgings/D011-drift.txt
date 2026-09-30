@@ -1,0 +1,29 @@
+## Criterion 1: Decision usefulness
+
+The document reaches a specific, ordered position: verify three named facts (care-need acuity/trajectory via a documented functional assessment, paid-care substitutability via calls to local agencies, and parental preference via direct conversation) before weighing any job or school cost; only then run the trade-off among surviving options; stagger rather than simultaneous job changes; and resolve any remaining near-tie as an explicit values call. Each step names a concrete action a reader could go do this week, and the document is explicit about who the procedure is for (a family facing this decision, generically) and under what conditions the recommendation would change (e.g., if paid care is unavailable, if a sibling already covers the need, if the anchor scores are replaced with the family's real numbers). This is executable, not a survey of considerations — **Rigorous**.
+
+## Criterion 2: Evidence grounding
+
+Nearly every load-bearing claim traces to a labeled source with a distinction between "read-at-source" (with the specific confirmed wording quoted) and "reported-by-delegate" (`?`-marked figures explicitly flagged as unverified, with their basis — e.g., "web-search synthesis," a named researcher and cohort study — stated openly, including a disclosed failed fetch). Numbers in the trade-off matrix and Fermi estimates are derived in view of the reader (weights, anchors, and a flip-test that is independently recomputed) rather than asserted. This matches the top band's own allowance that an estimate flagged with its basis counts as grounded — **Rigorous**.
+
+## Criterion 3: Assumption surfacing
+
+Twenty assumptions are individually named, typed, and given a verdict (Accept/Challenge/Discard) with a stated verification path, and the single most consequential one — the parents' care-need acuity — is explicitly identified as "the single highest-stakes unverified belief in the entire analysis" and is then actively engaged: bounded via the inversion exercise, priced via the trade-off's flip-test (exactly what weight or fact would flip the ranking), and carried through as the pivot of the whole recommendation rather than left as a caveat. Other assumptions are similarly engaged rather than merely listed. **Rigorous**.
+
+## Criterion 4: Calibration
+
+Confidence is tracked per inferential chain and propagates consistently: the chain resting entirely on arithmetic/physical constants and read-at-source facts is rated HIGH, while every chain touching a `?`-marked (unverified) input is capped at MEDIUM, with the cap explicitly traced to its source rather than asserted. The final recommendation inherits MEDIUM from its weakest contributing chain, and the document distinguishes what is known outright (a week has 168 hours) from what is inferred and contingent (the trade-off ranking under illustrative anchors). Confidence visibly tracks support strength throughout — **Rigorous**.
+
+## Criterion 5: Falsifiability
+
+Beyond generic hedging, the document states a specific falsification condition for its headline conclusion (the procedure is wrong if a family that runs it ends up no better off, on its own criteria, than a matched family that decided by unexamined convention) and separately names, chain by chain, exactly what evidence would raise or overturn each confidence rating (a working link for the decline-trajectory study, route/industry-specific quotes replacing the cost brackets, a family's own re-scored numbers replacing the illustrative anchors). These are checkable, not boilerplate — **Rigorous**.
+
+```text
+=== TRACKB-SCORELINE-START ===
+C1: Rigorous
+C2: Rigorous
+C3: Rigorous
+C4: Rigorous
+C5: Rigorous
+=== TRACKB-SCORELINE-END ===
+```
