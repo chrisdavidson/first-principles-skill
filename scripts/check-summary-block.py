@@ -424,18 +424,28 @@ _TAXONOMY_TYPES = frozenset(
 
 _BOLD_WHOLE_CELL_RE = re.compile(r"^\*\*(.*)\*\*$")
 _TRAILING_PAREN_RE = re.compile(r"\s*\([^)]*\)\s*$")
+# The taxonomy's locked subtype form, `<parent> — <discriminator>`
+# (shared/spine/references/assumption-taxonomy.md, "Naming pattern (locked)").
+_EM_DASH_SUBTYPE_RE = re.compile(r"^(.*?) \u2014 .+$")
 
 
 def _parent_type(cell: str) -> str:
     """Strip bold markers around the whole cell, then a trailing
-    parenthesised subtype, leaving the cell's parent type. A compound cell
-    (e.g. "a / b") or any other annotation is deliberately left unchanged --
-    it will not equal any single taxonomy value (D-16)."""
+    parenthesised subtype or the taxonomy's locked em-dash subtype
+    (`<parent> — <discriminator>`), leaving the cell's parent type. The
+    em-dash form is stripped only when what precedes it is exactly one
+    taxonomy type, so a compound cell (e.g. "a / b") or any other
+    annotation is deliberately left unchanged -- it will not equal any
+    single taxonomy value (D-16)."""
     s = cell.strip()
     m = _BOLD_WHOLE_CELL_RE.match(s)
     if m:
         s = m.group(1).strip()
-    return _TRAILING_PAREN_RE.sub("", s).strip()
+    s = _TRAILING_PAREN_RE.sub("", s).strip()
+    m = _EM_DASH_SUBTYPE_RE.match(s)
+    if m and m.group(1).strip() in _TAXONOMY_TYPES:
+        return m.group(1).strip()
+    return s
 
 
 _LEADING_VERDICT_RE = re.compile(r"(Accept|Challenge|Discard)\b")
@@ -2062,6 +2072,8 @@ def _c15b_annotated_type_cells_match_parent() -> str | None:
     for block_type, cell_text in (
         ("untested belief", "untested belief (economic-hinge)"),
         ("convention", "**convention (regulatory)**"),
+        ("physical law", "physical law \u2014 derived"),
+        ("untested belief", "**untested belief \u2014 economic-hinge**"),
     ):
         m = copy.deepcopy(example)
         m["assumptions"][0]["type"] = block_type
@@ -2076,6 +2088,15 @@ def _c15b_annotated_type_cells_match_parent() -> str | None:
     codes = {f.code for f in check_report(text, schema=schema)}
     if codes != {"SB-ASSUMPTION"}:
         return f"compound cell with a trailing paren: expected {{'SB-ASSUMPTION'}}, got {codes!r}"
+
+    m = copy.deepcopy(example)
+    m["assumptions"][0]["type"] = "convention"
+    text = _synthetic_report(
+        m, type_cells={"A-1": "convention / untested belief \u2014 economic-hinge"}
+    )
+    codes = {f.code for f in check_report(text, schema=schema)}
+    if codes != {"SB-ASSUMPTION"}:
+        return f"compound cell with an em-dash subtype: expected {{'SB-ASSUMPTION'}}, got {codes!r}"
     return None
 
 
