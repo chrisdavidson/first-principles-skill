@@ -6,7 +6,7 @@
 """Sync canonical shared/ content into the agent surface.
 
 Usage:
-    python3 scripts/sync-content.py --write    # regenerate all 48 target files
+    python3 scripts/sync-content.py --write    # regenerate every generated target file
     python3 scripts/sync-content.py --check    # compare on-disk vs generated; exit 1 on drift
 
 Exit codes:
@@ -159,8 +159,8 @@ FOCUSED_VALIDATION_TOKEN_RE = re.compile(r"\{\{FOCUSED_VALIDATION\}\}")
 # Fixed source for the {{FOCUSED_VALIDATION}} token. Deliberately NOT under
 # shared/spine/references/ (which is 1:1 with SPINE_REFERENCES and would make
 # it an emitted target) — this file is inlined whole into every non-launcher
-# stub and is never emitted as its own file, so GENERATED_TARGET_COUNT stays
-# 48 and the path must never be added to SPINE_REFERENCES.
+# stub and is never emitted as its own file, so GENERATED_TARGET_COUNT is
+# unaffected by it, and the path must never be added to SPINE_REFERENCES.
 FOCUSED_VALIDATION_SOURCE = SHARED / "spine" / "focused-validation-step.md"
 
 # Marker line stamped on every generated stub body, immediately after the
@@ -248,6 +248,17 @@ SPINE_REFERENCES = (
     "validation-rubric",
 )
 
+# Phase 74-01: JSON spine references (filename stem under
+# shared/spine/references/) emitted verbatim into REFERENCES_DIR with NO
+# GENERATED_MARKER — an HTML-comment first line would make the file invalid
+# JSON. Follows the docs/data/matrix.json precedent (written by
+# check-traceability.py with plain json.dumps, no marker). Kept separate from
+# SPINE_REFERENCES because that tuple's contract (and
+# generate_agent_spine_references()'s Markdown-only marker/extension
+# handling) assumes a Markdown target; mixing a .json stem into it would try
+# to emit "{slug}.md" for a file that is not Markdown.
+SPINE_JSON_REFERENCES = ("summary-schema",)
+
 # The four reference files v8.5 §2 authorises splitting into a core file plus
 # a `-detail.md` appendix (docs/v8.4-implementation-readiness-eval.md §4's
 # per-section boundary table — pruned from the tree 2026-08-16, read it with
@@ -309,8 +320,9 @@ AGENT_REF_PREFIX = "${CLAUDE_PLUGIN_ROOT}/references/"
 SKILL_PEER_PREFIX = "${CLAUDE_PLUGIN_ROOT}/skills/"
 
 # Canonical total count of files that sync-content.py generates (len(generate_all())).
-# Breakdown: 1 agent + 11 reference siblings + 4 agent detail siblings +
-# 14 worked-example siblings + 14 skill stubs + 4 skill detail siblings.
+# Breakdown: 1 agent + 12 reference siblings (11 Markdown + 1 JSON schema) +
+# 4 agent detail siblings + 14 worked-example siblings + 14 skill stubs +
+# 4 skill detail siblings.
 # DISPATCH-05 adds the 14th skill stub: the `first-principles-analysis` launcher
 # (LAUNCHER_SKILLS). It emits one stub and no detail sibling — a launcher inlines
 # no technique procedure, so it adds exactly 1 to this count.
@@ -324,7 +336,7 @@ SKILL_PEER_PREFIX = "${CLAUDE_PLUGIN_ROOT}/skills/"
 # out-of-generator-scope.
 # generate_all() raises ValueError if len(targets) != GENERATED_TARGET_COUNT so this
 # number cannot silently drift again (D-01, DEBT-02).
-GENERATED_TARGET_COUNT = 48
+GENERATED_TARGET_COUNT = 49
 
 # v8.5 Phase 154 GATE-02 (D-11): module-level re-entrancy sentinel guarding
 # cmd_self_test()'s dispatch control. That control drives main(["--self-test"])
@@ -1332,6 +1344,40 @@ def generate_agent_spine_references() -> dict[Path, str]:
     return targets
 
 
+def generate_agent_schema_references() -> dict[Path, str]:
+    """Return {REFERENCES_DIR/{stem}.json: body} for canonical JSON spine references.
+
+    Source = shared/spine/references/{stem}.json for each stem in
+    SPINE_JSON_REFERENCES. Unlike generate_agent_spine_references(), this
+    emits the source body VERBATIM with NO GENERATED_MARKER and no other
+    transformation — prepending the Markdown HTML-comment marker would make
+    the file invalid JSON, breaking every downstream json.load() (the agent
+    itself, Phase 75's checker, agent-router's trace.py). Only the trailing
+    newline is normalised. The source is validated as JSON at generation
+    time: a malformed shared/ source raises ValueError naming the source
+    path rather than shipping an unparseable file to the emitted tree.
+    """
+    targets: dict[Path, str] = {}
+    for stem in SPINE_JSON_REFERENCES:
+        source_path = SHARED / "spine" / "references" / f"{stem}.json"
+        body = _read_required(
+            source_path,
+            hint=(
+                f"shared/spine/references/{stem}.json is required for the agent's "
+                f"on-demand reference sibling at "
+                f"first-principles/references/{stem}.json"
+            ),
+        )
+        try:
+            json.loads(body)
+        except json.JSONDecodeError as exc:
+            raise ValueError(
+                f"{source_path.relative_to(REPO_ROOT)} is not valid JSON: {exc}"
+            ) from exc
+        targets[REFERENCES_DIR / f"{stem}.json"] = _normalise_trailing_newline(body)
+    return targets
+
+
 def generate_agent_examples() -> dict[Path, str]:
     """Return {AGENT_DIR/references/examples/{name}.md: body} for the 12 worked examples.
 
@@ -1376,25 +1422,30 @@ def generate_all() -> dict[Path, str]:
     core reference files (SLUGS_WITH_DETAIL) each carry a named-trigger
     pointer to a new `-detail.md` sibling, emitted on two surfaces (8 new
     generated files), raising the count below from its prior value.
-    Current target count: 47 total.
+    Phase 74-01 adds one JSON spine reference (summary-schema.json), raising
+    the count below from its prior value.
+    Current target count: 49 total.
 
       - 1 agent SKILL.md (first-principles/agents/first-principles.md)
-      - 11 agent reference siblings (first-principles/references/*.md:
-        8 companion-tool refs + assumption-taxonomy + output-template + validation-rubric)
+      - 12 agent reference siblings (first-principles/references/*.md and
+        *.json: 8 companion-tool refs + assumption-taxonomy + output-template
+        + validation-rubric + summary-schema.json)
       - 4 agent detail siblings (first-principles/references/<slug>-detail.md,
         SLUGS_WITH_DETAIL: five-whys, theoretical-limit, estimate, fishbone)
       - 14 agent worked-example siblings (first-principles/references/examples/<name>.md)
-      - 13 slash-invocable focused-mode stubs (first-principles/skills/<slug>/SKILL.md)
+      - 14 slash-invocable focused-mode stubs (first-principles/skills/<slug>/SKILL.md,
+        the 13 companion/phase skills plus the first-principles-analysis launcher)
       - 4 skill detail siblings (first-principles/skills/<slug>/references/<slug>-detail.md,
         same SLUGS_WITH_DETAIL set)
-    Total: 1 + 11 + 4 + 14 + 13 + 4 = 47.
+    Total: 1 + 12 + 4 + 14 + 14 + 4 = 49.
 
-    Note: the total count (47) reflects the 8 TOOLS + 3 spine-refs (for the
-    reference siblings), 4 SLUGS_WITH_DETAIL (doubled — once per agent surface,
-    once per skill surface), 14 EXAMPLES, and 13 SKILLS. generate_all() now
-    gates on this count via the GENERATED_TARGET_COUNT invariant (raises on
-    drift), and the sync-content.py --check pass additionally validates
-    byte-identity per-file.
+    Note: the total count (49) reflects the 8 TOOLS + 3 Markdown spine-refs +
+    1 JSON spine-ref (for the reference siblings), 4 SLUGS_WITH_DETAIL
+    (doubled — once per agent surface, once per skill surface), 14 EXAMPLES,
+    and 14 SKILLS. generate_all() now gates on this count via the
+    GENERATED_TARGET_COUNT invariant (raises on drift), and the
+    sync-content.py --check pass additionally validates byte-identity
+    per-file.
     """
     import yaml
 
@@ -1423,6 +1474,7 @@ def generate_all() -> dict[Path, str]:
     targets.update(generate_agent_references())
     targets.update(generate_agent_detail_references())
     targets.update(generate_agent_spine_references())
+    targets.update(generate_agent_schema_references())
     targets.update(generate_agent_examples())
 
     # --- Slash-invocable focused-mode stubs (Phase 46-02) ---
