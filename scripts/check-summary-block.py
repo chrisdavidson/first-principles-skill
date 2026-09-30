@@ -959,6 +959,461 @@ def _xc_conclusion_confidence(text, sections, block, exemplar) -> list[Finding]:
     return []
 
 
+# ---------------------------------------------------------------------------
+# Gate span / disclosure region locators and their fixed-form readers
+# ---------------------------------------------------------------------------
+#
+# The PRD's personal-general failure came from reading a whole-document
+# sentence ("There was therefore no Phase 2 re-entry.") as a Gate verdict.
+# Every reader below is therefore scoped to exactly two spans: the
+# Self-Audit Gate section's own fixed lines, and the pre-first-heading
+# disclosure region where a `**Disclosed:**` paragraph lives -- never the
+# whole document.
+
+_GATE_HEADING_TEXT = "## Self-Audit Gate (process output)"
+_H2_LINE_RE = re.compile(r"^##[ \t]")
+
+
+def _gate_span(text: str) -> str | None:
+    """From the Gate heading line to the next '## ' heading outside a fence,
+    or end of text. None when the heading is not present outside a fence."""
+    qh = _load_qh()
+    lines = text.split("\n")
+    fenced = qh._fenced_code_flags(lines)
+    start_idx = None
+    for i, line in enumerate(lines):
+        if fenced[i]:
+            continue
+        if line.strip() == _GATE_HEADING_TEXT:
+            start_idx = i
+            break
+    if start_idx is None:
+        return None
+    end_idx = len(lines)
+    for i in range(start_idx + 1, len(lines)):
+        if fenced[i]:
+            continue
+        if _H2_LINE_RE.match(lines[i]):
+            end_idx = i
+            break
+    return "\n".join(lines[start_idx:end_idx])
+
+
+def _disclosure_region(text: str) -> str:
+    """Text before the first '## ' heading outside a fence -- the top of the
+    delivered file, where a top-of-response `**Disclosed:**` paragraph is
+    written (never as a heading)."""
+    qh = _load_qh()
+    lines = text.split("\n")
+    fenced = qh._fenced_code_flags(lines)
+    for i, line in enumerate(lines):
+        if fenced[i]:
+            continue
+        if _H2_LINE_RE.match(line):
+            return "\n".join(lines[:i])
+    return text
+
+
+_DISCLOSED_PARA_RE = re.compile(r"^\*\*Disclosed:\*\*.*$", re.MULTILINE)
+
+
+def _disclosed_paragraphs(region: str) -> list[str]:
+    return [m.group(0) for m in _DISCLOSED_PARA_RE.finditer(region)]
+
+
+_ANY_EDGE_NAME_RE = re.compile(
+    r"re-entry edge|Fix/Repeat|return(?:ed)? to Phase [12]|re-open", re.IGNORECASE
+)
+
+
+def _names_second_order(p: str) -> bool:
+    return bool(re.search(r"Phase\s*2", p)) and bool(
+        re.search(r"re-entry|return|re-challeng", p, re.IGNORECASE)
+    )
+
+
+def _names_input_reopen(p: str) -> bool:
+    return bool(re.search(r"re-open|reopen", p, re.IGNORECASE))
+
+
+_PASS_LEAD_RE = re.compile(
+    r"^\*\*Pass[ \t]+(?P<num>\d+)[ \t]*\(before re-score\):\*\*[ \t]*(?P<rest>.*)$"
+)
+_CRITERION_PIECE_RE = re.compile(
+    r"^Criterion[ \t]+(?P<n>[1-6])[ \t]+(?P<band>Absent|Hand-wavy|Sound|Rigorous)$"
+)
+_GATE_CLEARED_PIECE_RE = re.compile(r"^Gate cleared:[ \t]*(?P<v>yes|no)$")
+_CAP_CLEARED_PIECE_RE = re.compile(r"^Hand-wavy cap cleared:[ \t]*(?P<v>yes|no)$")
+
+
+def _parse_pass_line(line: str) -> tuple[int, list[str], bool, bool] | None:
+    """Parse a fixed-form '**Pass N (before re-score):** ...' line into
+    (num, bands[6], gate_cleared, cap_cleared), or None when it does not
+    parse to the fixed form (74-prose-inserts.md B6) exactly."""
+    m = _PASS_LEAD_RE.match(line.strip())
+    if m is None:
+        return None
+    pieces = [p.strip() for p in m.group("rest").split("·")]
+    if len(pieces) != 8:
+        return None
+    bands: list[str] = []
+    for i in range(6):
+        cm = _CRITERION_PIECE_RE.match(pieces[i])
+        if cm is None or int(cm.group("n")) != i + 1:
+            return None
+        bands.append(cm.group("band"))
+    gm = _GATE_CLEARED_PIECE_RE.match(pieces[6])
+    cm2 = _CAP_CLEARED_PIECE_RE.match(pieces[7])
+    if gm is None or cm2 is None:
+        return None
+    return int(m.group("num")), bands, gm.group("v") == "yes", cm2.group("v") == "yes"
+
+
+def _gate_pass_lines(gate_span: str) -> list[str]:
+    """Raw '**Pass N (before re-score):** ...' lines in the Gate span,
+    before the first criterion verdict heading."""
+    qh = _load_qh()
+    m = qh._SELFAUDIT_CRITERION_WIDE_RE.search(gate_span)
+    head = gate_span[: m.start()] if m else gate_span
+    return [
+        ln for ln in head.splitlines()
+        if ln.strip().startswith("**Pass") and "(before re-score):" in ln
+    ]
+
+
+_GATE_RESULT_LINE_RE = re.compile(
+    r"^\*\*Gate result:\*\*[ \t]*(?P<cleared>cleared|not cleared)[ \t]*"
+    r"·[ \t]*passes:[ \t]*(?P<passes>\d+)[ \t]*"
+    r"·[ \t]*Fix/Repeat fired:[ \t]*(?P<fired>yes|no)[ \t]*$",
+    re.MULTILINE,
+)
+
+
+def _gate_result_matches(span: str) -> list[re.Match]:
+    return list(_GATE_RESULT_LINE_RE.finditer(span))
+
+
+_RE_ENTRY_EDGE_ENUM = _SCHEMA_FOR_CONSTANTS["fields"]["re_entry"]["fields"]["edges"][
+    "items"]["fields"]["edge"]["enum"]
+_EDGE_SECOND_ORDER, _EDGE_FIX_REPEAT, _EDGE_CRITERION1, _EDGE_MIDRUN = _RE_ENTRY_EDGE_ENUM
+
+
+def _xc_gate_bands(text, sections, block, exemplar) -> list[Finding]:
+    """SB-GATE-BANDS: block gate.passes[-1].bands vs the Gate's own final
+    verdict blocks, read via `qh._selfaudit_band_census` scoped to the Gate
+    span only."""
+    gate = block.get("gate")
+    if not isinstance(gate, dict):
+        return []
+    passes = gate.get("passes")
+    if not isinstance(passes, list) or not passes:
+        return []
+    last = passes[-1]
+    if not isinstance(last, dict):
+        return []
+    bands = last.get("bands")
+    if not isinstance(bands, list) or len(bands) != 6:
+        return []
+    span = _gate_span(text)
+    if span is None:
+        return []
+    qh = _load_qh()
+    prose_bands, _off = qh._selfaudit_band_census(span)
+    findings: list[Finding] = []
+    for i in range(6):
+        n = i + 1
+        prose_band = prose_bands.get(n)
+        if prose_band is None:
+            findings.append(Finding(
+                "SB-GATE-BANDS",
+                f"Criterion {n}: no readable band in the Self-Audit Gate section",
+            ))
+            continue
+        if bands[i] != prose_band:
+            findings.append(Finding(
+                "SB-GATE-BANDS",
+                f"Criterion {n}: block band {bands[i]!r} disagrees with the "
+                f"Gate's own {prose_band!r}",
+            ))
+    return findings
+
+
+def _xc_gate_passes(text, sections, block, exemplar) -> list[Finding]:
+    """SB-GATE-PASSES / SB-NULL: block gate.passes vs the Gate span's own
+    Pass lines, in order, plus the exemplar/live null-iff-absent rule for
+    `gate` (D-15)."""
+    findings: list[Finding] = []
+    gate = block.get("gate")
+    span = _gate_span(text)
+    if exemplar:
+        if gate is None:
+            if span is not None:
+                findings.append(Finding(
+                    "SB-NULL", "gate is null but the document carries a Self-Audit Gate section"
+                ))
+            return findings
+        if span is None:
+            findings.append(Finding(
+                "SB-NULL", "gate is non-null but the document carries no Self-Audit Gate section"
+            ))
+            return findings
+    if not isinstance(gate, dict):
+        return findings
+    if span is None:
+        if gate != {"passes": [], "fix_repeat_fired": False, "cleared": False}:
+            findings.append(Finding(
+                "SB-GATE-PASSES",
+                "the document carries no Self-Audit Gate section but gate is "
+                "not {passes: [], fix_repeat_fired: false, cleared: false}",
+            ))
+        return findings
+    passes = gate.get("passes")
+    if not isinstance(passes, list):
+        return findings
+    raw_lines = _gate_pass_lines(span)
+    parsed: list[tuple[int, list[str], bool, bool]] = []
+    for raw in raw_lines:
+        p = _parse_pass_line(raw)
+        if p is None:
+            findings.append(Finding("SB-GATE-PASSES", f"could not parse Pass line: {raw!r}"))
+            continue
+        parsed.append(p)
+    nums = [p[0] for p in parsed]
+    if nums != list(range(1, len(nums) + 1)):
+        findings.append(Finding(
+            "SB-GATE-PASSES",
+            f"Pass line numbers {nums!r} are not consecutive starting at 1",
+        ))
+    for num, bands, gate_cleared, cap_cleared in parsed:
+        expected_cleared = "Absent" not in bands
+        expected_cap = bands.count("Hand-wavy") <= 1
+        if gate_cleared != expected_cleared:
+            findings.append(Finding(
+                "SB-GATE-PASSES",
+                f"Pass {num}: Gate cleared: {'yes' if gate_cleared else 'no'} "
+                f"disagrees with its own bands",
+            ))
+        if cap_cleared != expected_cap:
+            findings.append(Finding(
+                "SB-GATE-PASSES",
+                f"Pass {num}: Hand-wavy cap cleared: "
+                f"{'yes' if cap_cleared else 'no'} disagrees with its own bands",
+            ))
+    k = len(parsed)
+    if len(passes) != k + 1:
+        findings.append(Finding(
+            "SB-GATE-PASSES",
+            f"block has {len(passes)} pass(es) but the Gate section shows "
+            f"{k} Pass line(s) plus the final verdict blocks (expected {k + 1})",
+        ))
+    result_matches = _gate_result_matches(span)
+    if len(result_matches) == 1:
+        stated_n = int(result_matches[0].group("passes"))
+        if len(passes) != stated_n:
+            findings.append(Finding(
+                "SB-GATE-PASSES",
+                f"block has {len(passes)} pass(es) but the Gate result line "
+                f"states passes: {stated_n}",
+            ))
+    for i in range(min(k, max(len(passes) - 1, 0))):
+        num, bands, gate_cleared, cap_cleared = parsed[i]
+        bp = passes[i]
+        if not isinstance(bp, dict):
+            continue
+        if bp.get("bands") != bands:
+            findings.append(Finding(
+                "SB-GATE-PASSES",
+                f"block passes[{i}].bands {bp.get('bands')!r} disagree with "
+                f"Pass {num}'s own bands {bands!r}",
+            ))
+        if bp.get("gate_cleared") != gate_cleared:
+            findings.append(Finding(
+                "SB-GATE-PASSES",
+                f"block passes[{i}].gate_cleared disagrees with Pass {num}'s own line",
+            ))
+        if bp.get("hand_wavy_cap_cleared") != cap_cleared:
+            findings.append(Finding(
+                "SB-GATE-PASSES",
+                f"block passes[{i}].hand_wavy_cap_cleared disagrees with "
+                f"Pass {num}'s own line",
+            ))
+    return findings
+
+
+def _xc_gate_result(text, sections, block, exemplar) -> list[Finding]:
+    """SB-GATE-RESULT: exactly one well-formed '**Gate result:**' line;
+    block cleared/fix_repeat_fired vs its own values; the prose-internal
+    inconsistency `Fix/Repeat fired: yes` with `passes: 1`."""
+    gate = block.get("gate")
+    if not isinstance(gate, dict):
+        return []
+    span = _gate_span(text)
+    if span is None:
+        return []
+    candidate_lines = [ln for ln in span.splitlines() if ln.strip().startswith("**Gate result:**")]
+    matches = _gate_result_matches(span)
+    if len(candidate_lines) != 1 or len(matches) != 1:
+        quote = candidate_lines[0] if candidate_lines else "(none found)"
+        return [Finding(
+            "SB-GATE-RESULT",
+            f"expected exactly one well-formed Gate result line, found "
+            f"{len(candidate_lines)} candidate line(s) (e.g. {quote!r})",
+        )]
+    gm = matches[0]
+    findings: list[Finding] = []
+    expected_cleared = gm.group("cleared") == "cleared"
+    if gate.get("cleared") != expected_cleared:
+        findings.append(Finding(
+            "SB-GATE-RESULT",
+            f"block gate.cleared {gate.get('cleared')!r} disagrees with the "
+            f"Gate result line ({gm.group('cleared')!r})",
+        ))
+    expected_fired = gm.group("fired") == "yes"
+    if gate.get("fix_repeat_fired") != expected_fired:
+        findings.append(Finding(
+            "SB-GATE-RESULT",
+            f"block gate.fix_repeat_fired {gate.get('fix_repeat_fired')!r} "
+            f"disagrees with the Gate result line (Fix/Repeat fired: "
+            f"{gm.group('fired')!r})",
+        ))
+    if expected_fired and gm.group("passes") == "1":
+        findings.append(Finding(
+            "SB-GATE-RESULT",
+            "the Gate result line states Fix/Repeat fired: yes with "
+            "passes: 1, which is internally inconsistent",
+        ))
+    return findings
+
+
+def _xc_gate_cleared(text, sections, block, exemplar) -> list[Finding]:
+    """SB-GATE-CLEARED (prose-side): the Gate result line says cleared while
+    the Gate's own final bands fail the rubric rule (an Absent band, or two
+    or more Hand-wavy bands) -- alongside Plan 01's block-internal INV-05
+    rule."""
+    span = _gate_span(text)
+    if span is None:
+        return []
+    matches = _gate_result_matches(span)
+    if len(matches) != 1:
+        return []
+    qh = _load_qh()
+    bands, _off = qh._selfaudit_band_census(span)
+    if len(bands) != 6:
+        return []
+    band_values = [bands[n] for n in range(1, 7)]
+    fails_rubric = ("Absent" in band_values) or (band_values.count("Hand-wavy") >= 2)
+    if matches[0].group("cleared") == "cleared" and fails_rubric:
+        return [Finding(
+            "SB-GATE-CLEARED",
+            "the Gate result line says cleared but the Gate's own final "
+            "bands fail the rubric rule (an Absent band, or two or more "
+            "Hand-wavy bands)",
+        )]
+    return []
+
+
+def _xc_reentry(text, sections, block, exemplar) -> list[Finding]:
+    """SB-REENTRY / SB-NULL: re_entry vs the Gate span's fixed lines and the
+    disclosure region only (R1-R6); nothing outside those two spans is read
+    (disclosed bound: reentry-read-from-gate-span-and-disclosure-only)."""
+    re_entry = block.get("re_entry")
+    gate = block.get("gate")
+    span = _gate_span(text)
+    disclosure = _disclosure_region(text)
+    disclosed_paragraphs = _disclosed_paragraphs(disclosure)
+    has_reentry_disclosure = any(
+        _ANY_EDGE_NAME_RE.search(p) for p in disclosed_paragraphs
+    )
+    if exemplar and re_entry is None:
+        if span is not None or has_reentry_disclosure:
+            return [Finding(
+                "SB-NULL",
+                "re_entry is null but the document carries a Self-Audit "
+                "Gate section or a re-entry disclosure",
+            )]
+        return []
+    if not isinstance(re_entry, dict) or not isinstance(gate, dict):
+        return []
+
+    fired = re_entry.get("fired")
+    edges = re_entry.get("edges")
+    edge_names = {e.get("edge") for e in (edges or []) if isinstance(e, dict)}
+    passes = gate.get("passes") if isinstance(gate.get("passes"), list) else []
+    fix_repeat_fired = gate.get("fix_repeat_fired")
+    findings: list[Finding] = []
+
+    # R1 / INV-07
+    if fix_repeat_fired is True and not (fired is True and _EDGE_FIX_REPEAT in edge_names):
+        findings.append(Finding(
+            "SB-REENTRY",
+            "gate.fix_repeat_fired is true but re_entry.fired is not true "
+            "with the Fix/Repeat edge listed",
+        ))
+
+    # R2 / INV-08
+    if len(passes) >= 2 and fired is not True:
+        findings.append(Finding(
+            "SB-REENTRY", "gate.passes has two or more entries but re_entry.fired is not true"
+        ))
+
+    # R3
+    if span is not None:
+        result_matches = _gate_result_matches(span)
+        if len(result_matches) == 1:
+            result_fired = result_matches[0].group("fired") == "yes"
+            has_fix_repeat_edge = _EDGE_FIX_REPEAT in edge_names
+            if has_fix_repeat_edge != result_fired:
+                findings.append(Finding(
+                    "SB-REENTRY",
+                    "the Fix/Repeat edge's presence in re_entry.edges "
+                    "disagrees with the Gate result line's Fix/Repeat fired value",
+                ))
+
+    # R4
+    criterion1_absent_in_pass = False
+    if span is not None:
+        for raw in _gate_pass_lines(span):
+            parsed = _parse_pass_line(raw)
+            if parsed is not None and parsed[1][0] == "Absent":
+                criterion1_absent_in_pass = True
+                break
+    has_criterion1_edge = _EDGE_CRITERION1 in edge_names
+    if has_criterion1_edge != criterion1_absent_in_pass:
+        findings.append(Finding(
+            "SB-REENTRY",
+            "the Criterion 1 Absent edge's presence in re_entry.edges "
+            "disagrees with whether a Pass line shows Criterion 1 Absent",
+        ))
+
+    # R5
+    if _EDGE_SECOND_ORDER in edge_names and not any(
+        _names_second_order(p) for p in disclosed_paragraphs
+    ):
+        findings.append(Finding(
+            "SB-REENTRY",
+            "re_entry.edges names the second-order return edge but no "
+            "**Disclosed:** paragraph at the top of the document names it",
+        ))
+    if _EDGE_MIDRUN in edge_names and not any(
+        _names_input_reopen(p) for p in disclosed_paragraphs
+    ):
+        findings.append(Finding(
+            "SB-REENTRY",
+            "re_entry.edges names the mid-run input re-open edge but no "
+            "**Disclosed:** paragraph at the top of the document names it",
+        ))
+
+    # R6
+    if fired is False and has_reentry_disclosure:
+        findings.append(Finding(
+            "SB-REENTRY",
+            "re_entry.fired is false but a **Disclosed:** paragraph at the "
+            "top of the document names a re-entry edge",
+        ))
+
+    return findings
+
+
 # Cross-checks against the report's own prose (CHECK-02). Plan 01 left this
 # an explicit empty tuple; each line below is `("<CODE>", _xc_<name>)`.
 _CROSS_CHECKS: tuple[tuple[str, Callable[..., list[Finding]]], ...] = (
@@ -972,6 +1427,11 @@ _CROSS_CHECKS: tuple[tuple[str, Callable[..., list[Finding]]], ...] = (
     ("SB-RUN-MODE", _xc_run_mode),
     ("SB-CONCLUSION-CUT", _xc_conclusion_text),
     ("SB-CONCLUSION-CONFIDENCE", _xc_conclusion_confidence),
+    ("SB-GATE-BANDS", _xc_gate_bands),
+    ("SB-GATE-PASSES", _xc_gate_passes),
+    ("SB-GATE-RESULT", _xc_gate_result),
+    ("SB-GATE-CLEARED", _xc_gate_cleared),
+    ("SB-REENTRY", _xc_reentry),
 )
 
 
@@ -1049,6 +1509,10 @@ def _synthetic_report(block: dict, **overrides) -> str:
                                       `a['type']` rendering for that row only
       mode_statement               -- if given, write a top-of-document
                                        Step 0 set `MODE = <value>`. line
+      disclosed                     -- if given, write a top-of-document
+                                       **Disclosed:** paragraph with this text
+      omit_gate_section              -- drop the Self-Audit Gate section
+                                         regardless of `block['gate']`
     """
     omit_block = overrides.get("omit_block", False)
     duplicate_block = overrides.get("duplicate_block", False)
@@ -1058,6 +1522,8 @@ def _synthetic_report(block: dict, **overrides) -> str:
     heading_before_appendix = overrides.get("heading_before_appendix", False)
     type_cells: dict = overrides.get("type_cells") or {}
     mode_statement = overrides.get("mode_statement")
+    disclosed = overrides.get("disclosed")
+    omit_gate_section = overrides.get("omit_gate_section", False)
 
     body_json = raw_block_body if raw_block_body is not None else json.dumps(block, indent=2)
     block_fence = f"```{BLOCK_FENCE}\n{body_json}\n```"
@@ -1073,6 +1539,9 @@ def _synthetic_report(block: dict, **overrides) -> str:
     lines: list[str] = []
     if mode_statement is not None:
         lines.append(f"Step 0 set `MODE = {mode_statement}`.")
+        lines.append("")
+    if disclosed is not None:
+        lines.append(f"**Disclosed:** {disclosed}")
         lines.append("")
     lines += [
         "## Answer",
@@ -1131,7 +1600,11 @@ def _synthetic_report(block: dict, **overrides) -> str:
         techniques_lines.append("")
 
     gate_lines: list[str] = []
-    if gate:
+    # The Gate section's presence tracks the RAW block['gate'] value, not the
+    # nullable-safe fallback above: a null gate must render no Gate section
+    # at all (the schema's null_when condition), never a section built from
+    # the empty-gate default.
+    if block.get("gate") is not None and not omit_gate_section:
         passes = gate.get("passes") or []
         gate_lines.append("## Self-Audit Gate (process output)")
         for i, p in enumerate(passes[:-1], start=1):
@@ -1322,6 +1795,13 @@ def _c07_live_null_gate_is_rejected() -> str | None:
 
 
 def _c08_gate_and_reentry_invariants_are_enforced() -> str | None:
+    """Plan 01's block-internal invariants (INV-04/INV-09) stay enforced
+    once Plan 02's prose cross-checks are active. Both fixtures below build
+    the report's prose FROM the same mutated block (no decoupling), so the
+    mutation is visible to the Gate-span/re-entry readers too -- Plan 02's
+    SB-GATE-PASSES and SB-REENTRY legitimately co-fire alongside Plan 01's
+    SB-INVARIANT on these same fixtures; this is added detection, not a
+    weakened one."""
     schema = load_schema(DEFAULT_SCHEMA)
 
     m = copy.deepcopy(schema["example"])
@@ -1330,16 +1810,22 @@ def _c08_gate_and_reentry_invariants_are_enforced() -> str | None:
     text = _synthetic_report(m)
     findings = check_report(text, schema=schema)
     codes = {f.code for f in findings}
-    if codes != {"SB-INVARIANT"}:
-        return f"two hand-wavy, cap true: expected {{'SB-INVARIANT'}}, got {codes!r} ({findings!r})"
+    if codes != {"SB-INVARIANT", "SB-GATE-PASSES"}:
+        return (
+            "two hand-wavy, cap true: expected {'SB-INVARIANT', "
+            f"'SB-GATE-PASSES'}}, got {codes!r} ({findings!r})"
+        )
 
     m2 = copy.deepcopy(schema["example"])
     m2["re_entry"]["fired"] = False
     text2 = _synthetic_report(m2)
     findings2 = check_report(text2, schema=schema)
     codes2 = {f.code for f in findings2}
-    if codes2 != {"SB-INVARIANT"}:
-        return f"fired false, edges non-empty: expected {{'SB-INVARIANT'}}, got {codes2!r} ({findings2!r})"
+    if codes2 != {"SB-INVARIANT", "SB-REENTRY"}:
+        return (
+            "fired false, edges non-empty: expected {'SB-INVARIANT', "
+            f"'SB-REENTRY'}}, got {codes2!r} ({findings2!r})"
+        )
     return None
 
 
@@ -1655,6 +2141,242 @@ def _c16_exemplar_null_iff_absent() -> str | None:
     return None
 
 
+def _c17_two_pass_synthetic_is_clean_with_gate_checks() -> str | None:
+    schema = load_schema(DEFAULT_SCHEMA)
+    text = _synthetic_report(schema["example"])
+    findings = check_report(text, schema=schema)
+    if findings:
+        return f"expected [], got {findings!r}"
+    return None
+
+
+def _c18_gate_bands_mismatch_or_unreadable() -> str | None:
+    schema = load_schema(DEFAULT_SCHEMA)
+    example = schema["example"]
+
+    m = copy.deepcopy(example)
+    m["gate"]["passes"][-1]["bands"][2] = "Rigorous"
+    text = _synthetic_report(example, raw_block_body=json.dumps(m))
+    codes = {f.code for f in check_report(text, schema=schema)}
+    if codes != {"SB-GATE-BANDS"}:
+        return f"Criterion 3 band changed: expected {{'SB-GATE-BANDS'}}, got {codes!r}"
+
+    text2 = _synthetic_report(example)
+    text2 = text2.replace(
+        "**Criterion 3: Establish Ground Truths**",
+        "Criterion 3: Establish Ground Truths",
+        1,
+    )
+    findings2 = check_report(text2, schema=schema)
+    if not any(
+        f.code == "SB-GATE-BANDS" and "Criterion 3" in f.message for f in findings2
+    ):
+        return (
+            "unreadable Criterion 3 verdict block: expected an SB-GATE-BANDS "
+            f"finding naming Criterion 3, got {findings2!r}"
+        )
+    return None
+
+
+def _c19_gate_passes_mismatches() -> str | None:
+    schema = load_schema(DEFAULT_SCHEMA)
+    example = schema["example"]
+
+    m = copy.deepcopy(example)
+    m["gate"]["passes"] = [copy.deepcopy(m["gate"]["passes"][-1])]
+    text = _synthetic_report(example, raw_block_body=json.dumps(m))
+    codes = {f.code for f in check_report(text, schema=schema)}
+    if codes != {"SB-GATE-PASSES"}:
+        return f"passes shortened to final only: expected {{'SB-GATE-PASSES'}}, got {codes!r}"
+
+    m2 = copy.deepcopy(example)
+    m2["gate"]["passes"][0]["bands"][0] = "Rigorous"
+    text2 = _synthetic_report(example, raw_block_body=json.dumps(m2))
+    codes2 = {f.code for f in check_report(text2, schema=schema)}
+    if codes2 != {"SB-GATE-PASSES"}:
+        return f"pass 1 band changed: expected {{'SB-GATE-PASSES'}}, got {codes2!r}"
+
+    text3 = _synthetic_report(example)
+    text3 = text3.replace("Criterion 6 Sound · ", "", 1)
+    codes3 = {f.code for f in check_report(text3, schema=schema)}
+    if codes3 != {"SB-GATE-PASSES"}:
+        return (
+            "malformed Pass line (missing Criterion 6): expected "
+            f"{{'SB-GATE-PASSES'}}, got {codes3!r}"
+        )
+    return None
+
+
+def _c20_gate_result_mismatches() -> str | None:
+    schema = load_schema(DEFAULT_SCHEMA)
+    example = schema["example"]
+
+    text = _synthetic_report(example)
+    text = re.sub(r"\n\*\*Gate result:\*\*[^\n]*\n", "\n", text, count=1)
+    codes = {f.code for f in check_report(text, schema=schema)}
+    if codes != {"SB-GATE-RESULT"}:
+        return f"Gate result line removed: expected {{'SB-GATE-RESULT'}}, got {codes!r}"
+
+    m = copy.deepcopy(example)
+    m["gate"]["fix_repeat_fired"] = False
+    text2 = _synthetic_report(example, raw_block_body=json.dumps(m))
+    codes2 = {f.code for f in check_report(text2, schema=schema)}
+    if "SB-GATE-RESULT" not in codes2:
+        return (
+            "fix_repeat_fired false vs prose yes: expected SB-GATE-RESULT in "
+            f"codes, got {codes2!r}"
+        )
+
+    m2 = copy.deepcopy(example)
+    m2["gate"]["cleared"] = False
+    text3 = _synthetic_report(example, raw_block_body=json.dumps(m2))
+    codes3 = {f.code for f in check_report(text3, schema=schema)}
+    if not {"SB-GATE-RESULT", "SB-GATE-CLEARED"} <= codes3:
+        return (
+            "cleared false with prose cleared and passing bands: expected "
+            f"SB-GATE-RESULT and SB-GATE-CLEARED in codes, got {codes3!r}"
+        )
+
+    prose_block = copy.deepcopy(example)
+    two_hand_wavy = ["Sound", "Hand-wavy", "Sound", "Hand-wavy", "Sound", "Sound"]
+    prose_block["gate"]["passes"][-1]["bands"] = two_hand_wavy
+    prose_block["gate"]["passes"][-1]["gate_cleared"] = True
+    prose_block["gate"]["passes"][-1]["hand_wavy_cap_cleared"] = False
+    prose_block["gate"]["cleared"] = True
+
+    embedded_block = copy.deepcopy(prose_block)
+    embedded_block["gate"]["cleared"] = False
+
+    text4 = _synthetic_report(prose_block, raw_block_body=json.dumps(embedded_block))
+    codes4 = {f.code for f in check_report(text4, schema=schema)}
+    if codes4 != {"SB-GATE-RESULT", "SB-GATE-CLEARED"}:
+        return (
+            "prose-internal contradiction (prose says cleared over two "
+            "Hand-wavy bands, block correctly says not cleared): expected "
+            f"{{'SB-GATE-RESULT', 'SB-GATE-CLEARED'}}, got {codes4!r}"
+        )
+    return None
+
+
+def _c21_reentry_fix_repeat_mismatches() -> str | None:
+    schema = load_schema(DEFAULT_SCHEMA)
+    example = schema["example"]
+
+    m = copy.deepcopy(example)
+    m["re_entry"] = {"fired": False, "edges": []}
+    text = _synthetic_report(example, raw_block_body=json.dumps(m))
+    codes = {f.code for f in check_report(text, schema=schema)}
+    if codes != {"SB-REENTRY"}:
+        return f"fix_repeat_fired true, re_entry false/[]: expected {{'SB-REENTRY'}}, got {codes!r}"
+
+    m2 = copy.deepcopy(example)
+    m2["re_entry"] = {
+        "fired": True,
+        "edges": [{"edge": _EDGE_SECOND_ORDER, "trigger": "synthetic trigger"}],
+    }
+    text2 = _synthetic_report(example, raw_block_body=json.dumps(m2))
+    codes2 = {f.code for f in check_report(text2, schema=schema)}
+    if codes2 != {"SB-REENTRY"}:
+        return (
+            "edges = [second-order] only while prose says Fix/Repeat fired: "
+            f"yes: expected {{'SB-REENTRY'}}, got {codes2!r}"
+        )
+    return None
+
+
+def _one_pass_block(example: dict) -> dict:
+    m = copy.deepcopy(example)
+    m["gate"] = {
+        "passes": [{
+            "bands": ["Sound", "Sound", "Sound", "Sound", "Sound", "Sound"],
+            "gate_cleared": True,
+            "hand_wavy_cap_cleared": True,
+        }],
+        "fix_repeat_fired": False,
+        "cleared": True,
+    }
+    m["re_entry"] = {"fired": False, "edges": []}
+    return m
+
+
+def _c22_single_pass_reentry() -> str | None:
+    schema = load_schema(DEFAULT_SCHEMA)
+    example = schema["example"]
+    base = _one_pass_block(example)
+
+    text = _synthetic_report(base)
+    findings = check_report(text, schema=schema)
+    if findings:
+        return f"clean single-pass variant: expected [], got {findings!r}"
+
+    m = copy.deepcopy(base)
+    m["re_entry"] = {
+        "fired": True,
+        "edges": [{"edge": _EDGE_SECOND_ORDER, "trigger": "synthetic trigger"}],
+    }
+    text2 = _synthetic_report(m)
+    codes2 = {f.code for f in check_report(text2, schema=schema)}
+    if codes2 != {"SB-REENTRY"}:
+        return f"second-order edge, no disclosure: expected {{'SB-REENTRY'}}, got {codes2!r}"
+
+    text3 = _synthetic_report(
+        m,
+        disclosed=(
+            "The second-order pass's return to Phase 2 fired once, "
+            "re-challenging Ground Truth GT-2."
+        ),
+    )
+    findings3 = check_report(text3, schema=schema)
+    if findings3:
+        return f"second-order edge with a matching disclosure: expected [], got {findings3!r}"
+    return None
+
+
+def _c23_reentry_decoys_outside_scope_are_invisible() -> str | None:
+    schema = load_schema(DEFAULT_SCHEMA)
+    example = schema["example"]
+    base = _one_pass_block(example)
+    text = _synthetic_report(base)
+    text = text.replace(
+        "## 4. Derivation Chains\n",
+        "## 4. Derivation Chains\n\nThere was therefore no Phase 2 re-entry.\n",
+        1,
+    )
+    text = text.replace(
+        "## 5. Abandoned Reasoning\n",
+        "## 5. Abandoned Reasoning\n\n**Disclosed:** The Fix/Repeat loop fired.\n",
+        1,
+    )
+    findings = check_report(text, schema=schema)
+    if findings:
+        return (
+            "decoys outside the Gate span/disclosure region: expected [], "
+            f"got {findings!r}"
+        )
+    return None
+
+
+def _c24_exemplar_gate_reentry_null_iff_absent() -> str | None:
+    schema = load_schema(DEFAULT_SCHEMA)
+    example = schema["example"]
+
+    m = copy.deepcopy(example)
+    m["gate"] = None
+    m["re_entry"] = None
+    text = _synthetic_report(m, omit_gate_section=True)
+    findings = check_report(text, exemplar=True, schema=schema)
+    if findings:
+        return f"gate/re_entry null, Gate section absent: expected [], got {findings!r}"
+
+    null_gate = copy.deepcopy(example)
+    null_gate["gate"] = None
+    text2 = _synthetic_report(example, raw_block_body=json.dumps(null_gate))
+    findings2 = check_report(text2, exemplar=True, schema=schema)
+    if {f.code for f in findings2} != {"SB-NULL"}:
+        return f"gate null, Gate section present: expected {{'SB-NULL'}}, got {findings2!r}"
+    return None
+
+
 _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("C01", _c01_example_block_is_clean),
     ("C02", _c02_missing_block_is_rejected),
@@ -1674,6 +2396,14 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("C15b", _c15b_annotated_type_cells_match_parent),
     ("C15c", _c15c_exemplar_type_nullability),
     ("C16", _c16_exemplar_null_iff_absent),
+    ("C17", _c17_two_pass_synthetic_is_clean_with_gate_checks),
+    ("C18", _c18_gate_bands_mismatch_or_unreadable),
+    ("C19", _c19_gate_passes_mismatches),
+    ("C20", _c20_gate_result_mismatches),
+    ("C21", _c21_reentry_fix_repeat_mismatches),
+    ("C22", _c22_single_pass_reentry),
+    ("C23", _c23_reentry_decoys_outside_scope_are_invisible),
+    ("C24", _c24_exemplar_gate_reentry_null_iff_absent),
 )
 
 
@@ -1725,6 +2455,8 @@ def describe() -> dict:
             "techniques-applied-vocabulary-only",
             "run-mode-only-where-stated",
             "recommendation-bold-markers-ignored",
+            "reentry-read-from-gate-span-and-disclosure-only",
+            "second-order-and-input-reopen-edges-need-a-disclosed-paragraph",
         ]),
     }
 
