@@ -2450,6 +2450,27 @@ def _p4_tb_01() -> str | None:
     return _p_positive_fixture("tb-01.md")
 
 
+def _block_of(text: str) -> dict:
+    """The one summary block's parsed JSON body. Requires exactly one
+    block."""
+    blocks = find_blocks(text)
+    assert len(blocks) == 1, f"expected exactly one block, found {len(blocks)}"
+    return json.loads(blocks[0].body)
+
+
+def _splice_block(text: str, new_block: dict) -> str:
+    """Replace the summary block's JSON body with `new_block`, re-serialised
+    (`json.dumps(indent=2, ensure_ascii=False)`), leaving everything else in
+    `text` -- including the fence lines themselves -- untouched. Requires
+    exactly one block."""
+    blocks = find_blocks(text)
+    assert len(blocks) == 1, f"expected exactly one block, found {len(blocks)}"
+    b = blocks[0]
+    lines = text.split("\n")
+    new_body = json.dumps(new_block, indent=2, ensure_ascii=False)
+    return "\n".join(lines[: b.start + 1] + new_body.split("\n") + lines[b.end :])
+
+
 def _x1_extraction_floor() -> str | None:
     """The checker's readers, run over each fixture's prose, must equal an
     independent hand-transcribed inventory (`_FIXTURE_INVENTORY`, sourced
@@ -2470,6 +2491,219 @@ def _x1_extraction_floor() -> str | None:
                 f"{name}: assumptions/ground_truths/chains must be non-zero, "
                 f"got {actual!r}"
             )
+    return None
+
+
+# ---------------------------------------------------------------------------
+# CHECK-03 must-fail controls (M1-M9), built by mutating a real fixture's
+# text or its parsed block in memory -- never writing to the fixture file.
+# Each asserts the EXACT finding-code set and a message substring, per
+# 75-04-PLAN.md's interfaces table.
+# ---------------------------------------------------------------------------
+
+def _assert_codes_and_substring(
+    findings: list[Finding], expected_codes: set[str], substring: str, label: str
+) -> str | None:
+    codes = {f.code for f in findings}
+    if codes != expected_codes:
+        return f"{label}: expected codes == {expected_codes!r}, got {codes!r} ({findings!r})"
+    if not any(substring in f.message for f in findings):
+        return f"{label}: expected a message containing {substring!r}, got {findings!r}"
+    return None
+
+
+def _m1_missing_block() -> str | None:
+    text = _fixture("personal-general.md")
+    blocks = find_blocks(text)
+    assert len(blocks) == 1
+    b = blocks[0]
+    lines = text.split("\n")
+    mutated = "\n".join(lines[: b.start] + lines[b.end + 1 :])
+    findings = check_report(mutated)
+    return _assert_codes_and_substring(
+        findings, {"SB-MISSING"}, "no summary block", "M1-missing-block")
+
+
+def _m2_two_blocks() -> str | None:
+    text = _fixture("personal-general.md")
+    blocks = find_blocks(text)
+    assert len(blocks) == 1
+    b = blocks[0]
+    lines = text.split("\n")
+    block_text = "\n".join(lines[b.start : b.end + 1])
+    mutated = "\n".join(lines[: b.end + 1] + ["", block_text] + lines[b.end + 1 :])
+    findings = check_report(mutated)
+    return _assert_codes_and_substring(findings, {"SB-MULTIPLE"}, "2", "M2-two-blocks")
+
+
+def _m3_malformed_json() -> str | None:
+    text = _fixture("personal-general.md")
+    blocks = find_blocks(text)
+    assert len(blocks) == 1
+    b = blocks[0]
+    body = b.body
+    stripped = body.rstrip()
+    assert stripped.endswith("}")
+    new_body = stripped[:-1] + body[len(stripped) :]
+    lines = text.split("\n")
+    mutated = "\n".join(lines[: b.start + 1] + new_body.split("\n") + lines[b.end :])
+    findings = check_report(mutated)
+    return _assert_codes_and_substring(findings, {"SB-JSON"}, "JSON", "M3-malformed-json")
+
+
+def _m4_chain_confidence() -> str | None:
+    text = _fixture("personal-general.md")
+    block = _block_of(text)
+    block["chains"][0]["confidence"] = "HIGH"
+    mutated = _splice_block(text, block)
+    findings = check_report(mutated)
+    return _assert_codes_and_substring(
+        findings, {"SB-CHAIN-CONFIDENCE"}, "C1", "M4-chain-confidence")
+
+
+def _m5_reentry_fired_personal_general() -> str | None:
+    text = _fixture("personal-general.md")
+    if "There was therefore no Phase 2 re-entry." not in text:
+        return "decoy line missing from personal-general.md (the control would no longer exercise the PRD's trap)"
+
+    block = _block_of(text)
+
+    case1 = copy.deepcopy(block)
+    case1["re_entry"] = {
+        "fired": True,
+        "edges": [{
+            "edge": _EDGE_SECOND_ORDER,
+            "trigger": "The second-order pass considered a Phase 2 re-entry.",
+        }],
+    }
+    msg1 = _assert_codes_and_substring(
+        check_report(_splice_block(text, case1)), {"SB-REENTRY"}, "re_entry",
+        "M5-reentry-fired-personal-general (second-order edge)")
+    if msg1:
+        return msg1
+
+    case2 = copy.deepcopy(block)
+    case2["re_entry"] = {
+        "fired": True,
+        "edges": [{
+            "edge": _EDGE_FIX_REPEAT,
+            "trigger": "The Fix/Repeat loop was considered.",
+        }],
+    }
+    msg2 = _assert_codes_and_substring(
+        check_report(_splice_block(text, case2)), {"SB-REENTRY"}, "re_entry",
+        "M5-reentry-fired-personal-general (Fix/Repeat edge)")
+    if msg2:
+        return msg2
+    return None
+
+
+def _m6_reentry_not_fired_software_systems() -> str | None:
+    text = _fixture("software-systems.md")
+    block = _block_of(text)
+    block["re_entry"] = {"fired": False, "edges": []}
+    mutated = _splice_block(text, block)
+    findings = check_report(mutated)
+    return _assert_codes_and_substring(
+        findings, {"SB-REENTRY"}, "Fix/Repeat", "M6-reentry-not-fired-software-systems")
+
+
+def _m7_single_pass_before_fix() -> str | None:
+    text = _fixture("software-systems.md")
+    block = _block_of(text)
+    block["gate"]["passes"] = [block["gate"]["passes"][-1]]
+    mutated = _splice_block(text, block)
+    findings = check_report(mutated)
+    return _assert_codes_and_substring(
+        findings, {"SB-GATE-PASSES"}, "passes", "M7-single-pass-before-fix")
+
+
+def _m8_conclusion_cut() -> str | None:
+    text = _fixture("science-engineering.md")
+    block = _block_of(text)
+    marker = "(chains C3, C4):"
+    full = block["conclusion"]["recommendation"]
+    idx = full.find(marker)
+    assert idx != -1, f"marker {marker!r} not found in science-engineering.md's recommendation"
+    block["conclusion"]["recommendation"] = full[: idx + len(marker)]
+    mutated = _splice_block(text, block)
+    findings = check_report(mutated)
+    return _assert_codes_and_substring(
+        findings, {"SB-CONCLUSION-CUT"}, "cut short", "M8-conclusion-cut")
+
+
+_BAND_TOKEN_RE = re.compile(r"Band: \*\*[^*]+\*\*")
+
+
+def _m9_two_hand_wavy_cleared() -> str | None:
+    text = _fixture("personal-general.md")
+    block = _block_of(text)
+    bands = block["gate"]["passes"][-1]["bands"]
+    block["gate"]["passes"][-1]["bands"] = ["Hand-wavy", "Hand-wavy"] + bands[2:]
+    block["gate"]["passes"][-1]["hand_wavy_cap_cleared"] = False
+    # gate.cleared (top level) is left untouched -- still true, per the plan's
+    # instruction -- creating the prose/block Gate-cleared disagreement.
+    mutated_block_text = _splice_block(text, block)
+
+    span = _gate_span(mutated_block_text)
+    assert span is not None
+    count = 0
+
+    def _repl(m: re.Match) -> str:
+        nonlocal count
+        count += 1
+        return "Band: **Hand-wavy**" if count <= 2 else m.group(0)
+
+    new_span = _BAND_TOKEN_RE.sub(_repl, span)
+    assert count >= 2, f"expected at least two 'Band: **...**' tokens in the Gate span, found {count}"
+    mutated = mutated_block_text.replace(span, new_span, 1)
+
+    findings = check_report(mutated)
+    return _assert_codes_and_substring(
+        findings, {"SB-GATE-CLEARED"}, "Hand-wavy", "M9-two-hand-wavy-cleared")
+
+
+# ---------------------------------------------------------------------------
+# X2: every registered cross-check must be load-bearing (an ablation)
+# ---------------------------------------------------------------------------
+
+def _x2_cross_check_ablation() -> str | None:
+    """For each ENTRY (code, fn) in `_CROSS_CHECKS` -- by position, not by
+    code -- rebind `_CROSS_CHECKS` to the tuple without that one entry, run
+    every C/M/P control (never X1/X2), restore in a `finally`, and require
+    at least one control to fail. Any entry whose removal leaves every other
+    control green is reported by code as a dead check.
+
+    Ablating by POSITION (not by filtering every entry that shares a code)
+    is deliberate: two entries can share a code (e.g. a no-op planted next
+    to a real reader under the same code), and removing "by code" would
+    silently remove both together, hiding a dead entry behind its
+    load-bearing twin. See 75-04-PLAN.md's X2 falsifier."""
+    global _CROSS_CHECKS
+    original = _CROSS_CHECKS
+    exercised = [
+        (cid, fn) for cid, fn in _CONTROLS
+        if cid not in ("X1-extraction-floor", "X2-cross-check-ablation")
+    ]
+    dead: list[str] = []
+    try:
+        for i, (code, _fn) in enumerate(original):
+            _CROSS_CHECKS = original[:i] + original[i + 1 :]
+            any_failed = False
+            for _cid, fn in exercised:
+                try:
+                    msg = fn()
+                except Exception as exc:  # noqa: BLE001
+                    msg = f"{type(exc).__name__}: {exc}"
+                if msg:
+                    any_failed = True
+                    break
+            if not any_failed:
+                dead.append(code)
+    finally:
+        _CROSS_CHECKS = original
+    if dead:
+        return f"removing cross-check(s) {dead!r} left every other control green (dead check)"
     return None
 
 
@@ -2504,7 +2738,17 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("P2-software-systems", _p2_software_systems),
     ("P3-science-engineering", _p3_science_engineering),
     ("P4-tb-01", _p4_tb_01),
+    ("M1-missing-block", _m1_missing_block),
+    ("M2-two-blocks", _m2_two_blocks),
+    ("M3-malformed-json", _m3_malformed_json),
+    ("M4-chain-confidence", _m4_chain_confidence),
+    ("M5-reentry-fired-personal-general", _m5_reentry_fired_personal_general),
+    ("M6-reentry-not-fired-software-systems", _m6_reentry_not_fired_software_systems),
+    ("M7-single-pass-before-fix", _m7_single_pass_before_fix),
+    ("M8-conclusion-cut", _m8_conclusion_cut),
+    ("M9-two-hand-wavy-cleared", _m9_two_hand_wavy_cleared),
     ("X1-extraction-floor", _x1_extraction_floor),
+    ("X2-cross-check-ablation", _x2_cross_check_ablation),
 )
 
 
