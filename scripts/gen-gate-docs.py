@@ -2620,13 +2620,17 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     # of prose changed; only the coincidences did. If EMIT-STAGE-A's control count
     # ever leaves 16, both residuals resurface and both permits must be re-added.
     ('CLAUDE.md', '23'): ('999.75', 3, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md section 2 exception, D-06 proviso 3), RE-ADDED at W2 2026-09-27 after its coincidental cover lapsed a SECOND time. The three occurrences are all transitions in the battery-composition chain ("moved it from 22 to 23", "moved it from 23 to 24", "moved it from 24 to 23") -- arrow-free historical counts, not current-fact claims about the battery or CI. This literal lost its cover once already at Phase 40, when COLLIDE-01 retirement moved the CI-job count off 23, and was ledgered then; the key was later dropped as stale when the count returned to 23. Registering CHAIN-JUDGE and EMIT-STAGE-A moved the CI-job count 23 -> 25, so nothing inside a generated fence says 23 again and the residue resurfaced. Same digit-value-not-provenance blindness as 999.75; the prose has never changed.'),
-    ('docs/gates/CONF-SURFACE.md', '5'): ('999.73', 4, 'NOT A COUNT CLAIM: four occurrences, none a population total -- the bound enumerator "**(5) The deferred-literal-ledger is an enumerated PER-HIT permit**", its two back-references, and the pre-commit-gate ordinal "pre-commit gate 5". An enumerator and an ordinal, neither stating how many of anything exist. RE-ADDED at W3 2026-09-27 after being removed as stale at W2 the same day: removing the (CLAUDE.md, 16) key shrank containment_ledger_frozen_historical, which removed the only in-fence 5 on this page and orphaned this permit; re-adding (CLAUDE.md, 16) at W3 restored the count and with it the finding. The page text never changed in either direction. This entry has now been removed and re-added by ledger-size arithmetic alone, which is the sharpest available demonstration of 999.75 -- containment matches by digit value, never by provenance -- and of this mechanism eating its own tail, the shape docs/PROCESS.md section 1 names as the reason the depth rule exists.'),
+    # ('docs/gates/CONF-SURFACE.md', '5') REMOVED at quick task 260929-tg9:
+    # registering EMIT-STAGE-A's C21 control moved that gate's control_count
+    # 20 -> 21, which shrank `containment_ledger_frozen_historical` again (the
+    # `('CLAUDE.md', '20')` entry above is the direct cause) and, via the same
+    # cascade this key's own prior history already describes, removed the
+    # only in-fence `5` on this page a SECOND time -- so this permit is stale
+    # again, by the identical arithmetic, not because any prose here changed.
+    # Re-add with the retained history above if that field's derived count
+    # ever returns to 5.
     ('CLAUDE.md', '16'): ('999.75', 2, 'CANNOT-REACH (no harvest field). RE-ADDED at W3 2026-09-27, exactly as the W2 removal note directly above predicted it would have to be. "The 16 links *between* files in `first-principles/references/`" is a frozen count of emitted cross-technique links that no gate harvests. Its cover has lapsed and returned three times purely because unrelated derived counts passed through 16: HARN-01 branch_count (999.91 moved it to 17), then EMIT-STAGE-A control_count (16 at registration, 20 once W3 added four controls). The prose has never changed. Two occurrences adjudicated together: the count at its definition and the same figure restated as "contributes 16 real links".'),
-    # ('CLAUDE.md', '20') REMOVED at W3 2026-09-27: stale, because EMIT-STAGE-A's
-    # control_count landed on 20 and now coincidentally covers the unrelated
-    # historical literal this permit excused. Same 999.75 digit-value blindness as
-    # the '16' entry directly above, in the opposite direction, in the SAME change.
-    # Re-add with this history if that count ever leaves 20.
+    ('CLAUDE.md', '20'): ('999.75', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md section 2 exception, D-06 proviso 3), RE-ADDED at quick task 260929-tg9 exactly as the removal note above (see git history) predicted: EMIT-STAGE-A\'s control_count left 20 -- 21 once C21, the answer-first document reader control, was registered -- so the coincidental in-fence corroboration this permit used to excuse lapsed again. "moved it from 17 to 20" is an arrow-free historical count in the battery-composition-chain paragraph, not a current-fact claim about the battery or CI. Same 999.75 digit-value-not-provenance blindness as the \'16\' and \'23\' entries elsewhere in this ledger; the prose has never changed. Re-remove if EMIT-STAGE-A\'s control_count ever returns to 20.'),
     ('CLAUDE.md', '22'): ('999.104', 2, 'NOT A COUNT CLAIM: "this phase\'s own `/bm:code-review 22`" -- a phase-number citation, the same shape as `CLAUDE.md`\'s own \'03\' half-strip entry above, not a population total. Occurrence count lowered from 2 to 1 when VAL-05\'s retirement (Phase 40, docs/v9.4-gate-retirement.md §2.3) reworded the tally sentence off \'22\' entirely, onto \'21\' (see that key\'s own entry).'),
     ('CLAUDE.md', '260728'): ('999.73', 1, 'NOT A COUNT CLAIM: "quick task `260728-vxn`" -- a quick-task id (date-shaped digits plus a suffix), not a count. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises quick-task-id shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('CLAUDE.md', '26'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "docs/history/ -- frozen per-milestone REQUIREMENTS.md / ROADMAP.md / MILESTONE-AUDIT.md snapshots (26 milestones, v1.0 through v5.3)" -- an archived milestone-snapshot count under the Requirements surface section, unrelated to the battery/CI gate totals it happens to share a digit with. This entry\'s coincidental in-fence corroboration from the pre-retirement battery total (26) broke when COLLIDE-01 was retired (Phase 40, docs/v9.4-gate-retirement.md §2.1) moved that total to 25; the sibling "battery total (26, see above)" sentence this same coincidence used to cover was a genuinely stale current-fact claim; it was hand-corrected to 25 in that commit, went stale again when VAL-04 and VAL-05 retired, and was reworded at the Phase 40 code review (CR-01) to point at the generated population-arithmetic sentence instead of stating a digit, rather than ledgered.'),
@@ -2939,16 +2943,31 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # 999.75 immediately producing another -- is recorded in the entry's own reason
 # rather than smoothed over, since it is evidence about the containment
 # mechanism's design and not merely bookkeeping.
+#
+# Net 21 -> 21 at quick task 260929-tg9, via one addition and one removal --
+# recorded as two movements rather than a no-op, because the key set changed
+# and the digest below proves it. Registering EMIT-STAGE-A's C21 control (the
+# answer-first document reader control) moved that gate's control_count from
+# 20 to 21: (a) dropped the only in-fence `20` in CLAUDE.md, uncovering
+# `('CLAUDE.md', '20')`'s frozen historical occurrence -- exactly the re-add
+# the comment on that key's PRIOR removal (git history) predicted; (b) that
+# same control_count move shrank `containment_ledger_frozen_historical`
+# again, removing the only in-fence `5` on docs/gates/CONF-SURFACE.md and
+# making `('docs/gates/CONF-SURFACE.md', '5')` stale a second time, by the
+# identical cascade its own retained history already describes. Both entries
+# emitted by `--emit-containment-ledger`, then hand-adjudicated, per this
+# ledger's standing rule; no prose on any affected page changed.
 _CONTAINMENT_LEDGER_MAX: int = 21
 
-# Re-pinned in the same commit as the 21 -> 20 shrink above, per this
-# mechanism's own standing rule. The key removed is ('CLAUDE.md', '23'); its
-# claim was not fixed, only coincidentally re-covered in-fence. Never
+# Re-pinned in the same commit as the two movements above, per this
+# mechanism's own standing rule. The key added is ('CLAUDE.md', '20'); the
+# key removed is ('docs/gates/CONF-SURFACE.md', '5'); neither underlying
+# claim was fixed, only coincidentally un/re-covered in-fence. Never
 # recompute this digest to make a failing check pass -- it is recomputed here
-# because the key set legitimately changed, and the removed key's own comment
-# block above states exactly which key and why.
+# because the key set legitimately changed, and the two keys' own comment
+# blocks above state exactly which and why.
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:af5f132d98b21e7007a46e2c8f8409e5e31ab33ca5f27a37f2a24ba655525b3e"
+    "sha256:de7ae628f9f748b857f5133a86d3640df12f79b363e71e108aa2c21ceee36cca"
 )
 
 

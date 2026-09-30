@@ -20,6 +20,7 @@ Protocol: `docs/emission-phase1-preregistration.md`.
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import os
 import re
@@ -443,6 +444,28 @@ def _rel(path: Path) -> str:
         return path.as_posix()
 
 
+@functools.lru_cache(maxsize=1)
+def _load_qh():
+    """Load `check-quality-harness.py` as a module, cached.
+
+    The same `importlib.util.spec_from_file_location` pattern
+    `conformance_reading` used inline before this helper was factored out of
+    it (quick task 260929-tg9) -- both `conformance_reading` and C21
+    (`_c21_answer_first_document_reads_like_the_bare_one`) load the harness
+    through it now, so a 20k-line module is executed once per process, not
+    once per caller.
+    """
+    import importlib.util as _ilu
+    import sys as _sys
+
+    spec = _ilu.spec_from_file_location(
+        "_qh_for_stage_a", REPO_ROOT / "scripts" / "check-quality-harness.py")
+    qh = _ilu.module_from_spec(spec)
+    _sys.modules["_qh_for_stage_a"] = qh
+    spec.loader.exec_module(qh)
+    return qh
+
+
 def conformance_reading(doc_dir: Path) -> dict:
     """Run the shipped defect detector over the frozen live corpus.
 
@@ -462,14 +485,7 @@ def conformance_reading(doc_dir: Path) -> dict:
     a total abandonment cannot lower any of them. Reporting `unreadable` beside the
     rates is what stops that reading as a clean bill of health.
     """
-    import importlib.util as _ilu
-    import sys as _sys
-
-    spec = _ilu.spec_from_file_location(
-        "_qh_for_conformance", REPO_ROOT / "scripts" / "check-quality-harness.py")
-    qh = _ilu.module_from_spec(spec)
-    _sys.modules["_qh_for_conformance"] = qh
-    spec.loader.exec_module(spec and qh)
+    qh = _load_qh()
 
     totals: dict[str, int] = {}
     scored = 0
@@ -963,6 +979,136 @@ def _c20_every_reported_rate_states_its_denominator() -> str | None:
     return None
 
 
+# ---------------------------------------------------------------------------
+# C21 -- answer-first document reads like the bare one (quick task 260929-tg9)
+# ---------------------------------------------------------------------------
+#
+# `check-quality-harness._slice_sections` ends section 6 at the first ATX
+# heading of ANY depth after it, outside a fence -- so under the answer-first
+# body (shared/spine/SKILL-body.md, D-E) the trailing `## Appendix -- process
+# output` heading is what caps section 6, not a convention. This fixture set
+# proves that capping works (positive) and that removing only the capping
+# heading is visible to the detector (the anti-masking twin) -- so a
+# regression that silently drops the heading, or a copy of this fixture that
+# forgot it, is something this control can actually catch.
+
+_C21_CHAIN_BLOCK = (
+    "### Conclusion C1: The claim\n\n"
+    "```text\n"
+    "GT-1 (a fact)\n"
+    "→ an intermediate claim\n"
+    "→ the conclusion\n"
+    "```\n\n"
+    "**Confidence:** HIGH\n"
+)
+
+# Base fixture B: six sections in check-provenance-rollup.py's `_doc()`
+# shape, one fenced chain C1, a single inline-cited §6 claim.
+_C21_BASE_DOC = (
+    "# 1. Problem Essence\n\nOne sentence.\n\n"
+    "## 2. Assumptions Table\n\n| Assumption | Type |\n|---|---|\n| A1 | belief |\n\n"
+    "## 3. Ground Truths\n\n- **GT-1** A fact. source: arithmetic; read-at-source: in-entry\n\n"
+    "## 4. Derivation Chains\n\n" + _C21_CHAIN_BLOCK + "\n"
+    "## 5. Abandoned Reasoning\n\nNothing abandoned.\n\n"
+    "## 6. Conclusion\n\n**Recommended approach:** Do the thing (chain C1).\n"
+)
+
+# Content planted AFTER section 6 in both W and N -- a structural ledger row
+# (`_STRUCTURAL_LEDGER_ROW_RE`, `"..." -> chain C1`) and a second, uncited
+# `**Recommended approach:**` claim. Neither belongs to section 6 when the
+# appendix is correctly capped; both are exactly the kind of content that
+# would inflate `conclusion_claims`/`untraced_claims` if section 6 absorbed
+# them instead.
+_C21_PLANTED = (
+    "- \"Do the thing\" -> chain C1\n\n"
+    "**Recommended approach:** Adopt the alternative option instead.\n"
+)
+
+_C21_ANSWER_BLOCK = (
+    "## Answer\n\n"
+    "**Recommendation:** Do the thing (chain C1).\n"
+    "**Band (from §6):** HIGH (chain C1).\n"
+    "**Would change it:** No named evidence would move it (chain C1).\n\n"
+)
+
+# W: positive fixture -- Answer block + B + a correctly-capped appendix
+# (the `## Appendix -- process output` heading, then a nested self-audit-scan
+# heading) holding the same planted content.
+_C21_W = (
+    _C21_ANSWER_BLOCK
+    + _C21_BASE_DOC
+    + "\n## Appendix — process output\n\n"
+    + "## Self-audit scan (process output)\n\n"
+    + "| Chain | Band |\n|---|---|\n| C1 | HIGH |\n\n"
+    + _C21_PLANTED
+)
+
+# N: the in-control anti-masking twin -- B plus the SAME planted content, but
+# with NO heading at all separating it from section 6. `_slice_sections`
+# then has nothing to stop section 6 at, and its body absorbs the planted
+# lines.
+_C21_N = _C21_BASE_DOC + "\n" + _C21_PLANTED
+
+_C21_DEFECT_FIELDS = (
+    "conclusion_claims",
+    "untraced_claims",
+    "chain_blocks",
+    "malformed_chain_blocks",
+    "verdict_cells",
+    "nonconforming_verdict_cells",
+    "_closure_ledger_fragments",
+)
+
+
+def _c21_answer_first_document_reads_like_the_bare_one() -> str | None:
+    """C21: an answer-first document (Answer + six sections + capped
+    appendix) reads identically to the bare six-section document on every
+    defect field, and a twin missing only the capping heading reads
+    differently -- so this control can fail, rather than passing on any
+    document that merely contains the word "Appendix"."""
+    qh = _load_qh()
+
+    try:
+        base_sections = qh._slice_sections(_C21_BASE_DOC)
+    except Exception as exc:  # noqa: BLE001
+        return f"C21: base fixture B does not resolve: {exc}"
+    base_defects = qh.detect_defects(_C21_BASE_DOC, "C21-B")
+    if base_defects["conclusion_claims"] < 1:
+        return "C21: base fixture B has no conclusion claims -- precondition not met"
+    if base_defects["untraced_claims"] != 0:
+        return "C21: base fixture B has an untraced claim -- precondition not met"
+
+    try:
+        w_sections = qh._slice_sections(_C21_W)
+    except Exception as exc:  # noqa: BLE001
+        return f"C21: answer-first fixture W does not resolve: {exc}"
+    w_defects = qh.detect_defects(_C21_W, "C21-W")
+    for field in _C21_DEFECT_FIELDS:
+        if w_defects[field] != base_defects[field]:
+            return (
+                f"C21: answer-first document W disagrees with the bare "
+                f"document B on {field}: {w_defects[field]!r} != "
+                f"{base_defects[field]!r}"
+            )
+    if w_sections[1] != base_sections[1]:
+        return "C21: section 1 differs between W and B -- the Answer preamble leaked in"
+    present = sections_present(_C21_W)
+    if len(present) != len(SECTIONS):
+        missing = set(SECTIONS) - set(present)
+        return f"C21: sections_present(W) is missing {sorted(missing)!r}"
+
+    n_defects = qh.detect_defects(_C21_N, "C21-N")
+    if (
+        n_defects["conclusion_claims"] == base_defects["conclusion_claims"]
+        and n_defects["untraced_claims"] == base_defects["untraced_claims"]
+    ):
+        return (
+            "C21: anti-masking twin N (headless appendix) reads identically "
+            "to B -- the control cannot distinguish a mis-slice"
+        )
+    return None
+
+
 _CONTROLS = (
     ("C01", _c01_summary_is_rejected_document_is_not),
     ("C02", _c02_orchestrator_capture_is_rejected),
@@ -984,6 +1130,7 @@ _CONTROLS = (
     ("C18", _c18_unreadable_documents_are_counted_not_dropped),
     ("C19", _c19_the_reading_is_not_a_gate),
     ("C20", _c20_every_reported_rate_states_its_denominator),
+    ("C21", _c21_answer_first_document_reads_like_the_bare_one),
 )
 
 
@@ -994,6 +1141,11 @@ def self_test() -> int:
             msg = fn()
         except Exception as exc:  # noqa: BLE001
             msg = f"{type(exc).__name__}: {exc}"
+        # Print every control's id on every run -- not only on failure -- so a passing
+        # run's stdout still names which controls executed (quick task 260929-tg9: a
+        # verify step that greps this output for a specific control id, e.g. C21, needs
+        # the id to be present on a PASS, not only inside a failure message).
+        print(f"  {'FAIL' if msg else 'PASS'}  [{cid}]")
         if msg:
             failures.append(f"  [{cid}] {msg}")
     if failures:
