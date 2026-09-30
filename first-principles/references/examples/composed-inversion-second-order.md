@@ -345,3 +345,117 @@ section that did not appear earlier.
 No criterion is at Hand-wavy or Absent. Gate cleared; hand-wavy cap cleared.
 
 **Gate result:** cleared · passes: 1 · Fix/Repeat fired: no
+
+## Structured summary (process output)
+
+```json
+{
+  "schema_version": 1,
+  "run_mode": null,
+  "assumptions": [
+    {
+      "id": "A-1",
+      "type": null,
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-2",
+      "type": "convention",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-3",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-4",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-5",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-6",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-7",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-8",
+      "type": null,
+      "verdict": "Challenge"
+    }
+  ],
+  "ground_truths": [
+    {
+      "id": "GT-1",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-2",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-3",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-4",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-5",
+      "read_at_source": false
+    }
+  ],
+  "chains": [
+    {
+      "id": "C1",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-1",
+        "GT-2",
+        "GT-5?"
+      ]
+    }
+  ],
+  "dead_ends": [
+    "Skip inversion and accept the surface claim because Redis-in-front-of-Postgres is a textbook pattern"
+  ],
+  "techniques": null,
+  "gate": {
+    "passes": [
+      {
+        "bands": [
+          "Rigorous",
+          "Rigorous",
+          "Sound",
+          "Rigorous",
+          "Rigorous",
+          "Rigorous"
+        ],
+        "gate_cleared": true,
+        "hand_wavy_cap_cleared": true
+      }
+    ],
+    "fix_repeat_fired": false,
+    "cleared": true
+  },
+  "re_entry": {
+    "fired": false,
+    "edges": []
+  },
+  "conclusion": {
+    "recommendation": "Approve the two-engineer-week cache rollout (chain C1) conditional\non (a) running the scoped shadow-read simulation to resolve GT-5? and confirming the\nmeasured steady-state hit rate clears the named threshold, and (b) committing to\nevent-driven invalidation against the existing event bus (GT-4) with a documented staleness\nbudget — not TTL-only — before the cache is taken as load-bearing for the upgrade-deferral\ndecision. If either acceptance criterion fails, execute the scheduled Postgres upgrade as\noriginally planned.",
+    "confidence": "MEDIUM"
+  }
+}
+```

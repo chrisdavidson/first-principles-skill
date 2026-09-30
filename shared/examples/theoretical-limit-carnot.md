@@ -327,3 +327,68 @@ reframes the question from "why is practice so far below the law?" to "how much 
 reservoir pair, the ceiling-to-practice gap holds at both ends of the cooling range, and the
 one unverified belief in §2 can only widen it. The rating covers the bracket and the direction
 of the gap, not any apportionment of it across components.
+
+---
+
+## Appendix — process output
+
+## Structured summary (process output)
+
+```json
+{
+  "schema_version": 1,
+  "run_mode": null,
+  "assumptions": [
+    {
+      "id": "A-1",
+      "type": "convention",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-2",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    }
+  ],
+  "ground_truths": [
+    {
+      "id": "GT-4",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-5",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-6",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-7",
+      "read_at_source": true
+    }
+  ],
+  "chains": [
+    {
+      "id": "C1",
+      "confidence": "HIGH",
+      "rests_on": [
+        "GT-4",
+        "GT-5",
+        "GT-6"
+      ]
+    }
+  ],
+  "dead_ends": [
+    "The Curzon-Ahlborn bound, tried as a tighter middle tier",
+    "The molten-salt tank pair, tried as the reservoir pair"
+  ],
+  "techniques": null,
+  "gate": null,
+  "re_entry": null,
+  "conclusion": {
+    "recommendation": "Treat the ~19-point ceiling-to-practice gap (chain C1) as mostly\nirreducible rather than as recoverable headroom, and pursue efficiency by raising the source\ntemperature — supercritical and ultra-supercritical cycles at 600–650 °C salt — rather than by\nchasing component refinements at fixed T_hot.\nBefore quoting any figure in the bracket, state whether it is a power-block or a whole-plant\nnumber; the two differ by roughly a factor of two and are routinely confused.",
+    "confidence": "HIGH"
+  }
+}
+```

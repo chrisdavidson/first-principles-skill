@@ -99,3 +99,94 @@ If all three conditions are verified before the decision deadline, the offer adv
 **Trade-offs acknowledged:** (chains C1 and C2) Accepting on the stated conditions means accepting a ~$15,600/year cost-of-living increase in rent (the California-vs-Oregon state tax differential on this income band is effectively zero, and other SF cost differences such as transportation, food, and services are not yet quantified and would add to this figure), accepting a real disruption to the partner's employment situation even with a viable resolution path, and accepting the career risk that the role's growth claims do not materialize — a risk that verifiable references can reduce but not eliminate. Declining means forgoing a rent-adjusted ~$54,400/year increase and the career advantages the specific team and company may have provided, in exchange for continuity of the current trajectory, the partner's current stability, and the costs and risks of relocation not being incurred.
 
 **Confidence:** MEDIUM — chain C1 is HIGH confidence. chain C2 is MEDIUM confidence because the two conditions it identifies — role career-trajectory verification and partner-situation resolution — are not yet checked. The conditions are resolvable before the decision deadline; this is not permanent uncertainty but unfinished verification. When those conditions are verified, confidence in the final decision rises to HIGH.
+
+---
+
+## Appendix — process output
+
+## Structured summary (process output)
+
+```json
+{
+  "schema_version": 1,
+  "run_mode": null,
+  "assumptions": [
+    {
+      "id": "A-1",
+      "type": "untested belief",
+      "verdict": "Discard"
+    },
+    {
+      "id": "A-2",
+      "type": null,
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-3",
+      "type": "current constraint",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-4",
+      "type": "current constraint",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-5",
+      "type": "current constraint",
+      "verdict": "Accept"
+    }
+  ],
+  "ground_truths": [
+    {
+      "id": "GT-1",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-2",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-3",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-4",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-5",
+      "read_at_source": true
+    }
+  ],
+  "chains": [
+    {
+      "id": "C1",
+      "confidence": "HIGH",
+      "rests_on": [
+        "GT-1",
+        "GT-2",
+        "GT-3"
+      ]
+    },
+    {
+      "id": "C2",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-5",
+        "GT-4"
+      ]
+    }
+  ],
+  "dead_ends": [
+    "Take the job — $70,000 more is always better"
+  ],
+  "techniques": null,
+  "gate": null,
+  "re_entry": null,
+  "conclusion": {
+    "recommendation": "(chain C2) Evaluate the offer against three specific, verifiable conditions before deciding:\n\n1. (chain C2) Verify, through direct conversations with the prospective team lead and at least two references who have worked in the same organization at a similar level, that the role provides a specific and credible path to distributed systems depth at principal-level scope within three years. Generic claims about the company's quality or the role's growth potential do not satisfy this condition; specific evidence of the team's current work and the engineering trajectory for someone in this position does.\n\n2. (chain C2) Establish a concrete resolution path for the partner situation before accepting — not after. The options are: the partner's employer grants a remote arrangement (requires a direct conversation before the decision deadline); the partner's employer has a San Francisco transfer option (requires confirmation); the partner accepts a role search in SF (requires the partner's genuine agreement and a realistic timeline estimate); or the engineer accepts a long-distance arrangement with a defined timeline for resolution. Any of these paths is viable if verified; an unresolved partner situation is not a condition that will resolve itself after the move.\n\n3. (chain C1) Use the rent-adjusted compensation figure (approximately $54,400) rather than the nominal figure in any financial planning. The ~$15,600 annual cost differential (rent only — the California-vs-Oregon state tax differential on this income band is effectively zero, and other SF cost differences such as transportation, food, and services are not yet quantified) is a real number that changes the trade-off calculation.\n\nIf all three conditions are verified before the decision deadline, the offer advances GT-5 and is worth accepting. If any condition is unresolved, the disruption cost is real and the benefit is speculative.",
+    "confidence": "MEDIUM"
+  }
+}
+```

@@ -357,3 +357,133 @@ criterion is at Hand-wavy or Absent. Gate cleared (no Absent); hand-wavy cap cle
 Hand-wavy criteria).
 
 **Gate result:** cleared · passes: 1 · Fix/Repeat fired: no
+
+## Structured summary (process output)
+
+```json
+{
+  "schema_version": 1,
+  "run_mode": null,
+  "assumptions": [
+    {
+      "id": "A-1",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-2",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-3",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-4",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-5",
+      "type": "untested belief",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-6",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-7",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-8",
+      "type": "convention",
+      "verdict": "Challenge"
+    }
+  ],
+  "ground_truths": [
+    {
+      "id": "GT-1",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-2",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-3",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-4",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-5",
+      "read_at_source": false
+    }
+  ],
+  "chains": [
+    {
+      "id": "C1",
+      "confidence": "HIGH",
+      "rests_on": [
+        "GT-2",
+        "GT-3"
+      ]
+    },
+    {
+      "id": "C2",
+      "confidence": "HIGH",
+      "rests_on": [
+        "GT-3",
+        "GT-4"
+      ]
+    },
+    {
+      "id": "C3",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-1",
+        "GT-5?"
+      ]
+    }
+  ],
+  "dead_ends": [
+    "Treat the full 8P fishbone as a finding and fix all eight categories simultaneously",
+    "Attribute churn primarily to the product UI appearing dated"
+  ],
+  "techniques": null,
+  "gate": {
+    "passes": [
+      {
+        "bands": [
+          "Rigorous",
+          "Rigorous",
+          "Sound",
+          "Rigorous",
+          "Rigorous",
+          "Rigorous"
+        ],
+        "gate_cleared": true,
+        "hand_wavy_cap_cleared": true
+      }
+    ],
+    "fix_repeat_fired": false,
+    "cleared": true
+  },
+  "re_entry": {
+    "fired": false,
+    "edges": []
+  },
+  "conclusion": {
+    "recommendation": "(chains C1, C2 and C3) Execute in two ordered stages.\n\nStage 1 — fix the verified structural cause (4–8 weeks): establish a quarterly CS capacity\nreview with a ratio trigger (CSM-to-account ratio exceeds 1:45 → coverage model reviewed\nbefore next quarter begins), addressing GT-4; reassign or add CSM coverage for the $18K–$25K\ntier to bring the ratio below the 1:40 design threshold (GT-3), addressing the verified\ncause of the \"felt unsupported\" signal (GT-2).\n\nStage 2 — verify remaining hypotheses (6–10 weeks) before any intervention commitment: run\na productivity-outcome survey (n=40 accounts) to test GT-5?; pull CRM data to test whether\ndecisions are made 90–120 days before expiry; segment adoption scores by churn outcome.\n\nDo not commit to a product overhaul, UI refresh, or all-8P programme until Stage 2 is done.",
+    "confidence": "MEDIUM"
+  }
+}
+```

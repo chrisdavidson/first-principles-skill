@@ -443,3 +443,62 @@ thermal-to-electric conversion factor), although the verdict no longer depends o
 that decides the answer is the discharge duration (A-8): the recommendation is stated for four
 hours and the break-even is given as a range for the others. A power-block quotation at this
 system's scale would sharpen that range, and could only move it toward longer durations.
+
+---
+
+## Appendix — process output
+
+## Structured summary (process output)
+
+```json
+{
+  "schema_version": 1,
+  "run_mode": null,
+  "assumptions": [],
+  "ground_truths": [
+    {
+      "id": "GT-4",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-5",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-6",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-7",
+      "read_at_source": false
+    },
+    {
+      "id": "GT-8",
+      "read_at_source": true
+    }
+  ],
+  "chains": [
+    {
+      "id": "C1",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-4",
+        "GT-5",
+        "GT-6",
+        "GT-7?",
+        "GT-8"
+      ]
+    }
+  ],
+  "dead_ends": [
+    "Comparing the store's cost with the battery's installed price"
+  ],
+  "techniques": null,
+  "gate": null,
+  "re_entry": null,
+  "conclusion": {
+    "recommendation": "Per chain C1, treat molten-salt TES as **not** cost-competitive with\nlithium-ion for four-hour storage: once the power block is priced the system costs ~$279–384 per\nkWh_e against lithium-ion's $150–300. Consider it where the discharge is long — the break-even runs from\n~3.7 h to ~18 h — and size the decision on duration rather than on the store's per-kWh cost.",
+    "confidence": "MEDIUM"
+  }
+}
+```

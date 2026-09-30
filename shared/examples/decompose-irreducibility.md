@@ -349,3 +349,70 @@ discarded.
 **Trade-offs acknowledged:** Accepting the Carnot-bounded ~38% round-trip figure (chain C1) instead of the claimed 85% changes the economic case for the system: a lower usable round-trip efficiency means more installed capacity is needed to deliver the same net electricity output, which raises the effective cost per kWh delivered relative to the capital-cost comparison in C3.
 
 **Confidence:** MEDIUM — HIGH on the refutation itself (chain C1); MEDIUM overall because the claim's second half, cost-competitiveness (C3), is not settled by this drill: its direction is resolved against the claim by the estimate worked example, and the project-specific inputs GT-7? and GT-8? that would size the gap remain unverified.
+
+---
+
+## Appendix — process output
+
+## Structured summary (process output)
+
+```json
+{
+  "schema_version": 1,
+  "run_mode": null,
+  "assumptions": [],
+  "ground_truths": [
+    {
+      "id": "GT-1",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-2",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-3",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-4",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-5",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-6",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-7",
+      "read_at_source": false
+    },
+    {
+      "id": "GT-8",
+      "read_at_source": false
+    }
+  ],
+  "chains": [
+    {
+      "id": "C1",
+      "confidence": "HIGH",
+      "rests_on": [
+        "GT-1",
+        "GT-2",
+        "GT-3"
+      ]
+    }
+  ],
+  "dead_ends": [],
+  "techniques": null,
+  "gate": null,
+  "re_entry": null,
+  "conclusion": {
+    "recommendation": "Treat the 85% electricity round-trip efficiency claim as refuted (chain C1) and do not proceed with a design predicated on it; use the Carnot-anchored ~38% round-trip figure as the physically realistic basis for any further cost-competitiveness comparison.",
+    "confidence": "MEDIUM"
+  }
+}
+```
