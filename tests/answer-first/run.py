@@ -366,12 +366,25 @@ def cmd_probe(cwd: Path) -> int:
 
 
 def cmd_read() -> int:
+    """Every registered prompt gets a `runs` entry -- scored (a)-(e) when dispatched and
+    delivered, or the void outcome recorded and reported when it was not. A void cell is
+    reported as what happened, never silently dropped and never re-run to fill the count."""
     cells_path = HERE / "cells.json"
     cells = json.loads(cells_path.read_text()) if cells_path.is_file() else {}
     runs: dict[str, dict] = {}
     for pid in PROMPTS:
+        cell = cells.get(pid)
         doc_path = DOCS / f"{pid}.md"
         if not doc_path.is_file():
+            runs[pid] = {
+                "scores": None, "observations": None, "pass": False,
+                "cell": cell,
+                "void_reason": (
+                    f"not dispatched in {len((cell or {}).get('attempts', []))} attempt(s)"
+                    if cell and not cell.get("dispatched") else
+                    "no cell recorded" if not cell else "no document captured"
+                ),
+            }
             continue
         doc = doc_path.read_text(encoding="utf-8")
         scores = score_document(doc)
@@ -386,13 +399,17 @@ def cmd_read() -> int:
         runs[pid] = {
             "scores": {k: {"pass": v[0], "evidence": v[1]} for k, v in scores.items()},
             "observations": obs, "pass": passed,
-            "cell": cells.get(pid),
+            "cell": cell,
         }
-    print(f"answer-first -- reading (N={len(runs)}, an observation against the registered rule, "
-          f"never a gate)\n")
+    scored = {pid: r for pid, r in runs.items() if r["scores"] is not None}
+    print(f"answer-first -- reading (N={len(runs)} registered prompts, {len(scored)} scored, "
+          f"an observation against the registered rule, never a gate)\n")
     for pid, r in runs.items():
-        print(f"{pid}: pass={r['pass']}  " +
-              "  ".join(f"{k}={v['pass']}" for k, v in r["scores"].items()))
+        if r["scores"] is None:
+            print(f"{pid}: VOID -- {r['void_reason']}")
+        else:
+            print(f"{pid}: pass={r['pass']}  " +
+                  "  ".join(f"{k}={v['pass']}" for k, v in r["scores"].items()))
     (HERE / "result.json").write_text(
         json.dumps({"runs": runs}, indent=2) + "\n", encoding="utf-8")
     return 0

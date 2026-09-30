@@ -1,0 +1,109 @@
+{
+  "runs": {
+    "TB-01": {
+      "scores": {
+        "a": {
+          "pass": true,
+          "evidence": "resolves"
+        },
+        "b": {
+          "pass": true,
+          "evidence": "first heading: '## Answer'"
+        },
+        "c": {
+          "pass": true,
+          "evidence": "clean"
+        },
+        "d": {
+          "pass": true,
+          "evidence": "chains cited: ['C1', 'C2', 'C4', 'C8']"
+        },
+        "e": {
+          "pass": true,
+          "evidence": "112 words"
+        }
+      },
+      "observations": {
+        "total_words": 9452,
+        "words_before_section_1": 114,
+        "appendix_word_share": 0.41,
+        "answer_chains_all_cited_in_section_6": true,
+        "side_files_left": []
+      },
+      "pass": true,
+      "cell": {
+        "outcome": "scored",
+        "attempts": [
+          "TB-01.a1.jsonl"
+        ],
+        "loaded_body": [
+          "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+        ],
+        "dispatched": true,
+        "permission_denials": []
+      }
+    },
+    "TB-04": {
+      "scores": {
+        "a": {
+          "pass": true,
+          "evidence": "resolves"
+        },
+        "b": {
+          "pass": true,
+          "evidence": "first heading: '## Answer'"
+        },
+        "c": {
+          "pass": true,
+          "evidence": "clean"
+        },
+        "d": {
+          "pass": true,
+          "evidence": "chains cited: ['C6', 'C7']"
+        },
+        "e": {
+          "pass": true,
+          "evidence": "97 words"
+        }
+      },
+      "observations": {
+        "total_words": 11717,
+        "words_before_section_1": 99,
+        "appendix_word_share": 0.29,
+        "answer_chains_all_cited_in_section_6": true,
+        "side_files_left": []
+      },
+      "pass": true,
+      "cell": {
+        "outcome": "scored",
+        "attempts": [
+          "TB-04.a1.jsonl"
+        ],
+        "loaded_body": [
+          "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+        ],
+        "dispatched": true,
+        "permission_denials": []
+      }
+    },
+    "TB-08": {
+      "scores": null,
+      "observations": null,
+      "pass": false,
+      "cell": {
+        "outcome": "exhausted",
+        "attempts": [
+          "TB-08.a1.jsonl",
+          "TB-08.a2.jsonl",
+          "TB-08.a3.jsonl"
+        ],
+        "loaded_body": [
+          "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+        ],
+        "dispatched": false,
+        "permission_denials": []
+      },
+      "void_reason": "not dispatched in 3 attempt(s)"
+    }
+  }
+}

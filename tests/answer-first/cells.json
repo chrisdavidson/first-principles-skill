@@ -1,0 +1,37 @@
+{
+  "TB-01": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-01.a1.jsonl"
+    ],
+    "loaded_body": [
+      "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+    ],
+    "dispatched": true,
+    "permission_denials": []
+  },
+  "TB-04": {
+    "outcome": "scored",
+    "attempts": [
+      "TB-04.a1.jsonl"
+    ],
+    "loaded_body": [
+      "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+    ],
+    "dispatched": true,
+    "permission_denials": []
+  },
+  "TB-08": {
+    "outcome": "exhausted",
+    "attempts": [
+      "TB-08.a1.jsonl",
+      "TB-08.a2.jsonl",
+      "TB-08.a3.jsonl"
+    ],
+    "loaded_body": [
+      "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+    ],
+    "dispatched": false,
+    "permission_denials": []
+  }
+}
