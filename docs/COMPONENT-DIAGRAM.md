@@ -31,7 +31,7 @@ flowchart LR
 
     subgraph generated ["first-principles/ (generated — never hand-edit)"]
         AGENT["first-principles/agents/first-principles.md\n(assembled orchestrating agent)"]
-        REFS_OUT["first-principles/agents/references/\n(verbatim copies of shared/references/ + spine refs + examples/)"]
+        REFS_OUT["first-principles/references/\n(verbatim copies of shared/references/ + spine refs + examples/)"]
         SKILLS_OUT["first-principles/skills/&lt;slug&gt;/SKILL.md\n(generated focused-mode stubs)"]
     end
 

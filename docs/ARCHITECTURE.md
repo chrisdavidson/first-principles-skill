@@ -35,8 +35,8 @@ Generated output tree:
 | Path | Role |
 |------|------|
 | `first-principles/agents/first-principles.md` | Assembled agent (sync-content.py output) |
-| `first-principles/agents/references/` | Verbatim copies of `shared/references/` + spine refs |
-| `first-principles/agents/references/examples/` | Verbatim copies of `shared/examples/` |
+| `first-principles/references/` | Verbatim copies of `shared/references/` + spine refs |
+| `first-principles/references/examples/` | Verbatim copies of `shared/examples/` |
 | `first-principles/skills/<slug>/SKILL.md` | Generated stubs from `shared/skills/<slug>/SKILL.md` |
 | `first-principles/README.md` | Plugin README |
 | `first-principles/LICENSE` | MIT license |
@@ -50,9 +50,9 @@ Generated output tree:
 1. Read `shared/spine/SKILL.meta.yml` — emit frontmatter to `first-principles/agents/first-principles.md`
 2. Read `shared/spine/SKILL-body.md` — resolve `{{TOOL:slug}}` tokens
 3. For each `{{TOOL:slug}}`: substitute the phrase held under that slug's `agent` key in `shared/spine/tool-map.yml` (`_expand()`), e.g. `{{TOOL:fishbone}}` → "the inlined fishbone procedure"
-4. Nothing from `shared/spine/references/` is inlined at this point. `output-template.md` and `validation-rubric.md` were inlined into the body until Phase 34-02 (Path B); they now ship as sibling reference files only, and the body reaches them through `${CLAUDE_PLUGIN_ROOT}/agents/references/…` links. Do not reintroduce an inlining step here — `sync-content.py` carries a standing NOTE against it.
+4. Nothing from `shared/spine/references/` is inlined at this point. `output-template.md` and `validation-rubric.md` were inlined into the body until Phase 34-02 (Path B); they now ship as sibling reference files only, and the body reaches them through `${CLAUDE_PLUGIN_ROOT}/references/…` links. Do not reintroduce an inlining step here — `sync-content.py` carries a standing NOTE against it.
 5. Stitch phase fragments from `shared/agent/` in order
-6. Copy `shared/references/*.md` and `shared/examples/*.md` verbatim to `first-principles/agents/references/`, and `shared/spine/references/*.md` to the same directory via `generate_agent_spine_references()`
+6. Copy `shared/references/*.md` and `shared/examples/*.md` verbatim to `first-principles/references/`, and `shared/spine/references/*.md` to the same directory via `generate_agent_spine_references()`
 7. For each `shared/skills/<slug>/SKILL.md`: resolve `{{PROCEDURE:slug}}` tokens (replaced by the full body of `shared/references/<slug>.md` from `## When to reach for this` onward) and write to `first-principles/skills/<slug>/SKILL.md`
 
 **Drift detection:** `scripts/sync-content.py --check` verifies that `shared/` and the generated tree are in sync. Exit code 1 on any drift. This runs as a pre-commit gate and as CI gate DUAL-04.
@@ -74,7 +74,7 @@ summary. Those summaries are hand-written in `shared/spine/SKILL-body.md`; they 
 extracted from anything.
 
 **The companion-technique procedures are therefore not inlined into the agent body.** They ship
-as reference siblings under `first-principles/agents/references/<slug>.md` and are loaded on
+as reference siblings under `first-principles/references/<slug>.md` and are loaded on
 demand. This is worth stating plainly because the substituted phrase itself says "the inlined
 … procedure", which reads as though the procedure text is present in the body. It is not — a
 search of the generated agent body for any technique's actual procedure steps returns nothing.

@@ -13,6 +13,17 @@ installed session.
 
 ## [Unreleased]
 
+### Fixed — the plugin registered its reference and example files as agent types
+
+- Every session with this plugin installed listed each technique reference, detail sibling,
+  spine reference and worked example as its own selectable `first-principles:references:*`
+  agent type alongside the real `first-principles:first-principles` agent, because Claude Code
+  registers every Markdown file it finds in a subdirectory of a plugin's `agents/` tree as its
+  own agent. The reference tree now ships at `first-principles/references/`, a sibling of
+  `agents/` and `skills/` rather than nested under `agents/`; every link in the agent body now
+  points there; a session now registers exactly the one agent; and `sync-content.py --check`
+  fails if a reference or example file reappears under `first-principles/agents/`.
+
 ### Fixed — the agent's frontmatter claimed a clarification capability it never had
 
 - The `AskUserQuestion` frontmatter key was removed from the shipped agent because it is not a

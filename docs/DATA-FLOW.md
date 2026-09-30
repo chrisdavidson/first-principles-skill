@@ -25,7 +25,7 @@ behave differently in a way that matters for tracing a change:
 So editing a companion reference file (e.g. `shared/references/inversion.md`) reaches the
 generated tree by exactly two routes: the focused-mode skill stub, where `{{PROCEDURE:inversion}}`
 expands its body inline, and the agent's reference sibling
-`first-principles/agents/references/inversion.md`, which is a verbatim copy. It does **not** reach
+`first-principles/references/inversion.md`, which is a verbatim copy. It does **not** reach
 the assembled agent body — `{{TOOL:inversion}}` substitutes only the technique's name there. A
 reader inspecting the generated files alone will not see these composition seams; they exist only
 in `shared/`.
@@ -37,7 +37,7 @@ For the canonical description of the assembly steps and token types, see [ARCHIT
 After `--write` completes, the generated plugin tree is ready for installation and use:
 
 - **Orchestrating agent:** `first-principles/agents/first-principles.md` — the fully assembled agent body, including all inlined technique procedures and the output template.
-- **Reference siblings:** `first-principles/agents/references/` — verbatim copies of `shared/references/` and the spine reference files.
+- **Reference siblings:** `first-principles/references/` — verbatim copies of `shared/references/` and the spine reference files.
 - **Focused-mode skills:** `first-principles/skills/<slug>/SKILL.md` — generated stubs for all thirteen companion skills, each with its `{{PROCEDURE:slug}}` token already expanded.
 
 Install the plugin for development with:

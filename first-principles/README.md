@@ -6,15 +6,15 @@ companion thinking techniques loaded on demand rather than carried in every cont
 ## What this plugin ships
 
 - **One agent** at `agents/first-principles.md` — the methodology spine, all five phases inlined.
-- **Eight companion-technique references** under `agents/references/` — Five Whys, fishbone,
+- **Eight companion-technique references** under `references/` — Five Whys, fishbone,
   inversion, pre-mortem, trade-off analysis, second-order thinking, estimate, and
   theoretical-limit. The agent loads each on demand when the relevant trigger fires, so a
   technique that is not being used costs no context. Four of them carry a further `-detail.md`
   appendix, loaded only on a named trigger.
-- **Two spine references** — `agents/references/output-template.md` (the output document's
-  section shape) and `agents/references/validation-rubric.md` (the self-audit gate), plus
+- **Two spine references** — `references/output-template.md` (the output document's
+  section shape) and `references/validation-rubric.md` (the self-audit gate), plus
   `assumption-taxonomy.md` for within-type assumption subtypes.
-- **Fourteen worked examples** under `agents/references/examples/` — spread across
+- **Fourteen worked examples** under `references/examples/` — spread across
   software/systems, product/business, personal/general, and science/engineering, each showing a
   real dead-end and a complete validation pass. Pulled in when an in-context illustration helps.
 - **Fourteen slash-invocable skills** under `skills/` — a full-analysis launcher plus thirteen

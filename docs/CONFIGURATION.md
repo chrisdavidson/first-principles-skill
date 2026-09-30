@@ -191,10 +191,11 @@ distinction is worth keeping visible.
 | Every hand-maintained version stamp carries the **same** value | VERSION-01 |
 | `disable-model-invocation: true` on every skill stub | REG-GUARD |
 | All reference file links use forward slashes and are one level deep from the referencing file (no nested `a.md → b.md → c.md`) | VAL-03 |
-| Every reference link in the **agent body** is plugin-root-anchored — `${CLAUDE_PLUGIN_ROOT}/agents/references/…`, never file-relative `references/…` | VAL-03 (resolves the token onto `first-principles/`), GATE-02-v8.5 (asserts the per-surface form for the four `-detail.md` pointers) |
+| Every reference link in the **agent body** is plugin-root-anchored — `${CLAUDE_PLUGIN_ROOT}/references/…`, never file-relative `references/…` | VAL-03 (resolves the token onto `first-principles/`), GATE-02-v8.5 (asserts the per-surface form for the four `-detail.md` pointers) |
 | Every reference link in a **skill stub** stays file-relative `references/…` — the harness resolves a slash-invoked skill against its own directory | GATE-02-v8.5 |
 | No link in `shared/` or `first-principles/` may escape the plugin root with `../` | convention — no gate (see the v8.17.1 entry in `CHANGELOG.md`) |
 | Edit `shared/` only; never edit the generated tree (`first-principles/`) directly | DUAL-04 |
+| The reference tree lives at plugin-root `first-principles/references/`, never nested under `first-principles/agents/` — Claude Code registers every Markdown file it finds in a subdirectory of a plugin's `agents/` tree as its own selectable agent type at session start | DUAL-04 / the sync-drift pre-commit gate (`sync-content.py --check` fails on any file under `first-principles/agents/` other than `first-principles.md`) |
 
 The agent body's line count (`first-principles/agents/first-principles.md`) is **not** an
 invariant. Nothing reports or gates it — the 644-line gate was retired under TEARDOWN-01, and

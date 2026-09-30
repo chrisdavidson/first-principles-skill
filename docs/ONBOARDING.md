@@ -29,9 +29,9 @@ This file is never edited in the generated tree. If you tried to edit `first-pri
 python3 scripts/sync-content.py --write
 ```
 
-This command reads all canonical source files under `shared/` and regenerates the entire `first-principles/agents/` tree and all `first-principles/skills/*/SKILL.md` stubs. For your `five-whys.md` edit specifically, the sync pipeline carries the change through two paths:
+This command reads all canonical source files under `shared/` and regenerates the assembled agent, the entire `first-principles/references/` tree, and all `first-principles/skills/*/SKILL.md` stubs. For your `five-whys.md` edit specifically, the sync pipeline carries the change through two paths:
 
-- **Agent reference sibling (`first-principles/agents/references/five-whys.md`)** — the sync script copies `shared/references/five-whys.md` here verbatim. This is where your edit lands on the agent surface, and it is what the agent loads on demand when the technique fires.
+- **Agent reference sibling (`first-principles/references/five-whys.md`)** — the sync script copies `shared/references/five-whys.md` here verbatim. This is where your edit lands on the agent surface, and it is what the agent loads on demand when the technique fires.
 
   Note what does *not* happen: `shared/spine/SKILL-body.md` contains a `{{TOOL:five-whys}}` token, but that token substitutes only the technique's *name* (from `shared/spine/tool-map.yml`, e.g. "the inlined 5-Whys & Decompose … procedure"). No procedure text is inlined into the assembled agent body, so your edit will not appear there. The body's `## Companion tools` summaries are hand-written in `SKILL-body.md` — if a summary needs to change to match your edit, change it there.
 
