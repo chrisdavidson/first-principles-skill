@@ -618,10 +618,31 @@ def final_message(jsonl: str) -> str:
 
 def is_limit_stub(jsonl: str) -> bool:
     """Reimplemented from tests/w4-paired/run_paired.py (not imported): gate
-    scripts stay stdlib-only and independent of test-only modules."""
+    scripts stay stdlib-only and independent of test-only modules.
+
+    Corrected 2026-09-30 (docs/trackb-2-preregistration.md's pre-run
+    amendment): a stream carrying a genuine final `result` event with
+    `is_error` false and a non-empty `result` text is a complete answer and
+    is NEVER a stub, regardless of what words that answer happens to
+    contain -- measured false positive: TB-01-C's attempt 1 (arm C, no
+    plugin, so no `parent_tool_use_id` ever appears in its stream) was a
+    complete, `is_error: false` answer discussing GraphQL rate limiting,
+    and the regex fallback below misfired on that prose. `is_error` (and the
+    equivalent `api_error_status == 429`) is checked FIRST and still catches
+    every real spend-limit stub, including the frozen 429 specimen this
+    module's own self-test reads. The regex fallback now runs only when
+    there is NO final `result` event at all (a genuinely truncated or killed
+    capture), or one with `is_error` false but an empty `result` text --
+    the case the fallback actually exists for."""
+    last_result: dict | None = None
     for obj in events(jsonl):
-        if obj.get("type") == "result" and obj.get("is_error"):
+        if obj.get("type") == "result":
+            last_result = obj
+    if last_result is not None:
+        if last_result.get("is_error") or last_result.get("api_error_status") == 429:
             return True
+        if (last_result.get("result") or "").strip():
+            return False
     return (
         bool(re.search(r"usage limit|rate limit", jsonl[-4000:], re.I))
         and '"parent_tool_use_id":"' not in jsonl
@@ -2066,6 +2087,46 @@ def _c26_unchanged_is_verbatim() -> str | None:
     return None
 
 
+def _c27_is_limit_stub_false_positive_fixed() -> str | None:
+    """2026-09-30 amendment: a complete, non-error answer that happens to
+    mention "rate limit" in its own prose (TB-01-C's real specimen) must
+    never be misclassified as a usage-limit stub, while a genuine 429
+    spend-limit stub must still be caught. Mutation leg: flipping the good
+    fixture's `is_error` to true and giving it the real limit message must
+    flip the verdict, so the check is not vacuously returning one constant."""
+    good = json.dumps(
+        {
+            "type": "result",
+            "is_error": False,
+            "api_error_status": None,
+            "result": (
+                "Discussing GraphQL vs REST: one driver is reducing round trips and "
+                "avoiding client-side rate limiting concerns. " + "word " * 200
+            ),
+        }
+    )
+    if is_limit_stub(good):
+        return (
+            "a complete non-error answer mentioning 'rate limiting' was misclassified "
+            "as a usage-limit stub (the TB-01-C false-positive class)"
+        )
+    real_stub_path = REPO_ROOT / "tests/trackb-run-v9.15/raw/TB-06-T.a1.limit-stub.jsonl"
+    if real_stub_path.is_file():
+        if not is_limit_stub(real_stub_path.read_text(encoding="utf-8")):
+            return f"{real_stub_path} (a genuine 429 spend-limit stub) was not detected"
+    mutated = json.dumps(
+        {
+            "type": "result",
+            "is_error": True,
+            "api_error_status": 429,
+            "result": "You've hit your monthly spend limit",
+        }
+    )
+    if not is_limit_stub(mutated):
+        return "mutation check: an is_error=true/429 result was not detected as a stub"
+    return None
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("C01-rubric-format-neutral", _c01_rubric_is_format_neutral),
     ("C02-rubric-neutralises-format-and-length", _c02_rubric_declares_format_carries_no_marks),
@@ -2093,6 +2154,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("C24-delivered-file-accepted", _c24_delivered_file_accepted),
     ("C25-spent-protocol-refuses", _c25_spent_protocol_refuses),
     ("C26-unchanged-is-verbatim", _c26_unchanged_is_verbatim),
+    ("C27-limit-stub-false-positive-fixed", _c27_is_limit_stub_false_positive_fixed),
 )
 
 

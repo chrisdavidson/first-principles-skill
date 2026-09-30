@@ -240,6 +240,40 @@ before any registered cell runs. No amendment is made after the first registered
 
 None as of registration.
 
+### Mid-run mechanics correction, 2026-09-30
+
+Not a protocol, sample, threshold or invocation change — nothing decision-relevant in §§1-6
+above moves. Recorded here because it is a dated, mechanics-only correction discovered mid-run,
+and the log for that is this section, not a silent code edit.
+
+**What happened.** During generation, `TB-01-C` attempt 1 completed as a genuine, complete
+answer (`is_error: false`, a non-empty final `result` text, no API error) discussing GraphQL vs
+REST trade-offs, including its own prose mention of "rate limiting" concerns. `is_limit_stub()`'s
+regex fallback — a tail-of-stdout scan for `usage limit|rate limit` combined with the absence of
+`parent_tool_use_id` — misfired on that prose: arm C never carries `parent_tool_use_id` (it has
+no subagent thread at all), so the fallback's second guard was trivially satisfied and the
+answer's own words tripped the first. The capture was wrongly renamed to
+`TB-01-C.a1.limit-stub.jsonl` and the run paused (exit 3) as if a genuine usage limit had been
+hit.
+
+**Fix.** `is_limit_stub()` now checks the stream's final `result` event FIRST: if `is_error` is
+true or `api_error_status == 429`, it is a stub (the genuine detector, unchanged in substance —
+confirmed against the real frozen 429 specimen, `TB-06-T.a1.limit-stub.jsonl`); if `is_error` is
+false and `result` is non-empty, it is never a stub, regardless of its wording. The tail-regex
+fallback now runs only when no final `result` event exists at all (a genuinely truncated or
+killed capture) or one with `is_error` false and an empty `result`. A new self-test control
+(`C27`) pins both directions plus a mutation leg (flipping `is_error` on the good fixture must
+flip the verdict), so the fix cannot regress silently.
+
+**Disposition of the affected cell.** `TB-01-C` attempt 1 was not re-generated: the existing
+capture is a genuine, complete, unaided answer to the byte-identical prompt, and discarding it
+in favour of a fresh generation would burn a second live call for no reason and would not make
+the record any more honest. It is adopted as `TB-01-C`'s scored attempt 1: the raw capture is
+restored to its ordinary name (`TB-01-C.a1.jsonl`, dropping the erroneous `.limit-stub` middle
+segment) and `cells.json` records `outcome: "scored"` with a `reclassified_by` note pointing at
+this amendment, rather than being silently overwritten as if the misclassification never
+happened.
+
 ## 6. What this run cannot establish, whatever it returns
 
 Carried from §8 of the superseded document, with one bullet replaced (the invocation described
