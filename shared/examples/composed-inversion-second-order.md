@@ -262,7 +262,9 @@ acceptance criterion documented and signed off by the team owning downstream con
 
 ---
 
-## Validation Rubric Verdict
+## Appendix — process output
+
+## Self-Audit Gate (process output)
 
 *Scored against `references/validation-rubric.md`. Six criteria evaluated in order.*
 
@@ -339,3 +341,5 @@ section that did not appear earlier.
 **Overall verdict: PASS**
 
 No criterion is at Hand-wavy or Absent. Gate cleared; hand-wavy cap cleared.
+
+**Gate result:** cleared · passes: 1 · Fix/Repeat fired: no

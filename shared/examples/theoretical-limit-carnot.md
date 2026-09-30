@@ -275,6 +275,8 @@ declines to assert.
 
 ## 5. Abandoned Reasoning
 
+### Dead End: The Curzon-Ahlborn bound, tried as a tighter middle tier
+
 **The Curzon-Ahlborn bound, tried as a tighter middle tier and rejected.** An endoreversible
 engine at maximum power is bounded by η_CA = 1 − √(T_cold/T_hot), which for this reservoir
 pair gives 38.6% wet-cooled and 37.2% air-cooled. That is tighter than Carnot and looks like
@@ -282,6 +284,8 @@ the "practical" ceiling the bracket wants. It was discarded because the design f
 **exceeds** it — 43.0% against 38.6% — so it is not a bound on this machine at all.
 Curzon-Ahlborn describes an engine tuned for maximum power output, and a plant tuned for
 efficiency beats it. Promoting it to a tier would have understated what is already designed and built.
+
+### Dead End: The molten-salt tank pair, tried as the reservoir pair
 
 **The molten-salt tank pair, tried as the reservoir pair and rejected.** Taking the 290 °C
 cold tank as the cold reservoir is arithmetically well-formed and yields a much tighter

@@ -271,7 +271,9 @@ to HIGH requires the Stage 2 productivity-outcome survey with a statistically va
 
 ---
 
-## Validation Rubric Verdict
+## Appendix — process output
+
+## Self-Audit Gate (process output)
 
 *Scored against `references/validation-rubric.md`. Six criteria evaluated in order.*
 
@@ -353,3 +355,5 @@ narrow verified set — which conventional reasoning would have missed.
 Five criteria score Rigorous; Criterion 3 scores Sound (GT-1 feeds only a MEDIUM chain). No
 criterion is at Hand-wavy or Absent. Gate cleared (no Absent); hand-wavy cap cleared (zero
 Hand-wavy criteria).
+
+**Gate result:** cleared · passes: 1 · Fix/Repeat fired: no
