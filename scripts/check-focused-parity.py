@@ -112,7 +112,7 @@ EXPECTED_STUB_COUNT = 13
 # `shared/` — DUAL-04 already guarantees `shared/` and the emitted tree
 # agree, and D-11's scope for this gate is "what actually ships."
 AGENT_FILE = REPO_ROOT / "first-principles" / "agents" / "first-principles.md"
-AGENT_REFERENCES_DIR = REPO_ROOT / "first-principles" / "agents" / "references"
+AGENT_REFERENCES_DIR = REPO_ROOT / "first-principles" / "references"
 
 # ---------------------------------------------------------------------------
 # Whitespace-insensitive matching machinery — copied in shape from
@@ -385,7 +385,7 @@ _AGENT_VALIDATE_RETIRED = "Derivation Chains, Second-Order Effects when applicab
 _AGENT_EXECUTION_BRANCHING_LABEL = "**Execution branching.**"
 _AGENT_FULL_COMPOSER_ANCHOR = "MODE = full-composer"
 
-# D-11's interfaces block, live-verified: `agents/references/` emits only the
+# D-11's interfaces block, live-verified: `first-principles/references/` emits only the
 # 8 TOOLS slugs, never the five phase slugs — so Agent-7 iterates this
 # explicit three-slug tuple (the three D-04 gave a stated Exit criterion),
 # not a 13-way loop, which would raise FileNotFoundError against a directory
@@ -1057,7 +1057,7 @@ def _check_agent_surface(
     *agent_text* is the emitted agent body
     (`first-principles/agents/first-principles.md`). *reference_texts* maps
     each of `_AGENT_REFERENCE_SLUGS` (fishbone, pre-mortem, second-order —
-    NOT all 13; `agents/references/` only emits the 8 TOOLS slugs, per this
+    NOT all 13; `first-principles/references/` only emits the 8 TOOLS slugs, per this
     plan's live-verified interfaces block) to that file's full text.
     *fishbone_stub_text* is the emitted `skills/fishbone/SKILL.md` body,
     checked for the D-05 clamp-safety case (Agent-8).
@@ -1170,7 +1170,7 @@ def _check_agent_surface(
         if text is None:
             failures.append(
                 "Agent-7 (D-04/D-06, agent reference conditions): "
-                f"agents/references/{slug}.md text was not supplied to the "
+                f"first-principles/references/{slug}.md text was not supplied to the "
                 "checker"
             )
             continue
@@ -1178,7 +1178,7 @@ def _check_agent_surface(
         if count != 1:
             failures.append(
                 "Agent-7 (D-04/D-06, agent reference conditions): "
-                f"agents/references/{slug}.md carries {_EXIT_CRITERION_LINE!r} "
+                f"first-principles/references/{slug}.md carries {_EXIT_CRITERION_LINE!r} "
                 f"{count} time(s), expected exactly 1"
             )
             continue
@@ -1186,7 +1186,7 @@ def _check_agent_surface(
         if bounds is None:
             failures.append(
                 "Agent-7 (D-04/D-06, agent reference conditions): "
-                f"agents/references/{slug}.md has no '## Procedure' heading"
+                f"first-principles/references/{slug}.md has no '## Procedure' heading"
             )
             continue
         match = _find_flex(text, _EXIT_CRITERION_LINE)
@@ -1194,7 +1194,7 @@ def _check_agent_surface(
         if not (bounds[0] <= match.start() < bounds[1]):
             failures.append(
                 "Agent-7 (D-04/D-06, agent reference conditions): "
-                f"agents/references/{slug}.md's {_EXIT_CRITERION_LINE!r} "
+                f"first-principles/references/{slug}.md's {_EXIT_CRITERION_LINE!r} "
                 "line falls outside its '## Procedure' section"
             )
 

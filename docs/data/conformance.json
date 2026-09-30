@@ -726,7 +726,7 @@
     },
     {
       "surface": "generated-twin",
-      "relpath": "first-principles/agents/references/examples/composed-inversion-second-order.md",
+      "relpath": "first-principles/references/examples/composed-inversion-second-order.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 1,
       "heading_malformed_blocks": 0,
@@ -771,7 +771,7 @@
     },
     {
       "surface": "generated-twin",
-      "relpath": "first-principles/agents/references/examples/decompose-irreducibility.md",
+      "relpath": "first-principles/references/examples/decompose-irreducibility.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 1,
       "heading_malformed_blocks": 0,
@@ -816,7 +816,7 @@
     },
     {
       "surface": "generated-twin",
-      "relpath": "first-principles/agents/references/examples/estimate-fermi.md",
+      "relpath": "first-principles/references/examples/estimate-fermi.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 1,
       "heading_malformed_blocks": 0,
@@ -861,7 +861,7 @@
     },
     {
       "surface": "generated-twin",
-      "relpath": "first-principles/agents/references/examples/ishikawa-fishbone.md",
+      "relpath": "first-principles/references/examples/ishikawa-fishbone.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 3,
       "heading_malformed_blocks": 0,
@@ -906,7 +906,7 @@
     },
     {
       "surface": "generated-twin",
-      "relpath": "first-principles/agents/references/examples/personal-general-2.md",
+      "relpath": "first-principles/references/examples/personal-general-2.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 3,
       "heading_malformed_blocks": 0,
@@ -951,7 +951,7 @@
     },
     {
       "surface": "generated-twin",
-      "relpath": "first-principles/agents/references/examples/personal-general.md",
+      "relpath": "first-principles/references/examples/personal-general.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 2,
       "heading_malformed_blocks": 0,
@@ -996,7 +996,7 @@
     },
     {
       "surface": "generated-twin",
-      "relpath": "first-principles/agents/references/examples/product-business-2.md",
+      "relpath": "first-principles/references/examples/product-business-2.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 3,
       "heading_malformed_blocks": 0,
@@ -1041,7 +1041,7 @@
     },
     {
       "surface": "generated-twin",
-      "relpath": "first-principles/agents/references/examples/product-business.md",
+      "relpath": "first-principles/references/examples/product-business.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 3,
       "heading_malformed_blocks": 0,
@@ -1086,7 +1086,7 @@
     },
     {
       "surface": "generated-twin",
-      "relpath": "first-principles/agents/references/examples/science-engineering-2.md",
+      "relpath": "first-principles/references/examples/science-engineering-2.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 2,
       "heading_malformed_blocks": 0,
@@ -1131,7 +1131,7 @@
     },
     {
       "surface": "generated-twin",
-      "relpath": "first-principles/agents/references/examples/science-engineering.md",
+      "relpath": "first-principles/references/examples/science-engineering.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 2,
       "heading_malformed_blocks": 0,
@@ -1176,7 +1176,7 @@
     },
     {
       "surface": "generated-twin",
-      "relpath": "first-principles/agents/references/examples/self-application.md",
+      "relpath": "first-principles/references/examples/self-application.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 3,
       "heading_malformed_blocks": 0,
@@ -1221,7 +1221,7 @@
     },
     {
       "surface": "generated-twin",
-      "relpath": "first-principles/agents/references/examples/software-systems-2.md",
+      "relpath": "first-principles/references/examples/software-systems-2.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 3,
       "heading_malformed_blocks": 0,
@@ -1266,7 +1266,7 @@
     },
     {
       "surface": "generated-twin",
-      "relpath": "first-principles/agents/references/examples/software-systems.md",
+      "relpath": "first-principles/references/examples/software-systems.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 3,
       "heading_malformed_blocks": 0,
@@ -1311,7 +1311,7 @@
     },
     {
       "surface": "generated-twin",
-      "relpath": "first-principles/agents/references/examples/theoretical-limit-carnot.md",
+      "relpath": "first-principles/references/examples/theoretical-limit-carnot.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 1,
       "heading_malformed_blocks": 0,

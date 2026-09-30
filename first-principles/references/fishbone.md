@@ -24,7 +24,7 @@ problem recurs despite surface fixes and the cause is unclear; you need a struct
 to ensure no category of cause is overlooked before narrowing focus.
 
 **Not a good fit:** the problem has a single traceable causal chain and you need to drill
-to the root cause — that calls for a [5-Whys](${CLAUDE_PLUGIN_ROOT}/agents/references/five-whys.md) analysis instead, which is a
+to the root cause — that calls for a [5-Whys](${CLAUDE_PLUGIN_ROOT}/references/five-whys.md) analysis instead, which is a
 depth-first root-cause drill down one causal chain rather than a breadth-first map across
 categories.
 
@@ -135,7 +135,7 @@ an explicit statement that none was found, and the highest-priority branches for
 evidence gathering or further depth are named. A reader can tell which causes were
 tested, which are still candidates, and what would tell them apart.
 
-**Read [fishbone-detail.md](${CLAUDE_PLUGIN_ROOT}/agents/references/fishbone-detail.md) when you need:**
+**Read [fishbone-detail.md](${CLAUDE_PLUGIN_ROOT}/references/fishbone-detail.md) when you need:**
 - a worked example of this technique
 - the failure modes and how to avoid them
 - handoff guidance to another technique

@@ -7,7 +7,7 @@
 - `branch_count`: `17`
 - `control_ids` (87): `a`, `aa`, `ab`, `ac`, `ad`, `ae`, `af`, `ag`, `ah`, `ai`, `aj`, `ak`, `al`, `am`, `an`, `ao`, `ap`, `aq`, `ar`, `as`, `at`, `au`, `av`, `aw`, `ax`, `ay`, `az`, `b`, `ba`, `bb`, `bc`, `bd`, `be`, `bf`, `bg`, `bh`, `bi`, `bj`, `bk`, `bl`, `bm`, `bn`, `bo`, `bp`, `bq`, `br`, `bs`, `bt`, `bu`, `bv`, `bw`, `bx`, `by`, `bz`, `c`, `ca`, `cb`, `cb`, `cc`, `cd`, `coh`, `cov`, `d`, `e`, `f`, `g`, `h`, `i`, `j`, `k`, `l`, `m`, `n`, `o`, `p`, `q`, `r`, `roster-floor-extra`, `roster-floor-missing`, `s`, `t`, `u`, `v`, `w`, `x`, `y`, `z`
 - `control_count`: `87`
-- `checked_files` (2): `first-principles/agents/first-principles.md`, `first-principles/agents/references/validation-rubric.md`
+- `checked_files` (2): `first-principles/agents/first-principles.md`, `first-principles/references/validation-rubric.md`
 - `disclosed_bounds_anchors` (4): `literal-anchor-not-semantics`, `b16-imperative-inversion-only`, `body-13-predicate-not-semantics`, `no-live-measurement-layer`
 <!-- END GENERATED:FACTS -->
 

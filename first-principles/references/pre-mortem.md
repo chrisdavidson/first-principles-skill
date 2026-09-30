@@ -16,7 +16,7 @@ Not the right tool for evaluating options (use trade-off analysis) or for tracin
 something that already went wrong (use 5-Whys).
 
 **Decision rule — pre-mortem vs. inversion:** pre-mortem stress-tests a **plan**;
-[inversion](${CLAUDE_PLUGIN_ROOT}/agents/references/inversion.md) stress-tests a **claim**. If a concrete plan with actions and a
+[inversion](${CLAUDE_PLUGIN_ROOT}/references/inversion.md) stress-tests a **claim**. If a concrete plan with actions and a
 timeline exists, pre-mortem is the right tool — it reasons about implementation failure
 modes that claim-level inversion cannot see. With only a stated belief, conclusion, or
 design principle in hand, inversion fits better. This is the same boundary

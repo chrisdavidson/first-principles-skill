@@ -148,10 +148,17 @@ ENTRIES: tuple[GateEntry, ...] = (
         script=None,
         run_command="claude plugin validate ./first-principles",
         summary=(
-            "Plugin manifest schema validity via the `claude` CLI. Spends zero model "
-            "tokens. Does NOT validate the agent frontmatter — the CLI walks "
-            "subdirectories of `agents/` and never inspects a flat `agents/*.md`, so "
-            "GATE-01 is the sole validator of agent frontmatter."
+            "Plugin manifest schema validity via `claude plugin validate`. Spends "
+            "zero model tokens. Does NOT validate the agent frontmatter — the CLI "
+            "walks subdirectories of `agents/` and never inspects a flat "
+            "`agents/*.md`, so GATE-01 is the sole validator of agent frontmatter. "
+            "That same walk is a runtime fact, not just a validator quirk: at "
+            "session start Claude Code registers every Markdown file it finds in a "
+            "subdirectory of a plugin's `agents/` tree as its own selectable agent "
+            "type, which is why the reference tree ships at "
+            "`first-principles/references/` rather than nested under `agents/`, "
+            "and why `sync-content.py --check` fails on any stray file reappearing "
+            "under `first-principles/agents/`."
         ),
         static_facts={"tool": "claude plugin validate", "spends_model_tokens": 0},
     ),

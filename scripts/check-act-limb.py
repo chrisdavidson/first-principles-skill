@@ -11,7 +11,7 @@ Operation (open the cited source with Read/Grep/WebFetch before assigning
 Criterion 3's Hand-wavy band in `shared/spine/references/validation-rubric.md`. This
 gate asserts both edits against the **emitted** tree —
 `first-principles/agents/first-principles.md` and
-`first-principles/agents/references/validation-rubric.md` — never against `shared/`,
+`first-principles/references/validation-rubric.md` — never against `shared/`,
 because the emitted tree is what the model actually loads at runtime; `DUAL-04`
 (`sync-content.py --check`) already guarantees `shared/` and the emitted tree agree,
 so asserting on the tree transitively covers the source.
@@ -72,7 +72,7 @@ from pathlib import Path
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 AGENT_FILE: Path = REPO_ROOT / "first-principles" / "agents" / "first-principles.md"
 RUBRIC_FILE: Path = (
-    REPO_ROOT / "first-principles" / "agents" / "references" / "validation-rubric.md"
+    REPO_ROOT / "first-principles" / "references" / "validation-rubric.md"
 )
 
 # Section heading anchors — slice boundaries in the emitted tree.

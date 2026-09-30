@@ -3,7 +3,7 @@
 <!-- GENERATED:FACTS -->
 ## Facts
 
-- `registered_surfaces` (2): `first-principles/agents/references/validation-rubric.md`, `shared/spine/references/validation-rubric.md`
+- `registered_surfaces` (2): `first-principles/references/validation-rubric.md`, `shared/spine/references/validation-rubric.md`
 - `derived_counts` (1 entries): `except_exception_count`=3
 - `disclosed_bounds_anchors` (3): `(a)`, `(b)`, `(c)`
 <!-- END GENERATED:FACTS -->

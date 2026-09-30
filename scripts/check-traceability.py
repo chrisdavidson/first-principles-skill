@@ -771,7 +771,7 @@ class MatrixRow:
       - P-SKILL: a path under `shared/skills/<slug>/` or `first-principles/skills/<slug>/`
         names that slug.
       - P-REF (Claude's Discretion, stated once here): `shared/references/<slug>.md`, its
-        `-detail.md` sibling, or the matching `first-principles/agents/references/<slug>.md`
+        `-detail.md` sibling, or the matching `first-principles/references/<slug>.md`
         path names the slug PLUS `agent` — that procedure text is emitted into both the
         agent reference sibling and the skill stub, so both shipped surfaces carry it.
       - P-DIR (D-10, locked by default): a bare `first-principles/skills` or `shared/skills`
@@ -1089,37 +1089,37 @@ def _rows_methodology_agent_cont() -> list[MatrixRow]:
                   rerun_by="none"),
         # v3.2 — worked examples + rubric (META-*/META-Q-*)
         MatrixRow("v3.2/META-01", "META-01", "v3.2", "Methodology",
-                  "first-principles/agents/references/examples",
+                  "first-principles/references/examples",
                   "audit-only", "", audit_v32,
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="none"),
         MatrixRow("v3.2/META-02", "META-02", "v3.2", "Methodology",
-                  "first-principles/agents/references/assumption-taxonomy.md",
+                  "first-principles/references/assumption-taxonomy.md",
                   "audit-only", "", audit_v32,
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="none"),
         MatrixRow("v3.2/META-03-SW", "META-03-SW", "v3.2", "Methodology",
-                  "first-principles/agents/references/examples",
+                  "first-principles/references/examples",
                   "audit-only", "", audit_v32,
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="none"),
         MatrixRow("v3.2/META-03-PB", "META-03-PB", "v3.2", "Methodology",
-                  "first-principles/agents/references/examples",
+                  "first-principles/references/examples",
                   "audit-only", "", audit_v32,
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="none"),
         MatrixRow("v3.2/META-03-PG", "META-03-PG", "v3.2", "Methodology",
-                  "first-principles/agents/references/examples",
+                  "first-principles/references/examples",
                   "audit-only", "", audit_v32,
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="none"),
         MatrixRow("v3.2/META-03-SE", "META-03-SE", "v3.2", "Methodology",
-                  "first-principles/agents/references/examples",
+                  "first-principles/references/examples",
                   "audit-only", "", audit_v32,
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
@@ -1137,7 +1137,7 @@ def _rows_methodology_agent_cont() -> list[MatrixRow]:
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="none"),
         MatrixRow("v3.2/META-Q3", "META-Q3", "v3.2", "Methodology",
-                  "first-principles/agents/references/examples",
+                  "first-principles/references/examples",
                   "audit-only", "", audit_v32,
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
@@ -1388,28 +1388,28 @@ def _rows_methodology_focused_stubs() -> list[MatrixRow]:
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="none"),
         MatrixRow("v3.13/TAX-01", "TAX-01", "v3.13", "Methodology",
-                  "first-principles/agents/references/assumption-taxonomy.md",
+                  "first-principles/references/assumption-taxonomy.md",
                   "audit-only", "",
                   "Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate",
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="none"),
         MatrixRow("v3.13/TAX-02", "TAX-02", "v3.13", "Methodology",
-                  "first-principles/agents/references/assumption-taxonomy.md",
+                  "first-principles/references/assumption-taxonomy.md",
                   "audit-only", "",
                   "Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate",
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="none"),
         MatrixRow("v3.13/WKEX-01", "WKEX-01", "v3.13", "Methodology",
-                  "first-principles/agents/references/examples",
+                  "first-principles/references/examples",
                   "audit-only", "",
                   "Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate",
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="none"),
         MatrixRow("v3.13/WKEX-02", "WKEX-02", "v3.13", "Methodology",
-                  "first-principles/agents/references/examples",
+                  "first-principles/references/examples",
                   "audit-only", "",
                   "Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate",
                   surfaces=("agent",),
@@ -2984,7 +2984,7 @@ def _rows_v819() -> list[MatrixRow]:
     `scripts/check-high-confidence-bound.py` red on every one of their K1 clauses (deleting
     or mutating the Criterion 3/Criterion 5 tightening sentence, or one of the three lettered
     Exceptions Summary entries, in both `shared/spine/references/validation-rubric.md` and
-    `first-principles/agents/references/validation-rubric.md`).
+    `first-principles/references/validation-rubric.md`).
 
     Capability assignment: HC-01, HC-02 and HC-03 change the rubric's own prose (a
     Rigorous-band tightening and its documented exceptions), so they are Methodology; HC-04 is
@@ -6152,7 +6152,7 @@ def _rows_v95() -> list[MatrixRow]:
                   'audit-only', '', _audit_pass02_anchored_read_v95,
                   surfaces=('agent',),
                   statement=(
-                      "The prescription opens the procedure by anchored Read (${CLAUDE_PLUGIN_ROOT}/agents/references/…), not by the {{TOOL:}} token, because that token substitutes \"the inlined pre-mortem procedure\" and the procedure is not inlined — instructing the agent to apply an inlined procedure that does not exist is an instruction to work from recollection, which is the defect being fixed."
+                      "The prescription opens the procedure by anchored Read (${CLAUDE_PLUGIN_ROOT}/references/…), not by the {{TOOL:}} token, because that token substitutes \"the inlined pre-mortem procedure\" and the procedure is not inlined — instructing the agent to apply an inlined procedure that does not exist is an instruction to work from recollection, which is the defect being fixed."
                   ),
                   rerun_by='none'),
         MatrixRow('v9.5/PASS-03', 'PASS-03', 'v9.5', 'Methodology',

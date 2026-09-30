@@ -122,8 +122,10 @@ question is whether the budget tracks anything the agent actually depends on.
   recommended-but-not-required..."). Described rather than reproduced: writing the
   link out verbatim made this quotation a *live* link that resolved to
   `agents/references/examples/references/…` and broke. Quoted as the body stood
-  when this example was written; it has since moved to the plugin-root-anchored
-  form `${CLAUDE_PLUGIN_ROOT}/agents/references/assumption-taxonomy.md` (v8.17.3),
+  when this example was written; the link then moved to a plugin-root-anchored
+  form nested under `agents/` (v8.17.3), and the reference tree has since moved
+  out of `agents/` entirely, to
+  [assumption-taxonomy.md](${CLAUDE_PLUGIN_ROOT}/references/assumption-taxonomy.md),
   which does not disturb the point being made here. The pattern (link out, one
   level deep, with a one-line description of what the reader will find there)
   is therefore precedent — not novel — for this agent surface. No regression in

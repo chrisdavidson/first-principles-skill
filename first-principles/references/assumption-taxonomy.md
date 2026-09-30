@@ -8,7 +8,7 @@
 > `untested belief` — are preserved verbatim. This file adds **within-type subtypes**, each
 > with a prescribed treatment that refines (does not replace) the parent type's treatment.
 > Subtypes are grounded exclusively in evidence from the six shipped worked examples under
-> `first-principles/agents/references/examples/`.
+> `first-principles/references/examples/`.
 >
 > Come here when classifying a non-trivial assumption and the parent-type treatment feels too
 > coarse to prescribe a specific next action. Stay in `output-template.md` if the parent
@@ -66,10 +66,10 @@ convention until those variables have been observed (or stated as expiry conditi
 the chain that consumes it).
 
 **Cited evidence:**
-- `first-principles/agents/references/examples/software-systems.md` — assumption row
+- `first-principles/references/examples/software-systems.md` — assumption row
   "Microservices enable faster deploys" (Type: convention; Verdict: Challenge; depends on
   team maturity, pipeline design, inter-service dependency topology).
-- `first-principles/agents/references/examples/composed-inversion-second-order.md` —
+- `first-principles/references/examples/composed-inversion-second-order.md` —
   assumption row "Redis-in-front-of-Postgres is a viable read-through pattern at our
   scale" (Type: convention; Treatment: "convention is correct in general but says nothing
   about whether our specific read shape benefits"; Verdict: Challenge — pattern viability
@@ -88,7 +88,7 @@ the convention. The Challenge re-applies (with Verdict potentially shifting to D
 if those domain assumptions do not hold for the specific application.
 
 **Cited evidence:**
-- `first-principles/agents/references/examples/science-engineering.md` — assumption row
+- `first-principles/references/examples/science-engineering.md` — assumption row
   "A system derating factor of 0.80 accounts for all losses in the energy path from
   panels to delivered load…" (Type: convention; Verdict: Accept; cited to
   NREL/NABCEP off-grid design guidelines; the 0.80 factor is a conservative
@@ -107,12 +107,12 @@ conditions hold for our case. Treating analogy as direct evidence is also flagge
 `validation-rubric.md` Criterion 4 as a Hand-wavy pattern.
 
 **Cited evidence:**
-- `first-principles/agents/references/examples/product-business.md` — assumption row
+- `first-principles/references/examples/product-business.md` — assumption row
   "All our competitors have a free tier, so we need one" (Type: convention; Verdict:
   Discard; Verification: "Analogy-as-evidence move. Competitor adoption of a pricing
   model is not evidence that the same model is economically viable for this product in
   this ICP segment at this ARR stage.").
-- `first-principles/agents/references/examples/composed-inversion-second-order.md` —
+- `first-principles/references/examples/composed-inversion-second-order.md` —
   Dead End discussion in §Abandoned Reasoning where skipping the inversion pass by
   analogy to other caching projects is rejected because the analogy is not grounded in a
   named GT about the analogue.
@@ -131,7 +131,7 @@ ICP mismatch), the default response is reaching past the actual root cause and t
 Verdict should reflect that mismatch rather than the default's general plausibility.
 
 **Cited evidence:**
-- `first-principles/agents/references/examples/ishikawa-fishbone.md` — assumption row
+- `first-principles/references/examples/ishikawa-fishbone.md` — assumption row
   "A full product overhaul is required to halt churn" (Type: convention; Verdict:
   Challenge; the highest-frequency exit-interview signal is "felt unsupported," not a
   product-feature complaint — the product-overhaul framing is the cognitively-available
@@ -157,14 +157,14 @@ decision. Expiry is a negotiation or external-event move, not a measurement — 
 that depend on the constraint inherit that dependency explicitly.
 
 **Cited evidence:**
-- `first-principles/agents/references/examples/personal-general.md` — assumption row
+- `first-principles/references/examples/personal-general.md` — assumption row
   "The in-office three-days-per-week requirement is stable for this decision horizon"
   (Type: current constraint; expiry conditional on the offering company's remote policy
   changing or being renegotiated at signing).
-- `first-principles/agents/references/examples/personal-general.md` — assumption row
+- `first-principles/references/examples/personal-general.md` — assumption row
   "The partner's Portland-based career cannot relocate" (Type: current constraint;
   expiry conditional on the partner's employer offering remote or an SF transfer).
-- `first-principles/agents/references/examples/software-systems.md` — borderline case:
+- `first-principles/references/examples/software-systems.md` — borderline case:
   assumption row "Slow deploys are causing meaningful, ongoing business harm"
   (Type: current constraint; expiry conditional on product velocity requirements
   decreasing — an external business-leadership decision rather than a measurement).
@@ -181,7 +181,7 @@ re-running the whole analysis. The expiry condition should reference the measure
 ("constraint inverts when X exceeds Y"), not the existence of the constraint.
 
 **Cited evidence:**
-- `first-principles/agents/references/examples/personal-general.md` — assumption row
+- `first-principles/references/examples/personal-general.md` — assumption row
   "San Francisco cost of living increase partially offsets the nominal compensation
   gain" (Type: current constraint; Verdict: Accept; the offset is real and quantified
   via GT-2's $1,300/month rent gap, making the constraint re-evaluable at any later
@@ -206,7 +206,7 @@ that consumes a diagnostic belief without differential evidence inherits the dia
 ambiguity into the conclusion's confidence rating.
 
 **Cited evidence:**
-- `first-principles/agents/references/examples/software-systems.md` — assumption row
+- `first-principles/references/examples/software-systems.md` — assumption row
   "The deploy bottleneck is architectural coupling in the monolith" (Type: untested
   belief; Verdict: Challenge; Verification: "no pipeline profiling data has been
   collected; the 45-minute runtime is consistent with both architectural and
@@ -226,12 +226,12 @@ of the specific assumption the inversion pass exposed. Do not re-derive a verifi
 plan from scratch — the tool already specifies one.
 
 **Cited evidence:**
-- `first-principles/agents/references/examples/ishikawa-fishbone.md` — assumption rows
+- `first-principles/references/examples/ishikawa-fishbone.md` — assumption rows
   "Onboarding failure leaves customers under-activated" and "Accounts without a
   dedicated CSM churn at a higher rate" (Type: untested belief; both surfaced by the
   fishbone categorisation; both prescribe segment-and-compare verification — adoption
   scores by churn cohort; churn rate by CSM coverage status).
-- `first-principles/agents/references/examples/composed-inversion-second-order.md` —
+- `first-principles/references/examples/composed-inversion-second-order.md` —
   the five assumption rows attributed in the **Source** column to `inversion pass`
   (e.g., "Cache hit rate at steady state is high enough to cross the read-QPS
   upgrade-threshold"; "The cached working set fits in the Redis memory budget"; "A
@@ -252,7 +252,7 @@ the hinge value. A HIGH-confidence rating on a chain that consumes an unverified
 economic-hinge belief is incompatible with Criterion 5 of `validation-rubric.md`.
 
 **Cited evidence:**
-- `first-principles/agents/references/examples/product-business.md` — assumption row
+- `first-principles/references/examples/product-business.md` — assumption row
   "Free users convert to paid at a meaningful rate" (Type: untested belief; Treatment:
   "Conversion rate is the economic hinge of the entire decision"; Verdict: Challenge;
   Verification: "no conversion data exists for this product in this ICP segment").
@@ -270,7 +270,7 @@ defensible) answer. If both methods produce the same answer, the methodology bel
 verified and may be promoted to a `convention — design-practice (codified)` reference.
 
 **Cited evidence:**
-- `first-principles/agents/references/examples/science-engineering.md` — assumption row
+- `first-principles/references/examples/science-engineering.md` — assumption row
   "Sizing the battery to sustain peak instantaneous load continuously is the correct
   approach" (Type: untested belief; Verdict: Discard; the alternative method —
   energy-balance over a 24-hour cycle accounting for actual run-time of the 250 W pump
@@ -288,7 +288,7 @@ reversibility. Verdict is typically Discard once a non-binary path is documented
 analysis.
 
 **Cited evidence:**
-- `first-principles/agents/references/examples/software-systems.md` — assumption row
+- `first-principles/references/examples/software-systems.md` — assumption row
   "A full rewrite or big-bang migration is required to change the architecture"
   (Type: untested belief; Verdict: Discard; the strangler-fig pattern is the documented
   intermediate path; the binary framing collapses once the intermediate is named).
@@ -312,7 +312,7 @@ skeptic can re-derive the composite from the primitives without trusting the com
 as an axiom.
 
 **Cited evidence:**
-- `first-principles/agents/references/examples/science-engineering.md` — assumption row
+- `first-principles/references/examples/science-engineering.md` — assumption row
   "A panel array's daily output equals rated wattage × Peak Sun Hours × system derating
   factor" (Type: physical law; Verification: "Derived directly from energy conservation
   and the definition of PSH" — the derivation explicitly names the constituent
@@ -364,13 +364,13 @@ also satisfy Criterion 2 — subtype use is recommended, not required.
 
 Two shipped worked-example rows use types **outside** the four-type scheme:
 
-- `first-principles/agents/references/examples/composed-inversion-second-order.md` —
+- `first-principles/references/examples/composed-inversion-second-order.md` —
   the row "The listings endpoint is the dominant contributor to Postgres read-QPS at
   peak" carries Type: `factual`. The nearest taxonomy slot is "a verified GT-candidate";
   it does not need a four-type slot because it was confirmed against the Q3 query-log
   sample at the time of the assumptions pass and behaves as a ground truth from there
   forward.
-- `first-principles/agents/references/examples/composed-inversion-second-order.md` —
+- `first-principles/references/examples/composed-inversion-second-order.md` —
   the row "A two-engineer-week cache rollout is the lowest-cost intervention to defer
   the upgrade" carries Type: `value`. The nearest taxonomy slot is
   `convention — value-framing` (a candidate subtype that does not yet meet the D-06
@@ -389,7 +389,7 @@ inline, and treating `value` as a `convention` flagged for challenge until the
 ## Skeptic Self-Test Walkthrough
 
 This section re-classifies the five assumption rows in
-`first-principles/agents/references/examples/software-systems.md` (the Classified
+`first-principles/references/examples/software-systems.md` (the Classified
 Assumptions Table at lines 47–51) using only the subtypes catalogued above. A skeptic
 reading this file in isolation should be able to follow the re-classification without
 needing any context outside this file and the cited row's text.

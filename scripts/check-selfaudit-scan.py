@@ -28,7 +28,7 @@ and before the Self-Audit Gate's verdict blocks. Plan 15-02 added a matching
 Criterion 6's `Quoted span:` requirement at the scan's two tables. This gate
 asserts both edits against the **emitted** tree —
 `first-principles/agents/first-principles.md` and
-`first-principles/agents/references/validation-rubric.md` — never against
+`first-principles/references/validation-rubric.md` — never against
 `shared/`, because the emitted tree is what the model actually loads at runtime;
 `DUAL-04` (`sync-content.py --check`) already guarantees `shared/` and the emitted
 tree agree, so asserting on the emitted tree transitively covers the source.
@@ -389,7 +389,7 @@ from pathlib import Path
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 AGENT_FILE: Path = REPO_ROOT / "first-principles" / "agents" / "first-principles.md"
 RUBRIC_FILE: Path = (
-    REPO_ROOT / "first-principles" / "agents" / "references" / "validation-rubric.md"
+    REPO_ROOT / "first-principles" / "references" / "validation-rubric.md"
 )
 
 # --- Body (agent) anchors -----------------------------------------------------

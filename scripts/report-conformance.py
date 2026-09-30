@@ -62,7 +62,7 @@ MD_PATH: Path = REPO_ROOT / "docs" / "conformance-baseline.md"
 JSON_PATH: Path = REPO_ROOT / "docs" / "data" / "conformance.json"
 
 SHARED_EXAMPLES_GLOB: str = "shared/examples/*.md"
-TWIN_EXAMPLES_GLOB: str = "first-principles/agents/references/examples/*.md"
+TWIN_EXAMPLES_GLOB: str = "first-principles/references/examples/*.md"
 CONTRACT_SURFACE_RELPATH: str = "shared/spine/references/output-template.md"
 ADVERSARIAL_CORPUS_GLOB: str = "tests/adversarial-corpus-v9.0/*.md"
 ADVERSARIAL_CORPUS_CATALOG: str = "tests/adversarial-corpus-v9.0/catalog.md"
@@ -3352,7 +3352,7 @@ def _make_minimum_tree(root: Path) -> None:
     shared_dir.mkdir(parents=True, exist_ok=True)
     for i in range(MIN_SHARED_EXAMPLES):
         (shared_dir / f"ex{i}.md").write_text("x", encoding="utf-8")
-    twin_dir = root / "first-principles" / "agents" / "references" / "examples"
+    twin_dir = root / "first-principles" / "references" / "examples"
     twin_dir.mkdir(parents=True, exist_ok=True)
     for i in range(MIN_TWIN_EXAMPLES):
         (twin_dir / f"ex{i}.md").write_text("x", encoding="utf-8")
@@ -3404,7 +3404,7 @@ def _control_floor_twin_short() -> None:
     with tempfile.TemporaryDirectory() as td:
         root = Path(td)
         _make_minimum_tree(root)
-        (root / "first-principles" / "agents" / "references" / "examples" / "ex0.md").unlink()
+        (root / "first-principles" / "references" / "examples" / "ex0.md").unlink()
         try:
             discover_artifacts(root)
         except DiscoveryFloorError as exc:

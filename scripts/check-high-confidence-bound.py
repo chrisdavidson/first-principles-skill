@@ -43,7 +43,7 @@ from pathlib import Path
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 CANONICAL_RUBRIC: Path = REPO_ROOT / "shared" / "spine" / "references" / "validation-rubric.md"
-EMITTED_RUBRIC: Path = REPO_ROOT / "first-principles" / "agents" / "references" / "validation-rubric.md"
+EMITTED_RUBRIC: Path = REPO_ROOT / "first-principles" / "references" / "validation-rubric.md"
 
 # --- Heading literals (identica in both canonical and emitted copies) ---
 _HOW_TO_APPLY = "## How to Apply This Gate"

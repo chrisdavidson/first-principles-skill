@@ -20644,7 +20644,7 @@ def _selftest_reference_reads() -> bool:
         "false" and subagent_read_calls 0 — a parent-session read is the
         developer's, not the run's (D-11).
     (j) TWO-SIDED ANTI-DRIFT FLOOR — every *.md file under
-        first-principles/agents/references/ classifies into exactly one
+        first-principles/references/ classifies into exactly one
         of the four buckets (rubric / output_template / technique /
         excluded), and every tail named in _REFERENCE_READ_TARGETS and
         _REFERENCE_READ_EXCLUDED_TAILS matches at least one file on disk —
@@ -21105,7 +21105,7 @@ def _selftest_reference_reads() -> bool:
                 ok = False
 
     # (j) two-sided anti-drift floor over the live shipped reference tree.
-    ref_dir = REPO_ROOT / "first-principles" / "agents" / "references"
+    ref_dir = REPO_ROOT / "first-principles" / "references"
     seen_buckets: dict[str, list[str]] = {
         "read_rubric": [],
         "read_output_template": [],

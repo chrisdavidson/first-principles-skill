@@ -25,7 +25,7 @@ Broken-ref stderr format (one line per broken ref, ctrl-click navigable):
 
 Scan surfaces (relative link checking + namespace ref checking):
     - first-principles/agents/first-principles.md          (agent spine)
-    - first-principles/agents/references/*.md              (agent companion refs)
+    - first-principles/references/*.md                     (agent companion refs)
     - first-principles/skills/*/references/*.md            (v8.5 GATE-01 — skill-stub
       companion refs; D-01. This glob matches ZERO files on the tree today —
       Phase 154 is what creates skills/*/references/. A vacuously-clean live
@@ -159,10 +159,10 @@ PLUGIN_ROOT_TOKEN_TARGET = "first-principles"
 # axes now apply to it.
 FULL_CHECK_GLOBS = [
     "first-principles/agents/first-principles.md",
-    "first-principles/agents/references/*.md",
+    "first-principles/references/*.md",
     "first-principles/skills/*/references/*.md",
     "first-principles/skills/*/SKILL.md",
-    "first-principles/agents/references/examples/*.md",
+    "first-principles/references/examples/*.md",
 ]
 
 # Scan globs: surfaces that receive namespace-ref validation ONLY.
@@ -842,12 +842,12 @@ def _run_self_test() -> int:
     # fixture, whose root _resolve_link does not consult), so reverting the
     # mapping to a skip — or repointing PLUGIN_ROOT_TOKEN_TARGET — fails here.
     agent_body = REPO_ROOT / "first-principles" / "agents" / "first-principles.md"
-    token_link = f"{PLUGIN_ROOT_TOKEN}/agents/references/validation-rubric.md"
+    token_link = f"{PLUGIN_ROOT_TOKEN}/references/validation-rubric.md"
 
     resolved_hit = _resolve_link(token_link, agent_body)
     expected_hit = (
         REPO_ROOT / PLUGIN_ROOT_TOKEN_TARGET
-        / "agents" / "references" / "validation-rubric.md"
+        / "references" / "validation-rubric.md"
     ).resolve()
     if resolved_hit != expected_hit:
         wrong.append(
@@ -868,7 +868,7 @@ def _run_self_test() -> int:
     # a mapping that resolved every token link onto some always-present path
     # would satisfy the positive assertion above and check nothing.
     resolved_miss = _resolve_link(
-        f"{PLUGIN_ROOT_TOKEN}/agents/references/no-such-reference.md", agent_body
+        f"{PLUGIN_ROOT_TOKEN}/references/no-such-reference.md", agent_body
     )
     if resolved_miss.exists():
         wrong.append(

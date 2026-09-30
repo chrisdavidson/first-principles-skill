@@ -135,7 +135,7 @@ explicitly. A theoretical-limit analysis that names a bound without bracketing
 those gaps is incomplete — the bracket, not the ceiling alone, is the
 deliverable.
 
-**Read [theoretical-limit-detail.md](${CLAUDE_PLUGIN_ROOT}/agents/references/theoretical-limit-detail.md) when you need:**
+**Read [theoretical-limit-detail.md](${CLAUDE_PLUGIN_ROOT}/references/theoretical-limit-detail.md) when you need:**
 - a worked example of this technique
 - the failure modes and how to avoid them
 - handoff guidance to another technique

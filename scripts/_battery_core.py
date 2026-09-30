@@ -2150,7 +2150,7 @@ OutputStructure = Literal[
 ]
 
 # Six canonical companion technique keys (must match the file basenames
-# under first-principles/agents/references/<key>.md).
+# under first-principles/references/<key>.md).
 _TECHNIQUE_KEYS: tuple[str, ...] = (
     "pre-mortem",
     "inversion",
@@ -2222,7 +2222,7 @@ _COMPOSER_FOCUS_CEILING: int = 4
 #
 # Markers verbatim from 46-RESEARCH §1 Q4.1-Q4.6 (each subsection lists
 # the per-technique phrase set with provenance citations into the agent
-# reference files at first-principles/agents/references/<technique>.md).
+# reference files at first-principles/references/<technique>.md).
 #
 # Pitfall 1 mitigation (cardinality classifier prevents v1-style false
 # positives): a single technique's markers firing does NOT classify the

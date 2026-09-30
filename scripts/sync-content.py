@@ -17,12 +17,17 @@ Exit codes:
 Source of truth: shared/  (canonical)
 Target surface:
     - first-principles/agents/first-principles.md              (orchestrating agent)
-    - first-principles/agents/references/<tool>.md             (8 companion-tool refs)
-    - first-principles/agents/references/<spine-ref>.md        (3 spine refs)
-    - first-principles/agents/references/<slug>-detail.md      (4 on-demand agent detail siblings)
-    - first-principles/agents/references/examples/<name>.md    (worked-example siblings)
+    - first-principles/references/<tool>.md                    (8 companion-tool refs)
+    - first-principles/references/<spine-ref>.md                (3 spine refs)
+    - first-principles/references/<slug>-detail.md              (4 on-demand agent detail siblings)
+    - first-principles/references/examples/<name>.md            (worked-example siblings)
     - first-principles/skills/<slug>/SKILL.md                  (13 focused-mode stubs)
     - first-principles/skills/<slug>/references/<slug>-detail.md (4 on-demand skill detail siblings)
+
+The reference tree lives at the plugin root, sibling to agents/ and skills/,
+not nested under agents/ — Claude Code registers every Markdown file found in
+subdirectories of a plugin's agents/ tree as its own agent type, so a
+reference or worked-example file left there is loaded as a spurious agent.
 """
 
 from __future__ import annotations
@@ -39,6 +44,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SHARED = REPO_ROOT / "shared"
 AGENT_DIR = REPO_ROOT / "first-principles" / "agents"
 AGENT_PATH = AGENT_DIR / "first-principles.md"
+REFERENCES_DIR = REPO_ROOT / "first-principles" / "references"
 
 # Marker syntax in shared/spine/SKILL-body.md.
 TOKEN_RE = re.compile(r"\{\{TOOL:([a-z][a-z0-9-]*)\}\}")
@@ -223,7 +229,7 @@ EXAMPLES = (
 
 # Canonical spine-references list (filename stem under shared/spine/references/)
 # emitted verbatim as agent-side reference siblings under
-# first-principles/agents/references/. Phase 31-02 introduces this list to ship
+# first-principles/references/. Phase 31-02 introduces this list to ship
 # `assumption-taxonomy.md` from the canonical spine tree to the agent surface.
 #
 # Inclusion contract: every entry MUST be a standalone reference file consumed
@@ -268,7 +274,14 @@ SLUGS_WITH_DETAIL = frozenset({"five-whys", "theoretical-limit", "estimate", "fi
 # is explicitly sanctioned for component files — commands, *agents*, skills —
 # not just hooks.json and MCP manifests. It expands to the plugin install
 # directory, which is this repo's `first-principles/`, so the agent surface's
-# own references sit under `${CLAUDE_PLUGIN_ROOT}/agents/references/`.
+# own references sit under `${CLAUDE_PLUGIN_ROOT}/references/`.
+#
+# The reference tree lives at the plugin root — a sibling of agents/ and
+# skills/ — rather than nested under agents/, because Claude Code walks every
+# subdirectory of a plugin's agents/ tree at session start and registers each
+# Markdown file it finds there as its own selectable agent type. A reference
+# or worked-example file nested under agents/ is therefore not inert content;
+# it ships as a spurious agent alongside the real one.
 #
 # The skill stubs deliberately do NOT use this prefix: a slash-invoked skill is
 # resolved by the harness against its own skill directory, so their historical
@@ -277,7 +290,7 @@ SLUGS_WITH_DETAIL = frozenset({"five-whys", "theoretical-limit", "estimate", "fi
 # VAL-03 (`scripts/check-links.py`) resolves this prefix back to
 # `first-principles/` and keeps full-checking every one of these links — the
 # absolutisation does not cost link-validation coverage.
-AGENT_REF_PREFIX = "${CLAUDE_PLUGIN_ROOT}/agents/references/"
+AGENT_REF_PREFIX = "${CLAUDE_PLUGIN_ROOT}/references/"
 
 # Plugin-root-anchored prefix for a cross-technique link emitted into a SKILL
 # STUB (first-principles/skills/<slug>/SKILL.md). A stub's bare cross-links
@@ -563,7 +576,7 @@ _BARE_MD_TARGET_RE = re.compile(r"\]\((?!https?:|mailto:|#|\$\{)([A-Za-z0-9._-]+
 
 
 def _agent_ref_allowed_targets() -> frozenset[str]:
-    """Filenames that legitimately sit in first-principles/agents/references/.
+    """Filenames that legitimately sit in first-principles/references/.
 
     Derived from the same module-level lists that drive emission — never a
     hand-maintained second copy — so adding a companion tool or a spine
@@ -581,7 +594,7 @@ def _absolutise_agent_ref_links(text: str, source_rel: str) -> str:
     """Anchor every bare sibling-filename link in an agent reference file.
 
     The agent's on-demand reference siblings under
-    first-principles/agents/references/ link to each other by bare filename
+    first-principles/references/ link to each other by bare filename
     (`](pre-mortem.md)`, `](five-whys-detail.md)`). Those targets resolve
     correctly *within that directory* — which is why DEC-A originally left
     them alone — but the model that opens one of these files is not sitting in
@@ -600,7 +613,7 @@ def _absolutise_agent_ref_links(text: str, source_rel: str) -> str:
     inside them (checked 2026-08-17 against code.claude.com's plugins-reference
     and skills pages). The token is used here because it is **self-describing
     and inference-resolvable** — the model reached this file via an already-
-    expanded absolute path, so `${CLAUDE_PLUGIN_ROOT}/agents/references/x.md`
+    expanded absolute path, so `${CLAUDE_PLUGIN_ROOT}/references/x.md`
     is trivially recoverable, whereas a bare `x.md` requires reconstructing the
     directory from nothing. Do not restate the body's substitution guarantee
     for this surface.
@@ -623,7 +636,7 @@ def _absolutise_agent_ref_links(text: str, source_rel: str) -> str:
     if unknown:
         raise ValueError(
             f"{source_rel}: bare markdown link target(s) {sorted(set(unknown))!r} "
-            f"are not files emitted into first-principles/agents/references/. "
+            f"are not files emitted into first-principles/references/. "
             f"Either the filename is a typo, or a new reference file needs "
             f"adding to TOOLS / SLUGS_WITH_DETAIL / SPINE_REFERENCES so "
             f"_agent_ref_allowed_targets() knows about it."
@@ -684,13 +697,14 @@ def _rewrite_detail_link(slice_text: str, slug: str, prefix: str = "references/"
     """Rewrite a bare '<slug>-detail.md' pointer target to '<prefix><slug>-detail.md'.
 
     Exists because the assembled agent body (first-principles/agents/first-
-    principles.md) and the skill stub (first-principles/skills/<slug>/SKILL.md)
-    each sit one directory level ABOVE where the detail sibling lands
-    (agents/references/<slug>-detail.md and skills/<slug>/references/<slug>-
-    detail.md respectively), so the bare filename that resolves correctly in
-    shared/references/ and in the agent's OWN references/<slug>.md sibling
-    (which sits alongside <slug>-detail.md and must NOT be rewritten, DEC-A)
-    does not resolve from these two assembly surfaces. `_extract_procedure()`
+    principles.md) sits in a different directory than where the detail sibling
+    lands (first-principles/references/<slug>-detail.md), and the skill stub
+    (first-principles/skills/<slug>/SKILL.md) sits one directory level ABOVE
+    its own detail sibling (skills/<slug>/references/<slug>-detail.md), so the
+    bare filename that resolves correctly in shared/references/ and in the
+    agent's OWN references/<slug>.md sibling (which sits alongside
+    <slug>-detail.md and must NOT be rewritten, DEC-A) does not resolve from
+    either of these two assembly surfaces. `_extract_procedure()`
     and `_extract_skill_content()` deliberately stay source-faithful — their
     raw output keeps the bare-filename form, which is exactly what GATE-02
     asserts against (DEC-B); this helper's rewritten form is a separate
@@ -1190,12 +1204,12 @@ def generate_agent_references() -> dict[Path, str]:
             hint=(
                 f"shared/references/{slug}.md is required for the agent's "
                 f"on-demand reference sibling at "
-                f"first-principles/agents/references/{slug}.md"
+                f"first-principles/references/{slug}.md"
             ),
         )
         body = _absolutise_agent_ref_links(body, f"shared/references/{slug}.md")
         marker = GENERATED_MARKER.format(source_rel=f"references/{slug}.md")
-        targets[AGENT_DIR / "references" / f"{slug}.md"] = (
+        targets[REFERENCES_DIR / f"{slug}.md"] = (
             _normalise_trailing_newline(marker + "\n" + body)
         )
     return targets
@@ -1232,14 +1246,14 @@ def generate_agent_detail_references() -> dict[Path, str]:
             hint=(
                 f"shared/references/{slug}-detail.md is required for the "
                 f"agent's on-demand detail sibling at "
-                f"first-principles/agents/references/{slug}-detail.md"
+                f"first-principles/references/{slug}-detail.md"
             ),
         )
         body = _absolutise_agent_ref_links(
             body, f"shared/references/{slug}-detail.md"
         )
         marker = GENERATED_MARKER.format(source_rel=f"references/{slug}-detail.md")
-        targets[AGENT_DIR / "references" / f"{slug}-detail.md"] = (
+        targets[REFERENCES_DIR / f"{slug}-detail.md"] = (
             _normalise_trailing_newline(
                 marker + "\n" + DETAIL_SIBLING_LINT_EXEMPT + "\n" + body
             )
@@ -1308,11 +1322,11 @@ def generate_agent_spine_references() -> dict[Path, str]:
             hint=(
                 f"shared/spine/references/{slug}.md is required for the agent's "
                 f"on-demand reference sibling at "
-                f"first-principles/agents/references/{slug}.md"
+                f"first-principles/references/{slug}.md"
             ),
         )
         marker = GENERATED_MARKER.format(source_rel=f"spine/references/{slug}.md")
-        targets[AGENT_DIR / "references" / f"{slug}.md"] = (
+        targets[REFERENCES_DIR / f"{slug}.md"] = (
             _normalise_trailing_newline(marker + "\n" + body)
         )
     return targets
@@ -1340,11 +1354,11 @@ def generate_agent_examples() -> dict[Path, str]:
             hint=(
                 f"shared/examples/{name}.md is required for the agent's "
                 f"on-demand worked-example sibling at "
-                f"first-principles/agents/references/examples/{name}.md"
+                f"first-principles/references/examples/{name}.md"
             ),
         )
         marker = GENERATED_MARKER.format(source_rel=f"examples/{name}.md")
-        targets[AGENT_DIR / "references" / "examples" / f"{name}.md"] = (
+        targets[REFERENCES_DIR / "examples" / f"{name}.md"] = (
             _normalise_trailing_newline(marker + "\n" + body)
         )
     return targets
@@ -1365,11 +1379,11 @@ def generate_all() -> dict[Path, str]:
     Current target count: 47 total.
 
       - 1 agent SKILL.md (first-principles/agents/first-principles.md)
-      - 11 agent reference siblings (first-principles/agents/references/*.md:
+      - 11 agent reference siblings (first-principles/references/*.md:
         8 companion-tool refs + assumption-taxonomy + output-template + validation-rubric)
-      - 4 agent detail siblings (first-principles/agents/references/<slug>-detail.md,
+      - 4 agent detail siblings (first-principles/references/<slug>-detail.md,
         SLUGS_WITH_DETAIL: five-whys, theoretical-limit, estimate, fishbone)
-      - 14 agent worked-example siblings (first-principles/agents/references/examples/<name>.md)
+      - 14 agent worked-example siblings (first-principles/references/examples/<name>.md)
       - 13 slash-invocable focused-mode stubs (first-principles/skills/<slug>/SKILL.md)
       - 4 skill detail siblings (first-principles/skills/<slug>/references/<slug>-detail.md,
         same SLUGS_WITH_DETAIL set)
@@ -1421,7 +1435,7 @@ def generate_all() -> dict[Path, str]:
     #     an allowed write root.
     # Use Path.relative_to() rather than str.startswith() to avoid sibling-dir
     # false positives (WR-01).
-    allowed_roots = (AGENT_DIR, SKILLS_DIR)
+    allowed_roots = (AGENT_DIR, SKILLS_DIR, REFERENCES_DIR)
     for path in targets:
         if not any(_is_within(path, root) for root in allowed_roots):
             raise ValueError(
@@ -1491,6 +1505,34 @@ def cmd_check() -> int:
         sys.stderr.write(
             "Run: python3 scripts/sync-content.py --write && git add -u\n"
         )
+
+    # Stale-directory guard: Claude Code registers every Markdown file found
+    # in a subdirectory of a plugin's agents/ tree as its own agent type
+    # (measured live 2026-09-29 — a headless `system/init` against this
+    # plugin with the reference tree still under agents/references/ listed
+    # 29 spurious `first-principles:references:*` agents alongside the real
+    # one). The reference tree now emits to REFERENCES_DIR, a sibling of
+    # AGENT_DIR, so the only file that may ever exist under AGENT_DIR is
+    # AGENT_PATH itself — anything else reappearing there (a stale file left
+    # by an old checkout, a manual mis-write, a future contributor emitting
+    # into the wrong root) is caught here rather than silently shipping as a
+    # new agent. `cmd_write()` deliberately does not delete such a file
+    # (staying non-destructive) — this guard is what makes its presence a
+    # visible, blocking failure instead.
+    stray = sorted(
+        p for p in AGENT_DIR.rglob("*") if p.is_file() and p != AGENT_PATH
+    )
+    if stray:
+        for p in stray:
+            sys.stderr.write(f"STRAY: {p.relative_to(REPO_ROOT)}\n")
+        sys.stderr.write(
+            "Any Markdown file under first-principles/agents/ other than "
+            "first-principles.md is registered by Claude Code as its own "
+            "agent type at session start — the reference tree lives at "
+            "first-principles/references/. Remove the stray file(s) above.\n"
+        )
+
+    if drifted or stray:
         return 1
     return 0
 
@@ -1737,7 +1779,7 @@ def cmd_self_test() -> int:
             # as the first hop did before v8.17.3. The assertion is inverted:
             # anchored exactly once, bare zero times.
             ref_content = all_targets.get(
-                AGENT_DIR / "references" / f"{slug}.md", ""
+                REFERENCES_DIR / f"{slug}.md", ""
             )
             ref_anchored_count = ref_content.count(agent_rewritten)
             if ref_anchored_count != 1:
@@ -1764,7 +1806,7 @@ def cmd_self_test() -> int:
         # markdown target — over every file in that directory, so a newly
         # added cross-link cannot reintroduce the bug in a file this loop
         # does not name.
-        ref_dir = AGENT_DIR / "references"
+        ref_dir = REFERENCES_DIR
         swept = 0
         for path, content in all_targets.items():
             if path.parent != ref_dir or path.suffix != ".md":
