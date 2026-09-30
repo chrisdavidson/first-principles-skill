@@ -2034,6 +2034,16 @@ def _c23_arm_isolation() -> str | None:
     p1 = REPO_ROOT / "tests/answer-first/raw/TB-01.a1.jsonl"
     if p1.is_file():
         jsonl = p1.read_text(encoding="utf-8")
+        # The frozen capture records the absolute plugin path of the machine
+        # it was taken on; a checkout elsewhere (CI) has a different
+        # PLUGIN_DIR. Re-anchor the recorded path to this checkout so the
+        # control tests init_check's logic, not where the repo happens to live.
+        recorded = [
+            p.get("path") for p in init_plugins(jsonl) if p.get("name") == "first-principles"
+        ]
+        if len(recorded) != 1 or not recorded[0]:
+            return f"answer-first fixture lists {len(recorded)} first-principles plugin path(s)"
+        jsonl = jsonl.replace(json.dumps(recorded[0])[1:-1], json.dumps(str(PLUGIN_DIR))[1:-1])
         if init_check(jsonl, "C") == []:
             return "init_check(arm='C') accepted an init event listing first-principles"
         problems_t = init_check(jsonl, "T")
