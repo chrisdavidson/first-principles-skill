@@ -2377,6 +2377,102 @@ def _c24_exemplar_gate_reentry_null_iff_absent() -> str | None:
     return None
 
 
+# ---------------------------------------------------------------------------
+# Real-report fixtures (CHECK-03 P1-P4, X1)
+# ---------------------------------------------------------------------------
+
+FIXTURE_DIR = REPO_ROOT / "tests" / "summary-block-v9.16"
+FIXTURES: tuple[str, ...] = (
+    "personal-general.md",
+    "software-systems.md",
+    "science-engineering.md",
+    "tb-01.md",
+)
+
+
+def _fixture(name: str) -> str:
+    return (FIXTURE_DIR / name).read_text()
+
+
+# Pasted from falsifier f5's output (`75-falsifiers.sh f5`, an independent
+# awk/grep inventory over each fixture's own section headings and Pass
+# lines -- shares no code with this checker or with the transcription
+# scripts that built the fixtures' blocks): per fixture, (assumption rows,
+# ground-truth declarations, chains, dead ends, earlier Gate passes).
+_FIXTURE_INVENTORY: dict[str, tuple[int, int, int, int, int]] = {
+    "personal-general.md": (18, 20, 8, 4, 0),
+    "software-systems.md": (22, 10, 8, 6, 1),
+    "science-engineering.md": (13, 10, 5, 4, 0),
+    "tb-01.md": (21, 6, 8, 4, 0),
+}
+
+
+def _fixture_reader_inventory(name: str) -> tuple[int, int, int, int, int]:
+    """The same five counts as `_FIXTURE_INVENTORY`, computed by this
+    checker's own readers over the fixture's PROSE (never its block)."""
+    qh = _load_qh()
+    text = _fixture(name)
+    sections = qh._slice_sections(text)
+    a = len(_table_columns(sections.get(2, ""), ("type", "verdict")))
+    g = len(_gt_declarations(sections.get(3, "")))
+    doc_ids, _blocks = _doc_chain_index(sections.get(4, ""))
+    c = len(doc_ids)
+    d = len(_DEAD_END_HEADING_RE.findall(sections.get(5, "")))
+    span = _gate_span(text)
+    p = len(_gate_pass_lines(span)) if span is not None else 0
+    return (a, g, c, d, p)
+
+
+def _p_positive_fixture(name: str) -> str | None:
+    text = _fixture(name)
+    findings = check_report(text, exemplar=False)
+    if findings:
+        return f"{name} live mode: expected [], got {findings!r}"
+    findings2 = check_report(text, exemplar=True)
+    if findings2:
+        return f"{name} exemplar mode: expected [], got {findings2!r}"
+    return None
+
+
+def _p1_personal_general() -> str | None:
+    return _p_positive_fixture("personal-general.md")
+
+
+def _p2_software_systems() -> str | None:
+    return _p_positive_fixture("software-systems.md")
+
+
+def _p3_science_engineering() -> str | None:
+    return _p_positive_fixture("science-engineering.md")
+
+
+def _p4_tb_01() -> str | None:
+    return _p_positive_fixture("tb-01.md")
+
+
+def _x1_extraction_floor() -> str | None:
+    """The checker's readers, run over each fixture's prose, must equal an
+    independent hand-transcribed inventory (`_FIXTURE_INVENTORY`, sourced
+    from falsifier f5); assumptions/ground_truths/chains must be non-zero
+    for every fixture (a floor that cannot pass vacuously on an empty
+    report)."""
+    for name in FIXTURES:
+        actual = _fixture_reader_inventory(name)
+        expected = _FIXTURE_INVENTORY[name]
+        if actual != expected:
+            return (
+                f"{name}: reader counts {actual!r} disagree with "
+                f"_FIXTURE_INVENTORY {expected!r}"
+            )
+        a, g, c, _d, _p = actual
+        if a == 0 or g == 0 or c == 0:
+            return (
+                f"{name}: assumptions/ground_truths/chains must be non-zero, "
+                f"got {actual!r}"
+            )
+    return None
+
+
 _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("C01", _c01_example_block_is_clean),
     ("C02", _c02_missing_block_is_rejected),
@@ -2404,6 +2500,11 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("C22", _c22_single_pass_reentry),
     ("C23", _c23_reentry_decoys_outside_scope_are_invisible),
     ("C24", _c24_exemplar_gate_reentry_null_iff_absent),
+    ("P1-personal-general", _p1_personal_general),
+    ("P2-software-systems", _p2_software_systems),
+    ("P3-science-engineering", _p3_science_engineering),
+    ("P4-tb-01", _p4_tb_01),
+    ("X1-extraction-floor", _x1_extraction_floor),
 )
 
 
@@ -2439,7 +2540,8 @@ def describe() -> dict:
     return {
         "control_ids": [cid for cid, _fn in _CONTROLS],
         "control_count": len(_CONTROLS),
-        "registered_surfaces": [_relpath(DEFAULT_SCHEMA)],
+        "registered_surfaces": [_relpath(DEFAULT_SCHEMA), _relpath(FIXTURE_DIR)],
+        "checked_files": [_relpath(FIXTURE_DIR / name) for name in FIXTURES],
         "locked_constants": {
             "DEFAULT_SCHEMA": _relpath(DEFAULT_SCHEMA),
             "BLOCK_HEADING": BLOCK_HEADING,
