@@ -329,7 +329,7 @@ section — the six sections above remain the fixed shape defined here.
 **The document's absolute order** is: the `## Answer` block above section 1; then sections 1
 through 6 above, unchanged; then one `## Appendix — process output` heading; then every
 process-output block produced during the run, in the order produced, each keeping its own
-existing top-level heading. The steps under *Deliver the analysis as a file*, below, assemble the
+existing top-level heading, and the structured summary last of all. The steps under *Deliver the analysis as a file*, below, assemble the
 file in this order.
 
 **Answer-claim closure rule.** Once §6 is in its final form and before the file is assembled,
@@ -339,7 +339,7 @@ Answer as drafted here, not to Step 0 of "Before presenting conclusions" below, 
 the Answer exists — the assembly step under *Deliver the analysis as a file* restates it as a
 one-line reminder at the point the check actually runs.
 
-**Nothing about the environment enters the document.** The six sections above are the whole deliverable, and none of them has a slot for the state of the session that produced it. Tooling, connector, authorisation, permission, quota, configuration, model, harness and transcript state are all environment state, and none of it belongs in the analysis — not in a section, not appended after §6, not as a footnote. This exclusion is about environment-state *content*, never about physical position in the file: the trailing `## Appendix — process output` sits after §6 and carries process output — the Self-Audit Gate's verdict blocks, the closure ledger, the self-audit scan, the adversarial pass record — none of which is environment state, and its presence there does not reopen this rule. The class is *any* fact about the machinery rather than about the problem; it is not a list of forbidden words, and a new kind of environment fact is covered by this rule on the day it first exists. A prefix such as "Unrelated to this analysis", "Separately" or "Note:" does not make such a paragraph admissible — it marks the writer as already knowing the paragraph does not belong, which is the point at which it is dropped rather than labelled. Where environment state genuinely blocked the analysis, it is already disclosed in its proper place: a failed reference read under the disclosure rule that closes "Before presenting conclusions", and an unmet evidence need as a `?`-marked input carried into the Assumptions Table and named on the affected `**Confidence:**` line. Environment state that blocked nothing is reported to the user outside the deliverable, after the document ends, or not at all.
+**Nothing about the environment enters the document.** The six sections above are the whole deliverable, and none of them has a slot for the state of the session that produced it. Tooling, connector, authorisation, permission, quota, configuration, model, harness and transcript state are all environment state, and none of it belongs in the analysis — not in a section, not appended after §6, not as a footnote. This exclusion is about environment-state *content*, never about physical position in the file: the trailing `## Appendix — process output` sits after §6 and carries process output — the Self-Audit Gate's verdict blocks, the closure ledger, the self-audit scan, the adversarial pass record, the structured summary — none of which is environment state, and its presence there does not reopen this rule. The class is *any* fact about the machinery rather than about the problem; it is not a list of forbidden words, and a new kind of environment fact is covered by this rule on the day it first exists. A prefix such as "Unrelated to this analysis", "Separately" or "Note:" does not make such a paragraph admissible — it marks the writer as already knowing the paragraph does not belong, which is the point at which it is dropped rather than labelled. Where environment state genuinely blocked the analysis, it is already disclosed in its proper place: a failed reference read under the disclosure rule that closes "Before presenting conclusions", and an unmet evidence need as a `?`-marked input carried into the Assumptions Table and named on the affected `**Confidence:**` line. Environment state that blocked nothing is reported to the user outside the deliverable, after the document ends, or not at all.
 
 **Deliver the analysis as a file, written once — never re-sent.** Whoever dispatched this
 analysis receives only your final message, and a long analysis does not fit reliably in one:
@@ -359,7 +359,7 @@ then the six sections, then the process-output appendix.
    on its own line. Write each block once, in full, exactly as you would have emitted it. If a
    call is cut off before it runs, issue that one block's append again; never re-append a block
    that already succeeded.
-3. **Write the Answer last.** After the Self-Audit Gate's verdict blocks are appended, re-apply
+3. **Write the Answer last.** After the Self-Audit Gate's verdict blocks and then the structured summary are appended, re-apply
    the Answer-claim closure rule above — each Answer line restates a §6 claim and names its chain,
    or is cut — then write any top-of-response disclosures, then the `## Answer` heading and its
    three lead-ins, to `"<path>.answer"` with `cat > "<path>.answer" <<'FP_EOF'`. **The top of the
@@ -378,11 +378,31 @@ then the six sections, then the process-output appendix.
    top-of-response disclosure repeated from step 3, if any; a line stating that the file is the
    complete analysis and must be read in full, and that this message is not the analysis; and the
    Conclusion's recommendation and confidence in one or two sentences. Do not paste the document
-   into it. If assembly did not complete, name whichever of `"<path>.answer"` or `"<path>.process"`
+   into it, and do not paste the structured summary into it either. If assembly did not complete, name whichever of `"<path>.answer"` or `"<path>.process"`
    is still present.
 
 If the file cannot be created or written, emit the `## Answer` block, then the six-section
 document, as your final message instead, and say that the file handoff failed and why.
+
+**The structured summary closes the appendix.** After the Self-Audit Gate's section is
+complete, its `**Gate result:**` line included, append one last process-output block to
+`"<path>.process"`: the heading `## Structured summary (process output)`, then exactly one
+fenced `json` block, and nothing after it. Open the [structured summary
+schema](${CLAUDE_PLUGIN_ROOT}/references/summary-schema.json) with Read once, immediately before
+writing the block: it defines each field, where in the document its value comes from, and the
+values each may take. If that read fails, write the block from the field list in this paragraph
+and disclose the failed read under the rule that closes "Before presenting conclusions". The
+block carries `schema_version`, `run_mode`, `assumptions`, `ground_truths`, `chains`,
+`dead_ends`, `techniques`, `gate`, `re_entry` and `conclusion`, and populates every one of them.
+It restates decisions the document already records and adds none: every id in it is one the
+document uses, every value agrees with the document, and where the two disagree the block is
+corrected to match the document. `gate.passes` lists every scoring pass in order, each earlier
+one read from its `**Pass N (before re-score):**` line; `re_entry.fired` states whether any
+re-entry edge fired anywhere in the run, and is `true` whenever the Fix/Repeat loop fired. The
+block is process output, not environment state — the rule that nothing about the environment
+enters the document applies to it unchanged — and it is not a seventh output section. It belongs
+to the file alone: the final message does not carry it, and neither does the final message
+written when the file handoff fails.
 
 **Open the output template once, before assembling the six-section document.** This read advances
 the signed-off analysis itself — the named artifact the turn-discipline rule above already admits
@@ -538,6 +558,20 @@ those criteria as a feedback loop:
 3. **Repeat** — re-score once after fixing. If a criterion still fails after that single
    re-perception pass, report it as an unresolved gap with a confidence caveat instead of
    fixing it again — see Turn discipline for the bound governing every re-entry edge.
+
+**Every scoring pass stays in the gate's section.** When the gate is scored again — the Repeat
+step above, or the re-score after a Criterion 1 Absent return — the earlier pass is not
+overwritten silently. Before its verdict blocks are replaced, write that pass as one line under
+the gate's heading, above the verdict blocks, one line per earlier pass in order, in this fixed
+form with the bands that pass assigned: `**Pass 1 (before re-score):** Criterion 1 Sound ·
+Criterion 2 Hand-wavy · Criterion 3 Sound · Criterion 4 Hand-wavy · Criterion 5 Sound ·
+Criterion 6 Sound · Gate cleared: yes · Hand-wavy cap cleared: no`. The six verdict blocks
+beneath those lines are the final pass. Close the gate's section, after the sixth verdict block,
+with one line in this fixed form, written on every run whether or not an earlier pass exists:
+`**Gate result:** cleared · passes: 2 · Fix/Repeat fired: yes` — `not cleared` when the final
+pass fails either condition the rubric names, `no` when the Fix/Repeat loop did not fire. These
+lines record the passes the loop already makes; they add no criterion, band or verdict, and
+change neither how a pass is scored nor how many passes the bound allows.
 
 **A Criterion 1 Absent verdict returns to Phase 1.** When the Self-Audit Gate scores Criterion
 1 Absent — the Essence Statement is missing, or the Problem Essence section holds only a
