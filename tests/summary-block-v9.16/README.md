@@ -79,6 +79,65 @@ Task 1's acceptance criteria; ran clean, exit 0).
 No other line in either file was changed. Markdown table cells, chain arithmetic, confidence
 lines, dead-end entries and every other process-output section are byte-identical to the source.
 
+### `science-engineering.md`
+
+1. **Gate result line (was line 357, free-form, unbolded lead-in `Gate result: `).**
+   - Before: `Gate result: no Absent, 0 Hand-wavy — cleared on first scoring pass; Fix/Repeat not fired. Unresolved caveat carried: the C3/C4 Rivals-axis calibration noted under Criterion 5.`
+   - After: the same sentence with its `Gate result: ` lead-in removed (capitalised to start the
+     paragraph), followed by a blank line and the fixed line: `**Gate result:** cleared · passes: 1
+     · Fix/Repeat fired: no`
+   - Reason: same fixed-form requirement as the other three fixtures.
+   - Untouched: §6's `**Recommended approach:**` text and its three-item list (M8 depends on the
+     whole list surviving into `conclusion.recommendation`, not just the text up to the first
+     colon).
+
+### `tb-01.md`
+
+1. **Gate result line (was line 373).**
+   - Before: `**Gate result:** No criterion scored Absent (condition 1 cleared). Exactly one criterion (Criterion 3) scored Hand-wavy, which is within the "at most one Hand-wavy" cap (condition 2 cleared). The gate passes on this first scoring pass; no Fix/Repeat re-perception pass was required or performed.`
+   - After: the same sentence with its `**Gate result:**` lead-in removed, followed by a blank line
+     and the fixed line `**Gate result:** cleared · passes: 1 · Fix/Repeat fired: no`.
+   - Reason: same fixed-form requirement.
+2. **D-16 single-value Type-cell corrections (§2, four rows; plan-directed, not a general taxonomy
+   policy change).** Each annotated cell is corrected to the one enum type it already begins with,
+   dropping the trailing parenthetical subtype — the subtype text itself is not deleted from the
+   analysis (it stays inside the row's own prose elsewhere in the cell/verdict text), only the Type
+   column's cell value changes:
+   - A-3: `convention (industry narrative)` → `convention`
+   - A-11: `convention (analogy to others)` → `convention`
+   - A-12: `untested belief (premature optimization)` → `untested belief`
+   - A-20: `physical law (protocol specification, invariant)` → `physical law`
+   - Reason: the schema's `assumptions[].type` enum holds exactly the four taxonomy values; a live
+     report's Type field is never null, so an annotated cell must resolve to one of the four before
+     it can be transcribed (`SB-ASSUMPTION`'s enum check; plan-directed correction, `75-03-PLAN.md`
+     Task 2).
+3. **Techniques-not-applied block (§ heading `## Techniques not applied`, four lines) rewritten to
+   the agent body's fixed form `- <technique> (Phase N) — not applicable — <reason>`.** Each
+   reason kept verbatim; only the technique-name/phase prefix changed shape:
+   - Before: `inversion — not applicable at Phase 5 (adversarial technique step) — the conclusion is a plan/recommendation, so pre-mortem applies there per the decision rule; inversion's Phase 2 invocation fired instead, against the "GraphQL is required" claim (Assumptions Table A-3, A-11, and the failure-guaranteeing preconditions that produced A-4, A-7, A-16).`
+     After: `- inversion (Phase 5) — not applicable — the conclusion is a plan/recommendation, so pre-mortem applies there per the decision rule; inversion's Phase 2 invocation fired instead, against the "GraphQL is required" claim (Assumptions Table A-3, A-11, and the failure-guaranteeing preconditions that produced A-4, A-7, A-16).`
+   - Before: `theoretical-limit — not applicable at Phase 1 — the essence is an architecture/design trade-off, not a convention-vs-physical-limit framing question; its Phase 4 invocation fired (chain C7, the propagation-delay floor).`
+     After: `- theoretical-limit (Phase 1) — not applicable — the essence is an architecture/design trade-off, not a convention-vs-physical-limit framing question; its Phase 4 invocation fired (chain C7, the propagation-delay floor).`
+   - Before: `fishbone — not applicable — causal breadth for the round-trip symptom was already achieved via five-whys causal mode (narrated at the top of section 4) plus the inversion pass's precondition enumeration, without needing a category-based brainstorm.`
+     After: `- fishbone (Phase 2) — not applicable — causal breadth for the round-trip symptom was already achieved via five-whys causal mode (narrated at the top of section 4) plus the inversion pass's precondition enumeration, without needing a category-based brainstorm.` — phase sourced from
+     `shared/spine/SKILL-body.md`'s Phase 2 (Challenge Assumptions) operation paragraph: "When the
+     assumption space feels too broad to enumerate by intuition, use `{{TOOL:fishbone}}` to
+     brainstorm causes by category, then bring each branch into this table as an `untested
+     belief`."
+   - Before: `five-whys, reduce-to-primitives mode — not applicable — the ground truths used (protocol specification clauses, pattern definitions) are already irreducible primitives confirmed by direct source reading; no compound claim required further decomposition. (Five-whys causal mode was applied separately, narrated in section 4, corroborating chain C1.)`
+     After: `- five-whys (Phase 3) — not applicable — (reduce-to-primitives mode) the ground truths used (protocol specification clauses, pattern definitions) are already irreducible primitives confirmed by direct source reading; no compound claim required further decomposition. (Five-whys causal mode was applied separately, narrated in section 4, corroborating chain C1.)` — phase sourced
+     from `shared/spine/SKILL-body.md`'s Phase 3 (Establish Ground Truths) operation paragraph: "To
+     apply the irreducibility test rigorously, use `{{TOOL:five-whys}}` (reduce-to-primitives
+     mode)"; the technique enum slot holds `five-whys` (the schema enum has no separate
+     reduce-to-primitives-mode value), with "reduce-to-primitives mode" kept inside the reason text
+     per the plan's own instruction, since the causal-mode invocation of the same technique slug
+     fired elsewhere in this same report (`techniques.applied` below).
+   - Reason: Phase 75's not-applied line-shape requirement so `_xc_techniques` can parse
+     `technique`/`phase`/`reason` mechanically; the plan directs quoting the body line that fixes
+     each phase number in this README rather than guessing it.
+
+No other line in either file was changed.
+
 ## Transcription method (Task 1)
 
 Each block was built in two passes:
@@ -180,3 +239,52 @@ a chain's inline `[Assumes: A-N]` mark against `assumptions[].id`).
   `pre-mortem` — the Adversarial pass record, confirmed by the Techniques-not-applied line "Phase 5
   used pre-mortem (the adversarial pass below)." `five-whys`, `fishbone` (explicitly not applied),
   `estimate` and `theoretical-limit` (explicitly not applied, twice) have no applied evidence.
+- **`science-engineering.md`**: `second-order` — the `[2nd]`/`[3rd]` actor/time-lens steps inside
+  chain C5 ("added by the Phase 4 audit as a second-order scenario," A-12's Verdict cell);
+  `pre-mortem` — the Adversarial pass's Premise/Causes/Clusters/Disposition/Falsification record,
+  confirmed by Criterion 5's justification: "the pre-mortem record is complete with dispositions."
+  `inversion`, `fishbone` and `trade-off` are explicitly not applied (§ Techniques not applied);
+  `five-whys`, `estimate` and `theoretical-limit` (explicitly not applied twice) have no applied
+  evidence anywhere in the prose.
+- **`tb-01.md`**: `inversion` — "Inversion applied to leadership's claim" is software-systems'
+  wording; tb-01's own Phase 2 firing is named directly in its own not-applied line for inversion's
+  Phase 5 slot ("inversion's Phase 2 invocation fired instead, against the 'GraphQL is required'
+  claim") and in the Adversarial-pass pre-mortem paragraph's parenthetical ("inversion was already
+  applied in Phase 2 against the 'GraphQL is required' claim"); `five-whys` — the corroborating
+  causal-mode narrative opening section 4 ("Corroborating technique (five-whys, causal mode),
+  narrated before the chains it feeds"), confirmed separately by the five-whys not-applied line's
+  own parenthetical ("Five-whys causal mode was applied separately, narrated in section 4,
+  corroborating chain C1"); `theoretical-limit` — named as fired at Phase 4 in its own not-applied
+  line's reason ("its Phase 4 invocation fired (chain C7, the propagation-delay floor)"), and chain
+  C7's own text ("a floor set by physics and protocol overhead rather than by API paradigm");
+  `trade-off` — chain C8's weighted-criteria scoring ("across seven weighted criteria... a
+  mobile-scoped REST BFF scores 109..."); `second-order` — the `[2nd]`/`[3rd]` steps inside chain
+  C8; `pre-mortem` — the Adversarial pass's own explicit label "**Adversarial technique —
+  pre-mortem**" plus its Premise/Causes/Clusters/Disposition/Falsification/Tripwires record.
+  `fishbone` is explicitly not applied.
+
+## Transcription method (Task 2)
+
+Same two-pass method as Task 1 (`build_blocks3.py` for `science-engineering.md`, `build_blocks4.py`
+for `tb-01.md`, both throwaway scripts in the scratchpad, using the same `mkA`/`mkGT`/`mkC` helper
+shape as `build_blocks.py`). `tb-01.md`'s assumption ids are read by row position directly from its
+own cell labels (`A-1:` … `A-21:`), which already match position throughout — no
+`software-systems.md`-style discrepancy exists in this fixture.
+
+## Falsifier f5 output (final, all four fixtures)
+
+```text
+tests/summary-block-v9.16/personal-general.md prose=(18 20 8 4 0) block=(18 20 8 4 0)
+tests/summary-block-v9.16/software-systems.md prose=(22 10 8 6 1) block=(22 10 8 6 1)
+tests/summary-block-v9.16/science-engineering.md prose=(13 10 5 4 0) block=(13 10 5 4 0)
+tests/summary-block-v9.16/tb-01.md prose=(21 6 8 4 0) block=(21 6 8 4 0)
+```
+
+`bash .planning/phases/75-summary-block-checker-and-gate/75-falsifiers.sh f5` exits 0 — every
+fixture's prose-derived inventory (assumption rows, ground-truth declarations, chains, dead ends,
+earlier Gate passes) equals its block's own array lengths, computed by code (awk/grep over section
+headings) that shares nothing with `scripts/check-summary-block.py` or the transcription scripts
+above.
+
+`python3 scripts/check-summary-block.py tests/summary-block-v9.16/<file>.md` returns
+`SUMMARY-BLOCK: PASS` (exit 0) for all four fixtures.
