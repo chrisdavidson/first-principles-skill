@@ -38,11 +38,8 @@ outside the repository, one prompt per fresh subdirectory, sequential, session p
 (the agent's own subagent transcript is captured, as every prior delivery-mechanics measurement
 in this tree has done).
 
-`ALLOWED_TOOLS` (`tests/answer-first/run.py`'s `ALLOWED_TOOLS` constant): `Read`, `Glob`, `Grep`,
-`WebFetch`, `WebSearch`, `Bash(mkdir:*)`, `Bash(cat:*)`, `Bash(printf:*)`, `Bash(echo:*)`,
-`Bash(date:*)`, `Bash(grep:*)`, `Bash(wc:*)`, `Bash(mv:*)`, `Bash(rm:*)`, `Bash(ls:*)`,
-`Bash(head:*)`, `Bash(sed:*)` — the Bash prefixes the body's own delivery mechanics (create,
-append, write the Answer, assemble, check) need, enumerated rather than a bare `Bash` entry.
+`ALLOWED_TOOLS` (`tests/answer-first/run.py`'s `ALLOWED_TOOLS` constant, amended — see §7):
+`Read`, `Glob`, `Grep`, `WebFetch`, `WebSearch`, `Bash(*)`.
 
 **`bypassPermissions` is not used, and this is the one axis this transport differs from every
 earlier delivery-mechanics capture in this tree** (`tests/delivery/`, `tests/delivery-fix-3/`,
@@ -108,7 +105,50 @@ prompts or repeats would need its own id.
 
 ## 7. Pre-run amendments
 
-None at registration. If the transport probe (step 2 of the executing plan) reports a denial of
-a delivery command, the minimal Bash prefix(es) needed are added to `ALLOWED_TOOLS`, and a dated
-amendment is appended here — committed, together with the code change, before the first
-registered run — naming the denial and the change. `bypassPermissions` is never the fix.
+### 2026-09-29 — `ALLOWED_TOOLS` widened to `Bash(*)`; `--allowedTools` passed as one `=`-joined token
+
+**Found by the transport probe** (`python3 tests/answer-first/run.py probe --cwd <scratch dir>`),
+before any registered run.
+
+**Finding 1 — the enumerated per-verb prefixes admit none of the body's own commands.** Live,
+reproduced twice: the body's own create command
+(`mkdir -p .first-principles && F=".first-principles/analysis-$(date -u +%Y%m%dT%H%M%SZ).md" &&
+: > "$F" && …`), issued verbatim under `--allowedTools=Read,Glob,Grep,WebFetch,WebSearch,
+Bash(mkdir:*),Bash(cat:*),Bash(printf:*),Bash(echo:*),Bash(date:*),Bash(grep:*),Bash(wc:*),
+Bash(mv:*),Bash(rm:*),Bash(ls:*),Bash(head:*),Bash(sed:*)`, was denied both times with "Contains
+shell syntax (string) that cannot be statically analyzed" — including once with the tool call's
+own `dangerouslyDisableSandbox: true`, which did not change the verdict. Isolating the cause: a
+compound `&&`-chained command with no variable assignment (`mkdir -p .first-principles &&
+echo done`) is admitted by a single matching prefix (`Bash(mkdir:*)`); the same shape WITH a
+shell variable capture-and-reuse (`F="…" && : > "$F" && echo "$F"`) is denied under that same
+prefix. **Every step the body's delivery mechanics prescribe captures `F="<path>"` once and
+re-references `"$F"` (or the caller substitutes a literal path for `<path>`) in every subsequent
+Bash call** (`shared/spine/SKILL-body.md`, "Deliver the analysis as a file") — so no set of
+narrower `Bash(<verb>:*)` prefixes can admit them; this is a property of Claude Code's own
+static-analysis-based Bash permission engine reacting to shell variable assignment, not of which
+verbs are or are not listed.
+
+**Resolution.** `Bash(*)` was the narrowest change found that admits the affected commands.
+Confirmed live, zero `permission_denials`: the create command alone, and a full
+create → append → write-answer → assemble → idempotent-retry → check sequence run end to end.
+`ALLOWED_TOOLS` is now `Read, Glob, Grep, WebFetch, WebSearch, Bash(*)` — one enumerated Bash-tool
+entry (not the bare token `Bash`), under `--permission-mode acceptEdits` (never
+`bypassPermissions`); the agent's own frontmatter `disallowedTools` (Write, Edit, Agent,
+SendMessage, ListAgents) is unaffected by it and still applies. This does widen what the harness
+grants relative to the narrower set originally registered above — recorded here rather than
+smoothed over, since T-tg9-01's mitigation is now `acceptEdits` alone, not a per-verb allowlist,
+and a real installation restricting Bash to specific verb prefixes would be unable to use this
+agent's file-delivery mechanism at all, for the identical reason. That is a property of the
+shipped body's command shape versus Claude Code's sandbox, out of this plan's scope to change,
+and is recorded as a follow-up in the executing plan's SUMMARY rather than fixed here.
+
+**Finding 2 — `--allowedTools` must be one `=`-joined token.** `--allowedTools <value>
+<prompt>`, as two separate argv entries, is silently swallowed whole by the CLI's variadic
+`<tools...>` arity — the prompt argument disappears into the tool list and the run fails with
+`Error: Input must be provided either through stdin or as a prompt argument when using --print`.
+Reproduced with both space- and comma-joined values as the wrongly-split two-entry form; resolved
+by passing a single `--allowedTools=<comma-joined>` argv token instead. `tests/answer-first/
+run.py`'s `live_argv` and `cmd_probe` were updated accordingly, and S7's self-test check was
+updated to look for an `--allowedTools=` prefix rather than the flag and its value as two entries.
+
+Both changes are committed together, before the first registered run.
