@@ -353,6 +353,11 @@ def load_trackb(path: Path = TRACKB_RESULT_PATH) -> dict | None:
             raise EvidenceError(f"{path}: trackb-2 record missing a non-empty 'caveat'")
         if "secondary_summary_gap" not in data:
             raise EvidenceError(f"{path}: trackb-2 record missing 'secondary_summary_gap'")
+        # Length is the registered covariate (trackb-2 §7): a cleared claim
+        # published without it would read as a pure quality difference.
+        words = data.get("words_per_arm") or {}
+        if not (words.get("T", {}).get("mean") and words.get("C", {}).get("mean")):
+            raise EvidenceError(f"{path}: trackb-2 record missing 'words_per_arm' means")
     return data
 
 
@@ -457,14 +462,51 @@ def render(
                 "",
             ]
         )
-        if trackb.get("caveat"):
-            lines.extend([f"**Caveat:** {trackb['caveat']}", ""])
-        if trackb.get("secondary_summary_gap") is not None:
+        crit = trackb.get("per_criterion_means") or {}
+        t_total = sum(crit.get("T", {}).values()) if crit.get("T") else None
+        c_total = sum(crit.get("C", {}).values()) if crit.get("C") else None
+        if t_total is not None and c_total is not None:
+            at_max = sum(1 for v in crit["T"].values() if v >= 3.0)
             lines.extend(
                 [
-                    "*Partial context, not part of the threshold: the same effect measured on "
-                    "the orchestrator's final message instead of the delivered file differs by "
-                    f"{trackb['secondary_summary_gap']:+.2f} points.*",
+                    f"**Scores:** agent {t_total:.2f} / 15, unaided {c_total:.2f} / 15. The agent "
+                    f"arm is at the rubric's maximum on {at_max} of {len(crit['T'])} criteria, so "
+                    "the scale cannot show how much further apart the two would be.",
+                    "",
+                ]
+            )
+        if trackb.get("caveat"):
+            lines.extend([f"**Caveat:** {trackb['caveat']}", ""])
+        words = trackb.get("words_per_arm") or {}
+        if words.get("T") and words.get("C"):
+            t_w, c_w = words["T"]["mean"], words["C"]["mean"]
+            lines.extend(
+                [
+                    f"**Length:** the agent's documents averaged {t_w:,.0f} words against "
+                    f"{c_w:,.0f} for the unaided answers (about {t_w / c_w:.0f}×). Length is a "
+                    "registered covariate, not controlled for, so credit for thoroughness "
+                    "cannot be separated from credit for substance.",
+                    "",
+                ]
+            )
+        gap = trackb.get("secondary_summary_gap")
+        if gap is not None and t_total is not None and c_total is not None:
+            summary_total = t_total - gap
+            lines.extend(
+                [
+                    "*Partial context, not part of the threshold: scored on the short message "
+                    "the main session hands back instead of the delivered file, the agent arm "
+                    f"averaged {summary_total:.2f} / 15 — {gap:.2f} below the delivered file and "
+                    f"{summary_total - c_total:+.2f} against the unaided answer.*",
+                    "",
+                ]
+            )
+        elif gap is not None:
+            lines.extend(
+                [
+                    "*Partial context, not part of the threshold: scored on the short message "
+                    "the main session hands back instead of the delivered file, the agent arm "
+                    f"scored {gap:.2f} points below the delivered file.*",
                     "",
                 ]
             )
@@ -764,10 +806,13 @@ def _c13_trackb2_requires_and_renders_caveat(tmp_root: Path) -> str | None:
         "run_id": "r",
         "caveat": "CAVEAT-TOKEN",
         "secondary_summary_gap": 1.23,
+        "words_per_arm": {"T": {"mean": 9000.0}, "C": {"mean": 600.0}},
     }
     out = render(trackb=good)
     if "CAVEAT-TOKEN" not in out or "1.23" not in out:
         return "cleared trackb-2 render did not print the caveat and secondary figure"
+    if "**Length:**" not in out or "9,000" not in out or "15×" not in out:
+        return "cleared trackb-2 render did not print the length covariate"
     if "partial context, not part of the threshold" not in out.lower():
         return "cleared trackb-2 render did not label the secondary figure non-gating"
 
@@ -780,6 +825,14 @@ def _c13_trackb2_requires_and_renders_caveat(tmp_root: Path) -> str | None:
         pass
     else:
         return "a trackb-2 record without 'caveat' was accepted by load_trackb"
+    nolen = {k: v for k, v in good.items() if k != "words_per_arm"}
+    bad_path.write_text(json.dumps(nolen), encoding="utf-8")
+    try:
+        load_trackb(bad_path)
+    except EvidenceError:
+        pass
+    else:
+        return "a trackb-2 record without 'words_per_arm' was accepted by load_trackb"
 
     null_2 = {**good, "status": "null"}
     out2 = render(trackb=null_2)

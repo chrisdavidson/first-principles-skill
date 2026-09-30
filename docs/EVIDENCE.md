@@ -102,9 +102,13 @@ better than the same model answering the same problem without this plugin?
 
 *Sample: 10 per arm · Measured: 2026-09-30 · Run: `trackb-run-v9.15`*
 
+**Scores:** agent 14.70 / 15, unaided 11.30 / 15. The agent arm is at the rubric's maximum on 3 of 5 criteria, so the scale cannot show how much further apart the two would be.
+
 **Caveat:** The scored arm-T document is identifiable by its format with near certainty, so this result cannot separate reasoning quality from a format or halo effect.
 
-*Partial context, not part of the threshold: the same effect measured on the orchestrator's final message instead of the delivered file differs by +0.60 points.*
+**Length:** the agent's documents averaged 8,786 words against 656 for the unaided answers (about 13×). Length is a registered covariate, not controlled for, so credit for thoroughness cannot be separated from credit for substance.
+
+*Partial context, not part of the threshold: scored on the short message the main session hands back instead of the delivered file, the agent arm averaged 14.10 / 15 — 0.60 below the delivered file and +2.80 against the unaided answer.*
 
 The effect threshold and the full analysis plan were fixed in writing
 before any run took place — see [the pre-registration](trackb-2-preregistration.md).
