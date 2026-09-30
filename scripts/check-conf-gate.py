@@ -267,10 +267,11 @@ _D08_TARGET_SURFACE = "shared-examples"
 _D08_TARGET_ID = "personal-general"
 
 # The three literal mutation sites, transcribed from the live text of
-# shared/examples/personal-general.md and each confirmed unique (str.count
-# == 1) before being pinned here. A future edit to this file that removes
-# one of these needles is exactly the "mutation site cannot be located"
-# failure the D-08 arm is required to report rather than silently skip.
+# shared/examples/personal-general.md and each confirmed unique OUTSIDE
+# FENCED CODE (str.count == 1 on the unfenced text, `_d08_unfenced`) before
+# being pinned here. A future edit to this file that removes one of these
+# needles is exactly the "mutation site cannot be located" failure the D-08
+# arm is required to report rather than silently skip.
 # Re-pinned at Phase 44 plan 44-03 (backlog 999.118): the hop and citation
 # needles previously read "effective"; the exemplar was corrected to call
 # the $54,000 figure "rent-adjusted" instead (it is a pre-tax nominal
@@ -624,6 +625,54 @@ def _display_relpath(path: Path) -> str:
         return str(path)
 
 
+def _d08_unfenced(text: str) -> str:
+    """*text* with every line inside a fenced code block (delimiters
+    included) dropped, via the harness's own CommonMark-accurate fence
+    reader — reached through the already-registered `_quality_harness`
+    `sys.modules` key (D-06 import discipline in this file's docstring: no
+    second harness import). Lines are split on `"\\n"` alone, matching
+    `_fenced_code_flags`'s own callers in check-quality-harness.py.
+
+    Phase 76 appends a structured-summary JSON block to each worked example
+    whose `conclusion.recommendation` copies a prose section's Recommended
+    approach verbatim (D-17), so a D-08 needle can legitimately recur inside
+    a fence. Scoping the locator to unfenced text keeps a verbatim §6
+    restatement from making a prose mutation site "not unique" — the
+    needles themselves (`_D08_HOP_NEEDLE`/`_D08_CELL_NEEDLE`/
+    `_D08_CITE_NEEDLE`) are not re-pinned.
+    """
+    lines = text.split("\n")
+    fenced = sys.modules["_quality_harness"]._fenced_code_flags(lines)
+    return "\n".join(ln for ln, f in zip(lines, fenced) if not f)
+
+
+def _d08_unfenced_site(text: str, needle: str) -> int:
+    """Char index in *text* of the occurrence of *needle* whose line is NOT
+    inside a fenced code block, or -1 if no such occurrence exists. Scans
+    every occurrence in document order — rather than assuming the first
+    occurrence found is the prose one — so a fenced duplicate that happened
+    to appear before the prose occurrence is skipped, never mutated.
+    Callers only reach this after confirming `_d08_unfenced(text)` contains
+    *needle* exactly once, so a -1 here would itself be a bug.
+    """
+    lines = text.split("\n")
+    fenced = sys.modules["_quality_harness"]._fenced_code_flags(lines)
+    starts: list[int] = []
+    offset = 0
+    for ln in lines:
+        starts.append(offset)
+        offset += len(ln) + 1
+    search_from = 0
+    while True:
+        idx = text.find(needle, search_from)
+        if idx == -1:
+            return -1
+        line_idx = next(i for i in range(len(starts) - 1, -1, -1) if starts[i] <= idx)
+        if not fenced[line_idx]:
+            return idx
+        search_from = idx + 1
+
+
 def _run_d08_arm_on(path: Path, analysis_id: str) -> tuple[list[str], list[str]]:
     """The D-08 core: three in-memory mutations of the document at *path*,
     each required to produce its specific defect. Never exits the process —
@@ -632,9 +681,16 @@ def _run_d08_arm_on(path: Path, analysis_id: str) -> tuple[list[str], list[str]]
     two arms rather than stopping the run. Called from `_run_d08_arm` with
     the real shipped path, and directly from `--self-test` controls with a
     `tempfile.TemporaryDirectory()` path — never `REPO_ROOT`.
+
+    Each locator condition is checked against `_d08_unfenced(text)`, never
+    `text` — a fenced duplicate (Phase 76's structured-summary block, D-17)
+    must not make a prose needle look "not found (or not unique)". The
+    mutation itself still targets `text` at the exact unfenced occurrence
+    (`_d08_unfenced_site`), so a fenced duplicate is never rewritten.
     """
     relpath = _display_relpath(path)
     text = path.read_text(encoding="utf-8")
+    unfenced = _d08_unfenced(text)
     baseline = detect_defects(text, analysis_id)
     baseline_blocks = _rc._render_example_chain_blocks(text)
     baseline_malformed = sum(
@@ -649,10 +705,13 @@ def _run_d08_arm_on(path: Path, analysis_id: str) -> tuple[list[str], list[str]]
     # (a) re-wrap one hop across two physical lines: remove the leading arrow
     # from a continuation line and indent it instead, so the line no longer
     # starts with an arrow and is not absorbed as a chain continuation.
-    if _D08_HOP_NEEDLE not in text or text.count(_D08_HOP_NEEDLE) != 1:
+    if _D08_HOP_NEEDLE not in unfenced or unfenced.count(_D08_HOP_NEEDLE) != 1:
         problems.append(f"D-08(a) mutation site not found (or not unique) in {relpath}")
     else:
-        mutated_a = text.replace(_D08_HOP_NEEDLE, _D08_HOP_REPLACEMENT, 1)
+        site_a = _d08_unfenced_site(text, _D08_HOP_NEEDLE)
+        mutated_a = (
+            text[:site_a] + _D08_HOP_REPLACEMENT + text[site_a + len(_D08_HOP_NEEDLE) :]
+        )
         blocks_a = _rc._render_example_chain_blocks(mutated_a)
         malformed_a = sum(1 for _, b in blocks_a if not _rc._chain_block_well_formed(b))
         if malformed_a != baseline_malformed + 1:
@@ -669,10 +728,13 @@ def _run_d08_arm_on(path: Path, analysis_id: str) -> tuple[list[str], list[str]]
 
     # (b) strip the em dash and its justification from a repaired Verdict
     # cell, leaving the bare vocabulary token.
-    if _D08_CELL_NEEDLE not in text or text.count(_D08_CELL_NEEDLE) != 1:
+    if _D08_CELL_NEEDLE not in unfenced or unfenced.count(_D08_CELL_NEEDLE) != 1:
         problems.append(f"D-08(b) mutation site not found (or not unique) in {relpath}")
     else:
-        mutated_b = text.replace(_D08_CELL_NEEDLE, _D08_CELL_REPLACEMENT, 1)
+        site_b = _d08_unfenced_site(text, _D08_CELL_NEEDLE)
+        mutated_b = (
+            text[:site_b] + _D08_CELL_REPLACEMENT + text[site_b + len(_D08_CELL_NEEDLE) :]
+        )
         record_b = detect_defects(mutated_b, analysis_id)
         if (
             record_b["nonconforming_verdict_cells"]
@@ -692,10 +754,13 @@ def _run_d08_arm_on(path: Path, analysis_id: str) -> tuple[list[str], list[str]]
             )
 
     # (c) remove one (chain Cn) citation from an otherwise-traced claim.
-    if _D08_CITE_NEEDLE not in text or text.count(_D08_CITE_NEEDLE) != 1:
+    if _D08_CITE_NEEDLE not in unfenced or unfenced.count(_D08_CITE_NEEDLE) != 1:
         problems.append(f"D-08(c) mutation site not found (or not unique) in {relpath}")
     else:
-        mutated_c = text.replace(_D08_CITE_NEEDLE, _D08_CITE_REPLACEMENT, 1)
+        site_c = _d08_unfenced_site(text, _D08_CITE_NEEDLE)
+        mutated_c = (
+            text[:site_c] + _D08_CITE_REPLACEMENT + text[site_c + len(_D08_CITE_NEEDLE) :]
+        )
         record_c = detect_defects(mutated_c, analysis_id)
         marked_c = sum(1 for t in record_c["_untraced_claims_text"] if CAVEAT_MARKER in t)
         silent_c = record_c["untraced_claims"] - marked_c
@@ -872,6 +937,24 @@ _D08_FIXTURE_INERT_NEEDLES = _D08_FIXTURE_NO_NEEDLES.replace(
 
 _D08_FIXTURE_DUPLICATE_HOP = _D08_FIXTURE_INERT_NEEDLES.replace(
     _D08_HOP_NEEDLE, _D08_HOP_NEEDLE + " " + _D08_HOP_NEEDLE, 1
+)
+
+# _D08_FENCE_BODY carries all three needles once each, built by
+# REFERENCING the constants for the same reason _D08_FIXTURE_INERT_NEEDLES
+# does above. _D08_FIXTURE_FENCED_DUPLICATE appends it, fenced, after the
+# inert prose copies — a fenced duplicate must not make the prose site look
+# "not found (or not unique)" (Phase 76's structured-summary block, D-17,
+# recurs each needle's prose verbatim inside a terminal ```json fence).
+# _D08_FIXTURE_FENCE_ONLY_NEEDLES appends the same fence to the NO-prose
+# fixture: needles present ONLY inside a fence still count as not found.
+_D08_FENCE_BODY = _D08_HOP_NEEDLE + " " + _D08_CELL_NEEDLE + " " + _D08_CITE_NEEDLE
+
+_D08_FIXTURE_FENCED_DUPLICATE = (
+    _D08_FIXTURE_INERT_NEEDLES + "\n```json\n" + _D08_FENCE_BODY + "\n```\n"
+)
+
+_D08_FIXTURE_FENCE_ONLY_NEEDLES = (
+    _D08_FIXTURE_NO_NEEDLES + "\n```json\n" + _D08_FENCE_BODY + "\n```\n"
 )
 
 
@@ -1421,6 +1504,35 @@ def _control_d08_needle_not_unique_reported() -> None:
     ), problems
 
 
+def _control_d08_fenced_duplicate_ignored() -> None:
+    """A fenced duplicate of all three needles, appended after the inert
+    prose copies, must not make a locator report "not found (or not
+    unique)" — each arm still reaches its increment check and reports its
+    own `did not increment` problem (the inert fixture is built so mutating
+    the needle changes nothing measurable; see `_D08_FIXTURE_INERT_NEEDLES`'s
+    own comment). Companion negative, in the same control rather than a
+    separate one so the two fixtures are read together: needles present
+    ONLY inside a fence (no prose copy at all) still count as not found —
+    three `mutation site not found` problems, the
+    `_control_d08_missing_sites_reported` shape.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "fixture.md"
+        path.write_text(_D08_FIXTURE_FENCED_DUPLICATE, encoding="utf-8")
+        problems, lines = _run_d08_arm_on(path, "personal-general")
+    assert not any("not found (or not unique)" in p for p in problems), problems
+    assert len(problems) == 3, problems
+    assert all("did not increment" in p for p in problems), problems
+
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "fence-only.md"
+        path.write_text(_D08_FIXTURE_FENCE_ONLY_NEEDLES, encoding="utf-8")
+        problems2, lines2 = _run_d08_arm_on(path, "personal-general")
+    assert lines2 == [], lines2
+    assert len(problems2) == 3, problems2
+    assert all("mutation site not found" in p for p in problems2), problems2
+
+
 def describe() -> dict[str, object]:
     """This gate's own self-description (D-03, plan 21-05): pure, no disk
     I/O, no argv, no subprocess. `registered_surfaces` is `_GATED_SURFACES`
@@ -1522,6 +1634,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("d08-missing-sites-reported", _control_d08_missing_sites_reported),
     ("d08-increments-not-produced-reported", _control_d08_increments_not_produced_reported),
     ("d08-needle-not-unique-reported", _control_d08_needle_not_unique_reported),
+    ("d08-fenced-duplicate-ignored", _control_d08_fenced_duplicate_ignored),
     ("describe", _control_describe_consistency),
 )
 
@@ -1573,6 +1686,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "d08-missing-sites-reported",
     "d08-increments-not-produced-reported",
     "d08-needle-not-unique-reported",
+    "d08-fenced-duplicate-ignored",
     "describe",
 )
 
