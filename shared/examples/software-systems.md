@@ -337,3 +337,109 @@ before the team sees any benefit, whichever constraint turns out to bind.
   of the analysis, that pressure should be surfaced as a constraint and addressed separately.
 
 **Confidence:** HIGH
+
+---
+
+## Appendix — process output
+
+## Structured summary (process output)
+
+```json
+{
+  "schema_version": 1,
+  "run_mode": null,
+  "assumptions": [
+    {
+      "id": "A-1",
+      "type": "convention",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-2",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-3",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-4",
+      "type": "current constraint",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-5",
+      "type": "untested belief",
+      "verdict": "Discard"
+    },
+    {
+      "id": "A-6",
+      "type": "untested belief",
+      "verdict": "Accept"
+    }
+  ],
+  "ground_truths": [
+    {
+      "id": "GT-1",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-2",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-3",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-4",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-5",
+      "read_at_source": true
+    }
+  ],
+  "chains": [
+    {
+      "id": "C1",
+      "confidence": "HIGH",
+      "rests_on": [
+        "GT-1",
+        "GT-2",
+        "GT-3"
+      ]
+    },
+    {
+      "id": "C2",
+      "confidence": "HIGH",
+      "rests_on": [
+        "GT-5",
+        "GT-4"
+      ]
+    },
+    {
+      "id": "C3",
+      "confidence": "HIGH",
+      "rests_on": [
+        "GT-1",
+        "GT-3",
+        "GT-4"
+      ]
+    }
+  ],
+  "dead_ends": [
+    "Split the monolith as specified",
+    "Move the test suite to a faster test runner"
+  ],
+  "techniques": null,
+  "gate": null,
+  "re_entry": null,
+  "conclusion": {
+    "recommendation": "(chains C1 and C3) Profile first, then take whichever branch profiling\nindicates, stopping when deploy frequency reaches the target.\n\n**Step 0 — profile the pipeline and the release process** (chain C3; approximately 1 day):\ninstrument the CI/CD\npipeline to measure the wall-clock contribution of each stage — test suite execution, artifact\nbuild, deployment and restart, health-check wait — and read, from the deployment records GT-3 is\nmeasured from, the gap between one pipeline completion and the next deploy start, where an approval\ngate, deploy window or batching policy would show. Identify which stage or gap binds the 2/day\nceiling. Within the pipeline, test suite runtime is usually the dominant stage for a\ncodebase of this profile — an expectation, not something GT-1 measures; profiling confirms\nor refutes this. This step is unconditional — it is\nthe precondition for choosing between the branches below, not one of them.\n\nThen take exactly one of:\n\n1. **If the binding factor lies outside the pipeline** (chain C3) — an approval gate, deploy window\n   or batching policy: change that release process. It is cheaper than either branch below.\n\n2. **If profiling identifies a pipeline stage as binding, parallelize the test suite and decouple the restart** (chain C3; days to 2 weeks): split the test suite into shards and run them\n   concurrently across multiple CI workers; introduce a blue-green or rolling deploy strategy\n   to eliminate the coordinated-restart requirement from GT-2. These are CI configuration\n   changes with no changes to application code and no architectural risk. After this step,\n   measure deploy frequency. If the target is met, stop.\n\n3. **If profiling identifies schema coupling as a bottleneck** (chain C2): begin incremental schema\n   decomposition along bounded-context lines, guided by the module boundaries already present in\n   the monolith. This is weeks-to-months of careful migration work (establishing exclusive table\n   ownership per module, eliminating cross-module schema access, introducing service-level schema\n   boundaries). This step delivers the coupling reduction that enables genuinely independent\n   deploys — and it does not require splitting the application into separately-deployed services.\n\nRevisit the microservices question as a separate analysis once the branch profiling selected has\ncompleted. If,\nafter removing whatever constraint profiling identified as binding and decoupling the schema, the team's deploy frequency\nstill does not meet business needs — or if the team's real goal is independent team ownership\nand feature velocity rather than deploy speed — that is a different problem and warrants a\nfresh first-principles analysis with the real goal stated in the Essence Statement (Section 1,\nProblem Essence).",
+    "confidence": "HIGH"
+  }
+}
+```

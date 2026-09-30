@@ -203,3 +203,109 @@ remains the larger weak link of the two. A 30-day energy-monitoring period measu
 actual consumption would verify or correct GT-5?, and confirming the site-specific
 equipment efficiencies against the installed hardware would close GT-2's 3–5 pp gap;
 both together would raise confidence in the sizing outputs to HIGH.
+
+---
+
+## Appendix — process output
+
+## Structured summary (process output)
+
+```json
+{
+  "schema_version": 1,
+  "run_mode": null,
+  "assumptions": [
+    {
+      "id": "A-1",
+      "type": "physical law",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-2",
+      "type": "physical law",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-3",
+      "type": "convention",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-4",
+      "type": "convention",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-5",
+      "type": "physical law",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-6",
+      "type": "current constraint",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-7",
+      "type": "untested belief",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-8",
+      "type": "untested belief",
+      "verdict": "Discard"
+    }
+  ],
+  "ground_truths": [
+    {
+      "id": "GT-1",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-2",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-3",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-4",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-5",
+      "read_at_source": false
+    }
+  ],
+  "chains": [
+    {
+      "id": "C1",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-2",
+        "GT-5?",
+        "GT-1"
+      ]
+    },
+    {
+      "id": "C2",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-5?",
+        "GT-4"
+      ]
+    }
+  ],
+  "dead_ends": [
+    "Size the system to the peak instantaneous load"
+  ],
+  "techniques": null,
+  "gate": null,
+  "re_entry": null,
+  "conclusion": {
+    "recommendation": "(chains C1 and C2) Install a 400 W panel array (2 × 200 W panels) and a 6 kWh\nLiFePO4 battery bank. These sizes are derived from the site's 5.5 PSH annual average\n(GT-1), the 0.80 system derating factor (GT-2), the 80% DoD limit of LiFePO4 chemistry\n(GT-3), the 3-day autonomy target (GT-4), and the estimated 1.5 kWh/day daily load\n(GT-5?). Commission a 30-day energy-monitoring period before finalizing the order; above\napproximately 1.6 kWh/day (6 kWh × 0.80 DoD ÷ 3 days) the 6 kWh bank no longer meets the\n3-day autonomy target and should be upsized to 7.5–8 kWh, and above approximately\n1.76 kWh/day (400 W × 5.5 PSH × 0.80) the 400 W array no longer meets the daily load and\nshould be upsized to 600 W.",
+    "confidence": "MEDIUM"
+  }
+}
+```

@@ -458,3 +458,128 @@ re-derivation. What changes is the conclusion's status: the de-inlining interven
 chain C3 recommended is now historically confirmed rather than recommended. The
 GT-9? measurement chain C1 called for remains open, and its MEDIUM confidence label
 is unchanged by this postscript.
+
+---
+
+## Appendix — process output
+
+## Structured summary (process output)
+
+```json
+{
+  "schema_version": 1,
+  "run_mode": null,
+  "assumptions": [
+    {
+      "id": "A-1",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-2",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-3",
+      "type": "untested belief",
+      "verdict": "Discard"
+    },
+    {
+      "id": "A-4",
+      "type": "convention",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-5",
+      "type": "convention",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-6",
+      "type": "untested belief",
+      "verdict": "Discard"
+    }
+  ],
+  "ground_truths": [
+    {
+      "id": "GT-1",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-2",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-3",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-4",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-5",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-6",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-7",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-8",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-9",
+      "read_at_source": false
+    }
+  ],
+  "chains": [
+    {
+      "id": "C1",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-7",
+        "GT-8",
+        "GT-9?"
+      ]
+    },
+    {
+      "id": "C2",
+      "confidence": "HIGH",
+      "rests_on": [
+        "GT-1",
+        "GT-2",
+        "GT-3",
+        "GT-5"
+      ]
+    },
+    {
+      "id": "C3",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-4",
+        "GT-5",
+        "GT-6",
+        "GT-8"
+      ]
+    }
+  ],
+  "dead_ends": [
+    "Aggressively extract the Phase 1–5 procedural blocks into `shared/spine/references/phase-N.md` files",
+    "Accept that 878 lines is fine because Phase 28 EVAL-01 passed and the routing battery PASSes at this body size"
+  ],
+  "techniques": null,
+  "gate": null,
+  "re_entry": null,
+  "conclusion": {
+    "recommendation": "(chains C1, C2 and C3) Execute one configuration-level intervention and\ncommission one measurement, in parallel.\n\n1. **De-inline the Output Template and Validation Rubric appendices** (chain C3) from\n   `first-principles/agents/first-principles.md`. Replace the appendix region\n   (currently lines 415–878) with two one-line external references in the\n   `### Reference docs` block that already exists at line 226: a link to\n   `references/output-template.md` and a link to `references/validation-rubric.md`.\n   These reference files already exist in `shared/spine/references/` and already\n   propagate to the agent surface via `scripts/sync-content.py`. The intervention\n   is authored in `shared/` (the body source) and synced; no hand-edit of the\n   agent surface occurs. Expected body size after the change: approximately\n   414 lines, comfortably under the META-Q4 budget of ~500. The intervention is\n   fully reversible by reverting the body edit.\n\n2. **Commission the GT-9? measurement** (chain C1) that would settle whether body-size\n   reduction *matters* for agent reasoning quality. The minimum form is a\n   small A/B: run the EVAL-01 climbing-gym fixture (or an equivalent rigor\n   probe) against both the pre-intervention 878-line body and the\n   post-intervention ~414-line body, holding model and prompt fixed. If the\n   measurement shows no rigor difference, META-Q4 should be re-recorded as a\n   heuristic with the measurement attached; if it shows a rigor improvement,\n   META-Q4's binding force is verified and the intervention is doubly\n   justified; if it shows a regression, the intervention is reverted before\n   it ships.\n\nThe intervention is justified independently of the measurement's outcome\nbecause it deduplicates content that the source tree already contains in\ntwo places (the inlined appendix region of the agent body, and the\nauthored Layer-3 reference files under `shared/spine/references/`). The\nmeasurement is justified independently of the intervention because META-Q4\nwill continue to fire on every future content addition and the gate's\nbinding force should be settled rather than inherited from convention.",
+    "confidence": "MEDIUM"
+  }
+}
+```

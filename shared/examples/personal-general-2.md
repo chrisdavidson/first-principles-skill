@@ -122,3 +122,124 @@ Use the after-tax mortgage rate (6.25%, since the tax shield is currently ~0%) a
 **Trade-offs acknowledged:** (chains C1, C2 and C3) The indexing recommendation accepts approximately $36,230 of worst-decile 10-year underperformance versus paydown, in exchange for an approximately $12,030 central-estimate expected-value advantage and the optionality of a liquid (if appreciated, taxable) position. The paydown recommendation accepts that expected-value cost — roughly 20% of the deployed principal at the central estimate, about a third of the worst-decile swing it buys protection against — in exchange for a guaranteed, contractual return and lower variance, at the cost of converting liquid cash into illiquid home equity. The split recommendation accepts most of both branches' downsides and most of both branches' upsides — explicitly the convex-utility trade. None of the three deployments is dominant across all assumption profiles, which is what the contingency is recording.
 
 **Confidence:** (chains C1, C2 and C3) LOW — the section's rating is bound by the weakest chain its Recommended approach names: C1 is LOW, C2 is LOW, C3 is MEDIUM, so this section is LOW and not MEDIUM. Neither Criterion 5 EXCEPT clause applies — no chain here is marked `[Speculative]`, and none is an absent-fails derivation. What carries the LOW is the specific deployment recommendation, which depends on `GT-3?` (the central-estimate market return distribution) and on the household's verification of drawdown tolerance and hard-floor presence — both of which are resolvable facts. The structural recommendation stated inside it (use after-tax rates; treat the return distribution rather than the mean; let drawdown tolerance govern the close cases) is HIGH confidence and does not depend on `GT-3?`, but a sub-claim's higher rating does not lift the section's: the section inherits the floor, it does not average over it. Verification that would raise this rating: resolving `GT-3?` to a measured forward-looking input lifts C1 and C2 off LOW, after which the household completing the drawdown-tolerance differential check (prior real-drawdown behaviour) and confirming the 10-year hard-floor inventory lifts the section with C3. Until those are completed, the deployment recommendation is the conditional one above; the methodology that produces it is not contingent.
+
+---
+
+## Appendix — process output
+
+## Structured summary (process output)
+
+```json
+{
+  "schema_version": 1,
+  "run_mode": null,
+  "assumptions": [
+    {
+      "id": "A-1",
+      "type": "current constraint",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-2",
+      "type": "current constraint",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-3",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-4",
+      "type": "current constraint",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-5",
+      "type": "physical law",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-6",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-7",
+      "type": "convention",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-8",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    }
+  ],
+  "ground_truths": [
+    {
+      "id": "GT-1",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-2",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-3",
+      "read_at_source": false
+    },
+    {
+      "id": "GT-4",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-5",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-6",
+      "read_at_source": true
+    }
+  ],
+  "chains": [
+    {
+      "id": "C1",
+      "confidence": "LOW",
+      "rests_on": [
+        "GT-1",
+        "GT-2",
+        "GT-3?",
+        "GT-4"
+      ]
+    },
+    {
+      "id": "C2",
+      "confidence": "LOW",
+      "rests_on": [
+        "GT-1",
+        "GT-2",
+        "GT-3?",
+        "GT-4"
+      ]
+    },
+    {
+      "id": "C3",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-5"
+      ]
+    }
+  ],
+  "dead_ends": [
+    "\"Expected market return exceeds the mortgage rate, therefore invest\"",
+    "\"Paying off debt is always safer, therefore paydown\""
+  ],
+  "techniques": null,
+  "gate": null,
+  "re_entry": null,
+  "conclusion": {
+    "recommendation": "(chains C1, C2 and C3) The recommendation is conditional on three household-specific facts that the analysis identifies but cannot resolve from external data alone:\n\n1. (chains C1 and C3) **If** (a) the household has lived through a prior real 30–50% drawdown without forced selling or destabilising behaviour, **and** (b) there is no household-specific hard floor in the 10-year window (planned major expense, retirement-date sensitivity, partner risk-aversion not yet surfaced), **then** indexing the full $60,000 is the recommended deployment. The central-estimate expected-value advantage is roughly 20% of the deployed principal — about a third of the worst-decile swing in the opposite direction — and it is real, the worst-decile downside is absorbable, and the tax-deferral feature of a taxable-account index position adds a small additional benefit not present in the paydown branch.\n\n2. (chain C3) **If** the drawdown-tolerance verification is weak (no prior real-drawdown experience; stated tolerance is a hypothetical-question answer) **or** any household-specific hard floor exists in the 10-year window, **then** a split deployment (e.g., $30,000 paydown + $30,000 index) is the recommended deployment. The split preserves roughly half the central-estimate upside while halving the worst-decile underperformance — a convex trade that suits a variance-averse household and a partial verification of tolerance.\n\n3. (chain C3) **If** the household's income stability is materially weaker than the GT-5 reserve assumes (e.g., a planned career change, a single-earner household, sector-specific employment risk), **then** the full-paydown branch is dominated by *holding the cash* — a different decision that the analysis would re-scope to. Within the stated scope (income stability is adequate and the emergency reserve is funded), paydown alone is the recommendation only if drawdown tolerance is verified-low AND the household's preference for the cash-flow comfort of a smaller fixed obligation is strong enough to compensate for the expected-value cost, which at the central estimate is roughly 20% of the deployed principal.\n\nUse the after-tax mortgage rate (6.25%, since the tax shield is currently ~0%) and the after-tax expected market return (~8.5% nominal during holding, less ~18% on realised gains at horizon) in any household financial planning. Do not use the headline 6.25% APR and the headline ~9% historical nominal mean — those are pre-adjustment numbers that overstate the gap.",
+    "confidence": "LOW"
+  }
+}
+```

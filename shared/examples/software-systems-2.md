@@ -349,3 +349,116 @@ projection into a fact and either confirm or close the 9-month reversal window, 
 (b) a signed contract with the chosen managed provider that pins the pricing
 trajectory through the 24-month horizon, which would resolve GT-7?. Either alone
 leaves C2 at MEDIUM and caps the Conclusion there with it.
+
+---
+
+## Appendix — process output
+
+## Structured summary (process output)
+
+```json
+{
+  "schema_version": 1,
+  "run_mode": null,
+  "assumptions": [
+    {
+      "id": "A-1",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-2",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-3",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-4",
+      "type": "current constraint",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-5",
+      "type": "convention",
+      "verdict": "Discard"
+    },
+    {
+      "id": "A-6",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    }
+  ],
+  "ground_truths": [
+    {
+      "id": "GT-1",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-2",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-3",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-4",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-5",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-6",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-7",
+      "read_at_source": false
+    }
+  ],
+  "chains": [
+    {
+      "id": "C1",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-4",
+        "GT-3"
+      ]
+    },
+    {
+      "id": "C2",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-5",
+        "GT-2"
+      ]
+    },
+    {
+      "id": "C3",
+      "confidence": "HIGH",
+      "rests_on": [
+        "GT-6",
+        "GT-1",
+        "GT-5"
+      ]
+    }
+  ],
+  "dead_ends": [
+    "Pure cost comparison over a 3-year TCO model",
+    "\"We have a senior engineer who built auth before — therefore build\""
+  ],
+  "techniques": null,
+  "gate": null,
+  "re_entry": null,
+  "conclusion": {
+    "recommendation": "(chains C1, C2 and C3) Adopt the **hybrid path** — use a managed identity provider for\npassword storage, MFA enrollment, and account-recovery flows; own the tenant model, audit\nlog, session policy, and in-app authorization in-house. Specifically:\n\n1. (chains C1 and C2) Within 2 weeks, select a managed provider whose published pricing tier covers the\n   projected 24-month MAU range without crossing a tier that materially exceeds the\n   $400/month budget criterion, and whose data-export surface covers user records\n   AND audit-log export (the two surfaces the team must be able to round-trip if the\n   migration-cost hinge later resolves against the buy decision).\n\n2. (chain C3) Within 6 weeks, ship the gated feature with provider-backed login + MFA + account\n   recovery, and in-house tenant model + audit log + session policy + authorization\n   layer. The gated-feature ship deadline (8 weeks) is achievable on the hybrid path\n   because the high-risk surfaces (credential storage, MFA) are delegated and the\n   in-house surfaces are the ones the team can build safely.\n\n3. (chain C2) Within 9 months, BEFORE the first enterprise customer's onboarding closes the\n   reversal window from the Section 4 chain on reversibility, re-evaluate the\n   migration-cost hinge: rehearse a buy→build migration of the credential surfaces (in a\n   staging environment, not production) against the chosen provider's data-export\n   surface, and decide whether the build path is now feasible enough that the team\n   wants to migrate before the enterprise customer locks in the buy decision.\n\n4. (chain C3) Concurrent with steps 1–3 and independent of the build-vs-buy choice: address the\n   GT-6 gaps (secrets manager, IR runbook, eventual SOC2 path). These are required\n   regardless of the auth path and represent shared cost the build-vs-buy decision\n   does not change.",
+    "confidence": "MEDIUM"
+  }
+}
+```

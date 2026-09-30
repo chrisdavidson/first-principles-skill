@@ -251,3 +251,113 @@ they want Slack, therefore build Slack"), grounded in GT-1. Raising to
 HIGH requires closing both: bottom-up cost decompositions for both
 candidates (C1's A3), and the churn-survey and win/loss instrumentation
 that would verify GT-5? (C3).
+
+---
+
+## Appendix — process output
+
+## Structured summary (process output)
+
+```json
+{
+  "schema_version": 1,
+  "run_mode": null,
+  "assumptions": [
+    {
+      "id": "A-1",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-2",
+      "type": "current constraint",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-3",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-4",
+      "type": "convention",
+      "verdict": "Discard"
+    },
+    {
+      "id": "A-5",
+      "type": "convention",
+      "verdict": "Discard"
+    },
+    {
+      "id": "A-6",
+      "type": "current constraint",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-7",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    }
+  ],
+  "ground_truths": [
+    {
+      "id": "GT-1",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-2",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-3",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-4",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-5",
+      "read_at_source": false
+    }
+  ],
+  "chains": [
+    {
+      "id": "C1",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-2",
+        "GT-3",
+        "GT-1",
+        "GT-4"
+      ]
+    },
+    {
+      "id": "C2",
+      "confidence": "HIGH",
+      "rests_on": [
+        "GT-1",
+        "GT-3"
+      ]
+    },
+    {
+      "id": "C3",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-5?",
+        "GT-4"
+      ]
+    }
+  ],
+  "dead_ends": [
+    "Sixty percent of polled customers said they want Slack, therefore build Slack"
+  ],
+  "techniques": null,
+  "gate": null,
+  "re_entry": null,
+  "conclusion": {
+    "recommendation": "(chains C1 and C3) Build the reporting rewrite this quarter and\ndefer the Slack integration to the next planning cycle. Before planning\nlock for the next quarter, instrument the churn-survey reason codes and\nrun a win/loss audit specifically isolating Slack-integration presence, so\nthat the Slack-side evidence picture is either promoted from GT-5? to a\nverified GT or explicitly retired. If the audit surfaces a material\nSlack-attributed signal, the next-quarter decision is reconsidered with\nthat GT in hand; if it does not, the deferral becomes permanent rather\nthan rolling.",
+    "confidence": "MEDIUM"
+  }
+}
+```

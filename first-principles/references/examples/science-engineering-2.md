@@ -259,3 +259,118 @@ reason (§6 Trade-offs). The only residual uncertainty material to the next deci
 fleet-scope: whether other turbines in the same site share the same bonding-ring
 degradation pattern — verification path is a one-day fleet-wide bonding-ring
 conductance survey before the next scheduled gearbox inspection cycle.
+
+---
+
+## Appendix — process output
+
+## Structured summary (process output)
+
+```json
+{
+  "schema_version": 1,
+  "run_mode": null,
+  "assumptions": [
+    {
+      "id": "A-1",
+      "type": "physical law",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-2",
+      "type": "physical law",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-3",
+      "type": "untested belief",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-4",
+      "type": "current constraint",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-5",
+      "type": "current constraint",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-6",
+      "type": "convention",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-7",
+      "type": "untested belief",
+      "verdict": "Discard"
+    },
+    {
+      "id": "A-8",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    }
+  ],
+  "ground_truths": [
+    {
+      "id": "GT-1",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-2",
+      "read_at_source": false
+    },
+    {
+      "id": "GT-3",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-4",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-5",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-6",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-7",
+      "read_at_source": false
+    }
+  ],
+  "chains": [
+    {
+      "id": "C1",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-1",
+        "GT-2?"
+      ]
+    },
+    {
+      "id": "C2",
+      "confidence": "HIGH",
+      "rests_on": [
+        "GT-3",
+        "GT-4",
+        "GT-5",
+        "GT-6"
+      ]
+    }
+  ],
+  "dead_ends": [
+    "Low-viscosity lubricant in cold-snap months drove boundary lubrication and surface-origin wear-through"
+  ],
+  "techniques": null,
+  "gate": null,
+  "re_entry": null,
+  "conclusion": {
+    "recommendation": "(chains C1 and C2) Replace the failed HSS bearing with a new bearing of the same\nspecification AND simultaneously restore the shaft-to-ground bonding path — clean and\nre-seat the brush-block, restore conductance to the IEC TS 60034-25 prescribed range\n(≥10⁻² S), and add to the turbine's preventive-maintenance schedule a quarterly\nbonding-ring conductance check. Do NOT change the lubricant specification on the basis\nof the operator's initial hypothesis — that intervention would not address the\nverified root cause and would consume maintenance budget on a non-causal lever.",
+    "confidence": "MEDIUM"
+  }
+}
+```
