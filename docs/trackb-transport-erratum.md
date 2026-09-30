@@ -159,3 +159,43 @@ test "$(/usr/bin/grep -c '"name":"Agent"' tests/emission-stage-a-v9.14/raw/TB-05
     tests/emission-stage-a-v9.14/documents/TB-05.orchestrator.md
 test "$(/usr/bin/grep -c '"name":"Agent"' tests/emission-stage-a-v9.14/raw/TB-03.jsonl)" -ge 1
 ```
+
+## 8. Correction, 2026-09-30
+
+Two sentences above were checked against the tree while planning the superseding run
+(`docs/trackb-2-preregistration.md`) and found false. Neither is silently rewritten; both are
+corrected here, with the falsifier that caught each.
+
+**(i) §6's naming of the superseding pre-registration is wrong.** The line "A superseding run
+requires a new pre-registration id per §6 of the original, which is
+`docs/emission-phase1-preregistration.md`" is false: that document's own text states
+"Supersedes nothing" — it asks a different, mechanical question (does the delivered document
+show its derivations?), not the comparative question this erratum concerns. The comparative
+successor is [`docs/trackb-2-preregistration.md`](trackb-2-preregistration.md).
+
+**(ii) §7 falsifier 7 pointed at the wrong files for both of its two assertions.** As written it
+checked `tests/emission-stage-a-v9.14/raw/TB-05.jsonl` for zero `"name":"Agent"` occurrences and
+`tests/emission-stage-a-v9.14/documents/TB-05.orchestrator.md` for the quoted refusal line. Both
+checks are wrong: `raw/TB-05.jsonl` is the **dispatched retry** (it carries exactly 1
+`"name":"Agent"` occurrence, confirmed below), and the quoted line does not occur in
+`documents/TB-05.orchestrator.md` at all — it occurs in the voided **first attempt**,
+`raw-attempt1/TB-05.jsonl`. §4a's underlying claim (TB-05's first attempt dispatched no agent) is
+still true; only the falsifier's file targets were wrong.
+
+Corrected falsifier, run against the same evidence:
+
+```sh
+# Zero-dispatch leg: the FIRST attempt, not the dispatched retry.
+test "$(/usr/bin/grep -c '"name":"Agent"' tests/emission-stage-a-v9.14/raw-attempt1/TB-05.jsonl)" -eq 0
+# Quote leg: the first attempt's own transcript, not the orchestrator document.
+/usr/bin/grep -q "I'll answer directly rather than invoking any tooling" \
+    tests/emission-stage-a-v9.14/raw-attempt1/TB-05.jsonl
+```
+
+Measured exit codes, both re-run at correction time: the **original** falsifier 7 (both legs
+against `raw/TB-05.jsonl` and `documents/TB-05.orchestrator.md`) exits **non-zero** (the first
+leg's count is 1, not 0, and the second leg's grep finds no match) — confirming it was broken.
+The **corrected** falsifier above exits **0** on both legs.
+
+TB-03's leg (`raw/TB-03.jsonl` carries >= 1 `"name":"Agent"` occurrence) was already correct and
+is unchanged.

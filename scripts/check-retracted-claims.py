@@ -721,6 +721,26 @@ REGISTRY: tuple[RetractedClaim, ...] = (
         ),
         exemptions=(),
     ),
+    RetractedClaim(
+        literal=(
+            "A superseding run requires a new pre-registration id per §6 of the "
+            "original, which is `docs/emission-phase1-preregistration.md`"
+        ),
+        retracted_by="quick 260929-wps (docs/trackb-2-preregistration.md planning)",
+        corrected=(
+            "docs/emission-phase1-preregistration.md's own text says 'Supersedes "
+            "nothing' -- it is a different, mechanical question, not the "
+            "comparative one. The comparative successor is "
+            "docs/trackb-2-preregistration.md, registered by this quick task."
+        ),
+        # Two occurrences at registration, both in docs/trackb-transport-erratum.md:
+        # the original §6 line (kept, not silently rewritten -- corrected in a
+        # dated §8 subsection rather than deleted) and that subsection's own
+        # verbatim quote of the false line. Exempted at exactly 2; either fewer
+        # (the disclosure was deleted) or more (a new unexempted occurrence)
+        # would turn this gate red.
+        exemptions=(("docs/trackb-transport-erratum.md", 2),),
+    ),
 )
 
 

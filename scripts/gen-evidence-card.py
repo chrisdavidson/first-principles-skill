@@ -344,6 +344,15 @@ def load_trackb(path: Path = TRACKB_RESULT_PATH) -> dict | None:
         raise EvidenceError(
             f"{path} status {data['status']!r} not one of {_TRACKB_VALID_STATUS}"
         )
+    # trackb-2 (docs/trackb-2-preregistration.md) additionally requires a
+    # format-tell caveat and the non-gating secondary-summary-gap figure --
+    # neither may be silently absent from a record that could otherwise
+    # publish a cleared comparative claim without its disclosed bound.
+    if data.get("preregistration") == "docs/trackb-2-preregistration.md":
+        if not data.get("caveat"):
+            raise EvidenceError(f"{path}: trackb-2 record missing a non-empty 'caveat'")
+        if "secondary_summary_gap" not in data:
+            raise EvidenceError(f"{path}: trackb-2 record missing 'secondary_summary_gap'")
     return data
 
 
@@ -433,6 +442,7 @@ def render(
     # --- Track B: comparative lift, conditional ----------------------------
     if trackb_publishable(trackb):
         assert trackb is not None
+        prereg_path = trackb.get("preregistration", "docs/trackb-preregistration.md")
         lines.extend(
             [
                 "## Compared against not using it",
@@ -445,8 +455,23 @@ def render(
                 f"*Sample: {trackb['n_per_arm']} per arm · Measured: {trackb['measured']} · "
                 f"Run: `{trackb['run_id']}`*",
                 "",
+            ]
+        )
+        if trackb.get("caveat"):
+            lines.extend([f"**Caveat:** {trackb['caveat']}", ""])
+        if trackb.get("secondary_summary_gap") is not None:
+            lines.extend(
+                [
+                    "*Partial context, not part of the threshold: the same effect measured on "
+                    "the orchestrator's final message instead of the delivered file differs by "
+                    f"{trackb['secondary_summary_gap']:+.2f} points.*",
+                    "",
+                ]
+            )
+        lines.extend(
+            [
                 "The effect threshold and the full analysis plan were fixed in writing",
-                f"before any run took place — see [the pre-registration]({_rel_link('docs/trackb-preregistration.md')}).",
+                f"before any run took place — see [the pre-registration]({_rel_link(prereg_path)}).",
                 f"The pre-registered threshold was: {trackb['preregistered_threshold']}.",
                 "",
                 "---",
@@ -690,6 +715,79 @@ def _c11_no_composite_score_rendered() -> str | None:
     return None
 
 
+def _c12_trackb2_links_correct_prereg() -> str | None:
+    """A cleared trackb-2 record links its own pre-registration, never the
+    superseded v9.13 one; a cleared record with no `preregistration` field
+    keeps the v9.13 back-compat link."""
+    cleared_2 = {
+        "status": "cleared",
+        "preregistration": "docs/trackb-2-preregistration.md",
+        "preregistered_threshold": "t",
+        "observed_effect": "e",
+        "n_per_arm": 10,
+        "measured": "2026-01-01",
+        "run_id": "r",
+        "caveat": "CAVEAT-TOKEN",
+        "secondary_summary_gap": 1.23,
+    }
+    out = render(trackb=cleared_2)
+    if "trackb-2-preregistration.md" not in out:
+        return "a cleared trackb-2 record did not link trackb-2-preregistration.md"
+    if "(trackb-preregistration.md)" in out:
+        return "cleared trackb-2 also linked the superseded v9.13 doc"
+    cleared_1 = {
+        "status": "cleared",
+        "preregistered_threshold": "t",
+        "observed_effect": "e",
+        "n_per_arm": 10,
+        "measured": "2026-01-01",
+        "run_id": "r",
+    }
+    out1 = render(trackb=cleared_1)
+    if "(trackb-preregistration.md)" not in out1:
+        return "a cleared record with no preregistration field lost the v9.13 back-compat link"
+    return None
+
+
+def _c13_trackb2_requires_and_renders_caveat(tmp_root: Path) -> str | None:
+    """The format-tell caveat and the secondary summary-gap figure render on a
+    cleared trackb-2 card; a trackb-2 record missing `caveat` is rejected by
+    load_trackb (not silently published without its disclosed bound); a null
+    trackb-2 record still renders nothing (C06 semantics unchanged)."""
+    good = {
+        "status": "cleared",
+        "preregistration": "docs/trackb-2-preregistration.md",
+        "preregistered_threshold": "t",
+        "observed_effect": "e",
+        "n_per_arm": 10,
+        "measured": "2026-01-01",
+        "run_id": "r",
+        "caveat": "CAVEAT-TOKEN",
+        "secondary_summary_gap": 1.23,
+    }
+    out = render(trackb=good)
+    if "CAVEAT-TOKEN" not in out or "1.23" not in out:
+        return "cleared trackb-2 render did not print the caveat and secondary figure"
+    if "partial context, not part of the threshold" not in out.lower():
+        return "cleared trackb-2 render did not label the secondary figure non-gating"
+
+    bad_path = tmp_root / "trackb2-bad.json"
+    bad = {k: v for k, v in good.items() if k != "caveat"}
+    bad_path.write_text(json.dumps(bad), encoding="utf-8")
+    try:
+        load_trackb(bad_path)
+    except EvidenceError:
+        pass
+    else:
+        return "a trackb-2 record without 'caveat' was accepted by load_trackb"
+
+    null_2 = {**good, "status": "null"}
+    out2 = render(trackb=null_2)
+    if "CAVEAT-TOKEN" in out2 or "Compared against not using it" in out2:
+        return "a null trackb-2 record still rendered the comparative section"
+    return None
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("C01-literals-located", _c01_all_literals_located),
     ("C02-corrupted-literal-caught", _c02_corrupted_literal_is_caught),
@@ -702,6 +800,8 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("C09-trackb-bad-status-rejected", _c09_trackb_bad_status_is_rejected),
     ("C10-every-fact-states-a-bound", _c10_every_fact_states_a_bound),
     ("C11-no-composite-score", _c11_no_composite_score_rendered),
+    ("C12-trackb2-links-correct-prereg", _c12_trackb2_links_correct_prereg),
+    ("C13-trackb2-requires-and-renders-caveat", _c13_trackb2_requires_and_renders_caveat),
 )
 
 
