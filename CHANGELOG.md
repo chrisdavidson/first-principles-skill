@@ -13,6 +13,18 @@ installed session.
 
 ## [Unreleased]
 
+### Fixed — the agent's frontmatter claimed a clarification capability it never had
+
+- The `AskUserQuestion` frontmatter key was removed from the shipped agent because it is not a
+  documented subagent field — Claude Code ignores it silently — and Claude Code removes
+  `AskUserQuestion` from every dispatched subagent regardless of what its frontmatter lists. A live
+  probe of the shipped agent with the key present reported the tool unavailable. The Input
+  Contract now leads with the disclosure path it always actually took when the tool is
+  unavailable, and keeps `AskUserQuestion` for the case where the tool does exist: this agent
+  running as the main-thread agent (`claude --agent`). HARN-02 retires the control whose premise
+  was the false claim. `docs/CONFIGURATION.md`'s row for the key is removed. Two phrasings of the
+  claim are registered in RETRACT-01.
+
 ## [9.14.0] — 2026-09-29
 
 Unphased release: **v9.14.0 Regressions Resolved**. Two changes to the shipped plugin, both

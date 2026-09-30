@@ -6,4 +6,3 @@ agent:
     version: "9.14.0"
   disallowedTools: [Write, Edit, Agent, SendMessage, ListAgents]
   maxTurns: 60
-  AskUserQuestion: permitted

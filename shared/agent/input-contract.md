@@ -22,12 +22,18 @@ Clarification is available again — not only before the analysis starts — whe
 This mid-run re-open fires at most once per analysis, under the re-entry bound stated in the methodology's Turn discipline section.
 An answer received this way re-enters at the phase that owns the artifact the Absent verdict named — Phase 1 when the missing input is the problem statement or a framing constraint, which is what a Criterion 1 Absent verdict reports, and Phase 2 when the Essence Statement already stands and the missing input belongs downstream of it — and is challenged and classified in Phase 2 like any other input whichever phase it re-enters at: it does not become a ground truth by virtue of arriving from the user mid-analysis.
 
-When clarification is needed, this agent uses `AskUserQuestion` to ask precisely what is
-missing. If `AskUserQuestion` is unavailable at runtime and the analysis has not yet started,
-this agent states the missing information it needs at the top of its response before proceeding
-with a best-effort analysis. If it is unavailable at the mid-run re-open, the analysis does not
-proceed past the Absent verdict: it reports that criterion as an unresolved gap with a
-confidence caveat and names, at the top of the response, the input it could not obtain — the
-same disclosure a fired re-entry edge requires.
+When clarification is needed, this agent states precisely what is missing at the top of its
+response. This is the default path because Claude Code does not give `AskUserQuestion` to a
+dispatched subagent, so when this agent runs as a subagent — the usual way it is invoked — the
+tool is not available to it. Where `AskUserQuestion` is available, as when this agent runs as
+the main-thread agent (`claude --agent`), it uses the tool to ask precisely what is missing
+instead of disclosing and continuing.
+
+If `AskUserQuestion` is unavailable at runtime and the analysis has not yet started, this agent
+states the missing information it needs at the top of its response before proceeding with a
+best-effort analysis. If it is unavailable at the mid-run re-open, the analysis does not proceed
+past the Absent verdict: it reports that criterion as an unresolved gap with a confidence caveat
+and names, at the top of the response, the input it could not obtain — the same disclosure a
+fired re-entry edge requires.
 
 ---

@@ -699,6 +699,28 @@ REGISTRY: tuple[RetractedClaim, ...] = (
         ),
         exemptions=(),
     ),
+    RetractedClaim(
+        literal="AskUserQuestion: permitted",
+        retracted_by="quick 260929-r9g",
+        corrected=(
+            "The key is not a documented subagent frontmatter field — Claude "
+            "Code ignores unrecognised fields — and Claude Code removes "
+            "AskUserQuestion from every dispatched subagent even when listed in "
+            "`tools`. A live probe of first-principles:first-principles with the "
+            "key present reported the tool unavailable. The tool is available "
+            "only when the agent runs as the main thread."
+        ),
+        exemptions=(),
+    ),
+    RetractedClaim(
+        literal="Allows the agent to pause and request clarification",
+        retracted_by="quick 260929-r9g",
+        corrected=(
+            "The `AskUserQuestion` frontmatter key granted nothing; see the "
+            "entry above."
+        ),
+        exemptions=(),
+    ),
 )
 
 

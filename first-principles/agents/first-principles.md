@@ -11,7 +11,6 @@ disallowedTools:
 - SendMessage
 - ListAgents
 maxTurns: 60
-AskUserQuestion: permitted
 ---
 <!-- GENERATED — DO NOT EDIT. Source: shared/spine/SKILL-body.md. Regenerate via: scripts/sync-content.py --write. -->
 
@@ -39,13 +38,19 @@ Clarification is available again — not only before the analysis starts — whe
 This mid-run re-open fires at most once per analysis, under the re-entry bound stated in the methodology's Turn discipline section.
 An answer received this way re-enters at the phase that owns the artifact the Absent verdict named — Phase 1 when the missing input is the problem statement or a framing constraint, which is what a Criterion 1 Absent verdict reports, and Phase 2 when the Essence Statement already stands and the missing input belongs downstream of it — and is challenged and classified in Phase 2 like any other input whichever phase it re-enters at: it does not become a ground truth by virtue of arriving from the user mid-analysis.
 
-When clarification is needed, this agent uses `AskUserQuestion` to ask precisely what is
-missing. If `AskUserQuestion` is unavailable at runtime and the analysis has not yet started,
-this agent states the missing information it needs at the top of its response before proceeding
-with a best-effort analysis. If it is unavailable at the mid-run re-open, the analysis does not
-proceed past the Absent verdict: it reports that criterion as an unresolved gap with a
-confidence caveat and names, at the top of the response, the input it could not obtain — the
-same disclosure a fired re-entry edge requires.
+When clarification is needed, this agent states precisely what is missing at the top of its
+response. This is the default path because Claude Code does not give `AskUserQuestion` to a
+dispatched subagent, so when this agent runs as a subagent — the usual way it is invoked — the
+tool is not available to it. Where `AskUserQuestion` is available, as when this agent runs as
+the main-thread agent (`claude --agent`), it uses the tool to ask precisely what is missing
+instead of disclosing and continuing.
+
+If `AskUserQuestion` is unavailable at runtime and the analysis has not yet started, this agent
+states the missing information it needs at the top of its response before proceeding with a
+best-effort analysis. If it is unavailable at the mid-run re-open, the analysis does not proceed
+past the Absent verdict: it reports that criterion as an unresolved gap with a confidence caveat
+and names, at the top of the response, the input it could not obtain — the same disclosure a
+fired re-entry edge requires.
 
 ---
 
@@ -124,7 +129,7 @@ taken from the validation pass at the end.
 pass's return to Phase 2 for re-challenging, the Self-Audit Gate's Fix/Repeat loop (stated in
 "Before presenting conclusions" below and again in the rubric's re-score instruction — one
 edge, two statements), the Criterion 1 Absent verdict's return to Phase 1 to re-frame the
-Essence Statement (below), and the mid-run `AskUserQuestion` re-open (Input Contract). Each
+Essence Statement (below), and the mid-run input re-open (Input Contract). Each
 edge fires **at most one re-perception pass** per analysis. After that pass, any criterion
 still failing — or newly failing as a result of the Fix — is reported as an **unresolved gap
 with a confidence caveat**, not a second pass; the edge has already fired and does not fire
@@ -242,7 +247,7 @@ Provenance is a property of **what this analysis did**, never of who supplied th
 
 **Named artifact:** Ground Truths list — a numbered list of verified facts with stable GT-IDs, source citations, and a provenance label. Write every id with its hyphen — `GT-1`, `GT-2?` — never `GT1`: the reader, the chain notation and the section-4 form check all depend on that form. Label every figure by what it is — measured, a published design value, or an estimate — and never present an estimate as measured practice. Unverified and delegate-reported entries are marked with the `?` suffix. Where a read was attempted and did not confirm the claim, the entry carries its Phase 3 failure record — which source, and why the read failed: unreachable (404, paywall, no network, path not found, ambiguous citation), or `citation does not support the claim`.
 
-**Exit criterion:** All ground truths have stable IDs, source citations or explicit unverified flags, a provenance label, and have passed the irreducibility test. No assumption that was discarded in Phase 2 appears in this list. **Enumerate the `?`-marked ground truths by ID** — write the list, not a number: *"`?`-marked: GT-2, GT-5, GT-9, GT-14 (4 of 22)."* A stated integer does not satisfy this criterion, because an integer cannot be checked against the list it summarizes; the enumeration can, by inspection. If a count accompanies the enumeration it must equal its length, and **where the two disagree the enumeration governs.** For **every unsuffixed ground truth that feeds a load-bearing derivation chain, name where the figure was read** — the page, table, section, or quoted passage. Neither an empty enumeration nor a count of zero satisfies this criterion on its own; the named read-locations are what make it auditable. For every entry whose read was attempted and failed, the Phase 3 failure record names the source and the reason. The list is complete enough that Phase 4 can reason upward without needing to return to Phase 2 for new facts, except through the bounded re-entry edges named under Turn discipline: when a Criterion 1 return or a mid-run `AskUserQuestion` brings new facts into this list, that is the methodology working as specified, not a failure of this exit criterion.
+**Exit criterion:** All ground truths have stable IDs, source citations or explicit unverified flags, a provenance label, and have passed the irreducibility test. No assumption that was discarded in Phase 2 appears in this list. **Enumerate the `?`-marked ground truths by ID** — write the list, not a number: *"`?`-marked: GT-2, GT-5, GT-9, GT-14 (4 of 22)."* A stated integer does not satisfy this criterion, because an integer cannot be checked against the list it summarizes; the enumeration can, by inspection. If a count accompanies the enumeration it must equal its length, and **where the two disagree the enumeration governs.** For **every unsuffixed ground truth that feeds a load-bearing derivation chain, name where the figure was read** — the page, table, section, or quoted passage. Neither an empty enumeration nor a count of zero satisfies this criterion on its own; the named read-locations are what make it auditable. For every entry whose read was attempted and failed, the Phase 3 failure record names the source and the reason. The list is complete enough that Phase 4 can reason upward without needing to return to Phase 2 for new facts, except through the bounded re-entry edges named under Turn discipline: when a Criterion 1 return or a mid-run input re-open brings new facts into this list, that is the methodology working as specified, not a failure of this exit criterion.
 
 ---
 
@@ -489,7 +494,9 @@ the artifacts downstream of it. This return is bounded by the Turn discipline ru
 re-perception pass) and is a revision like any other — artifacts carried forward or explicitly
 retired, and the firing recorded, per that same section. When the Absent verdict instead traces
 to an input the user never supplied — rather than to framing the analysis could have done
-itself — the route is to re-open input via `AskUserQuestion` under the Input Contract instead.
+itself — the route is the Input Contract's mid-run input re-open instead — via
+`AskUserQuestion` where that tool is available, and otherwise the contract's disclosure of the
+missing input at the top of the response.
 That re-open is not exclusive to Criterion 1: whenever any criterion's Absent verdict traces to
 an input the user never supplied, the same route applies, and the answer re-enters at the phase
 that owns the missing artifact — Phase 1 when the Essence Statement itself is what is missing,

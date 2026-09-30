@@ -2758,9 +2758,10 @@ def _rows_v818() -> list[MatrixRow]:
                   "reproducible", "scripts/check-loop-closure.py#_self_test_loop02_askuserquestion", "",
                   surfaces=("agent",),
                   statement=(
-                      "The agent may re-open input via `AskUserQuestion` when validation reveals a "
-                      "missing input, not only before the analysis starts; `input-contract.md` states "
-                      "this."
+                      "The agent may re-open input when validation reveals a missing input, not only "
+                      "before the analysis starts — via `AskUserQuestion` where that tool is available, "
+                      "and otherwise by disclosing the missing input at the top of the response; "
+                      "`input-contract.md` states this."
                   ),
                   rerun_by="ci"),
         MatrixRow("v8.18/LOOP-03", "LOOP-03", "v8.18", "Methodology",

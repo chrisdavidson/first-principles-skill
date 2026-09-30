@@ -156,7 +156,6 @@ disallowedTools:
   - SendMessage
   - ListAgents
 maxTurns: 60
-AskUserQuestion: permitted
 ---
 ## Body
 
@@ -174,7 +173,6 @@ disallowedTools:
   - Write
   - Edit
 maxTurns: 30
-AskUserQuestion: permitted
 ---
 ## Body
 
@@ -193,7 +191,6 @@ disallowedTools:
   - Write
   - Edit
 maxTurns: 30
-AskUserQuestion: permitted
 ---
 
    \t
@@ -211,7 +208,6 @@ disallowedTools:
   - Write
   - Edit
 maxTurns: 30
-AskUserQuestion: permitted
 ---
 ## Body
 
@@ -230,7 +226,6 @@ disallowedTools:
   - Write
   - Edit
 maxTurns: 30
-AskUserQuestion: permitted
 ---
 ## Body
 
@@ -249,7 +244,6 @@ _FIXTURE_LONG_DESCRIPTION = (
     "  - Write\n"
     "  - Edit\n"
     "maxTurns: 30\n"
-    "AskUserQuestion: permitted\n"
     "---\n"
     "## Body\n"
     "\n"
@@ -267,7 +261,6 @@ metadata:
 disallowedTools:
   - Write
   - Edit
-AskUserQuestion: permitted
 ---
 ## Body
 
@@ -286,7 +279,6 @@ disallowedTools:
   - Write
   - Edit
 maxTurns: 20
-AskUserQuestion: permitted
 ---
 ## Body
 
@@ -302,7 +294,6 @@ license: MIT
 metadata:
   version: "3.0.0"
 maxTurns: 30
-AskUserQuestion: permitted
 ---
 ## Body
 
@@ -321,7 +312,6 @@ disallowedTools:
   - Write
   - Edit
 maxTurns: 30
-AskUserQuestion: permitted
 ---
 ## Body
 
@@ -341,7 +331,6 @@ disallowedTools:
   - Write
   - Edit
 maxTurns: 30
-AskUserQuestion: permitted
 ---
 ## Body
 

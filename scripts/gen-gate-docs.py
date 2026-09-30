@@ -3816,7 +3816,7 @@ _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('scripts/check-focused-parity.py#__doc__', '2 item'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-focused-parity.py#__doc__', 'check between the two'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-links.py#__doc__', 'two newly-extended scan surfaces'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-loop-closure.py#__doc__', 'gate reads four'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-loop-closure.py#__doc__', 'gate reads three'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies. Rewritten from "gate reads four" to "gate reads three" by quick 260929-r9g, which retired the SKILL.meta.yml-reading fourth source file (HARN-02/N34) alongside the AskUserQuestion frontmatter key removal.'),
     ('scripts/check-provenance.py#__doc__', '2. The literal'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-provenance.py#__doc__', "4. PROV-04's no-network control"): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-quality-harness.py#__doc__', '[ID] Dispatch exactly one'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
@@ -4018,8 +4018,14 @@ _DEFERRED_LEDGER_MAX: int = 175
 # over-count and its v7.11/RECON-01 double-citation cause and send the
 # reader to docs/data/matrix.json for the figure, so this removal is
 # justified by the delivered text and not merely by the intended text.
+#
+# Re-pinned by quick task 260929-r9g, in the same commit as HARN-02's N34
+# retirement: the key ('scripts/check-loop-closure.py#__doc__', 'gate reads
+# four') was rewritten to 'gate reads three' in place -- same size (175),
+# content changed -- when that script's docstring was corrected to say it
+# reads three shared/ source files, not four. Key set changed, size did not.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:b3f9b6bd29d485df3755830c5a3f041a43db0ce29b1dd021c0403747afc93ff2"
+    "sha256:fc71063c795ad111be814fe198dfd21b9f4c951ffac485a691b92ace624c90f3"
 )
 
 

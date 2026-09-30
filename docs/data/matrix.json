@@ -3447,7 +3447,7 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "The agent may re-open input via `AskUserQuestion` when validation reveals a missing input, not only before the analysis starts; `input-contract.md` states this.",
+    "statement": "The agent may re-open input when validation reveals a missing input, not only before the analysis starts \u2014 via `AskUserQuestion` where that tool is available, and otherwise by disclosing the missing input at the top of the response; `input-contract.md` states this.",
     "rerun_by": "ci"
   },
   {
