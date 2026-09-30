@@ -45,7 +45,10 @@ and its final message points to that file. A long analysis can exceed what a sin
 carries — before v9.13.0 the reader could receive only its last part — and writing it once,
 section by section, keeps it whole. The file opens with a short Answer, then the six sections
 unchanged, then the working process as a trailing appendix. Add `.first-principles/` to
-`.gitignore` if you do not want these files tracked.
+`.gitignore` if you do not want these files tracked. The agent writes that file with Bash
+commands that keep its path in a shell variable, so Claude Code may prompt for Bash permission; a
+narrow per-verb allow rule such as `Bash(mkdir:*)` will not admit those commands (see
+[docs/answer-first-protocol.md](docs/answer-first-protocol.md)).
 
 ## Companion tools
 

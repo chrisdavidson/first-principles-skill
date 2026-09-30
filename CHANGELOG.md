@@ -13,6 +13,25 @@ installed session.
 
 ## [Unreleased]
 
+## [9.15.0] — 2026-09-30
+
+Unphased release: **v9.15.0 Answer First**. Three changes to the shipped plugin. (a) The analysis
+file opens with a short chain-cited Answer, then the six sections unchanged, then the process
+output as a trailing appendix. (b) The 29 reference and example files moved out of `agents/`, so a
+session registers exactly one agent instead of listing each as its own agent type. (c) The inert
+`AskUserQuestion` frontmatter key was removed, and disclosure is now the default clarification
+path.
+
+One measurement: the superseding Track B comparison against an unaided answer cleared its
+pre-registered bar. See the Measured section below for its caveats; the figures are not restated
+here.
+
+A note for users: the agent writes its file through Bash commands that hold the file path in a
+shell variable (the case since v9.13.0), so Claude Code may ask for Bash permission. A narrow
+per-verb allow rule such as `Bash(mkdir:*)` does not admit those commands, because Claude Code's
+permission engine rejects a variable-bearing command under it. See
+[`docs/answer-first-protocol.md`](docs/answer-first-protocol.md) for the finding.
+
 ### Changed — the analysis file opens with its answer
 
 - The delivered analysis file now leads with a short, chain-cited `## Answer` block — a
@@ -62,7 +81,11 @@ installed session.
   result carries a disclosed format-tell caveat — the scored arm-T document is identifiable by
   its own contract format with near certainty, so the result cannot separate reasoning quality
   from a format or halo effect — published alongside the effect on `docs/EVIDENCE.md`, not as a
-  footnote.
+  footnote. The agent arm scored 14.70 / 15 against 11.30 and sits at the rubric maximum on
+  3 of 5 criteria, so the scale cannot show how much further apart the arms would be. The
+  agent's documents also averaged 8,786 words against 656 for the unaided answers (about 13×);
+  length is a registered covariate that was not controlled for, so credit for thoroughness
+  cannot be separated from credit for substance.
 - **Supersedes `tests/trackb-run-v9.13/`**, whose `null` result measured the wrong artifact: its
   arm-T captures were the main session's summaries of the agent's analysis, not the agent's own
   document (`docs/trackb-transport-erratum.md`). This run captures the agent's delivered file
@@ -75,9 +98,15 @@ installed session.
   mentioned "rate limiting" in its own prose; fixed, and the affected attempt adopted as its
   cell's scored capture rather than re-generated (`docs/trackb-2-preregistration.md`'s "Pre-run
   amendments").
+- One apparatus fix, disclosed rather than silently patched: TRACKB-01's control `C23-arm-isolation`
+  compared a frozen capture's recorded absolute plugin path with the checkout's own `PLUGIN_DIR`,
+  so it passed locally and failed only in CI. It now re-anchors the recorded path before testing
+  (`6bbad111`). Offline control only; no captured or scored data changed.
 
-`FIREWALL: GREEN (29/29)` after this commit. The coverage headline does not move (unphased, no
-milestone requirement ids for this quick task).
+**The coverage headline does not move: `248 / 248 / 0 / 496`.** Unphased, like v9.12.0: no
+milestone requirement ids exist for this release, so no matrix row registers or changes.
+
+`FIREWALL: GREEN (29/29)`; `sync-content.py --check` clean; VERSION-01 green on all 17 stamps.
 
 ## [9.14.0] — 2026-09-29
 
