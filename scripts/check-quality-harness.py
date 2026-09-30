@@ -11301,11 +11301,17 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
     # quoted claim, then an arrow, then the chain id — a prose sentence
     # that only quotes and cites is not a ledger row) and the
     # section-6-visibility bound D-01 discloses (a ledger row is detected
-    # only when it sits inside section 6; the pre-analysis process-output
+    # only when it sits inside section 6; the appendix process-output
     # ledger `output-template.md` also describes is not visible to the
     # check, so inline citation is the mechanically checkable form). Both
     # additions follow R7/R9/R10's own shape: state the rule positively,
     # then disclose the measured bound rather than widen the detector.
+    # Re-worded at quick task 260929-tg9 (AF-03): the delivered document is
+    # now answer-first — the ledger sits in the appendix AFTER section 6,
+    # not before the analysis — so the closing clause names its new
+    # position; the clause pin ("detected only when the row sits inside
+    # section 6") is unchanged and the digest below moved in the same
+    # commit.
     "R4": (
         "Every Conclusion-section claim either names the chain that "
         "established it inline — `(chain C1)` — or is discharged by a "
@@ -11316,9 +11322,9 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
         "then an arrow, then the chain id — and a prose sentence that "
         "merely quotes something and names a chain is not a ledger row. "
         "This is detected only when the row sits inside section 6: the "
-        "ledger emitted as process output before the analysis is not "
-        "visible to the check, and inline citation is therefore the "
-        "mechanically checkable form."
+        "ledger emitted as process output in the appendix after section "
+        "6 is not visible to the check, and inline citation is "
+        "therefore the mechanically checkable form."
     ),
     # R5: the reconciled multi-hop head form (CONTRACT-05).
     "R5": "GT-1 ([brief fact label]) + GT-6 ([brief fact label])",
@@ -12638,9 +12644,22 @@ def _render_registry_lock_problems(
     # A false statement of fact about the very document it sits in, carried
     # byte-identically across six surfaces. R11 now names four lead-ins and
     # states how the Confidence line discharges its citation obligation.
-    # Previous value: sha256:5cb4567121cc0f25c7b2ccafade23ad8355f1badb1d2230856a1756112c09dfb
+    #
+    # RE-PINNED at quick task 260929-tg9 (AF-03), in the SAME commit as the
+    # contract change it pins. What changed and why: the delivered document
+    # is now answer-first — a `## Answer` block above section 1, the six
+    # sections unchanged, then every process-output block (the §6→§4
+    # closure ledger among them) under a trailing `## Appendix — process
+    # output` heading — so R4's closing clause, which named the ledger's
+    # OLD position ("emitted as process output before the analysis"), was
+    # false under the new order and is corrected to name the new one
+    # ("in the appendix after section 6"). R4's clause pin
+    # ("detected only when the row sits inside section 6") is unchanged,
+    # and no rule was dropped from any surface, so
+    # `_RENDER_SURFACE_REQUIRED_RULES` coverage is unchanged.
+    # Previous value: sha256:4de4fbee6daa3f25d49e9fc37b712d294057ce32c0263855c0fe238be8b14292
     expected_literal_digest = (
-        "sha256:4de4fbee6daa3f25d49e9fc37b712d294057ce32c0263855c0fe238be8b14292"
+        "sha256:6237790c44cea1093dbcb391d2cce7f0d758b9ddeb1e7697f27f437a55e1524a"
     )
     literal_digest = "sha256:" + hashlib.sha256(
         "\x00".join(

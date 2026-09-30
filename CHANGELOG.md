@@ -13,6 +13,21 @@ installed session.
 
 ## [Unreleased]
 
+### Changed — the analysis file opens with its answer
+
+- The delivered analysis file now leads with a short, chain-cited `## Answer` block — a
+  recommendation, the Conclusion's confidence band, and what would change it, each citing at
+  least one Derivation Chain — above section 1. Measured over a committed capture corpus, process
+  output ran 33–40% of a delivered document's words in most runs and was written first, so the
+  recommendation could sit thousands of words in or at the very end; the Answer puts it at the
+  top instead. Sections 1 through 6 are unchanged and in the same fixed order. Every process-output
+  block — the closure ledger, the self-audit scan, the Self-Audit Gate's verdict blocks, and the
+  rest — now follows section 6 under one trailing `## Appendix — process output` heading, in the
+  order produced, each keeping its own existing heading; this is a repositioning within the same
+  response, not new content and not a seventh output section. The QUAL-01 rendering-contract
+  literal that names the ledger's placement, both surfaces that carry it, and its digest pin moved
+  together in one commit; no required rule was dropped from any surface.
+
 ### Fixed — the plugin registered its reference and example files as agent types
 
 - Every session with this plugin installed listed each technique reference, detail sibling,

@@ -61,7 +61,9 @@ A systematic methodology for decomposing any problem into verified fundamental t
 **Deliver the analysis to a file — this binds every response, including one you write without
 using any tool.** Your deliverable is appended to `.first-principles/analysis-<UTC>.md`, one
 section per Bash call, and your final message is only a short pointer to that file; the steps are
-under *Deliver the analysis as a file* in Output format below. A document returned as your final
+under *Deliver the analysis as a file* in Output format below. The assembled file opens with a
+short `## Answer`, then the six sections below in order, then every process-output block as a
+trailing `## Appendix — process output`. A document returned as your final
 message instead can be cut off by the output limit, and then the reader receives only its last
 part.
 
@@ -308,31 +310,79 @@ Every analysis produces a document with these six sections in this fixed order. 
 5. Abandoned Reasoning
 6. Conclusion
 
-**Nothing about the environment enters the document.** The six sections above are the whole deliverable, and none of them has a slot for the state of the session that produced it. Tooling, connector, authorisation, permission, quota, configuration, model, harness and transcript state are all environment state, and none of it belongs in the analysis — not in a section, not appended after §6, not as a footnote. The class is *any* fact about the machinery rather than about the problem; it is not a list of forbidden words, and a new kind of environment fact is covered by this rule on the day it first exists. A prefix such as "Unrelated to this analysis", "Separately" or "Note:" does not make such a paragraph admissible — it marks the writer as already knowing the paragraph does not belong, which is the point at which it is dropped rather than labelled. Where environment state genuinely blocked the analysis, it is already disclosed in its proper place: a failed reference read under the disclosure rule that closes "Before presenting conclusions", and an unmet evidence need as a `?`-marked input carried into the Assumptions Table and named on the affected `**Confidence:**` line. Environment state that blocked nothing is reported to the user outside the deliverable, after the document ends, or not at all.
+**The document opens with an Answer, drawn from §6.** Above section 1, write one `## Answer`
+heading holding three bold lead-ins: `**Recommendation:**` (1–3 sentences restating §6's
+`**Recommended approach:**`), `**Band (from §6):**` (§6's own `**Confidence:**` band, copied
+verbatim), and `**Would change it:**` (the evidence or verification §6 names as capable of moving
+the band or the recommendation). Each lead-in line cites at least one chain inline — `(chain
+Cn)` — and every chain it cites is one §6 already cites for the claim being restated: the Answer
+states nothing §6 does not already state with the same chain. It carries neither a
+`**Confidence:**` nor a `**Pre-check:**` lead-in — the body requires a `**Pre-check:**` line
+directly above every `**Confidence:**` line, and the Answer cannot carry one, hence `**Band (from
+§6):**` instead — and inline citation is its only form of tracing; ledger discharge is not
+available to it. It is written last, after the Self-Audit Gate's verdict blocks and from the
+final §6 text, and rewritten if a Fix step changes §6. It is at most 120 words. It adds no row to
+the §6→§4 closure ledger or the self-audit scan and is not itself scored by the gate, because it
+may state nothing §6 does not already state with the same chain. It is not a seventh output
+section — the six sections above remain the fixed shape defined here.
+
+**The document's absolute order** is: the `## Answer` block above section 1; then sections 1
+through 6 above, unchanged; then one `## Appendix — process output` heading; then every
+process-output block produced during the run, in the order produced, each keeping its own
+existing top-level heading. The steps under *Deliver the analysis as a file*, below, assemble the
+file in this order.
+
+**Answer-claim closure rule.** Once §6 is in its final form and before the file is assembled,
+confirm each Answer line restates a §6 claim and names the chain that claim already cites; an
+Answer line that does not is cut before assembly, never softened. This rule applies to the
+Answer as drafted here, not to Step 0 of "Before presenting conclusions" below, which runs before
+the Answer exists — the assembly step under *Deliver the analysis as a file* restates it as a
+one-line reminder at the point the check actually runs.
+
+**Nothing about the environment enters the document.** The six sections above are the whole deliverable, and none of them has a slot for the state of the session that produced it. Tooling, connector, authorisation, permission, quota, configuration, model, harness and transcript state are all environment state, and none of it belongs in the analysis — not in a section, not appended after §6, not as a footnote. This exclusion is about environment-state *content*, never about physical position in the file: the trailing `## Appendix — process output` sits after §6 and carries process output — the Self-Audit Gate's verdict blocks, the closure ledger, the self-audit scan, the adversarial pass record — none of which is environment state, and its presence there does not reopen this rule. The class is *any* fact about the machinery rather than about the problem; it is not a list of forbidden words, and a new kind of environment fact is covered by this rule on the day it first exists. A prefix such as "Unrelated to this analysis", "Separately" or "Note:" does not make such a paragraph admissible — it marks the writer as already knowing the paragraph does not belong, which is the point at which it is dropped rather than labelled. Where environment state genuinely blocked the analysis, it is already disclosed in its proper place: a failed reference read under the disclosure rule that closes "Before presenting conclusions", and an unmet evidence need as a `?`-marked input carried into the Assumptions Table and named on the affected `**Confidence:**` line. Environment state that blocked nothing is reported to the user outside the deliverable, after the document ends, or not at all.
 
 **Deliver the analysis as a file, written once — never re-sent.** Whoever dispatched this
 analysis receives only your final message, and a long analysis does not fit reliably in one:
 reasoning and output share each message's budget, a document cut off by that limit loses
 everything before the cut, and a document written a second time comes back condensed. So the
-deliverable goes to a file, in exactly the order you would have emitted it:
+deliverable goes to a file, assembled once at the end into the order the reader sees: `## Answer`,
+then the six sections, then the process-output appendix.
 
 1. **Create the file** before writing any of it, with Bash:
-   `mkdir -p .first-principles && F=".first-principles/analysis-$(date -u +%Y%m%dT%H%M%SZ).md" && : > "$F" && echo "$F"`.
+   `mkdir -p .first-principles && F=".first-principles/analysis-$(date -u +%Y%m%dT%H%M%SZ).md" && : > "$F" && printf '%s\n\n' '## Appendix — process output' > "$F.process" && echo "$F"`.
    Shell variables do not survive between calls, so use the exact path it prints in every step
    below.
-2. **Append one section per Bash call** — each process-output block, then each of the six
-   sections — with a quoted heredoc so nothing is expanded:
-   `cat >> "<path>" <<'FP_EOF'`, the section, then `FP_EOF` on its own line. Write each section
-   once, in full, exactly as you would have emitted it. If a call is cut off before it runs,
-   issue that one section's append again; never re-append a section that already succeeded.
-3. **Check it:** `grep -c '^#' "<path>"` and `wc -w "<path>"`.
-4. **Your final message is a short pointer, not the analysis:** the file's path; a line stating
-   that the file is the complete analysis and must be read in full, and that this message is not
-   the analysis; and the Conclusion's recommendation and confidence in one or two sentences. Do
-   not paste the document into it.
+2. **Append one block per Bash call**, each to the file its content belongs in — each
+   process-output block to `"<path>.process"`, each of the six sections to `"<path>"`, in the
+   order you would have emitted them — with a quoted heredoc so nothing is expanded:
+   `cat >> "<path>.process" <<'FP_EOF'` or `cat >> "<path>" <<'FP_EOF'`, the block, then `FP_EOF`
+   on its own line. Write each block once, in full, exactly as you would have emitted it. If a
+   call is cut off before it runs, issue that one block's append again; never re-append a block
+   that already succeeded.
+3. **Write the Answer last.** After the Self-Audit Gate's verdict blocks are appended, re-apply
+   the Answer-claim closure rule above — each Answer line restates a §6 claim and names its chain,
+   or is cut — then write any top-of-response disclosures, then the `## Answer` heading and its
+   three lead-ins, to `"<path>.answer"` with `cat > "<path>.answer" <<'FP_EOF'`. **The top of the
+   response** — the phrase the re-entry disclosure, the Input Contract's mid-run re-open, and the
+   Report emission invariant use unchanged — means the top of this delivered file, above
+   `## Answer`: write any such disclosure here as a plain `**Disclosed:**` paragraph, never as a
+   `##` heading, and repeat it in the final pointer message below.
+4. **Assemble once, idempotently:**
+   `if [ -f "<path>.answer" ]; then cat "<path>.answer" "<path>" "<path>.process" > "<path>.tmp" && mv "<path>.tmp" "<path>" && rm -f "<path>.answer" "<path>.process" || rm -f "<path>.tmp"; else echo "already assembled"; fi`.
+   If it fails, re-issue it once; never re-append a section instead of assembling. The guard makes
+   a retry after a prior success a no-op — `"<path>.answer"` is already gone — rather than a second
+   assembly, and no `"<path>.tmp"` survives either outcome.
+5. **Check it:** `grep -c '^#' "<path>"`, `wc -w "<path>"`, and `grep -m1 '^## ' "<path>"`, which
+   must print `## Answer`.
+6. **Your final message is a short pointer, not the analysis:** the file's path; the
+   top-of-response disclosure repeated from step 3, if any; a line stating that the file is the
+   complete analysis and must be read in full, and that this message is not the analysis; and the
+   Conclusion's recommendation and confidence in one or two sentences. Do not paste the document
+   into it. If assembly did not complete, name whichever of `"<path>.answer"` or `"<path>.process"`
+   is still present.
 
-If the file cannot be created or written, emit the six-section document as your final message
-instead, and say that the file handoff failed and why.
+If the file cannot be created or written, emit the `## Answer` block, then the six-section
+document, as your final message instead, and say that the file handoff failed and why.
 
 **Open the output template once, before assembling the six-section document.** This read advances
 the signed-off analysis itself — the named artifact the turn-discipline rule above already admits
@@ -409,15 +459,19 @@ For the full annotated template with section-by-section guidance, type definitio
 **Step 0 — §6→§4 closure check (run first, ahead of the rubric loop below):** Enumerate every claim
 in the Conclusion section (section 6). For each claim, confirm it names a specific Derivation Chain
 from section 4. If it does, keep the claim. If it does not, either add the missing chain or cut the
-claim from section 6 — no unbacked §6 claim survives to presentation.
+claim from section 6 — no unbacked §6 claim survives to presentation. This step scopes to section 6
+only — the `## Answer` block does not exist yet at this point in the run; its own claims are
+checked by the separate Answer-claim closure rule (Output format above), applied once §6 is final,
+immediately before assembly.
 
 A Conclusion-section claim is a bold lead-in whose colon closes the bold span, or a numbered or bulleted list item, and the four lead-ins this template prescribes — `**Recommended approach:**`, `**Key insight:**`, `**Trade-offs acknowledged:**` and `**Confidence:**` — are always claims and each must cite a chain; the `**Confidence:**` line discharges that obligation through the chains D-07 already requires it to name, and a HIGH line whose justification prose names no chain is the one position where this rule and the extractor can disagree, so name the chain there too; nothing inside a fenced block is ever a claim whatever its shape, a near-paraphrase restatement or direct entailment of an already-cited claim earlier in the same section is not a second claim, and prose carrying neither a bold colon lead-in nor a list marker is not a claim at all. Three bounds are measured, not assumed: a bold lead-in whose colon-terminated span is the entire physical line and carries no citation of its own is a section-intro label, and the citation obligation then falls to the list items beneath it; a bold span whose closing `**` is not immediately preceded by the colon is not matched at all — write `**Label:** text` to match, not `**Label: text**`; and a list item counts only when it closes its own sentence or runs past forty characters. Enumerate by this rule, not by recollection — the rule is the contract and the extractor is a partial instrument for it.
 
-Every Conclusion-section claim either names the chain that established it inline — `(chain C1)` — or is discharged by a §6→§4 closure ledger row that quotes the claim and names its chain. A claim doing neither is cut, not softened. Ledger discharge requires the structural row form the closure-ledger example below shows — a list marker, then the quoted claim, then an arrow, then the chain id — and a prose sentence that merely quotes something and names a chain is not a ledger row. This is detected only when the row sits inside section 6: the ledger emitted as process output before the analysis is not visible to the check, and inline citation is therefore the mechanically checkable form.
+Every Conclusion-section claim either names the chain that established it inline — `(chain C1)` — or is discharged by a §6→§4 closure ledger row that quotes the claim and names its chain. A claim doing neither is cut, not softened. Ledger discharge requires the structural row form the closure-ledger example below shows — a list marker, then the quoted claim, then an arrow, then the chain id — and a prose sentence that merely quotes something and names a chain is not a ledger row. This is detected only when the row sits inside section 6: the ledger emitted as process output in the appendix after section 6 is not visible to the check, and inline citation is therefore the mechanically checkable form.
 
-Emit the result as a visible add-or-cut ledger, one row per §6 claim, shown as process output before
-the presented analysis — the same precedent the rubric's Assumption Audit table already follows
-(included in the response before the verdict blocks). The ledger is process output, **not** a seventh
+Emit the result as a visible add-or-cut ledger, one row per §6 claim, shown as process output in
+the appendix after section 6, ahead of the verdict blocks — the same placement every other
+process-output block takes, and the same precedent the rubric's Assumption Audit table already
+follows. The ledger is process output, **not** a seventh
 output section; the fixed six-section template shape defined above under Output format is unchanged.
 
 A caveat qualifying an existing Conclusion-section claim either names the chain it qualifies inline or carries the marker `no chain — flagged assumption only` (em dash, lower case, no trailing punctuation inside the marker), and a marked caveat still scores untraced: the marker discloses the gap, it does not discharge the claim, because it is honest labelling rather than a citation and the extractor is deliberately not taught to recognise it. A caveat doing neither is cut, not softened.

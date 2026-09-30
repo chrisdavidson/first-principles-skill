@@ -139,6 +139,8 @@ A complete first-principles analysis produces a six-section document (the fixed-
 
 All six sections are always present in this fixed order. If a section has no content for a given analysis, the template requires an explicit `Nothing material here — [reason]` note rather than omitting the heading.
 
+The delivered file leads with a short, chain-cited `## Answer` above section 1 — a recommendation, the Conclusion's confidence band, and what would change it — and trails the six sections with a `## Appendix — process output` holding the working process (the self-audit scan, the closure ledger, the Self-Audit Gate's verdict blocks, and the rest) in the order it was produced.
+
 ## Common issues
 
 | Symptom | Cause | Fix |
