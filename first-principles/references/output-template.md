@@ -30,7 +30,7 @@ The section heading must still appear. The escape valve exists to prevent box-ti
 The delivered file is not just these six sections — it is assembled in one absolute order: a
 short `## Answer` block; then sections 1 through 6 above, in the fixed order and unchanged; then
 one `## Appendix — process output` heading; then every process-output block produced during the
-run, in the order produced, each keeping its own existing top-level heading.
+run, in the order produced, each keeping its own existing top-level heading, and the structured summary last of all.
 
 The `## Answer` block sits above section 1 and carries three bold lead-ins: `**Recommendation:**`
 (1–3 sentences restating §6's `**Recommended approach:**`), `**Band (from §6):**` (§6's own
@@ -42,7 +42,20 @@ restated: the Answer states nothing §6 does not already state with the same cha
 file is assembled, each Answer line is confirmed to restate a §6 claim and name its chain; a line
 that does not is cut, not softened.
 
-**Nothing about the environment enters the document.** The six sections above are the whole deliverable, and none of them has a slot for the state of the session that produced it. Tooling, connector, authorisation, permission, quota, configuration, model, harness and transcript state are all environment state, and none of it belongs in the analysis — not in a section, not appended after §6, not as a footnote. This exclusion is about environment-state *content*, never about physical position in the file: the trailing `## Appendix — process output` sits after §6 and carries process output — the Self-Audit Gate's verdict blocks, the closure ledger, the self-audit scan, the adversarial pass record — none of which is environment state, and its presence there does not reopen this rule. The class is *any* fact about the machinery rather than about the problem; it is not a list of forbidden words, and a new kind of environment fact is covered by this rule on the day it first exists. A prefix such as "Unrelated to this analysis", "Separately" or "Note:" does not make such a paragraph admissible — it marks the writer as already knowing the paragraph does not belong, which is the point at which it is dropped rather than labelled. Where environment state genuinely blocked the analysis, it is already disclosed in its proper place: a failed reference read under the template's own disclosure rule, and an unmet evidence need as a `?`-marked input carried into the Assumptions Table and named on the affected `**Confidence:**` line. Environment state that blocked nothing is reported to the user outside the deliverable, after the document ends, or not at all.
+**The structured summary closes the appendix.** The last process-output block in the file is
+`## Structured summary (process output)`: that heading, then exactly one fenced `json` block,
+and nothing after it. The block restates, in the fixed fields
+`${CLAUDE_PLUGIN_ROOT}/references/summary-schema.json` defines, decisions the six sections and
+the process-output blocks already record — each assumption's type and verdict, each ground truth
+and whether it was read at source, each chain's confidence and what it rests on, the dead ends,
+the techniques applied and declined, every Self-Audit Gate scoring pass in order, whether any
+re-entry edge fired, and the recommendation in full with its confidence — and it adds none:
+every id in it is one the document uses and every value agrees with the document. A reader who
+skips it loses nothing. It is process output, not environment state, and it is not a seventh
+output section. The agent's final message does not carry it; the block exists only in the
+delivered file.
+
+**Nothing about the environment enters the document.** The six sections above are the whole deliverable, and none of them has a slot for the state of the session that produced it. Tooling, connector, authorisation, permission, quota, configuration, model, harness and transcript state are all environment state, and none of it belongs in the analysis — not in a section, not appended after §6, not as a footnote. This exclusion is about environment-state *content*, never about physical position in the file: the trailing `## Appendix — process output` sits after §6 and carries process output — the Self-Audit Gate's verdict blocks, the closure ledger, the self-audit scan, the adversarial pass record, the structured summary — none of which is environment state, and its presence there does not reopen this rule. The class is *any* fact about the machinery rather than about the problem; it is not a list of forbidden words, and a new kind of environment fact is covered by this rule on the day it first exists. A prefix such as "Unrelated to this analysis", "Separately" or "Note:" does not make such a paragraph admissible — it marks the writer as already knowing the paragraph does not belong, which is the point at which it is dropped rather than labelled. Where environment state genuinely blocked the analysis, it is already disclosed in its proper place: a failed reference read under the template's own disclosure rule, and an unmet evidence need as a `?`-marked input carried into the Assumptions Table and named on the affected `**Confidence:**` line. Environment state that blocked nothing is reported to the user outside the deliverable, after the document ends, or not at all.
 
 ---
 
