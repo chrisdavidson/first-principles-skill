@@ -398,16 +398,11 @@ def _re_entry_invariant_findings(re_entry) -> list[Finding]:
     return []
 
 
-# Cross-checks against the report's own prose (CHECK-02). Empty in this
-# plan; Plan 02 registers one entry per line, each `("<CODE>", _xc_<name>)`.
-_CROSS_CHECKS: tuple[tuple[str, Callable[..., list[Finding]]], ...] = ()
-
-
 @functools.lru_cache(maxsize=1)
 def _load_qh():
-    """Load `check-quality-harness.py` as a module, cached. Unused by this
-    plan; Plan 02's cross-checks reuse its prose extractors through this
-    loader, following the pattern `check-emission-stage-a.py` established."""
+    """Load `check-quality-harness.py` as a module, cached. The cross-checks
+    below reuse its prose extractors through this loader, following the
+    pattern `check-emission-stage-a.py` established."""
     import importlib.util as _ilu
     import sys as _sys
 
@@ -417,6 +412,567 @@ def _load_qh():
     _sys.modules["_qh_for_summary_block"] = qh
     spec.loader.exec_module(qh)
     return qh
+
+
+# ---------------------------------------------------------------------------
+# Prose readers shared by the cross-checks (CHECK-02)
+# ---------------------------------------------------------------------------
+
+_TAXONOMY_TYPES = frozenset(
+    _SCHEMA_FOR_CONSTANTS["fields"]["assumptions"]["items"]["fields"]["type"]["enum"]
+)
+
+_BOLD_WHOLE_CELL_RE = re.compile(r"^\*\*(.*)\*\*$")
+_TRAILING_PAREN_RE = re.compile(r"\s*\([^)]*\)\s*$")
+
+
+def _parent_type(cell: str) -> str:
+    """Strip bold markers around the whole cell, then a trailing
+    parenthesised subtype, leaving the cell's parent type. A compound cell
+    (e.g. "a / b") or any other annotation is deliberately left unchanged --
+    it will not equal any single taxonomy value (D-16)."""
+    s = cell.strip()
+    m = _BOLD_WHOLE_CELL_RE.match(s)
+    if m:
+        s = m.group(1).strip()
+    return _TRAILING_PAREN_RE.sub("", s).strip()
+
+
+_LEADING_VERDICT_RE = re.compile(r"(Accept|Challenge|Discard)\b")
+
+
+def _leading_verdict_token(cell: str) -> str | None:
+    """The token that leads the row's Verdict cell, before its em-dash,
+    bold markers stripped."""
+    s = cell.strip().lstrip("*").strip()
+    m = _LEADING_VERDICT_RE.match(s)
+    return m.group(1) if m else None
+
+
+def _table_columns(section_text: str, colnames: tuple[str, ...]) -> list[dict[str, str]]:
+    """Locate a Markdown table's header row by column NAME (never index) and
+    return each data row's cells for the requested columns, in row order.
+    Empty when no header row carries every requested name."""
+    qh = _load_qh()
+    lines = section_text.splitlines()
+    header_idx: int | None = None
+    col_idx: dict[str, int] = {}
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            continue
+        cells = qh._split_row(stripped)
+        if qh._is_separator_row(cells):
+            continue
+        idx_map = {c.strip().lower(): j for j, c in enumerate(cells)}
+        if all(name.lower() in idx_map for name in colnames):
+            header_idx = i
+            col_idx = {name: idx_map[name.lower()] for name in colnames}
+            break
+    if header_idx is None:
+        return []
+    rows: list[dict[str, str]] = []
+    i = header_idx + 1
+    if i < len(lines):
+        sep_cells = qh._split_row(lines[i].strip())
+        if qh._is_separator_row(sep_cells):
+            i += 1
+    while i < len(lines):
+        stripped = lines[i].strip()
+        if not stripped.startswith("|"):
+            break
+        cells = qh._split_row(stripped)
+        rows.append({name: (cells[j] if j < len(cells) else "") for name, j in col_idx.items()})
+        i += 1
+    return rows
+
+
+def _xc_assumptions(text, sections, block, exemplar) -> list[Finding]:
+    """SB-ASSUMPTION: block assumptions vs section 2's table, by row order.
+    An extractor returning no rows while the block carries items is itself a
+    finding (length mismatch) rather than a vacuous pass."""
+    findings: list[Finding] = []
+    items = block.get("assumptions")
+    if not isinstance(items, list):
+        return findings
+    section2 = (sections or {}).get(2, "")
+    rows = _table_columns(section2, ("type", "verdict"))
+    if len(rows) != len(items):
+        findings.append(Finding(
+            "SB-ASSUMPTION",
+            f"block has {len(items)} assumptions but section 2's table has "
+            f"{len(rows)} data row(s)",
+        ))
+    for i in range(min(len(rows), len(items))):
+        item = items[i]
+        if not isinstance(item, dict):
+            continue
+        expected_id = f"A-{i + 1}"
+        if item.get("id") != expected_id:
+            findings.append(Finding(
+                "SB-ASSUMPTION",
+                f"assumption {i + 1}: block id {item.get('id')!r} does not "
+                f"match its row position {expected_id!r}",
+            ))
+        parent_type = _parent_type(rows[i]["type"])
+        block_type = item.get("type")
+        if exemplar:
+            if block_type is None:
+                if parent_type in _TAXONOMY_TYPES:
+                    findings.append(Finding(
+                        "SB-ASSUMPTION",
+                        f"{expected_id}: block type is null but section 2's "
+                        f"cell {rows[i]['type']!r} is a single taxonomy type "
+                        f"({parent_type!r})",
+                    ))
+            elif block_type != parent_type:
+                findings.append(Finding(
+                    "SB-ASSUMPTION",
+                    f"{expected_id}: block type {block_type!r} disagrees "
+                    f"with section 2's cell {rows[i]['type']!r} (parent type "
+                    f"{parent_type!r})",
+                ))
+        elif block_type is not None and block_type != parent_type:
+            findings.append(Finding(
+                "SB-ASSUMPTION",
+                f"{expected_id}: block type {block_type!r} disagrees with "
+                f"section 2's cell {rows[i]['type']!r} (parent type "
+                f"{parent_type!r})",
+            ))
+        expected_verdict = _leading_verdict_token(rows[i]["verdict"])
+        block_verdict = item.get("verdict")
+        if block_verdict != expected_verdict:
+            findings.append(Finding(
+                "SB-ASSUMPTION",
+                f"{expected_id}: block verdict {block_verdict!r} disagrees "
+                f"with section 2's Verdict cell {rows[i]['verdict']!r} "
+                f"(expected {expected_verdict!r})",
+            ))
+    return findings
+
+
+_GT_DECL_LEAD_RE = re.compile(r"^\s*(?:[-*]|\d+[.)])\s+(?P<rest>.*)$")
+_GT_DECL_TOKEN_RE = re.compile(r"^\*{0,2}GT-(?P<n>\d+)(?P<q>\??)")
+
+
+def _gt_declarations(section3: str) -> list[tuple[str, bool]]:
+    """Section 3's own canonical ground-truth declarations, in order,
+    deduplicated: (id, read_at_source). The FIRST GT-<digits> token of each
+    list-item line, optionally ?-suffixed, optionally bold."""
+    declared: list[tuple[str, bool]] = []
+    seen: set[str] = set()
+    for line in section3.splitlines():
+        lm = _GT_DECL_LEAD_RE.match(line)
+        if not lm:
+            continue
+        tm = _GT_DECL_TOKEN_RE.match(lm.group("rest"))
+        if not tm:
+            continue
+        gid = f"GT-{tm.group('n')}"
+        if gid in seen:
+            continue
+        seen.add(gid)
+        declared.append((gid, tm.group("q") != "?"))
+    return declared
+
+
+def _xc_ground_truths(text, sections, block, exemplar) -> list[Finding]:
+    """SB-GROUND-TRUTH: block ground_truths vs section 3's own canonical
+    declarations -- never against every later citation (A3)."""
+    findings: list[Finding] = []
+    items = block.get("ground_truths")
+    if not isinstance(items, list):
+        return findings
+    section3 = (sections or {}).get(3, "")
+    declared = _gt_declarations(section3)
+    if len(declared) != len(items):
+        findings.append(Finding(
+            "SB-GROUND-TRUTH",
+            f"block has {len(items)} ground truths but section 3 declares "
+            f"{len(declared)}",
+        ))
+    for i in range(min(len(declared), len(items))):
+        gid, read_at_source = declared[i]
+        item = items[i]
+        if not isinstance(item, dict):
+            continue
+        if item.get("id") != gid:
+            findings.append(Finding(
+                "SB-GROUND-TRUTH",
+                f"ground truth {i + 1}: block id {item.get('id')!r} disagrees "
+                f"with section 3's declared id {gid!r}",
+            ))
+        if item.get("read_at_source") != read_at_source:
+            findings.append(Finding(
+                "SB-GROUND-TRUTH",
+                f"{gid}: block read_at_source {item.get('read_at_source')!r} "
+                f"disagrees with section 3's declaration (expected "
+                f"{read_at_source!r})",
+            ))
+    return findings
+
+
+def _doc_chain_index(section4: str) -> tuple[list[str], list[str]]:
+    """(doc_ids, doc_blocks) for section 4: ids normalized and upper-cased,
+    aligned with `qh._chain_blocks`."""
+    qh = _load_qh()
+    ids = [qh._normalize_chain_id(cid).upper() for cid in qh._chain_ids(section4)]
+    blocks = qh._chain_blocks(section4)
+    return ids, blocks
+
+
+def _xc_chain_ids(text, sections, block, exemplar) -> list[Finding]:
+    """SB-CHAIN-ID: block chain ids vs section 4's chain ids, in order."""
+    items = block.get("chains")
+    if not isinstance(items, list):
+        return []
+    section4 = (sections or {}).get(4, "")
+    doc_ids, _blocks = _doc_chain_index(section4)
+    block_ids = [c.get("id") for c in items if isinstance(c, dict)]
+    if block_ids != doc_ids:
+        return [Finding(
+            "SB-CHAIN-ID",
+            f"block chain ids {block_ids!r} disagree with section 4's chain "
+            f"ids {doc_ids!r}",
+        )]
+    return []
+
+
+def _xc_chain_confidence(text, sections, block, exemplar) -> list[Finding]:
+    """SB-CHAIN-CONFIDENCE: each chain's block confidence vs its own
+    **Confidence:** line, read from section 4 only -- a decoy confidence
+    line elsewhere in the document is invisible to this check."""
+    qh = _load_qh()
+    findings: list[Finding] = []
+    items = block.get("chains")
+    if not isinstance(items, list):
+        return findings
+    section4 = (sections or {}).get(4, "")
+    doc_ids, doc_blocks = _doc_chain_index(section4)
+    by_id = dict(zip(doc_ids, doc_blocks))
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        cid = item.get("id")
+        doc_block = by_id.get(cid)
+        if doc_block is None:
+            continue
+        label = qh._chain_confidence_label(doc_block)
+        if label is None:
+            findings.append(Finding(
+                "SB-CHAIN-CONFIDENCE",
+                f"{cid}: no readable **Confidence:** line in section 4",
+            ))
+            continue
+        if item.get("confidence") != label:
+            findings.append(Finding(
+                "SB-CHAIN-CONFIDENCE",
+                f"{cid}: block confidence {item.get('confidence')!r} "
+                f"disagrees with section 4's Confidence line ({label!r})",
+            ))
+    return findings
+
+
+def _xc_chain_rests_on(text, sections, block, exemplar) -> list[Finding]:
+    """SB-CHAIN-RESTS-ON: block rests_on vs the chain head's own refs (GT
+    tokens union upper-cased chain refs), compared as a SET (disclosed
+    bound: rests_on-order-not-compared)."""
+    qh = _load_qh()
+    findings: list[Finding] = []
+    items = block.get("chains")
+    if not isinstance(items, list):
+        return findings
+    section4 = (sections or {}).get(4, "")
+    doc_ids, doc_blocks = _doc_chain_index(section4)
+    by_id = dict(zip(doc_ids, doc_blocks))
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        cid = item.get("id")
+        doc_block = by_id.get(cid)
+        if doc_block is None:
+            continue
+        gt_refs, chain_refs = qh._chain_head_refs(doc_block)
+        expected = set(gt_refs) | {c.upper() for c in chain_refs}
+        actual = set(item.get("rests_on") or [])
+        if actual != expected:
+            findings.append(Finding(
+                "SB-CHAIN-RESTS-ON",
+                f"{cid}: block rests_on {sorted(actual)!r} disagrees with "
+                f"section 4's head refs {sorted(expected)!r}",
+            ))
+    return findings
+
+
+_DEAD_END_HEADING_RE = re.compile(
+    r"^#{2,4}\s*Dead End(?:\s+\d+)?\s*:\s*(?P<name>.+?)\s*$", re.MULTILINE
+)
+
+
+def _xc_dead_ends(text, sections, block, exemplar) -> list[Finding]:
+    """SB-DEAD-END: block dead_ends vs section 5's own '### Dead End: ...'
+    headings, in order."""
+    names = block.get("dead_ends")
+    if not isinstance(names, list):
+        return []
+    section5 = (sections or {}).get(5, "")
+    doc_names = [
+        re.sub(r"\s+", " ", m.group("name")).strip()
+        for m in _DEAD_END_HEADING_RE.finditer(section5)
+    ]
+    if names != doc_names:
+        return [Finding(
+            "SB-DEAD-END",
+            f"block dead_ends {names!r} disagree with section 5's Dead End "
+            f"headings {doc_names!r}",
+        )]
+    return []
+
+
+_TECH_NOT_APPLIED_HEADING_RE = re.compile(
+    r"^##\s*Techniques not applied \(process output\)\s*$", re.MULTILINE
+)
+_TECH_NOT_APPLIED_LABEL_RE = re.compile(r"^Techniques not applied:\s*$", re.MULTILINE)
+_TECH_LIST_ITEM_RE = re.compile(r"^\s*[-*]\s+(?P<body>.+)$")
+_TECH_NOT_APPLIED_LINE_RE = re.compile(
+    r"^(?P<tech>[a-z-]+)(?:\s+\(Phase\s+(?P<phase>[1-5])\))?\s+—\s+"
+    r"not applicable\s+—\s+(?P<reason>.+)$"
+)
+
+
+def _techniques_not_applied_lines(text: str) -> list[str] | None:
+    """Raw list-item bodies under the '## Techniques not applied (process
+    output)' heading, or after a 'Techniques not applied:' label line, up to
+    the next heading. None when neither marker is present anywhere (the
+    exemplar null_when condition for `techniques`)."""
+    m = _TECH_NOT_APPLIED_HEADING_RE.search(text) or _TECH_NOT_APPLIED_LABEL_RE.search(text)
+    if m is None:
+        return None
+    out: list[str] = []
+    for line in text[m.end():].splitlines():
+        if not line.strip():
+            continue
+        if line.lstrip().startswith("#"):
+            break
+        lm = _TECH_LIST_ITEM_RE.match(line)
+        if lm is not None:
+            out.append(lm.group("body"))
+    return out
+
+
+def _xc_techniques(text, sections, block, exemplar) -> list[Finding]:
+    """SB-TECHNIQUES / SB-NULL: block techniques.not_applied vs the
+    document's own not-applied lines, in order. `techniques.applied` is
+    schema-validated only (disclosed bound:
+    techniques-applied-vocabulary-only); the prose carries no fixed marker
+    for an applied technique."""
+    findings: list[Finding] = []
+    techniques = block.get("techniques")
+    raw_lines = _techniques_not_applied_lines(text)
+    if techniques is None:
+        if exemplar and raw_lines is not None:
+            findings.append(Finding(
+                "SB-NULL",
+                "techniques is null but a Techniques not applied block is "
+                "present in the document",
+            ))
+        return findings
+    if not isinstance(techniques, dict):
+        return findings
+    not_applied = techniques.get("not_applied")
+    if not isinstance(not_applied, list):
+        return findings
+    parsed: list[re.Match] = []
+    for raw in (raw_lines or []):
+        pm = _TECH_NOT_APPLIED_LINE_RE.match(raw.strip())
+        if pm is None:
+            findings.append(Finding(
+                "SB-TECHNIQUES", f"could not parse not-applied line: {raw!r}"
+            ))
+            continue
+        parsed.append(pm)
+    if len(parsed) != len(not_applied):
+        findings.append(Finding(
+            "SB-TECHNIQUES",
+            f"block has {len(not_applied)} not-applied entries but the "
+            f"document's not-applied block lists {len(parsed)} parseable "
+            f"line(s)",
+        ))
+    for i in range(min(len(parsed), len(not_applied))):
+        pm = parsed[i]
+        item = not_applied[i]
+        if not isinstance(item, dict):
+            continue
+        if item.get("technique") != pm.group("tech"):
+            findings.append(Finding(
+                "SB-TECHNIQUES",
+                f"not_applied[{i}]: block technique {item.get('technique')!r} "
+                f"disagrees with the document's {pm.group('tech')!r}",
+            ))
+        phase_str = pm.group("phase")
+        # disclosed bound: not-applied-phase-only-where-stated
+        if phase_str is not None and item.get("phase") != int(phase_str):
+            findings.append(Finding(
+                "SB-TECHNIQUES",
+                f"not_applied[{i}]: block phase {item.get('phase')!r} "
+                f"disagrees with the document's Phase {phase_str}",
+            ))
+        expected_reason = re.sub(r"\s+", " ", pm.group("reason")).strip()
+        actual_reason = re.sub(r"\s+", " ", str(item.get("reason") or "")).strip()
+        if actual_reason != expected_reason:
+            findings.append(Finding(
+                "SB-TECHNIQUES",
+                f"not_applied[{i}]: block reason {item.get('reason')!r} "
+                f"disagrees with the document's reason {expected_reason!r}",
+            ))
+    return findings
+
+
+_MODE_STATEMENT_RE = re.compile(r"`?MODE\s*=\s*(?P<mode>[A-Za-z0-9-]+)`?")
+
+
+def _text_outside_block(text: str) -> str:
+    """`text` with the one summary block's own fence removed, so a MODE
+    statement can never be misread from inside the JSON payload."""
+    blocks = find_blocks(text)
+    if len(blocks) != 1:
+        return text
+    lines = text.split("\n")
+    b = blocks[0]
+    return "\n".join(lines[: b.start] + lines[b.end + 1 :])
+
+
+def _xc_run_mode(text, sections, block, exemplar) -> list[Finding]:
+    """SB-RUN-MODE / SB-NULL: block run_mode vs a stated `MODE = ...`
+    statement outside the block (disclosed bound:
+    run-mode-only-where-stated -- not compared when the document states
+    none)."""
+    findings: list[Finding] = []
+    m = _MODE_STATEMENT_RE.search(_text_outside_block(text))
+    stated = m.group("mode") if m else None
+    run_mode = block.get("run_mode")
+    if run_mode is None:
+        if exemplar and stated is not None:
+            findings.append(Finding(
+                "SB-NULL", f"run_mode is null but the document states MODE = {stated}"
+            ))
+        return findings
+    if stated is not None and run_mode != stated:
+        findings.append(Finding(
+            "SB-RUN-MODE",
+            f"block run_mode {run_mode!r} disagrees with the document's "
+            f"MODE = {stated!r} statement",
+        ))
+    return findings
+
+
+_RECOMMENDED_LEADIN_RE = re.compile(
+    r"^\*\*Recommended approach(?P<tail>[^*\n]*):\*\*", re.MULTILINE
+)
+_BOLD_COLON_LEADIN_RE = re.compile(r"^\*\*[^*\n]+:\*\*", re.MULTILINE)
+_ANY_HEADING_RE = re.compile(r"^#{1,6}[ \t]", re.MULTILINE)
+
+
+def _normalize_for_compare(s: str) -> str:
+    """Strip bold markers (disclosed bound:
+    recommendation-bold-markers-ignored) and collapse whitespace runs."""
+    return re.sub(r"\s+", " ", s.replace("**", "")).strip()
+
+
+def _section6_recommendation(section6: str) -> str | None:
+    """Section 6's own Recommended approach text, normalized, through every
+    following line until the next bold-colon lead-in, a heading, or the end
+    of section 6. None when the lead-in is not present at all."""
+    m = _RECOMMENDED_LEADIN_RE.search(section6)
+    if m is None:
+        return None
+    tail = m.group("tail").strip().lstrip("—–").strip().rstrip(":").strip()
+    rest = section6[m.end():]
+    end = len(rest)
+    for pat in (_BOLD_COLON_LEADIN_RE, _ANY_HEADING_RE):
+        pm = pat.search(rest)
+        if pm is not None:
+            end = min(end, pm.start())
+    return _normalize_for_compare(tail + rest[:end])
+
+
+def _xc_conclusion_text(text, sections, block, exemplar) -> list[Finding]:
+    """SB-CONCLUSION-CUT / SB-CONCLUSION-TEXT: conclusion.recommendation vs
+    section 6's own Recommended approach text, in full. Truncation is what
+    is compared; a shorter block that is a strict prefix of the prose is
+    SB-CONCLUSION-CUT, anything else disagreeing is SB-CONCLUSION-TEXT."""
+    conclusion = block.get("conclusion")
+    if not isinstance(conclusion, dict):
+        return []
+    block_rec = conclusion.get("recommendation")
+    if not isinstance(block_rec, str):
+        return []
+    section6 = (sections or {}).get(6, "")
+    prose = _section6_recommendation(section6)
+    if prose is None:
+        return []
+    block_norm = _normalize_for_compare(block_rec)
+    if block_norm == prose:
+        return []
+    if prose.startswith(block_norm) and len(prose) > len(block_norm):
+        missing = prose[len(block_norm):].strip()[:60]
+        return [Finding(
+            "SB-CONCLUSION-CUT",
+            f"conclusion.recommendation is cut short — missing: {missing!r}",
+        )]
+    return [Finding(
+        "SB-CONCLUSION-TEXT",
+        "conclusion.recommendation disagrees with section 6's Recommended "
+        "approach text",
+    )]
+
+
+def _xc_conclusion_confidence(text, sections, block, exemplar) -> list[Finding]:
+    """SB-CONCLUSION-CONFIDENCE: conclusion.confidence vs section 6's own
+    **Confidence:** line, read with the quality harness's
+    `_CONFIDENCE_LINE_RE` (accepts both the trailing-marker and bold-wrapped
+    forms)."""
+    qh = _load_qh()
+    conclusion = block.get("conclusion")
+    if not isinstance(conclusion, dict):
+        return []
+    block_conf = conclusion.get("confidence")
+    if not isinstance(block_conf, str):
+        return []
+    section6 = (sections or {}).get(6, "")
+    m = qh._CONFIDENCE_LINE_RE.search(section6)
+    band = None
+    if m is not None:
+        word = m.group("word").upper()
+        if word in ("HIGH", "MEDIUM", "LOW"):
+            band = word
+    if band is None:
+        return [Finding(
+            "SB-CONCLUSION-CONFIDENCE", "no readable **Confidence:** line in section 6"
+        )]
+    if block_conf != band:
+        return [Finding(
+            "SB-CONCLUSION-CONFIDENCE",
+            f"conclusion.confidence {block_conf!r} disagrees with section "
+            f"6's Confidence line ({band!r})",
+        )]
+    return []
+
+
+# Cross-checks against the report's own prose (CHECK-02). Plan 01 left this
+# an explicit empty tuple; each line below is `("<CODE>", _xc_<name>)`.
+_CROSS_CHECKS: tuple[tuple[str, Callable[..., list[Finding]]], ...] = (
+    ("SB-ASSUMPTION", _xc_assumptions),
+    ("SB-GROUND-TRUTH", _xc_ground_truths),
+    ("SB-CHAIN-ID", _xc_chain_ids),
+    ("SB-CHAIN-CONFIDENCE", _xc_chain_confidence),
+    ("SB-CHAIN-RESTS-ON", _xc_chain_rests_on),
+    ("SB-DEAD-END", _xc_dead_ends),
+    ("SB-TECHNIQUES", _xc_techniques),
+    ("SB-RUN-MODE", _xc_run_mode),
+    ("SB-CONCLUSION-CUT", _xc_conclusion_text),
+    ("SB-CONCLUSION-CONFIDENCE", _xc_conclusion_confidence),
+)
 
 
 # ---------------------------------------------------------------------------
@@ -452,8 +1008,14 @@ def check_report(text: str, *, exemplar: bool = False, schema: dict | None = Non
     if not any(f.code == "SB-SCHEMA" for f in schema_findings):
         findings.extend(_gate_invariant_findings(value.get("gate")))
         findings.extend(_re_entry_invariant_findings(value.get("re_entry")))
-        for _code, fn in _CROSS_CHECKS:
-            findings.extend(fn(text, value, exemplar=exemplar))
+        if _CROSS_CHECKS:
+            qh = _load_qh()
+            try:
+                sections = qh._slice_sections(text)
+            except qh.SectionResolutionError:
+                sections = None
+            for _code, fn in _CROSS_CHECKS:
+                findings.extend(fn(text, sections, value, exemplar))
     return findings
 
 
@@ -482,6 +1044,11 @@ def _synthetic_report(block: dict, **overrides) -> str:
       omit_heading               -- drop the block's own heading line
       heading_before_appendix     -- place the heading (and block) before the
                                      Appendix heading
+      type_cells                  -- dict of assumption id -> literal section 2
+                                      Type cell text, overriding the plain
+                                      `a['type']` rendering for that row only
+      mode_statement               -- if given, write a top-of-document
+                                       Step 0 set `MODE = <value>`. line
     """
     omit_block = overrides.get("omit_block", False)
     duplicate_block = overrides.get("duplicate_block", False)
@@ -489,6 +1056,8 @@ def _synthetic_report(block: dict, **overrides) -> str:
     trailing_after_block = overrides.get("trailing_after_block", "")
     omit_heading = overrides.get("omit_heading", False)
     heading_before_appendix = overrides.get("heading_before_appendix", False)
+    type_cells: dict = overrides.get("type_cells") or {}
+    mode_statement = overrides.get("mode_statement")
 
     body_json = raw_block_body if raw_block_body is not None else json.dumps(block, indent=2)
     block_fence = f"```{BLOCK_FENCE}\n{body_json}\n```"
@@ -501,7 +1070,11 @@ def _synthetic_report(block: dict, **overrides) -> str:
     gate = block.get("gate") or {"passes": [], "cleared": False, "fix_repeat_fired": False}
     conclusion = block.get("conclusion") or {}
 
-    lines: list[str] = [
+    lines: list[str] = []
+    if mode_statement is not None:
+        lines.append(f"Step 0 set `MODE = {mode_statement}`.")
+        lines.append("")
+    lines += [
         "## Answer",
         "Synthetic answer for self-test fixtures.",
         "",
@@ -513,7 +1086,7 @@ def _synthetic_report(block: dict, **overrides) -> str:
         "|---|---|---|---|---|",
     ]
     for a in assumptions:
-        atype = a.get("type") or "untested belief"
+        atype = type_cells.get(a["id"], a.get("type") or "untested belief")
         lines.append(
             f"| Assumption {a['id']} | {atype} | Treated as stated | "
             f"{a['verdict']} — synthetic justification | Not applicable |"
@@ -525,7 +1098,8 @@ def _synthetic_report(block: dict, **overrides) -> str:
     lines += ["", "## 4. Derivation Chains"]
     for c in chains:
         lines.append(f"### Conclusion {c['id']}: synthetic conclusion")
-        lines.append(" → ".join(list(c.get("rests_on") or []) + ["synthetic conclusion"]))
+        head = " + ".join(c.get("rests_on") or []) or "GT-1"
+        lines.append(f"{head} → synthetic intermediate reasoning → synthetic conclusion.")
         lines.append(f"**Confidence:** {c['confidence']} — synthetic confidence rationale.")
         lines.append("")
     lines.append("## 5. Abandoned Reasoning")
@@ -881,6 +1455,206 @@ def _c12_cli_round_trip() -> str | None:
     return None
 
 
+def _c13_synthetic_report_is_clean_with_cross_checks() -> str | None:
+    schema = load_schema(DEFAULT_SCHEMA)
+    text = _synthetic_report(schema["example"])
+    findings = check_report(text, exemplar=False, schema=schema)
+    if findings:
+        return f"expected [], got {findings!r}"
+    return None
+
+
+def _c14_single_block_mutations_fire_named_codes() -> str | None:
+    schema = load_schema(DEFAULT_SCHEMA)
+    example = schema["example"]
+
+    def _codes_for(mutated: dict) -> set[str]:
+        text = _synthetic_report(example, raw_block_body=json.dumps(mutated))
+        return {f.code for f in check_report(text, schema=schema)}
+
+    cases: list[tuple[str, dict, set[str], bool]] = []
+
+    m = copy.deepcopy(example)
+    m["assumptions"][0]["verdict"] = "Challenge"
+    cases.append(("assumption verdict swap", m, {"SB-ASSUMPTION"}, True))
+
+    m = copy.deepcopy(example)
+    m["assumptions"][0]["type"] = "untested belief"
+    cases.append(("assumption type swap", m, {"SB-ASSUMPTION"}, True))
+
+    m = copy.deepcopy(example)
+    m["assumptions"].append({"id": "A-3", "type": "convention", "verdict": "Accept"})
+    cases.append(("third assumption appended", m, {"SB-ASSUMPTION"}, True))
+
+    m = copy.deepcopy(example)
+    m["ground_truths"][1]["read_at_source"] = True
+    cases.append(("GT-2 read_at_source true", m, {"SB-GROUND-TRUTH"}, True))
+
+    m = copy.deepcopy(example)
+    m["ground_truths"].append({"id": "GT-3", "read_at_source": True})
+    cases.append(("GT-3 appended", m, {"SB-GROUND-TRUTH"}, True))
+
+    m = copy.deepcopy(example)
+    m["chains"][1]["id"] = "C3"
+    cases.append(("chain C2 renamed C3", m, {"SB-CHAIN-ID"}, False))
+
+    m = copy.deepcopy(example)
+    m["chains"][0]["confidence"] = "MEDIUM"
+    cases.append(("C1 confidence MEDIUM", m, {"SB-CHAIN-CONFIDENCE"}, True))
+
+    m = copy.deepcopy(example)
+    m["chains"][1]["rests_on"] = ["GT-2?"]
+    cases.append(("C2 rests_on drops C1", m, {"SB-CHAIN-RESTS-ON"}, True))
+
+    m = copy.deepcopy(example)
+    m["dead_ends"] = ["Renamed dead end"]
+    cases.append(("dead end renamed", m, {"SB-DEAD-END"}, True))
+
+    m = copy.deepcopy(example)
+    m["techniques"]["not_applied"][0]["reason"] = "a completely different reason"
+    cases.append(("not_applied reason altered", m, {"SB-TECHNIQUES"}, True))
+
+    m = copy.deepcopy(example)
+    m["conclusion"]["confidence"] = "HIGH"
+    cases.append(("conclusion confidence HIGH", m, {"SB-CONCLUSION-CONFIDENCE"}, True))
+
+    full = example["conclusion"]["recommendation"]
+    m = copy.deepcopy(example)
+    m["conclusion"]["recommendation"] = full[: full.index(":") + 1]
+    cases.append(("recommendation cut at its colon", m, {"SB-CONCLUSION-CUT"}, True))
+
+    m = copy.deepcopy(example)
+    m["conclusion"]["recommendation"] = full.replace("Adopt", "Reject", 1)
+    cases.append(("recommendation with one word changed", m, {"SB-CONCLUSION-TEXT"}, True))
+
+    for label, mutated, expected, exact in cases:
+        codes = _codes_for(mutated)
+        ok = codes == expected if exact else expected <= codes
+        if not ok:
+            rel = "==" if exact else ">="
+            return f"{label}: expected codes {rel} {expected!r}, got {codes!r}"
+
+    m = copy.deepcopy(example)
+    m["run_mode"] = "focused-inversion"
+    text = _synthetic_report(
+        example, raw_block_body=json.dumps(m), mode_statement="full-composer"
+    )
+    codes = {f.code for f in check_report(text, schema=schema)}
+    if codes != {"SB-RUN-MODE"}:
+        return f"run_mode disagreement: expected {{'SB-RUN-MODE'}}, got {codes!r}"
+
+    return None
+
+
+def _c15_prose_mutations_that_still_pass() -> str | None:
+    schema = load_schema(DEFAULT_SCHEMA)
+    example = schema["example"]
+
+    m = copy.deepcopy(example)
+    m["assumptions"][0]["type"] = "convention"
+    text = _synthetic_report(m, type_cells={"A-1": "convention / untested belief"})
+    codes = {f.code for f in check_report(text, schema=schema)}
+    if codes != {"SB-ASSUMPTION"}:
+        return f"compound type cell (D-16): expected {{'SB-ASSUMPTION'}}, got {codes!r}"
+
+    m2 = copy.deepcopy(example)
+    m2["chains"][1]["rests_on"] = ["GT-2", "C1"]
+    text2 = _synthetic_report(m2)
+    findings2 = check_report(text2, schema=schema)
+    if findings2:
+        return (
+            "GT-2 cited without '?' in a chain head must not affect the "
+            f"ground-truth cross-check (the declaration governs): {findings2!r}"
+        )
+    return None
+
+
+def _c15b_annotated_type_cells_match_parent() -> str | None:
+    schema = load_schema(DEFAULT_SCHEMA)
+    example = schema["example"]
+
+    for block_type, cell_text in (
+        ("untested belief", "untested belief (economic-hinge)"),
+        ("convention", "**convention (regulatory)**"),
+    ):
+        m = copy.deepcopy(example)
+        m["assumptions"][0]["type"] = block_type
+        text = _synthetic_report(m, type_cells={"A-1": cell_text})
+        findings = check_report(text, schema=schema)
+        if any(f.code == "SB-ASSUMPTION" for f in findings):
+            return f"{cell_text!r} should match parent type {block_type!r}, got {findings!r}"
+
+    m = copy.deepcopy(example)
+    m["assumptions"][0]["type"] = "untested belief"
+    text = _synthetic_report(m, type_cells={"A-1": "untested belief (x) / convention"})
+    codes = {f.code for f in check_report(text, schema=schema)}
+    if codes != {"SB-ASSUMPTION"}:
+        return f"compound cell with a trailing paren: expected {{'SB-ASSUMPTION'}}, got {codes!r}"
+    return None
+
+
+def _c15c_exemplar_type_nullability() -> str | None:
+    schema = load_schema(DEFAULT_SCHEMA)
+    example = schema["example"]
+
+    m = copy.deepcopy(example)
+    m["assumptions"][0]["type"] = None
+    text = _synthetic_report(m, type_cells={"A-1": "factual"})
+    findings = check_report(text, exemplar=True, schema=schema)
+    if any(f.code == "SB-ASSUMPTION" for f in findings):
+        return f"factual cell, null block type: expected no SB-ASSUMPTION, got {findings!r}"
+
+    m2 = copy.deepcopy(example)
+    m2["assumptions"][0]["type"] = "untested belief"
+    text2 = _synthetic_report(m2, type_cells={"A-1": "factual"})
+    findings2 = check_report(text2, exemplar=True, schema=schema)
+    if {f.code for f in findings2} != {"SB-ASSUMPTION"}:
+        return f"factual cell, non-null block type: expected {{'SB-ASSUMPTION'}}, got {findings2!r}"
+
+    m3 = copy.deepcopy(example)
+    m3["assumptions"][0]["type"] = None
+    text3 = _synthetic_report(m3, type_cells={"A-1": "convention"})
+    findings3 = check_report(text3, exemplar=True, schema=schema)
+    if {f.code for f in findings3} != {"SB-ASSUMPTION"}:
+        return f"convention cell, null block type: expected {{'SB-ASSUMPTION'}}, got {findings3!r}"
+
+    m4 = copy.deepcopy(example)
+    m4["assumptions"][0]["type"] = None
+    text4 = _synthetic_report(m4)
+    findings4 = check_report(text4, exemplar=False, schema=schema)
+    if {f.code for f in findings4} != {"SB-NULL"}:
+        return f"live mode null type: expected {{'SB-NULL'}}, got {findings4!r}"
+    return None
+
+
+def _c16_exemplar_null_iff_absent() -> str | None:
+    schema = load_schema(DEFAULT_SCHEMA)
+    example = schema["example"]
+
+    m = copy.deepcopy(example)
+    m["techniques"] = None
+    text = _synthetic_report(m)
+    findings = check_report(text, exemplar=True, schema=schema)
+    if any(f.code == "SB-NULL" for f in findings):
+        return f"techniques null, no not-applied block: unexpected SB-NULL, got {findings!r}"
+
+    with_tech = copy.deepcopy(example)
+    null_tech = copy.deepcopy(example)
+    null_tech["techniques"] = None
+    text2 = _synthetic_report(with_tech, raw_block_body=json.dumps(null_tech))
+    findings2 = check_report(text2, exemplar=True, schema=schema)
+    if {f.code for f in findings2} != {"SB-NULL"}:
+        return f"techniques null, block present: expected {{'SB-NULL'}}, got {findings2!r}"
+
+    m3 = copy.deepcopy(example)
+    m3["run_mode"] = None
+    text3 = _synthetic_report(m3)
+    findings3 = check_report(text3, exemplar=True, schema=schema)
+    if any(f.code == "SB-NULL" for f in findings3):
+        return f"run_mode null, no MODE line: unexpected SB-NULL, got {findings3!r}"
+    return None
+
+
 _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("C01", _c01_example_block_is_clean),
     ("C02", _c02_missing_block_is_rejected),
@@ -894,6 +1668,12 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("C10", _c10_unknown_schema_keyword_raises),
     ("C11", _c11_all_observed_codes_are_registered),
     ("C12", _c12_cli_round_trip),
+    ("C13", _c13_synthetic_report_is_clean_with_cross_checks),
+    ("C14", _c14_single_block_mutations_fire_named_codes),
+    ("C15", _c15_prose_mutations_that_still_pass),
+    ("C15b", _c15b_annotated_type_cells_match_parent),
+    ("C15c", _c15c_exemplar_type_nullability),
+    ("C16", _c16_exemplar_null_iff_absent),
 )
 
 
@@ -939,7 +1719,13 @@ def describe() -> dict:
             "finding_codes": len(FINDING_CODES),
             "cross_checks": len(_CROSS_CHECKS),
         },
-        "disclosed_bounds_anchors": [],
+        "disclosed_bounds_anchors": sorted([
+            "rests_on-order-not-compared",
+            "not-applied-phase-only-where-stated",
+            "techniques-applied-vocabulary-only",
+            "run-mode-only-where-stated",
+            "recommendation-bold-markers-ignored",
+        ]),
     }
 
 
