@@ -16,7 +16,7 @@
 ## How to run
 
 ```sh
-python3 scripts/check-summary-block.py --self-test
+python3 scripts/check-summary-block.py --self-test && python3 scripts/check-summary-block.py --exemplar shared/examples/*.md && python3 scripts/check-summary-block.py --exemplar first-principles/references/examples/*.md
 ```
 
 CI job: `check-summary-block`

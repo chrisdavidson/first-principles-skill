@@ -706,13 +706,19 @@ gate "TRACKB-01" \
 #             disclosure, a rewritten first scoring pass, a recommendation
 #             cut at its own colon), each required to fail for its own
 #             finding code while the same report with a correct block stays
-#             clean. Registered `--self-test`-only: reading live agent
-#             reports is a later phase's recorded measurement, not a gate,
-#             and a live shortfall is reported, never absorbed by loosening
-#             the checker.
+#             clean. Widened at Phase 76 to also run `--exemplar` over the
+#             fourteen worked examples on both the source and generated-twin
+#             surfaces — the fourteen examples are the surface the agent
+#             learns the block from, so a later edit drifting one example's
+#             prose from its block must not stay silent. `--exemplar`
+#             permits a null field only where the example's own source
+#             section is absent (D-15); reading live agent reports stays a
+#             recorded measurement (Phase 77), never a gate.
 gate "SUMM-BLOCK" \
-    "check-summary-block.py --self-test" \
-    "python3 scripts/check-summary-block.py --self-test"
+    "check-summary-block.py --self-test + --exemplar worked examples" \
+    "python3 scripts/check-summary-block.py --self-test" \
+    "python3 scripts/check-summary-block.py --exemplar shared/examples/*.md" \
+    "python3 scripts/check-summary-block.py --exemplar first-principles/references/examples/*.md"
 
 # ---------------------------------------------------------------------------
 # Invariant re-confirm (D-07) — byte-frozen constants in _battery_core.py.

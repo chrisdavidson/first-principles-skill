@@ -381,3 +381,5 @@ jobs:
           enable-cache: true
       - run: uv sync --locked --group dev
       - run: uv run python3 scripts/check-summary-block.py --self-test
+      - run: uv run python3 scripts/check-summary-block.py --exemplar shared/examples/*.md
+      - run: uv run python3 scripts/check-summary-block.py --exemplar first-principles/references/examples/*.md

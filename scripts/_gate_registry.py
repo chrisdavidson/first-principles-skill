@@ -928,7 +928,12 @@ ENTRIES: tuple[GateEntry, ...] = (
         mechanism=_ci("check-summary-block"),
         ci_job="check-summary-block",
         script="scripts/check-summary-block.py",
-        run_command="python3 scripts/check-summary-block.py --self-test",
+        run_command=(
+            "python3 scripts/check-summary-block.py --self-test && "
+            "python3 scripts/check-summary-block.py --exemplar shared/examples/*.md && "
+            "python3 scripts/check-summary-block.py --exemplar "
+            "first-principles/references/examples/*.md"
+        ),
         summary=(
             "Finds exactly one structured-summary block at the end of a "
             "report's appendix, validates it against "
@@ -943,9 +948,14 @@ ENTRIES: tuple[GateEntry, ...] = (
             "required to fail for its own finding code while the same "
             "report with a correct block passes. Re-entry is read only "
             "from the Self-Audit Gate's fixed lines and the top-of-file "
-            "disclosure. Registered `--self-test`-only because reading "
-            "live reports is a recorded measurement, and a live shortfall "
-            "is reported, never absorbed by loosening the checker."
+            "disclosure. Also runs in exemplar mode over both worked-example "
+            "surfaces, the source tree and its generated twin, so a later "
+            "edit drifting an example's prose from its block does not stay "
+            "silent — a field a legacy example cannot source is null "
+            "exactly when its own section is absent. Reading live agent "
+            "reports stays a recorded measurement, never a gate, and a "
+            "live shortfall is reported, never absorbed by loosening the "
+            "checker."
         ),
         consumes=(
             "control_ids",
