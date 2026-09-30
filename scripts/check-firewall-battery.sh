@@ -697,6 +697,23 @@ gate "TRACKB-01" \
     "check-trackb-comparative.py --self-test" \
     "python3 scripts/check-trackb-comparative.py --self-test"
 
+# SUMM-BLOCK — the structured-summary-block checker's offline controls: finds
+#             exactly one block at the end of a report's appendix, validates
+#             it against the Phase 74 schema with a stdlib validator, and
+#             cross-checks every id and value against the report's own prose.
+#             Its must-fail controls are rebuilt in-tree from the real PRD
+#             failure reports (a misread re-entry, a missed Fix/Repeat
+#             disclosure, a rewritten first scoring pass, a recommendation
+#             cut at its own colon), each required to fail for its own
+#             finding code while the same report with a correct block stays
+#             clean. Registered `--self-test`-only: reading live agent
+#             reports is a later phase's recorded measurement, not a gate,
+#             and a live shortfall is reported, never absorbed by loosening
+#             the checker.
+gate "SUMM-BLOCK" \
+    "check-summary-block.py --self-test" \
+    "python3 scripts/check-summary-block.py --self-test"
+
 # ---------------------------------------------------------------------------
 # Invariant re-confirm (D-07) — byte-frozen constants in _battery_core.py.
 #
@@ -921,6 +938,13 @@ _FROZEN_PATHS=(
     # attempt including both usage-limit-pause specimens and the mid-run
     # is_limit_stub() false positive this run's own manifest/cells.json record.
     'tests/trackb-run-v9.15'
+    # summary-block-v9.16 (2026-09-30) -- the four real analysis-report
+    # fixtures the structured-summary-block checker's P1-P4/X1/X2 controls
+    # are anchored to (SUMM-BLOCK). Frozen because every must-fail control
+    # mutates a copy of a fixture's parsed block, never the file on disk, and
+    # the independent inventory falsifier (75-falsifiers.sh f5) is checkable
+    # only against these exact prose/block pairs.
+    'tests/summary-block-v9.16'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null

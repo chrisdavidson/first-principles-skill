@@ -368,3 +368,16 @@ jobs:
           enable-cache: true
       - run: uv sync --locked --group dev
       - run: uv run python3 scripts/check-trackb-comparative.py --self-test
+
+  check-summary-block:
+    name: check-summary-block (SUMM-BLOCK)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --locked --group dev
+      - run: uv run python3 scripts/check-summary-block.py --self-test

@@ -46,6 +46,7 @@ For the full at-a-glance gate inventory — every gate mapped to its owning scri
 | EMIT-STAGE-A | [`docs/gates/EMIT-STAGE-A.md`](gates/EMIT-STAGE-A.md) | `python3 scripts/check-emission-stage-a.py --self-test` |
 | EVIDENCE-01 | [`docs/gates/EVIDENCE-01.md`](gates/EVIDENCE-01.md) | `python3 scripts/gen-evidence-card.py --self-test && python3 scripts/gen-evidence-card.py --check` |
 | TRACKB-01 | [`docs/gates/TRACKB-01.md`](gates/TRACKB-01.md) | `python3 scripts/check-trackb-comparative.py --self-test` |
+| SUMM-BLOCK | [`docs/gates/SUMM-BLOCK.md`](gates/SUMM-BLOCK.md) | `python3 scripts/check-summary-block.py --self-test` |
 <!-- END GENERATED -->
 
 ## Routing battery (developer tools — not in CI)

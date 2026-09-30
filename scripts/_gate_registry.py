@@ -921,6 +921,42 @@ ENTRIES: tuple[GateEntry, ...] = (
             "control_count",
         ),
     ),
+    GateEntry(
+        key="SUMM-BLOCK",
+        gate_id="SUMM-BLOCK",
+        extra_ids=(),
+        mechanism=_ci("check-summary-block"),
+        ci_job="check-summary-block",
+        script="scripts/check-summary-block.py",
+        run_command="python3 scripts/check-summary-block.py --self-test",
+        summary=(
+            "Finds exactly one structured-summary block at the end of a "
+            "report's appendix, validates it against "
+            "`shared/spine/references/summary-schema.json` with a stdlib "
+            "validator driven by that file, and cross-checks every id and "
+            "value against the report's own prose. Its must-fail controls "
+            "are the parser failures agent-router's worked-example rerun "
+            "recorded — a re-entry read from a Derivation Chains sentence, "
+            "a Fix/Repeat disclosure missed, a rewritten first scoring "
+            "pass, and a recommendation cut at the colon that introduces "
+            "its list — rebuilt in-tree from the real reports, each "
+            "required to fail for its own finding code while the same "
+            "report with a correct block passes. Re-entry is read only "
+            "from the Self-Audit Gate's fixed lines and the top-of-file "
+            "disclosure. Registered `--self-test`-only because reading "
+            "live reports is a recorded measurement, and a live shortfall "
+            "is reported, never absorbed by loosening the checker."
+        ),
+        consumes=(
+            "control_ids",
+            "control_count",
+            "registered_surfaces",
+            "checked_files",
+            "locked_constants",
+            "derived_counts",
+            "disclosed_bounds_anchors",
+        ),
+    ),
 )
 
 
