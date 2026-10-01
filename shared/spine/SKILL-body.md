@@ -383,8 +383,9 @@ It restates decisions the document already records and adds none: every id in it
 document uses, every value agrees with the document, and where the two disagree the block is
 corrected to match the document. `gate.passes` lists every scoring pass in order, each earlier
 one read from its `**Pass N (before re-score):**` line; `re_entry.fired` states whether any
-re-entry edge fired anywhere in the run, and is `true` whenever the Fix/Repeat loop fired. The
-block is process output, not environment state — the rule that nothing about the environment
+re-entry edge fired anywhere in the run, and is `true` whenever the Fix/Repeat loop fired.
+`conclusion.rests_on` lists every id on section 6's `**Pre-check:**` head, in the order the head gives them, each Cn without its parenthesised band and each GT-N? with its ? kept.
+The block is process output, not environment state — the rule that nothing about the environment
 enters the document applies to it unchanged — and it is not a seventh output section. It belongs
 to the file alone: the final message does not carry it, and neither does the final message
 written when the file handoff fails.

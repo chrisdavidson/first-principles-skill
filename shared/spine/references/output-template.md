@@ -47,7 +47,7 @@ and nothing after it. The block restates, in the fixed fields
 the process-output blocks already record — each assumption's type and verdict, each ground truth
 and whether it was read at source, each chain's confidence and what it rests on, the dead ends,
 the techniques applied and declined, every Self-Audit Gate scoring pass in order, whether any
-re-entry edge fired, and the recommendation in full with its confidence — and it adds none:
+re-entry edge fired, and the recommendation in full with its confidence and what it rests on — and it adds none:
 every id in it is one the document uses and every value agrees with the document. A reader who
 skips it loses nothing. It is process output, not environment state, and it is not a seventh
 output section. The agent's final message does not carry it; the block exists only in the

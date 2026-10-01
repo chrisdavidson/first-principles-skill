@@ -35,6 +35,18 @@ analysis. If the Markdown report cannot be written, the PDF step is skipped and 
 says so. A `**Disclosed:**` paragraph that runs straight into a heading no longer swallows that
 heading from the reader report.
 
+### Added — `conclusion.rests_on` names what the recommendation depends on directly
+
+The structured-summary block gains `conclusion.rests_on`: the ids section 6's `**Pre-check:**`
+head cites — the chains and any `GT-N?` the Conclusion rests on directly, not only through a
+chain. Add-only, so `schema_version` stays 1; null only for the legacy worked examples whose
+section 6 carries no Pre-check line. `scripts/check-summary-block.py` cross-checks it against that
+same head under the new finding code `SB-CONCLUSION-RESTS-ON` (set comparison, order not
+compared), moving SUMM-BLOCK's own control count by one (`C25`). All 14 worked examples and the 4
+frozen `tests/summary-block-v9.16/` fixtures carry it. Motivated by a 2026-10-01 measurement: the
+evidence-trace prototype drew a ground truth the Conclusion cites directly (`GT-18?`) as an orphan,
+because the block recorded only chain-to-ground-truth edges.
+
 ## [9.16.0] — 2026-10-01
 
 Milestone release: **v9.16.0 Structured Summary**. Every full-agent analysis now ends with
