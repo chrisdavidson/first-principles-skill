@@ -390,12 +390,16 @@ then the six sections, then the process-output appendix.
    /^```/ { f = !f }
    !f && /^## Appendix — process output$/ { exit }
    !f && /^\*\*Disclosed:\*\*/ { skip = 1 }
+   skip && /^#/ { skip = 0 }
    skip { if ($0 == "") skip = 0; next }
    !f && /^\*\*Pre-check:\*\*/ { next }
    !f && /^## Answer$/ { $0 = "## Executive Summary" }
    !f && (/^#/ || /^\*\*/) && prev != "" { print "" }
    { print; prev = $0 }' "$F" | cat -s; } > "$R" && echo "$R"
    ```
+
+   If it fails or prints no path, skip step 7: the working file stays the reader's copy, and the
+   final message says the reader reports were not produced and why.
 
 7. **Render the PDF reader report** from the Markdown report with pandoc and the typst engine,
    using the page template carried in the [report layout](${CLAUDE_PLUGIN_ROOT}/references/report-layout.md),
@@ -410,7 +414,9 @@ then the six sections, then the process-output appendix.
    that the PDF was not produced and why. Neither report is edited by hand after it is written.
 8. **Your final message is a short pointer, not the analysis:** the path of the Markdown report,
    then of the PDF report or the reason it was not produced, then of the working file; the
-   top-of-response disclosure repeated from step 3, if any; and the Conclusion's recommendation
+   top-of-response disclosure repeated from step 3, if any; a line stating that the working file
+   is the complete analysis and the reports are its reader copies, that each must be read in full,
+   and that this message is not the analysis; and the Conclusion's recommendation
    and confidence in one or two sentences. Do not paste the document into it, and do not paste
    the structured summary into it either. If assembly did not complete, name whichever of
    `"<path>.answer"` or `"<path>.process"` is still present, and skip steps 6 and 7.

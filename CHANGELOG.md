@@ -29,8 +29,11 @@ final message says the PDF was not produced and why.
 ### Changed — the final message points at the reports
 
 The final message now gives the Markdown report path, then the PDF path or the reason it was not
-produced, then the working file path, and no longer carries the line telling the reader the file
-must be read in full.
+produced, then the working file path, with a line stating that the working file is the complete
+analysis, the reports are its reader copies, each must be read in full, and the message is not the
+analysis. If the Markdown report cannot be written, the PDF step is skipped and the final message
+says so. A `**Disclosed:**` paragraph that runs straight into a heading no longer swallows that
+heading from the reader report.
 
 ## [9.16.0] — 2026-10-01
 
