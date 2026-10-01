@@ -1,0 +1,3 @@
+/first-principles:first-principles-analysis A 6-year-old e-commerce platform — catalog, cart, checkout, and fulfillment in a single Rails monolith (~350 KLOC) — has a CI/CD pipeline that takes approximately 45 minutes end-to-end. Every deploy requires a full test suite run and a coordinated application restart, and the team of 12 engineers ships roughly 2 deploys per day. Engineering leadership has concluded: "deploys are too slow, we need microservices."
+
+Analyse this from first principles. Show the arithmetic for every computed figure and recompute it.

@@ -1,0 +1,3 @@
+/first-principles:first-principles-analysis Estimate this quantity: Installed capital cost of a 5 MWh molten-salt thermal energy storage (TES) system, in **$/kWh of storage capacity**, rebuilt from constituent first-principles unit-factors — then amortised over cycle life to a levelised cost per kWh delivered.
+
+Analyse this from first principles. Show the arithmetic for every computed figure and recompute it.

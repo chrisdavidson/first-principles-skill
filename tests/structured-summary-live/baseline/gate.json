@@ -1,0 +1,35 @@
+{
+  "cleared": {
+    "composed-inversion-second-order": true,
+    "decompose-irreducibility": true,
+    "estimate-fermi": true,
+    "ishikawa-fishbone": true,
+    "personal-general": true,
+    "personal-general-2": true,
+    "product-business": true,
+    "product-business-2": true,
+    "science-engineering": true,
+    "science-engineering-2": true,
+    "self-application": true,
+    "software-systems": true,
+    "software-systems-2": true,
+    "theoretical-limit-carnot": true
+  },
+  "sha256": {
+    "0cf3116d-95c6-40db-ad43-74f35099776b.jsonl": "5d4761d12a7506edeb4818f186beccc57a5c3a164533893669bd45e2043066f8",
+    "2df1e1c4-ddd6-46b5-acec-ca1c22ece1a4.jsonl": "77b7e74a43f931de09cb4a35cfec0df9f3ad628e4b948050a03ca1e4f1367af1",
+    "367f2135-cd7b-4e32-88ea-57bb4c5a2cb5.jsonl": "0ee892b8667462c5c209728759cd3a289383cd03f29e7ded10acafe6daea5b83",
+    "4f930670-ea16-42ed-9aa4-d460df56f54c.jsonl": "f4073862faf70de2fb04cf8644fee70d307f11a282d64ac2509c98f6f4bd6626",
+    "50d1d2b7-5d4a-44d7-9cac-f15390b215f7.jsonl": "918e8a2b578caf3d84631d78bf33cbb306db916e420a663bcafb1ac4d93c2fc9",
+    "52a6ad29-bfa4-4d65-a552-044855e6bd63.jsonl": "f4171b03d69c2f12af7f8073c4fcb4cf1b425bfc73e5fc69e68bd4d28d9667b7",
+    "621bc349-e0f2-4f07-a99b-aa98ebd2cee6.jsonl": "a60586d0abaab041479701b2edc6a0e1da162d3f1f93e5bc151de4e1b45bc3e2",
+    "6625e1cf-3602-4cac-9679-7d21d1ab463e.jsonl": "ccb31fee7c76af85b229e3ff93a88b7f64af6cf29fdf329120eca20cca1d45e0",
+    "69de8a98-5e57-47b5-b008-574fc5fe3b07.jsonl": "5ab6978a968a17e1fe2441e8b7c5613048dee464e085f2612cbf58db212084c4",
+    "87417b9f-36d6-4dca-9462-eb64f140d264.jsonl": "9e5725780e91564b8f77416d99a2befc42843bd3a1c02c8b9b438576151d1e8d",
+    "9bc9d015-b06d-4cf9-8da2-7d37dd217558.jsonl": "605f0e813ad539154bc572c8b8811c8ae50949ea4f476c2274820ca6e1af50a9",
+    "9d7f0d60-97e1-4b44-90bf-75f561b38d63.jsonl": "d334ea722792c87e46e8e52769e83bc5b0f3778b0199082fe22d8b2a641e9683",
+    "c120ad36-90f6-4bb4-aafb-416478302724.jsonl": "b0e684451512aa1e7d8f5cf907976bf559a3e9e41528da57a09784fcd927a3e2",
+    "eadd6003-dc1b-4251-a9f8-b2b79eef52f5.jsonl": "c440ae066011cca3e5adab0824784350aa9d95e5e60585095b4b48e4ed43734f"
+  },
+  "source": "state/trace run_end records, trace.py rule (no Absent, no Hand-wavy)"
+}

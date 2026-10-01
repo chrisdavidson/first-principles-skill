@@ -1,0 +1,3 @@
+/first-principles:first-principles-analysis Evaluate this claim: "Adding a Redis read-through cache in front of our Postgres-backed product-listings API will cut p95 latency and reduce database load enough to defer the otherwise-scheduled Postgres vertical-scale upgrade for at least two quarters."
+
+Analyse this from first principles. Show the arithmetic for every computed figure and recompute it.
