@@ -1003,12 +1003,16 @@ def _section6_precheck_head_ids(section6: str) -> list[str] | str | None:
     all. The sentinel string "UNREADABLE" when the first matching line's body
     has no readable `head ` field."""
     qh = _load_qh()
-    for raw_line in section6.splitlines():
+    lines = section6.splitlines()
+    fenced = qh._fenced_code_flags(lines)
+    for raw_line, in_fence in zip(lines, fenced):
+        if in_fence:
+            continue
         m = qh._PRECHECK_LINE_RE.match(raw_line)
         if m is None:
             continue
         parts = m.group("body").split(qh._PRECHECK_SEP)
-        if not parts or not parts[0].startswith("head "):
+        if len(parts) != 4 or not parts[0].startswith("head "):
             return "UNREADABLE"
         head_str = parts[0][len("head "):].strip()
         ids: list[str] = []
@@ -2627,6 +2631,21 @@ def _c25_conclusion_rests_on_null_and_absence() -> str | None:
             f"{{'SB-CONCLUSION-RESTS-ON'}}, got {codes_unreadable!r}"
         )
 
+
+    # fenced decoy (80-REVIEW AP-01): a Pre-check line inside a fenced block
+    # is illustration, not the Conclusion's own line -- the real one wins.
+    decoy = (
+        "```\n**Pre-check:** head C9 (LOW) · ?-marked: none · lowest cited: LOW"
+        " · Inputs ceiling: LOW\n```\n\n"
+        "**Pre-check:** head C1 (HIGH), GT-2? · ?-marked: GT-2? · lowest cited: HIGH"
+        " · Inputs ceiling: MEDIUM\n"
+    )
+    got = _section6_precheck_head_ids(decoy)
+    if got != ["C1", "GT-2?"]:
+        return f"fenced decoy Pre-check line: expected ['C1', 'GT-2?'], got {got!r}"
+    fenced_only = "```\n**Pre-check:** head C9 (LOW) · ?-marked: none · lowest cited: LOW · Inputs ceiling: LOW\n```\n"
+    if _section6_precheck_head_ids(fenced_only) is not None:
+        return "a section 6 whose only Pre-check line is fenced must read as absent (None)"
     return None
 
 

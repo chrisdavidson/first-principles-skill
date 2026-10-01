@@ -35,7 +35,7 @@ analysis. If the Markdown report cannot be written, the PDF step is skipped and 
 says so. A `**Disclosed:**` paragraph that runs straight into a heading no longer swallows that
 heading from the reader report.
 
-### Added — `conclusion.rests_on` names what the recommendation depends on directly
+### Added — `conclusion.rests_on` names what the section 6 Conclusion rests on directly
 
 The structured-summary block gains `conclusion.rests_on`: the ids section 6's `**Pre-check:**`
 head cites — the chains and any `GT-N?` the Conclusion rests on directly, not only through a
