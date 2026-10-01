@@ -1,0 +1,3 @@
+/first-principles:first-principles-analysis Given a fixed site (high-desert New Mexico, 35° N, year-round occupancy by 2 adults, no grid connection), what panel array capacity and battery bank capacity are required to meet the cabin's daily electrical load reliably?
+
+Analyse this from first principles. Show the arithmetic for every computed figure and recompute it.

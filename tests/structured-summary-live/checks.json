@@ -1,0 +1,447 @@
+[
+  {
+    "block_conclusion_confidence": "MEDIUM",
+    "block_gate_cleared": true,
+    "block_gate_passes": 2,
+    "block_present": true,
+    "block_re_entry_fired": true,
+    "checker_exit": 0,
+    "checker_findings": [],
+    "checker_passed": true,
+    "example": "composed-inversion-second-order",
+    "gate_cleared": true,
+    "limit_stub": false,
+    "loaded_body": [
+      "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+    ],
+    "model": "claude-opus-5-5",
+    "plugin_version": "9.15.0",
+    "prose_gate_cleared": true,
+    "read_own_example": false,
+    "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/composed-inversion-second-order/report.md",
+    "report_candidates": [
+      "report.md"
+    ],
+    "shortfall": null,
+    "trace_cleared_after": true
+  },
+  {
+    "block_conclusion_confidence": "MEDIUM",
+    "block_gate_cleared": true,
+    "block_gate_passes": 1,
+    "block_present": true,
+    "block_re_entry_fired": false,
+    "checker_exit": 0,
+    "checker_findings": [],
+    "checker_passed": true,
+    "example": "decompose-irreducibility",
+    "gate_cleared": true,
+    "limit_stub": false,
+    "loaded_body": [
+      "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+    ],
+    "model": "claude-opus-5-5",
+    "plugin_version": "9.15.0",
+    "prose_gate_cleared": true,
+    "read_own_example": false,
+    "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/decompose-irreducibility/report.md",
+    "report_candidates": [
+      "report.md"
+    ],
+    "shortfall": null,
+    "trace_cleared_after": true
+  },
+  {
+    "block_conclusion_confidence": "MEDIUM",
+    "block_gate_cleared": true,
+    "block_gate_passes": 1,
+    "block_present": true,
+    "block_re_entry_fired": false,
+    "checker_exit": 0,
+    "checker_findings": [],
+    "checker_passed": true,
+    "example": "estimate-fermi",
+    "gate_cleared": true,
+    "limit_stub": false,
+    "loaded_body": [
+      "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+    ],
+    "model": "claude-opus-5-5",
+    "plugin_version": "9.15.0",
+    "prose_gate_cleared": true,
+    "read_own_example": false,
+    "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/estimate-fermi/report.md",
+    "report_candidates": [
+      "report.md"
+    ],
+    "shortfall": null,
+    "trace_cleared_after": true
+  },
+  {
+    "block_conclusion_confidence": "MEDIUM",
+    "block_gate_cleared": true,
+    "block_gate_passes": 1,
+    "block_present": true,
+    "block_re_entry_fired": false,
+    "checker_exit": 0,
+    "checker_findings": [],
+    "checker_passed": true,
+    "example": "ishikawa-fishbone",
+    "gate_cleared": true,
+    "limit_stub": false,
+    "loaded_body": [
+      "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+    ],
+    "model": "claude-opus-5-5",
+    "plugin_version": "9.15.0",
+    "prose_gate_cleared": true,
+    "read_own_example": false,
+    "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/ishikawa-fishbone/report.md",
+    "report_candidates": [
+      "report.md"
+    ],
+    "shortfall": null,
+    "trace_cleared_after": false
+  },
+  {
+    "block_conclusion_confidence": "MEDIUM",
+    "block_gate_cleared": true,
+    "block_gate_passes": 2,
+    "block_present": true,
+    "block_re_entry_fired": true,
+    "checker_exit": 1,
+    "checker_findings": [
+      {
+        "code": "SB-TECHNIQUES",
+        "message": "could not parse not-applied line: 'five-whys causal mode (Phase 3) \u2014 not applicable \u2014 there is no recurring symptom to root-cause; reduce-to-primitives mode was applied instead'"
+      },
+      {
+        "code": "SB-TECHNIQUES",
+        "message": "block has 5 not-applied entries but the document's not-applied block lists 4 parseable line(s)"
+      },
+      {
+        "code": "SB-TECHNIQUES",
+        "message": "not_applied[3]: block technique 'five-whys' disagrees with the document's 'inversion'"
+      },
+      {
+        "code": "SB-TECHNIQUES",
+        "message": "not_applied[3]: block phase 3 disagrees with the document's Phase 5"
+      },
+      {
+        "code": "SB-TECHNIQUES",
+        "message": "not_applied[3]: block reason 'there is no recurring symptom to root-cause; reduce-to-primitives mode was applied instead' disagrees with the document's reason 'the conclusion is a plan, so the pre-mortem was the Phase 5 technique'"
+      }
+    ],
+    "checker_passed": false,
+    "example": "personal-general",
+    "gate_cleared": true,
+    "limit_stub": false,
+    "loaded_body": [
+      "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+    ],
+    "model": "claude-opus-5-5",
+    "plugin_version": "9.15.0",
+    "prose_gate_cleared": true,
+    "read_own_example": false,
+    "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/personal-general/report.md",
+    "report_candidates": [
+      "report.md"
+    ],
+    "shortfall": null,
+    "trace_cleared_after": true
+  },
+  {
+    "block_conclusion_confidence": "MEDIUM",
+    "block_gate_cleared": true,
+    "block_gate_passes": 2,
+    "block_present": true,
+    "block_re_entry_fired": true,
+    "checker_exit": 1,
+    "checker_findings": [
+      {
+        "code": "SB-TECHNIQUES",
+        "message": "could not parse not-applied line: 'five-whys (causal mode) \u2014 not applicable \u2014 there is no recurring symptom to trace'"
+      },
+      {
+        "code": "SB-TECHNIQUES",
+        "message": "block has 4 not-applied entries but the document's not-applied block lists 3 parseable line(s)"
+      }
+    ],
+    "checker_passed": false,
+    "example": "personal-general-2",
+    "gate_cleared": true,
+    "limit_stub": false,
+    "loaded_body": [
+      "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+    ],
+    "model": "claude-opus-5-5",
+    "plugin_version": "9.15.0",
+    "prose_gate_cleared": true,
+    "read_own_example": false,
+    "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/personal-general-2/report.md",
+    "report_candidates": [
+      "report.md"
+    ],
+    "shortfall": null,
+    "trace_cleared_after": true
+  },
+  {
+    "block_conclusion_confidence": "MEDIUM",
+    "block_gate_cleared": true,
+    "block_gate_passes": 1,
+    "block_present": true,
+    "block_re_entry_fired": false,
+    "checker_exit": 0,
+    "checker_findings": [],
+    "checker_passed": true,
+    "example": "product-business",
+    "gate_cleared": true,
+    "limit_stub": false,
+    "loaded_body": [
+      "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+    ],
+    "model": "claude-opus-5-5",
+    "plugin_version": "9.15.0",
+    "prose_gate_cleared": true,
+    "read_own_example": false,
+    "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/product-business/report.md",
+    "report_candidates": [
+      "report.md"
+    ],
+    "shortfall": null,
+    "trace_cleared_after": true
+  },
+  {
+    "block_conclusion_confidence": "MEDIUM",
+    "block_gate_cleared": true,
+    "block_gate_passes": 2,
+    "block_present": true,
+    "block_re_entry_fired": true,
+    "checker_exit": 0,
+    "checker_findings": [],
+    "checker_passed": true,
+    "example": "product-business-2",
+    "gate_cleared": true,
+    "limit_stub": false,
+    "loaded_body": [
+      "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+    ],
+    "model": "claude-opus-5-5",
+    "plugin_version": "9.15.0",
+    "prose_gate_cleared": true,
+    "read_own_example": false,
+    "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/product-business-2/report.md",
+    "report_candidates": [
+      "report.md"
+    ],
+    "shortfall": null,
+    "trace_cleared_after": true
+  },
+  {
+    "block_conclusion_confidence": "MEDIUM",
+    "block_gate_cleared": true,
+    "block_gate_passes": 1,
+    "block_present": true,
+    "block_re_entry_fired": false,
+    "checker_exit": 1,
+    "checker_findings": [
+      {
+        "code": "SB-CHAIN-RESTS-ON",
+        "message": "C1: block rests_on ['GT-10', 'GT-4', 'GT-5?', 'GT-6?'] disagrees with section 4's head refs ['GT-5?']"
+      },
+      {
+        "code": "SB-REENTRY",
+        "message": "re_entry.fired is false but a **Disclosed:** paragraph at the top of the document names a re-entry edge"
+      }
+    ],
+    "checker_passed": false,
+    "example": "science-engineering",
+    "gate_cleared": false,
+    "limit_stub": false,
+    "loaded_body": [
+      "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+    ],
+    "model": "claude-opus-5-5",
+    "plugin_version": "9.15.0",
+    "prose_gate_cleared": true,
+    "read_own_example": false,
+    "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/science-engineering/report.md",
+    "report_candidates": [
+      "report.md"
+    ],
+    "shortfall": null,
+    "trace_cleared_after": true
+  },
+  {
+    "block_conclusion_confidence": "MEDIUM",
+    "block_gate_cleared": true,
+    "block_gate_passes": 2,
+    "block_present": true,
+    "block_re_entry_fired": true,
+    "checker_exit": 0,
+    "checker_findings": [],
+    "checker_passed": true,
+    "example": "science-engineering-2",
+    "gate_cleared": true,
+    "limit_stub": false,
+    "loaded_body": [
+      "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+    ],
+    "model": "claude-opus-5-5",
+    "plugin_version": "9.15.0",
+    "prose_gate_cleared": true,
+    "read_own_example": false,
+    "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/science-engineering-2/report.md",
+    "report_candidates": [
+      "report.md"
+    ],
+    "shortfall": null,
+    "trace_cleared_after": true
+  },
+  {
+    "block_conclusion_confidence": "MEDIUM",
+    "block_gate_cleared": true,
+    "block_gate_passes": 2,
+    "block_present": true,
+    "block_re_entry_fired": true,
+    "checker_exit": 1,
+    "checker_findings": [
+      {
+        "code": "SB-TECHNIQUES",
+        "message": "could not parse not-applied line: 'theoretical-limit (Phase 1 reframe) \u2014 not applicable \u2014 nobody claims the budget figure is a physical bound, so separating convention from hard bound does not reframe the question.'"
+      },
+      {
+        "code": "SB-TECHNIQUES",
+        "message": "could not parse not-applied line: 'five-whys (causal mode) \u2014 not applicable \u2014 there is no recurring failure symptom to drill. Reduce-to-primitives mode was applied in Phase 3.'"
+      },
+      {
+        "code": "SB-TECHNIQUES",
+        "message": "block has 5 not-applied entries but the document's not-applied block lists 3 parseable line(s)"
+      },
+      {
+        "code": "SB-TECHNIQUES",
+        "message": "not_applied[1]: block phase 1 disagrees with the document's Phase 4"
+      },
+      {
+        "code": "SB-TECHNIQUES",
+        "message": "not_applied[1]: block reason 'nobody claims the budget figure is a physical bound, so separating convention from hard bound does not reframe the question.' disagrees with the document's reason 'the only hard ceiling, the context window, sits at least 5.9\u00d7 above the resident load (200,000 \u00f7 34,055) and its value is unverified (GT-14?). It cannot decide the question; the attempt is recorded as \u00a75 Dead End 6.'"
+      },
+      {
+        "code": "SB-TECHNIQUES",
+        "message": "not_applied[2]: block technique 'theoretical-limit' disagrees with the document's 'inversion'"
+      },
+      {
+        "code": "SB-TECHNIQUES",
+        "message": "not_applied[2]: block phase 4 disagrees with the document's Phase 5"
+      },
+      {
+        "code": "SB-TECHNIQUES",
+        "message": "not_applied[2]: block reason 'the only hard ceiling, the context window, sits at least 5.9\u00d7 above the resident load (200,000 \u00f7 34,055) and its value is unverified (GT-14?). It cannot decide the question; the attempt is recorded as \u00a75 Dead End 6.' disagrees with the document's reason 'the conclusion is a plan, so Phase 5 uses pre-mortem. Inversion was applied in Phase 2 (above).'"
+      }
+    ],
+    "checker_passed": false,
+    "example": "self-application",
+    "gate_cleared": true,
+    "limit_stub": false,
+    "loaded_body": [
+      "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+    ],
+    "model": "claude-opus-5-5",
+    "plugin_version": "9.15.0",
+    "prose_gate_cleared": true,
+    "read_own_example": false,
+    "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/self-application/report.md",
+    "report_candidates": [
+      "report.md"
+    ],
+    "shortfall": null,
+    "trace_cleared_after": true
+  },
+  {
+    "block_conclusion_confidence": "MEDIUM",
+    "block_gate_cleared": true,
+    "block_gate_passes": 2,
+    "block_present": true,
+    "block_re_entry_fired": true,
+    "checker_exit": 0,
+    "checker_findings": [],
+    "checker_passed": true,
+    "example": "software-systems",
+    "gate_cleared": true,
+    "limit_stub": false,
+    "loaded_body": [
+      "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+    ],
+    "model": "claude-opus-5-5",
+    "plugin_version": "9.15.0",
+    "prose_gate_cleared": true,
+    "read_own_example": false,
+    "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/software-systems/report.md",
+    "report_candidates": [
+      "report.md"
+    ],
+    "shortfall": null,
+    "trace_cleared_after": true
+  },
+  {
+    "block_conclusion_confidence": "MEDIUM",
+    "block_gate_cleared": true,
+    "block_gate_passes": 2,
+    "block_present": true,
+    "block_re_entry_fired": true,
+    "checker_exit": 1,
+    "checker_findings": [
+      {
+        "code": "SB-TECHNIQUES",
+        "message": "could not parse not-applied line: 'five-whys (reduce-to-primitives) \u2014 not applicable \u2014 the ground truths are quoted vendor or NIST text, definitions, or bracketed estimates, with no compound claim left to reduce'"
+      },
+      {
+        "code": "SB-TECHNIQUES",
+        "message": "block has 4 not-applied entries but the document's not-applied block lists 3 parseable line(s)"
+      }
+    ],
+    "checker_passed": false,
+    "example": "software-systems-2",
+    "gate_cleared": true,
+    "limit_stub": false,
+    "loaded_body": [
+      "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+    ],
+    "model": "claude-opus-5-5",
+    "plugin_version": "9.15.0",
+    "prose_gate_cleared": true,
+    "read_own_example": false,
+    "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/software-systems-2/report.md",
+    "report_candidates": [
+      "report.md"
+    ],
+    "shortfall": null,
+    "trace_cleared_after": true
+  },
+  {
+    "block_conclusion_confidence": "MEDIUM",
+    "block_gate_cleared": true,
+    "block_gate_passes": 1,
+    "block_present": true,
+    "block_re_entry_fired": false,
+    "checker_exit": 0,
+    "checker_findings": [],
+    "checker_passed": true,
+    "example": "theoretical-limit-carnot",
+    "gate_cleared": true,
+    "limit_stub": false,
+    "loaded_body": [
+      "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+    ],
+    "model": "claude-opus-5-5",
+    "plugin_version": "9.15.0",
+    "prose_gate_cleared": true,
+    "read_own_example": false,
+    "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/theoretical-limit-carnot/report.md",
+    "report_candidates": [
+      "report.md"
+    ],
+    "shortfall": null,
+    "trace_cleared_after": false
+  }
+]

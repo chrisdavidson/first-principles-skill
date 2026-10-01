@@ -1,0 +1,1077 @@
+[
+  {
+    "after": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/composed-inversion-second-order/.first-principles/analysis-20261001T012743Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 8608,
+      "calc_calls": 2,
+      "calc_notes": 0,
+      "cost_usd": 3.0415338,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 663.1,
+      "error": false,
+      "example": "composed-inversion-second-order",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 16,
+      "session": "0091ac76-2976-4343-b1ae-d7f1fda9bcf1",
+      "status": "complete",
+      "turns": 4
+    },
+    "before": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/2026-09-29-examples-latest/composed-inversion-second-order/.first-principles/analysis-20260930T031909Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 8746,
+      "calc_calls": 0,
+      "calc_notes": 0,
+      "cost_usd": 2.6845122000000003,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 599.7,
+      "error": false,
+      "example": "composed-inversion-second-order",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 16,
+      "session": "0cf3116d-95c6-40db-ad43-74f35099776b",
+      "status": "complete",
+      "turns": 4
+    },
+    "checks": {
+      "block_conclusion_confidence": "MEDIUM",
+      "block_gate_cleared": true,
+      "block_gate_passes": 2,
+      "block_present": true,
+      "block_re_entry_fired": true,
+      "checker_exit": 0,
+      "checker_findings": [],
+      "checker_passed": true,
+      "example": "composed-inversion-second-order",
+      "gate_cleared": true,
+      "limit_stub": false,
+      "loaded_body": [
+        "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+      ],
+      "model": "claude-opus-5-5",
+      "plugin_version": "9.15.0",
+      "prose_gate_cleared": true,
+      "read_own_example": false,
+      "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/composed-inversion-second-order/report.md",
+      "report_candidates": [
+        "report.md"
+      ],
+      "shortfall": null,
+      "trace_cleared_after": true
+    },
+    "example": "composed-inversion-second-order"
+  },
+  {
+    "after": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/decompose-irreducibility/.first-principles/analysis-20261001T012908Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 7312,
+      "calc_calls": 0,
+      "calc_notes": 0,
+      "cost_usd": 2.6898466,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 458.4,
+      "error": false,
+      "example": "decompose-irreducibility",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 18,
+      "session": "c4ae1c4f-53d3-49b0-ae0d-7a6b6944b6ec",
+      "status": "complete",
+      "turns": 4
+    },
+    "before": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/2026-09-29-examples-latest/decompose-irreducibility/.first-principles/analysis-20260930T031801Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 6561,
+      "calc_calls": 3,
+      "calc_notes": 0,
+      "cost_usd": 2.2139442000000003,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 461.0,
+      "error": false,
+      "example": "decompose-irreducibility",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 8,
+      "session": "4f930670-ea16-42ed-9aa4-d460df56f54c",
+      "status": "complete",
+      "turns": 4
+    },
+    "checks": {
+      "block_conclusion_confidence": "MEDIUM",
+      "block_gate_cleared": true,
+      "block_gate_passes": 1,
+      "block_present": true,
+      "block_re_entry_fired": false,
+      "checker_exit": 0,
+      "checker_findings": [],
+      "checker_passed": true,
+      "example": "decompose-irreducibility",
+      "gate_cleared": true,
+      "limit_stub": false,
+      "loaded_body": [
+        "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+      ],
+      "model": "claude-opus-5-5",
+      "plugin_version": "9.15.0",
+      "prose_gate_cleared": true,
+      "read_own_example": false,
+      "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/decompose-irreducibility/report.md",
+      "report_candidates": [
+        "report.md"
+      ],
+      "shortfall": null,
+      "trace_cleared_after": true
+    },
+    "example": "decompose-irreducibility"
+  },
+  {
+    "after": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/estimate-fermi/.first-principles/analysis-20261001T012816Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 8421,
+      "calc_calls": 0,
+      "calc_notes": 0,
+      "cost_usd": 2.704688000000001,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 582.1,
+      "error": false,
+      "example": "estimate-fermi",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 13,
+      "session": "93ec2541-5e41-46f0-a55e-540adc12b291",
+      "status": "complete",
+      "turns": 2
+    },
+    "before": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/2026-09-29-examples-latest/estimate-fermi/.first-principles/analysis-20260930T031823Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 10876,
+      "calc_calls": 2,
+      "calc_notes": 0,
+      "cost_usd": 3.9279028000000005,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 772.3,
+      "error": false,
+      "example": "estimate-fermi",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 24,
+      "session": "c120ad36-90f6-4bb4-aafb-416478302724",
+      "status": "complete",
+      "turns": 5
+    },
+    "checks": {
+      "block_conclusion_confidence": "MEDIUM",
+      "block_gate_cleared": true,
+      "block_gate_passes": 1,
+      "block_present": true,
+      "block_re_entry_fired": false,
+      "checker_exit": 0,
+      "checker_findings": [],
+      "checker_passed": true,
+      "example": "estimate-fermi",
+      "gate_cleared": true,
+      "limit_stub": false,
+      "loaded_body": [
+        "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+      ],
+      "model": "claude-opus-5-5",
+      "plugin_version": "9.15.0",
+      "prose_gate_cleared": true,
+      "read_own_example": false,
+      "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/estimate-fermi/report.md",
+      "report_candidates": [
+        "report.md"
+      ],
+      "shortfall": null,
+      "trace_cleared_after": true
+    },
+    "example": "estimate-fermi"
+  },
+  {
+    "after": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/ishikawa-fishbone/.first-principles/analysis-20261001T013505Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 9646,
+      "calc_calls": 0,
+      "calc_notes": 0,
+      "cost_usd": 2.4225154,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 529.2,
+      "error": false,
+      "example": "ishikawa-fishbone",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 21,
+      "session": "8bc9d594-6a81-42a3-afaf-694aa9d6ac61",
+      "status": "complete",
+      "turns": 6
+    },
+    "before": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/2026-09-29-examples-latest/ishikawa-fishbone/.first-principles/analysis-20260930T032507Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 10743,
+      "calc_calls": 0,
+      "calc_notes": 0,
+      "cost_usd": 2.6804868000000006,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 664.8,
+      "error": false,
+      "example": "ishikawa-fishbone",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 12,
+      "session": "2df1e1c4-ddd6-46b5-acec-ca1c22ece1a4",
+      "status": "complete",
+      "turns": 6
+    },
+    "checks": {
+      "block_conclusion_confidence": "MEDIUM",
+      "block_gate_cleared": true,
+      "block_gate_passes": 1,
+      "block_present": true,
+      "block_re_entry_fired": false,
+      "checker_exit": 0,
+      "checker_findings": [],
+      "checker_passed": true,
+      "example": "ishikawa-fishbone",
+      "gate_cleared": true,
+      "limit_stub": false,
+      "loaded_body": [
+        "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+      ],
+      "model": "claude-opus-5-5",
+      "plugin_version": "9.15.0",
+      "prose_gate_cleared": true,
+      "read_own_example": false,
+      "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/ishikawa-fishbone/report.md",
+      "report_candidates": [
+        "report.md"
+      ],
+      "shortfall": null,
+      "trace_cleared_after": false
+    },
+    "example": "ishikawa-fishbone"
+  },
+  {
+    "after": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/personal-general/.first-principles/analysis-20261001T013849Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 12184,
+      "calc_calls": 0,
+      "calc_notes": 0,
+      "cost_usd": 3.360009999999999,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 741.2,
+      "error": false,
+      "example": "personal-general",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 16,
+      "session": "d9a65ac1-f978-4d21-9897-93a55b804a9c",
+      "status": "complete",
+      "turns": 6
+    },
+    "before": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/2026-09-29-examples-latest/personal-general/.first-principles/analysis-20260930T033051Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 9416,
+      "calc_calls": 1,
+      "calc_notes": 0,
+      "cost_usd": 3.3094074000000004,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 801.1,
+      "error": false,
+      "example": "personal-general",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 19,
+      "session": "52a6ad29-bfa4-4d65-a552-044855e6bd63",
+      "status": "complete",
+      "turns": 5
+    },
+    "checks": {
+      "block_conclusion_confidence": "MEDIUM",
+      "block_gate_cleared": true,
+      "block_gate_passes": 2,
+      "block_present": true,
+      "block_re_entry_fired": true,
+      "checker_exit": 1,
+      "checker_findings": [
+        {
+          "code": "SB-TECHNIQUES",
+          "message": "could not parse not-applied line: 'five-whys causal mode (Phase 3) \u2014 not applicable \u2014 there is no recurring symptom to root-cause; reduce-to-primitives mode was applied instead'"
+        },
+        {
+          "code": "SB-TECHNIQUES",
+          "message": "block has 5 not-applied entries but the document's not-applied block lists 4 parseable line(s)"
+        },
+        {
+          "code": "SB-TECHNIQUES",
+          "message": "not_applied[3]: block technique 'five-whys' disagrees with the document's 'inversion'"
+        },
+        {
+          "code": "SB-TECHNIQUES",
+          "message": "not_applied[3]: block phase 3 disagrees with the document's Phase 5"
+        },
+        {
+          "code": "SB-TECHNIQUES",
+          "message": "not_applied[3]: block reason 'there is no recurring symptom to root-cause; reduce-to-primitives mode was applied instead' disagrees with the document's reason 'the conclusion is a plan, so the pre-mortem was the Phase 5 technique'"
+        }
+      ],
+      "checker_passed": false,
+      "example": "personal-general",
+      "gate_cleared": true,
+      "limit_stub": false,
+      "loaded_body": [
+        "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+      ],
+      "model": "claude-opus-5-5",
+      "plugin_version": "9.15.0",
+      "prose_gate_cleared": true,
+      "read_own_example": false,
+      "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/personal-general/report.md",
+      "report_candidates": [
+        "report.md"
+      ],
+      "shortfall": null,
+      "trace_cleared_after": true
+    },
+    "example": "personal-general"
+  },
+  {
+    "after": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/personal-general-2/.first-principles/analysis-20261001T021809Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 9138,
+      "calc_calls": 0,
+      "calc_notes": 0,
+      "cost_usd": 2.5584733999999996,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 586.6,
+      "error": false,
+      "example": "personal-general-2",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 12,
+      "session": "8f916e67-8de9-4ed8-be79-ce20fd6da7fd",
+      "status": "complete",
+      "turns": 5
+    },
+    "before": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/2026-09-29-examples-latest/personal-general-2/.first-principles/analysis-20260930T032755Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 8329,
+      "calc_calls": 0,
+      "calc_notes": 0,
+      "cost_usd": 2.9142488,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 696.6,
+      "error": false,
+      "example": "personal-general-2",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 14,
+      "session": "69de8a98-5e57-47b5-b008-574fc5fe3b07",
+      "status": "complete",
+      "turns": 4
+    },
+    "checks": {
+      "block_conclusion_confidence": "MEDIUM",
+      "block_gate_cleared": true,
+      "block_gate_passes": 2,
+      "block_present": true,
+      "block_re_entry_fired": true,
+      "checker_exit": 1,
+      "checker_findings": [
+        {
+          "code": "SB-TECHNIQUES",
+          "message": "could not parse not-applied line: 'five-whys (causal mode) \u2014 not applicable \u2014 there is no recurring symptom to trace'"
+        },
+        {
+          "code": "SB-TECHNIQUES",
+          "message": "block has 4 not-applied entries but the document's not-applied block lists 3 parseable line(s)"
+        }
+      ],
+      "checker_passed": false,
+      "example": "personal-general-2",
+      "gate_cleared": true,
+      "limit_stub": false,
+      "loaded_body": [
+        "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+      ],
+      "model": "claude-opus-5-5",
+      "plugin_version": "9.15.0",
+      "prose_gate_cleared": true,
+      "read_own_example": false,
+      "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/personal-general-2/report.md",
+      "report_candidates": [
+        "report.md"
+      ],
+      "shortfall": null,
+      "trace_cleared_after": true
+    },
+    "example": "personal-general-2"
+  },
+  {
+    "after": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/product-business/.first-principles/analysis-20261001T014338Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 7289,
+      "calc_calls": 2,
+      "calc_notes": 0,
+      "cost_usd": 2.0146838000000002,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 394.6,
+      "error": false,
+      "example": "product-business",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 19,
+      "session": "475df0a8-4063-418d-88ac-42fa523ab800",
+      "status": "complete",
+      "turns": 3
+    },
+    "before": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/2026-09-29-examples-latest/product-business/.first-principles/analysis-20260930T034126Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 8491,
+      "calc_calls": 1,
+      "calc_notes": 0,
+      "cost_usd": 2.4182392000000004,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 561.4,
+      "error": false,
+      "example": "product-business",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 17,
+      "session": "9d7f0d60-97e1-4b44-90bf-75f561b38d63",
+      "status": "complete",
+      "turns": 6
+    },
+    "checks": {
+      "block_conclusion_confidence": "MEDIUM",
+      "block_gate_cleared": true,
+      "block_gate_passes": 1,
+      "block_present": true,
+      "block_re_entry_fired": false,
+      "checker_exit": 0,
+      "checker_findings": [],
+      "checker_passed": true,
+      "example": "product-business",
+      "gate_cleared": true,
+      "limit_stub": false,
+      "loaded_body": [
+        "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+      ],
+      "model": "claude-opus-5-5",
+      "plugin_version": "9.15.0",
+      "prose_gate_cleared": true,
+      "read_own_example": false,
+      "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/product-business/report.md",
+      "report_candidates": [
+        "report.md"
+      ],
+      "shortfall": null,
+      "trace_cleared_after": true
+    },
+    "example": "product-business"
+  },
+  {
+    "after": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/product-business-2/.first-principles/analysis-20261001T022054Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 8741,
+      "calc_calls": 0,
+      "calc_notes": 0,
+      "cost_usd": 2.5601278000000005,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 560.7,
+      "error": false,
+      "example": "product-business-2",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 18,
+      "session": "f27e3438-c0f1-48b8-aeb6-2a0dfdd6c3a7",
+      "status": "complete",
+      "turns": 5
+    },
+    "before": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/2026-09-29-examples-latest/product-business-2/.first-principles/analysis-20260930T033612Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 8893,
+      "calc_calls": 0,
+      "calc_notes": 0,
+      "cost_usd": 2.3323940000000007,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 557.2,
+      "error": false,
+      "example": "product-business-2",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 17,
+      "session": "621bc349-e0f2-4f07-a99b-aa98ebd2cee6",
+      "status": "complete",
+      "turns": 5
+    },
+    "checks": {
+      "block_conclusion_confidence": "MEDIUM",
+      "block_gate_cleared": true,
+      "block_gate_passes": 2,
+      "block_present": true,
+      "block_re_entry_fired": true,
+      "checker_exit": 0,
+      "checker_findings": [],
+      "checker_passed": true,
+      "example": "product-business-2",
+      "gate_cleared": true,
+      "limit_stub": false,
+      "loaded_body": [
+        "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+      ],
+      "model": "claude-opus-5-5",
+      "plugin_version": "9.15.0",
+      "prose_gate_cleared": true,
+      "read_own_example": false,
+      "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/product-business-2/report.md",
+      "report_candidates": [
+        "report.md"
+      ],
+      "shortfall": null,
+      "trace_cleared_after": true
+    },
+    "example": "product-business-2"
+  },
+  {
+    "after": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/science-engineering/.first-principles/analysis-20261001T021750Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 12220,
+      "calc_calls": 0,
+      "calc_notes": 0,
+      "cost_usd": 4.697718999999999,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 984.8,
+      "error": false,
+      "example": "science-engineering",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 29,
+      "session": "d7ac2795-2523-4cba-8555-e8ec5c77a34b",
+      "status": "complete",
+      "turns": 4
+    },
+    "before": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/2026-09-29-examples-latest/science-engineering/.first-principles/analysis-20260930T034552Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 6189,
+      "calc_calls": 0,
+      "calc_notes": 0,
+      "cost_usd": 1.6107280000000002,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 349.1,
+      "error": false,
+      "example": "science-engineering",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 5,
+      "session": "6625e1cf-3602-4cac-9679-7d21d1ab463e",
+      "status": "complete",
+      "turns": 4
+    },
+    "checks": {
+      "block_conclusion_confidence": "MEDIUM",
+      "block_gate_cleared": true,
+      "block_gate_passes": 1,
+      "block_present": true,
+      "block_re_entry_fired": false,
+      "checker_exit": 1,
+      "checker_findings": [
+        {
+          "code": "SB-CHAIN-RESTS-ON",
+          "message": "C1: block rests_on ['GT-10', 'GT-4', 'GT-5?', 'GT-6?'] disagrees with section 4's head refs ['GT-5?']"
+        },
+        {
+          "code": "SB-REENTRY",
+          "message": "re_entry.fired is false but a **Disclosed:** paragraph at the top of the document names a re-entry edge"
+        }
+      ],
+      "checker_passed": false,
+      "example": "science-engineering",
+      "gate_cleared": false,
+      "limit_stub": false,
+      "loaded_body": [
+        "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+      ],
+      "model": "claude-opus-5-5",
+      "plugin_version": "9.15.0",
+      "prose_gate_cleared": true,
+      "read_own_example": false,
+      "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/science-engineering/report.md",
+      "report_candidates": [
+        "report.md"
+      ],
+      "shortfall": null,
+      "trace_cleared_after": true
+    },
+    "example": "science-engineering"
+  },
+  {
+    "after": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/science-engineering-2/.first-principles/analysis-20261001T014825Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 11483,
+      "calc_calls": 1,
+      "calc_notes": 0,
+      "cost_usd": 3.2234977999999996,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 759.4,
+      "error": false,
+      "example": "science-engineering-2",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 13,
+      "session": "8d50c323-126a-400e-acfb-ddf5fbcbf888",
+      "status": "complete",
+      "turns": 5
+    },
+    "before": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/2026-09-29-examples-latest/science-engineering-2/.first-principles/analysis-20260930T034341Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 10232,
+      "calc_calls": 0,
+      "calc_notes": 0,
+      "cost_usd": 3.4643425999999997,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 758.5,
+      "error": false,
+      "example": "science-engineering-2",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 10,
+      "session": "9bc9d015-b06d-4cf9-8da2-7d37dd217558",
+      "status": "complete",
+      "turns": 7
+    },
+    "checks": {
+      "block_conclusion_confidence": "MEDIUM",
+      "block_gate_cleared": true,
+      "block_gate_passes": 2,
+      "block_present": true,
+      "block_re_entry_fired": true,
+      "checker_exit": 0,
+      "checker_findings": [],
+      "checker_passed": true,
+      "example": "science-engineering-2",
+      "gate_cleared": true,
+      "limit_stub": false,
+      "loaded_body": [
+        "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+      ],
+      "model": "claude-opus-5-5",
+      "plugin_version": "9.15.0",
+      "prose_gate_cleared": true,
+      "read_own_example": false,
+      "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/science-engineering-2/report.md",
+      "report_candidates": [
+        "report.md"
+      ],
+      "shortfall": null,
+      "trace_cleared_after": true
+    },
+    "example": "science-engineering-2"
+  },
+  {
+    "after": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/self-application/.first-principles/analysis-20261001T015353Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 10712,
+      "calc_calls": 0,
+      "calc_notes": 0,
+      "cost_usd": 4.1384578,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 818.0,
+      "error": false,
+      "example": "self-application",
+      "problems": [],
+      "read_own_example": true,
+      "report_writes_skipped": 23,
+      "session": "f48933ad-958b-4a16-b36a-5b3c7add32e8",
+      "status": "complete",
+      "turns": 4
+    },
+    "before": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/2026-09-29-examples-latest/self-application/.first-principles/analysis-20260930T035119Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 9168,
+      "calc_calls": 0,
+      "calc_notes": 0,
+      "cost_usd": 3.3760318000000007,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 847.4,
+      "error": false,
+      "example": "self-application",
+      "problems": [],
+      "read_own_example": true,
+      "report_writes_skipped": 15,
+      "session": "eadd6003-dc1b-4251-a9f8-b2b79eef52f5",
+      "status": "complete",
+      "turns": 3
+    },
+    "checks": {
+      "block_conclusion_confidence": "MEDIUM",
+      "block_gate_cleared": true,
+      "block_gate_passes": 2,
+      "block_present": true,
+      "block_re_entry_fired": true,
+      "checker_exit": 1,
+      "checker_findings": [
+        {
+          "code": "SB-TECHNIQUES",
+          "message": "could not parse not-applied line: 'theoretical-limit (Phase 1 reframe) \u2014 not applicable \u2014 nobody claims the budget figure is a physical bound, so separating convention from hard bound does not reframe the question.'"
+        },
+        {
+          "code": "SB-TECHNIQUES",
+          "message": "could not parse not-applied line: 'five-whys (causal mode) \u2014 not applicable \u2014 there is no recurring failure symptom to drill. Reduce-to-primitives mode was applied in Phase 3.'"
+        },
+        {
+          "code": "SB-TECHNIQUES",
+          "message": "block has 5 not-applied entries but the document's not-applied block lists 3 parseable line(s)"
+        },
+        {
+          "code": "SB-TECHNIQUES",
+          "message": "not_applied[1]: block phase 1 disagrees with the document's Phase 4"
+        },
+        {
+          "code": "SB-TECHNIQUES",
+          "message": "not_applied[1]: block reason 'nobody claims the budget figure is a physical bound, so separating convention from hard bound does not reframe the question.' disagrees with the document's reason 'the only hard ceiling, the context window, sits at least 5.9\u00d7 above the resident load (200,000 \u00f7 34,055) and its value is unverified (GT-14?). It cannot decide the question; the attempt is recorded as \u00a75 Dead End 6.'"
+        },
+        {
+          "code": "SB-TECHNIQUES",
+          "message": "not_applied[2]: block technique 'theoretical-limit' disagrees with the document's 'inversion'"
+        },
+        {
+          "code": "SB-TECHNIQUES",
+          "message": "not_applied[2]: block phase 4 disagrees with the document's Phase 5"
+        },
+        {
+          "code": "SB-TECHNIQUES",
+          "message": "not_applied[2]: block reason 'the only hard ceiling, the context window, sits at least 5.9\u00d7 above the resident load (200,000 \u00f7 34,055) and its value is unverified (GT-14?). It cannot decide the question; the attempt is recorded as \u00a75 Dead End 6.' disagrees with the document's reason 'the conclusion is a plan, so Phase 5 uses pre-mortem. Inversion was applied in Phase 2 (above).'"
+        }
+      ],
+      "checker_passed": false,
+      "example": "self-application",
+      "gate_cleared": true,
+      "limit_stub": false,
+      "loaded_body": [
+        "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+      ],
+      "model": "claude-opus-5-5",
+      "plugin_version": "9.15.0",
+      "prose_gate_cleared": true,
+      "read_own_example": false,
+      "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/self-application/report.md",
+      "report_candidates": [
+        "report.md"
+      ],
+      "shortfall": null,
+      "trace_cleared_after": true
+    },
+    "example": "self-application"
+  },
+  {
+    "after": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/software-systems/.first-principles/analysis-20261001T020055Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 12412,
+      "calc_calls": 0,
+      "calc_notes": 0,
+      "cost_usd": 3.2955875999999993,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 779.8,
+      "error": false,
+      "example": "software-systems",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 14,
+      "session": "e183726d-3f13-4cd6-a395-fca12d2a9075",
+      "status": "complete",
+      "turns": 5
+    },
+    "before": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/2026-09-29-examples-latest/software-systems/.first-principles/analysis-20260930T035620Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 10300,
+      "calc_calls": 3,
+      "calc_notes": 0,
+      "cost_usd": 2.6453487999999994,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 611.8,
+      "error": false,
+      "example": "software-systems",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 18,
+      "session": "367f2135-cd7b-4e32-88ea-57bb4c5a2cb5",
+      "status": "complete",
+      "turns": 5
+    },
+    "checks": {
+      "block_conclusion_confidence": "MEDIUM",
+      "block_gate_cleared": true,
+      "block_gate_passes": 2,
+      "block_present": true,
+      "block_re_entry_fired": true,
+      "checker_exit": 0,
+      "checker_findings": [],
+      "checker_passed": true,
+      "example": "software-systems",
+      "gate_cleared": true,
+      "limit_stub": false,
+      "loaded_body": [
+        "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+      ],
+      "model": "claude-opus-5-5",
+      "plugin_version": "9.15.0",
+      "prose_gate_cleared": true,
+      "read_own_example": false,
+      "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/software-systems/report.md",
+      "report_candidates": [
+        "report.md"
+      ],
+      "shortfall": null,
+      "trace_cleared_after": true
+    },
+    "example": "software-systems"
+  },
+  {
+    "after": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/software-systems-2/.first-principles/analysis-20261001T020036Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 8619,
+      "calc_calls": 4,
+      "calc_notes": 0,
+      "cost_usd": 2.3992864000000003,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 539.9,
+      "error": false,
+      "example": "software-systems-2",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 15,
+      "session": "b707efba-eac8-45dc-bdad-8368c75bc056",
+      "status": "complete",
+      "turns": 3
+    },
+    "before": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/2026-09-29-examples-latest/software-systems-2/.first-principles/analysis-20260930T035127Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 11428,
+      "calc_calls": 4,
+      "calc_notes": 0,
+      "cost_usd": 3.2281928000000004,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 730.0,
+      "error": false,
+      "example": "software-systems-2",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 20,
+      "session": "87417b9f-36d6-4dca-9462-eb64f140d264",
+      "status": "complete",
+      "turns": 4
+    },
+    "checks": {
+      "block_conclusion_confidence": "MEDIUM",
+      "block_gate_cleared": true,
+      "block_gate_passes": 2,
+      "block_present": true,
+      "block_re_entry_fired": true,
+      "checker_exit": 1,
+      "checker_findings": [
+        {
+          "code": "SB-TECHNIQUES",
+          "message": "could not parse not-applied line: 'five-whys (reduce-to-primitives) \u2014 not applicable \u2014 the ground truths are quoted vendor or NIST text, definitions, or bracketed estimates, with no compound claim left to reduce'"
+        },
+        {
+          "code": "SB-TECHNIQUES",
+          "message": "block has 4 not-applied entries but the document's not-applied block lists 3 parseable line(s)"
+        }
+      ],
+      "checker_passed": false,
+      "example": "software-systems-2",
+      "gate_cleared": true,
+      "limit_stub": false,
+      "loaded_body": [
+        "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+      ],
+      "model": "claude-opus-5-5",
+      "plugin_version": "9.15.0",
+      "prose_gate_cleared": true,
+      "read_own_example": false,
+      "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/software-systems-2/report.md",
+      "report_candidates": [
+        "report.md"
+      ],
+      "shortfall": null,
+      "trace_cleared_after": true
+    },
+    "example": "software-systems-2"
+  },
+  {
+    "after": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/theoretical-limit-carnot/.first-principles/analysis-20261001T021100Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 8523,
+      "calc_calls": 4,
+      "calc_notes": 0,
+      "cost_usd": 3.8899880000000002,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 798.1,
+      "error": false,
+      "example": "theoretical-limit-carnot",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 14,
+      "session": "57a50124-5b00-48d7-9630-7e8dc845311c",
+      "status": "complete",
+      "turns": 5
+    },
+    "before": {
+      "analysis_files": [
+        "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/2026-09-29-examples-latest/theoretical-limit-carnot/.first-principles/analysis-20260930T040238Z.md"
+      ],
+      "analysis_inline": false,
+      "analysis_words": 7020,
+      "calc_calls": 2,
+      "calc_notes": 0,
+      "cost_usd": 2.7842388000000007,
+      "delegated": true,
+      "delegation_note": false,
+      "duration_s": 546.7,
+      "error": false,
+      "example": "theoretical-limit-carnot",
+      "problems": [],
+      "read_own_example": false,
+      "report_writes_skipped": 9,
+      "session": "50d1d2b7-5d4a-44d7-9cac-f15390b215f7",
+      "status": "complete",
+      "turns": 4
+    },
+    "checks": {
+      "block_conclusion_confidence": "MEDIUM",
+      "block_gate_cleared": true,
+      "block_gate_passes": 1,
+      "block_present": true,
+      "block_re_entry_fired": false,
+      "checker_exit": 0,
+      "checker_findings": [],
+      "checker_passed": true,
+      "example": "theoretical-limit-carnot",
+      "gate_cleared": true,
+      "limit_stub": false,
+      "loaded_body": [
+        "/home/chrisdavidson/Projects/first-principles-skill/first-principles"
+      ],
+      "model": "claude-opus-5-5",
+      "plugin_version": "9.15.0",
+      "prose_gate_cleared": true,
+      "read_own_example": false,
+      "report": "/home/chrisdavidson/Projects/first-principles-skill/tests/structured-summary-live/raw/theoretical-limit-carnot/report.md",
+      "report_candidates": [
+        "report.md"
+      ],
+      "shortfall": null,
+      "trace_cleared_after": false
+    },
+    "example": "theoretical-limit-carnot"
+  }
+]

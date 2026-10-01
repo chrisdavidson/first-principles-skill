@@ -1,0 +1,41 @@
+{
+  "agent_router_head": "d1c0bf96b1ad944836c38cf622b0b4d8c96423b0",
+  "checker_sha256": "473481374204089c1e2c79a7b43c20c829b8770d5d2ccdf88489efe427233b02",
+  "fp_tree": "e2dc163771e695fa7fd906ac5b5a2d8ec1596912",
+  "head_sha": "f0f18a310bbadac1d51c9699cace9a130a27d60a",
+  "id": "structured-summary-live",
+  "invocations": [
+    {
+      "k": 1,
+      "runner_exit": 0,
+      "stubs": [],
+      "targets": [],
+      "utc": "2026-10-01T01:26:35.605428Z",
+      "zero_file": [
+        "personal-general-2",
+        "product-business-2",
+        "science-engineering"
+      ]
+    },
+    {
+      "k": 2,
+      "runner_exit": 0,
+      "stubs": [],
+      "targets": [
+        "personal-general-2",
+        "product-business-2",
+        "science-engineering"
+      ],
+      "utc": "2026-10-01T02:17:23.602952Z",
+      "zero_file": []
+    }
+  ],
+  "out": "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live",
+  "phase75_close": "ab23ef45be849f9d4e66b73fcb8d37072a5efe87",
+  "resumed_utc": [
+    "2026-10-01T02:17:23.602952Z"
+  ],
+  "runner_sha256": "1b9194802e482559028689c4a17f5d8cdff10d96746e7245b1c15b0e03006bf5",
+  "shared_tree": "8ff27d3d5893cdb08b97c62e2afb5a2340ee645d",
+  "started_utc": "2026-10-01T01:26:35.605428Z"
+}

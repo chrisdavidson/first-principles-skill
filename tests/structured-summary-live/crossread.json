@@ -1,0 +1,227 @@
+{
+  "composed-inversion-second-order": [
+    {
+      "block": "full-composer",
+      "field": "run_mode",
+      "parser": null
+    },
+    {
+      "block": 2,
+      "field": "gate.passes",
+      "parser": 1
+    }
+  ],
+  "decompose-irreducibility": [
+    {
+      "block": "full-composer",
+      "field": "run_mode",
+      "parser": null
+    },
+    {
+      "block": false,
+      "field": "re_entry.fired",
+      "parser": null
+    },
+    {
+      "block": "Reject the claim as stated. If charging is resistive, an 85% round trip, measured electricity to electricity, is beyond what thermodynamics allows: the ideal ceiling is 78.05% even with Earth's coldest recorded sink (chain C1), and 56.89% with a 25 \u00b0C sink (chain C2). If charging is by heat pump, 85% is not ruled out by physics but is not supported by any figure read (chain C3). Because the cost conclusion is drawn from that premise, it does not follow (chain C5).",
+      "field": "conclusion.recommendation",
+      "parser": "Reject the claim as stated. If charging is resistive, an 85% round trip, measured electricity to electricity, is beyond what thermodynamics allows: the ideal ceiling is 78.05% even with Earth's coldest recorded sink (chain C1), and 56.89% with a 25 \u00b0C sink (chain C2). If charging is by heat pump, 85% is not ruled out by physics but is not supported by any figure read (chain C3). Because the cost c"
+    }
+  ],
+  "estimate-fermi": [
+    {
+      "block": "full-composer",
+      "field": "run_mode",
+      "parser": null
+    },
+    {
+      "block": false,
+      "field": "re_entry.fired",
+      "parser": null
+    }
+  ],
+  "ishikawa-fishbone": [
+    {
+      "block": "focused-five-whys",
+      "field": "run_mode",
+      "parser": null
+    },
+    {
+      "block": false,
+      "field": "re_entry.fired",
+      "parser": null
+    },
+    {
+      "block": true,
+      "field": "gate.cleared",
+      "label": "parser_rule",
+      "parser": false
+    },
+    {
+      "block": "Do not name a root cause yet, because none can be identified from the information supplied (chain C7). Run two tracks at the same time for four to six weeks. First, re-measure churn as the non-renewal rate among accounts actually due for renewal, with early terminations counted separately (chain C3), and cut the Q1\u2013Q3 churned and renewed accounts against the discriminator table in C5 (chain C5). Second, flag renewals due in the next 120 days by low adoption and high ticket volume for Customer Success outreach. Concessions need approval and are logged (chain C6). In week 1, confirm that renewal dates and the churn definition can be rebuilt and report N; if branch cells would hold fewer than about 10 churners, add structured exit interviews for Q4 churners (chain C5). Commit structural spend only to the branch or branches the cuts implicate (chain C6).",
+      "field": "conclusion.recommendation",
+      "parser": "Do not name a root cause yet, because none can be identified from the information supplied (chain C7). Run two tracks at the same time for four to six weeks. First, re-measure churn as the non-renewal rate among accounts actually due for renewal, with early terminations counted separately (chain C3), and cut the Q1\u2013Q3 churned and renewed accounts against the discriminator table in C5 (chain C5). S"
+    }
+  ],
+  "personal-general": [
+    {
+      "block": "full-composer",
+      "field": "run_mode",
+      "parser": null
+    },
+    {
+      "block": true,
+      "field": "re_entry.fired",
+      "parser": null
+    },
+    {
+      "block": 2,
+      "field": "gate.passes",
+      "parser": 1
+    },
+    {
+      "block": "Do not accept the offer as structured \u2014 taking it as written ends the partner's current job or splits the household (chain C9), relocating the household ranks last of four options and no single weight change lifts it above staying (chain C6); before declining, ask the SF company in writing whether you can stay in Portland and fly in for the three office days, choose between that and staying on your own weighting of career growth against travel time if they agree, and stay in your current role if they refuse (chain C7).",
+      "field": "conclusion.recommendation",
+      "parser": "Do not accept the offer as structured \u2014 taking it as written ends the partner's current job or splits the household (chain C9), relocating the household ranks last of four options and no single weight change lifts it above staying (chain C6); before declining, ask the SF company in writing whether you can stay in Portland and fly in for the three office days, choose between that and staying on you"
+    }
+  ],
+  "personal-general-2": [
+    {
+      "block": "full-composer",
+      "field": "run_mode",
+      "parser": null
+    },
+    {
+      "block": 2,
+      "field": "gate.passes",
+      "parser": 1
+    }
+  ],
+  "product-business": [
+    {
+      "block": "full-composer",
+      "field": "run_mode",
+      "parser": null
+    },
+    {
+      "block": false,
+      "field": "re_entry.fired",
+      "parser": null
+    },
+    {
+      "block": "Do not launch a permanent free tier on the current case (chain C5). First, compute this product's break-even conversion rate p* = (s + \u03b4 \u2212 r)/((1 \u2212 q)\u00b7L) from existing billing, cost and usage data (chain C1). If p* is at or below 0% or at or above 100%, the existing data settles the question without an experiment (chain C5). Otherwise, run a time-boxed, new-sign-ups-only free-tier experiment and launch only if its measured conversion clears p* (chain C5).",
+      "field": "conclusion.recommendation",
+      "parser": "Do not launch a permanent free tier on the current case (chain C5). First, compute this product's break-even conversion rate p* = (s + \u03b4 \u2212 r)/((1 \u2212 q)\u00b7L) from existing billing, cost and usage data (chain C1). If p* is at or below 0% or at or above 100%, the existing data settles the question without an experiment (chain C5). Otherwise, run a time-boxed, new-sign-ups-only free-tier experiment and l"
+    }
+  ],
+  "product-business-2": [
+    {
+      "block": "full-composer",
+      "field": "run_mode",
+      "parser": null
+    },
+    {
+      "block": true,
+      "field": "re_entry.fired",
+      "parser": null
+    },
+    {
+      "block": 2,
+      "field": "gate.passes",
+      "parser": 1
+    },
+    {
+      "block": "Build the reporting rewrite this quarter, scoped to the contract's acceptance criteria. Give sales a no-code Slack stopgap now, and build the native Slack integration next quarter (chain C6). This holds under the natural reading that the committed expansion depends on delivery this quarter. Under that reading, deferring the rewrite forfeits about $480,000 of lifetime revenue, against $12,000 to $120,000 for deferring Slack (chain C4).",
+      "field": "conclusion.recommendation",
+      "parser": "Build the reporting rewrite this quarter, scoped to the contract's acceptance criteria. Give sales a no-code Slack stopgap now, and build the native Slack integration next quarter (chain C6). This holds under the natural reading that the committed expansion depends on delivery this quarter. Under that reading, deferring the rewrite forfeits about $480,000 of lifetime revenue, against $12,000 to $1"
+    }
+  ],
+  "science-engineering": [
+    {
+      "block": "full-composer",
+      "field": "run_mode",
+      "parser": null
+    },
+    {
+      "block": "Measure or list the load first. Then size to it at 0.502 kWp of south-facing PV at a 50\u00b0 tilt and 3.35 kWh of nominal LiFePO4 storage per kWh/day of appliance load plus inverter standby (chain C6). For the central estimate of 5.07 kWh/day, that is a 2.7 kWp array and an 18 kWh bank (16.2 kWh usable). At the Albuquerque cell, an hour-by-hour simulation of 2005\u20132015 shows that bank empty on 3 days in 11 years outside the suspect September\u2013October records (chains C4, C5). The load bracket of 3.47\u20137.59 kWh/day maps to 1.74 kWp + 11.6 kWh up to 3.81 kWp + 25.4 kWh (chain C6). Re-run the same simulation at the cabin's exact coordinates before buying (chain C7), and if that simulation looks like the eastern-plains cell, add a 2 kW generator for about 2 days a year, because no tested PV-plus-battery size meets the criterion there (chain C8).",
+      "field": "conclusion.recommendation",
+      "parser": "Measure or list the load first. Then size to it at 0.502 kWp of south-facing PV at a 50\u00b0 tilt and 3.35 kWh of nominal LiFePO4 storage per kWh/day of appliance load plus inverter standby (chain C6). For the central estimate of 5.07 kWh/day, that is a 2.7 kWp array and an 18 kWh bank (16.2 kWh usable). At the Albuquerque cell, an hour-by-hour simulation of 2005\u20132015 shows that bank empty on 3 days i"
+    }
+  ],
+  "science-engineering-2": [
+    {
+      "block": "full-composer",
+      "field": "run_mode",
+      "parser": null
+    },
+    {
+      "block": 2,
+      "field": "gate.passes",
+      "parser": 1
+    }
+  ],
+  "self-application": [
+    {
+      "block": "full-composer",
+      "field": "run_mode",
+      "parser": null
+    },
+    {
+      "block": 2,
+      "field": "gate.passes",
+      "parser": 1
+    },
+    {
+      "block": "Do not split the body to meet the number. Instead: (1) remove the inline pre-mortem and trade-off procedures, which duplicate references the body already requires the agent to read, and give the trade-off read a named fallback; (2) report the body's size in tokens, with no threshold attached; (3) pre-register a large-difference A/B test, the current body against a 716-line companion-split variant with run counts fixed in advance, and split only if that test shows harm (chain C7).",
+      "field": "conclusion.recommendation",
+      "parser": "Do not split the body to meet the number. Instead: (1) remove the inline pre-mortem and trade-off procedures, which duplicate references the body already requires the agent to read, and give the trade-off read a named fallback; (2) report the body's size in tokens, with no threshold attached; (3) pre-register a large-difference A/B test, the current body against a 716-line companion-split variant "
+    }
+  ],
+  "software-systems": [
+    {
+      "block": "full-composer",
+      "field": "run_mode",
+      "parser": null
+    },
+    {
+      "block": 2,
+      "field": "gate.passes",
+      "parser": 1
+    }
+  ],
+  "software-systems-2": [
+    {
+      "block": "full-composer",
+      "field": "run_mode",
+      "parser": null
+    },
+    {
+      "block": true,
+      "field": "re_entry.fired",
+      "parser": null
+    },
+    {
+      "block": "Adopt a managed identity provider for authentication (credentials, sessions, password reset, MFA). Keep tenancy, membership, roles, the per-tenant isolation check and the product's own audit log in your database, keyed by the vendor's user ID \u2014 option C (chain C7). Before committing to a vendor, run a one-day spike against your stack's SDK and confirm that hashed passwords can be exported (chain C7).",
+      "field": "conclusion.recommendation",
+      "parser": "Adopt a managed identity provider for authentication (credentials, sessions, password reset, MFA). Keep tenancy, membership, roles, the per-tenant isolation check and the product's own audit log in your database, keyed by the vendor's user ID \u2014 option C (chain C7). Before committing to a vendor, run a one-day spike against your stack's SDK and confirm that hashed passwords can be exported (chain C"
+    }
+  ],
+  "theoretical-limit-carnot": [
+    {
+      "block": false,
+      "field": "re_entry.fired",
+      "parser": null
+    },
+    {
+      "block": true,
+      "field": "gate.cleared",
+      "label": "parser_rule",
+      "parser": false
+    },
+    {
+      "block": "Use 54.32% gross as the law-permitted ceiling for this power block. It is the second-law limit for heat delivered by Solar Salt cooling from 565 \u00b0C to 290 \u00b0C and rejected at a 43.11 \u00b0C condenser, and it is tighter than the 62.27% isothermal Carnot figure (chain C1, chain C2). Against it, practice (circa 42% gross) sits about 12.3 points below on the wet condenser basis, or about 8\u201310 points below if the 42% is a dry-cooled figure (chain C4).",
+      "field": "conclusion.recommendation",
+      "parser": "Use 54.32% gross as the law-permitted ceiling for this power block. It is the second-law limit for heat delivered by Solar Salt cooling from 565 \u00b0C to 290 \u00b0C and rejected at a 43.11 \u00b0C condenser, and it is tighter than the 62.27% isothermal Carnot figure (chain C1, chain C2). Against it, practice (circa 42% gross) sits about 12.3 points below on the wet condenser basis, or about 8\u201310 points below "
+    }
+  ]
+}

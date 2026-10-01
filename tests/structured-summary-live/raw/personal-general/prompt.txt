@@ -1,0 +1,3 @@
+/first-principles:first-principles-analysis A software engineer with five years at their current employer in Portland, OR — a full-remote role — has received an offer from a large San Francisco tech company. The offer includes a $70K annual compensation increase (base salary plus equity) but requires physical relocation and three days per week in the office. The engineer's partner has an established Portland-based career with no remote option. The stated question: "Should I take this job?"
+
+Analyse this from first principles. Show the arithmetic for every computed figure and recompute it.

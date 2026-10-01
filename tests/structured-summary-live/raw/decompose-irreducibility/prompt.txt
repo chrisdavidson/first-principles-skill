@@ -1,0 +1,3 @@
+/first-principles:first-principles-analysis Evaluate this claim: "A 5 MWh molten-salt thermal energy storage tank operating at 290–565 °C can round-trip electricity into heat and back with a system efficiency above 85%, making it cost-competitive with a lithium-ion battery system of the same nameplate capacity."
+
+Analyse this from first principles. Show the arithmetic for every computed figure and recompute it.

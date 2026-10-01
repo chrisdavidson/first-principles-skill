@@ -1,0 +1,65 @@
+[
+  {
+    "example": "personal-general-2",
+    "status": "complete",
+    "problems": [],
+    "read_own_example": false,
+    "analysis_inline": false,
+    "session": "8f916e67-8de9-4ed8-be79-ce20fd6da7fd",
+    "delegated": true,
+    "analysis_files": [
+      "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/personal-general-2/.first-principles/analysis-20261001T021809Z.md"
+    ],
+    "analysis_words": 9138,
+    "delegation_note": false,
+    "calc_notes": 0,
+    "report_writes_skipped": 12,
+    "calc_calls": 0,
+    "cost_usd": 2.5584733999999996,
+    "turns": 5,
+    "duration_s": 586.6,
+    "error": false
+  },
+  {
+    "example": "product-business-2",
+    "status": "complete",
+    "problems": [],
+    "read_own_example": false,
+    "analysis_inline": false,
+    "session": "f27e3438-c0f1-48b8-aeb6-2a0dfdd6c3a7",
+    "delegated": true,
+    "analysis_files": [
+      "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/product-business-2/.first-principles/analysis-20261001T022054Z.md"
+    ],
+    "analysis_words": 8741,
+    "delegation_note": false,
+    "calc_notes": 0,
+    "report_writes_skipped": 18,
+    "calc_calls": 0,
+    "cost_usd": 2.5601278000000005,
+    "turns": 5,
+    "duration_s": 560.7,
+    "error": false
+  },
+  {
+    "example": "science-engineering",
+    "status": "complete",
+    "problems": [],
+    "read_own_example": false,
+    "analysis_inline": false,
+    "session": "d7ac2795-2523-4cba-8555-e8ec5c77a34b",
+    "delegated": true,
+    "analysis_files": [
+      "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/science-engineering/.first-principles/analysis-20261001T021750Z.md"
+    ],
+    "analysis_words": 12220,
+    "delegation_note": false,
+    "calc_notes": 0,
+    "report_writes_skipped": 29,
+    "calc_calls": 0,
+    "cost_usd": 4.697718999999999,
+    "turns": 4,
+    "duration_s": 984.8,
+    "error": false
+  }
+]

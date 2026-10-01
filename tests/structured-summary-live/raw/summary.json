@@ -1,0 +1,296 @@
+[
+  {
+    "example": "composed-inversion-second-order",
+    "status": "complete",
+    "problems": [],
+    "read_own_example": false,
+    "analysis_inline": false,
+    "session": "0091ac76-2976-4343-b1ae-d7f1fda9bcf1",
+    "delegated": true,
+    "analysis_files": [
+      "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/composed-inversion-second-order/.first-principles/analysis-20261001T012743Z.md"
+    ],
+    "analysis_words": 8608,
+    "delegation_note": false,
+    "calc_notes": 0,
+    "report_writes_skipped": 16,
+    "calc_calls": 2,
+    "cost_usd": 3.0415338,
+    "turns": 4,
+    "duration_s": 663.1,
+    "error": false
+  },
+  {
+    "example": "decompose-irreducibility",
+    "status": "complete",
+    "problems": [],
+    "read_own_example": false,
+    "analysis_inline": false,
+    "session": "c4ae1c4f-53d3-49b0-ae0d-7a6b6944b6ec",
+    "delegated": true,
+    "analysis_files": [
+      "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/decompose-irreducibility/.first-principles/analysis-20261001T012908Z.md"
+    ],
+    "analysis_words": 7312,
+    "delegation_note": false,
+    "calc_notes": 0,
+    "report_writes_skipped": 18,
+    "calc_calls": 0,
+    "cost_usd": 2.6898466,
+    "turns": 4,
+    "duration_s": 458.4,
+    "error": false
+  },
+  {
+    "example": "estimate-fermi",
+    "status": "complete",
+    "problems": [],
+    "read_own_example": false,
+    "analysis_inline": false,
+    "session": "93ec2541-5e41-46f0-a55e-540adc12b291",
+    "delegated": true,
+    "analysis_files": [
+      "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/estimate-fermi/.first-principles/analysis-20261001T012816Z.md"
+    ],
+    "analysis_words": 8421,
+    "delegation_note": false,
+    "calc_notes": 0,
+    "report_writes_skipped": 13,
+    "calc_calls": 0,
+    "cost_usd": 2.704688000000001,
+    "turns": 2,
+    "duration_s": 582.1,
+    "error": false
+  },
+  {
+    "example": "ishikawa-fishbone",
+    "status": "complete",
+    "problems": [],
+    "read_own_example": false,
+    "analysis_inline": false,
+    "session": "8bc9d594-6a81-42a3-afaf-694aa9d6ac61",
+    "delegated": true,
+    "analysis_files": [
+      "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/ishikawa-fishbone/.first-principles/analysis-20261001T013505Z.md"
+    ],
+    "analysis_words": 9646,
+    "delegation_note": false,
+    "calc_notes": 0,
+    "report_writes_skipped": 21,
+    "calc_calls": 0,
+    "cost_usd": 2.4225154,
+    "turns": 6,
+    "duration_s": 529.2,
+    "error": false
+  },
+  {
+    "example": "personal-general",
+    "status": "complete",
+    "problems": [],
+    "read_own_example": false,
+    "analysis_inline": false,
+    "session": "d9a65ac1-f978-4d21-9897-93a55b804a9c",
+    "delegated": true,
+    "analysis_files": [
+      "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/personal-general/.first-principles/analysis-20261001T013849Z.md"
+    ],
+    "analysis_words": 12184,
+    "delegation_note": false,
+    "calc_notes": 0,
+    "report_writes_skipped": 16,
+    "calc_calls": 0,
+    "cost_usd": 3.360009999999999,
+    "turns": 6,
+    "duration_s": 741.2,
+    "error": false
+  },
+  {
+    "example": "personal-general-2",
+    "status": "complete",
+    "problems": [],
+    "read_own_example": false,
+    "analysis_inline": false,
+    "session": "8f916e67-8de9-4ed8-be79-ce20fd6da7fd",
+    "delegated": true,
+    "analysis_files": [
+      "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/personal-general-2/.first-principles/analysis-20261001T021809Z.md"
+    ],
+    "analysis_words": 9138,
+    "delegation_note": false,
+    "calc_notes": 0,
+    "report_writes_skipped": 12,
+    "calc_calls": 0,
+    "cost_usd": 2.5584733999999996,
+    "turns": 5,
+    "duration_s": 586.6,
+    "error": false
+  },
+  {
+    "example": "product-business",
+    "status": "complete",
+    "problems": [],
+    "read_own_example": false,
+    "analysis_inline": false,
+    "session": "475df0a8-4063-418d-88ac-42fa523ab800",
+    "delegated": true,
+    "analysis_files": [
+      "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/product-business/.first-principles/analysis-20261001T014338Z.md"
+    ],
+    "analysis_words": 7289,
+    "delegation_note": false,
+    "calc_notes": 0,
+    "report_writes_skipped": 19,
+    "calc_calls": 2,
+    "cost_usd": 2.0146838000000002,
+    "turns": 3,
+    "duration_s": 394.6,
+    "error": false
+  },
+  {
+    "example": "product-business-2",
+    "status": "complete",
+    "problems": [],
+    "read_own_example": false,
+    "analysis_inline": false,
+    "session": "f27e3438-c0f1-48b8-aeb6-2a0dfdd6c3a7",
+    "delegated": true,
+    "analysis_files": [
+      "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/product-business-2/.first-principles/analysis-20261001T022054Z.md"
+    ],
+    "analysis_words": 8741,
+    "delegation_note": false,
+    "calc_notes": 0,
+    "report_writes_skipped": 18,
+    "calc_calls": 0,
+    "cost_usd": 2.5601278000000005,
+    "turns": 5,
+    "duration_s": 560.7,
+    "error": false
+  },
+  {
+    "example": "science-engineering",
+    "status": "complete",
+    "problems": [],
+    "read_own_example": false,
+    "analysis_inline": false,
+    "session": "d7ac2795-2523-4cba-8555-e8ec5c77a34b",
+    "delegated": true,
+    "analysis_files": [
+      "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/science-engineering/.first-principles/analysis-20261001T021750Z.md"
+    ],
+    "analysis_words": 12220,
+    "delegation_note": false,
+    "calc_notes": 0,
+    "report_writes_skipped": 29,
+    "calc_calls": 0,
+    "cost_usd": 4.697718999999999,
+    "turns": 4,
+    "duration_s": 984.8,
+    "error": false
+  },
+  {
+    "example": "science-engineering-2",
+    "status": "complete",
+    "problems": [],
+    "read_own_example": false,
+    "analysis_inline": false,
+    "session": "8d50c323-126a-400e-acfb-ddf5fbcbf888",
+    "delegated": true,
+    "analysis_files": [
+      "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/science-engineering-2/.first-principles/analysis-20261001T014825Z.md"
+    ],
+    "analysis_words": 11483,
+    "delegation_note": false,
+    "calc_notes": 0,
+    "report_writes_skipped": 13,
+    "calc_calls": 1,
+    "cost_usd": 3.2234977999999996,
+    "turns": 5,
+    "duration_s": 759.4,
+    "error": false
+  },
+  {
+    "example": "self-application",
+    "status": "complete",
+    "problems": [],
+    "read_own_example": true,
+    "analysis_inline": false,
+    "session": "f48933ad-958b-4a16-b36a-5b3c7add32e8",
+    "delegated": true,
+    "analysis_files": [
+      "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/self-application/.first-principles/analysis-20261001T015353Z.md"
+    ],
+    "analysis_words": 10712,
+    "delegation_note": false,
+    "calc_notes": 0,
+    "report_writes_skipped": 23,
+    "calc_calls": 0,
+    "cost_usd": 4.1384578,
+    "turns": 4,
+    "duration_s": 818.0,
+    "error": false
+  },
+  {
+    "example": "software-systems",
+    "status": "complete",
+    "problems": [],
+    "read_own_example": false,
+    "analysis_inline": false,
+    "session": "e183726d-3f13-4cd6-a395-fca12d2a9075",
+    "delegated": true,
+    "analysis_files": [
+      "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/software-systems/.first-principles/analysis-20261001T020055Z.md"
+    ],
+    "analysis_words": 12412,
+    "delegation_note": false,
+    "calc_notes": 0,
+    "report_writes_skipped": 14,
+    "calc_calls": 0,
+    "cost_usd": 3.2955875999999993,
+    "turns": 5,
+    "duration_s": 779.8,
+    "error": false
+  },
+  {
+    "example": "software-systems-2",
+    "status": "complete",
+    "problems": [],
+    "read_own_example": false,
+    "analysis_inline": false,
+    "session": "b707efba-eac8-45dc-bdad-8368c75bc056",
+    "delegated": true,
+    "analysis_files": [
+      "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/software-systems-2/.first-principles/analysis-20261001T020036Z.md"
+    ],
+    "analysis_words": 8619,
+    "delegation_note": false,
+    "calc_notes": 0,
+    "report_writes_skipped": 15,
+    "calc_calls": 4,
+    "cost_usd": 2.3992864000000003,
+    "turns": 3,
+    "duration_s": 539.9,
+    "error": false
+  },
+  {
+    "example": "theoretical-limit-carnot",
+    "status": "complete",
+    "problems": [],
+    "read_own_example": false,
+    "analysis_inline": false,
+    "session": "57a50124-5b00-48d7-9630-7e8dc845311c",
+    "delegated": true,
+    "analysis_files": [
+      "/home/chrisdavidson/Projects/agent-router/integrations/first-principles/runs/structured-summary-live/theoretical-limit-carnot/.first-principles/analysis-20261001T021100Z.md"
+    ],
+    "analysis_words": 8523,
+    "delegation_note": false,
+    "calc_notes": 0,
+    "report_writes_skipped": 14,
+    "calc_calls": 4,
+    "cost_usd": 3.8899880000000002,
+    "turns": 5,
+    "duration_s": 798.1,
+    "error": false
+  }
+]

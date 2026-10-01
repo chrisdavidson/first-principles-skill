@@ -220,8 +220,15 @@ def checker_sha256(checker_path: Path) -> str:
 
 
 def select_report(example_dir: Path) -> tuple[Path | None, list[str]]:
-    """The longest raw/<name>/.first-principles/analysis-*.md by character count (the runner's
-    own max(texts, key=len) rule); every candidate file name is recorded."""
+    """The collected report: `raw/<name>/report.md`, which `run.py`'s `collect()` already
+    flattened from the longest `.first-principles/analysis-*.md` by character count (its own
+    documented `max(texts, key=len)` rule) -- read.py never re-picks among candidates collect()
+    has already resolved. Falls back to the longest `.first-principles/analysis-*.md` directly
+    under `example_dir` when `report.md` is absent (an uncollected, OUT-style directory, as built
+    by this module's own self-test fixtures)."""
+    flattened = example_dir / "report.md"
+    if flattened.is_file():
+        return flattened, [flattened.name]
     analysis_dir = example_dir / ".first-principles"
     files = sorted(analysis_dir.glob("analysis-*.md")) if analysis_dir.is_dir() else []
     names = [f.name for f in files]

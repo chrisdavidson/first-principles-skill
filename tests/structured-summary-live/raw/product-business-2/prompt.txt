@@ -1,0 +1,3 @@
+/first-principles:first-principles-analysis Given that one engineering quarter of capacity can fund at most one of two candidate investments, which one should a B2B SaaS team build next — the Slack integration repeatedly requested by sales prospects, or the reporting rewrite that an existing enterprise account has committed contract expansion against?
+
+Analyse this from first principles. Show the arithmetic for every computed figure and recompute it.
