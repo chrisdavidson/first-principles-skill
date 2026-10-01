@@ -1,0 +1,325 @@
+{
+  "schema_version": 1,
+  "run_mode": "full-composer",
+  "assumptions": [
+    {
+      "id": "A-1",
+      "type": "untested belief",
+      "verdict": "Discard"
+    },
+    {
+      "id": "A-2",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-3",
+      "type": "untested belief",
+      "verdict": "Discard"
+    },
+    {
+      "id": "A-4",
+      "type": "convention",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-5",
+      "type": "convention",
+      "verdict": "Discard"
+    },
+    {
+      "id": "A-6",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-7",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-8",
+      "type": "current constraint",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-9",
+      "type": "untested belief",
+      "verdict": "Discard"
+    },
+    {
+      "id": "A-10",
+      "type": "current constraint",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-11",
+      "type": "untested belief",
+      "verdict": "Discard"
+    },
+    {
+      "id": "A-12",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-13",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-14",
+      "type": "convention",
+      "verdict": "Accept"
+    },
+    {
+      "id": "A-15",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-16",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    },
+    {
+      "id": "A-17",
+      "type": "untested belief",
+      "verdict": "Challenge"
+    }
+  ],
+  "ground_truths": [
+    {
+      "id": "GT-82",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-83",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-84",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-85",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-86",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-87",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-88",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-89",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-90",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-91",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-92",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-93",
+      "read_at_source": true
+    },
+    {
+      "id": "GT-94",
+      "read_at_source": false
+    },
+    {
+      "id": "GT-95",
+      "read_at_source": false
+    },
+    {
+      "id": "GT-96",
+      "read_at_source": false
+    },
+    {
+      "id": "GT-97",
+      "read_at_source": false
+    },
+    {
+      "id": "GT-98",
+      "read_at_source": false
+    },
+    {
+      "id": "GT-99",
+      "read_at_source": false
+    }
+  ],
+  "chains": [
+    {
+      "id": "C92",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-82",
+        "GT-83",
+        "GT-85",
+        "GT-86",
+        "GT-87",
+        "GT-88",
+        "GT-93"
+      ]
+    },
+    {
+      "id": "C93",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-84",
+        "GT-89",
+        "GT-92"
+      ]
+    },
+    {
+      "id": "C94",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-83",
+        "GT-95?",
+        "GT-96?"
+      ]
+    },
+    {
+      "id": "C95",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-87",
+        "GT-88",
+        "GT-94?",
+        "GT-97?",
+        "GT-98?",
+        "C93",
+        "C94"
+      ]
+    },
+    {
+      "id": "C96",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-98?",
+        "GT-94?"
+      ]
+    },
+    {
+      "id": "C97",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-89",
+        "GT-90"
+      ]
+    },
+    {
+      "id": "C98",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "GT-91",
+        "GT-89"
+      ]
+    },
+    {
+      "id": "C99",
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "C92",
+        "C93",
+        "C94",
+        "C95",
+        "C96",
+        "C97",
+        "C98"
+      ]
+    }
+  ],
+  "dead_ends": [
+    "CSA is inherently the weaker method",
+    "Switching requires re-executing completed tests",
+    "Finish everything under CSV unconditionally",
+    "Anchoring on the September 2025 guidance",
+    "Part 11 relaxes under CSA",
+    "Scoring SOP readiness as one weighted criterion"
+  ],
+  "techniques": {
+    "applied": [
+      "inversion",
+      "fishbone",
+      "trade-off",
+      "estimate",
+      "second-order",
+      "pre-mortem"
+    ],
+    "not_applied": [
+      {
+        "technique": "theoretical-limit",
+        "phase": 1,
+        "reason": "Phase 1: no figure in the question is limited by a physical or mathematical law; every constraint here is regulatory or procedural."
+      },
+      {
+        "technique": "theoretical-limit",
+        "phase": 4,
+        "reason": "Phase 4: no conclusion needs a law-permitted ceiling; the quantities involved are effort and scope, and the estimate procedure sizes them instead."
+      },
+      {
+        "technique": "inversion",
+        "phase": 5,
+        "reason": "Phase 5: the conclusion is a plan, so the adversarial technique is pre-mortem, per the decision rule."
+      },
+      {
+        "technique": "five-whys",
+        "phase": 3,
+        "reason": "Phase 3: the ground truths are verbatim regulatory text, which is already the primitive (a definitional source); no recurring symptom calls for causal depth."
+      }
+    ]
+  },
+  "gate": {
+    "passes": [
+      {
+        "bands": [
+          "Rigorous",
+          "Rigorous",
+          "Rigorous",
+          "Rigorous",
+          "Rigorous",
+          "Rigorous"
+        ],
+        "gate_cleared": true,
+        "hand_wavy_cap_cleared": true
+      }
+    ],
+    "fix_repeat_fired": false,
+    "cleared": true
+  },
+  "re_entry": {
+    "fired": false,
+    "edges": []
+  },
+  "conclusion": {
+    "recommendation": "Do not switch the whole project now. Keep every executed CSV record. Move the remaining work to CSA only through a documented hybrid, and only if the firm's procedures already permit it, Part 11 and supplier readiness are confirmed, and enough not-high-risk scripted work remains to pay for the change. Otherwise finish under CSV and adopt CSA at the first post-release change control (chain C8).",
+    "confidence": "MEDIUM",
+    "rests_on": [
+      "C92",
+      "C93",
+      "C94",
+      "C95",
+      "C96",
+      "C97",
+      "C98",
+      "C99",
+      "GT-99?"
+    ]
+  }
+}

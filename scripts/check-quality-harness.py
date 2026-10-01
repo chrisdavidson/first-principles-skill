@@ -780,10 +780,13 @@ _REFERENCE_READ_TARGETS: dict[str, tuple[str, ...]] = {
 # omitted, and excluded from every bucket above and from
 # reference_reads_total. report-layout.md is the PDF reader report's page
 # template, extracted by awk at render time and never opened with Read, so
-# it is excluded on the same footing.
+# it is excluded on the same footing. report-figures.md (the reader report's
+# typst figure library) is extracted by the same awk pattern and never
+# opened with Read either, so it is excluded on the same footing.
 _REFERENCE_READ_EXCLUDED_TAILS = (
     "references/examples/",
     "references/report-layout.md",
+    "references/report-figures.md",
 )
 
 _REFERENCE_READS_FIELDS = (
