@@ -944,6 +944,16 @@ _FROZEN_PATHS=(
     # attempt including both usage-limit-pause specimens and the mid-run
     # is_limit_stub() false positive this run's own manifest/cells.json record.
     'tests/trackb-run-v9.15'
+    # structured-summary-live (2026-10-01) -- the live confirmation of the
+    # structured summary block on all 14 worked examples via agent-router's
+    # run_examples.py runner (LIVE-01/LIVE-02/LIVE-03). Frozen because
+    # docs/structured-summary-live-reading.md's verdict (9/14 checker PASS,
+    # 13/14 gate cleared, median cost $2.8731) is falsifiable only against
+    # these captures; raw/ keeps every voided zero-file attempt alongside the
+    # collected report, and manifest.json records both invocations and the
+    # automatic relaunch of the 3 examples that produced no analysis file on
+    # the first pass.
+    'tests/structured-summary-live'
     # summary-block-v9.16 (2026-09-30) -- the four real analysis-report
     # fixtures the structured-summary-block checker's P1-P4/X1/X2 controls
     # are anchored to (SUMM-BLOCK). Frozen because every must-fail control

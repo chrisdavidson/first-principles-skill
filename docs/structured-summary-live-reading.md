@@ -345,3 +345,19 @@ separately rather than blended into the aggregate. The block-vs-`trace.py` cross
 block is a strictly more complete and more correct record than agent-router's own prose parser on
 every field compared here — not a claim that `trace.py` is wrong to exist, only that it reads less
 than the block now carries directly.
+
+## Falsifiers
+
+| Leg | Claim | Exit |
+|---|---|---|
+| f1 | protocol committed before `started_utc` | **0** |
+| f2 | 14/14 rows complete | **0** (`14 / 14`) |
+| f3 | every run loaded this tree's plugin | **0** |
+| f4 | checker 14/14 | **1** (`checker pass 9/14`) |
+| f5 | checker unchanged since PHASE75_CLOSE | **0** |
+| f6 | gate cleared 14/14 | **1** (`LEG gate: FAIL (13/14)`) |
+| f7 | median cost ≤ $3.00 | **0** (`2.8731109000000004`) |
+| f8 | captures frozen and battery green | **0** |
+
+f1, f3, f5, f8 (integrity legs) all exit 0, as required. f2, f4, f6, f7 are outcomes, reported as
+observed: f2 and f7 PASS, f4 and f6 are genuine FAILs. This agrees with the Verdict line above.
