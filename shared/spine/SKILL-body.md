@@ -8,7 +8,9 @@ using any tool.** Your deliverable is appended to `.first-principles/analysis-<U
 section per Bash call, and your final message is only a short pointer to that file; the steps are
 under *Deliver the analysis as a file* in Output format below. The assembled file opens with a
 short `## Answer`, then the six sections below in order, then every process-output block as a
-trailing `## Appendix — process output`. A document returned as your final
+trailing `## Appendix — process output`. That file is the working record; the reader receives it
+as two reports rendered from it, `report-<UTC>.md` and `report-<UTC>.pdf`, which carry the
+Answer and the six sections and nothing machine-readable. A document returned as your final
 message instead can be cut off by the output limit, and then the reader receives only its last
 part.
 
@@ -319,12 +321,44 @@ then the six sections, then the process-output appendix.
    assembly, and no `"<path>.tmp"` survives either outcome.
 5. **Check it:** `grep -c '^#' "<path>"`, `wc -w "<path>"`, and `grep -m1 '^## ' "<path>"`, which
    must print `## Answer`.
-6. **Your final message is a short pointer, not the analysis:** the file's path; the
-   top-of-response disclosure repeated from step 3, if any; a line stating that the file is the
-   complete analysis and must be read in full, and that this message is not the analysis; and the
-   Conclusion's recommendation and confidence in one or two sentences. Do not paste the document
-   into it, and do not paste the structured summary into it either. If assembly did not complete, name whichever of `"<path>.answer"` or `"<path>.process"`
-   is still present.
+6. **Write the Markdown reader report.** Choose a plain title of at most ten words that names
+   the subject of the analysis, then run this with Bash, filling in `<path>` and `<title>`. It
+   copies the Answer — retitled Executive Summary — and the six sections under the title and a
+   date line, and leaves out the process-output appendix, its structured summary, any
+   `**Disclosed:**` paragraph and the `**Pre-check:**` lines, none of which is for the reader:
+
+   ```sh
+   F="<path>"; R="${F%/*}/report-${F##*/analysis-}"; { printf '# '; cat <<'FP_EOF'
+   <title>
+   FP_EOF
+   printf '\n*First-principles analysis · %s*\n\n' "$(date -u '+%-d %B %Y')"; awk '
+   /^```/ { f = !f }
+   !f && /^## Appendix — process output$/ { exit }
+   !f && /^\*\*Disclosed:\*\*/ { skip = 1 }
+   skip { if ($0 == "") skip = 0; next }
+   !f && /^\*\*Pre-check:\*\*/ { next }
+   !f && /^## Answer$/ { $0 = "## Executive Summary" }
+   !f && (/^#/ || /^\*\*/) && prev != "" { print "" }
+   { print; prev = $0 }' "$F" | cat -s; } > "$R" && echo "$R"
+   ```
+
+7. **Render the PDF reader report** from the Markdown report with pandoc and the typst engine,
+   using the page template carried in the [report layout](${CLAUDE_PLUGIN_ROOT}/references/report-layout.md),
+   filling in `<report>` with the path step 6 printed:
+
+   ```sh
+   R="<report>"; P="${R%.md}.pdf"; S="${R%.md}.layout.typ"; awk '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f' "${CLAUDE_PLUGIN_ROOT}/references/report-layout.md" > "$S" && pandoc "$R" -f commonmark_x --template="$S" --pdf-engine=typst -M title="$(sed -n '1s/^# //p' "$R")" -M date="$(date -u '+%-d %B %Y')" -o "$P"; rc=$?; rm -f "$S"; [ "$rc" -eq 0 ] && echo "$P"
+   ```
+
+   Run it once. If it fails — pandoc or typst not installed, most often — leave the Markdown
+   report as the reader's copy, do not retry with another engine, and say in the final message
+   that the PDF was not produced and why. Neither report is edited by hand after it is written.
+8. **Your final message is a short pointer, not the analysis:** the path of the Markdown report,
+   then of the PDF report or the reason it was not produced, then of the working file; the
+   top-of-response disclosure repeated from step 3, if any; and the Conclusion's recommendation
+   and confidence in one or two sentences. Do not paste the document into it, and do not paste
+   the structured summary into it either. If assembly did not complete, name whichever of
+   `"<path>.answer"` or `"<path>.process"` is still present, and skip steps 6 and 7.
 
 If the file cannot be created or written, emit the `## Answer` block, then the six-section
 document, as your final message instead, and say that the file handoff failed and why.
