@@ -192,7 +192,8 @@ GT-2 (outbound-led acquisition; no existing self-serve channel) + GT-3 (free-tie
   "re_entry": null,
   "conclusion": {
     "recommendation": "(chains C2 and C3) Run a time-boxed 90-day pilot with a limited cohort of free-tier users (up to 5 users, limited projects, as proposed) to generate the conversion data currently absent in GT-4?. Before the pilot launches, pre-specify the break-even threshold *formula* — annualised blended monthly cost per free user (× 12) divided by average annual contract value per converting account gives the minimum conversion needed to cover costs; dividing a monthly cost directly by an annual contract value understates the threshold by a factor of 12, so both sides must be annualised. GT-1 supplies the average annual contract value, but the blended monthly cost per free user is not supplied by any named ground truth (GT-3 establishes only that this cost is real); a second gap is that the numerator is per free user while the denominator is per converting account, so the average number of free users per converting account is a second required input. Both figures are required inputs the pilot must measure. Commit in advance to compute the actual threshold number as soon as that per-free-user cost is known. If the pilot clears the threshold, adopt the free tier with full cost budgeting per GT-3. If it does not, reject the free tier and document the result so the question does not re-open without new evidence.",
-    "confidence": "MEDIUM"
+    "confidence": "MEDIUM",
+    "rests_on": null
   }
 }
 ```

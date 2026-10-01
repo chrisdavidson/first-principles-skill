@@ -798,7 +798,17 @@ No criterion Absent, no criterion Hand-wavy — gate cleared after one Fix/Repea
   },
   "conclusion": {
     "recommendation": "Do not start a microservice migration to solve deploy speed. Keep the monolith and fix the delivery process, in this order: measure CI stage times, the merge-to-deploy wait, and whatever decides when a deploy happens (approvals, QA sign-off, restart windows); split the test suite across 4–8 runners; switch to Puma phased (rolling) restarts with expand/contract migrations; then deploy each merge, or small groups of merges, as it lands (chain C6).",
-    "confidence": "MEDIUM"
+    "confidence": "MEDIUM",
+    "rests_on": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8"
+    ]
   }
 }
 ```

@@ -282,6 +282,16 @@
             "LOW"
           ],
           "source": "Section 6's **Confidence:** line."
+        },
+        "rests_on": {
+          "type": "array",
+          "nullable": true,
+          "items": {
+            "type": "string",
+            "pattern": "^(GT-[1-9][0-9]*\\??|C[1-9][0-9]*)$"
+          },
+          "source": "Every id on section 6's **Pre-check:** head, in the order the head gives them, each Cn without its parenthesised band and each GT-N? with its ? kept: the same ids the chain rests_on field reads from a chain's head, read here from the Conclusion's own Pre-check line.",
+          "null_when": "The document's section 6 carries no **Pre-check:** line (a legacy worked example). An agent report never writes null."
         }
       }
     }
@@ -325,7 +335,7 @@
     },
     {
       "id": "INV-10",
-      "rule": "conclusion.recommendation is section 6's **Recommended approach:** in full, including any list it introduces; conclusion.confidence equals section 6's **Confidence:** band."
+      "rule": "conclusion.recommendation is section 6's **Recommended approach:** in full, including any list it introduces; conclusion.confidence equals section 6's **Confidence:** band; conclusion.rests_on holds exactly the ids on section 6's **Pre-check:** head."
     }
   ],
   "example": {
@@ -427,7 +437,11 @@
     },
     "conclusion": {
       "recommendation": "Adopt option B (chain C2), in two steps:\n1. Pilot it on one team for a month (chain C2).\n2. Roll it out if the pilot's defect rate stays at or below today's (chain C1).",
-      "confidence": "MEDIUM"
+      "confidence": "MEDIUM",
+      "rests_on": [
+        "C1",
+        "C2"
+      ]
     }
   }
 }

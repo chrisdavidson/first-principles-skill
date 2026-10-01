@@ -455,7 +455,8 @@ No criterion is at Hand-wavy or Absent. Gate cleared; hand-wavy cap cleared.
   },
   "conclusion": {
     "recommendation": "Approve the two-engineer-week cache rollout (chain C1) conditional\non (a) running the scoped shadow-read simulation to resolve GT-5? and confirming the\nmeasured steady-state hit rate clears the named threshold, and (b) committing to\nevent-driven invalidation against the existing event bus (GT-4) with a documented staleness\nbudget — not TTL-only — before the cache is taken as load-bearing for the upgrade-deferral\ndecision. If either acceptance criterion fails, execute the scheduled Postgres upgrade as\noriginally planned.",
-    "confidence": "MEDIUM"
+    "confidence": "MEDIUM",
+    "rests_on": null
   }
 }
 ```

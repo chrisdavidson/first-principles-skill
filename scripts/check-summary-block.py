@@ -1614,6 +1614,30 @@ def _synthetic_report(block: dict, **overrides) -> str:
     lines.append("## 6. Conclusion")
     lines.append(f"**Recommended approach:** {conclusion.get('recommendation', '')}")
     lines.append("**Key insight:** synthetic key insight.")
+    rests_on = conclusion.get("rests_on")
+    if rests_on is not None:
+        _band_rank = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
+        chain_bands = {c["id"]: c["confidence"] for c in chains}
+        conclusion_band = conclusion.get("confidence", "MEDIUM")
+        rendered: list[str] = []
+        q_marked: list[str] = []
+        cited_bands: list[str] = []
+        for rid in rests_on:
+            if rid.startswith("C"):
+                band = chain_bands.get(rid, conclusion_band)
+                rendered.append(f"{rid} ({band})")
+                cited_bands.append(band)
+            else:
+                rendered.append(rid)
+                if rid.endswith("?"):
+                    q_marked.append(rid)
+        items_str = ", ".join(rendered)
+        q_str = ", ".join(q_marked) if q_marked else "none"
+        low_str = min(cited_bands, key=lambda b: _band_rank.get(b, 0)) if cited_bands else "none"
+        lines.append(
+            f"**Pre-check:** head {items_str} · ?-marked: {q_str} · "
+            f"lowest cited: {low_str} · Inputs ceiling: {conclusion_band}"
+        )
     lines.append(
         f"**Confidence:** {conclusion.get('confidence', 'MEDIUM')} — synthetic confidence rationale."
     )

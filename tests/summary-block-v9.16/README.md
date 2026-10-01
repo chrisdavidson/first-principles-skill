@@ -288,3 +288,18 @@ above.
 
 `python3 scripts/check-summary-block.py tests/summary-block-v9.16/<file>.md` returns
 `SUMMARY-BLOCK: PASS` (exit 0) for all four fixtures.
+
+## Phase 80 backfill (2026-10-01)
+
+Each fixture's block gained one key, `conclusion.rests_on`, transcribed from that copy's own
+section 6 `**Pre-check:**` head (ids in head order, bands dropped, `?` kept). No prose line
+changed. The source sha256 table above describes the pre-backfill copies — this backfill adds a
+JSON key to the already-committed block only; it does not touch any `.md` prose line in any of the
+four files.
+
+| Fixture | `conclusion.rests_on` |
+|---|---|
+| `personal-general.md` | `["C1","C2","C3","C5","C6","C7","C8","GT-19?"]` |
+| `science-engineering.md` | `["C1","C2","C3","C4","C5"]` |
+| `software-systems.md` | `["C1","C2","C3","C4","C5","C6","C7","C8"]` |
+| `tb-01.md` | `["C1","C2","C3","C4","C5","C6","C7","C8"]` |

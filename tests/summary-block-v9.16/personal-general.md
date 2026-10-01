@@ -819,7 +819,17 @@ No criterion Absent; zero criteria Hand-wavy. The gate is cleared on the first s
   },
   "conclusion": {
     "recommendation": "Do not take this job as an immediate household move, and do not take it by super-commuting, because both are dominated (chain C5). Default to declining it as written and using the offer to re-price the current remote role (chain C6). Switch to taking it only once the partner holds a written SF offer at or above their current after-tax pay, negotiating a delayed start to allow for that search (chain C7). Because a ±1 change to the weight on the engineer's career upside flips the default from N to G, both partners should set the weights themselves and re-run the matrix before deciding (chain C6).",
-    "confidence": "LOW"
+    "confidence": "LOW",
+    "rests_on": [
+      "C1",
+      "C2",
+      "C3",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "GT-19?"
+    ]
   }
 }
 ```

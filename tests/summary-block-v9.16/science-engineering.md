@@ -586,7 +586,14 @@ No Absent, 0 Hand-wavy — cleared on first scoring pass; Fix/Repeat not fired. 
   },
   "conclusion": {
     "recommendation": "For the assumed 6.1 kWh/day winter DC load, the recommended system has three parts (chains C3, C4):\n- a PV array of about **2.4 kWp** (6 × 400 W), fixed facing south at a **50° tilt**; 1.993 kWp is the minimum\n- an **LFP battery bank of about 20.4 kWh nameplate** (18.3 kWh usable, 3 days of autonomy)\n- housing for the bank in space kept above 0 °C",
-    "confidence": "MEDIUM"
+    "confidence": "MEDIUM",
+    "rests_on": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5"
+    ]
   }
 }
 ```

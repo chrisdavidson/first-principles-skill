@@ -414,7 +414,8 @@ discarded.
   "re_entry": null,
   "conclusion": {
     "recommendation": "Treat the 85% electricity round-trip efficiency claim as refuted (chain C1) and do not proceed with a design predicated on it; use the Carnot-anchored ~38% round-trip figure as the physically realistic basis for any further cost-competitiveness comparison.",
-    "confidence": "MEDIUM"
+    "confidence": "MEDIUM",
+    "rests_on": null
   }
 }
 ```

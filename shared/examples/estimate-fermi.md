@@ -496,7 +496,10 @@ system's scale would sharpen that range, and could only move it toward longer du
   "re_entry": null,
   "conclusion": {
     "recommendation": "Per chain C1, treat molten-salt TES as **not** cost-competitive with\nlithium-ion for four-hour storage: once the power block is priced the system costs ~$279–384 per\nkWh_e against lithium-ion's $150–300. Consider it where the discharge is long — the break-even runs from\n~3.7 h to ~18 h — and size the decision on duration rather than on the store's per-kWh cost.",
-    "confidence": "MEDIUM"
+    "confidence": "MEDIUM",
+    "rests_on": [
+      "C1"
+    ]
   }
 }
 ```

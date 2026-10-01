@@ -485,7 +485,8 @@ Hand-wavy criteria).
   },
   "conclusion": {
     "recommendation": "(chains C1, C2 and C3) Execute in two ordered stages.\n\nStage 1 — fix the verified structural cause (4–8 weeks): establish a quarterly CS capacity\nreview with a ratio trigger (CSM-to-account ratio exceeds 1:45 → coverage model reviewed\nbefore next quarter begins), addressing GT-4; reassign or add CSM coverage for the $18K–$25K\ntier to bring the ratio below the 1:40 design threshold (GT-3), addressing the verified\ncause of the \"felt unsupported\" signal (GT-2).\n\nStage 2 — verify remaining hypotheses (6–10 weeks) before any intervention commitment: run\na productivity-outcome survey (n=40 accounts) to test GT-5?; pull CRM data to test whether\ndecisions are made 90–120 days before expiry; segment adoption scores by churn outcome.\n\nDo not commit to a product overhaul, UI refresh, or all-8P programme until Stage 2 is done.",
-    "confidence": "MEDIUM"
+    "confidence": "MEDIUM",
+    "rests_on": null
   }
 }
 ```

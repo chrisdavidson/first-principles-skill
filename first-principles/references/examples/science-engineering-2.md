@@ -370,7 +370,8 @@ conductance survey before the next scheduled gearbox inspection cycle.
   "re_entry": null,
   "conclusion": {
     "recommendation": "(chains C1 and C2) Replace the failed HSS bearing with a new bearing of the same\nspecification AND simultaneously restore the shaft-to-ground bonding path — clean and\nre-seat the brush-block, restore conductance to the IEC TS 60034-25 prescribed range\n(≥10⁻² S), and add to the turbine's preventive-maintenance schedule a quarterly\nbonding-ring conductance check. Do NOT change the lubricant specification on the basis\nof the operator's initial hypothesis — that intervention would not address the\nverified root cause and would consume maintenance budget on a non-causal lever.",
-    "confidence": "MEDIUM"
+    "confidence": "MEDIUM",
+    "rests_on": null
   }
 }
 ```

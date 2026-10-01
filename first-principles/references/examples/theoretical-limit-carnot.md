@@ -390,7 +390,8 @@ of the gap, not any apportionment of it across components.
   "re_entry": null,
   "conclusion": {
     "recommendation": "Treat the ~19-point ceiling-to-practice gap (chain C1) as mostly\nirreducible rather than as recoverable headroom, and pursue efficiency by raising the source\ntemperature — supercritical and ultra-supercritical cycles at 600–650 °C salt — rather than by\nchasing component refinements at fixed T_hot.\nBefore quoting any figure in the bracket, state whether it is a power-block or a whole-plant\nnumber; the two differ by roughly a factor of two and are routinely confused.",
-    "confidence": "HIGH"
+    "confidence": "HIGH",
+    "rests_on": null
   }
 }
 ```

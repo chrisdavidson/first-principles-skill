@@ -357,7 +357,11 @@ that would verify GT-5? (C3).
   "re_entry": null,
   "conclusion": {
     "recommendation": "(chains C1 and C3) Build the reporting rewrite this quarter and\ndefer the Slack integration to the next planning cycle. Before planning\nlock for the next quarter, instrument the churn-survey reason codes and\nrun a win/loss audit specifically isolating Slack-integration presence, so\nthat the Slack-side evidence picture is either promoted from GT-5? to a\nverified GT or explicitly retired. If the audit surfaces a material\nSlack-attributed signal, the next-quarter decision is reconsidered with\nthat GT in hand; if it does not, the deferral becomes permanent rather\nthan rolling.",
-    "confidence": "MEDIUM"
+    "confidence": "MEDIUM",
+    "rests_on": [
+      "C1",
+      "C3"
+    ]
   }
 }
 ```

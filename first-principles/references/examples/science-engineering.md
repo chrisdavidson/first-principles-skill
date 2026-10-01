@@ -305,7 +305,8 @@ both together would raise confidence in the sizing outputs to HIGH.
   "re_entry": null,
   "conclusion": {
     "recommendation": "(chains C1 and C2) Install a 400 W panel array (2 × 200 W panels) and a 6 kWh\nLiFePO4 battery bank. These sizes are derived from the site's 5.5 PSH annual average\n(GT-1), the 0.80 system derating factor (GT-2), the 80% DoD limit of LiFePO4 chemistry\n(GT-3), the 3-day autonomy target (GT-4), and the estimated 1.5 kWh/day daily load\n(GT-5?). Commission a 30-day energy-monitoring period before finalizing the order; above\napproximately 1.6 kWh/day (6 kWh × 0.80 DoD ÷ 3 days) the 6 kWh bank no longer meets the\n3-day autonomy target and should be upsized to 7.5–8 kWh, and above approximately\n1.76 kWh/day (400 W × 5.5 PSH × 0.80) the 400 W array no longer meets the daily load and\nshould be upsized to 600 W.",
-    "confidence": "MEDIUM"
+    "confidence": "MEDIUM",
+    "rests_on": null
   }
 }
 ```
