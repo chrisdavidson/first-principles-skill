@@ -13,6 +13,70 @@ installed session.
 
 ## [Unreleased]
 
+## [9.16.0] — 2026-10-01
+
+Milestone release: **v9.16.0 Structured Summary**. Every full-agent analysis now ends with
+exactly one fenced JSON block — the last element of `## Appendix — process output` in the
+delivered file. It restates, in fixed fields, decisions the prose already contains (assumptions
+and their verdicts, ground truths and whether each was read at source, chains and their
+confidence, every Self-Audit Gate pass, whether any re-entry edge fired, the conclusion) and adds
+no reasoning of its own: the prose stays the deliverable, and a reader who ignores the block loses
+nothing. It exists so a program — agent-router's decision trace — can read those decisions
+without pattern-matching prose; the agent's final message never carries it. The schema ships at
+`references/summary-schema.json`, and `scripts/check-summary-block.py` checks every id and value
+in it against the report's own prose. The 13 focused slash skills do not emit the block (D-13) —
+only the full agent's delivered file does.
+
+See [docs/v9.16-structured-summary-report.md](docs/v9.16-structured-summary-report.md) for the
+live confirmation's Measured section and schema reference, rather than restating its figures here
+— except the shortfall it recorded: the pre-registered 14/14 target was **not** met (blocks 9/14,
+gate 13/14, FAIL overall), accepted by the user and published as measured rather than softened.
+
+### Added — every analysis ends with one structured-summary JSON block
+
+- **Schema and placement rule** (Phase 74). The canonical schema ships at
+  `shared/spine/references/summary-schema.json`, emitted verbatim (no `GENERATED` marker, which
+  would corrupt the JSON) to `first-principles/references/summary-schema.json`; the agent body and
+  output template both name the block's exact position — the trailing element of the Appendix —
+  and that the final message never carries it (D-08).
+- **`scripts/check-summary-block.py`** (Phase 75). A stdlib-only validator: schema conformance,
+  section cross-checks against the report's own prose (techniques, run mode, Gate-pass/result
+  lines, re-entry), an exemplar mode for `shared/examples/*.md` with looser nullability (D-15), and
+  a mutation-tested self-test (nine must-fail controls plus a cross-check ablation). Registered as
+  `SUMM-BLOCK` on the battery and in CI (`check-summary-block` job).
+- **Structured-summary blocks for all 14 worked examples** (Phase 76), gated in exemplar mode;
+  three real checker defects the worked-example corpus surfaced along the way were fixed in place
+  rather than worked around: `_parent_type`'s em-dash subtype form, a nested-paren subtype on a
+  Type cell, and `check-conf-gate.py`'s D-08 mutation locator, which mistook an example's new
+  fenced JSON block for a prose duplicate and now reads outside fenced code.
+
+### Changed
+
+- All 17 stamps `9.15.0` → `9.16.0`. Coverage `248/248/0/496` → `255/256/0/511`, ledger row 31.
+- `_rows_v916()` registers this milestone's 15 requirements: 7 reproducible (SUMM-01, SUMM-02,
+  CHECK-01, CHECK-02, CHECK-03, CHECK-04, EXMP-01 — each pinned to the gate whose mutate-run-restore
+  probe actually turned it red: `sync-content.py --check`, `check-summary-block.py --self-test`
+  ×4, and `check-registration.py`'s REG-GUARD live leg, respectively) and 8 audit-only (SUMM-03,
+  SUMM-04, EXMP-02, LIVE-01, LIVE-02, LIVE-03, REL-29, REL-30 — each probed and found either to
+  move no gate, to move only a gate already disqualified as a pin by this repo's own
+  `_rows_testnet_merged_battery()` precedent, or to have no gate reading the file at all).
+
+### Measured — live 14-run confirmation (shortfall disclosed)
+
+- **`read.py verdict --leg all` exits 1 — FAIL, pre-registered and reported plainly, not
+  softened** (Phase 77). Blocks: 9/14 pass the unchanged checker. Gate: 13/14 cleared. Cost held:
+  median $2.8731 against the $3.00 pass line (baseline $2.7343755, +5.07%, within the 10% budget).
+  The block's own content was correct in all 14 runs — every one of the 5 checker failures traces
+  to a template gap (`SB-TECHNIQUES` ×4, no syntax for a two-mode/two-phase technique's qualifier)
+  or to two confirmed checker parser bugs (`science-engineering`'s `SB-CHAIN-RESTS-ON` and
+  `SB-REENTRY`), never to the block disagreeing with its own report's prose. Both defects are
+  filed as findings for a follow-up release with its own pre-registered run, not fixed here
+  (D-07). Full schema reference, the 14-run table, and the disagreement ledger are in
+  [docs/v9.16-structured-summary-report.md](docs/v9.16-structured-summary-report.md).
+
+`FIREWALL: GREEN (30/30)`; `sync-content.py --check` clean; VERSION-01 green on all 17 stamps;
+`claude plugin validate` passed.
+
 ## [9.15.0] — 2026-09-30
 
 Unphased release: **v9.15.0 Answer First**. Three changes to the shipped plugin. (a) The analysis

@@ -7645,5 +7645,230 @@
     ],
     "statement": "`_hop_arithmetic_defects` never evaluates an unspaced ASCII slash between two digits; a bare `A/B` is counted `unparsed` with reason `unspaced slash`, by exact analogy with the existing unspaced-hyphen rule, and spaced division is untouched.",
     "rerun_by": "battery-only"
+  },
+  {
+    "key": "v9.16/SUMM-01",
+    "bare_id": "SUMM-01",
+    "milestone": "v9.16",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/references/summary-schema.json",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/sync-content.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED: SUMM-BLOCK (`scripts/check-summary-block.py`, CI job `check-summary-block`) for SUMM-02, CHECK-01..03 and EXMP-01; DUAL-04 (`scripts/sync-content.py --check`) for SUMM-01; REG-GUARD (`scripts/check-registration.py`) for CHECK-04. Each mutation was run and the exit code recorded in 78-02-SUMMARY.md; each was reverted and the working tree confirmed clean before the next probe.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "A versioned JSON schema file lives in `shared/` (e.g. `shared/spine/references/summary-schema.json`) and `sync-content.py --write` emits it beside the other agent references; `--check` reports drift on it.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.16/SUMM-02",
+    "bare_id": "SUMM-02",
+    "milestone": "v9.16",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/references/summary-schema.json",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-summary-block.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED: SUMM-BLOCK (`scripts/check-summary-block.py`, CI job `check-summary-block`) for SUMM-02, CHECK-01..03 and EXMP-01; DUAL-04 (`scripts/sync-content.py --check`) for SUMM-01; REG-GUARD (`scripts/check-registration.py`) for CHECK-04. Each mutation was run and the exit code recorded in 78-02-SUMMARY.md; each was reverted and the working tree confirmed clean before the next probe.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The schema carries at least `schema_version` (integer, starting 1; add-only evolution, a removed/renamed field bumps it), `run_mode` (Step 0 mode name verbatim), `assumptions[]` (`id`, `type` in the four assumption types, `verdict` in Accept/Challenge/Discard), `ground_truths[]` (`id`, `read_at_source` false exactly for `GT-N?`), `chains[]` (`id`, `confidence` in HIGH/MEDIUM/LOW, ids it rests on), `dead_ends[]`, `techniques` (applied; not applied with phase and reason), `gate` (`passes[]` in order including rewritten passes, each with six criterion bands and cleared/Hand-wavy-cap result; `fix_repeat_fired`; `cleared`), `re_entry` (`fired`; edge and trigger when true), `conclusion` (full recommendation including any list it introduces; confidence) -- using only vocabulary the template and rubric already define.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.16/SUMM-03",
+    "bare_id": "SUMM-03",
+    "milestone": "v9.16",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/references/output-template.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads this live. Measured by mutate-run-restore, not assumed: the distinguishing sentence/word was deleted or renamed in the source file, the tree regenerated via `sync-content.py --write`, and `bash scripts/check-firewall-battery.sh` run -- GREEN (30/30) both times.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The output template (and the agent body where the delivery mechanics live) tells the agent to write exactly one fenced JSON block in `## Appendix -- process output` of the delivered file, states that the final message does NOT carry it, and states the block is process output (no environment state) that restates decisions and adds none.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.16/SUMM-04",
+    "bare_id": "SUMM-04",
+    "milestone": "v9.16",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads this live. Measured by mutate-run-restore, not assumed: the distinguishing sentence/word was deleted or renamed in the source file, the tree regenerated via `sync-content.py --write`, and `bash scripts/check-firewall-battery.sh` run -- GREEN (30/30) both times.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "No methodology change: no phase, criterion, band or verdict is added, removed or altered (falsifier: the rubric's criteria/bands and the body's phase list are byte-identical before and after, apart from the block rule).",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.16/CHECK-01",
+    "bare_id": "CHECK-01",
+    "milestone": "v9.16",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-summary-block.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-summary-block.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED: SUMM-BLOCK (`scripts/check-summary-block.py`, CI job `check-summary-block`) for SUMM-02, CHECK-01..03 and EXMP-01; DUAL-04 (`scripts/sync-content.py --check`) for SUMM-01; REG-GUARD (`scripts/check-registration.py`) for CHECK-04. Each mutation was run and the exit code recorded in 78-02-SUMMARY.md; each was reverted and the working tree confirmed clean before the next probe.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "`scripts/check-summary-block.py <report>` finds exactly one block, parses it, and validates it against the schema (stdlib plus what other checkers already use).",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.16/CHECK-02",
+    "bare_id": "CHECK-02",
+    "milestone": "v9.16",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-summary-block.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-summary-block.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED: SUMM-BLOCK (`scripts/check-summary-block.py`, CI job `check-summary-block`) for SUMM-02, CHECK-01..03 and EXMP-01; DUAL-04 (`scripts/sync-content.py --check`) for SUMM-01; REG-GUARD (`scripts/check-registration.py`) for CHECK-04. Each mutation was run and the exit code recorded in 78-02-SUMMARY.md; each was reverted and the working tree confirmed clean before the next probe.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The checker cross-checks the block against the prose: ids exist in their sections; chain confidence matches each `**Confidence:**` line; assumption type and verdict match the table row; `GT-N?` <=> `read_at_source: false`; the last pass's bands match the `## Self-Audit Gate (process output)` section; `cleared` follows from the bands by the rubric's rule (no Absent, at most one Hand-wavy); conclusion confidence matches section 6.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.16/CHECK-03",
+    "bare_id": "CHECK-03",
+    "milestone": "v9.16",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-summary-block.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-summary-block.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED: SUMM-BLOCK (`scripts/check-summary-block.py`, CI job `check-summary-block`) for SUMM-02, CHECK-01..03 and EXMP-01; DUAL-04 (`scripts/sync-content.py --check`) for SUMM-01; REG-GUARD (`scripts/check-registration.py`) for CHECK-04. Each mutation was run and the exit code recorded in 78-02-SUMMARY.md; each was reverted and the working tree confirmed clean before the next probe.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "`--self-test` passes, and its fixtures include controls that must FAIL for the stated reason: missing block; two blocks; malformed JSON; chain confidence disagreeing with its `**Confidence:**` line; `re_entry.fired: true` where the gate says no edge fired (personal-general); `re_entry.fired: false` where a Fix/Repeat is disclosed (software-systems); one `gate.passes` entry where a first pass precedes a Fix; a `conclusion` cut short of the list it introduces. The same reports with a correct block pass.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.16/CHECK-04",
+    "bare_id": "CHECK-04",
+    "milestone": "v9.16",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-firewall-battery.sh",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-registration.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED: SUMM-BLOCK (`scripts/check-summary-block.py`, CI job `check-summary-block`) for SUMM-02, CHECK-01..03 and EXMP-01; DUAL-04 (`scripts/sync-content.py --check`) for SUMM-01; REG-GUARD (`scripts/check-registration.py`) for CHECK-04. Each mutation was run and the exit code recorded in 78-02-SUMMARY.md; each was reverted and the working tree confirmed clean before the next probe.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The checker is registered in `scripts/check-firewall-battery.sh`, has a matching CI job in `.github/workflows/validation.yml` (REG-GUARD), a gate-registry entry and a generated `docs/gates/<ID>.md` page; the battery stays GREEN.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.16/EXMP-01",
+    "bare_id": "EXMP-01",
+    "milestone": "v9.16",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/examples/",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-summary-block.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED: SUMM-BLOCK (`scripts/check-summary-block.py`, CI job `check-summary-block`) for SUMM-02, CHECK-01..03 and EXMP-01; DUAL-04 (`scripts/sync-content.py --check`) for SUMM-01; REG-GUARD (`scripts/check-registration.py`) for CHECK-04. Each mutation was run and the exit code recorded in 78-02-SUMMARY.md; each was reverted and the working tree confirmed clean before the next probe.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "All 14 `shared/examples/*.md` carry exactly one correct block that passes the checker, including every cross-check against that example's prose.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.16/EXMP-02",
+    "bare_id": "EXMP-02",
+    "milestone": "v9.16",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/conformance-baseline.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate asserts this cross-gate consistency. Measured: deleting estimate-fermi.md's entire structured-summary block (SUMM-BLOCK and DUAL-04 both correctly turn red on that mutation -- EXMP-01's and SUMM-01's claim) left CONF-GATE, PROV-ROLLUP and QUAL-01's self-tests and live legs, and `report-conformance.py --check`, all green: none of the four surfaces this requirement names moved.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Adding the blocks leaves CONF-GATE, PROV-ROLLUP (incl. its template-only tripwire), QUAL-01 and the conformance baseline consistent -- any moved count is regenerated and explained, never silently re-pinned.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.16/LIVE-01",
+    "bare_id": "LIVE-01",
+    "milestone": "v9.16",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/structured-summary-live-reading.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Mutating `tests/structured-summary-live/result.json` does turn FROZEN-EVIDENCE red, but this repo's own established precedent (`_rows_testnet_merged_battery()`, v9.3.0 Phase 34, TIER-02) rules FROZEN-EVIDENCE out as a pin: its `git diff --quiet HEAD` mechanism catches only an uncommitted edit, and a committed edit to the frozen file passes it immediately. Re-derived against this milestone's own frozen path (not merely cited); no committable-edit-resistant gate re-verifies the live measurement.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The 14 examples are re-run through agent-router's `integrations/first-principles/run_examples.py --entry launcher --jobs 3` against this repo's working tree, and the checker runs over every report produced.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.16/LIVE-02",
+    "bare_id": "LIVE-02",
+    "milestone": "v9.16",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/structured-summary-live-reading.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Mutating `tests/structured-summary-live/result.json` does turn FROZEN-EVIDENCE red, but this repo's own established precedent (`_rows_testnet_merged_battery()`, v9.3.0 Phase 34, TIER-02) rules FROZEN-EVIDENCE out as a pin: its `git diff --quiet HEAD` mechanism catches only an uncommitted edit, and a committed edit to the frozen file passes it immediately. Re-derived against this milestone's own frozen path (not merely cited); no committable-edit-resistant gate re-verifies the live measurement.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Measured (shortfall accepted 2026-10-01, not the 14/14 target): 9 of 14 reports pass the checker (`LEG blocks: FAIL (9/14)`) and 13 of 14 clear the gate criterion (`LEG gate: FAIL (13/14)`); every shortfall traces to a named template gap (`SB-TECHNIQUES`, 4 examples) or a named checker defect (`_chain_head_refs`, `_ANY_EDGE_NAME_RE`, both on science-engineering), recorded in docs/structured-summary-live-reading.md -- the checker was never loosened to pass.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.16/LIVE-03",
+    "bare_id": "LIVE-03",
+    "milestone": "v9.16",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/structured-summary-live-reading.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Mutating `tests/structured-summary-live/result.json` does turn FROZEN-EVIDENCE red, but this repo's own established precedent (`_rows_testnet_merged_battery()`, v9.3.0 Phase 34, TIER-02) rules FROZEN-EVIDENCE out as a pin: its `git diff --quiet HEAD` mechanism catches only an uncommitted edit, and a committed edit to the frozen file passes it immediately. Re-derived against this milestone's own frozen path (not merely cited); no committable-edit-resistant gate re-verifies the live measurement.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Measured (shortfall accepted 2026-10-01 on the gate clause; the cost clause holds): the gate criterion clears 13/14, not >= 14/14; median cost per run is $2.8731 against the $2.7343755 baseline (+5.07%, within the <=10% bound); per-example cost and words are tabulated in docs/structured-summary-live-reading.md and docs/v9.16-structured-summary-report.md.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.16/REL-29",
+    "bare_id": "REL-29",
+    "milestone": "v9.16",
+    "capability": "Test-Network",
+    "deliverable_path": "CHANGELOG.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Moving one version stamp out of lockstep does turn VERSION-01 red, but per `_rows_v97()`'s established reasoning (re-derived here), VERSION-01 asserts the 17 stamps AGREE, never that they equal `9.16.0`, and is a standing invariant pre-dating this milestone. No registered gate reads CHANGELOG.md's prose, re-verifies the tag/push, or re-confirms the GitHub release -- the same finding every prior REL-* release-bundle row records.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "All version stamps move in lockstep (VERSION-01), CHANGELOG says what the block is for, sync shows no drift, `claude plugin validate ./first-principles` passes, and the release is tagged, pushed and published on GitHub.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.16/REL-30",
+    "bare_id": "REL-30",
+    "milestone": "v9.16",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/v9.16-structured-summary-report.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Zero `scripts/*.py` hits for `docs/v9.16-structured-summary-report.md`, confirmed by grep -- no registered gate reads the final report's content. Matches `_rows_v98()`'s REL-30 precedent exactly.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "A final report lists the schema (fields and enums), where the block is written, the 14-run table (block present / checker result / cost / words, before and after), and every run where block and prose disagreed with which was wrong -- written where agent-router's integration can read it.",
+    "rerun_by": "none"
   }
 ]

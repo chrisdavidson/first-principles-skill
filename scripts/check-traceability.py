@@ -7203,6 +7203,310 @@ def _rows_v911() -> list[MatrixRow]:
                   rerun_by='battery-only'),
     ]
 
+
+def _rows_v916() -> list[MatrixRow]:
+    """v9.16.0 milestone rows -- 15 requirements, 7 reproducible + 8 audit-only.
+
+    All rows carry milestone="v9.16". Keys use the milestone-qualified form
+    "v9.16/<bare_id>".
+
+    Tiering method, unchanged from `_rows_v93()`..`_rows_v911()`: mutate the requirement's
+    distinguishing behaviour, re-run the owning gate, record the exit code, revert. Every probe
+    below is logged in full (mutation, gate(s), exit code, restored) in 78-02-SUMMARY.md.
+
+    **Seven rows are reproducible**, all pinned by SUMM-BLOCK (Phase 75's
+    `scripts/check-summary-block.py`, CI job `check-summary-block`), DUAL-04
+    (`scripts/sync-content.py --check`), or REG-GUARD (`scripts/check-registration.py`):
+
+      - SUMM-01: deleting a trailing byte from the generated
+        `first-principles/references/summary-schema.json` without re-syncing turned DUAL-04 red
+        (`DRIFT: first-principles/references/summary-schema.json`); restored, DUAL-04 green.
+      - SUMM-02: renaming the schema's `"Discard"` enum value broke SUMM-BLOCK's `--self-test`
+        (10 of 41 controls failed with `SB-SCHEMA: ... is not one of [...]`, since every
+        `tests/summary-block-v9.16/*.md` fixture and 8 of 14 `shared/examples/*.md` use that
+        verdict); restored, self-test 41/41.
+      - CHECK-01: changing the `find_blocks()` sentinel string `"schema_version"` to
+        `"schema_versionX"` made every fixture's block invisible (`SUMMARY-BLOCK SELF-TEST: FAIL
+        (1/41)`, `C05` now reporting `SB-MISSING` instead of `SB-PLACEMENT`); restored, 41/41.
+      - CHECK-02: deleting the `("SB-CHAIN-CONFIDENCE", _xc_chain_confidence)` entry from
+        `_CROSS_CHECKS` broke two controls that depend on that cross-check firing (`C14`, `M4`);
+        restored, 41/41.
+      - CHECK-03: breaking `M5-reentry-fired-personal-general`'s own decoy-line precondition (the
+        fixture's "There was therefore no Phase 2 re-entry." sentence, which the control's own
+        code re-reads before asserting anything) made the self-test fail with the control's own
+        named reason ("decoy line missing ... the control would no longer exercise the PRD's
+        trap"); restored, 41/41.
+      - CHECK-04: removing the `check-summary-block` CI job from
+        `.github/workflows/validation.yml` turned REG-GUARD's live leg red (`battery gate has no
+        CI job: 'SUMM-BLOCK' is registered in scripts/check-firewall-battery.sh but no job in
+        .github/workflows/validation.yml declares it`); restored, REG-GUARD green.
+      - EXMP-01: renaming one ground truth id in `shared/examples/estimate-fermi.md`'s block
+        (`GT-4` -> `GT-4-WRONG`) broke SUMM-BLOCK's `--exemplar` leg over `shared/examples/*.md`
+        (`SB-SCHEMA: ground_truths[0].id: 'GT-4-WRONG' does not match pattern`); restored, exemplar
+        leg green.
+
+    **Eight rows are audit-only**, each measured, never assumed:
+
+      - SUMM-03 and SUMM-04: deleting `output-template.md`'s whole block-placement paragraph
+        (SUMM-03), and separately renaming one rubric band word `Hand-wavy` -> `Hand-wavyX`
+        (SUMM-04), both left `bash scripts/check-firewall-battery.sh` at `FIREWALL: GREEN
+        (30/30)` -- no registered gate re-reads this template/rubric prose live; QUAL-01's and
+        HC-BOUND's self-tests are offline against their own frozen fixtures, not the live file.
+      - EXMP-02: deleting estimate-fermi.md's entire structured-summary block (not just one
+        field) left CONF-GATE (`--self-test` and live), PROV-ROLLUP (`--self-test` and
+        `--dir shared/examples`), QUAL-01 (`--self-test`) and `report-conformance.py --check` all
+        green -- SUMM-BLOCK and DUAL-04 did turn red on the same mutation (that is EXMP-01's and
+        SUMM-01's claim, not EXMP-02's), but none of the four surfaces EXMP-02 actually names
+        moved. No registered gate asserts the cross-gate consistency EXMP-02 states.
+      - LIVE-01/02/03: mutating one `cost_usd` field in the frozen
+        `tests/structured-summary-live/result.json` did turn FROZEN-EVIDENCE red -- but this
+        repo's own established precedent (`_rows_testnet_merged_battery()`, v9.3.0 Phase 34,
+        TIER-02) already rules FROZEN-EVIDENCE out as a pin for exactly this reason: its
+        mechanism is `git diff --quiet HEAD`, which catches only an *uncommitted* edit sitting in
+        the working tree -- a committed edit to the frozen file passes it immediately. The same
+        reasoning applies here (re-derived against this milestone's own frozen path, not merely
+        cited): no registered, committable-edit-resistant gate re-verifies the live measurement
+        (9/14 blocks, 13/14 gate, $2.8731 median cost) going forward.
+      - REL-29: moving one stamp (`.claude-plugin/marketplace.json`) out of lockstep did turn
+        VERSION-01 red (`check-version-stamps: FAIL`) -- but per `_rows_v97()`'s established
+        reasoning (re-derived here, not merely cited), VERSION-01 asserts the 17 stamps AGREE,
+        never that they equal `9.16.0`, and it is a standing invariant that pre-dates this
+        milestone, not something REL-29 newly introduces. No registered gate reads CHANGELOG.md's
+        prose, re-verifies the git tag/push, or re-confirms the GitHub release, matching every
+        prior REL-* release-bundle row since REL-08.
+      - REL-30: zero `scripts/*.py` hits for
+        `docs/v9.16-structured-summary-report.md` (confirmed by grep) -- no registered gate reads
+        the final report's content; matches `_rows_v98()`'s REL-30 precedent exactly (a different
+        milestone's same bare id, same reasoning).
+    """
+    _repro_v916 = (
+        "Mutate-run-restore turned a registered gate RED: SUMM-BLOCK (`scripts/"
+        "check-summary-block.py`, CI job `check-summary-block`) for SUMM-02, CHECK-01..03 and "
+        "EXMP-01; DUAL-04 (`scripts/sync-content.py --check`) for SUMM-01; REG-GUARD (`scripts/"
+        "check-registration.py`) for CHECK-04. Each mutation was run and the exit code recorded "
+        "in 78-02-SUMMARY.md; each was reverted and the working tree confirmed clean before the "
+        "next probe."
+    )
+    _audit_prose_v916 = (
+        "No registered gate reads this live. Measured by mutate-run-restore, not assumed: the "
+        "distinguishing sentence/word was deleted or renamed in the source file, the tree "
+        "regenerated via `sync-content.py --write`, and `bash scripts/check-firewall-battery.sh` "
+        "run -- GREEN (30/30) both times."
+    )
+    _audit_exmp02_v916 = (
+        "No registered gate asserts this cross-gate consistency. Measured: deleting estimate-"
+        "fermi.md's entire structured-summary block (SUMM-BLOCK and DUAL-04 both correctly turn "
+        "red on that mutation -- EXMP-01's and SUMM-01's claim) left CONF-GATE, PROV-ROLLUP and "
+        "QUAL-01's self-tests and live legs, and `report-conformance.py --check`, all green: none "
+        "of the four surfaces this requirement names moved."
+    )
+    _audit_live_v916 = (
+        "Mutating `tests/structured-summary-live/result.json` does turn FROZEN-EVIDENCE red, but "
+        "this repo's own established precedent (`_rows_testnet_merged_battery()`, v9.3.0 Phase "
+        "34, TIER-02) rules FROZEN-EVIDENCE out as a pin: its `git diff --quiet HEAD` mechanism "
+        "catches only an uncommitted edit, and a committed edit to the frozen file passes it "
+        "immediately. Re-derived against this milestone's own frozen path (not merely cited); no "
+        "committable-edit-resistant gate re-verifies the live measurement."
+    )
+    _audit_rel29_v916 = (
+        "Moving one version stamp out of lockstep does turn VERSION-01 red, but per `_rows_v97()`"
+        "'s established reasoning (re-derived here), VERSION-01 asserts the 17 stamps AGREE, "
+        "never that they equal `9.16.0`, and is a standing invariant pre-dating this milestone. "
+        "No registered gate reads CHANGELOG.md's prose, re-verifies the tag/push, or re-confirms "
+        "the GitHub release -- the same finding every prior REL-* release-bundle row records."
+    )
+    _audit_rel30_v916 = (
+        "Zero `scripts/*.py` hits for `docs/v9.16-structured-summary-report.md`, confirmed by "
+        "grep -- no registered gate reads the final report's content. Matches `_rows_v98()`'s "
+        "REL-30 precedent exactly."
+    )
+    return [
+        MatrixRow('v9.16/SUMM-01', 'SUMM-01', 'v9.16', 'Test-Network',
+                  'shared/spine/references/summary-schema.json', 'reproducible',
+                  'scripts/sync-content.py', _repro_v916,
+                  surfaces=('agent',),
+                  statement=(
+                      "A versioned JSON schema file lives in `shared/` (e.g. `shared/spine/"
+                      "references/summary-schema.json`) and `sync-content.py --write` emits it "
+                      "beside the other agent references; `--check` reports drift on it."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.16/SUMM-02', 'SUMM-02', 'v9.16', 'Test-Network',
+                  'shared/spine/references/summary-schema.json', 'reproducible',
+                  'scripts/check-summary-block.py', _repro_v916,
+                  surfaces=('agent',),
+                  statement=(
+                      "The schema carries at least `schema_version` (integer, starting 1; "
+                      "add-only evolution, a removed/renamed field bumps it), `run_mode` (Step 0 "
+                      "mode name verbatim), `assumptions[]` (`id`, `type` in the four assumption "
+                      "types, `verdict` in Accept/Challenge/Discard), `ground_truths[]` (`id`, "
+                      "`read_at_source` false exactly for `GT-N?`), `chains[]` (`id`, "
+                      "`confidence` in HIGH/MEDIUM/LOW, ids it rests on), `dead_ends[]`, "
+                      "`techniques` (applied; not applied with phase and reason), `gate` "
+                      "(`passes[]` in order including rewritten passes, each with six criterion "
+                      "bands and cleared/Hand-wavy-cap result; `fix_repeat_fired`; `cleared`), "
+                      "`re_entry` (`fired`; edge and trigger when true), `conclusion` (full "
+                      "recommendation including any list it introduces; confidence) -- using "
+                      "only vocabulary the template and rubric already define."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.16/SUMM-03', 'SUMM-03', 'v9.16', 'Test-Network',
+                  'shared/spine/references/output-template.md', 'audit-only',
+                  '', _audit_prose_v916,
+                  surfaces=('agent',),
+                  statement=(
+                      "The output template (and the agent body where the delivery mechanics "
+                      "live) tells the agent to write exactly one fenced JSON block in `## "
+                      "Appendix -- process output` of the delivered file, states that the final "
+                      "message does NOT carry it, and states the block is process output (no "
+                      "environment state) that restates decisions and adds none."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.16/SUMM-04', 'SUMM-04', 'v9.16', 'Test-Network',
+                  'shared/spine/references/validation-rubric.md', 'audit-only',
+                  '', _audit_prose_v916,
+                  surfaces=('agent',),
+                  statement=(
+                      "No methodology change: no phase, criterion, band or verdict is added, "
+                      "removed or altered (falsifier: the rubric's criteria/bands and the body's "
+                      "phase list are byte-identical before and after, apart from the block "
+                      "rule)."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.16/CHECK-01', 'CHECK-01', 'v9.16', 'Test-Network',
+                  'scripts/check-summary-block.py', 'reproducible',
+                  'scripts/check-summary-block.py', _repro_v916,
+                  surfaces=('agent',),
+                  statement=(
+                      "`scripts/check-summary-block.py <report>` finds exactly one block, "
+                      "parses it, and validates it against the schema (stdlib plus what other "
+                      "checkers already use)."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.16/CHECK-02', 'CHECK-02', 'v9.16', 'Test-Network',
+                  'scripts/check-summary-block.py', 'reproducible',
+                  'scripts/check-summary-block.py', _repro_v916,
+                  surfaces=('agent',),
+                  statement=(
+                      "The checker cross-checks the block against the prose: ids exist in their "
+                      "sections; chain confidence matches each `**Confidence:**` line; "
+                      "assumption type and verdict match the table row; `GT-N?` <=> "
+                      "`read_at_source: false`; the last pass's bands match the `## Self-Audit "
+                      "Gate (process output)` section; `cleared` follows from the bands by the "
+                      "rubric's rule (no Absent, at most one Hand-wavy); conclusion confidence "
+                      "matches section 6."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.16/CHECK-03', 'CHECK-03', 'v9.16', 'Test-Network',
+                  'scripts/check-summary-block.py', 'reproducible',
+                  'scripts/check-summary-block.py', _repro_v916,
+                  surfaces=('agent',),
+                  statement=(
+                      "`--self-test` passes, and its fixtures include controls that must FAIL "
+                      "for the stated reason: missing block; two blocks; malformed JSON; chain "
+                      "confidence disagreeing with its `**Confidence:**` line; `re_entry.fired: "
+                      "true` where the gate says no edge fired (personal-general); "
+                      "`re_entry.fired: false` where a Fix/Repeat is disclosed (software-"
+                      "systems); one `gate.passes` entry where a first pass precedes a Fix; a "
+                      "`conclusion` cut short of the list it introduces. The same reports with a "
+                      "correct block pass."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.16/CHECK-04', 'CHECK-04', 'v9.16', 'Test-Network',
+                  'scripts/check-firewall-battery.sh', 'reproducible',
+                  'scripts/check-registration.py', _repro_v916,
+                  surfaces=('agent',),
+                  statement=(
+                      "The checker is registered in `scripts/check-firewall-battery.sh`, has a "
+                      "matching CI job in `.github/workflows/validation.yml` (REG-GUARD), a "
+                      "gate-registry entry and a generated `docs/gates/<ID>.md` page; the "
+                      "battery stays GREEN."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.16/EXMP-01', 'EXMP-01', 'v9.16', 'Test-Network',
+                  'shared/examples/', 'reproducible',
+                  'scripts/check-summary-block.py', _repro_v916,
+                  surfaces=('agent',),
+                  statement=(
+                      "All 14 `shared/examples/*.md` carry exactly one correct block that "
+                      "passes the checker, including every cross-check against that example's "
+                      "prose."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.16/EXMP-02', 'EXMP-02', 'v9.16', 'Test-Network',
+                  'docs/conformance-baseline.md', 'audit-only',
+                  '', _audit_exmp02_v916,
+                  surfaces=('agent',),
+                  statement=(
+                      "Adding the blocks leaves CONF-GATE, PROV-ROLLUP (incl. its template-only "
+                      "tripwire), QUAL-01 and the conformance baseline consistent -- any moved "
+                      "count is regenerated and explained, never silently re-pinned."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.16/LIVE-01', 'LIVE-01', 'v9.16', 'Test-Network',
+                  'docs/structured-summary-live-reading.md', 'audit-only',
+                  '', _audit_live_v916,
+                  surfaces=('agent',),
+                  statement=(
+                      "The 14 examples are re-run through agent-router's "
+                      "`integrations/first-principles/run_examples.py --entry launcher --jobs "
+                      "3` against this repo's working tree, and the checker runs over every "
+                      "report produced."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.16/LIVE-02', 'LIVE-02', 'v9.16', 'Test-Network',
+                  'docs/structured-summary-live-reading.md', 'audit-only',
+                  '', _audit_live_v916,
+                  surfaces=('agent',),
+                  statement=(
+                      "Measured (shortfall accepted 2026-10-01, not the 14/14 target): 9 of 14 "
+                      "reports pass the checker (`LEG blocks: FAIL (9/14)`) and 13 of 14 clear "
+                      "the gate criterion (`LEG gate: FAIL (13/14)`); every shortfall traces to "
+                      "a named template gap (`SB-TECHNIQUES`, 4 examples) or a named checker "
+                      "defect (`_chain_head_refs`, `_ANY_EDGE_NAME_RE`, both on science-"
+                      "engineering), recorded in docs/structured-summary-live-reading.md -- the "
+                      "checker was never loosened to pass."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.16/LIVE-03', 'LIVE-03', 'v9.16', 'Test-Network',
+                  'docs/structured-summary-live-reading.md', 'audit-only',
+                  '', _audit_live_v916,
+                  surfaces=('agent',),
+                  statement=(
+                      "Measured (shortfall accepted 2026-10-01 on the gate clause; the cost "
+                      "clause holds): the gate criterion clears 13/14, not >= 14/14; median cost "
+                      "per run is $2.8731 against the $2.7343755 baseline (+5.07%, within the "
+                      "<=10% bound); per-example cost and words are tabulated in "
+                      "docs/structured-summary-live-reading.md and "
+                      "docs/v9.16-structured-summary-report.md."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.16/REL-29', 'REL-29', 'v9.16', 'Test-Network',
+                  'CHANGELOG.md', 'audit-only',
+                  '', _audit_rel29_v916,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "All version stamps move in lockstep (VERSION-01), CHANGELOG says what "
+                      "the block is for, sync shows no drift, `claude plugin validate ./first-"
+                      "principles` passes, and the release is tagged, pushed and published on "
+                      "GitHub."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.16/REL-30', 'REL-30', 'v9.16', 'Test-Network',
+                  'docs/v9.16-structured-summary-report.md', 'audit-only',
+                  '', _audit_rel30_v916,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "A final report lists the schema (fields and enums), where the block is "
+                      "written, the 14-run table (block present / checker result / cost / "
+                      "words, before and after), and every run where block and prose disagreed "
+                      "with which was wrong -- written where agent-router's integration can "
+                      "read it."
+                  ),
+                  rerun_by='none'),
+    ]
+
+
 def _rows_v910() -> list[MatrixRow]:
     """v9.10.0 milestone rows -- 23 requirements, 0 reproducible + 23 audit-only.
 
@@ -8014,6 +8318,8 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v910())
     # --- v9.11.0 -- 6 reproducible + 10 audit-only (measured) ---
     rows.extend(_rows_v911())
+    # --- v9.16.0 -- 7 reproducible + 8 audit-only (measured) ---
+    rows.extend(_rows_v916())
     return rows
 
 
