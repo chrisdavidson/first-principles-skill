@@ -36,8 +36,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_SCHEMA = REPO_ROOT / "shared" / "spine" / "references" / "summary-schema.json"
 APPENDIX_HEADING = "## Appendix — process output"
 
-# Closed set of finding codes. Plan 01 emits the first eight; Plan 02 emits
-# the remaining fifteen (cross-checks against the report's own prose).
+# Closed set of finding codes. Plan 01 emits the first eight; Plan 02 of
+# v9.16 emitted fifteen cross-check codes (against the report's own prose);
+# Phase 80 adds one more (SB-CONCLUSION-RESTS-ON).
 FINDING_CODES: tuple[str, ...] = (
     "SB-MISSING",
     "SB-MULTIPLE",
@@ -62,6 +63,7 @@ FINDING_CODES: tuple[str, ...] = (
     "SB-CONCLUSION-CUT",
     "SB-CONCLUSION-TEXT",
     "SB-CONCLUSION-CONFIDENCE",
+    "SB-CONCLUSION-RESTS-ON",
 )
 
 
@@ -990,6 +992,79 @@ def _xc_conclusion_confidence(text, sections, block, exemplar) -> list[Finding]:
     return []
 
 
+_PRECHECK_CHAIN_ID_RE = re.compile(r"^[Cc][1-9][0-9]*$")
+
+
+def _section6_precheck_head_ids(section6: str) -> list[str] | str | None:
+    """The §6 Conclusion's own **Pre-check:** head field as a plain ordered
+    id list: each Cn with its (BAND) dropped and upper-cased (mirroring
+    `_xc_chain_rests_on`'s chain-ref upper-casing), each bare GT-N/GT-N? kept
+    as written. None when section6 carries no unfenced **Pre-check:** line at
+    all. The sentinel string "UNREADABLE" when the first matching line's body
+    has no readable `head ` field."""
+    qh = _load_qh()
+    for raw_line in section6.splitlines():
+        m = qh._PRECHECK_LINE_RE.match(raw_line)
+        if m is None:
+            continue
+        parts = m.group("body").split(qh._PRECHECK_SEP)
+        if not parts or not parts[0].startswith("head "):
+            return "UNREADABLE"
+        head_str = parts[0][len("head "):].strip()
+        ids: list[str] = []
+        for item in (h.strip() for h in head_str.split(",") if h.strip()):
+            im = qh._PRECHECK_HEAD_ITEM_RE.fullmatch(item) if "(" in item else None
+            rid = im.group("id") if im else item
+            if _PRECHECK_CHAIN_ID_RE.match(rid):
+                rid = rid.upper()
+            ids.append(rid)
+        return ids
+    return None
+
+
+def _xc_conclusion_rests_on(text, sections, block, exemplar) -> list[Finding]:
+    """SB-CONCLUSION-RESTS-ON: block conclusion.rests_on vs section 6's own
+    **Pre-check:** head field, compared as a SET (disclosed bound:
+    rests_on-order-not-compared, the same bound chains already carry).
+    SB-NULL (exemplar mode only -- live mode's SB-NULL already comes from
+    validate()) fires when rests_on is null but section 6 carries a
+    Pre-check line."""
+    conclusion = block.get("conclusion")
+    if not isinstance(conclusion, dict):
+        return []
+    rests_on = conclusion.get("rests_on")
+    section6 = (sections or {}).get(6, "")
+    head = _section6_precheck_head_ids(section6)
+    if rests_on is None:
+        if exemplar and head is not None:
+            return [Finding(
+                "SB-NULL",
+                "conclusion.rests_on is null but section 6 carries a "
+                "**Pre-check:** line",
+            )]
+        return []
+    if head is None:
+        return [Finding(
+            "SB-CONCLUSION-RESTS-ON",
+            "conclusion.rests_on is non-null but section 6 carries no "
+            "**Pre-check:** line",
+        )]
+    if head == "UNREADABLE":
+        return [Finding(
+            "SB-CONCLUSION-RESTS-ON",
+            "section 6's Pre-check line has no readable head field",
+        )]
+    expected = set(head)
+    actual = set(rests_on)
+    if actual != expected:
+        return [Finding(
+            "SB-CONCLUSION-RESTS-ON",
+            f"conclusion.rests_on {sorted(actual)!r} disagrees with section "
+            f"6's Pre-check head {sorted(expected)!r}",
+        )]
+    return []
+
+
 # ---------------------------------------------------------------------------
 # Gate span / disclosure region locators and their fixed-form readers
 # ---------------------------------------------------------------------------
@@ -1458,6 +1533,7 @@ _CROSS_CHECKS: tuple[tuple[str, Callable[..., list[Finding]]], ...] = (
     ("SB-RUN-MODE", _xc_run_mode),
     ("SB-CONCLUSION-CUT", _xc_conclusion_text),
     ("SB-CONCLUSION-CONFIDENCE", _xc_conclusion_confidence),
+    ("SB-CONCLUSION-RESTS-ON", _xc_conclusion_rests_on),
     ("SB-GATE-BANDS", _xc_gate_bands),
     ("SB-GATE-PASSES", _xc_gate_passes),
     ("SB-GATE-RESULT", _xc_gate_result),
@@ -2068,6 +2144,18 @@ def _c14_single_block_mutations_fire_named_codes() -> str | None:
     m["conclusion"]["recommendation"] = full.replace("Adopt", "Reject", 1)
     cases.append(("recommendation with one word changed", m, {"SB-CONCLUSION-TEXT"}, True))
 
+    m = copy.deepcopy(example)
+    m["conclusion"]["rests_on"] = m["conclusion"]["rests_on"][1:]
+    cases.append(("conclusion rests_on drops an id", m, {"SB-CONCLUSION-RESTS-ON"}, True))
+
+    m = copy.deepcopy(example)
+    m["conclusion"]["rests_on"] = m["conclusion"]["rests_on"] + ["C99"]
+    cases.append(("conclusion rests_on adds an uncited id", m, {"SB-CONCLUSION-RESTS-ON"}, True))
+
+    m = copy.deepcopy(example)
+    m["conclusion"]["rests_on"] = ["GT-x"]
+    cases.append(("conclusion rests_on malformed item", m, {"SB-SCHEMA"}, True))
+
     for label, mutated, expected, exact in cases:
         codes = _codes_for(mutated)
         ok = codes == expected if exact else expected <= codes
@@ -2462,6 +2550,86 @@ def _c24_exemplar_gate_reentry_null_iff_absent() -> str | None:
     return None
 
 
+def _c25_conclusion_rests_on_null_and_absence() -> str | None:
+    schema = load_schema(DEFAULT_SCHEMA)
+    example = schema["example"]
+
+    # restored leg: the unmutated example is clean in both modes.
+    text = _synthetic_report(example)
+    findings_live = check_report(text, exemplar=False, schema=schema)
+    if findings_live:
+        return f"unmutated example, live mode: expected [], got {findings_live!r}"
+    findings_exemplar = check_report(text, exemplar=True, schema=schema)
+    if findings_exemplar:
+        return f"unmutated example, exemplar mode: expected [], got {findings_exemplar!r}"
+
+    # reversed order is clean (disclosed bound: rests_on-order-not-compared).
+    reversed_rests_on = copy.deepcopy(example)
+    reversed_rests_on["conclusion"]["rests_on"] = list(
+        reversed(reversed_rests_on["conclusion"]["rests_on"])
+    )
+    text_rev = _synthetic_report(example, raw_block_body=json.dumps(reversed_rests_on))
+    findings_rev = check_report(text_rev, schema=schema)
+    if findings_rev:
+        return f"reversed rests_on order: expected [], got {findings_rev!r}"
+
+    # null-iff-absent, case 1: rests_on null, no Pre-check line rendered --
+    # clean in exemplar mode.
+    null_version = copy.deepcopy(example)
+    null_version["conclusion"]["rests_on"] = None
+    text_null = _synthetic_report(null_version)
+    findings_null = check_report(text_null, exemplar=True, schema=schema)
+    if any(f.code == "SB-NULL" for f in findings_null):
+        return (
+            f"rests_on null, no Pre-check line: unexpected SB-NULL, "
+            f"got {findings_null!r}"
+        )
+
+    # null-iff-absent, case 2: rests_on null, but section 6 DOES carry a
+    # Pre-check line (built from the DIFFERENT, non-null block) -- SB-NULL fires.
+    text_null_present = _synthetic_report(
+        example, raw_block_body=json.dumps(null_version)
+    )
+    findings_null_present = check_report(text_null_present, exemplar=True, schema=schema)
+    if {f.code for f in findings_null_present} != {"SB-NULL"}:
+        return (
+            f"rests_on null, Pre-check line present: expected {{'SB-NULL'}}, "
+            f"got {findings_null_present!r}"
+        )
+
+    # non-null without a Pre-check line (both modes) -- the reverse pairing:
+    # text built from the null copy (no Pre-check line rendered), block body
+    # carrying the example's non-null rests_on.
+    text_nonnull_absent = _synthetic_report(
+        null_version, raw_block_body=json.dumps(example)
+    )
+    codes_live = {f.code for f in check_report(text_nonnull_absent, exemplar=False, schema=schema)}
+    if codes_live != {"SB-CONCLUSION-RESTS-ON"}:
+        return (
+            f"rests_on non-null, no Pre-check line, live mode: expected "
+            f"{{'SB-CONCLUSION-RESTS-ON'}}, got {codes_live!r}"
+        )
+    codes_exemplar = {
+        f.code for f in check_report(text_nonnull_absent, exemplar=True, schema=schema)
+    }
+    if codes_exemplar != {"SB-CONCLUSION-RESTS-ON"}:
+        return (
+            f"rests_on non-null, no Pre-check line, exemplar mode: expected "
+            f"{{'SB-CONCLUSION-RESTS-ON'}}, got {codes_exemplar!r}"
+        )
+
+    # Pre-check line present but with no readable `head ` field.
+    text_unreadable = text.replace("**Pre-check:** head ", "**Pre-check:** ", 1)
+    codes_unreadable = {f.code for f in check_report(text_unreadable, schema=schema)}
+    if codes_unreadable != {"SB-CONCLUSION-RESTS-ON"}:
+        return (
+            f"unreadable Pre-check head field: expected "
+            f"{{'SB-CONCLUSION-RESTS-ON'}}, got {codes_unreadable!r}"
+        )
+
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Real-report fixtures (CHECK-03 P1-P4, X1)
 # ---------------------------------------------------------------------------
@@ -2819,6 +2987,7 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("C22", _c22_single_pass_reentry),
     ("C23", _c23_reentry_decoys_outside_scope_are_invisible),
     ("C24", _c24_exemplar_gate_reentry_null_iff_absent),
+    ("C25", _c25_conclusion_rests_on_null_and_absence),
     ("P1-personal-general", _p1_personal_general),
     ("P2-software-systems", _p2_software_systems),
     ("P3-science-engineering", _p3_science_engineering),
