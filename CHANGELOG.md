@@ -13,6 +13,25 @@ installed session.
 
 ## [Unreleased]
 
+### Added — reader reports beside every analysis
+
+A full-agent run now also writes `report-<UTC>.md` beside the working file
+`analysis-<UTC>.md`: a title, a date line, the Answer section retitled Executive Summary, then the
+six sections. The process-output appendix, its structured summary, `**Disclosed:**` paragraphs and
+`**Pre-check:**` lines are left out — they are audit material for the working file, not for the
+reader. Alongside it, `report-<UTC>.pdf` typesets that same Markdown with pandoc through the typst
+PDF engine, using the page template at the new spine reference
+[`shared/spine/references/report-layout.md`](shared/spine/references/report-layout.md), carried in
+a fenced block so the plugin stays pure Markdown. The working file is unchanged and remains the
+audit record. If pandoc or typst is not installed, the Markdown report is still written and the
+final message says the PDF was not produced and why.
+
+### Changed — the final message points at the reports
+
+The final message now gives the Markdown report path, then the PDF path or the reason it was not
+produced, then the working file path, and no longer carries the line telling the reader the file
+must be read in full.
+
 ## [9.16.0] — 2026-10-01
 
 Milestone release: **v9.16.0 Structured Summary**. Every full-agent analysis now ends with

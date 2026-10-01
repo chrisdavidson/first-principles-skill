@@ -101,6 +101,7 @@ shared/                         ← canonical source (edit here)
     references/
       output-template.md        ← emitted as an agent reference sibling, NOT inlined
       validation-rubric.md      ← emitted as an agent reference sibling, NOT inlined
+      report-layout.md          ← PDF reader report's pandoc/typst page template, emitted as a reference sibling, extracted by awk at render time, never Read
   agent/                        ← phase-procedure fragments stitched into the agent body
   references/                   ← companion tool reference files (five-whys.md, etc.)
   references/<slug>-detail.md   ← v8.5 on-demand appendix siblings (SLUGS_WITH_DETAIL only)
