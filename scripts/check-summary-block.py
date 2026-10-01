@@ -425,7 +425,9 @@ _TAXONOMY_TYPES = frozenset(
 _BOLD_WHOLE_CELL_RE = re.compile(r"^\*\*(.*)\*\*$")
 # The taxonomy's locked subtype form, `<parent> — <discriminator>`
 # (shared/spine/references/assumption-taxonomy.md, "Naming pattern (locked)").
-_EM_DASH_SUBTYPE_RE = re.compile(r"^(.*?) \u2014 .+$")
+# The discriminator may not contain "/", so a compound cell whose first
+# type carries the subtype (`a — x / b`) is left whole and fails closed (D-16).
+_EM_DASH_SUBTYPE_RE = re.compile(r"^(.*?) \u2014 [^/]+$")
 
 
 def _strip_trailing_paren_group(s: str) -> str:
@@ -2117,6 +2119,15 @@ def _c15b_annotated_type_cells_match_parent() -> str | None:
     codes = {f.code for f in check_report(text, schema=schema)}
     if codes != {"SB-ASSUMPTION"}:
         return f"compound cell with an em-dash subtype: expected {{'SB-ASSUMPTION'}}, got {codes!r}"
+
+    m = copy.deepcopy(example)
+    m["assumptions"][0]["type"] = "convention"
+    text = _synthetic_report(
+        m, type_cells={"A-1": "convention \u2014 context-dependent technical / untested belief"}
+    )
+    codes = {f.code for f in check_report(text, schema=schema)}
+    if codes != {"SB-ASSUMPTION"}:
+        return f"compound cell, em-dash subtype first: expected {{'SB-ASSUMPTION'}}, got {codes!r}"
 
     m = copy.deepcopy(example)
     m["assumptions"][0]["type"] = "untested belief"
