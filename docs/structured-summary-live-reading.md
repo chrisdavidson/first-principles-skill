@@ -232,19 +232,20 @@ the block process output about the analysis, and `run_mode` is schema-required i
 in a labeled prose sentence. This is a one-directional parser coverage gap in `trace.py`, not a
 disagreement: the block is the only place this field is recorded, correctly, in every report.
 
-**`re_entry.fired` (block `false`, parser `null`) — 6 examples: `decompose-irreducibility`,
-`estimate-fermi`, `ishikawa-fishbone`, `product-business`, `software-systems-2` (block `true` here,
-parser still `null`), `theoretical-limit-carnot`.** `trace.py`'s `edge` extraction
-(`trace.py:257`) requires the literal word "re-entry" to appear anywhere in the text; when nothing
-fired, these reports correctly carry no re-entry disclosure at all (the protocol requires one only
-"when true," §4(b)/D-02), so the word never appears and `trace.py` returns `None` for the whole
-`re_entry` object rather than a `{"fired": false}` dict — a coverage gap, not a disagreement, except
-for `software-systems-2`, where the block says `true` and the prose does use the word "re-entry"
-in its Disclosed paragraph (`"One re-entry edge fired, the Self-Audit Gate's Fix/Repeat loop."`) —
-there `trace.py` still read `null` in the crossread; its `NO_EDGE` match or the single-sentence
-`[^.\n]*` extraction window is not reproduced here in detail because the block's own value is
-independently checker-verified correct (`checker_passed: true`, `checker_exit: 0` for
-`software-systems-2`'s re-entry fields) and this instrument is out of this repo's scope to fix.
+**`re_entry.fired` (parser `null`) — 8 examples.** Block `false` in five:
+`decompose-irreducibility`, `estimate-fermi`, `ishikawa-fishbone`, `product-business`,
+`theoretical-limit-carnot`. Block `true` in three: `personal-general`, `product-business-2`,
+`software-systems-2`. `trace.py`'s `edge` extraction (`trace.py:257`) requires the literal word
+"re-entry" to appear in the text. When nothing fired, the five block-`false` reports correctly
+carry no re-entry disclosure (the protocol requires one only "when true," §4(b)/D-02), so the word
+never appears and `trace.py` returns `None` for the whole `re_entry` object rather than a
+`{"fired": false}` dict. The three block-`true` reports do disclose the edge, in a top
+`**Disclosed:**` paragraph worded "the Self-Audit Gate's Fix/Repeat loop fired once", which never
+uses the word "re-entry" either (`/usr/bin/grep -ci 're-entry'` is 0 on all three reports), so the
+same coverage gap applies. Contrast `software-systems`, whose paragraph does say "One re-entry edge
+fired, the Self-Audit Gate's Fix/Repeat loop" and which has no `re_entry.fired` crossread entry. In
+all eight the block's value is the one the prose supports; this is a parser coverage gap in
+`trace.py`, out of this repo's scope to fix, not a block disagreement.
 
 **`gate.passes` (block `2`, parser `1`) — 7 examples, every example where `fix_repeat_fired` is
 true: `composed-inversion-second-order`, `personal-general`, `personal-general-2`,
@@ -289,7 +290,7 @@ deliberate limit on its own side (`MAX_TEXT`), not a defect in the analysis.
 | Handoff finding | What the block now records | Matches the prose? |
 |---|---|---|
 | personal-general re-entry misread as fired | `re_entry.fired: true`, edge `"the Self-Audit Gate's Fix/Repeat loop"`, with a trigger sentence — read directly from the block, no parsing of free prose needed | Yes — the `**Disclosed:**` paragraph states the Fix/Repeat loop fired once with the same trigger; the checker found no `SB-REENTRY` finding on this example |
-| software-systems Fix/Repeat not recorded | `re_entry.fired: true`, `gate.fix_repeat_fired: true`, edge recorded | Yes — the Disclosed paragraph explicitly uses the word "re-entry" ("One re-entry edge fired, the Self-Audit Gate's Fix/Repeat loop") and `trace.py` itself now agrees (no `gate.passes` or `re_entry.fired` crossread entry at all — wait, `gate.passes` does disagree, see above; `re_entry.fired` is read correctly by both sides here) |
+| software-systems Fix/Repeat not recorded | `re_entry.fired: true`, `gate.fix_repeat_fired: true`, edge recorded | Yes — the Disclosed paragraph explicitly uses the word "re-entry" ("One re-entry edge fired, the Self-Audit Gate's Fix/Repeat loop"), and `trace.py` reads `re_entry.fired` the same way (no crossread entry for it); its `gate.passes` still reads `1` against the block's `2`, the gate.passes coverage gap above |
 | 7 of 8 re-scored runs lost the first pass | Every multi-pass block (7 of 14 this run) carries `gate.passes: 2` and both passes' bands in full | Yes in every case — `trace.py` still undercounts to 1 (see `gate.passes` above), but a reader using the block, as this protocol does, gets the correct count every time |
 | product-business-2 gate result missed | `gate.cleared: true`, prose `**Gate result:** cleared · passes: 2 · Fix/Repeat fired: yes` | Yes — checker found no gate-related finding; no `gate.cleared` crossread entry at all |
 | estimate-fermi gate result missed | `gate.cleared: true`, single pass, prose Gate result line reads `cleared` | Yes — same, no crossread entry |
