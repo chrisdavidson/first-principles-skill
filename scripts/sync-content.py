@@ -1439,9 +1439,9 @@ def generate_all() -> dict[Path, str]:
     reference (the PDF reader report's template) raises it again. The
     report-figures Markdown spine reference (the reader report's typst
     figure library) raises it once more. The how-to-read Markdown spine
-    reference (the static business-reading guide) raises it once more again.
+    reference (the static business-reading guide) raises it once more.
     The persona-views Markdown spine reference (the reader-persona contract)
-    raises it once more again.
+    raises it once more.
     Current target count: 53 total.
 
       - 1 agent SKILL.md (first-principles/agents/first-principles.md)

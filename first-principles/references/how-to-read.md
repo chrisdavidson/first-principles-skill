@@ -2,8 +2,8 @@
 
 # How to Read This Analysis for Business Value
 
-A first-principles analysis is long because it shows its work. You do not need to read all of it
-to act on it. This guide says where to look, and in what order.
+A first-principles analysis is long because it shows its work. This guide says where to look,
+and in what order.
 
 ## Start at the Answer
 
@@ -37,9 +37,8 @@ Follow one claim back to its evidence:
    a `?`.
 4. Check each assumption the chain marks with `[Assumes: A-N]` against the "Assumptions Table"
    and its verdict.
-5. In the working file, the one whose name starts with analysis-, read the "Self-Audit Gate"
-   verdicts and the structured summary at the end of the appendix: they record how the analysis
-   scored itself.
+5. In the working file (analysis-), read the "Self-Audit Gate" verdicts and the structured
+   summary at the end of the appendix: how the analysis scored itself.
 
 ## What business value looks like here
 
@@ -48,13 +47,14 @@ Follow one claim back to its evidence:
 - **"expiry conditions"** on `current constraint` rows: the events that should trigger a review.
 - **Each "Dead End"** in "Abandoned Reasoning": an option you need not fund again, with the reason
   it fails.
-- **"Would change it":** the falsification condition, the result that would reverse the
-  advice. If it is cheap to test, test it first.
+- **"Would change it":** the evidence that would change the recommendation; if it is cheap,
+  get it first. The formal falsification test stays in the working file's process output.
 
 ## When to act and when to dig
 
-Act when the band is HIGH and no ground truth the Conclusion rests on is marked `?`. The working
-file's `**Pre-check:**` line lists both.
+Act when the Answer's band is HIGH and no ground truth the Conclusion rests on is marked `?`.
+Section 6's `**Pre-check:**` line lists those inputs under `?-marked`; its `Inputs ceiling` only
+caps the band, and the `**Confidence:**` line is the band itself.
 
 Otherwise, treat "Would change it" as your evidence plan: gather that evidence before you
 commit. A MEDIUM or LOW `**Confidence:**` line names what holds the band down
