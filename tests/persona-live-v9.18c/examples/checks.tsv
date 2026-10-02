@@ -1,0 +1,5 @@
+cell	source	role	persona	result	codes	persona_sha256
+E01	analysis-20260101T000001Z.md	decision-owner	persona-decision-owner-20260101T000001Z.md	PASS	-	3596b4fdc915c68ef15c3da51589bed41cb354db59e2e7cfe6946c753911890c
+E02	analysis-20260101T000001Z.md	skeptic	persona-skeptic-20260101T000001Z.md	PASS	-	a06e3f51d33b88a0af77134d23bf72256b2d6268de3b9457a6a6c01a79d49278
+E03	analysis-20260101T000002Z.md	decision-owner	persona-decision-owner-20260101T000002Z.md	PASS	-	a236ec2646502ef4fcf1daeddbca5d60629a97eae72bfd1de0049923808a8ac9
+E04	analysis-20260101T000002Z.md	skeptic	persona-skeptic-20260101T000002Z.md	PASS	-	81937185caf6050a26bb5ab9aedce14bb53fe4df0e8a1b429e0ebd6683bb4929

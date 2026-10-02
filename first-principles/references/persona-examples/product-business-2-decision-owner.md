@@ -1,12 +1,20 @@
 <!-- GENERATED — DO NOT EDIT. Source: shared/persona-examples/product-business-2-decision-owner.md. Regenerate via: scripts/sync-content.py --write. -->
 
-# Decision Owner view — Worked Example: Product and Business (Feature Prioritization)
+# Decision Owner memo — Worked Example: Product and Business (Feature Prioritization)
+
+> **To:** Decision Owner\
+> **Re:** Worked Example: Product and Business (Feature Prioritization)\
+> **Basis:** analysis-20260101T000001Z.md\
+> **Band (from §6):** MEDIUM
 
 *Derived from §6 and the structured summary of analysis-20260101T000001Z.md; the six sections remain the source of truth.*
 
-**Band (from §6):** MEDIUM
+In brief: The analysis separates verified from unverified evidence for two candidates competing for one quarter of engineering capacity (§1, C1).
 
-- **What was examined, and why does it matter?** The analysis weighs a Slack integration against a reporting rewrite when one engineering quarter funds only one of them (§1, A-6). The stakes are concrete: the reporting side carries a signed $180,000/year expansion contingency with a written exit clause (GT-3).
-- **What has it settled that I can rely on?** The reporting rewrite has a verified expansion-revenue case that the Slack candidate lacks (C1).
-- **How sure is it, and what is it unsure about?** The analysis rates itself MEDIUM (§6). Its equal-cost comparison rests on top-down estimates only (A-3), and the Slack-side retention and acquisition magnitudes are unmeasured (GT-5?).
-- **Where do I find the recommendation?** This analysis has no Answer block; its recommendation and the conditions it depends on are stated in §6. That recommendation holds only while the Slack-side evidence stays anecdotal, and C3 names the churn-survey and win/loss findings that would reopen it (C3).
+The question examined is whether the Slack integration or the reporting rewrite should take the 3.2 engineer-quarters of build capacity, since that capacity funds only one of them (§1, GT-4, A-6).
+
+The analysis settles, at HIGH confidence, that a slip on the rewrite permits a contractually irreversible loss while a delay to Slack stays revisitable (C2).
+
+The MEDIUM band (§6) reflects two open points, the first being that cost rests only on top-down estimates (A-3, C1). The other is that Slack-side retention and acquisition effects remain unmeasured (GT-5?, C3).
+
+This analysis has no Answer block; its recommendation and the conditions it depends on are stated in §6. The analysis records that its conclusion holds only while the Slack-side evidence stays anecdotal, and that a re-coded churn survey or a win/loss audit isolating Slack absence would reopen it (C3).

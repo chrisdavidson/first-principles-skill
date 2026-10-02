@@ -1337,16 +1337,25 @@ def _read_persona_examples_tuple() -> tuple[str, ...]:
 
 
 def _provenance_name(persona_text: str) -> str | None:
-    """The {name} a persona's own line 3 cites. Parsed, never assumed to
-    equal its shared/examples/ source's filename: the shipped examples cite
-    an analysis-<UTC>.md name instead, since each was a real
+    """The {name} a persona's own provenance sentence cites. Parsed, never
+    assumed to equal its shared/examples/ source's filename: the shipped
+    examples cite an analysis-<UTC>.md name instead, since each was a real
     /first-principles:persona run against a worked example rendered as an
-    analysis file (86-02-SUMMARY.md)."""
+    analysis file (86-02-SUMMARY.md).
+
+    Scans the header's first ten lines rather than a fixed index (D-11,
+    Phase 87): the pre-87 bullet format carries the provenance sentence on
+    line 3 (index 2, right after the title), while the memo format moves it
+    to line 8 (index 7, after the four-line To/Re/Basis/Band block) -- the
+    same provenance-line search `split_header` already performs for the
+    memo header, so this helper is not a second, drifting assumption about
+    where the line sits."""
     lines = persona_text.split("\n")
-    if len(lines) < 3:
-        return None
-    m = _PROVENANCE_NAME_RE.match(lines[2].strip())
-    return m.group("name") if m else None
+    for line in lines[:10]:
+        m = _PROVENANCE_NAME_RE.match(line.strip())
+        if m:
+            return m.group("name")
+    return None
 
 
 def _ex_reach_split_role(
