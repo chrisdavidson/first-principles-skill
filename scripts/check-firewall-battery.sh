@@ -999,6 +999,13 @@ _FROZEN_PATHS=(
     # the independent inventory falsifier (75-falsifiers.sh f5) is checkable
     # only against these exact prose/block pairs.
     'tests/summary-block-v9.16'
+    # persona-live-v9.18 (2026-10-02) -- the PEX-02 live reading
+    # (docs/v9.18-persona-live-reading.md) and the four 86-02 persona-example runs'
+    # provenance. Frozen because the Results table's 12/12-pass verdict and the
+    # examples' checks.tsv are falsifiable only against these sources, manifests and
+    # out/ artifacts; raw.jsonl streams were kept in scratch by design, never
+    # committed.
+    'tests/persona-live-v9.18'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null

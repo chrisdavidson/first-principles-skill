@@ -17,18 +17,37 @@ Three frozen byte copies, never the user's private repo-root `.first-principles/
 
 `shared/examples/` is read here, never written -- seven gates read that glob.
 
-## examples/ and reading/ (created later)
+## examples/ and reading/
 
-`examples/` (86-02's four persona-example runs) and `reading/` (86-04's twelve reading-run
-outputs and manifest) do not exist yet at this plan's commit. Both are created by their own
-plans, through the same `run_cell.py`.
-
-`examples/` now holds the four 86-02 runs (`manifest.jsonl`, `checks.tsv`, `out/`). Each
-`shared/persona-examples/<example>-<role>.md` file was shipped by `cp`, byte-identical to its
+`examples/` holds the four 86-02 persona-example runs (`manifest.jsonl`, `checks.tsv`, `out/`).
+Each `shared/persona-examples/<example>-<role>.md` file was shipped by `cp`, byte-identical to its
 run's output (sha256-verified against `persona_sha256`): `product-business-2-decision-owner.md`
 from cell E01, `product-business-2-skeptic.md` from cell E02, `estimate-fermi-decision-owner.md`
 from cell E03, `estimate-fermi-skeptic.md` from cell E04. All four passed
 `scripts/check-persona-view.py` on the first attempt.
+
+`reading/` holds the twelve 86-04 PEX-02 reading-run cells (R01-R12): `manifest.jsonl` (one JSON
+line per cell, the same fields as `examples/manifest.jsonl`), `results.tsv` (cell, source, role,
+persona file, PASS/FAIL, codes, persona sha256 -- 12 rows, no persona prose), and `out/` (the
+twelve persisted persona files, one per cell). All twelve cells reached `status: complete`, in
+the pre-registered order, with no `limit_stub` and no re-roll; all twelve PASS
+`scripts/check-persona-view.py`. The published Results table in
+[`docs/v9.18-persona-live-reading.md`](../../docs/v9.18-persona-live-reading.md) section 9 is
+reproduced from these artifacts by `reproduce.py`, not retyped from them.
+
+## reproduce.py
+
+Re-derives every figure in the pre-registration doc's `## 9. Results` section from
+`reading/manifest.jsonl`, `reading/results.tsv` and `reading/out/` -- re-running
+`scripts/check-persona-view.py`'s `check_view()` against the recorded sources, never reading the
+doc's prose as ground truth. Exits non-zero on any mismatch (a wrong row, a wrong code set, a
+wrong pass count, or a wrong bar outcome).
+
+```sh
+python3 tests/persona-live-v9.18/reproduce.py
+# or, against a copy under test:
+python3 tests/persona-live-v9.18/reproduce.py --doc /path/to/copy.md
+```
 
 ## run_cell.py
 
