@@ -13,6 +13,16 @@ installed session.
 
 ## [Unreleased]
 
+### Added — a reading guide beside the reports
+
+A full-agent analysis now leaves `.first-principles/HOW-TO-READ.md` beside the reports — a
+short, static guide (at most 500 words) to reading the analysis for business value: start at the
+Answer, route by role, follow the audit path, read the business-value signals, and decide when to
+act and when to dig. It ships as a spine reference, names only sections and fields the output
+template defines, is copied once per run (a rerun leaves one identical copy), never blocks the
+reports when it cannot be copied, and is named in the final message. The six sections, the Answer
+and the structured summary are unchanged.
+
 ## [9.17.0] — 2026-10-02
 
 Milestone release: **v9.17.0 Report Figures**. A full-agent analysis now ends in two reader

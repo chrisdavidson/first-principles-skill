@@ -5,7 +5,7 @@
 > **Note:** This is the full annotated template with complete section guidance, type
 > definitions, and prescriptions. A condensed skeleton showing just the required section
 > names and chain format lives resident in the agent body (`SKILL.md` on the skill surface, `agents/first-principles.md` on the agent surface) for quick reference. Come here
-> for the complete instructions when authoring or reviewing an analysis.
+> for the complete instructions when authoring or reviewing an analysis. To read a delivered analysis for business value rather than write one, see `how-to-read.md`, which the agent copies beside the reports as `HOW-TO-READ.md`.
 
 ## How to Use This Template
 

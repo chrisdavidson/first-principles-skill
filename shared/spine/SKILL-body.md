@@ -347,6 +347,18 @@ then the six sections, then the process-output appendix.
    If it fails or prints no path, skip steps 7 and 8: the working file stays the reader's copy,
    and the final message says the reader reports were not produced and why.
 
+   Then copy the reading guide beside the reports — whether or not the report above was written
+   — filling in `<path>` with the path step 1 printed:
+
+   ```sh
+   F="<path>"; H="${F%/*}/HOW-TO-READ.md"; awk 'NR == 1 && /^<!-- GENERATED/ { m = 1; next } NR == 2 && m && $0 == "" { next } { print }' "${CLAUDE_PLUGIN_ROOT}/references/how-to-read.md" > "$H.tmp" 2>/dev/null && [ -s "$H.tmp" ] && mv "$H.tmp" "$H" && echo "$H"; rm -f "$H.tmp"
+   ```
+
+   Run it once; it overwrites any earlier copy, so a rerun leaves one identical file; if it
+   prints no path, carry on — the guide never blocks the reports, and the final message leaves
+   it out. The copy is a byte copy of the shipped file: the agent does not Read it and does not
+   edit it.
+
 7. **Draw the report figures.** Draw the evidence trace and the assumption verdict matrix from
    the structured summary with the figure library carried in
    [report figures](${CLAUDE_PLUGIN_ROOT}/references/report-figures.md), and link each figure
@@ -406,7 +418,9 @@ then the six sections, then the process-output appendix.
 9. **Your final message is a short pointer, not the analysis:** the path of the Markdown report,
    then of the PDF report or the reason it was not produced, then the path of each figure step 7
    printed as `figure:` or, for each `skipped` line, the figure's name (evidence trace /
-   assumption verdict matrix) and its reason, then the path of the working file; the
+   assumption verdict matrix) and its reason, then the path of the working file; then, if step 6
+   printed it, the path of the reading guide `HOW-TO-READ.md`, as the place a reader deciding
+   what to do with the analysis should start; the
    top-of-response disclosure repeated from step 3, if any; a line stating that the working file
    is the complete analysis and the reports are its reader copies, that each must be read in full,
    and that this message is not the analysis; and the Conclusion's recommendation
