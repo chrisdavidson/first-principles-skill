@@ -74,7 +74,10 @@ verdict matrix (under §2. Assumptions Table), compiled with typst from the stru
 `report-<UTC>-fig-trace.svg` / `report-<UTC>-fig-verdicts.svg` beside the report. Without typst,
 or without a readable structured-summary block, the figure is skipped: no file and no link are
 written, the Markdown report is otherwise unchanged, and the final message names which figure was
-skipped and why.
+skipped and why — no readable structured summary, typst not installed, or a failed render, each
+stated as itself. Rerunning the figure step replaces the links rather than adding to them, and
+drops the link of a figure that is no longer drawn; a working file with CRLF line endings is read
+the same as one with LF.
 
 ### Changed — the PDF step resolves figures against the report's directory
 

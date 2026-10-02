@@ -65,8 +65,8 @@ under *Deliver the analysis as a file* in Output format below. The assembled fil
 short `## Answer`, then the six sections below in order, then every process-output block as a
 trailing `## Appendix — process output`. That file is the working record; the reader receives it
 as two reports rendered from it, `report-<UTC>.md` and `report-<UTC>.pdf`, which carry the
-Answer and the six sections and, where typst is installed, two figures drawn from the structured
-summary — the evidence trace and the assumption verdict matrix — and nothing machine-readable
+Answer and the six sections and, where typst is installed and the structured summary is
+readable, two figures drawn from it — the evidence trace and the assumption verdict matrix — and nothing machine-readable
 (the figures are drawings, not data). A document returned as your final message instead can be
 cut off by the output limit, and then the reader receives only its last part.
 
@@ -410,7 +410,7 @@ then the six sections, then the process-output appendix.
 
    ```sh
    F="<path>"; R="<report>"; T="${R%.md}.figures.typ"; B="${R##*/}"; B="${B%.md}"
-   J=$(awk '/^## Structured summary \(process output\)$/ { h = 1 } h && /^```json$/ { f = 1; next } f && /^```$/ { exit } f' "$F")
+   J=$(awk '{ sub(/\r$/, "") } /^## Structured summary \(process output\)$/ { h = 1 } h && /^```json$/ { f = 1; next } f && /^```$/ { exit } f' "$F")
    awk '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f' "${CLAUDE_PLUGIN_ROOT}/references/report-figures.md" > "$T"
    for n in trace verdicts; do
      G="${R%.md}-fig-$n.svg"; rm -f "$G"
@@ -421,7 +421,9 @@ then the six sections, then the process-output appendix.
        echo "figure: $G"
      else
        rm -f "$G"
-       if command -v typst >/dev/null 2>&1; then
+       if [ -z "$J" ]; then
+         echo "skipped $n: the analysis has no readable structured summary"
+       elif command -v typst >/dev/null 2>&1; then
          echo "skipped $n: the figure could not be rendered"
        else
          echo "skipped $n: typst is not installed"
@@ -431,19 +433,18 @@ then the six sections, then the process-output appendix.
    rm -f "$T"
    TL=""; [ -s "${R%.md}-fig-trace.svg" ] && TL="![Evidence trace: ground truths, chains and the conclusion]""($B-fig-trace.svg)"
    VL=""; [ -s "${R%.md}-fig-verdicts.svg" ] && VL="![Assumption verdict matrix: assumption types against verdicts]""($B-fig-verdicts.svg)"
-   if [ -n "$TL" ] || [ -n "$VL" ]; then
-     awk -v t="$TL" -v v="$VL" '
-       /^```/ { f = !f }
-       { print }
-       !f && $0 == "## 2. Assumptions Table" && v != "" { print ""; print v; print "" }
-       !f && $0 == "## 4. Derivation Chains" && t != "" { print ""; print t; print "" }
-     ' "$R" | cat -s > "$R.tmp" && mv "$R.tmp" "$R"
-     rm -f "$R.tmp"
-   fi
+   awk -v t="$TL" -v v="$VL" '
+     /^```/ { f = !f }
+     !f && /^!\[.*-fig-(trace|verdicts)\.svg\)$/ { next }
+     { print }
+     !f && $0 == "## 2. Assumptions Table" && v != "" { print ""; print v; print "" }
+     !f && $0 == "## 4. Derivation Chains" && t != "" { print ""; print t; print "" }
+   ' "$R" | cat -s > "$R.tmp" && mv "$R.tmp" "$R"
+   rm -f "$R.tmp"
    ```
 
    Run it once; a figure that is not drawn leaves no file and no link and the report is otherwise
-   unchanged; the output lines above are what step 9 reports; neither report is edited by hand.
+   unchanged, and a rerun replaces the links rather than adding to them; the output lines above are what step 9 reports; neither report is edited by hand.
 
 8. **Render the PDF reader report** from the Markdown report with pandoc and the typst engine,
    using the page template carried in the [report layout](${CLAUDE_PLUGIN_ROOT}/references/report-layout.md),
