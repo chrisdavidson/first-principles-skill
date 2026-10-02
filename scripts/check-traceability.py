@@ -7507,6 +7507,267 @@ def _rows_v916() -> list[MatrixRow]:
     ]
 
 
+def _rows_v917() -> list[MatrixRow]:
+    """v9.17.0 milestone rows -- 15 requirements, 9 reproducible + 6 audit-only.
+
+    All rows carry milestone="v9.17". Keys use the milestone-qualified form
+    "v9.17/<bare_id>".
+
+    Tiering method, unchanged from `_rows_v93()`..`_rows_v916()`: mutate the requirement's
+    distinguishing behaviour, re-run the owning gate, record the exit code, revert. Every probe
+    ran in its own detached `git worktree` of commit 74c0632a, so no mutation ever touched the
+    release working tree; the unmutated baseline of every gate named below exited 0 first.
+
+    **Nine rows are reproducible**, pinned by DUAL-04 (`scripts/sync-content.py --check`),
+    SUMM-BLOCK (`scripts/check-summary-block.py`), FIG-GATE (`scripts/check-report-figures.py
+    --self-test`, CI job `check-report-figures`) or REG-GUARD (`scripts/check-registration.py`):
+
+      - RPT-03: deleting the `"report-layout"` entry from sync-content.py's spine-reference
+        roster made `--check` exit 1 (`generate_all() produced 50 targets but
+        GENERATED_TARGET_COUNT == 51`).
+      - SUMM-05: renaming the schema's `conclusion.rests_on` property to `rests_onX` (synced)
+        made SUMM-BLOCK's `--self-test` and both `--exemplar` legs exit 1 (`SB-SCHEMA:
+        conclusion.rests_on: unknown key` / `conclusion.rests_onX: missing required key`).
+      - SUMM-06: deleting the `("SB-CONCLUSION-RESTS-ON", _xc_conclusion_rests_on)` entry from
+        `_CROSS_CHECKS` made `--self-test` exit 1 with `C14` and `C25` failing (`C25`:
+        `expected {'SB-NULL'}, got []`); both exemplar legs stayed green, as they should --
+        the examples agree with their own Pre-check heads.
+      - SUMM-07: deleting `rests_on` from product-business-2.md's block (synced) made both
+        `--exemplar` legs exit 1 (`SB-SCHEMA: conclusion.rests_on: missing required key`).
+        DISCLOSED BOUND: the requirement's other clause -- that the agent body instructs the
+        field -- is not pinned. Deleting the body's `conclusion.rests_on` sentence (synced) left
+        `bash scripts/check-firewall-battery.sh` GREEN.
+      - FIG-01: deleting the `"report-figures"` roster entry made DUAL-04 exit 1 (50 vs 51
+        targets); separately, changing the library's opening ```` ```typst ```` fence to
+        ```` ```text ```` (synced) made FIG-GATE fail 7 of 13 controls (`P01`, `M01`-`M04`,
+        `F01`, `F02`).
+      - FIG-02: `let drawn-edges = edges` -> `edges.slice(1)` in the shipped library (synced)
+        made FIG-GATE fail 5 of 13 (`P01` among them: a dropped edge on the real fixtures).
+        DISCLOSED BOUND: FIG-GATE compares counts, not stroke style. Setting the unverified-edge
+        `dash:` to `none` (synced) left the full battery GREEN, so the solid/dashed and
+        fill-by-confidence clauses are unpinned.
+      - FIG-03: `let n = cell-count(t, v)` -> `cell-count(t, v) + 1` (synced) made FIG-GATE fail
+        4 of 13 (`P01`, `M01`, `M03`, `M04`).
+      - FIG-04: renaming the `<fig-trace>` metadata label to `<fig-traceX>` (synced) made
+        FIG-GATE fail 7 of 13.
+      - FIG-05: removing the `check-report-figures` job from `.github/workflows/validation.yml`
+        made REG-GUARD's live leg exit 1 (`battery gate has no CI job: 'FIG-GATE' is registered
+        in scripts/check-firewall-battery.sh but no job ... declares it`). The BLOCKED clause
+        was run rather than inferred: `env PATH=/usr/bin:/bin python3
+        scripts/check-report-figures.py --self-test` printed `FIG-GATE: BLOCKED` and exited 2.
+
+    **Six rows are audit-only**, each measured, never assumed. Each body mutation below was
+    made in `shared/spine/SKILL-body.md`, synced, and the full battery run in its own worktree;
+    every run ended `FIREWALL: GREEN`. No registered gate reads the delivery steps:
+
+      - RPT-01: deleting the awk line that retitles `## Answer` as `## Executive Summary`.
+      - RPT-02: `--pdf-engine=typst` -> `--pdf-engine=weasyprint`.
+      - DELIV-01: `typst compile --format svg` -> `--format png`.
+      - DELIV-02: moving the evidence-trace link from `## 4. Derivation Chains` to
+        `## 6. Conclusion`.
+      - DELIV-03: replacing the `if [ -n "$J" ] && command -v typst ...` guard with `if true`.
+      - DELIV-04: a live measurement. The analysis it names lives under the untracked
+        `.first-principles/` directory; FIG-GATE's own fixture
+        `analysis-20261001T204943Z.json` is derived from it but checks figure counts (FIG-02/03's
+        claim), not the reports or their pages. No script reads the live run's capture.
+    """
+    _repro_v917 = (
+        "Mutate-run-restore turned a registered gate RED, each probe in its own detached "
+        "worktree: DUAL-04 (`scripts/sync-content.py --check`) for RPT-03 and FIG-01; SUMM-BLOCK "
+        "(`scripts/check-summary-block.py`, CI job `check-summary-block`) for SUMM-05, SUMM-06 "
+        "and SUMM-07; FIG-GATE (`scripts/check-report-figures.py --self-test`, CI job "
+        "`check-report-figures`) for FIG-01..04; REG-GUARD (`scripts/check-registration.py`) "
+        "for FIG-05. Mutations, exit codes and failing controls are recorded in this function's "
+        "docstring."
+    )
+    _repro_summ07_v917 = (
+        _repro_v917 + " DISCLOSED BOUND: only the worked-example clause is pinned -- deleting "
+        "the agent body's `conclusion.rests_on` instruction left the full battery GREEN."
+    )
+    _repro_fig02_v917 = (
+        _repro_v917 + " DISCLOSED BOUND: FIG-GATE compares drawn counts, not stroke style -- "
+        "setting the unverified-edge dash to `none` left the full battery GREEN, so the "
+        "solid/dashed and fill-by-confidence clauses are unpinned."
+    )
+    _audit_body_v917 = (
+        "No registered gate reads the delivery steps. Measured by mutate-run-restore, not "
+        "assumed: the distinguishing line of the step in `shared/spine/SKILL-body.md` was "
+        "deleted or altered, the tree regenerated via `sync-content.py --write`, and `bash "
+        "scripts/check-firewall-battery.sh` run in a detached worktree -- GREEN."
+    )
+    _audit_deliv04_v917 = (
+        "A live measurement no gate re-runs. The analysis it names sits under the untracked "
+        "`.first-principles/` directory; FIG-GATE's fixture `analysis-20261001T204943Z.json` is "
+        "derived from it but checks only drawn figure counts (FIG-02/03's claim), never the "
+        "reports, the PDF or its pages. No script reads the live run's capture."
+    )
+    return [
+        MatrixRow('v9.17/RPT-01', 'RPT-01', 'v9.17', 'Test-Network',
+                  'shared/spine/SKILL-body.md', 'audit-only',
+                  '', _audit_body_v917,
+                  surfaces=('agent',),
+                  statement=(
+                      "A full-agent run writes `report-<UTC>.md` beside the working file: a "
+                      "title, a date line, the `## Answer` block retitled `## Executive "
+                      "Summary`, then the six sections, with the process-output appendix, the "
+                      "structured summary, `**Disclosed:**` paragraphs and `**Pre-check:**` "
+                      "lines left out."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.17/RPT-02', 'RPT-02', 'v9.17', 'Test-Network',
+                  'shared/spine/references/report-layout.md', 'audit-only',
+                  '', _audit_body_v917,
+                  surfaces=('agent',),
+                  statement=(
+                      "A full-agent run writes `report-<UTC>.pdf` from that Markdown report with "
+                      "pandoc and the typst engine through the page template carried in "
+                      "`shared/spine/references/report-layout.md`; when pandoc or typst is "
+                      "absent the Markdown report is still written and the final message says "
+                      "the PDF was not produced and why."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.17/RPT-03', 'RPT-03', 'v9.17', 'Test-Network',
+                  'shared/spine/references/report-layout.md', 'reproducible',
+                  'scripts/sync-content.py', _repro_v917,
+                  surfaces=('agent',),
+                  statement=(
+                      "`report-layout.md` is a registered spine reference emitted by "
+                      "`sync-content.py` (`GENERATED_TARGET_COUNT` reflects it) and the battery "
+                      "is GREEN with it in the tree."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.17/SUMM-05', 'SUMM-05', 'v9.17', 'Test-Network',
+                  'shared/spine/references/summary-schema.json', 'reproducible',
+                  'scripts/check-summary-block.py', _repro_v917,
+                  surfaces=('agent',),
+                  statement=(
+                      "The summary schema carries an add-only `conclusion.rests_on` array (ids "
+                      "of the form `GT-N`, `GT-N?` or `Cn`) sourced from the section 6 "
+                      "Conclusion's `**Pre-check:**` head line; `schema_version` stays 1 and a "
+                      "legacy document whose section 6 carries no Pre-check line writes null."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.17/SUMM-06', 'SUMM-06', 'v9.17', 'Test-Network',
+                  'scripts/check-summary-block.py', 'reproducible',
+                  'scripts/check-summary-block.py', _repro_v917,
+                  surfaces=('agent',),
+                  statement=(
+                      "`check-summary-block.py` cross-checks `conclusion.rests_on` against the "
+                      "Pre-check head line, and a must-fail control that drops one cited id "
+                      "fails for its own finding code while the same report with the id "
+                      "restored passes."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.17/SUMM-07', 'SUMM-07', 'v9.17', 'Test-Network',
+                  'shared/examples/', 'reproducible',
+                  'scripts/check-summary-block.py', _repro_summ07_v917,
+                  surfaces=('agent',),
+                  statement=(
+                      "The agent body (and output template, where it lists the fields) "
+                      "instructs the field, and every worked example's block carries it, so "
+                      "`--exemplar` mode stays green on both surfaces."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.17/FIG-01', 'FIG-01', 'v9.17', 'Test-Network',
+                  'shared/spine/references/report-figures.md', 'reproducible',
+                  'scripts/check-report-figures.py', _repro_v917,
+                  surfaces=('agent',),
+                  statement=(
+                      "`shared/spine/references/report-figures.md` ships a typst figure library "
+                      "in a fenced block, emitted by sync as a spine reference (no executable "
+                      "script ships in the plugin)."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.17/FIG-02', 'FIG-02', 'v9.17', 'Test-Network',
+                  'shared/spine/references/report-figures.md', 'reproducible',
+                  'scripts/check-report-figures.py', _repro_fig02_v917,
+                  surfaces=('agent',),
+                  statement=(
+                      "The evidence-trace figure draws every ground truth, every chain and the "
+                      "conclusion, with one edge per `rests_on` entry (chains and conclusion); "
+                      "read-at-source ground truths solid, unverified (`?`) dashed, chain and "
+                      "conclusion fill by confidence; no label overflows its node at the ids "
+                      "and confidence values the schema allows."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.17/FIG-03', 'FIG-03', 'v9.17', 'Test-Network',
+                  'shared/spine/references/report-figures.md', 'reproducible',
+                  'scripts/check-report-figures.py', _repro_v917,
+                  surfaces=('agent',),
+                  statement=(
+                      "The assumption verdict matrix draws type x verdict counts whose cell "
+                      "total equals the number of assumptions."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.17/FIG-04', 'FIG-04', 'v9.17', 'Test-Network',
+                  'shared/spine/references/report-figures.md', 'reproducible',
+                  'scripts/check-report-figures.py', _repro_v917,
+                  surfaces=('agent',),
+                  statement=(
+                      "Each figure emits `#metadata` counts (nodes, edges, cells) readable by "
+                      "`typst query`."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.17/FIG-05', 'FIG-05', 'v9.17', 'Test-Network',
+                  'scripts/check-report-figures.py', 'reproducible',
+                  'scripts/check-registration.py', _repro_v917,
+                  surfaces=('agent',),
+                  statement=(
+                      "An offline `--self-test` gate renders both figures from fixture summaries "
+                      "and asserts via `typst query` that edge count equals the total of all "
+                      "`rests_on` entries and matrix total equals the assumption count, with "
+                      "must-fail controls (a dropped edge, a miscounted cell) each failing for "
+                      "its own reason; it reports BLOCKED (exit 2), not PASS, when typst is "
+                      "absent; registered in the battery, CI and the generated gate docs."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.17/DELIV-01', 'DELIV-01', 'v9.17', 'Test-Network',
+                  'shared/spine/SKILL-body.md', 'audit-only',
+                  '', _audit_body_v917,
+                  surfaces=('agent',),
+                  statement=(
+                      "The agent's delivery steps extract the structured-summary JSON and "
+                      "compile each figure to `report-<UTC>-fig-<name>.svg` beside the report."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.17/DELIV-02', 'DELIV-02', 'v9.17', 'Test-Network',
+                  'shared/spine/SKILL-body.md', 'audit-only',
+                  '', _audit_body_v917,
+                  surfaces=('agent',),
+                  statement=(
+                      "The Markdown report links the evidence trace under section 4 and the "
+                      "verdict matrix under section 2; the PDF embeds the same SVGs."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.17/DELIV-03', 'DELIV-03', 'v9.17', 'Test-Network',
+                  'shared/spine/SKILL-body.md', 'audit-only',
+                  '', _audit_body_v917,
+                  surfaces=('agent',),
+                  statement=(
+                      "When typst is absent or the JSON block cannot be extracted, no figure "
+                      "file and no image link is written and the Markdown report is otherwise "
+                      "unchanged."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.17/DELIV-04', 'DELIV-04', 'v9.17', 'Test-Network',
+                  'shared/spine/SKILL-body.md', 'audit-only',
+                  '', _audit_deliv04_v917,
+                  surfaces=('agent',),
+                  statement=(
+                      "Measured: on `.first-principles/analysis-20261001T204943Z.md`, "
+                      "re-run through the shipped delivery steps, both reports carry correct "
+                      "figures and all 11 PDF pages were inspected as images. On one fresh live "
+                      "run, the figures were correct but the PDF step failed: the page template "
+                      "bound typst's built-in `divider` name to content, and pandoc emits "
+                      "`#divider()` for every Markdown `---`. Fixed in `report-layout.md` "
+                      "(8e89303c); the live analysis was then re-delivered through the shipped "
+                      "steps and all 8 of its PDF pages were inspected, with no overflowing or "
+                      "clipped label, illegible font or figure outside the margins."
+                  ),
+                  rerun_by='none'),
+    ]
+
+
 def _rows_v910() -> list[MatrixRow]:
     """v9.10.0 milestone rows -- 23 requirements, 0 reproducible + 23 audit-only.
 
@@ -8320,6 +8581,8 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v911())
     # --- v9.16.0 -- 7 reproducible + 8 audit-only (measured) ---
     rows.extend(_rows_v916())
+    # --- v9.17.0 -- 9 reproducible + 6 audit-only (measured) ---
+    rows.extend(_rows_v917())
     return rows
 
 

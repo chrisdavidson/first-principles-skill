@@ -13,6 +13,18 @@ installed session.
 
 ## [Unreleased]
 
+## [9.17.0] — 2026-10-02
+
+Milestone release: **v9.17.0 Report Figures**. A full-agent analysis now ends in two reader
+copies beside the working file — `report-<UTC>.md` and, when pandoc and typst are installed,
+`report-<UTC>.pdf` — each carrying two figures drawn from the structured summary: an evidence
+trace from ground truths through chains to the conclusion, and an assumption verdict matrix. The
+working file is unchanged and remains the audit record. To draw the conclusion's own edges, the
+structured summary gains `conclusion.rests_on`. The figures come from a typst library shipped as
+a Markdown spine reference, so the plugin still ships no executable code, and the new FIG-GATE
+renders them against real and worst-case fixtures and checks every drawn count against the
+source JSON. Without typst the figures are skipped, and the final message says which and why.
+
 ### Added — reader reports beside every analysis
 
 A full-agent run now also writes `report-<UTC>.md` beside the working file
@@ -95,6 +107,43 @@ content`. Every pre-existing test fixture happened to contain zero `---` lines, 
 invisible until a 2026-10-02 live full-agent run — whose own analysis used `---` between sections,
 as the shipped output format does — hit it and the PDF step silently produced no PDF. `divider` is
 now defined as a function, keeping the report's gray stroke styling.
+
+### Changed — release
+
+- All 17 stamps `9.16.0` → `9.17.0`. Coverage `255/256/0/511` → `264/262/0/526`, ledger row 32.
+- `_rows_v917()` registers this milestone's 15 requirements: 9 reproducible (RPT-03, SUMM-05,
+  SUMM-06, SUMM-07, FIG-01, FIG-02, FIG-03, FIG-04, FIG-05 — each pinned to the gate whose
+  mutate-run-restore probe actually turned it red: DUAL-04, SUMM-BLOCK, FIG-GATE and REG-GUARD)
+  and 6 audit-only (RPT-01, RPT-02, DELIV-01, DELIV-02, DELIV-03, DELIV-04). Every probe of the
+  agent body's delivery steps left `FIREWALL: GREEN (31/31)`, because no registered gate reads
+  them. Two clauses of reproducible rows are disclosed as unpinned on the same evidence: the agent
+  body's `conclusion.rests_on` instruction (SUMM-07), and the figure's dash and fill styling
+  (FIG-02), since FIG-GATE compares counts, not stroke style.
+
+### Measured — two live full-agent runs
+
+- **typst absent** (Phase 79, $3.11): the Markdown report was written and the final message said
+  the PDF was not produced and why — the fallback behaved as shipped.
+- **Figures** (Phase 82, $2.97): both SVGs were drawn and linked under §2 and §4, and the
+  evidence trace's conclusion edges matched the live block's `conclusion.rests_on` (6 of 6), but
+  the PDF step failed. That run found the `divider` defect fixed above. The agent diagnosed it
+  correctly in its own hand-back and fell back as the steps prescribe. After the fix, the live
+  analysis was re-delivered through the shipped steps, and every page of both PDFs checked — 8
+  live, 11 from the earlier real analysis — was inspected as an image.
+
+### Fixed — code review
+
+- `af83c7e4`: a heading directly after a skipped `**Disclosed:**` paragraph is kept; the final
+  message's read-in-full line is restored; a failed Markdown report skips the PDF step.
+- `cc066008`: the section 6 Pre-check head parser skips fenced code, so an illustrative fenced
+  Pre-check line is no longer read as the Conclusion's (`C25` gains a fenced-decoy leg).
+- `fb194f12`: the verdict matrix's legend is set inside the matrix's width, so its canvas no
+  longer widens past the table.
+- `74c0632a`: rerunning the figure step replaces the figure links instead of adding to them, and
+  each skip reason names what actually happened.
+
+`FIREWALL: GREEN (31/31)`; `sync-content.py --check` clean; VERSION-01 green on all 17 stamps;
+`claude plugin validate` passed.
 
 ## [9.16.0] — 2026-10-01
 

@@ -7870,5 +7870,230 @@
     ],
     "statement": "A final report lists the schema (fields and enums), where the block is written, the 14-run table (block present / checker result / cost / words, before and after), and every run where block and prose disagreed with which was wrong -- written where agent-router's integration can read it.",
     "rerun_by": "none"
+  },
+  {
+    "key": "v9.17/RPT-01",
+    "bare_id": "RPT-01",
+    "milestone": "v9.17",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads the delivery steps. Measured by mutate-run-restore, not assumed: the distinguishing line of the step in `shared/spine/SKILL-body.md` was deleted or altered, the tree regenerated via `sync-content.py --write`, and `bash scripts/check-firewall-battery.sh` run in a detached worktree -- GREEN.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "A full-agent run writes `report-<UTC>.md` beside the working file: a title, a date line, the `## Answer` block retitled `## Executive Summary`, then the six sections, with the process-output appendix, the structured summary, `**Disclosed:**` paragraphs and `**Pre-check:**` lines left out.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.17/RPT-02",
+    "bare_id": "RPT-02",
+    "milestone": "v9.17",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/references/report-layout.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads the delivery steps. Measured by mutate-run-restore, not assumed: the distinguishing line of the step in `shared/spine/SKILL-body.md` was deleted or altered, the tree regenerated via `sync-content.py --write`, and `bash scripts/check-firewall-battery.sh` run in a detached worktree -- GREEN.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "A full-agent run writes `report-<UTC>.pdf` from that Markdown report with pandoc and the typst engine through the page template carried in `shared/spine/references/report-layout.md`; when pandoc or typst is absent the Markdown report is still written and the final message says the PDF was not produced and why.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.17/RPT-03",
+    "bare_id": "RPT-03",
+    "milestone": "v9.17",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/references/report-layout.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/sync-content.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree: DUAL-04 (`scripts/sync-content.py --check`) for RPT-03 and FIG-01; SUMM-BLOCK (`scripts/check-summary-block.py`, CI job `check-summary-block`) for SUMM-05, SUMM-06 and SUMM-07; FIG-GATE (`scripts/check-report-figures.py --self-test`, CI job `check-report-figures`) for FIG-01..04; REG-GUARD (`scripts/check-registration.py`) for FIG-05. Mutations, exit codes and failing controls are recorded in this function's docstring.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "`report-layout.md` is a registered spine reference emitted by `sync-content.py` (`GENERATED_TARGET_COUNT` reflects it) and the battery is GREEN with it in the tree.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.17/SUMM-05",
+    "bare_id": "SUMM-05",
+    "milestone": "v9.17",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/references/summary-schema.json",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-summary-block.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree: DUAL-04 (`scripts/sync-content.py --check`) for RPT-03 and FIG-01; SUMM-BLOCK (`scripts/check-summary-block.py`, CI job `check-summary-block`) for SUMM-05, SUMM-06 and SUMM-07; FIG-GATE (`scripts/check-report-figures.py --self-test`, CI job `check-report-figures`) for FIG-01..04; REG-GUARD (`scripts/check-registration.py`) for FIG-05. Mutations, exit codes and failing controls are recorded in this function's docstring.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The summary schema carries an add-only `conclusion.rests_on` array (ids of the form `GT-N`, `GT-N?` or `Cn`) sourced from the section 6 Conclusion's `**Pre-check:**` head line; `schema_version` stays 1 and a legacy document whose section 6 carries no Pre-check line writes null.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.17/SUMM-06",
+    "bare_id": "SUMM-06",
+    "milestone": "v9.17",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-summary-block.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-summary-block.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree: DUAL-04 (`scripts/sync-content.py --check`) for RPT-03 and FIG-01; SUMM-BLOCK (`scripts/check-summary-block.py`, CI job `check-summary-block`) for SUMM-05, SUMM-06 and SUMM-07; FIG-GATE (`scripts/check-report-figures.py --self-test`, CI job `check-report-figures`) for FIG-01..04; REG-GUARD (`scripts/check-registration.py`) for FIG-05. Mutations, exit codes and failing controls are recorded in this function's docstring.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "`check-summary-block.py` cross-checks `conclusion.rests_on` against the Pre-check head line, and a must-fail control that drops one cited id fails for its own finding code while the same report with the id restored passes.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.17/SUMM-07",
+    "bare_id": "SUMM-07",
+    "milestone": "v9.17",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/examples/",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-summary-block.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree: DUAL-04 (`scripts/sync-content.py --check`) for RPT-03 and FIG-01; SUMM-BLOCK (`scripts/check-summary-block.py`, CI job `check-summary-block`) for SUMM-05, SUMM-06 and SUMM-07; FIG-GATE (`scripts/check-report-figures.py --self-test`, CI job `check-report-figures`) for FIG-01..04; REG-GUARD (`scripts/check-registration.py`) for FIG-05. Mutations, exit codes and failing controls are recorded in this function's docstring. DISCLOSED BOUND: only the worked-example clause is pinned -- deleting the agent body's `conclusion.rests_on` instruction left the full battery GREEN.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The agent body (and output template, where it lists the fields) instructs the field, and every worked example's block carries it, so `--exemplar` mode stays green on both surfaces.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.17/FIG-01",
+    "bare_id": "FIG-01",
+    "milestone": "v9.17",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/references/report-figures.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-report-figures.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree: DUAL-04 (`scripts/sync-content.py --check`) for RPT-03 and FIG-01; SUMM-BLOCK (`scripts/check-summary-block.py`, CI job `check-summary-block`) for SUMM-05, SUMM-06 and SUMM-07; FIG-GATE (`scripts/check-report-figures.py --self-test`, CI job `check-report-figures`) for FIG-01..04; REG-GUARD (`scripts/check-registration.py`) for FIG-05. Mutations, exit codes and failing controls are recorded in this function's docstring.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "`shared/spine/references/report-figures.md` ships a typst figure library in a fenced block, emitted by sync as a spine reference (no executable script ships in the plugin).",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.17/FIG-02",
+    "bare_id": "FIG-02",
+    "milestone": "v9.17",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/references/report-figures.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-report-figures.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree: DUAL-04 (`scripts/sync-content.py --check`) for RPT-03 and FIG-01; SUMM-BLOCK (`scripts/check-summary-block.py`, CI job `check-summary-block`) for SUMM-05, SUMM-06 and SUMM-07; FIG-GATE (`scripts/check-report-figures.py --self-test`, CI job `check-report-figures`) for FIG-01..04; REG-GUARD (`scripts/check-registration.py`) for FIG-05. Mutations, exit codes and failing controls are recorded in this function's docstring. DISCLOSED BOUND: FIG-GATE compares drawn counts, not stroke style -- setting the unverified-edge dash to `none` left the full battery GREEN, so the solid/dashed and fill-by-confidence clauses are unpinned.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The evidence-trace figure draws every ground truth, every chain and the conclusion, with one edge per `rests_on` entry (chains and conclusion); read-at-source ground truths solid, unverified (`?`) dashed, chain and conclusion fill by confidence; no label overflows its node at the ids and confidence values the schema allows.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.17/FIG-03",
+    "bare_id": "FIG-03",
+    "milestone": "v9.17",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/references/report-figures.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-report-figures.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree: DUAL-04 (`scripts/sync-content.py --check`) for RPT-03 and FIG-01; SUMM-BLOCK (`scripts/check-summary-block.py`, CI job `check-summary-block`) for SUMM-05, SUMM-06 and SUMM-07; FIG-GATE (`scripts/check-report-figures.py --self-test`, CI job `check-report-figures`) for FIG-01..04; REG-GUARD (`scripts/check-registration.py`) for FIG-05. Mutations, exit codes and failing controls are recorded in this function's docstring.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The assumption verdict matrix draws type x verdict counts whose cell total equals the number of assumptions.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.17/FIG-04",
+    "bare_id": "FIG-04",
+    "milestone": "v9.17",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/references/report-figures.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-report-figures.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree: DUAL-04 (`scripts/sync-content.py --check`) for RPT-03 and FIG-01; SUMM-BLOCK (`scripts/check-summary-block.py`, CI job `check-summary-block`) for SUMM-05, SUMM-06 and SUMM-07; FIG-GATE (`scripts/check-report-figures.py --self-test`, CI job `check-report-figures`) for FIG-01..04; REG-GUARD (`scripts/check-registration.py`) for FIG-05. Mutations, exit codes and failing controls are recorded in this function's docstring.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Each figure emits `#metadata` counts (nodes, edges, cells) readable by `typst query`.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.17/FIG-05",
+    "bare_id": "FIG-05",
+    "milestone": "v9.17",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-report-figures.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-registration.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree: DUAL-04 (`scripts/sync-content.py --check`) for RPT-03 and FIG-01; SUMM-BLOCK (`scripts/check-summary-block.py`, CI job `check-summary-block`) for SUMM-05, SUMM-06 and SUMM-07; FIG-GATE (`scripts/check-report-figures.py --self-test`, CI job `check-report-figures`) for FIG-01..04; REG-GUARD (`scripts/check-registration.py`) for FIG-05. Mutations, exit codes and failing controls are recorded in this function's docstring.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "An offline `--self-test` gate renders both figures from fixture summaries and asserts via `typst query` that edge count equals the total of all `rests_on` entries and matrix total equals the assumption count, with must-fail controls (a dropped edge, a miscounted cell) each failing for its own reason; it reports BLOCKED (exit 2), not PASS, when typst is absent; registered in the battery, CI and the generated gate docs.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.17/DELIV-01",
+    "bare_id": "DELIV-01",
+    "milestone": "v9.17",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads the delivery steps. Measured by mutate-run-restore, not assumed: the distinguishing line of the step in `shared/spine/SKILL-body.md` was deleted or altered, the tree regenerated via `sync-content.py --write`, and `bash scripts/check-firewall-battery.sh` run in a detached worktree -- GREEN.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The agent's delivery steps extract the structured-summary JSON and compile each figure to `report-<UTC>-fig-<name>.svg` beside the report.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.17/DELIV-02",
+    "bare_id": "DELIV-02",
+    "milestone": "v9.17",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads the delivery steps. Measured by mutate-run-restore, not assumed: the distinguishing line of the step in `shared/spine/SKILL-body.md` was deleted or altered, the tree regenerated via `sync-content.py --write`, and `bash scripts/check-firewall-battery.sh` run in a detached worktree -- GREEN.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The Markdown report links the evidence trace under section 4 and the verdict matrix under section 2; the PDF embeds the same SVGs.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.17/DELIV-03",
+    "bare_id": "DELIV-03",
+    "milestone": "v9.17",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads the delivery steps. Measured by mutate-run-restore, not assumed: the distinguishing line of the step in `shared/spine/SKILL-body.md` was deleted or altered, the tree regenerated via `sync-content.py --write`, and `bash scripts/check-firewall-battery.sh` run in a detached worktree -- GREEN.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "When typst is absent or the JSON block cannot be extracted, no figure file and no image link is written and the Markdown report is otherwise unchanged.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.17/DELIV-04",
+    "bare_id": "DELIV-04",
+    "milestone": "v9.17",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "A live measurement no gate re-runs. The analysis it names sits under the untracked `.first-principles/` directory; FIG-GATE's fixture `analysis-20261001T204943Z.json` is derived from it but checks only drawn figure counts (FIG-02/03's claim), never the reports, the PDF or its pages. No script reads the live run's capture.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Measured: on `.first-principles/analysis-20261001T204943Z.md`, re-run through the shipped delivery steps, both reports carry correct figures and all 11 PDF pages were inspected as images. On one fresh live run, the figures were correct but the PDF step failed: the page template bound typst's built-in `divider` name to content, and pandoc emits `#divider()` for every Markdown `---`. Fixed in `report-layout.md` (8e89303c); the live analysis was then re-delivered through the shipped steps and all 8 of its PDF pages were inspected, with no overflowing or clipped label, illegible font or figure outside the margins.",
+    "rerun_by": "none"
   }
 ]
