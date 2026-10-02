@@ -4,10 +4,12 @@ Five hand-written persona views used by `scripts/check-persona-view.py`'s `--sel
 its CLI-mode smoke checks. Every fixture cites only facts, ids and numbers that its named source
 analysis already carries — none is derived from a user's private analysis (D-08).
 
-Each fixture is in the Phase 87 question format: the five-line header, then exactly four
-single-line bullets, one per the role's fixed `**Questions (in order):**` list from
-`shared/spine/references/persona-views.md`, each bullet's bold lead-in the question verbatim and
-the rest of the line its cited answer. No other body content is present.
+Each fixture is in the Phase 87 memo format (D-11): the nine-line memo header (title line, blank,
+the To/Re/Basis/Band blockquote block, blank, the provenance sentence, blank), then exactly five
+single-line prose paragraphs separated by blank lines — an `In brief:` paragraph first, then one
+paragraph per the role's fixed `**Questions (in order):**` list from
+`shared/spine/references/persona-views.md`, in order. The questions themselves are never printed;
+no bullets, bold labels or headings appear in the body.
 
 ## Provenance
 
@@ -37,10 +39,10 @@ declares it is not) must also fail with exactly `PV-ID`. Both are exercised as t
 ## Hand-written, not generated
 
 Every fixture here is hand-written directly against the persona contract
-(`shared/spine/references/persona-views.md`): the exact five-line header, the role's fixed
-question list in order, the role's word band, and the citation grammar. None is copied from, or
-post-processed from, the output of a live `first-principles` run — with the one exception named
-below.
+(`shared/spine/references/persona-views.md`): the exact nine-line memo header, the `In brief:`
+paragraph, the role's fixed question list answered in order as prose paragraphs, the role's word
+band, and the citation grammar. None is copied from, or post-processed from, the output of a live
+`first-principles` run — with the one exception named below.
 
 ## Frozen pre-87 must-fail fixture
 
@@ -51,4 +53,6 @@ commit `87e9d0ac` (`shared/persona-examples/product-business-2-decision-owner.md
 new voice rule. It is the one file in this directory that is not hand-written, and it is never
 edited. It exists so PERSONA-GATE can show it fails for PV-DIRECTIVE: it opens "Decide to build
 the reporting rewrite this quarter..." and repeats several consecutive words of §6's own
-`**Recommended approach:**` line — the restated-recommendation shape the voice rule now bars.
+`**Recommended approach:**` line — the restated-recommendation shape the voice rule now bars. It
+keeps its original pre-memo five-line header by design: it is a byte-frozen copy and is never
+rewritten to the Phase 87 memo shape, including this plan's own revision of that shape.

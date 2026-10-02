@@ -9,10 +9,10 @@ carry.
 
 | Slug | Title | Body words |
 |------|-------|------------|
-| decision-owner | Decision Owner | 93–173 |
+| decision-owner | Decision Owner | 90–170 |
 | operator | Operator | 90–170 |
-| risk | Risk | 80–160 |
-| skeptic | Skeptic | 86–166 |
+| risk | Risk | 90–170 |
+| skeptic | Skeptic | 90–170 |
 
 This table is the single source for role slugs, titles and word bands. Cells are plain text — no
 backticks, no bold — so a checker can read them mechanically rather than this contract's bands
@@ -20,35 +20,41 @@ being retyped elsewhere.
 
 ## File format
 
-Every persona view file carries this exact five-line header, then a body:
+Every persona view file carries this exact nine-line header, then a body:
 
 ```text
-# <Title> view — <analysis title>
+# <Title> memo — <analysis title>
+
+> **To:** <Title>\
+> **Re:** <analysis title>\
+> **Basis:** analysis-<UTC>.md\
+> **Band (from §6):** HIGH|MEDIUM|LOW
 
 *Derived from §6 and the structured summary of analysis-<UTC>.md; the six sections remain the source of truth.*
 
-**Band (from §6):** HIGH|MEDIUM|LOW
-
 ```
 
-- Line 1 is `# <Title> view — <analysis title>` (em dash), where `<Title>` is the roster's Title
+- Line 1 is `# <Title> memo — <analysis title>` (em dash), where `<Title>` is the roster's Title
   column and `<analysis title>` is the analysis's own title.
 - Line 2 is blank.
-- Line 3 is the provenance sentence, italicised, verbatim: `*Derived from §6 and the structured
-  summary of analysis-<UTC>.md; the six sections remain the source of truth.*` — `analysis-<UTC>.md`
-  names the basename of the analysis the view was derived from; a view of a file named
-  differently names that file's own basename in this sentence.
-- Line 4 is blank.
-- Line 5 is `**Band (from §6):** HIGH|MEDIUM|LOW`, equal to the analysis's own §6
-  `**Confidence:**` band.
-- Line 6 is blank.
-- Line 7 onward is the body: exactly one `- ` bullet per role question, in the order the role
-  section's Questions list states them, each written on a single line — no paragraphs outside a
-  bullet, no other headings, tables, code fences or numbered lists.
+- Line 3 is `> **To:** <Title>\`, ending in a hard-break backslash; `<Title>` equals the roster's
+  Title column exactly, the same value as line 1's.
+- Line 4 is `> **Re:** <analysis title>\`, ending in a hard-break backslash; identical to line 1's
+  analysis title.
+- Line 5 is `> **Basis:** <analysis basename>\`, ending in a hard-break backslash; `<analysis
+  basename>` names the basename of the analysis the view was derived from.
+- Line 6 is `> **Band (from §6):** HIGH|MEDIUM|LOW`, with no trailing backslash, equal to the
+  analysis's own §6 `**Confidence:**` band.
+- Line 7 is blank.
+- Line 8 is the provenance sentence, italicised, verbatim: `*Derived from §6 and the structured
+  summary of analysis-<UTC>.md; the six sections remain the source of truth.*` — naming the same
+  basename as line 5.
+- Line 9 is blank.
+- Line 10 onward is the body: prose paragraphs separated by one blank line, each paragraph written
+  on a single physical line — no bullets, numbered lists, headings, tables, code fences or
+  blockquotes in the body, and no paragraph opening with bold text.
 
-Body words are counted over everything after line 5, whitespace-separated; each bullet's leading
-`- ` marker is not itself counted as a word. The bold question text at the start of each bullet
-counts toward the body's word count.
+Body words are counted over everything after line 8, whitespace-separated.
 
 ## Citation grammar
 
@@ -56,8 +62,8 @@ A sentence ends at a `.`, `?` or `!` that is followed by whitespace or the end o
 except the `?` that closes a `GT-n?` id, and the `.` inside a decimal number, neither of which
 ends a sentence.
 
-Every body sentence, and every bullet, carries at least one citation token, drawn from: `Cn`,
-`GT-n`, `GT-n?`, `A-n`, `§1`–`§6`, or `§5 "<dead-end title>"`.
+Every body sentence carries at least one citation token, drawn from: `Cn`, `GT-n`, `GT-n?`, `A-n`,
+`§1`–`§6`, or `§5 "<dead-end title>"`.
 
 Resolution rules:
 
@@ -69,7 +75,7 @@ Resolution rules:
 - a quoted `§5 "<dead-end title>"` must match a `### Dead End:` heading in the analysis exactly.
 - every number in the body — including a `%`, a `$` figure, a decimal, a thousands separator, and
   each end of a range — must appear as a number somewhere in the analysis text.
-- the Band line (line 5) must equal the analysis's own §6 `**Confidence:**` band.
+- the Band line (line 6) must equal the analysis's own §6 `**Confidence:**` band.
 
 This grammar proves that every cited id resolves to something the analysis declares. It does not
 prove that the cited id actually supports the sentence it is attached to — it is a
@@ -78,13 +84,16 @@ presence-and-resolution check, not a semantic-support check.
 ## Questions
 
 Each role answers its fixed, ordered list of questions, held verbatim in its own section below.
-Each bullet opens with the question verbatim as a bold lead-in (`**<question>**`), followed by the
-answer on the same line. The first question of every role carries the value of the analysis to
-that reader. The question text itself is exempt from the citation rule, the same way an
-absent-input sentence is exempt — but the answer that follows it is not: every answer sentence
-carries a citation token. A reworded or invented question is not exempt and is an error. Where an
-absent-input sentence applies, it is written inside the answer to the question whose input is
-absent.
+The questions are the hidden order of the body: they are never printed. The body opens with a
+paragraph that starts `In brief:` — one or two cited sentences carrying what the analysis gives
+this reader, never a recommendation. Then exactly one paragraph per question, in the role's order,
+each answering its question in prose. Every sentence in every paragraph, the `In brief:` paragraph
+included, carries a citation token. Where an absent-input sentence applies, it is written inside
+the paragraph that answers the question whose input is absent.
+
+PERSONA-GATE checks this structure — the `In brief:` paragraph first, one more paragraph than the
+role has questions, no bullet line, no bold label, no printed question — and cannot check that each
+paragraph answers its own question.
 
 ## Voice
 
@@ -96,7 +105,7 @@ the conditions the analysis says it depends on.
 
 **Denylisted openers:** Build, Classify, Confirm, Consider, Decide, Finish, Keep, Move, Read, Reject, Risk-classify, Switch, Take, Treat; and the two-word opener "Do not".
 
-PERSONA-GATE's PV-DIRECTIVE check is lexical — it flags an answer sentence that opens with a
+PERSONA-GATE's PV-DIRECTIVE check is lexical — it flags a body sentence that opens with a
 denylisted word, any "you" or "your", a verdict on the reader, or a run of six or more consecutive
 words shared with §6's `**Recommended approach:**` paragraph; it over-reports by design and does
 not judge meaning.
@@ -186,19 +195,21 @@ aside, where the argument is weakest, and what evidence would overturn it.
 
 ## Self-check before emitting
 
-1. Header lines 1, 3 and 5 match the File format section exactly.
+1. Header lines 1, 3–6 and 8 match the File format section exactly, including the hard-break
+   backslash at the end of lines 3–5.
 2. The Band line equals the analysis's §6 `**Confidence:**` band.
-3. The body word count (everything after line 5) falls inside this role's band from the Persona
+3. The body word count (everything after line 8) falls inside this role's band from the Persona
    roster.
-4. Every body sentence and every bullet carries at least one citation token.
+4. Every body sentence carries at least one citation token, the In brief paragraph included.
 5. Every cited `Cn`, `GT-n`/`GT-n?`, `A-n` or quoted dead-end title resolves against the analysis.
 6. Every number in the body appears as a number in the analysis.
-7. The body carries no heading, table or code fence.
+7. The body carries no heading, table, code fence, blockquote, bullet or numbered list.
 8. Where an input is absent, the fixed absent-input sentence is used verbatim — never filled in
    with invented content.
-9. Every role question appears verbatim and in order as the bold lead-in of its own single-line
-   bullet, there is no other body content, and every answer carries a citation.
-10. No answer sentence opens with a denylisted opener, uses you or your, passes a verdict on the
+9. The body opens with a paragraph that starts `In brief:`, then exactly one prose paragraph per
+   role question in the role's order; no question is printed and no paragraph opens with a bold
+   label.
+10. No body sentence opens with a denylisted opener, uses you or your, passes a verdict on the
     reader, or repeats six or more consecutive words of §6's recommended approach.
 
 The repo gate `scripts/check-persona-view.py` (PERSONA-GATE) enforces items 2 through 7, 9 and 10

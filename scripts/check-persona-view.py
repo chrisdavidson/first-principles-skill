@@ -7,31 +7,33 @@
 
 Proves that a persona view (a role-scoped overlay of one delivered first-principles
 analysis — decision-owner, operator, risk, skeptic) adds no claim its source analysis
-does not already carry. Checks, mechanically: the file-format header (title line,
-provenance sentence, Band line), the body's word count against the role's band, that
-every role's fixed question list appears verbatim and in order as each bullet's bold
-lead-in (PV-QUESTIONS) with a dropped, reordered or invented question each failing
-alone, that every body sentence and bullet carries a citation token (the question's
-own text is exempt, the answer after it is not), that every cited chain id,
-ground-truth id (including its `?` marking), assumption id and quoted dead-end title
-resolves against the source analysis, that every number in the body appears as a
-number in the source, and that the Band line agrees with the source's own §6
-confidence band. It also checks the companion business-reading guide names only
-sections and fields that exist in the output template, and that the guide stays
-inside its word ceiling.
+does not already carry. Checks, mechanically: the memo header (a title line, a
+To/Re/Basis/Band blockquote block, and the provenance sentence), the body's word count
+against the role's band, that the body is a memo -- an `In brief:` paragraph first,
+then exactly one paragraph per the role's fixed question in order, with no bullet
+line, no bold label and no printed question text (PV-QUESTIONS; it counts paragraphs
+and cannot prove each one answers its question), that every body sentence carries a
+citation token, that every cited chain id, ground-truth id (including its `?`
+marking), assumption id and quoted dead-end title resolves against the source
+analysis, that every number in the body appears as a number in the source, and that
+the Band line agrees with the source's own §6 confidence band. It also checks the
+companion business-reading guide names only sections and fields that exist in the
+output template, and that the guide stays inside its word ceiling.
 
-It also checks that an answer sentence never hands down a decision: no denylisted
+It also checks that a body sentence never hands down a decision: no denylisted
 imperative opener, no second-person address, no verdict on the reader, and no long
 verbatim run of §6's `**Recommended approach:**` paragraph (PV-DIRECTIVE).
 
 What this does NOT prove: that a cited id actually supports the sentence it is
-attached to. Resolving `(chain C1)` only shows the analysis declares a C1 — it does
-not show C1's content backs the claim beside it. That is a semantic-support question,
-deliberately out of scope here (see `citation-presence-not-semantic-support` in
-`--describe`). PV-DIRECTIVE is lexical, not semantic: it cannot see an imperative
-embedded after an introductory clause (sentence-initial only), and it compares only
-against §6's own Recommended approach paragraph, never the Answer block or the rest
-of the body (see `directive-check-is-lexical-not-semantic`,
+attached to, or that a paragraph's prose actually answers the question it sits at
+the position of (see `memo-structure-counts-paragraphs-not-answers` in `--describe`).
+Resolving `(chain C1)` only shows the analysis declares a C1 — it does not show C1's
+content backs the claim beside it. That is a semantic-support question, deliberately
+out of scope here (see `citation-presence-not-semantic-support` in `--describe`).
+PV-DIRECTIVE is lexical, not semantic: it cannot see an imperative embedded after an
+introductory clause (sentence-initial only), and it compares only against §6's own
+Recommended approach paragraph, never the Answer block or the rest of the body (see
+`directive-check-is-lexical-not-semantic`,
 `imperative-check-is-sentence-initial-only`, and
 `verbatim-run-checked-against-section6-recommended-approach-only` in `--describe`).
 
@@ -69,16 +71,18 @@ FIXTURES: tuple[tuple[str, str], ...] = (
     ("personal-general-risk.md", "shared/examples/personal-general.md"),
 )
 
-# D-04: the independent transcription this module's own contract-parity control
-# (P02) compares the shipped contract's roster table against. Band = each role's
-# fixed question words (33/30/20/26, counted by this module's own counting rule)
-# plus 60-140 words of answer; the D-01 approved sample (144 words) sits inside
-# the decision-owner band.
+# D-11 (Phase 87): the independent transcription this module's own
+# contract-parity control (P02) compares the shipped contract's roster table
+# against. Band = the In-brief words of the D-11 approved memo shape (30,
+# measured by this module's own whitespace-split counting rule over body
+# units) plus the 60-140 words of paragraph room measured in 87-01; the D-11
+# sample body (126 words) sits inside it. Question words no longer count
+# toward the band because the questions are hidden structure, never printed.
 LOCKED_ROSTER: dict[str, tuple[str, int, int]] = {
-    "decision-owner": ("Decision Owner", 93, 173),
+    "decision-owner": ("Decision Owner", 90, 170),
     "operator": ("Operator", 90, 170),
-    "risk": ("Risk", 80, 160),
-    "skeptic": ("Skeptic", 86, 166),
+    "risk": ("Risk", 90, 170),
+    "skeptic": ("Skeptic", 90, 170),
 }
 
 # D-05/P04: the independent transcription of the contract's four D-02 fixed
@@ -160,6 +164,11 @@ _READER_VERDICT_RE = re.compile(r"\b(?:objection|reader)\s+is\s+(?:right|wrong)\
 # single-sentence restatement (M-D-RUN) shares 9; the D-01 approved sample
 # shares none. 6 sits well inside that margin on both sides.
 VERBATIM_RUN_WORDS = 6
+
+# D-11 (Phase 87): the memo's own fixed structure -- the four blockquote
+# fields in order, and the literal opener of the body's first paragraph.
+MEMO_FIELDS: tuple[str, ...] = ("To", "Re", "Basis", "Band (from §6)")
+IN_BRIEF_PREFIX = "In brief:"
 
 
 class Finding(NamedTuple):
@@ -354,8 +363,21 @@ def numbers_in(text: str) -> set[str]:
 # Header
 # ---------------------------------------------------------------------------
 
-_TITLE_LINE_RE = re.compile(r"^# (?P<title>.+?) view — (?P<atitle>\S.*)$")
-_BAND_LINE_RE = re.compile(r"^\*\*Band \(from §6\):\*\* (?P<band>HIGH|MEDIUM|LOW)\s*$")
+_TITLE_LINE_RE = re.compile(r"^# (?P<title>.+?) memo — (?P<atitle>\S.*)$")
+# D-11 (Phase 87): the memo block is lines 3-6, each a blockquote field. To,
+# Re and Basis end in a CommonMark hard-break backslash; Band does not. A
+# missing hard-break backslash fails the field's own regex -- it is a miss,
+# the same as a missing or mismatched value.
+_MEMO_TO_RE = re.compile(r"^> \*\*To:\*\* (?P<v>.+?)\\$")
+_MEMO_RE_RE = re.compile(r"^> \*\*Re:\*\* (?P<v>.+?)\\$")
+_MEMO_BASIS_RE = re.compile(r"^> \*\*Basis:\*\* (?P<v>.+?)\\$")
+_MEMO_BAND_RE = re.compile(r"^> \*\*Band \(from §6\):\*\* (?P<band>HIGH|MEDIUM|LOW)\s*$")
+_MEMO_FIELDS: tuple[tuple[str, re.Pattern, str], ...] = (
+    ("To", _MEMO_TO_RE, "v"),
+    ("Re", _MEMO_RE_RE, "v"),
+    ("Basis", _MEMO_BASIS_RE, "v"),
+    ("Band", _MEMO_BAND_RE, "band"),
+)
 
 
 @dataclass
@@ -367,41 +389,90 @@ class HeaderResult:
 
 
 def split_header(persona_text: str, analysis_name: str, roster: dict[str, tuple[str, int, int]]) -> HeaderResult:
+    """D-11: parse the nine-line memo header -- a title line, a blank, the
+    To/Re/Basis/Band blockquote block (lines 3-6), a blank, the provenance
+    sentence (line 8), a blank, then the body. Each memo-field miss (missing,
+    malformed, or disagreeing with line 1 / the analysis name) is its own
+    PV-HEADER finding naming the field; header finding details echo header
+    lines only, never body text."""
     findings: list[Finding] = []
     lines = persona_text.split("\n")
     title_to_slug = {title: slug for slug, (title, _lo, _hi) in roster.items()}
 
     role: str | None = None
+    title: str | None = None
+    atitle: str | None = None
     if lines:
         m = _TITLE_LINE_RE.match(lines[0])
         if m and m.group("title") in title_to_slug:
             role = title_to_slug[m.group("title")]
+            title = m.group("title")
+            atitle = m.group("atitle")
         else:
             findings.append(Finding("PV-HEADER", f"line 1 does not match a roster title: {lines[0]!r}"))
     else:
         findings.append(Finding("PV-HEADER", "persona file is empty"))
 
-    expected_provenance = "*" + PROVENANCE_TEMPLATE.format(name=analysis_name) + "*"
-    if len(lines) >= 3:
-        if lines[2].strip() != expected_provenance:
-            findings.append(Finding(
-                "PV-HEADER", f"line 3 does not match the provenance sentence: {lines[2]!r}"))
-    else:
-        findings.append(Finding("PV-HEADER", "persona file has fewer than 3 lines; missing provenance line"))
+    # The memo block is the contiguous run of lines starting `>` from line 3
+    # (index 2). A file carrying no such run (e.g. the frozen pre-87
+    # fixture) gets one "memo block missing" finding instead of four
+    # per-field misses, and the provenance search falls back to line 2 on.
+    memo_lines: list[str] = []
+    i = 2
+    while i < len(lines) and lines[i].startswith(">"):
+        memo_lines.append(lines[i])
+        i += 1
 
     band: str | None = None
-    band_idx: int | None = None
-    for i, line in enumerate(lines[:7]):
-        m = _BAND_LINE_RE.match(line.strip())
-        if m:
-            band = m.group("band")
-            band_idx = i
-            break
-    if band is None:
-        findings.append(Finding("PV-HEADER", "no **Band (from §6):** line found in the first seven lines"))
-        body_lines = lines[3:] if len(lines) > 3 else []
+    if not memo_lines:
+        findings.append(Finding("PV-HEADER", "memo block missing (lines 3-6 do not start with '>')"))
+        search_start = 1
     else:
-        body_lines = lines[band_idx + 1:]
+        values: dict[str, str] = {}
+        for idx, (name, pattern, group) in enumerate(_MEMO_FIELDS):
+            if idx >= len(memo_lines):
+                findings.append(Finding("PV-HEADER", f"memo field {name} missing"))
+                continue
+            line = memo_lines[idx]
+            m = pattern.match(line)
+            if not m:
+                findings.append(Finding("PV-HEADER", f"memo field {name} malformed: {line!r}"))
+                continue
+            values[name] = m.group(group)
+        if "To" in values and title is not None and values["To"] != title:
+            findings.append(Finding(
+                "PV-HEADER", f"To field {values['To']!r} disagrees with line 1's title {title!r}"))
+        if "Re" in values and atitle is not None and values["Re"] != atitle:
+            findings.append(Finding(
+                "PV-HEADER", f"Re field {values['Re']!r} disagrees with line 1's analysis title {atitle!r}"))
+        if "Basis" in values and values["Basis"] != analysis_name:
+            findings.append(Finding(
+                "PV-HEADER", f"Basis field {values['Basis']!r} disagrees with the analysis name {analysis_name!r}"))
+        band = values.get("Band")
+        search_start = 2 + len(memo_lines)
+
+    # The provenance line is the first non-blank line after the memo block.
+    # A line that opens the provenance shape but disagrees in content is a
+    # mismatch finding (still consumed); a line that is not provenance-shaped
+    # at all is a "provenance line missing" finding, and the body starts AT
+    # that line so no body paragraph is ever swallowed.
+    expected_provenance = "*" + PROVENANCE_TEMPLATE.format(name=analysis_name) + "*"
+    j = search_start
+    while j < len(lines) and lines[j].strip() == "":
+        j += 1
+    if j >= len(lines):
+        findings.append(Finding("PV-HEADER", "no provenance line found after the memo block"))
+        body_start = j
+    elif lines[j].strip().startswith("*Derived from"):
+        if lines[j].strip() != expected_provenance:
+            findings.append(Finding(
+                "PV-HEADER", f"provenance line does not match the expected sentence: {lines[j]!r}"))
+        body_start = j + 1
+    else:
+        findings.append(Finding("PV-HEADER", "provenance line missing"))
+        body_start = j
+
+    body_lines = lines[body_start:]
     while body_lines and body_lines[0].strip() == "":
         body_lines.pop(0)
     body = "\n".join(body_lines)
@@ -422,6 +493,7 @@ _HEADING_RE = re.compile(r"^\s*#{1,6}\s")
 _TABLE_ROW_RE = re.compile(r"^\s*\|")
 _CODE_FENCE_RE = re.compile(r"^\s*```")
 _NUMBERED_RE = re.compile(r"^\s*\d+[.)]\s")
+_BLOCKQUOTE_RE = re.compile(r"^\s*>")
 _BULLET_RE = re.compile(r"^-\s+(?P<text>.*)$")
 
 
@@ -439,7 +511,8 @@ def body_units(body: str) -> list[BodyUnit]:
             flush()
             continue
         if (_HEADING_RE.match(raw_line) or _TABLE_ROW_RE.match(raw_line)
-                or _CODE_FENCE_RE.match(raw_line) or _NUMBERED_RE.match(raw_line)):
+                or _CODE_FENCE_RE.match(raw_line) or _NUMBERED_RE.match(raw_line)
+                or _BLOCKQUOTE_RE.match(raw_line)):
             flush()
             units.append(BodyUnit("violation", raw_line.strip()))
             continue
@@ -580,66 +653,53 @@ def check_guide(guide_text: str, template_text: str) -> list[Finding]:
 
 
 # ---------------------------------------------------------------------------
-# Questions (Phase 87 D-05): each role answers its fixed, ordered question
-# list; the question text itself is exempt from the citation rule (like an
-# absent-input sentence) but the answer following it is not.
+# Questions (Phase 87 D-11): the body is a memo -- an `In brief:` paragraph
+# first, then exactly one paragraph per the role's fixed question, in order.
+# The questions are never printed; there is no citation exemption left for
+# any unit (the old bullet-lead-in exemption was a feature of the bullet
+# format this plan retires).
 # ---------------------------------------------------------------------------
 
-_LEAD_IN_RE = re.compile(r"^\*\*(?P<q>[^*]+?)\*\*\s*(?P<answer>.*)$")
+_BOLD_LEAD_RE = re.compile(r"^\*\*[^*]+\*\*")
 
 
 def check_questions(
     units: list[BodyUnit], expected: tuple[str, ...],
 ) -> tuple[list[Finding], list[str]]:
-    """Walk valid body units against a role's fixed `expected` question list.
+    """Walk the body's paragraph/bullet units against the memo structure.
 
-    Returns (findings, citation_texts): citation_texts is what the PV-UNCITED
-    sentence loop checks instead of raw unit text -- a matched question's
-    citation text is its answer only (the question itself is exempt); an
-    invented/reworded question, a bare paragraph or a lead-in-less bullet is
-    NOT exempt and contributes its full unit text instead.
+    Returns (findings, citation_texts): citation_texts is every unit's full
+    text -- no exemption remains, so the PV-UNCITED sentence loop checks the
+    `In brief:` paragraph exactly like every other unit. Findings name only
+    paragraph positions or the contract's own question text, never body
+    text, so a finding detail cannot leak a user's private analysis prose.
     """
     findings: list[Finding] = []
-    citations: list[str] = []
-    seen: list[str] = []
-    seen_set: set[str] = set()
+    citations = [u.text for u in units]
 
-    for u in units:
-        if u.kind == "paragraph":
+    for i, u in enumerate(units, start=1):
+        if u.kind == "bullet":
             findings.append(Finding(
-                "PV-QUESTIONS", f"content outside a question bullet: {u.text!r}"))
-            citations.append(u.text)
+                "PV-QUESTIONS", f"bullet line in a memo body (paragraph {i})"))
             continue
-        m = _LEAD_IN_RE.match(u.text)
-        if not m:
-            findings.append(Finding(
-                "PV-QUESTIONS", f"bullet has no bold question lead-in: {u.text!r}"))
-            citations.append(u.text)
-            continue
-        q = m.group("q").strip()
-        if q not in expected:
-            findings.append(Finding(
-                "PV-QUESTIONS", f"invented or reworded question: {q!r}"))
-            citations.append(u.text)
-            continue
-        if q in seen_set:
-            findings.append(Finding("PV-QUESTIONS", f"question repeated: {q!r}"))
-        else:
-            seen_set.add(q)
-            seen.append(q)
-        answer = m.group("answer").strip()
-        if not answer:
-            findings.append(Finding("PV-QUESTIONS", f"question has no answer: {q!r}"))
-        citations.append(answer)
+        if _BOLD_LEAD_RE.match(u.text):
+            findings.append(Finding("PV-QUESTIONS", f"paragraph {i} opens with a bold label"))
 
-    for q in expected:
-        if q not in seen_set:
-            findings.append(Finding("PV-QUESTIONS", f"missing question: {q!r}"))
+    if not units or not units[0].text.startswith(IN_BRIEF_PREFIX + " "):
+        findings.append(Finding("PV-QUESTIONS", "first paragraph does not open with 'In brief:'"))
 
-    expected_seen = [q for q in expected if q in seen_set]
-    if seen != expected_seen:
+    expected_count = 1 + len(expected)
+    if len(units) != expected_count:
         findings.append(Finding(
-            "PV-QUESTIONS", f"questions out of order: {seen} != {expected_seen}"))
+            "PV-QUESTIONS",
+            f"expected {expected_count} paragraphs (In brief plus one per question), "
+            f"found {len(units)}"))
+
+    combined = " ".join(u.text for u in units)
+    for q in expected:
+        if q in combined:
+            findings.append(Finding(
+                "PV-QUESTIONS", f"fixed question printed in the body: {q!r}"))
 
     return findings, citations
 
@@ -892,39 +952,46 @@ def _m_uncited(text: str) -> str:
 
 
 def _m_remove_provenance(text: str) -> str:
+    # D-11: the provenance line now sits after the memo block (line 8), not
+    # at a fixed index -- find it by its own opening text.
     lines = text.split("\n")
-    if len(lines) > 2:
-        del lines[2]
+    idx = next((i for i, l in enumerate(lines) if l.startswith("*Derived from")), None)
+    if idx is not None:
+        del lines[idx]
     return "\n".join(lines)
 
 
 def _m_pad_over(text: str) -> str:
-    # Padding strong enough to clear the widest roster band's ceiling (173,
-    # decision-owner, Phase 87 D-05) with margin, not just the pre-87 one
-    # (120). Appended inside the last bullet's own answer (never as new
-    # bullets) so the strict one-bullet-per-question shape survives the
-    # mutation and only PV-WORDS fires, not PV-QUESTIONS (Phase 87 Task 2).
+    # Padding strong enough to clear the roster band's ceiling (170) with
+    # margin over the widest fixture (150 words at plan time). Appended to
+    # the end of the last paragraph's own physical line (never as a new
+    # paragraph) so the memo's exact paragraph-count shape survives the
+    # mutation and only PV-WORDS fires, not PV-QUESTIONS.
     padding = " The engineering team has 3.2 engineer-quarters of capacity this quarter (C1)."
     return text.rstrip("\n") + padding * 10 + "\n"
 
 
 def _m_cut_under(text: str) -> str:
-    # Four bullets, each a valid question lead-in with a minimal cited
-    # answer -- 45 words total (33 fixed question words + 4 x 3 answer
-    # words), below the decision-owner band's 93 floor, so this mutation
-    # trips PV-WORDS alone, never PV-QUESTIONS (Phase 87 Task 2).
+    # In brief plus four short, validly-shaped paragraphs -- 17 body words
+    # total, below the roster's 90-word floor, so this mutation trips
+    # PV-WORDS alone, never PV-QUESTIONS: the paragraph count and the In
+    # brief opener are both still correct.
     lines = text.split("\n")
-    band_idx = next(i for i, l in enumerate(lines) if l.startswith("**Band"))
-    head = lines[: band_idx + 1]
-    qs = load_questions(CONTRACT.read_text(), _load_roster_from_contract())["decision-owner"]
-    short_body = [""] + [f"- **{q}** Stated in §6." for q in qs]
+    prov_idx = next(i for i, l in enumerate(lines) if l.startswith("*Derived from"))
+    head = lines[: prov_idx + 1]
+    paragraphs = ["In brief: stated in §6."] + ["Stated in §6."] * 4
+    short_body: list[str] = [""]
+    for idx, p in enumerate(paragraphs):
+        if idx:
+            short_body.append("")
+        short_body.append(p)
     return "\n".join(head + short_body)
 
 
 def _m_insert_shape(text: str) -> str:
     lines = text.split("\n")
-    band_idx = next(i for i, l in enumerate(lines) if l.startswith("**Band"))
-    lines.insert(band_idx + 2, "## Extra")
+    idx = next(i for i, l in enumerate(lines) if l.startswith("In brief:"))
+    lines.insert(idx, "## Extra")
     return "\n".join(lines)
 
 
@@ -934,21 +1001,41 @@ def _m_deadend(text: str) -> str:
     return text.replace(original, mutated, 1)
 
 
-def _m_q_drop(text: str) -> str:
-    return text.replace("**How sure is it, and what is it unsure about?** ", "", 1)
+# D-11 Phase 87: the decision-owner fixture's paragraph 3 (the Q2 answer)
+# is the anchor every M-Q-* question-structure control mutates.
+_M_Q_P3_ANCHOR = "It has settled that the reporting rewrite carries a signed commitment"
 
 
-def _m_q_order(text: str) -> str:
-    lines = text.split("\n")
-    bullet_idxs = [i for i, l in enumerate(lines) if l.startswith("- **")]
-    i2, i3 = bullet_idxs[1], bullet_idxs[2]
-    lines[i2], lines[i3] = lines[i3], lines[i2]
-    return "\n".join(lines)
+def _m_q_bullet(text: str) -> str:
+    return text.replace(_M_Q_P3_ANCHOR, "- " + _M_Q_P3_ANCHOR, 1)
 
 
-def _m_q_invent(text: str) -> str:
+def _m_q_brief(text: str) -> str:
+    return text.replace("In brief: ", "", 1)
+
+
+def _m_q_few(text: str) -> str:
+    anchor = "since capacity binds to one candidate (C1).\n\n" + _M_Q_P3_ANCHOR
+    replacement = "since capacity binds to one candidate (C1).\n" + _M_Q_P3_ANCHOR
+    return text.replace(anchor, replacement, 1)
+
+
+def _m_q_many(text: str) -> str:
+    return text.replace(" If that evidence improves", "\n\nIf that evidence improves", 1)
+
+
+def _m_q_print(text: str) -> str:
     return text.replace(
-        "**Where do I find the recommendation?**", "**What else does the analysis cover?**", 1)
+        _M_Q_P3_ANCHOR,
+        "**What has it settled that I can rely on?** " + _M_Q_P3_ANCHOR, 1)
+
+
+def _m_h_to(text: str) -> str:
+    return text.replace("> **To:** Decision Owner\\", "> **To:** Operator\\", 1)
+
+
+def _m_h_break(text: str) -> str:
+    return text.replace("> **To:** Decision Owner\\", "> **To:** Decision Owner", 1)
 
 
 # D-05 Phase 87: all three mutations replace the same single anchor sentence
@@ -1001,12 +1088,20 @@ _MUTATIONS: tuple[tuple[str, str, str, Callable[[str], str], frozenset[str]], ..
      _m_insert_shape, frozenset({"PV-SHAPE"})),
     ("M-DEADEND", "product-business-2-skeptic.md", "shared/examples/product-business-2.md",
      _m_deadend, frozenset({"PV-DEADEND"})),
-    ("M-Q-DROP", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_q_drop, frozenset({"PV-QUESTIONS"})),
-    ("M-Q-ORDER", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_q_order, frozenset({"PV-QUESTIONS"})),
-    ("M-Q-INVENT", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_q_invent, frozenset({"PV-QUESTIONS"})),
+    ("M-Q-BULLET", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
+     _m_q_bullet, frozenset({"PV-QUESTIONS"})),
+    ("M-Q-BRIEF", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
+     _m_q_brief, frozenset({"PV-QUESTIONS"})),
+    ("M-Q-FEW", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
+     _m_q_few, frozenset({"PV-QUESTIONS"})),
+    ("M-Q-MANY", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
+     _m_q_many, frozenset({"PV-QUESTIONS"})),
+    ("M-Q-PRINT", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
+     _m_q_print, frozenset({"PV-QUESTIONS"})),
+    ("M-H-TO", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
+     _m_h_to, frozenset({"PV-HEADER"})),
+    ("M-H-BREAK", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
+     _m_h_break, frozenset({"PV-HEADER"})),
     ("M-D-OPEN", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
      _m_d_open, frozenset({"PV-DIRECTIVE"})),
     ("M-D-YOU", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
@@ -1178,10 +1273,15 @@ def _d_pre87_directive() -> str | None:
     """D-PRE87: the frozen pre-87 example fails for PV-DIRECTIVE alone among
     content-voice rules -- it opens "Decide to build the reporting
     rewrite..." and restates §6's own Recommended approach paragraph almost
-    verbatim. PV-QUESTIONS also fires on the full check_view reading because
-    the file predates the question format (structural, not a voice
-    failure). Pins the exact two-code set so any new failure mode on this
-    artifact is caught."""
+    verbatim. PV-HEADER also fires on the full check_view reading: the file
+    predates the memo header (its line 1 reads "... view — ...", not "...
+    memo — ..."), so line 1 fails to resolve a role and the memo block
+    (lines 3-6) is absent too -- both structural, not voice failures. Since
+    the role never resolves, the old bullet body is never run through the
+    structural question check at all, so PV-QUESTIONS does not fire here
+    under the memo contract (re-measured at Phase 87 D-11; the pre-memo
+    contract's pinned set was {PV-DIRECTIVE, PV-QUESTIONS}). Pins the exact
+    two-code set so any new failure mode on this artifact is caught."""
     persona_text = PRE87_FIXTURE.read_text()
     source_path = REPO_ROOT / "shared" / "examples" / "product-business-2.md"
     analysis_text = source_path.read_text()
@@ -1204,8 +1304,8 @@ def _d_pre87_directive() -> str | None:
         return f"expected at least one verbatim-run finding, got {voice_findings}"
 
     full_codes = {f.code for f in check_view(persona_text, analysis_text, analysis_name, roster)}
-    if full_codes != {"PV-DIRECTIVE", "PV-QUESTIONS"}:
-        return f"expected exactly {{'PV-DIRECTIVE', 'PV-QUESTIONS'}} from check_view, got {sorted(full_codes)}"
+    if full_codes != {"PV-DIRECTIVE", "PV-HEADER"}:
+        return f"expected exactly {{'PV-DIRECTIVE', 'PV-HEADER'}} from check_view, got {sorted(full_codes)}"
     return None
 
 
@@ -1451,6 +1551,8 @@ def describe() -> dict:
             "directive_openers": sorted(DIRECTIVE_OPENERS),
             "directive_phrase_openers": [list(p) for p in DIRECTIVE_PHRASE_OPENERS],
             "verbatim_run_words": VERBATIM_RUN_WORDS,
+            "memo_fields": list(MEMO_FIELDS),
+            "in_brief_prefix": IN_BRIEF_PREFIX,
         },
         "derived_counts": {
             "finding_codes": len(FINDING_CODES),
@@ -1467,6 +1569,7 @@ def describe() -> dict:
             "directive-check-is-lexical-not-semantic",
             "imperative-check-is-sentence-initial-only",
             "verbatim-run-checked-against-section6-recommended-approach-only",
+            "memo-structure-counts-paragraphs-not-answers",
         ]),
     }
 
