@@ -54,8 +54,7 @@ ships a typst figure library in a fenced block — pure Markdown, no executable 
 drawing two figures from the structured-summary block: an evidence trace (ground truths through
 chains to the conclusion, one edge per `rests_on` entry, unverified inputs dashed, fills by
 confidence, each chain-to-chain arc in its own lane so a chain resting on several others stays
-legible) and an assumption verdict matrix (type by verdict counts). Neither figure is wired into
-the agent's delivery steps yet — that is Phase 82's work.
+legible) and an assumption verdict matrix (type by verdict counts).
 
 `scripts/check-report-figures.py` renders both figures against the real analysis fixture, a
 two-digit-id worst-case fixture and every worked example's structured-summary block, and asserts
@@ -63,6 +62,21 @@ through `typst eval 'query(...)'` that drawn-edge, matrix-cell and label-overflo
 source JSON exactly, with must-fail mutation controls. Registered on the battery and in CI as
 `FIG-GATE` (`check-report-figures` job): BLOCKED, never PASS, when typst is absent; CI installs a
 pinned, checksum-verified typst release before running the self-test.
+
+### Added — figures in the reader reports
+
+Both reader reports now carry the evidence trace (under §4. Derivation Chains) and the assumption
+verdict matrix (under §2. Assumptions Table), compiled with typst from the structured summary to
+`report-<UTC>-fig-trace.svg` / `report-<UTC>-fig-verdicts.svg` beside the report. Without typst,
+or without a readable structured-summary block, the figure is skipped: no file and no link are
+written, the Markdown report is otherwise unchanged, and the final message names which figure was
+skipped and why.
+
+### Changed — the PDF step resolves figures against the report's directory
+
+The PDF-render step now passes `--resource-path` set to the report's own directory and treats
+`Could not fetch resource` on pandoc's stderr as failure, rather than shipping a PDF whose figure
+was silently replaced by its own alt text. The final message says so when it happens.
 
 ## [9.16.0] — 2026-10-01
 

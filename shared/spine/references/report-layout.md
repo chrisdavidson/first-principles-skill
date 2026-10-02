@@ -11,7 +11,10 @@ Each analysis produces two reader reports beside the working file
 - **`report-<UTC>.md`** — a title, a date line, the Executive Summary (the `## Answer` block,
   renamed), then the six sections. The process-output appendix, its structured summary,
   `**Disclosed:**` paragraphs and `**Pre-check:**` lines are left out: they are audit material
-  for the working file, not for the reader.
+  for the working file, not for the reader. Where typst is installed, it also carries the
+  assumption verdict matrix under §2 and the evidence trace under §4, drawn with typst from the
+  structured summary and written beside it as `report-<UTC>-fig-verdicts.svg` and
+  `report-<UTC>-fig-trace.svg`; without typst, both reports are written without figures.
 - **`report-<UTC>.pdf`** — the same Markdown typeset by pandoc with the typst PDF engine through
   the template below: US Letter, Noto Sans with Liberation Sans as fallback (both SIL Open Font
   License), a navy heading scheme, banded tables, a running header carrying the title, and a

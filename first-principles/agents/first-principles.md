@@ -65,9 +65,10 @@ under *Deliver the analysis as a file* in Output format below. The assembled fil
 short `## Answer`, then the six sections below in order, then every process-output block as a
 trailing `## Appendix — process output`. That file is the working record; the reader receives it
 as two reports rendered from it, `report-<UTC>.md` and `report-<UTC>.pdf`, which carry the
-Answer and the six sections and nothing machine-readable. A document returned as your final
-message instead can be cut off by the output limit, and then the reader receives only its last
-part.
+Answer and the six sections and, where typst is installed, two figures drawn from the structured
+summary — the evidence trace and the assumption verdict matrix — and nothing machine-readable
+(the figures are drawings, not data). A document returned as your final message instead can be
+cut off by the output limit, and then the reader receives only its last part.
 
 ## Methodology
 
@@ -398,28 +399,74 @@ then the six sections, then the process-output appendix.
    { print; prev = $0 }' "$F" | cat -s; } > "$R" && echo "$R"
    ```
 
-   If it fails or prints no path, skip step 7: the working file stays the reader's copy, and the
-   final message says the reader reports were not produced and why.
+   If it fails or prints no path, skip steps 7 and 8: the working file stays the reader's copy,
+   and the final message says the reader reports were not produced and why.
 
-7. **Render the PDF reader report** from the Markdown report with pandoc and the typst engine,
+7. **Draw the report figures.** Draw the evidence trace and the assumption verdict matrix from
+   the structured summary with the figure library carried in
+   [report figures](${CLAUDE_PLUGIN_ROOT}/references/report-figures.md), and link each figure
+   that is drawn into the Markdown report, filling in `<path>` with the path step 1 printed and
+   `<report>` with the path step 6 printed:
+
+   ```sh
+   F="<path>"; R="<report>"; T="${R%.md}.figures.typ"; B="${R##*/}"; B="${B%.md}"
+   J=$(awk '/^## Structured summary \(process output\)$/ { h = 1 } h && /^```json$/ { f = 1; next } f && /^```$/ { exit } f' "$F")
+   awk '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f' "${CLAUDE_PLUGIN_ROOT}/references/report-figures.md" > "$T"
+   for n in trace verdicts; do
+     G="${R%.md}-fig-$n.svg"; rm -f "$G"
+     if [ -n "$J" ] && command -v typst >/dev/null 2>&1; then
+       typst compile --format svg --input figure="$n" --input summary="$J" "$T" "$G" 2>/dev/null
+     fi
+     if [ -s "$G" ]; then
+       echo "figure: $G"
+     else
+       rm -f "$G"
+       if command -v typst >/dev/null 2>&1; then
+         echo "skipped $n: the figure could not be rendered"
+       else
+         echo "skipped $n: typst is not installed"
+       fi
+     fi
+   done
+   rm -f "$T"
+   TL=""; [ -s "${R%.md}-fig-trace.svg" ] && TL="![Evidence trace: ground truths, chains and the conclusion]""($B-fig-trace.svg)"
+   VL=""; [ -s "${R%.md}-fig-verdicts.svg" ] && VL="![Assumption verdict matrix: assumption types against verdicts]""($B-fig-verdicts.svg)"
+   if [ -n "$TL" ] || [ -n "$VL" ]; then
+     awk -v t="$TL" -v v="$VL" '
+       /^```/ { f = !f }
+       { print }
+       !f && $0 == "## 2. Assumptions Table" && v != "" { print ""; print v; print "" }
+       !f && $0 == "## 4. Derivation Chains" && t != "" { print ""; print t; print "" }
+     ' "$R" | cat -s > "$R.tmp" && mv "$R.tmp" "$R"
+     rm -f "$R.tmp"
+   fi
+   ```
+
+   Run it once; a figure that is not drawn leaves no file and no link and the report is otherwise
+   unchanged; the output lines above are what step 9 reports; neither report is edited by hand.
+
+8. **Render the PDF reader report** from the Markdown report with pandoc and the typst engine,
    using the page template carried in the [report layout](${CLAUDE_PLUGIN_ROOT}/references/report-layout.md),
    filling in `<report>` with the path step 6 printed:
 
    ```sh
-   R="<report>"; P="${R%.md}.pdf"; S="${R%.md}.layout.typ"; awk '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f' "${CLAUDE_PLUGIN_ROOT}/references/report-layout.md" > "$S" && pandoc "$R" -f commonmark_x --template="$S" --pdf-engine=typst -M title="$(sed -n '1s/^# //p' "$R")" -M date="$(date -u '+%-d %B %Y')" -o "$P"; rc=$?; rm -f "$S"; [ "$rc" -eq 0 ] && echo "$P"
+   R="<report>"; P="${R%.md}.pdf"; S="${R%.md}.layout.typ"; E="${R%.md}.pandoc-err"; awk '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f' "${CLAUDE_PLUGIN_ROOT}/references/report-layout.md" > "$S" && pandoc "$R" -f commonmark_x --template="$S" --pdf-engine=typst --resource-path="${R%/*}" -M title="$(sed -n '1s/^# //p' "$R")" -M date="$(date -u '+%-d %B %Y')" -o "$P" 2>"$E"; rc=$?; grep -q 'Could not fetch resource' "$E" && rc=1; rm -f "$S" "$E"; if [ "$rc" -eq 0 ]; then echo "$P"; else rm -f "$P"; fi
    ```
 
-   Run it once. If it fails — pandoc or typst not installed, most often — leave the Markdown
-   report as the reader's copy, do not retry with another engine, and say in the final message
-   that the PDF was not produced and why. Neither report is edited by hand after it is written.
-8. **Your final message is a short pointer, not the analysis:** the path of the Markdown report,
-   then of the PDF report or the reason it was not produced, then of the working file; the
+   Run it once. If it fails — pandoc or typst not installed, most often, or a figure could not be
+   embedded — leave the Markdown report as the reader's copy, do not retry with another engine,
+   and say in the final message that the PDF was not produced and why. Neither report is edited
+   by hand after it is written.
+9. **Your final message is a short pointer, not the analysis:** the path of the Markdown report,
+   then of the PDF report or the reason it was not produced, then the path of each figure step 7
+   printed as `figure:` or, for each `skipped` line, the figure's name (evidence trace /
+   assumption verdict matrix) and its reason, then the path of the working file; the
    top-of-response disclosure repeated from step 3, if any; a line stating that the working file
    is the complete analysis and the reports are its reader copies, that each must be read in full,
    and that this message is not the analysis; and the Conclusion's recommendation
    and confidence in one or two sentences. Do not paste the document into it, and do not paste
    the structured summary into it either. If assembly did not complete, name whichever of
-   `"<path>.answer"` or `"<path>.process"` is still present, and skip steps 6 and 7.
+   `"<path>.answer"` or `"<path>.process"` is still present, and skip steps 6 to 8.
 
 If the file cannot be created or written, emit the `## Answer` block, then the six-section
 document, as your final message instead, and say that the file handoff failed and why.

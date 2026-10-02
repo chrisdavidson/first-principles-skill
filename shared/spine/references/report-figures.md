@@ -2,10 +2,10 @@
 
 > **Scope:** the typst figure library for the PDF reader report. Two figures: an evidence
 > trace (ground truths to derivation chains to conclusion) and an assumption verdict matrix
-> (taxonomy type by verdict). Wiring either figure into the agent's delivery steps is Phase 82's
-> job, not this file's; nothing here is read by the model for its content. A risk heat map and
-> trade-off score bars were prototyped alongside these two and are deliberately not shipped --
-> their source data needs its own schema field and milestone.
+> (taxonomy type by verdict). The agent body's step 7 under *Deliver the analysis as a file*
+> compiles both figures from here; nothing in this file is read by the model for its content.
+> A risk heat map and trade-off score bars were prototyped alongside these two and are
+> deliberately not shipped -- their source data needs its own schema field and milestone.
 
 ## What each figure draws
 
