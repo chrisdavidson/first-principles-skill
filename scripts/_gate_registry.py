@@ -472,7 +472,10 @@ ENTRIES: tuple[GateEntry, ...] = (
         run_command="python3 scripts/check-focused-parity.py --self-test",
         summary=(
             "Focused-mode parity: stub surface, agent surface and cross-surface "
-            "parity-token set equality, with the D-12 anchor-control ratchet."
+            "parity-token set equality, with the D-12 anchor-control ratchet. A "
+            "named non-technique exemption set (`NON_TECHNIQUE_SLUGS`) excludes "
+            "non-technique skills from the technique checks, and its must-fail "
+            "control fails if any technique slug is added to it."
         ),
         consumes=("locked_constants", "registered_surfaces", "disclosed_bounds_anchors"),
     ),

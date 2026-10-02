@@ -79,3 +79,35 @@ generator's own configuration, not a guard.
 **(f) Pointer.** The `_HANDOFF_CANDIDATE_TAIL` / `_HANDOFF_EXEMPT_SLOT` / `_HANDOFF_NO_SOURCE_CLAUSE`
 / `_HANDOFF_ROUTED_SLUGS` comment blocks in `scripts/check-focused-parity.py` point at this section
 by name and restate none of it.
+
+## Non-technique exemption (PSKILL-03)
+
+**What qualifies.** An emitted skill qualifies for `NON_TECHNIQUE_SLUGS` only if its body carries
+neither `## When to reach for this` (the inlined-procedure anchor) nor `## Focused-mode validation`
+(`_STUB_SECTION_HEADING`) — the two headings every technique stub carries and a non-technique skill
+does not. The launcher is the set's only member today.
+
+**Why it exists.** A persona companion skill (D-06, PSKILL-03) reads an already-finished analysis
+and renders one of its views; it runs no inlined procedure and emits no focused-mode validation
+section, so without an exemption HARN-03's stub-surface checks (Stub-1..13) would treat it as a
+broken technique stub rather than recognising it as a different kind of skill entirely.
+
+**How Stub-14 polices it.** Stub-14 runs over every slug named in the exemption set and fails if
+either of two things is true: the slug has no emitted stub at all (an exemption cannot be vacuous),
+or the slug's emitted body carries one of the two technique markers above (an exemption cannot
+silence a real technique). The self-test drives both branches directly — a must-fail control per
+technique slug widens the set by exactly that slug and asserts Stub-14 fires naming it, and a
+further control widens it with a nonexistent slug and asserts Stub-14 fires for the absent-stub
+reason — plus a positive control proving the default set (the launcher alone) produces zero Stub-14
+failures.
+
+**Mutate-run-restore observation (plan 85-01, SC2 falsifier).** A throwaway copy of
+`scripts/check-focused-parity.py` with `NON_TECHNIQUE_SLUGS` widened to also name the `validate`
+technique was run live and then deleted:
+
+```sh
+python3 scripts/_tmp_harn03_mut.py
+```
+
+The run exited non-zero and its output named both `Stub-14` and `validate` — the exemption-widening
+mutation was rejected for its own stated reason, not merely for a sibling check's.
