@@ -1006,6 +1006,13 @@ _FROZEN_PATHS=(
     # out/ artifacts; raw.jsonl streams were kept in scratch by design, never
     # committed.
     'tests/persona-live-v9.18'
+    # persona-live-v9.18b (2026-10-02) -- the post-87 live reading
+    # (docs/v9.18b-persona-live-reading.md) and the four 87-05 example re-derivation runs'
+    # provenance. Frozen because the Results table's 11/12-pass verdict (one PV-DIRECTIVE
+    # FAIL, recorded as observed per the pre-registration's own §7 rule) and the examples'
+    # checks.tsv are falsifiable only against these sources, manifests and out/ artifacts;
+    # raw.jsonl streams were kept in scratch by design, never committed.
+    'tests/persona-live-v9.18b'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null

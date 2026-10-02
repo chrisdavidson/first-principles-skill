@@ -1,5 +1,13 @@
 # persona-live-v9.18b
 
+**FROZEN-EVIDENCE as of 2026-10-02 (plan 87-06).** Registered in `_FROZEN_PATHS` in
+`scripts/check-firewall-battery.sh` alongside `tests/persona-live-v9.18`: the twelve S-series
+reading cells in `reading/` ran, were checked, and the `## 9. Results` table in
+[`docs/v9.18b-persona-live-reading.md`](../../docs/v9.18b-persona-live-reading.md) is now
+falsifiable only against the committed `reading/manifest.jsonl`, `reading/results.tsv` and
+`reading/out/` artifacts recorded here, the same way `examples/` has been frozen since 87-05.
+Nothing under this directory is edited after this point.
+
 Fixtures and the reproducer for the post-87 live-reading pre-registration,
 [`docs/v9.18b-persona-live-reading.md`](../../docs/v9.18b-persona-live-reading.md). That document
 is the authority on the cell order, pass definition and bar; this file only describes what lives
@@ -22,11 +30,12 @@ example.
 
 ## reading/
 
-Holds the twelve post-87 reading-run cells (S01-S12), created by plan 87-06 (not this plan):
-`manifest.jsonl` (one JSON line per cell, the same fields as `examples/manifest.jsonl`),
-`results.tsv` (cell, source, role, persona file, PASS/FAIL, codes, persona sha256 — 12 rows, no
-persona prose), and `out/` (the twelve persisted persona files, one per cell). Empty at
-registration time (no cell has run yet).
+Holds the twelve post-87 reading-run cells (S01-S12), run by plan 87-06: `manifest.jsonl` (one
+JSON line per cell, the same fields as `examples/manifest.jsonl`), `results.tsv` (cell, source,
+role, persona file, PASS/FAIL, codes, persona sha256 — 12 rows, no persona prose), and `out/` (the
+twelve persisted persona files, one per cell). 11/12 cells PASS; S11 (estimate-fermi, risk) FAILs
+with `PV-DIRECTIVE`, recorded as observed per the pre-registration's §7 rule and never re-run (only
+a non-terminal `limit_stub` result is re-run; S11 reached a terminal `complete` state).
 
 ## reproduce.py
 

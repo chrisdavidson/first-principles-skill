@@ -1,0 +1,13 @@
+cell	source	role	persona	status	codes	persona_sha256
+S01	analysis-20261002T015836Z.md	decision-owner	persona-decision-owner-20261002T015836Z.md	PASS	-	46b84bcff1d40790f4c8b002b0370143d552ec0453d4d26b79eede98ac07c224
+S02	analysis-20261002T015836Z.md	operator	persona-operator-20261002T015836Z.md	PASS	-	3384bbbdb9ba21534f7792aea065e5ff0790f69061d10873206d1562be6c0765
+S03	analysis-20261002T015836Z.md	risk	persona-risk-20261002T015836Z.md	PASS	-	bae93889bb7d0a8aaf54d2528597c5d22a6f498d21ce52d563a85f2cdba5ee54
+S04	analysis-20261002T015836Z.md	skeptic	persona-skeptic-20261002T015836Z.md	PASS	-	fba262afdc69396dcceca67b5875d9d71974ce5c2cb7a45a71a2ca5c340fe6ef
+S05	analysis-20260101T000001Z.md	decision-owner	persona-decision-owner-20260101T000001Z.md	PASS	-	e5dcd0f08d6c1bd7367142927aa1fa14aa26a1af47b87e2411039dba97099ef6
+S06	analysis-20260101T000001Z.md	operator	persona-operator-20260101T000001Z.md	PASS	-	c2277cb1fbfd25c1098e315a0644b13418db54b6af5a90362a84e9aa7bb68864
+S07	analysis-20260101T000001Z.md	risk	persona-risk-20260101T000001Z.md	PASS	-	eb5b09d451be3cacd4234c5ca104bf222212a5ab7df257788be65062a1cc817e
+S08	analysis-20260101T000001Z.md	skeptic	persona-skeptic-20260101T000001Z.md	PASS	-	5ce0f970e6c13f6d1ba169a54713317d3d009a7972e912ff06c36621cd043df3
+S09	analysis-20260101T000002Z.md	decision-owner	persona-decision-owner-20260101T000002Z.md	PASS	-	b3c8be5bc39f76f129003ffb47ba6bf4488bc3f286bb4596e77815d78b20707c
+S10	analysis-20260101T000002Z.md	operator	persona-operator-20260101T000002Z.md	PASS	-	1f4af5f1dac237ffeffb09abbfa2ad4bf735e6d0913ad314fb08f66312c73932
+S11	analysis-20260101T000002Z.md	risk	persona-risk-20260101T000002Z.md	FAIL	PV-DIRECTIVE	cdde4c0fc88b389e89462a22b67f0bbfceceb209a915ad52ecb546e264bf54a0
+S12	analysis-20260101T000002Z.md	skeptic	persona-skeptic-20260101T000002Z.md	PASS	-	1f29f1d1de6f6aa5b619d2bda061262e163b06d1f53791a7f744669b895cdf73
