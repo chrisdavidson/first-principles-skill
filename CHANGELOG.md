@@ -13,6 +13,33 @@ installed session.
 
 ## [Unreleased]
 
+## [9.18.0] — 2026-10-02
+
+Milestone release: **v9.18.0 Reader Personas**. Beside every delivered analysis, a reader now
+finds a business-reading guide (`HOW-TO-READ.md` and `.pdf`) and, on request, role-specific memos
+from `/first-principles:persona <role|all>`: one page each for a decision owner, an operator, a
+risk reader and a skeptic. A memo summarises what the analysis offers its reader and points to the
+recommendation, never restating it. Every sentence cites the analysis, and PERSONA-GATE checks
+mechanically that a memo invents no id, number or band. The delivered files link to each other
+through a folder index (`INDEX.md` / `INDEX.pdf`), and Markdown and PDF links never mix. The
+analysis itself is unchanged and remains the source of truth. The live reading of the memo format
+passed 11 of 12 cells (N = 12), recorded as an observation, never a gate. The one failure deleted
+its own over-length draft rather than ship it.
+
+### Changed — release
+
+- Stamps were already at `9.18.0` (bumped at milestone open, `87e9d0ac`). Coverage
+  `264/262/0/526` → `277/269/0/546`, ledger row 33.
+- `_rows_v918()` registers this milestone's 20 requirements, each tiered by a mutate-run-restore
+  probe in its own detached worktree with the full battery run. 13 are reproducible: GUIDE-01,
+  GUIDE-02, PERS-01..03, PSKILL-01, PSKILL-03, PEX-01, PVIEW-01, PVIEW-02, PVIEW-03, PVIEW-05 and
+  PVIEW-07, pinned by PERSONA-GATE, DUAL-04, HARN-03 and REG-GUARD. 7 are audit-only: GUIDE-03,
+  PSKILL-02, PVIEW-04, PKG-01 and PKG-02 each left `FIREWALL: GREEN (32/32)` under mutation, and
+  PEX-02 and PVIEW-06 are live readings. Three reproducible rows disclose an unpinned clause.
+  GUIDE-02's five-part protocol is unpinned. For PSKILL-01, only the skill's registration is
+  pinned. For PVIEW-07, the folder index, the report's `Read with:` line and the no-intermix PDF
+  rule each left the battery GREEN under mutation.
+
 ### Added — delivered files link to each other, through a folder index
 
 Every delivered file now links to its neighbours, and the two formats never mix: a Markdown

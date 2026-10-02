@@ -7768,6 +7768,223 @@ def _rows_v917() -> list[MatrixRow]:
     ]
 
 
+def _rows_v918() -> list[MatrixRow]:
+    """v9.18.0 milestone rows -- 20 requirements, 13 reproducible + 7 audit-only.
+
+    All rows carry milestone="v9.18". Keys use the milestone-qualified form
+    "v9.18/<bare_id>".
+
+    Tiering method, unchanged from `_rows_v93()`..`_rows_v917()`: mutate the requirement's
+    distinguishing behaviour, re-run the owning gate, record the exit code, revert. Every probe
+    ran in its own detached `git worktree` of commit af7e5213 (`.venv` symlinked in, so VAL-03
+    ran its pytest leg rather than reporting BLOCKED), synced where the mutation touched
+    `shared/`, and ran `bash scripts/check-firewall-battery.sh`; an unmutated baseline worktree
+    of the same commit ended `FIREWALL: GREEN (32/32)`. Control-level readings below were taken
+    by re-running the failing gate alone in a fresh worktree with the same mutation.
+
+    **Thirteen rows are reproducible**, pinned by PERSONA-GATE (`scripts/check-persona-view.py
+    --self-test`, CI job `check-persona-view`), DUAL-04 (`scripts/sync-content.py --check`),
+    HARN-03 (`scripts/check-focused-parity.py --self-test`) or REG-GUARD
+    (`scripts/check-registration.py`):
+
+      - GUIDE-01: deleting `"how-to-read"` from sync-content.py's spine-reference roster made
+        DUAL-04 and GATE-02-v8.5 red (`generate_all() produced 57 targets but
+        GENERATED_TARGET_COUNT == 58`); separately, adding 520 words to the guide (synced) made
+        PERSONA-GATE fail `P03` (`PV-GUIDE-WORDS: guide body is 1017 words, exceeds 500`).
+      - GUIDE-02: renaming `"Derivation Chains"` to `"Derivation Steps"` in the guide (synced)
+        made PERSONA-GATE fail `P03` (`PV-GUIDE-NAME: name not found verbatim in
+        output-template.md`). DISCLOSED BOUND: no control checks the five-part protocol.
+        Deleting the guide's last section (synced) turned PERSONA-GATE red only incidentally --
+        `G-WORDS`'s padding mutation no longer crossed 500 words -- so that reading is not
+        credited as a pin.
+      - PERS-01: changing the decision-owner band to `90–171` in the contract's roster (synced)
+        made PERSONA-GATE fail `P02` (roster does not equal `LOCKED_ROSTER`).
+      - PERS-02: replacing the chain-id `PV-ID` finding with `pass` made PERSONA-GATE fail
+        `EX-REACH-ID` (`expected PV-ID among findings for 'C2', got []`).
+      - PERS-03: renaming the CI job to `check-persona-view (PERSONA-GATEX)` made REG-GUARD red
+        (`battery gate has no CI job: 'PERSONA-GATE' is registered ... but no job ... declares
+        it`).
+      - PSKILL-01: deleting `"persona"` from sync-content.py's `SKILLS` made DUAL-04 red (57 vs
+        58 targets). DISCLOSED BOUND: only the registration is pinned; the skill's source
+        selection and write scope are prose no gate reads (see PSKILL-02).
+      - PSKILL-03: adding `"fishbone"` to `NON_TECHNIQUE_SLUGS` made HARN-03 refuse to run
+        (`unexpected live stub set shape ... non-technique slugs present: [..., 'fishbone',
+        ...]`).
+      - PEX-01: deleting `shared/persona-examples/estimate-fermi-skeptic.md` (synced) made
+        DUAL-04, GATE-02-v8.5, CONF-SURFACE and PERSONA-GATE red; PERSONA-GATE's own reading is
+        `EX-REACH` (`in roster only=['estimate-fermi-skeptic']`).
+      - PVIEW-01: deleting the decision-owner's first question from the contract (synced) made
+        PERSONA-GATE fail `P01`, `P04`, `M-ID` and `M-AGREE` (`expected 4 paragraphs ... found
+        5`).
+      - PVIEW-02: replacing the missing-`In brief:` `PV-QUESTIONS` finding with `pass` made
+        PERSONA-GATE fail `M-Q-BRIEF`.
+      - PVIEW-03: removing `Decide` from the contract's **Denylisted openers:** line (synced)
+        made PERSONA-GATE fail `P05` (contract openers != `DIRECTIVE_OPENERS`).
+      - PVIEW-05: setting a shipped example's band line to HIGH (synced) made PERSONA-GATE fail
+        `EX-REACH` (`PV-BAND: Band line HIGH disagrees with the source's §6 band MEDIUM`).
+      - PVIEW-07: reverting a shipped example's Basis to the bare basename (synced) made
+        PERSONA-GATE fail `EX-REACH` (`PV-HEADER: Basis field ... is not the linked form`).
+        DISCLOSED BOUND: three further probes left the full battery GREEN -- deleting the index
+        script's report line, disabling the report's `Read with:` printf, and dropping the PDF
+        render's `.md` de-link -- so the index, the report line and the no-intermix rule are
+        unpinned; they were verified by falsifiers on the delivered package, not by a gate.
+
+    **Seven rows are audit-only**, each measured, never assumed. Each mutation below was made
+    in its `shared/` source, synced, and the full battery run in its own worktree; every run
+    ended `FIREWALL: GREEN (32/32)`:
+
+      - GUIDE-03: the delivery copy step's target `HOW-TO-READ.md` -> `GUIDE.md`.
+      - PSKILL-02: the skill's three refusal sentences deleted.
+      - PVIEW-04: the Compose section's `In brief:` instruction removed.
+      - PKG-01: the guide PDF's target `.pdf` -> `.html`; separately, the persona render's.
+      - PKG-02: the launcher's "never tell the agent not to write files" clause deleted.
+      - PEX-02 and PVIEW-06 are live readings, recorded as observations with N
+        (`docs/v9.18-persona-live-reading.md`: 12/12; `docs/v9.18c-persona-live-reading.md`:
+        11/12). Their artifacts are FROZEN-EVIDENCE paths, but FROZEN-EVIDENCE is not a pin
+        (Phase 34, TIER-02): its `git diff --quiet HEAD` catches edits, never re-runs a reading.
+    """
+    _repro_v918 = (
+        "Mutate-run-restore turned a registered gate RED, each probe in its own detached "
+        "worktree of af7e5213: PERSONA-GATE (`scripts/check-persona-view.py --self-test`, CI job "
+        "`check-persona-view`) for GUIDE-01/02, PERS-01/02, PVIEW-01/02/03/05/07 and PEX-01; "
+        "DUAL-04 (`scripts/sync-content.py --check`) for GUIDE-01, PSKILL-01 and PEX-01; HARN-03 "
+        "(`scripts/check-focused-parity.py --self-test`) for PSKILL-03; REG-GUARD "
+        "(`scripts/check-registration.py`) for PERS-03. Mutations, exit codes and failing "
+        "controls are recorded in this function's docstring."
+    )
+    _repro_guide02_v918 = (
+        _repro_v918 + " DISCLOSED BOUND: only the cited names are pinned -- no control checks "
+        "the five-part protocol; deleting a section turned PERSONA-GATE red only incidentally."
+    )
+    _repro_pskill01_v918 = (
+        _repro_v918 + " DISCLOSED BOUND: only the skill's registration is pinned; its source "
+        "selection and write scope are prose no gate reads."
+    )
+    _repro_pview07_v918 = (
+        _repro_v918 + " DISCLOSED BOUND: only the memo's linked Basis is pinned -- deleting the "
+        "index script's report line, the report's `Read with:` line, or the PDF render's `.md` "
+        "de-link each left the full battery GREEN."
+    )
+    _audit_v918 = (
+        "No registered gate reads this delivery or skill prose. Measured by mutate-run-restore, "
+        "not assumed: the distinguishing line in its `shared/` source was deleted or altered, the "
+        "tree regenerated via `sync-content.py --write`, and `bash "
+        "scripts/check-firewall-battery.sh` run in a detached worktree -- GREEN (32/32)."
+    )
+    _audit_live_v918 = (
+        "A live reading recorded as an observation with N, never a gate. Its artifacts are "
+        "FROZEN-EVIDENCE paths, but FROZEN-EVIDENCE is not a pin (Phase 34, TIER-02): its "
+        "`git diff --quiet HEAD` catches an edit and never re-runs the reading."
+    )
+
+    def _r(bid, art, tier, script, ev, surf, stmt, rerun):
+        return MatrixRow(f'v9.18/{bid}', bid, 'v9.18', 'Test-Network', art, tier, script, ev,
+                         surfaces=surf, statement=stmt, rerun_by=rerun)
+
+    _pv = 'scripts/check-persona-view.py'
+    return [
+        _r('GUIDE-01', 'shared/spine/references/how-to-read.md', 'reproducible', _pv, _repro_v918,
+           ('agent',),
+           "`shared/spine/references/how-to-read.md` ships as a spine reference emitted by "
+           "`sync-content.py`, and its body is at most 500 words.", 'ci'),
+        _r('GUIDE-02', 'shared/spine/references/how-to-read.md', 'reproducible', _pv,
+           _repro_guide02_v918, ('agent',),
+           "The guide follows the five-part protocol (start at the Answer; route by role; audit "
+           "path; business-value signals; act versus dig deeper), and every section or field "
+           "name it cites exists verbatim in `shared/spine/references/output-template.md`.", 'ci'),
+        _r('GUIDE-03', 'shared/spine/SKILL-body.md', 'audit-only', '', _audit_v918, ('agent',),
+           "The agent's delivery steps copy the guide once to `.first-principles/HOW-TO-READ.md` "
+           "(idempotent: a rerun leaves one byte-identical copy) and the final message names "
+           "it.", 'none'),
+        _r('PERS-01', 'shared/spine/references/persona-views.md', 'reproducible', _pv,
+           _repro_v918, ('persona',),
+           "`shared/spine/references/persona-views.md` defines four personas -- decision-owner, "
+           "operator, risk, skeptic -- each with its source fields, a fixed, ordered question "
+           "list, the voice rule, a word band (each 90-170), fixed absent-input sentences, and a "
+           "memo header (To, Re, Basis, Band) carrying the provenance sentence.", 'ci'),
+        _r('PERS-02', _pv, 'reproducible', _pv, _repro_v918, ('persona',),
+           "`scripts/check-persona-view.py <persona.md> <analysis.md>` fails when the header is "
+           "missing, the word count is outside the band, a sentence carries no citation, a cited "
+           "id is absent from the source, a number is absent from the source, or the stated band "
+           "differs from section 6.", 'ci'),
+        _r('PERS-03', _pv, 'reproducible', 'scripts/check-registration.py', _repro_v918,
+           ('persona',),
+           "`check-persona-view.py --self-test` carries must-fail controls, each failing for its "
+           "own code, and the checker is registered on the battery, in CI and in the gate docs as "
+           "PERSONA-GATE.", 'ci'),
+        _r('PSKILL-01', 'shared/skills/persona/SKILL.md', 'reproducible',
+           'scripts/sync-content.py', _repro_pskill01_v918, ('persona',),
+           "`shared/skills/persona/SKILL.md` ships a slash-only skill named `persona`, registered "
+           "in `SKILLS`, that reads the newest `.first-principles/analysis-*.md` or a given path "
+           "and writes `persona-<role>-<UTC>.md` beside it, never writing to the analysis or "
+           "report files.", 'ci'),
+        _r('PSKILL-02', 'shared/skills/persona/SKILL.md', 'audit-only', '', _audit_v918,
+           ('persona',),
+           "The skill carries the contract's self-check list, including PV-QUESTIONS and "
+           "PV-DIRECTIVE, and refuses to emit, naming the reason, when the source has no "
+           "structured-summary block or no section 6 Pre-check line.", 'none'),
+        _r('PSKILL-03', 'scripts/check-focused-parity.py', 'reproducible',
+           'scripts/check-focused-parity.py', _repro_v918, ('apparatus',),
+           "HARN-03 exempts non-technique skills through a named exemption set with a must-fail "
+           "control that fires if any technique skill is exempted; REG-GUARD and VAL-01 stay "
+           "green.", 'ci'),
+        _r('PEX-01', 'shared/persona-examples/', 'reproducible', _pv, _repro_v918, ('persona',),
+           "Persona examples ship in `shared/persona-examples/`, outside the "
+           "`shared/examples/*.md` glob, emitted by sync -- two analyses x two personas -- and "
+           "PERSONA-GATE checks every one.", 'ci'),
+        _r('PEX-02', 'docs/v9.18-persona-live-reading.md', 'audit-only', '', _audit_live_v918,
+           ('persona',),
+           "A recorded live reading of the skill over 3 real analyses x 4 personas through "
+           "`check-persona-view.py`: 12/12 pass (N = 12), stated as an observation, never a "
+           "gate.", 'none'),
+        _r('PVIEW-01', 'shared/spine/references/persona-views.md', 'reproducible', _pv,
+           _repro_v918, ('persona',),
+           "The contract gives each role a fixed, ordered list of reader questions and a voice "
+           "rule (third person, no imperative to the reader, no verdict on the reader, the "
+           "recommendation pointed to and never restated), presented as a memo: a memo block, an "
+           "In brief paragraph, then one prose paragraph per question in order, the questions "
+           "never printed.", 'ci'),
+        _r('PVIEW-02', _pv, 'reproducible', _pv, _repro_v918, ('persona',),
+           "PERSONA-GATE's PV-QUESTIONS checks the memo structure -- an In brief first paragraph, "
+           "one paragraph per role question, no bullet line, no bold label and no printed "
+           "question -- with must-fail controls; it cannot prove each paragraph answers its "
+           "question.", 'ci'),
+        _r('PVIEW-03', _pv, 'reproducible', _pv, _repro_v918, ('persona',),
+           "PERSONA-GATE's PV-DIRECTIVE fails a sentence that opens with a denylisted imperative "
+           "or carries second-person address or a verdict on the reader; the frozen pre-87 "
+           "example fails it alone. Lexical, over-reports by design.", 'ci'),
+        _r('PVIEW-04', 'shared/skills/persona/SKILL.md', 'audit-only', '', _audit_v918,
+           ('persona',),
+           "`shared/skills/persona/SKILL.md` composes each view as a memo (memo block, In brief, "
+           "one paragraph per question in order) under the voice rule.", 'none'),
+        _r('PVIEW-05', 'shared/persona-examples/', 'reproducible', _pv, _repro_v918,
+           ('persona',),
+           "The shipped persona examples are re-derived by real skill runs under the current "
+           "contract and pass PERSONA-GATE; the checker's fixtures, the reading guide's persona "
+           "sentence and the PERS-01 and PSKILL-02 statements are brought in line.", 'ci'),
+        _r('PVIEW-06', 'docs/v9.18c-persona-live-reading.md', 'audit-only', '', _audit_live_v918,
+           ('persona',),
+           "A new live reading under a new id (`persona-live-v9.18c`) records its PERSONA-GATE "
+           "pass rate with N -- 11/12 (N = 12) -- as an observation, never a gate; all four roles "
+           "were run live on the user's CSA vs CSV analysis for review.", 'none'),
+        _r('PVIEW-07', 'shared/spine/references/report-layout.md', 'reproducible', _pv,
+           _repro_pview07_v918, ('persona',),
+           "Delivered files link to each other and the formats never mix: Markdown links only to "
+           "Markdown, PDF only to PDF. The memo's Basis links the analysis, its report and "
+           "`INDEX.md`; `INDEX.md` / `INDEX.pdf` list every analysis's report and memos, never "
+           "working files; PERSONA-GATE requires the linked Basis.", 'ci'),
+        _r('PKG-01', 'shared/spine/SKILL-body.md', 'audit-only', '', _audit_v918, ('agent',),
+           "A full-agent analysis renders `HOW-TO-READ.pdf` beside the report PDF and the persona "
+           "skill renders `persona-<role>-<UTC>.pdf` for each view that passes its self-check, "
+           "both with `references/report-layout.md`; neither blocks when pandoc or typst is "
+           "absent.", 'none'),
+        _r('PKG-02', 'shared/skills/first-principles-analysis/SKILL.md', 'audit-only', '',
+           _audit_v918, ('first-principles-analysis',),
+           "The `first-principles-analysis` launcher adds nothing the user did not say and never "
+           "tells the agent not to write files.", 'none'),
+    ]
+
+
 def _rows_v910() -> list[MatrixRow]:
     """v9.10.0 milestone rows -- 23 requirements, 0 reproducible + 23 audit-only.
 
@@ -8583,6 +8800,7 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v916())
     # --- v9.17.0 -- 9 reproducible + 6 audit-only (measured) ---
     rows.extend(_rows_v917())
+    rows.extend(_rows_v918())
     return rows
 
 

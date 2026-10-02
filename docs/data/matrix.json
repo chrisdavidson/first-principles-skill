@@ -8095,5 +8095,305 @@
     ],
     "statement": "Measured: on `.first-principles/analysis-20261001T204943Z.md`, re-run through the shipped delivery steps, both reports carry correct figures and all 11 PDF pages were inspected as images. On one fresh live run, the figures were correct but the PDF step failed: the page template bound typst's built-in `divider` name to content, and pandoc emits `#divider()` for every Markdown `---`. Fixed in `report-layout.md` (8e89303c); the live analysis was then re-delivered through the shipped steps and all 8 of its PDF pages were inspected, with no overflowing or clipped label, illegible font or figure outside the margins.",
     "rerun_by": "none"
+  },
+  {
+    "key": "v9.18/GUIDE-01",
+    "bare_id": "GUIDE-01",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/references/how-to-read.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-persona-view.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree of af7e5213: PERSONA-GATE (`scripts/check-persona-view.py --self-test`, CI job `check-persona-view`) for GUIDE-01/02, PERS-01/02, PVIEW-01/02/03/05/07 and PEX-01; DUAL-04 (`scripts/sync-content.py --check`) for GUIDE-01, PSKILL-01 and PEX-01; HARN-03 (`scripts/check-focused-parity.py --self-test`) for PSKILL-03; REG-GUARD (`scripts/check-registration.py`) for PERS-03. Mutations, exit codes and failing controls are recorded in this function's docstring.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "`shared/spine/references/how-to-read.md` ships as a spine reference emitted by `sync-content.py`, and its body is at most 500 words.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.18/GUIDE-02",
+    "bare_id": "GUIDE-02",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/references/how-to-read.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-persona-view.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree of af7e5213: PERSONA-GATE (`scripts/check-persona-view.py --self-test`, CI job `check-persona-view`) for GUIDE-01/02, PERS-01/02, PVIEW-01/02/03/05/07 and PEX-01; DUAL-04 (`scripts/sync-content.py --check`) for GUIDE-01, PSKILL-01 and PEX-01; HARN-03 (`scripts/check-focused-parity.py --self-test`) for PSKILL-03; REG-GUARD (`scripts/check-registration.py`) for PERS-03. Mutations, exit codes and failing controls are recorded in this function's docstring. DISCLOSED BOUND: only the cited names are pinned -- no control checks the five-part protocol; deleting a section turned PERSONA-GATE red only incidentally.",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The guide follows the five-part protocol (start at the Answer; route by role; audit path; business-value signals; act versus dig deeper), and every section or field name it cites exists verbatim in `shared/spine/references/output-template.md`.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.18/GUIDE-03",
+    "bare_id": "GUIDE-03",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads this delivery or skill prose. Measured by mutate-run-restore, not assumed: the distinguishing line in its `shared/` source was deleted or altered, the tree regenerated via `sync-content.py --write`, and `bash scripts/check-firewall-battery.sh` run in a detached worktree -- GREEN (32/32).",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "The agent's delivery steps copy the guide once to `.first-principles/HOW-TO-READ.md` (idempotent: a rerun leaves one byte-identical copy) and the final message names it.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.18/PERS-01",
+    "bare_id": "PERS-01",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/references/persona-views.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-persona-view.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree of af7e5213: PERSONA-GATE (`scripts/check-persona-view.py --self-test`, CI job `check-persona-view`) for GUIDE-01/02, PERS-01/02, PVIEW-01/02/03/05/07 and PEX-01; DUAL-04 (`scripts/sync-content.py --check`) for GUIDE-01, PSKILL-01 and PEX-01; HARN-03 (`scripts/check-focused-parity.py --self-test`) for PSKILL-03; REG-GUARD (`scripts/check-registration.py`) for PERS-03. Mutations, exit codes and failing controls are recorded in this function's docstring.",
+    "surfaces": [
+      "persona"
+    ],
+    "statement": "`shared/spine/references/persona-views.md` defines four personas -- decision-owner, operator, risk, skeptic -- each with its source fields, a fixed, ordered question list, the voice rule, a word band (each 90-170), fixed absent-input sentences, and a memo header (To, Re, Basis, Band) carrying the provenance sentence.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.18/PERS-02",
+    "bare_id": "PERS-02",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-persona-view.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-persona-view.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree of af7e5213: PERSONA-GATE (`scripts/check-persona-view.py --self-test`, CI job `check-persona-view`) for GUIDE-01/02, PERS-01/02, PVIEW-01/02/03/05/07 and PEX-01; DUAL-04 (`scripts/sync-content.py --check`) for GUIDE-01, PSKILL-01 and PEX-01; HARN-03 (`scripts/check-focused-parity.py --self-test`) for PSKILL-03; REG-GUARD (`scripts/check-registration.py`) for PERS-03. Mutations, exit codes and failing controls are recorded in this function's docstring.",
+    "surfaces": [
+      "persona"
+    ],
+    "statement": "`scripts/check-persona-view.py <persona.md> <analysis.md>` fails when the header is missing, the word count is outside the band, a sentence carries no citation, a cited id is absent from the source, a number is absent from the source, or the stated band differs from section 6.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.18/PERS-03",
+    "bare_id": "PERS-03",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-persona-view.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-registration.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree of af7e5213: PERSONA-GATE (`scripts/check-persona-view.py --self-test`, CI job `check-persona-view`) for GUIDE-01/02, PERS-01/02, PVIEW-01/02/03/05/07 and PEX-01; DUAL-04 (`scripts/sync-content.py --check`) for GUIDE-01, PSKILL-01 and PEX-01; HARN-03 (`scripts/check-focused-parity.py --self-test`) for PSKILL-03; REG-GUARD (`scripts/check-registration.py`) for PERS-03. Mutations, exit codes and failing controls are recorded in this function's docstring.",
+    "surfaces": [
+      "persona"
+    ],
+    "statement": "`check-persona-view.py --self-test` carries must-fail controls, each failing for its own code, and the checker is registered on the battery, in CI and in the gate docs as PERSONA-GATE.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.18/PSKILL-01",
+    "bare_id": "PSKILL-01",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/skills/persona/SKILL.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/sync-content.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree of af7e5213: PERSONA-GATE (`scripts/check-persona-view.py --self-test`, CI job `check-persona-view`) for GUIDE-01/02, PERS-01/02, PVIEW-01/02/03/05/07 and PEX-01; DUAL-04 (`scripts/sync-content.py --check`) for GUIDE-01, PSKILL-01 and PEX-01; HARN-03 (`scripts/check-focused-parity.py --self-test`) for PSKILL-03; REG-GUARD (`scripts/check-registration.py`) for PERS-03. Mutations, exit codes and failing controls are recorded in this function's docstring. DISCLOSED BOUND: only the skill's registration is pinned; its source selection and write scope are prose no gate reads.",
+    "surfaces": [
+      "persona"
+    ],
+    "statement": "`shared/skills/persona/SKILL.md` ships a slash-only skill named `persona`, registered in `SKILLS`, that reads the newest `.first-principles/analysis-*.md` or a given path and writes `persona-<role>-<UTC>.md` beside it, never writing to the analysis or report files.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.18/PSKILL-02",
+    "bare_id": "PSKILL-02",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/skills/persona/SKILL.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads this delivery or skill prose. Measured by mutate-run-restore, not assumed: the distinguishing line in its `shared/` source was deleted or altered, the tree regenerated via `sync-content.py --write`, and `bash scripts/check-firewall-battery.sh` run in a detached worktree -- GREEN (32/32).",
+    "surfaces": [
+      "persona"
+    ],
+    "statement": "The skill carries the contract's self-check list, including PV-QUESTIONS and PV-DIRECTIVE, and refuses to emit, naming the reason, when the source has no structured-summary block or no section 6 Pre-check line.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.18/PSKILL-03",
+    "bare_id": "PSKILL-03",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-focused-parity.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-focused-parity.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree of af7e5213: PERSONA-GATE (`scripts/check-persona-view.py --self-test`, CI job `check-persona-view`) for GUIDE-01/02, PERS-01/02, PVIEW-01/02/03/05/07 and PEX-01; DUAL-04 (`scripts/sync-content.py --check`) for GUIDE-01, PSKILL-01 and PEX-01; HARN-03 (`scripts/check-focused-parity.py --self-test`) for PSKILL-03; REG-GUARD (`scripts/check-registration.py`) for PERS-03. Mutations, exit codes and failing controls are recorded in this function's docstring.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "HARN-03 exempts non-technique skills through a named exemption set with a must-fail control that fires if any technique skill is exempted; REG-GUARD and VAL-01 stay green.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.18/PEX-01",
+    "bare_id": "PEX-01",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/persona-examples/",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-persona-view.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree of af7e5213: PERSONA-GATE (`scripts/check-persona-view.py --self-test`, CI job `check-persona-view`) for GUIDE-01/02, PERS-01/02, PVIEW-01/02/03/05/07 and PEX-01; DUAL-04 (`scripts/sync-content.py --check`) for GUIDE-01, PSKILL-01 and PEX-01; HARN-03 (`scripts/check-focused-parity.py --self-test`) for PSKILL-03; REG-GUARD (`scripts/check-registration.py`) for PERS-03. Mutations, exit codes and failing controls are recorded in this function's docstring.",
+    "surfaces": [
+      "persona"
+    ],
+    "statement": "Persona examples ship in `shared/persona-examples/`, outside the `shared/examples/*.md` glob, emitted by sync -- two analyses x two personas -- and PERSONA-GATE checks every one.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.18/PEX-02",
+    "bare_id": "PEX-02",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/v9.18-persona-live-reading.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "A live reading recorded as an observation with N, never a gate. Its artifacts are FROZEN-EVIDENCE paths, but FROZEN-EVIDENCE is not a pin (Phase 34, TIER-02): its `git diff --quiet HEAD` catches an edit and never re-runs the reading.",
+    "surfaces": [
+      "persona"
+    ],
+    "statement": "A recorded live reading of the skill over 3 real analyses x 4 personas through `check-persona-view.py`: 12/12 pass (N = 12), stated as an observation, never a gate.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.18/PVIEW-01",
+    "bare_id": "PVIEW-01",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/references/persona-views.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-persona-view.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree of af7e5213: PERSONA-GATE (`scripts/check-persona-view.py --self-test`, CI job `check-persona-view`) for GUIDE-01/02, PERS-01/02, PVIEW-01/02/03/05/07 and PEX-01; DUAL-04 (`scripts/sync-content.py --check`) for GUIDE-01, PSKILL-01 and PEX-01; HARN-03 (`scripts/check-focused-parity.py --self-test`) for PSKILL-03; REG-GUARD (`scripts/check-registration.py`) for PERS-03. Mutations, exit codes and failing controls are recorded in this function's docstring.",
+    "surfaces": [
+      "persona"
+    ],
+    "statement": "The contract gives each role a fixed, ordered list of reader questions and a voice rule (third person, no imperative to the reader, no verdict on the reader, the recommendation pointed to and never restated), presented as a memo: a memo block, an In brief paragraph, then one prose paragraph per question in order, the questions never printed.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.18/PVIEW-02",
+    "bare_id": "PVIEW-02",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-persona-view.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-persona-view.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree of af7e5213: PERSONA-GATE (`scripts/check-persona-view.py --self-test`, CI job `check-persona-view`) for GUIDE-01/02, PERS-01/02, PVIEW-01/02/03/05/07 and PEX-01; DUAL-04 (`scripts/sync-content.py --check`) for GUIDE-01, PSKILL-01 and PEX-01; HARN-03 (`scripts/check-focused-parity.py --self-test`) for PSKILL-03; REG-GUARD (`scripts/check-registration.py`) for PERS-03. Mutations, exit codes and failing controls are recorded in this function's docstring.",
+    "surfaces": [
+      "persona"
+    ],
+    "statement": "PERSONA-GATE's PV-QUESTIONS checks the memo structure -- an In brief first paragraph, one paragraph per role question, no bullet line, no bold label and no printed question -- with must-fail controls; it cannot prove each paragraph answers its question.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.18/PVIEW-03",
+    "bare_id": "PVIEW-03",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-persona-view.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-persona-view.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree of af7e5213: PERSONA-GATE (`scripts/check-persona-view.py --self-test`, CI job `check-persona-view`) for GUIDE-01/02, PERS-01/02, PVIEW-01/02/03/05/07 and PEX-01; DUAL-04 (`scripts/sync-content.py --check`) for GUIDE-01, PSKILL-01 and PEX-01; HARN-03 (`scripts/check-focused-parity.py --self-test`) for PSKILL-03; REG-GUARD (`scripts/check-registration.py`) for PERS-03. Mutations, exit codes and failing controls are recorded in this function's docstring.",
+    "surfaces": [
+      "persona"
+    ],
+    "statement": "PERSONA-GATE's PV-DIRECTIVE fails a sentence that opens with a denylisted imperative or carries second-person address or a verdict on the reader; the frozen pre-87 example fails it alone. Lexical, over-reports by design.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.18/PVIEW-04",
+    "bare_id": "PVIEW-04",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/skills/persona/SKILL.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads this delivery or skill prose. Measured by mutate-run-restore, not assumed: the distinguishing line in its `shared/` source was deleted or altered, the tree regenerated via `sync-content.py --write`, and `bash scripts/check-firewall-battery.sh` run in a detached worktree -- GREEN (32/32).",
+    "surfaces": [
+      "persona"
+    ],
+    "statement": "`shared/skills/persona/SKILL.md` composes each view as a memo (memo block, In brief, one paragraph per question in order) under the voice rule.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.18/PVIEW-05",
+    "bare_id": "PVIEW-05",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/persona-examples/",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-persona-view.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree of af7e5213: PERSONA-GATE (`scripts/check-persona-view.py --self-test`, CI job `check-persona-view`) for GUIDE-01/02, PERS-01/02, PVIEW-01/02/03/05/07 and PEX-01; DUAL-04 (`scripts/sync-content.py --check`) for GUIDE-01, PSKILL-01 and PEX-01; HARN-03 (`scripts/check-focused-parity.py --self-test`) for PSKILL-03; REG-GUARD (`scripts/check-registration.py`) for PERS-03. Mutations, exit codes and failing controls are recorded in this function's docstring.",
+    "surfaces": [
+      "persona"
+    ],
+    "statement": "The shipped persona examples are re-derived by real skill runs under the current contract and pass PERSONA-GATE; the checker's fixtures, the reading guide's persona sentence and the PERS-01 and PSKILL-02 statements are brought in line.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.18/PVIEW-06",
+    "bare_id": "PVIEW-06",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/v9.18c-persona-live-reading.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "A live reading recorded as an observation with N, never a gate. Its artifacts are FROZEN-EVIDENCE paths, but FROZEN-EVIDENCE is not a pin (Phase 34, TIER-02): its `git diff --quiet HEAD` catches an edit and never re-runs the reading.",
+    "surfaces": [
+      "persona"
+    ],
+    "statement": "A new live reading under a new id (`persona-live-v9.18c`) records its PERSONA-GATE pass rate with N -- 11/12 (N = 12) -- as an observation, never a gate; all four roles were run live on the user's CSA vs CSV analysis for review.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.18/PVIEW-07",
+    "bare_id": "PVIEW-07",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/references/report-layout.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-persona-view.py",
+    "gap_rationale": "Mutate-run-restore turned a registered gate RED, each probe in its own detached worktree of af7e5213: PERSONA-GATE (`scripts/check-persona-view.py --self-test`, CI job `check-persona-view`) for GUIDE-01/02, PERS-01/02, PVIEW-01/02/03/05/07 and PEX-01; DUAL-04 (`scripts/sync-content.py --check`) for GUIDE-01, PSKILL-01 and PEX-01; HARN-03 (`scripts/check-focused-parity.py --self-test`) for PSKILL-03; REG-GUARD (`scripts/check-registration.py`) for PERS-03. Mutations, exit codes and failing controls are recorded in this function's docstring. DISCLOSED BOUND: only the memo's linked Basis is pinned -- deleting the index script's report line, the report's `Read with:` line, or the PDF render's `.md` de-link each left the full battery GREEN.",
+    "surfaces": [
+      "persona"
+    ],
+    "statement": "Delivered files link to each other and the formats never mix: Markdown links only to Markdown, PDF only to PDF. The memo's Basis links the analysis, its report and `INDEX.md`; `INDEX.md` / `INDEX.pdf` list every analysis's report and memos, never working files; PERSONA-GATE requires the linked Basis.",
+    "rerun_by": "ci"
+  },
+  {
+    "key": "v9.18/PKG-01",
+    "bare_id": "PKG-01",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads this delivery or skill prose. Measured by mutate-run-restore, not assumed: the distinguishing line in its `shared/` source was deleted or altered, the tree regenerated via `sync-content.py --write`, and `bash scripts/check-firewall-battery.sh` run in a detached worktree -- GREEN (32/32).",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "A full-agent analysis renders `HOW-TO-READ.pdf` beside the report PDF and the persona skill renders `persona-<role>-<UTC>.pdf` for each view that passes its self-check, both with `references/report-layout.md`; neither blocks when pandoc or typst is absent.",
+    "rerun_by": "none"
+  },
+  {
+    "key": "v9.18/PKG-02",
+    "bare_id": "PKG-02",
+    "milestone": "v9.18",
+    "capability": "Test-Network",
+    "deliverable_path": "shared/skills/first-principles-analysis/SKILL.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No registered gate reads this delivery or skill prose. Measured by mutate-run-restore, not assumed: the distinguishing line in its `shared/` source was deleted or altered, the tree regenerated via `sync-content.py --write`, and `bash scripts/check-firewall-battery.sh` run in a detached worktree -- GREEN (32/32).",
+    "surfaces": [
+      "first-principles-analysis"
+    ],
+    "statement": "The `first-principles-analysis` launcher adds nothing the user did not say and never tells the agent not to write files.",
+    "rerun_by": "none"
   }
 ]
