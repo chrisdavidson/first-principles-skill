@@ -38,9 +38,11 @@ Palette: navy `#1f3864`, slate `#4a5568`, rule-gray `#c9ced6` -- the same consta
 `#2f6f4f`, MEDIUM `#b7791f`, LOW `#9b2c2c`. A ground-truth node is solid navy with white text when
 `read_at_source` is true; white with a dashed navy border and a trailing ` ?` when false. An edge
 whose citation carries a `?` suffix (an unverified ground truth) is dashed amber; every other
-GT-to-chain edge is gray. Chain-to-chain edges are drawn in a lighter navy on the chain column's
-own side, each offset so several edges into the same chain (a chain resting on many prior chains)
-stay visually distinct instead of overlapping. Both figures carry a one-line legend as part of the
+GT-to-chain edge is gray. Chain-to-chain edges are drawn in a lighter navy as rounded brackets to
+the right of the chain column, each in its own vertical lane: shorter spans take the inner lanes so
+longer ones nest around them rather than cross, edges whose spans do not overlap share a lane, and
+every edge attaches at its own port on each node, so several edges into one chain (a chain resting
+on many prior chains) stay visually distinct instead of overlapping. Both figures carry a one-line legend as part of the
 figure itself, not as separate report prose.
 
 ## Compiling and reading a figure
@@ -141,6 +143,48 @@ with Liberation Sans as fallback, both SIL Open Font License.
   let ch-y(i) = i * ch-gap + (ch-gap - node-h) / 2
   let concl-y = H / 2 - concl-h / 2
 
+  // Chain-to-chain arcs: each gets its own vertical lane right of the chain column. Shorter
+  // spans take inner lanes, so longer arcs nest around them instead of crossing; arcs whose
+  // spans do not overlap share a lane. Each arc also gets its own attachment port on both nodes.
+  let cc = ()
+  for (j, c) in chains.enumerate() {
+    for (k, ref) in c.rests_on.enumerate() {
+      if ref in ch-index { cc.push((i: ch-index.at(ref), j: j, k: k)) }
+    }
+  }
+  let order = range(cc.len()).sorted(key: n => calc.abs(cc.at(n).i - cc.at(n).j))
+  let lane-of = (:)
+  let lanes = ()
+  for n in order {
+    let lo = calc.min(cc.at(n).i, cc.at(n).j)
+    let hi = calc.max(cc.at(n).i, cc.at(n).j)
+    let placed = false
+    for (l, spans) in lanes.enumerate() {
+      if not placed and spans.all(s => hi < s.at(0) or lo > s.at(1)) {
+        lanes.at(l).push((lo, hi)); lane-of.insert(str(n), l); placed = true
+      }
+    }
+    if not placed { lanes.push(((lo, hi),)); lane-of.insert(str(n), lanes.len() - 1) }
+  }
+  let lane-room = col-x.at(2) - (col-x.at(1) + node-w) - 24pt
+  let lane-step = if lanes.len() > 0 { calc.min(9pt, lane-room / lanes.len()) } else { 0pt }
+  let port-count = (:)
+  for e in cc {
+    for x in (e.i, e.j) { port-count.insert(str(x), port-count.at(str(x), default: 0) + 1) }
+  }
+  let port-used = (:)
+  let port-y = (:)
+  for (n, e) in cc.enumerate() {
+    for (side, x) in (("a", e.i), ("b", e.j)) {
+      let used = port-used.at(str(x), default: 0)
+      let total = port-count.at(str(x))
+      port-y.insert(str(n) + side, ch-y(x) + 2pt + (node-h - 4pt) * (used + 1) / (total + 1))
+      port-used.insert(str(x), used + 1)
+    }
+  }
+  let cc-at = (:)
+  for (n, e) in cc.enumerate() { cc-at.insert(str(e.j) + "-" + str(e.k), n) }
+
   let edges = ()
   for (j, c) in chains.enumerate() {
     for (k, ref) in c.rests_on.enumerate() {
@@ -157,15 +201,21 @@ with Liberation Sans as fallback, both SIL Open Font License.
             (col-x.at(1) - 50pt, ch-y(j) + node-h / 2),
             (col-x.at(1), ch-y(j) + node-h / 2)))))
       } else if id in ch-index {
-        let i = ch-index.at(id)
-        let offset = 14pt + 8pt * calc.rem(k, 4)
+        let n = cc-at.at(str(j) + "-" + str(k))
+        let x0 = col-x.at(1) + node-w
+        let xl = x0 + 8pt + lane-step * (lane-of.at(str(n)) + 1)
+        let ya = port-y.at(str(n) + "a")
+        let yb = port-y.at(str(n) + "b")
+        let r = calc.min(4pt, calc.abs(yb - ya) / 2)
+        let dir = if yb > ya { 1 } else { -1 }
         edges.push(place(curve(
           stroke: (paint: navy.lighten(45%), thickness: 0.6pt),
-          curve.move((col-x.at(1) + node-w, ch-y(i) + node-h / 2)),
-          curve.cubic(
-            (col-x.at(1) + node-w + offset, ch-y(i) + node-h / 2),
-            (col-x.at(1) + node-w + offset, ch-y(j) + node-h / 2),
-            (col-x.at(1) + node-w, ch-y(j) + node-h / 2)))))
+          curve.move((x0, ya)),
+          curve.line((xl - r, ya)),
+          curve.quad((xl, ya), (xl, ya + dir * r)),
+          curve.line((xl, yb - dir * r)),
+          curve.quad((xl, yb), (xl - r, yb)),
+          curve.line((x0, yb)))))
       }
     }
   }
