@@ -134,7 +134,7 @@ The narrower question, *does a gate resolve the file itself?*, is yes for exactl
 | [CONFIGURATION.md](CONFIGURATION.md) | Skill frontmatter rules, version-string format, reserved words, anti-masking invariants (`MIN_HEADER_HITS=2`, `_COMPOSER_FOCUS_CEILING=4`) |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Contributor workflow: `shared/` source-of-truth model, validation-script inventory, standard editing loop, pre-commit hook setup, key invariants |
 | [FIVE-PHASE-FLOW.md](FIVE-PHASE-FLOW.md) | Mermaid flow diagram of the 5-phase methodology: Step 0 mode selection, phase chain with named artifacts, companion-technique handoff edges, and the second-order route-back |
-| [GETTING-STARTED.md](GETTING-STARTED.md) | Install the plugin, invoke the agent and the fourteen slash-invocable skills (thirteen companions plus the launcher) |
+| [GETTING-STARTED.md](GETTING-STARTED.md) | Install the plugin, invoke the agent and the slash-invocable skills (thirteen companions, the launcher, and the persona reader-view companion) |
 | [METHODOLOGY-CHEATSHEET.md](METHODOLOGY-CHEATSHEET.md) | One-page quick reference: the 5-phase flow, named artifacts, assumption types, derivation-chain format, and all thirteen companion/focused skills with slash commands |
 | [PROCESS.md](PROCESS.md) | The project's stopping rule: the depth rule (a guard guards the product; a guard is not itself guarded), the product/apparatus review split, and the rework cap with its append-only exception ledger |
 | [TESTING.md](TESTING.md) | How to run every CI gate and the five pre-commit gates — VAL/DUAL/GATE/STEP0/BATT/TRACE matrix, each mapped to its script |

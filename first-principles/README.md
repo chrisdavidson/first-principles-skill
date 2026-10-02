@@ -17,10 +17,11 @@ companion thinking techniques loaded on demand rather than carried in every cont
 - **Fourteen worked examples** under `references/examples/` — spread across
   software/systems, product/business, personal/general, and science/engineering, each showing a
   real dead-end and a complete validation pass. Pulled in when an in-context illustration helps.
-- **Fourteen slash-invocable skills** under `skills/` — a full-analysis launcher plus thirteen
+- **Slash-invocable skills** under `skills/` — a full-analysis launcher, thirteen
   focused modes (the eight techniques above and five phase skills: identify-essence,
-  challenge-assumptions, ground-truths, reason-upward, validate). All are registered
-  slash-only (`disable-model-invocation: true`); the agent never auto-routes to them.
+  challenge-assumptions, ground-truths, reason-upward, validate), and the `persona`
+  reader-view companion. All are registered slash-only (`disable-model-invocation: true`);
+  the agent never auto-routes to them.
 
 ## Install
 

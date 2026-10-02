@@ -106,8 +106,8 @@ To invoke explicitly by name instead:
 
 ## Companion skills
 
-Fourteen slash-invocable skills extend the methodology — the full-analysis launcher above plus
-thirteen focused modes. Each can be invoked directly:
+Slash-invocable skills extend the methodology — the full-analysis launcher above, thirteen
+focused modes, and the `persona` reader-view companion. Each can be invoked directly:
 
 | Skill | Invocation | When to use |
 |-------|-----------|-------------|
@@ -125,6 +125,7 @@ thirteen focused modes. Each can be invoked directly:
 | Second-order | `/first-principles:second-order` | Downstream-consequence extension (use during Phase 4) |
 | Estimate | `/first-principles:estimate` | Order-of-magnitude rebuild from unit factors (use during Phase 4) |
 | Theoretical Limit | `/first-principles:theoretical-limit` | Law-permitted-ceiling check on a conventional figure (use during Phase 4) |
+| Persona View | `/first-principles:persona <role> [analysis-path]` | Role-specific reader view of a finished analysis, written to a sibling file |
 
 ## What the agent produces
 
