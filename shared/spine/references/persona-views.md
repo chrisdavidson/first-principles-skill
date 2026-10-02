@@ -125,6 +125,7 @@ argument is weakest.
 **Absent-input sentences:**
 
 - "This analysis records no abandoned line of reasoning (§5)."
+- "No chain states a rival that was ruled out (§4)."
 
 ## Self-check before emitting
 

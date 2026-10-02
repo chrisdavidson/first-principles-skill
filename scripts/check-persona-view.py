@@ -341,7 +341,11 @@ def body_units(body: str) -> list[BodyUnit]:
 # ---------------------------------------------------------------------------
 
 _GT_Q_RE = re.compile(r"GT-\d+\?")
-_QUOTED_DEADEND_RE = re.compile(r'§5\s+"[^"]*"')
+_QUOTED_DEADEND_RE = re.compile(r'§5\s+"([^"]*)"')
+# Abbreviations whose period is not a sentence end (84-REVIEW WR-03). "etc."
+# is deliberately absent: it usually ends a sentence, and masking it would
+# merge two sentences into one citation unit.
+_ABBREV_RE = re.compile(r"\b(?:e\.g|i\.e|vs|cf)\.")
 _DECIMAL_RE = re.compile(r"(?<=\d)\.(?=\d)")
 _UNMASK = {"\x00": ".", "\x01": "?", "\x02": "!"}
 _TERMINATOR_SPLIT_RE = re.compile(r"(?<=[.?!])(?:\s+|$)")
@@ -349,7 +353,7 @@ _TERMINATOR_SPLIT_RE = re.compile(r"(?<=[.?!])(?:\s+|$)")
 
 def _mask_sentence_breaks(text: str) -> str:
     chars = list(text)
-    for pat in (_GT_Q_RE, _QUOTED_DEADEND_RE):
+    for pat in (_GT_Q_RE, _QUOTED_DEADEND_RE, _ABBREV_RE):
         for m in pat.finditer(text):
             for i in range(m.start(), m.end()):
                 c = chars[i]
@@ -380,7 +384,10 @@ def sentences(unit_text: str) -> list[str]:
 # Citation presence and resolution
 # ---------------------------------------------------------------------------
 
-_CITATION_PRESENT_RE = re.compile(r"C\d+\b|GT-\d+\??|A-\d+\b|§[1-6]\b")
+# Every token needs a leading word boundary (84-REVIEW CR-01): without it,
+# "SPEC1" or "RFC2119" satisfied the C<n> alternative and an uncited
+# sentence passed as cited.
+_CITATION_PRESENT_RE = re.compile(r"\bC\d+\b|\bGT-\d+\??|\bA-\d+\b|§[1-6]\b")
 _RESOLVE_GT_RE = re.compile(r"GT-(\d+)(\??)")
 _RESOLVE_CHAIN_RE = re.compile(r"\bC(\d+)\b")
 _RESOLVE_A_RE = re.compile(r"\bA-(\d+)\b")
@@ -390,7 +397,7 @@ def resolve_ids(body_text: str, facts: SourceFacts) -> list[Finding]:
     findings: list[Finding] = []
 
     for m in _QUOTED_DEADEND_RE.finditer(body_text):
-        title = m.group(0)[len('§5 "'):-1]
+        title = m.group(1)
         if title not in facts.dead_end_titles:
             findings.append(Finding("PV-DEADEND", f'quoted §5 title not found in §5: "{title}"'))
 
@@ -602,6 +609,12 @@ _MUTATIONS: tuple[tuple[str, str, str, Callable[[str], str], frozenset[str]], ..
      lambda t: t.replace("$180,000", "$190,000"), frozenset({"PV-NUMBER"})),
     ("M-UNCITED", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
      _m_uncited, frozenset({"PV-UNCITED"})),
+    # 84-REVIEW CR-01: a token that merely ENDS in C<digits> (SPEC1) is not a
+    # citation; the stripped sentence must still read as uncited.
+    ("M-PSEUDO", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
+     lambda t: _m_uncited(t).replace(
+         "the recommendation is reconsidered.", "the recommendation is reconsidered per SPEC1.", 1),
+     frozenset({"PV-UNCITED"})),
     ("M-BAND", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
      lambda t: t.replace("**Band (from §6):** MEDIUM", "**Band (from §6):** HIGH"), frozenset({"PV-BAND"})),
     ("M-HEADER", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",

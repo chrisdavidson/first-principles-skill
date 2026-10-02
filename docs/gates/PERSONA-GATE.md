@@ -3,8 +3,8 @@
 <!-- GENERATED:FACTS -->
 ## Facts
 
-- `control_ids` (19): `P01`, `P02`, `P03`, `M-ID`, `M-AGREE`, `M-NUMBER`, `M-UNCITED`, `M-BAND`, `M-HEADER`, `M-OVER`, `M-UNDER`, `M-SHAPE`, `M-DEADEND`, `G-NAME`, `G-WORDS`, `U01`, `U02`, `U03`, `U04`
-- `control_count`: `19`
+- `control_ids` (20): `P01`, `P02`, `P03`, `M-ID`, `M-AGREE`, `M-NUMBER`, `M-UNCITED`, `M-PSEUDO`, `M-BAND`, `M-HEADER`, `M-OVER`, `M-UNDER`, `M-SHAPE`, `M-DEADEND`, `G-NAME`, `G-WORDS`, `U01`, `U02`, `U03`, `U04`
+- `control_count`: `20`
 - `registered_surfaces` (3): `shared/spine/references/how-to-read.md`, `shared/spine/references/output-template.md`, `shared/spine/references/persona-views.md`
 - `checked_files` (7): `shared/examples/personal-general.md`, `shared/examples/product-business-2.md`, `tests/persona-views-v9.18/personal-general-risk.md`, `tests/persona-views-v9.18/product-business-2-decision-owner.md`, `tests/persona-views-v9.18/product-business-2-operator.md`, `tests/persona-views-v9.18/product-business-2-risk.md`, `tests/persona-views-v9.18/product-business-2-skeptic.md`
 - `locked_constants` (3 entries): `guide_max_words`, `provenance_template`, `roster`

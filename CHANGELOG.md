@@ -40,8 +40,10 @@ that every sentence and bullet carries a citation, that every cited chain, groun
 `?` marking agreement), assumption and dead-end id resolves in the source, and that every number
 in the view appears in the source. It also checks the reading guide's named sections and fields
 against the output template and its word ceiling. Its stated bound: it proves a citation resolves,
-never that it supports the sentence it is attached to. Registered on the battery, in CI, and in
-the generated gate docs as PERSONA-GATE.
+never that it supports the sentence it is attached to. A citation must be a whole token: a word
+that merely ends in C and digits (`SPEC1`, `RFC2119`) is not a citation, a code-review finding
+fixed with its own must-fail control. "e.g.", "i.e.", "vs." and "cf." do not end a sentence.
+Registered on the battery, in CI, and in the generated gate docs as PERSONA-GATE.
 
 ## [9.17.0] — 2026-10-02
 
