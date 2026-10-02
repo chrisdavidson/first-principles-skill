@@ -125,6 +125,7 @@ SKILLS = (
     "identify-essence", "challenge-assumptions", "ground-truths", "reason-upward", "validate",
     "estimate", "theoretical-limit",
     "first-principles-analysis",
+    "persona",
 )
 
 # Launcher stubs (DISPATCH-05): slugs whose stub body carries no inlined technique
@@ -140,6 +141,15 @@ SKILLS = (
 # surface and gives the methodology a second copy that can drift from the agent's.
 # The launcher keeps the agent as the single source of truth.
 LAUNCHER_SKILLS = frozenset({"first-principles-analysis"})
+
+# Skills that inline no technique procedure and carry no focused-mode
+# validation step — the launcher dispatches the composer agent, and the
+# persona companion reads a finished analysis rather than running one. Both
+# must carry neither the `{{PROCEDURE:<slug>}}` nor the `{{FOCUSED_VALIDATION}}`
+# token, so the four token-presence guards below key on this set rather than
+# on LAUNCHER_SKILLS alone. LAUNCHER_SKILLS stays defined on its own — other
+# code and docs name it specifically for the launcher-only distinction.
+NON_TECHNIQUE_SKILLS = LAUNCHER_SKILLS | frozenset({"persona"})
 
 # Token in shared/skills/<slug>/SKILL.md replaced by sync with the inlined
 # technique content (from `## When to reach for this` to EOF of
@@ -333,11 +343,13 @@ SKILL_PEER_PREFIX = "${CLAUDE_PLUGIN_ROOT}/skills/"
 
 # Canonical total count of files that sync-content.py generates (len(generate_all())).
 # Breakdown: 1 agent + 12 reference siblings (11 Markdown + 1 JSON schema) +
-# 4 agent detail siblings + 14 worked-example siblings + 14 skill stubs +
+# 4 agent detail siblings + 14 worked-example siblings + 15 skill stubs +
 # 4 skill detail siblings.
 # DISPATCH-05 adds the 14th skill stub: the `first-principles-analysis` launcher
 # (LAUNCHER_SKILLS). It emits one stub and no detail sibling — a launcher inlines
 # no technique procedure, so it adds exactly 1 to this count.
+# PSKILL-01 adds the 15th skill stub: the `persona` companion
+# (NON_TECHNIQUE_SKILLS). It likewise emits one stub and no detail sibling.
 # v8.5 Phase 154 (MECH-02) adds the two four-entry detail-sibling families for
 # SLUGS_WITH_DETAIL, raising the previous total (documented pre-Phase-154 in
 # git history) to the count below.
@@ -348,7 +360,7 @@ SKILL_PEER_PREFIX = "${CLAUDE_PLUGIN_ROOT}/skills/"
 # out-of-generator-scope.
 # generate_all() raises ValueError if len(targets) != GENERATED_TARGET_COUNT so this
 # number cannot silently drift again (D-01, DEBT-02).
-GENERATED_TARGET_COUNT = 53
+GENERATED_TARGET_COUNT = 54
 
 # v8.5 Phase 154 GATE-02 (D-11): module-level re-entrancy sentinel guarding
 # cmd_self_test()'s dispatch control. That control drives main(["--self-test"])
@@ -379,7 +391,7 @@ _GATE02_DISPATCH_REENTRANT = False
 # `set(executed) == set(_SELF_TEST_CONTROL_IDS)` in both directions. Control
 # (m) proves that floor actually fires.
 _SELF_TEST_CONTROL_IDS: tuple[str, ...] = (
-    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n",
 )
 
 
@@ -900,7 +912,21 @@ def _expand_skill_token(body: str, slug: str) -> str:
     (e.g. a pre-mortem stub embedding `{{PROCEDURE:inversion}}`) are rejected
     so the sync pipeline cannot silently propagate the wrong technique's
     procedure into a stub.
+
+    A NON_TECHNIQUE_SKILLS slug carrying the token raises here, before any
+    substitution is attempted — a non-technique slug has no
+    `shared/references/{slug}.md` to inline, so attempting the substitution
+    first would surface a confusing FileNotFoundError instead of the real
+    cause (control n).
     """
+    if slug in NON_TECHNIQUE_SKILLS and SKILL_TOKEN_RE.search(body):
+        raise ValueError(
+            f"shared/skills/{slug}/SKILL.md is a non-technique stub "
+            f"(NON_TECHNIQUE_SKILLS) but contains a {{{{PROCEDURE:{slug}}}}} "
+            f"token. A non-technique stub inlines no technique procedure — "
+            f"remove the token or drop the slug from NON_TECHNIQUE_SKILLS."
+        )
+
     seen = 0
 
     def sub(m: re.Match) -> str:
@@ -924,20 +950,15 @@ def _expand_skill_token(body: str, slug: str) -> str:
         return expanded.rstrip("\n")
 
     out = SKILL_TOKEN_RE.sub(sub, body)
-    if seen == 0 and slug not in LAUNCHER_SKILLS:
+    # The NON_TECHNIQUE_SKILLS raise above already covers every case where
+    # `seen` would be nonzero for such a slug, so the only remaining case
+    # here is a technique slug missing its required token.
+    if seen == 0 and slug not in NON_TECHNIQUE_SKILLS:
         raise ValueError(
             f"shared/skills/{slug}/SKILL.md is missing the required "
             f"{{{{PROCEDURE:{slug}}}}} token — without it the stub body "
             f"falls below the 80-LOC floor and the inline-copy contract "
             f"(46-02-PLAN must_haves) is violated"
-        )
-    if seen and slug in LAUNCHER_SKILLS:
-        raise ValueError(
-            f"shared/skills/{slug}/SKILL.md is a launcher stub "
-            f"(LAUNCHER_SKILLS) but contains a {{{{PROCEDURE:{slug}}}}} token. "
-            f"A launcher dispatches the composer agent and must not inline a "
-            f"technique procedure — remove the token or drop the slug from "
-            f"LAUNCHER_SKILLS."
         )
     return out
 
@@ -1001,19 +1022,20 @@ def _expand_focused_validation_token(body: str, slug: str) -> str:
     seen = len(FOCUSED_VALIDATION_TOKEN_RE.findall(body))
     out = FOCUSED_VALIDATION_TOKEN_RE.sub(lambda m: replacement, body)
 
-    if seen == 0 and slug not in LAUNCHER_SKILLS:
+    if seen == 0 and slug not in NON_TECHNIQUE_SKILLS:
         raise ValueError(
             f"shared/skills/{slug}/SKILL.md is missing the required "
             f"{{{{FOCUSED_VALIDATION}}}} token — without it the emitted "
             f"stub has no Observe limb, violating PAR-02 (PAR-02 is "
             f"unconditional: documentation alone cannot satisfy it)."
         )
-    if seen and slug in LAUNCHER_SKILLS:
+    if seen and slug in NON_TECHNIQUE_SKILLS:
         raise ValueError(
-            f"shared/skills/{slug}/SKILL.md is a launcher stub "
-            f"(LAUNCHER_SKILLS) but contains a {{{{FOCUSED_VALIDATION}}}} "
-            f"token. A launcher dispatches the composer agent, which "
-            f"already runs Phase 5 — it must not carry the token."
+            f"shared/skills/{slug}/SKILL.md is a non-technique stub "
+            f"(NON_TECHNIQUE_SKILLS) but contains a {{{{FOCUSED_VALIDATION}}}} "
+            f"token. A non-technique stub dispatches no Phase-5 run of its "
+            f"own — remove the token or drop the slug from "
+            f"NON_TECHNIQUE_SKILLS."
         )
     return out
 
@@ -2138,6 +2160,59 @@ def cmd_self_test() -> int:
                 )
     except Exception as exc:
         failures.append(f"FAIL (m): unexpected exception: {exc!r}")
+
+    # (n) NON_TECHNIQUE_SKILLS token-presence control (PSKILL-03): a
+    # non-technique slug's body carrying either the `{{PROCEDURE:<slug>}}` or
+    # the `{{FOCUSED_VALIDATION}}` token must raise, naming
+    # NON_TECHNIQUE_SKILLS — proving the elevation Threat T-85-06 names
+    # (a persona-shaped body carrying a technique token) is caught at
+    # generation time, not only by a downstream gate.
+    executed.append("n")
+    try:
+        try:
+            _expand_skill_token("{{PROCEDURE:persona}}", "persona")
+            failures.append(
+                "FAIL (n): _expand_skill_token did NOT raise for a "
+                "NON_TECHNIQUE_SKILLS slug carrying {{PROCEDURE:persona}}"
+            )
+        except ValueError as exc:
+            if "NON_TECHNIQUE_SKILLS" not in str(exc):
+                failures.append(
+                    f"FAIL (n): _expand_skill_token raised for the wrong "
+                    f"reason: {exc}"
+                )
+        except Exception as exc:
+            failures.append(
+                f"FAIL (n): _expand_skill_token unexpected exception type: {exc!r}"
+            )
+
+        try:
+            _expand_focused_validation_token("{{FOCUSED_VALIDATION}}", "persona")
+            failures.append(
+                "FAIL (n): _expand_focused_validation_token did NOT raise "
+                "for a NON_TECHNIQUE_SKILLS slug carrying "
+                "{{FOCUSED_VALIDATION}}"
+            )
+        except ValueError as exc:
+            if "NON_TECHNIQUE_SKILLS" not in str(exc):
+                failures.append(
+                    f"FAIL (n): _expand_focused_validation_token raised for "
+                    f"the wrong reason: {exc}"
+                )
+        except Exception as exc:
+            failures.append(
+                f"FAIL (n): _expand_focused_validation_token unexpected "
+                f"exception type: {exc!r}"
+            )
+
+        if not any(f.startswith("FAIL (n)") for f in failures):
+            print(
+                "(n) NON_TECHNIQUE_SKILLS token-presence control: PASS — "
+                "a persona body carrying either token raises, naming "
+                "NON_TECHNIQUE_SKILLS"
+            )
+    except Exception as exc:
+        failures.append(f"FAIL (n): unexpected exception: {exc!r}")
 
     # Executed-vs-registered floor (Phase 21-14, CR-02): _SELF_TEST_CONTROL_IDS
     # is a second, independently-typed transcription of the lettered control

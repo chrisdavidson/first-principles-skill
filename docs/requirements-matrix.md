@@ -42,6 +42,7 @@ Rows naming each shipped skill slug, the agent, or apparatus. A surfaces value i
 
 ### Uncovered
 - first-principles-analysis
+- persona
 
 ## Matrix Table
 | Key | Bare ID | Statement | Capability | Surfaces | Deliverable | Tier | Re-run By | Artifact | Gap Rationale |

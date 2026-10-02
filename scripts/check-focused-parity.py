@@ -115,9 +115,10 @@ EXPECTED_STUB_COUNT = 13
 # (inside `_check_stub_surface`) so this set can never be widened to quietly
 # exempt a real technique from those checks — adding any technique slug to
 # it fails Stub-14 naming that slug, and naming a slug with no emitted stub
-# fails Stub-14 too (an exemption cannot be vacuous). Plan 85-02 adds
-# `"persona"` to this set in the same change that ships that skill.
-NON_TECHNIQUE_SLUGS: frozenset[str] = frozenset({LAUNCHER_SLUG})
+# fails Stub-14 too (an exemption cannot be vacuous). `persona` is a reader
+# companion that overlays a finished analysis rather than inlining a
+# technique procedure, so it carries neither marker either.
+NON_TECHNIQUE_SLUGS: frozenset[str] = frozenset({LAUNCHER_SLUG, "persona"})
 
 # D-11: the agent-surface generated-tree targets this gate reads. Never
 # `shared/` — DUAL-04 already guarantees `shared/` and the emitted tree
