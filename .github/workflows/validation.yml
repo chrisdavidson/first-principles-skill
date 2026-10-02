@@ -410,3 +410,16 @@ jobs:
           enable-cache: true
       - run: uv sync --locked --group dev
       - run: uv run python3 scripts/check-report-figures.py --self-test
+
+  check-persona-view:
+    name: check-persona-view (PERSONA-GATE)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --locked --group dev
+      - run: uv run python3 scripts/check-persona-view.py --self-test

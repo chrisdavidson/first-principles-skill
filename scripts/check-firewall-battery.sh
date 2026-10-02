@@ -743,6 +743,21 @@ else
         "python3 scripts/check-report-figures.py --describe"
 fi
 
+# PERSONA-GATE — checks a reader-persona view against the analysis it was
+#                derived from and the contract in
+#                shared/spine/references/persona-views.md: the provenance
+#                header, the band against section 6, the role's word band,
+#                that every sentence and bullet carries a citation, and that
+#                every cited chain, ground-truth (with matching `?` marking),
+#                assumption and dead-end id resolves in the source, plus
+#                every number. Also checks the reading guide's names against
+#                the output template and its word ceiling. Needs no
+#                prerequisite — stdlib Python only, no typst/claude/pytest
+#                dependency — so it runs as a plain gate, never gate_prereq.
+gate "PERSONA-GATE" \
+    "check-persona-view.py --self-test" \
+    "python3 scripts/check-persona-view.py --self-test"
+
 # ---------------------------------------------------------------------------
 # Invariant re-confirm (D-07) — byte-frozen constants in _battery_core.py.
 #

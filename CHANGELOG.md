@@ -23,6 +23,26 @@ template defines, is copied once per run (a rerun leaves one identical copy), ne
 reports when it cannot be copied, and is named in the final message. The six sections, the Answer
 and the structured summary are unchanged.
 
+### Added — a reader-persona contract, ahead of any persona text
+
+`shared/spine/references/persona-views.md` ships as a new reference: a contract for four reader
+views — Decision Owner, Operator, Risk, Skeptic — each naming its own source fields in the six
+sections, a word band, a fixed sentence to use when its source input is absent, the shared
+provenance header every view opens with, and the citation grammar a view's every sentence and
+bullet must follow. It ships before any persona text exists, so the contract, not a shipped
+example, is what a future persona view is checked against.
+
+### Added — PERSONA-GATE: a mechanical check that a persona view invents nothing
+
+`scripts/check-persona-view.py` checks a persona view against the analysis it was derived from
+and the contract above: the provenance header, the band against section 6, the role's word band,
+that every sentence and bullet carries a citation, that every cited chain, ground truth (with its
+`?` marking agreement), assumption and dead-end id resolves in the source, and that every number
+in the view appears in the source. It also checks the reading guide's named sections and fields
+against the output template and its word ceiling. Its stated bound: it proves a citation resolves,
+never that it supports the sentence it is attached to. Registered on the battery, in CI, and in
+the generated gate docs as PERSONA-GATE.
+
 ## [9.17.0] — 2026-10-02
 
 Milestone release: **v9.17.0 Report Figures**. A full-agent analysis now ends in two reader

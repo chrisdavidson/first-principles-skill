@@ -1000,6 +1000,42 @@ ENTRIES: tuple[GateEntry, ...] = (
             "disclosed_bounds_anchors",
         ),
     ),
+    GateEntry(
+        key="PERSONA-GATE",
+        gate_id="PERSONA-GATE",
+        extra_ids=(),
+        mechanism=_ci("check-persona-view"),
+        ci_job="check-persona-view",
+        script="scripts/check-persona-view.py",
+        run_command="python3 scripts/check-persona-view.py --self-test",
+        summary=(
+            "Checks a reader-persona view against the analysis it was derived "
+            "from and the contract in "
+            "`shared/spine/references/persona-views.md` — the provenance "
+            "header, the band against section 6, the role's word band, that "
+            "every sentence and bullet carries a citation, that every cited "
+            "chain, ground-truth (with matching `?` marking), assumption and "
+            "dead-end id resolves in the source, and that every number "
+            "appears in the source. Must-fail controls — an invented id, an "
+            "invented number, an uncited sentence, a wrong band, a missing "
+            "header, an over-length body, among others — each fail for their "
+            "own finding code alone, and stubbing id resolution turns the "
+            "self-test red. It also checks the reading guide's names against "
+            "the output template and its word ceiling. It proves a citation "
+            "resolves, never that it supports its sentence, and its fixtures "
+            "are hand-written views of shipped worked examples, never a "
+            "user's analyses."
+        ),
+        consumes=(
+            "control_ids",
+            "control_count",
+            "registered_surfaces",
+            "checked_files",
+            "locked_constants",
+            "derived_counts",
+            "disclosed_bounds_anchors",
+        ),
+    ),
 )
 
 
