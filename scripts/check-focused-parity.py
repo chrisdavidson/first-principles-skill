@@ -108,6 +108,17 @@ from _skill_io import PLUGIN_SKILLS_DIR, REPO_ROOT, iter_plugin_skills  # noqa: 
 LAUNCHER_SLUG = "first-principles-analysis"
 EXPECTED_STUB_COUNT = 13
 
+# D-06 / PSKILL-03: emitted skills that are not techniques — no inlined
+# procedure (`_WHEN_TO_REACH_HEADING`), no `## Focused-mode validation`
+# section (`_STUB_SECTION_HEADING`). Every other emitted slug IS a technique
+# and must pass Stub-1..13 in full. Membership here is policed by Stub-14
+# (inside `_check_stub_surface`) so this set can never be widened to quietly
+# exempt a real technique from those checks — adding any technique slug to
+# it fails Stub-14 naming that slug, and naming a slug with no emitted stub
+# fails Stub-14 too (an exemption cannot be vacuous). Plan 85-02 adds
+# `"persona"` to this set in the same change that ships that skill.
+NON_TECHNIQUE_SLUGS: frozenset[str] = frozenset({LAUNCHER_SLUG})
+
 # D-11: the agent-surface generated-tree targets this gate reads. Never
 # `shared/` — DUAL-04 already guarantees `shared/` and the emitted tree
 # agree, and D-11's scope for this gate is "what actually ships."
@@ -691,15 +702,21 @@ def _load_real_stubs() -> dict[str, str]:
     return {slug: body for slug, _frontmatter, body in iter_plugin_skills()}
 
 
-def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
-    """Validate the stub-surface assertions (`Stub-0` through `Stub-13`)
+def _check_stub_surface(
+    stubs: dict[str, str], *, non_technique: frozenset[str] = NON_TECHNIQUE_SLUGS
+) -> list[str]:
+    """Validate the stub-surface assertions (`Stub-0` through `Stub-14`)
     against *stubs*.
 
-    *stubs* is a slug -> body mapping for all 14 generated skills. Operating
+    *stubs* is a slug -> body mapping for all generated skills. Operating
     on a plain dict rather than reading disk directly is what makes this
     function callable identically against the real emitted tree and against
     an in-memory self-test fixture — the shared checker `_check_negative`'s
     controls drive.
+
+    *non_technique* (default `NON_TECHNIQUE_SLUGS`) names every emitted slug
+    that is NOT a technique and so is exempt from Stub-1..13 — Stub-14
+    polices the set itself (see `NON_TECHNIQUE_SLUGS`'s own comment).
 
     Returns a list of failure strings, each beginning with a stable
     `Stub-N (<REQ-ID>, <label>): <detail>` check ID — the leading token
@@ -715,16 +732,16 @@ def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
         return failures
 
     launcher_body = stubs[LAUNCHER_SLUG]
-    non_launcher = {slug: body for slug, body in stubs.items() if slug != LAUNCHER_SLUG}
+    techniques = {slug: body for slug, body in stubs.items() if slug not in non_technique}
 
     # --- Stub-1 (PAR-02, count) ---------------------------------------
-    if len(non_launcher) != EXPECTED_STUB_COUNT:
+    if len(techniques) != EXPECTED_STUB_COUNT:
         failures.append(
-            f"Stub-1 (PAR-02, count): {len(non_launcher)} non-launcher slugs are "
+            f"Stub-1 (PAR-02, count): {len(techniques)} non-launcher slugs are "
             f"present, expected exactly {EXPECTED_STUB_COUNT}"
         )
     carrying = sorted(
-        slug for slug, body in non_launcher.items()
+        slug for slug, body in techniques.items()
         if _count_flex(body, _STUB_SECTION_HEADING) >= 1
     )
     if len(carrying) == 0:
@@ -734,15 +751,15 @@ def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
             f"expected exactly {EXPECTED_STUB_COUNT}"
         )
     elif len(carrying) != EXPECTED_STUB_COUNT:
-        missing = sorted(set(non_launcher) - set(carrying))
+        missing = sorted(set(techniques) - set(carrying))
         failures.append(
-            f"Stub-1 (PAR-02, count): {len(carrying)} of {len(non_launcher)} "
+            f"Stub-1 (PAR-02, count): {len(carrying)} of {len(techniques)} "
             f"non-launcher stubs carry {_STUB_SECTION_HEADING!r}, expected exactly "
             f"{EXPECTED_STUB_COUNT}; missing: {missing}"
         )
 
     # --- Stub-2 (PAR-02, placement) ------------------------------------
-    for slug, body in sorted(non_launcher.items()):
+    for slug, body in sorted(techniques.items()):
         count = _count_flex(body, _STUB_SECTION_HEADING)
         if count != 1:
             failures.append(
@@ -787,7 +804,7 @@ def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
         )
 
     # --- Stub-4 (D-03, verdict) -----------------------------------------
-    for slug, body in sorted(non_launcher.items()):
+    for slug, body in sorted(techniques.items()):
         missing_verdicts = [v for v in _VERDICT_LITERALS if _count_flex(body, v) == 0]
         if missing_verdicts:
             failures.append(
@@ -801,7 +818,7 @@ def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
             )
 
     # --- Stub-5 (D-07, unverified mark) ---------------------------------
-    for slug, body in sorted(non_launcher.items()):
+    for slug, body in sorted(techniques.items()):
         if _count_flex(body, _UNVERIFIED_MARK_CLAUSE) == 0:
             failures.append(
                 f"Stub-5 (D-07, unverified mark): {slug} is missing the "
@@ -817,7 +834,7 @@ def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
                 )
 
     # --- Stub-6 (D-01, wrapper) ------------------------------------------
-    for slug, body in sorted(non_launcher.items()):
+    for slug, body in sorted(techniques.items()):
         count = _count_flex(body, _WRAPPER_ADMITS)
         if count != 1:
             failures.append(
@@ -837,7 +854,7 @@ def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
     # --- Stub-8 (D-06, completion condition) ------------------------------
     matched_slugs: list[str] = []
     unmatched_slugs: list[str] = []
-    for slug, body in sorted(non_launcher.items()):
+    for slug, body in sorted(techniques.items()):
         forms = [
             name for name, literal in _COMPLETION_CONDITION_FORMS.items()
             if _count_flex(body, literal) > 0
@@ -849,13 +866,13 @@ def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
     if len(matched_slugs) != EXPECTED_STUB_COUNT:
         failures.append(
             f"Stub-8 (D-06, completion condition): {len(matched_slugs)} of "
-            f"{len(non_launcher)} non-launcher stubs carry a recognised "
+            f"{len(techniques)} non-launcher stubs carry a recognised "
             f"completion condition, expected exactly {EXPECTED_STUB_COUNT}; "
             f"anchorless: {unmatched_slugs}"
         )
 
     # --- Stub-9 (PAR-01, parity tokens present) ---------------------------
-    for slug, body in sorted(non_launcher.items()):
+    for slug, body in sorted(techniques.items()):
         missing = [p for p in _PARITY_TOKENS if _count_flex(body, p) == 0]
         if missing:
             failures.append(
@@ -864,7 +881,7 @@ def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
             )
 
     # --- Stub-10 (D-03, bound) ---------------------------------------------
-    for slug, body in sorted(non_launcher.items()):
+    for slug, body in sorted(techniques.items()):
         if _count_flex(body, _ONE_PASS_BOUND) == 0:
             failures.append(
                 f"Stub-10 (D-03, bound): {slug} is missing the one-pass bound "
@@ -886,7 +903,7 @@ def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
     # for a line-initial hyphen re-entering the same clause, which is the
     # exact CommonMark defect quick task `260828-uzh` fixed and had no guard
     # against silent re-entry until this check.
-    for slug, body in sorted(non_launcher.items()):
+    for slug, body in sorted(techniques.items()):
         count = _count_flex(body, _WRAPPER_FOLLOW_ON)
         if count != 1:
             failures.append(
@@ -925,7 +942,7 @@ def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
     # elsewhere and are excluded from this population.
     unclassified_facts = {
         slug: body
-        for slug, body in non_launcher.items()
+        for slug, body in techniques.items()
         if slug not in _HANDOFF_ROUTED_SLUGS
     }
     for slug, body in sorted(unclassified_facts.items()):
@@ -940,7 +957,7 @@ def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
     # HAND-04, D-29-P2: this clause is asserted on all non-launcher stubs,
     # including the three routed slugs, because every focused run carries the
     # provenance clause regardless of where its output routes.
-    for slug, body in sorted(non_launcher.items()):
+    for slug, body in sorted(techniques.items()):
         count = _count_flex(body, _HANDOFF_NO_SOURCE_CLAUSE)
         if count != 1:
             failures.append(
@@ -955,6 +972,34 @@ def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
                 f"Stub-13 (SUP-03, exempt slot): {slug} routes its output "
                 f"into the {_HANDOFF_EXEMPT_SLOT!r} slot {n} time(s), "
                 "expected 0"
+            )
+
+    # --- Stub-14 (PSKILL-03, exemption integrity) ---------------------------
+    # Polices `non_technique` itself (T-85-01/T-85-02): a slug may only be
+    # exempted from Stub-1..13 if it carries no technique marker, and only if
+    # it actually has an emitted stub. A technique stub is recognisable by
+    # carrying either `_WHEN_TO_REACH_HEADING` (its inlined procedure anchor)
+    # or `_STUB_SECTION_HEADING` (its focused-mode validation section) — both
+    # are absent from a non-technique skill like the launcher.
+    for slug in sorted(non_technique):
+        if slug not in stubs:
+            failures.append(
+                f"Stub-14 (PSKILL-03, exemption integrity): {slug} is named "
+                "in the non-technique exemption set but has no emitted "
+                "stub — an exemption cannot be vacuous"
+            )
+            continue
+        body = stubs[slug]
+        marker_count = (
+            _count_flex(body, _WHEN_TO_REACH_HEADING)
+            + _count_flex(body, _STUB_SECTION_HEADING)
+        )
+        if marker_count >= 1:
+            failures.append(
+                f"Stub-14 (PSKILL-03, exemption integrity): {slug} is named "
+                "in the non-technique exemption set but carries a technique "
+                "marker (an inlined-procedure or focused-mode-validation "
+                "heading) and so may not be exempted"
             )
 
     return failures
@@ -1209,7 +1254,12 @@ def _check_agent_surface(
     return failures
 
 
-def _check_cross_surface_parity(agent_text: str, stubs: dict[str, str]) -> list[str]:
+def _check_cross_surface_parity(
+    agent_text: str,
+    stubs: dict[str, str],
+    *,
+    non_technique: frozenset[str] = NON_TECHNIQUE_SLUGS,
+) -> list[str]:
     """D-10's runtime cross-surface derivation — the assertion the whole
     plan exists for: derive the set of parity tokens actually present in the
     agent-side proportionality note, and require EVERY one of the 13
@@ -1276,8 +1326,8 @@ def _check_cross_surface_parity(agent_text: str, stubs: dict[str, str]) -> list[
     agent_set = set(derived)
 
     # --- Parity-4 (D-10, cross-surface equality) ----------------------------
-    non_launcher = {slug: body for slug, body in stubs.items() if slug != LAUNCHER_SLUG}
-    for slug, body in sorted(non_launcher.items()):
+    techniques = {slug: body for slug, body in stubs.items() if slug not in non_technique}
+    for slug, body in sorted(techniques.items()):
         stub_note = _stub_parity_note(body)
         if stub_note is None or not stub_note.strip():
             failures.append(
@@ -1294,9 +1344,9 @@ def _check_cross_surface_parity(agent_text: str, stubs: dict[str, str]) -> list[
             )
 
     # --- Parity-5 (D-10, stub count) ----------------------------------------
-    if len(non_launcher) != EXPECTED_STUB_COUNT:
+    if len(techniques) != EXPECTED_STUB_COUNT:
         failures.append(
-            f"Parity-5 (D-10, stub count): {len(non_launcher)} non-launcher "
+            f"Parity-5 (D-10, stub count): {len(techniques)} non-launcher "
             f"stub notes were iterated, expected exactly {EXPECTED_STUB_COUNT}"
         )
 
@@ -1647,11 +1697,12 @@ def _mutate_one(stubs: dict[str, str], slug: str, target: str, replacement: str 
 
 
 def _mutate_all_non_launcher(stubs: dict[str, str], target: str, replacement: str = "") -> dict[str, str]:
-    """Like `_mutate_one`, applied to every non-launcher slug — builds the
-    Stub-1 zero-match fixture (control b)."""
+    """Like `_mutate_one`, applied to every technique slug (every slug
+    outside `NON_TECHNIQUE_SLUGS`) — builds the Stub-1 zero-match fixture
+    (control b)."""
     new_stubs = dict(stubs)
     for slug in stubs:
-        if slug != LAUNCHER_SLUG:
+        if slug not in NON_TECHNIQUE_SLUGS:
             new_stubs[slug] = _replace_once(stubs[slug], target, replacement)
     return new_stubs
 
@@ -1936,11 +1987,15 @@ def _run_self_test_body() -> int:
         sys.stderr.write(f"check-focused-parity --self-test: could not read fixtures: {exc}\n")
         return 2
 
-    if LAUNCHER_SLUG not in real_stubs or len(real_stubs) != EXPECTED_STUB_COUNT + 1:
+    if (
+        not NON_TECHNIQUE_SLUGS.issubset(real_stubs)
+        or len(real_stubs) != EXPECTED_STUB_COUNT + len(NON_TECHNIQUE_SLUGS)
+    ):
         sys.stderr.write(
             "check-focused-parity --self-test: unexpected live stub set shape "
-            f"({len(real_stubs)} entries, launcher present: "
-            f"{LAUNCHER_SLUG in real_stubs}) — cannot build fixtures safely\n"
+            f"({len(real_stubs)} entries, non-technique slugs present: "
+            f"{sorted(NON_TECHNIQUE_SLUGS & set(real_stubs))}) — cannot build "
+            "fixtures safely\n"
         )
         return 2
 
@@ -2004,6 +2059,43 @@ def _run_self_test_body() -> int:
     b0_stubs = {slug: body for slug, body in real_stubs.items() if slug != LAUNCHER_SLUG}
     _check_negative(
         "b0", _check_stub_surface(b0_stubs), "Stub-0", "is missing from the stub set"
+    )
+
+    # (nt-<slug>) Stub-14 per-technique must-fail controls (T-85-01): adding
+    # ANY technique slug (one at a time) to NON_TECHNIQUE_SLUGS must make
+    # Stub-14 fail, naming that slug — proving the exemption set can never be
+    # widened to silence a real technique. Iterates every technique slug
+    # present in the real stub set, not a hand-picked sample.
+    _nt_technique_slugs = sorted(set(real_stubs) - NON_TECHNIQUE_SLUGS)
+    for _nt_slug in _nt_technique_slugs:
+        _check_negative(
+            f"nt-{_nt_slug}",
+            _check_stub_surface(real_stubs, non_technique=NON_TECHNIQUE_SLUGS | {_nt_slug}),
+            "Stub-14",
+            _nt_slug,
+        )
+    if len(_nt_technique_slugs) != EXPECTED_STUB_COUNT:
+        _problems.append(
+            f"(nt-loop): iterated {len(_nt_technique_slugs)} technique slugs, "
+            f"expected exactly {EXPECTED_STUB_COUNT} (vacuity guard)"
+        )
+
+    # (nt-absent) Stub-14 absent-exemptee control (T-85-02): naming a slug in
+    # the exemption set that has no emitted stub must fail Stub-14 too — an
+    # exemption cannot be vacuous.
+    _check_negative(
+        "nt-absent",
+        _check_stub_surface(
+            real_stubs, non_technique=NON_TECHNIQUE_SLUGS | {"no-such-skill"}
+        ),
+        "Stub-14",
+        "no emitted stub",
+    )
+
+    # (nt-pos) Stub-14 positive control: the default exemption set (the
+    # launcher only) produces zero Stub-14 failures.
+    _check_positive(
+        "nt-pos", _check_stub_surface(real_stubs, non_technique=NON_TECHNIQUE_SLUGS)
     )
 
     # (a) positive control: the real emitted files produce zero failures.
@@ -3105,6 +3197,7 @@ def describe() -> dict[str, object]:
         "locked_constants": {
             "expected_stub_count": EXPECTED_STUB_COUNT,
             "launcher_slug": LAUNCHER_SLUG,
+            "non_technique_slugs": sorted(NON_TECHNIQUE_SLUGS),
         },
         "registered_surfaces": sorted(
             [

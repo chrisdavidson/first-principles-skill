@@ -3,7 +3,7 @@
 <!-- GENERATED:FACTS -->
 ## Facts
 
-- `locked_constants` (2 entries): `expected_stub_count`=13, `launcher_slug`='first-principles-analysis'
+- `locked_constants` (3 entries): `expected_stub_count`, `launcher_slug`, `non_technique_slugs`
 - `registered_surfaces` (3): `cross-surface  # derived agreement between the two above`, `first-principles/agents/first-principles.md  # agent surface`, `first-principles/skills  # stub surface`
 - `disclosed_bounds_anchors` (1): `_WS`
 <!-- END GENERATED:FACTS -->
