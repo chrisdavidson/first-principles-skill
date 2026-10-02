@@ -83,8 +83,8 @@ FINDING_CODES: tuple[str, ...] = (
 _EXEMPT_FROM_OBSERVATION = frozenset({"FIG-EXTRACT", "FIG-FIXTURE", "FIG-COMPILE", "FIG-FONT"})
 
 _REQUIRED_METADATA_KEYS: dict[str, tuple[str, ...]] = {
-    "trace": ("gts", "chains", "edges", "conclusion_edges", "overflow"),
-    "verdicts": ("cells", "total", "untyped", "grid", "overflow"),
+    "trace": ("gts", "chains", "edges", "conclusion_edges", "overflow", "width"),
+    "verdicts": ("cells", "total", "untyped", "grid", "overflow", "width"),
 }
 
 _AWK_PROGRAM = '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f'
@@ -328,9 +328,18 @@ def read_metadata(lib_path: Path, summary: dict, figure: str) -> tuple[dict | No
 def expected_trace(summary: dict) -> dict:
     gts = summary.get("ground_truths") or []
     chains = summary.get("chains") or []
-    edges = sum(len(c.get("rests_on") or []) for c in chains)
+    # The library draws an edge only for a citation that resolves to a declared
+    # ground truth or chain (a trailing ? marks an unverified GT, not another id);
+    # count the same set, so a dangling citation is not expected as a drawn edge
+    # (81-REVIEW WR-01).
+    known = {g.get("id") for g in gts} | {c.get("id") for c in chains}
+
+    def _resolves(ref: str) -> bool:
+        return (ref[:-1] if ref.endswith("?") else ref) in known
+
+    edges = sum(1 for c in chains for r in (c.get("rests_on") or []) if _resolves(r))
     concl = summary.get("conclusion") or {}
-    conclusion_edges = len(concl.get("rests_on") or [])
+    conclusion_edges = sum(1 for r in (concl.get("rests_on") or []) if _resolves(r))
     return {"gts": len(gts), "chains": len(chains), "edges": edges, "conclusion_edges": conclusion_edges}
 
 
@@ -374,7 +383,11 @@ def compare_verdicts(actual: dict, expected: dict) -> list[Finding]:
     return findings
 
 
-def check_svg(text: str) -> list[Finding]:
+# typst's `#set page(margin: 6pt)` in the library adds this on each side.
+PAGE_MARGIN_PT = 6
+
+
+def check_svg(text: str, declared_width: int | None = None) -> list[Finding]:
     try:
         root = ET.fromstring(text)
     except ET.ParseError as exc:
@@ -389,6 +402,14 @@ def check_svg(text: str) -> list[Finding]:
         return [Finding("FIG-SVG", "svg", f"width attribute not in Npt form: {width!r}")]
     if float(m.group(1)) > MAX_WIDTH_PT:
         return [Finding("FIG-SVG", "svg", f"width {width} exceeds {MAX_WIDTH_PT}pt ceiling")]
+    # The canvas must be the figure's own declared width plus the page margin: anything
+    # wider means some element (a legend, a label) spilled past the figure (81-REVIEW CR-01).
+    if declared_width is not None:
+        want = declared_width + 2 * PAGE_MARGIN_PT
+        if abs(float(m.group(1)) - want) > 1.0:
+            return [Finding(
+                "FIG-SVG", "svg",
+                f"width {width} is not the declared {declared_width}pt plus {2 * PAGE_MARGIN_PT}pt margin ({want}pt)")]
     return []
 
 
@@ -415,7 +436,9 @@ def check_all(lib_text: str, fixtures: list[tuple[str, dict]], workdir: Path) ->
                     findings.extend(_with_subject(
                         compare_verdicts(metadata, expected_verdicts(summary)), label, figure))
             if out_path is not None:
-                findings.extend(_with_subject(check_svg(out_path.read_text()), label, figure))
+                declared = metadata.get("width") if metadata is not None else None
+                findings.extend(_with_subject(
+                    check_svg(out_path.read_text(), declared), label, figure))
     return findings
 
 
@@ -453,6 +476,12 @@ _MUTATIONS: tuple[tuple[str, str, Callable[[str], str], frozenset[str]], ...] = 
      frozenset({"FIG-CELLS"})),
     ("M03", "let node-w = ",
      lambda _line: "let node-w = 20pt",
+     frozenset({"FIG-OVERFLOW"})),
+    # 81-REVIEW CR-01: a matrix legend line wider than the matrix must be caught.
+    ("M04", "let legend-lines = (",
+     lambda line: line.replace(
+         '("Shading darkens with count."',
+         '("Shading darkens with count, from no assumptions in a cell to the most assumptions in any single cell."', 1),
      frozenset({"FIG-OVERFLOW"})),
 )
 
@@ -531,6 +560,8 @@ def _f01_drop_chain_edge() -> str | None:
 def _f02_drop_conclusion_edge() -> str | None:
     label, summary = _real_fixture()
     original_expected = expected_trace(summary)
+    if not (summary.get("conclusion") or {}).get("rests_on"):
+        return f"{label}: conclusion.rests_on is empty or null -- nothing to drop (81-REVIEW WR-02)"
     modified = copy.deepcopy(summary)
     modified["conclusion"]["rests_on"] = modified["conclusion"]["rests_on"][:-1]
     lib_text, extract_findings = extract_library(LIBRARY)
@@ -581,6 +612,13 @@ def _u01_svg_checks() -> str | None:
     good_findings = check_svg(good)
     if good_findings:
         return f"well-formed 400pt SVG: expected no findings, got {good_findings}"
+    # declared width: 272pt canvas for a 260pt figure is right; 334.76pt (the CR-01
+    # canvas, widened by an unboxed legend) is not.
+    if check_svg('<svg viewBox="0 0 272 10" width="272pt"/>', 260):
+        return "272pt canvas for a declared 260pt figure: expected no findings"
+    codes = {f.code for f in check_svg('<svg viewBox="0 0 334.76 10" width="334.76pt"/>', 260)}
+    if codes != {"FIG-SVG"}:
+        return f"334.76pt canvas for a declared 260pt figure: expected {{'FIG-SVG'}}, got {codes}"
     return None
 
 
@@ -595,7 +633,7 @@ def _u02_metadata_checks() -> str | None:
         codes = {f.code for f in findings}
         if data is not None or codes != {"FIG-METADATA"}:
             return f"{name}: expected (None, {{'FIG-METADATA'}}), got ({data}, {codes})"
-    good = json.dumps({"gts": 1, "chains": 1, "edges": 1, "conclusion_edges": 0, "overflow": 0})
+    good = json.dumps({"gts": 1, "chains": 1, "edges": 1, "conclusion_edges": 0, "overflow": 0, "width": 458})
     data, findings = _parse_metadata_output(good, "trace")
     if findings or data is None:
         return f"well-formed trace metadata: expected a clean parse, got {findings}"
@@ -610,6 +648,14 @@ def _u03_expected_trace_null_absent() -> str | None:
     e2 = expected_trace(without_key)["conclusion_edges"]
     if e1 != 0 or e2 != 0:
         return f"expected both 0, got null={e1} absent={e2}"
+    dangling = {
+        "ground_truths": [{"id": "GT-1", "read_at_source": True}],
+        "chains": [{"id": "C1", "confidence": "HIGH", "rests_on": ["GT-1", "GT-9", "C7"]}],
+        "conclusion": {"rests_on": ["C1", "GT-1?", "C9"]},
+    }
+    e3 = expected_trace(dangling)
+    if (e3["edges"], e3["conclusion_edges"]) != (1, 2):
+        return f"dangling citations must not be expected as edges: got edges={e3['edges']} conclusion_edges={e3['conclusion_edges']}"
     return None
 
 

@@ -40,8 +40,9 @@ GT-to-chain edge is gray. Chain-to-chain edges are drawn in a lighter navy as ro
 the right of the chain column, each in its own vertical lane: shorter spans take the inner lanes so
 longer ones nest around them rather than cross, edges whose spans do not overlap share a lane, and
 every edge attaches at its own port on each node, so several edges into one chain (a chain resting
-on many prior chains) stay visually distinct instead of overlapping. Both figures carry a one-line legend as part of the
-figure itself, not as separate report prose.
+on many prior chains) stay visually distinct instead of overlapping. Both figures carry their legend
+as part of the figure itself, not as separate report prose: one line under the trace, two short
+lines under the matrix, set inside the matrix's own width so they cannot widen its canvas.
 
 ## Compiling and reading a figure
 
@@ -83,20 +84,24 @@ typst eval 'query(<fig-trace>).first().value' --in figures.typ \
 ground-truth-to-chain and chain-to-chain edges), `conclusion_edges` (drawn edges into the
 conclusion, `0` when `conclusion.rests_on` is null or absent), `overflow` (count of labels whose
 measured width exceeds the node or legend width they are drawn into -- zero on every fixture this
-library ships with).
+library ships with), `width` (the figure's own drawn width in points, `458`; the compiled SVG is
+this plus the 6pt page margin on each side).
 
 `<fig-verdicts>`: `cells` (always `12` -- the fixed 4x3 typed grid), `total` (every drawn count,
 typed grid plus the `untyped (legacy)` row when it is drawn -- always equal to
 `assumptions.len()`), `untyped` (drawn count in the `untyped (legacy)` row, `0` when it is not
 drawn), `grid` (the twelve typed cell counts, row-major by type then verdict), `overflow` (same
-meaning as above, over the matrix's type labels, header cells, and legend).
+meaning as above, over the matrix's type labels, header cells, and each legend line measured
+against the matrix's own width), `width` (the matrix's drawn width in points: the label column plus
+three verdict columns, `260`).
 
 ## Stated bounds
 
 Labels are proven to fit at two-digit schema ids (`GT-99`, `C99 . MEDIUM` -- the widest id and
 confidence-band label the schema's `GT-[1-9][0-9]*` / `C[1-9][0-9]*` patterns allow) with zero
 measured overflow; see `tests/report-figures-v9.17/worst-case-labels.json`. Total figure width is
-at most 470pt, including the page margin -- the US Letter text column `report-layout.md`'s PDF
+at most 470pt, including the page margin, and each SVG is exactly its figure's declared `width`
+plus that margin -- the US Letter text column `report-layout.md`'s PDF
 template lays out (0.9in side margins on an 8.5in page) is about 482pt wide. Fonts are Noto Sans
 with Liberation Sans as fallback, both SIL Open Font License.
 
@@ -279,7 +284,7 @@ with Liberation Sans as fallback, both SIL Open Font License.
     checks.push((text(size: 7pt, weight: "bold", concl.confidence), concl-w - 2 * node-inset))
     checks.push((text(size: 6.5pt, legend-str), 458pt))
     let overflow = checks.filter(pair => measure(pair.at(0)).width > pair.at(1)).len()
-    [#metadata((gts: gts.len(), chains: chains.len(), edges: drawn-edges.len(), conclusion_edges: concl-edges.len(), overflow: overflow)) <fig-trace>]
+    [#metadata((gts: gts.len(), chains: chains.len(), edges: drawn-edges.len(), conclusion_edges: concl-edges.len(), overflow: overflow, width: 458)) <fig-trace>]
   }
 }
 
@@ -293,6 +298,7 @@ with Liberation Sans as fallback, both SIL Open Font License.
 
   let col-w = 50pt
   let label-w = 110pt
+  let fig-w = label-w + col-w * 3
 
   let grid = ()
   let body-rows = ()
@@ -315,15 +321,17 @@ with Liberation Sans as fallback, both SIL Open Font License.
   }
   let untyped-row = (table.cell(align: left, text(style: "italic", "untyped (legacy)")),) + untyped-cells
 
-  let legend-str = "Shading darkens with count · untyped (legacy) row drawn only when assumptions carry no taxonomy type"
+  let legend-lines = ("Shading darkens with count.", "An untyped (legacy) row appears only for assumptions with no type.")
 
   let all-rows = body-rows.flatten() + (if has-untyped { untyped-row } else { () })
 
-  table(columns: (label-w,) + (col-w,) * 3, align: center + horizon, inset: 4pt, stroke: 0.5pt + rule-gray,
-    table.header(text(weight: "bold", "Type"), ..verdicts.map(v => text(weight: "bold", v))),
-    ..all-rows)
-  v(4pt)
-  text(size: 6.5pt, fill: slate, legend-str)
+  box(width: fig-w, {
+    table(columns: (label-w,) + (col-w,) * 3, align: center + horizon, inset: 4pt, stroke: 0.5pt + rule-gray,
+      table.header(text(weight: "bold", "Type"), ..verdicts.map(v => text(weight: "bold", v))),
+      ..all-rows)
+    v(4pt)
+    for line in legend-lines { block(above: 2pt, below: 0pt, text(size: 6.5pt, fill: slate, line)) }
+  })
 
   context {
     let checks = (
@@ -338,11 +346,11 @@ with Liberation Sans as fallback, both SIL Open Font License.
     if has-untyped {
       checks.push((text(style: "italic", "untyped (legacy)"), label-w - 8pt))
     }
-    checks.push((text(size: 6.5pt, legend-str), 458pt))
+    for line in legend-lines { checks.push((text(size: 6.5pt, line), fig-w)) }
     let overflow = checks.filter(pair => measure(pair.at(0)).width > pair.at(1)).len()
     let untyped-total = verdicts.map(v => untyped-count(v)).sum()
     let total = grid.sum() + untyped-total
-    [#metadata((cells: 12, total: total, untyped: untyped-total, grid: grid, overflow: overflow)) <fig-verdicts>]
+    [#metadata((cells: 12, total: total, untyped: untyped-total, grid: grid, overflow: overflow, width: int(fig-w / 1pt))) <fig-verdicts>]
   }
 }
 

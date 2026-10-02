@@ -3,12 +3,12 @@
 <!-- GENERATED:FACTS -->
 ## Facts
 
-- `control_ids` (12): `P01`, `M01`, `M02`, `M03`, `F01`, `F02`, `B01`, `U01`, `U02`, `U03`, `U04`, `U05`
-- `control_count`: `12`
+- `control_ids` (13): `P01`, `M01`, `M02`, `M03`, `M04`, `F01`, `F02`, `B01`, `U01`, `U02`, `U03`, `U04`, `U05`
+- `control_count`: `13`
 - `registered_surfaces` (2): `shared/spine/references/report-figures.md`, `first-principles/references/report-figures.md`
 - `checked_files` (2): `tests/report-figures-v9.17/analysis-20261001T204943Z.json`, `tests/report-figures-v9.17/worst-case-labels.json`
 - `locked_constants` (3 entries): `FONTS`, `MAX_WIDTH_PT`, `mutation_anchors`
-- `derived_counts` (3 entries): `example_fixtures`=14, `finding_codes`=13, `mutations`=3
+- `derived_counts` (3 entries): `example_fixtures`=14, `finding_codes`=13, `mutations`=4
 - `disclosed_bounds_anchors` (6): `battery-blocked-decided-by-command-v-not-exit-code`, `counts-read-from-library-metadata-not-svg-geometry`, `label-fit-proven-to-two-digit-ids`, `requires-noto-sans-or-liberation-sans`, `typst-absent-is-blocked-not-pass`, `visual-legibility-is-inspection-not-gate`
 <!-- END GENERATED:FACTS -->
 

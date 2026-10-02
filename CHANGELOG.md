@@ -61,7 +61,11 @@ two-digit-id worst-case fixture and every worked example's structured-summary bl
 through `typst eval 'query(...)'` that drawn-edge, matrix-cell and label-overflow counts match the
 source JSON exactly, with must-fail mutation controls. Registered on the battery and in CI as
 `FIG-GATE` (`check-report-figures` job): BLOCKED, never PASS, when typst is absent; CI installs a
-pinned, checksum-verified typst release before running the self-test.
+pinned, checksum-verified typst release before running the self-test. Each figure declares its own
+drawn width in its metadata and the gate requires the SVG canvas to equal it plus the page margin,
+so a legend or label that spills past a figure fails the gate; the matrix's legend is set inside
+the matrix's width as two short lines (a code-review finding: the first version's one-line legend
+silently widened the matrix's canvas while the overflow check passed).
 
 ### Added — figures in the reader reports
 
