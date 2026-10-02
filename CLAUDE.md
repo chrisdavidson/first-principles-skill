@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Current shipped version: see `.claude-plugin/marketplace.json` (all 17 version stamps move in
-lockstep — VERSION-01 enforces it). For what changed in any milestone, read the tag table and
+Current shipped version: see `.claude-plugin/marketplace.json` (every hand-maintained version
+stamp moves in lockstep — VERSION-01 enforces it). For what changed in any milestone, read the tag table and
 entries in [`CHANGELOG.md`](CHANGELOG.md). This file describes the repo as it stands and does
 not track release history — where it names a milestone below, that is a current-state fact
 carrying its provenance, not a changelog entry.
 
-A Claude Code **plugin** that ships a first-principles analysis agent (`first-principles:first-principles`) plus fourteen slash-invocable skills: the thirteen companion skills (pre-mortem, inversion, fishbone, five-whys, trade-off, second-order, estimate, theoretical-limit, identify-essence, challenge-assumptions, ground-truths, reason-upward, validate) and the `first-principles-analysis` launcher. The entire deliverable is pure Markdown — no executable code ships inside the plugin.
+A Claude Code **plugin** that ships a first-principles analysis agent (`first-principles:first-principles`) plus the thirteen companion skills (pre-mortem, inversion, fishbone, five-whys, trade-off, second-order, estimate, theoretical-limit, identify-essence, challenge-assumptions, ground-truths, reason-upward, validate), the `first-principles-analysis` launcher, and the `persona` reader-view companion. The entire deliverable is pure Markdown — no executable code ships inside the plugin.
 
 ## Commands
 
@@ -144,7 +144,7 @@ What genuinely does **not** reach the agent body, and arrives only as on-demand 
 
 ### Plugin layout and skill registration
 
-The plugin root is `first-principles/`. The agent is registered at `first-principles/agents/first-principles.md`. Fourteen skill directories live under `first-principles/skills/<slug>/SKILL.md` — the thirteen companion skills plus the `first-principles-analysis` launcher — all registered with `disable-model-invocation: true` (slash-only; the orchestrator never auto-routes to them).
+The plugin root is `first-principles/`. The agent is registered at `first-principles/agents/first-principles.md`. Fifteen skill directories live under `first-principles/skills/<slug>/SKILL.md` — the thirteen companion skills, the `first-principles-analysis` launcher, and the `persona` reader-view companion — all registered with `disable-model-invocation: true` (slash-only; the orchestrator never auto-routes to them).
 
 Install for development: `claude --plugin-dir ./first-principles`
 
@@ -523,7 +523,7 @@ authoritative record first:
 - Skill `name` in frontmatter must match the parent directory name exactly.
 - Skill `description` fields must be third-person, ≤ 1,024 chars, no XML tags.
 - `metadata.version` must be a double-quoted YAML string (e.g. `version: "3.8"`), not a bare number.
-- Every hand-maintained version stamp must carry the *same* value — see VERSION-01 above. A bump touches all 17 or none.
+- Every hand-maintained version stamp must carry the *same* value — see VERSION-01 above. A bump touches every stamp or none.
 - Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
 - The agent body's line count is **not** an invariant: the 644-line gate was retired under TEARDOWN-01, and nothing reports or gates it.
 

@@ -2650,7 +2650,6 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('docs/TESTING.md', '3'): ('999.73', 1, 'NOT A COUNT CLAIM: "--repeat 5 --min-pass 3" (the routing-battery run command) -- a CLI flag value in a reproduced shell command, not a count-noun-adjacent claim (the code-literal comparison `_rr7708_composer == 3` elsewhere on this page is already stripped structurally by the `==\\s*\\d` citation shape). Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises CLI-flag-value shapes in reproduced commands. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('docs/TESTING.md', '4'): ('999.69', 3, 'CANNOT-REACH (no harvest field): `_COMPOSER_FOCUS_CEILING: int = 4`, the bolded "`_COMPOSER_FOCUS_CEILING=4`" heading, and "the value itself stays 4" -- `scripts/_battery_core.py`\'s own constant (its `== 4` comparison elsewhere on this page is already stripped structurally). Re-verified live this plan: `python3 scripts/check-routing-battery.py --describe`\'s `locked_constants` exposes only the four routing thresholds -- no field for `_COMPOSER_FOCUS_CEILING` exists today. Deferred as cannot-reach residue (D-06 proviso 2).'),
     ('docs/TESTING.md', '5'): ('999.73', 1, 'NOT A COUNT CLAIM: "--repeat 5 --min-pass 3" (the routing-battery run command) -- the sibling CLI flag value to \'3\' immediately above, in the same reproduced shell command. Out of Phase 26\'s D-E quantity-shaped scope, same disposition as \'3\'. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
-    ('docs/gates/CONF-SURFACE.md', '1'): ('999.69', 20, 'NOT A COUNT CLAIM: twenty occurrences, none a count -- the pronoun "one" ("one at a time", "a deeper one", "one real, one ..."), plan-task and test ordinals ("plan 21-20 Task 1", "Task 1 lowered it", "per test 1\'s own framing", "**Test 1 (capability, not correction).**"), and `docs/PROCESS.md` section citations ("§1", "§1.1", "§1.2") that the citation-shape stripper does not consume. None states a population total. This residue predates Phase 40 and was covered only by coincidence: `derived_counts`\' `chain_termini_uncorroborable` read 1 while `docs/ARCHITECTURE.md`\'s battery growth chain was missing VAL-05\'s hop. The Phase 40 code review (CR-02) added that hop, the derived count returned to 0, and the residue surfaced as a live finding.'),
     # ('CLAUDE.md', '23') REMOVED at the EVIDENCE-01/TRACKB-01 registration,
     # and as with ('CLAUDE.md', '17') above, the reason matters more than the
     # removal. Its underlying claims were NOT fixed: "the 23 v8.18 milestone
@@ -2990,16 +2989,29 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # `containment_ledger_frozen_historical` 5 -> 4, un-covering that page's
 # enumerator/ordinal '5' -- so `('docs/gates/CONF-SURFACE.md', '5')` is re-added,
 # the exact reverse of the Phase 81 plan 04 movement above.
-_CONTAINMENT_LEDGER_MAX: int = 21
+#
+# Lowered 21 -> 20 at Phase 85 plan 03: removing the stale
+# `('docs/ARCHITECTURE.md', 'stamps rather than 13.')` literal-ledger permit
+# (the persona count-free rewording) dropped that page's
+# `literal_scan_exempt_version-stamp-count` field from 3 to 1, rendering a
+# bare `1` into docs/gates/CONF-SURFACE.md's own Facts fence for the first
+# time -- which corroborates every one of the page's own twenty stranded
+# pronoun/ordinal/citation '1' occurrences that `('docs/gates/CONF-SURFACE.md',
+# '1')` used to permit. Removed with no replacement: the occurrences
+# themselves did not move, only their in-fence cover appeared, the same
+# eating-its-own-tail cascade this ledger's history already describes for
+# key '5', now produced by a literal-ledger shrink rather than a CI-job or
+# control-count registration.
+_CONTAINMENT_LEDGER_MAX: int = 20
 
-# Re-pinned in the same commit as the Phase 84 code-review fix (and before it
-# Phase 81 plan 04's FIG-GATE registration),
-# per this mechanism's own standing rule. Recomputed live via
+# Re-pinned in the same commit as Phase 85 plan 03 (and before it the Phase
+# 84 code-review fix, and before that Phase 81 plan 04's FIG-GATE
+# registration), per this mechanism's own standing rule. Recomputed live via
 # `_deferred_ledger_keys_digest()`, never hand-typed. Never recompute this
 # digest to make a failing check pass; it changed here only because the key
 # set legitimately changed, adjudicated above.
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:af5f132d98b21e7007a46e2c8f8409e5e31ab33ca5f27a37f2a24ba655525b3e"
+    "sha256:188b4918daf88c5c6917fce13d3be6df7afe244e24fb7638d9241b478f6888a5"
 )
 
 
@@ -3745,7 +3757,6 @@ _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('CONTRIBUTING.md', 'one shot and check'): ('999.44', 1, "NOT-A-COUNT: 'run the whole offline set in one shot and check for a GREEN verdict' uses 'one shot' as an idiom for a single invocation of the battery script, not a count of any external population."),
     ('docs/ARCHITECTURE.md', '(five gates'): ('999.42', 1, "Correct: both pre-commit hooks now run 5 gates each -- same fact as 'up from three)' above, second number on the same line."),
     ('docs/ARCHITECTURE.md', 'one entry'): ('999.42', 1, "NOT-A-COUNT: 'holds one entry per companion-tool slug' states a per-slug cardinality invariant (a ratio), not a population total -- the adjacency heuristic attaches it to the 'entry' noun as though it counted the whole file."),
-    ('docs/ARCHITECTURE.md', 'stamps rather than 13.'): ('999.42', 1, "Correct: shared/skills/*/SKILL.md held 13 version stamps before the first-principles-analysis launcher was added (now 14) -- a correct historical count, adjacent to the version-stamp narrative but not caught by the version-stamp-count exemption's literal 'version stamp' substring match."),
     ('docs/ARCHITECTURE.md', 'up from three)'): ('999.42', 1, 'Correct: both pre-commit hooks moved from 3 to 5 gates each when CONF-SURFACE landed -- verified against both hook scripts in plan 21-13.'),
     ('docs/PROCESS.md', "'gate and the five')`,"): ('999.44', 1, "NOT-A-COUNT: verbatim citation of the ('docs/README.md', 'gate and the five') ledger key this same plan (22-09) adds to §1.2 -- the adjacency heuristic fires on the word 'five' inside the quoted key string, but the key names a lookup fragment, not a measured quantity; the count and its adjudication live in that cited entry itself, not here."),
     ('docs/PROCESS.md', '"13 plans,"'): ('999.44', 1, "Correct: the first of four quoted exemplars ('13 plans,' '4 rounds,' '41%,' '17 figures') naming the CLASS of frozen historical counts this file's own section-2 standing constraint distinguishes from the moving battery total -- itself the closed Phase 21 measured figure (13 gap-closure plans), restated here as a citation, not a fresh count."),
@@ -4023,7 +4034,7 @@ def _deferred_ledger_keys_digest(
 # reconciliation discipline (re-deriving every "live-verified" reason from
 # a fresh `--describe` invocation, never trusting a prior reading) for the
 # practice that actually catches this, since the ratchet itself cannot.
-_DEFERRED_LEDGER_MAX: int = 175
+_DEFERRED_LEDGER_MAX: int = 174
 
 
 # A sha256 pin over the ledger's sorted `(relpath, text)` key set (plan
@@ -4075,8 +4086,15 @@ _DEFERRED_LEDGER_MAX: int = 175
 # four') was rewritten to 'gate reads three' in place -- same size (175),
 # content changed -- when that script's docstring was corrected to say it
 # reads three shared/ source files, not four. Key set changed, size did not.
+#
+# Re-pinned by Phase 85 plan 03 Task 1, in the same commit as the persona
+# count-free rewording: one key removed -- ('docs/ARCHITECTURE.md', 'stamps
+# rather than 13.') -- its underlying prose ("The launcher is why
+# shared/skills/*/SKILL.md holds 14 version stamps rather than 13.") was
+# reworded count-free once the persona skill made the historical 13-vs-14
+# split obsolete. 175 -> 174.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:fc71063c795ad111be814fe198dfd21b9f4c951ffac485a691b92ace624c90f3"
+    "sha256:95bfe37d531be0e8243aa13515e588cec3ebdf8829ada06a07fd9c4762d15655"
 )
 
 
@@ -6024,15 +6042,16 @@ def _control_containment_slash_paired_vector_stripped() -> None:
 
 def _control_delta_chain_hops_confsurface_corrected() -> None:
     """docs/gates/CONF-SURFACE.md's real, live outside text, driven through
-    `generate_all()` (never a paraphrase) -- AFTER Phase 43 plan 01 Task 1's
-    own correction: one chain, hop count 9, terminus `('175',)`, matching
+    `generate_all()` (never a paraphrase) -- AFTER Phase 85 plan 03's own
+    correction: one chain, hop count 10, terminus `('174',)`, matching
     the live `_DEFERRED_LEDGER_MAX`. This control is LIVE-TEXT-DRIVEN; each
-    prior plan that shrank the ledger (26-06, 40-06, 40-10) revised this
-    same assertion to the hop count and terminus its own correction
-    produced. Revised again here in the SAME commit that corrects the real
-    page, per the plan's own note that a live-text control tracks whatever
-    the live text says. See `_control_chain_terminus_pre_fix_synthetic_fixture`
-    for the control that stays provable in perpetuity after this correction."""
+    prior plan that shrank the ledger (26-06, 40-06, 40-10, Phase 43 plan 01
+    Task 1) revised this same assertion to the hop count and terminus its
+    own correction produced. Revised again here in the SAME commit that
+    corrects the real page, per the plan's own note that a live-text control
+    tracks whatever the live text says. See
+    `_control_chain_terminus_pre_fix_synthetic_fixture` for the control that
+    stays provable in perpetuity after this correction."""
     pass1 = generate_all()
     entry = next(e for e in _gate_registry.ENTRIES if e.key == "CONF-SURFACE")
     path = DETAIL_PAGE_DIR / f"{_page_slug(entry)}.md"
@@ -6044,15 +6063,15 @@ def _control_delta_chain_hops_confsurface_corrected() -> None:
     ]
     chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
     assert len(chains) == 1, chains
-    assert len(chains[0]) == 9, chains[0]
-    assert chains[0][-1][1] == ("175",), chains[0]
+    assert len(chains[0]) == 10, chains[0]
+    assert chains[0][-1][1] == ("174",), chains[0]
     inside_numbers = _normalise_numbers(
         _strip_citation_shaped_numbers(
             "\n".join(line for line, is_in in zip(lines, inside) if is_in)
         ),
         include_spelled_out=True,
     )
-    assert "175" in inside_numbers, inside_numbers
+    assert "174" in inside_numbers, inside_numbers
 
 
 def _control_delta_chain_hops_qual01_out_of_grammar() -> None:

@@ -5,7 +5,7 @@ This document describes the source-of-truth layout, the generation pipeline, plu
 
 ## Overview
 
-The plugin ships a single orchestrating agent (`first-principles:first-principles`) plus thirteen slash-only companion skills. The entire deliverable is pure Markdown — no executable code ships inside the plugin tree. A Python generation script (`scripts/sync-content.py`) assembles the generated tree from canonical source files in `shared/`.
+The plugin ships a single orchestrating agent (`first-principles:first-principles`) plus the thirteen slash-only companion skills, the `first-principles-analysis` launcher, and the `persona` reader-view companion. The entire deliverable is pure Markdown — no executable code ships inside the plugin tree. A Python generation script (`scripts/sync-content.py`) assembles the generated tree from canonical source files in `shared/`.
 
 ```
 shared/           ← canonical source (edit here)
@@ -93,7 +93,7 @@ The plugin root is `first-principles/`. Install for development:
 claude --plugin-dir ./first-principles
 ```
 
-The agent is registered at `first-principles/agents/first-principles.md`. Fourteen skill directories live under `first-principles/skills/<slug>/SKILL.md` — the thirteen companion skills plus the `first-principles-analysis` launcher — all registered with `disable-model-invocation: true`; slash-only, the orchestrator never auto-routes to them. The launcher is why `shared/skills/*/SKILL.md` holds 14 version stamps rather than 13.
+The agent is registered at `first-principles/agents/first-principles.md`. Fifteen skill directories live under `first-principles/skills/<slug>/SKILL.md` — the thirteen companion skills, the `first-principles-analysis` launcher, and the `persona` reader-view companion — all registered with `disable-model-invocation: true`; slash-only, the orchestrator never auto-routes to them. The launcher and the persona companion each carry a version stamp like the companion skills, so `shared/skills/*/SKILL.md` holds a stamp per skill directory.
 
 **Companion skill slugs:** `challenge-assumptions`, `estimate`, `fishbone`, `five-whys`, `ground-truths`, `identify-essence`, `inversion`, `pre-mortem`, `reason-upward`, `second-order`, `theoretical-limit`, `trade-off`, `validate`
 
