@@ -18,7 +18,9 @@ command.
 `/first-principles:persona <role> [analysis-path]`
 
 `<role>` is one of `decision-owner`, `operator`, `risk`, `skeptic`, or `all` (writes all four
-role files, one role fully composed and self-checked before the next begins). `[analysis-path]`
+role files, one role fully composed and self-checked before the next begins; a role whose view
+fails its self-check is deleted and reported by its failing codes, and the remaining roles still
+run, so `all` can finish with fewer than four files). `[analysis-path]`
 is optional; see Source selection below.
 
 A missing or unrecognised role stops here: list the five valid values above and write nothing.
@@ -48,8 +50,9 @@ view from memory of a prior read.
 
 Before writing anything, check the chosen analysis file for two things. Either missing refuses
 the whole run for that analysis — composing a view over a malformed source is exactly the failure
-this step prevents (the persona checker's `PV-SOURCE` finding is this same guard applied
-downstream):
+this step prevents. These two checks are this skill's own; the persona checker's `PV-SOURCE`
+finding is narrower (it fires only when the analysis's sections cannot be read or section 6
+carries no `**Confidence:**` band), so do not rely on it to catch either:
 
 1. A `## Structured summary (process output)` heading followed by exactly one fenced `json` code
    block. Approximate with a grep for the heading, then a check that a json fence follows it
@@ -101,8 +104,9 @@ PERSONA-GATE finding code and a shell-approximate check:
    provenance sentence naming the source basename, Band line). Check: read those three lines and
    compare them against the contract's fixed shapes.
 2. `PV-WORDS` — the body word count (everything after line 5) falls inside the role's band from
-   the contract's Persona roster table. Check: count words from line 6 onward with `wc -w` and
-   compare against the band read from the contract — never a digit typed here.
+   the contract's Persona roster table. Check: count the body's words with each bullet's leading
+   `- ` removed — `awk 'NR>5' <file> | sed 's/^- //' | wc -w` — and compare against the band read
+   from the contract, never a digit typed here.
 3. `PV-UNCITED` — every body sentence and every bullet carries at least one citation token. Check:
    split the body on sentence boundaries and on `- ` bullets, and grep each piece for the
    contract's citation pattern (`Cn`, `GT-n`, `GT-n?`, `A-n`, `§1`–`§6`, or a quoted `§5` dead-end
@@ -119,8 +123,8 @@ PERSONA-GATE finding code and a shell-approximate check:
    bullets. Check: grep the body for a leading `#`, a `|` table row, or a fenced-block marker.
 8. `PV-DEADEND` — a quoted `§5 "<dead-end title>"` matches a `### Dead End:` heading in the
    analysis exactly. Check: grep the quoted title against the analysis's `### Dead End:` headings.
-9. `PV-SOURCE` — already enforced before composition began, in Refuse before composing above; a
-   source that fails that check never reaches this list.
+9. `PV-SOURCE` — the analysis's sections can be read and section 6 carries a `**Confidence:**`
+   band. Check: the §6 band item 6 compares against was found; a source missing it is refused.
 
 On a miss of `PV-WORDS` alone: remove or add one whole cited sentence, re-count with `wc -w`, and
 repeat, up to three passes, re-running this whole list after each — length is mechanical, so it
