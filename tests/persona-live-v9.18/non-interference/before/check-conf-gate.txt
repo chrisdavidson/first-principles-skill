@@ -1,0 +1,7 @@
+check-conf-gate: COVERAGE — measured 28 artifacts across shared-examples, generated-twin
+check-conf-gate: D-08(a) hop re-wrap on shared/examples/personal-general.md — heading_malformed_blocks 0 -> 1
+check-conf-gate: D-08(b) verdict-cell strip on shared/examples/personal-general.md — nonconforming_verdict_cells 0 -> 1
+check-conf-gate: D-08(c) citation removal on shared/examples/personal-general.md — silent_untraced_claims 0 -> 1
+check-conf-gate: PASS
+--- stderr ---
+--- exit 0 ---

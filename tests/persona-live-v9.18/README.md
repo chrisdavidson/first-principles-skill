@@ -23,6 +23,13 @@ Three frozen byte copies, never the user's private repo-root `.first-principles/
 outputs and manifest) do not exist yet at this plan's commit. Both are created by their own
 plans, through the same `run_cell.py`.
 
+`examples/` now holds the four 86-02 runs (`manifest.jsonl`, `checks.tsv`, `out/`). Each
+`shared/persona-examples/<example>-<role>.md` file was shipped by `cp`, byte-identical to its
+run's output (sha256-verified against `persona_sha256`): `product-business-2-decision-owner.md`
+from cell E01, `product-business-2-skeptic.md` from cell E02, `estimate-fermi-decision-owner.md`
+from cell E03, `estimate-fermi-skeptic.md` from cell E04. All four passed
+`scripts/check-persona-view.py` on the first attempt.
+
 ## run_cell.py
 
 One runner, used for every paid run in this phase. It refuses a `--source` under the user's

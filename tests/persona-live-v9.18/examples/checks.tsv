@@ -1,0 +1,5 @@
+cell	source	role	persona_file	checker_exit	pv_codes	manifest_flags
+E01	analysis-20260101T000001Z.md	decision-owner	persona-decision-owner-20260101T000001Z.md	0	-	-
+E02	analysis-20260101T000001Z.md	skeptic	persona-skeptic-20260101T000001Z.md	0	-	-
+E03	analysis-20260101T000002Z.md	decision-owner	persona-decision-owner-20260101T000002Z.md	0	-	-
+E04	analysis-20260101T000002Z.md	skeptic	persona-skeptic-20260101T000002Z.md	0	-	-

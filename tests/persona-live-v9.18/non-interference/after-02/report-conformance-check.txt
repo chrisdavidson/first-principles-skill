@@ -1,0 +1,3 @@
+report-conformance: PASS — no drift
+--- stderr ---
+--- exit 0 ---
