@@ -20,11 +20,20 @@ confidence band. It also checks the companion business-reading guide names only
 sections and fields that exist in the output template, and that the guide stays
 inside its word ceiling.
 
+It also checks that an answer sentence never hands down a decision: no denylisted
+imperative opener, no second-person address, no verdict on the reader, and no long
+verbatim run of §6's `**Recommended approach:**` paragraph (PV-DIRECTIVE).
+
 What this does NOT prove: that a cited id actually supports the sentence it is
 attached to. Resolving `(chain C1)` only shows the analysis declares a C1 — it does
 not show C1's content backs the claim beside it. That is a semantic-support question,
 deliberately out of scope here (see `citation-presence-not-semantic-support` in
-`--describe`).
+`--describe`). PV-DIRECTIVE is lexical, not semantic: it cannot see an imperative
+embedded after an introductory clause (sentence-initial only), and it compares only
+against §6's own Recommended approach paragraph, never the Answer block or the rest
+of the body (see `directive-check-is-lexical-not-semantic`,
+`imperative-check-is-sentence-initial-only`, and
+`verbatim-run-checked-against-section6-recommended-approach-only` in `--describe`).
 
 Usage:
     python3 scripts/check-persona-view.py <persona.md> <analysis.md>
@@ -125,7 +134,32 @@ FINDING_CODES: tuple[str, ...] = (
     "PV-GUIDE-WORDS",
     "PV-SOURCE",
     "PV-QUESTIONS",
+    "PV-DIRECTIVE",
 )
+
+# D-05 (Phase 87): the contract's own **Denylisted openers:** line
+# (shared/spine/references/persona-views.md, Voice section) is the sole
+# source for this set -- P05 asserts parity so a hand-edited constant
+# cannot silently drift from the contract's own prose. Union of the
+# research corpus's denylisted-opener list with every imperative the
+# 2026-10-02 review found in the live CSA views the user objected to
+# (Decide, Move, Read, Risk-classify, Confirm, Keep, Classify, Switch,
+# Finish).
+DIRECTIVE_OPENERS: frozenset[str] = frozenset({
+    "build", "classify", "confirm", "consider", "decide", "finish", "keep",
+    "move", "read", "reject", "risk-classify", "switch", "take", "treat",
+})
+# The contract's two-word "Do not" opener, plus its contraction -- neither
+# is a single DIRECTIVE_OPENERS token, so each is matched as a short
+# sentence-initial phrase instead.
+DIRECTIVE_PHRASE_OPENERS: tuple[tuple[str, ...], ...] = (("do", "not"), ("don't",))
+_SECOND_PERSON_RE = re.compile(r"\b(?:you|your|yours|yourself|you're)\b", re.IGNORECASE)
+_READER_VERDICT_RE = re.compile(r"\b(?:objection|reader)\s+is\s+(?:right|wrong)\b", re.IGNORECASE)
+# Measured 2026-10-02 (planner): the frozen pre-87 fixture shares a 16-word
+# run with its source's §6 Recommended approach paragraph; a constructed
+# single-sentence restatement (M-D-RUN) shares 9; the D-01 approved sample
+# shares none. 6 sits well inside that margin on both sides.
+VERBATIM_RUN_WORDS = 6
 
 
 class Finding(NamedTuple):
@@ -234,6 +268,11 @@ class SourceFacts:
     dead_end_titles: frozenset[str]
     band: str
     numbers: frozenset[str]
+    # Phase 87 D-05: §6's own **Recommended approach:** paragraph, label
+    # removed, wrapped lines joined -- the sole text PV-DIRECTIVE's
+    # verbatim-run check compares an answer against. Empty when §6 carries
+    # no such paragraph.
+    recommended_approach: str = ""
 
 
 _SECTION6_CONFIDENCE_LINE_RE = re.compile(r"\b(HIGH|MEDIUM|LOW)\b")
@@ -267,7 +306,24 @@ def source_facts(analysis_text: str) -> SourceFacts:
     if band is None:
         raise SourceError("no readable **Confidence:** band in section 6")
     numbers = frozenset(numbers_in(analysis_text))
-    return SourceFacts(chain_ids, gt_declared, assumption_row_count, dead_end_titles, band, numbers)
+    recommended_approach = _recommended_approach(sections.get(6, ""))
+    return SourceFacts(
+        chain_ids, gt_declared, assumption_row_count, dead_end_titles, band, numbers,
+        recommended_approach)
+
+
+_RECOMMENDED_APPROACH_RE = re.compile(
+    r"^\*\*Recommended approach:\*\*(?P<rest>.*?)(?=\n[ \t]*\n|\Z)", re.MULTILINE | re.DOTALL)
+
+
+def _recommended_approach(section6_text: str) -> str:
+    """The §6 **Recommended approach:** paragraph, label removed, wrapped
+    lines joined into one line. Empty string if §6 carries no such
+    paragraph."""
+    m = _RECOMMENDED_APPROACH_RE.search(section6_text)
+    if m is None:
+        return ""
+    return re.sub(r"\s+", " ", m.group("rest")).strip()
 
 
 # ---------------------------------------------------------------------------
@@ -589,6 +645,96 @@ def check_questions(
 
 
 # ---------------------------------------------------------------------------
+# Voice (Phase 87 D-05): an answer sentence never hands down a decision --
+# PV-DIRECTIVE is lexical and over-reports by design (CLAUDE.md: a noisy
+# falsifier that fires beats a clean presence check that does not).
+# ---------------------------------------------------------------------------
+
+_LEADING_NONLETTER_RE = re.compile(r"^[^A-Za-z]+")
+_TRAILING_PUNCT_RE = re.compile(r"[:;.,!?]+$")
+_VOICE_TOKEN_RE = re.compile(r"[a-z0-9]+(?:['’-][a-z0-9]+)*")
+
+
+def _voice_tokens(text: str) -> list[str]:
+    """Citation tokens and markdown emphasis stripped, lowercased, split
+    into word tokens. Reuses `_NUM_MASK_PATTERNS` -- the same citation-token
+    shapes `numbers_in` already masks out."""
+    masked = text
+    for pat in _NUM_MASK_PATTERNS:
+        masked = pat.sub("", masked)
+    masked = masked.replace("*", "").lower()
+    return _VOICE_TOKEN_RE.findall(masked)
+
+
+def _sentence_opener_words(sentence: str) -> list[str]:
+    """Leading non-letters stripped, then each whitespace-split token with
+    trailing `:,;.!?` stripped and lowercased."""
+    stripped = _LEADING_NONLETTER_RE.sub("", sentence)
+    return [_TRAILING_PUNCT_RE.sub("", w).lower() for w in stripped.split()]
+
+
+def _longest_shared_run(a: list[str], b: list[str]) -> int:
+    """Longest contiguous run of tokens appearing, in the same order, as a
+    contiguous subsequence of both `a` and `b`."""
+    if not a or not b:
+        return 0
+    prev = [0] * (len(b) + 1)
+    best = 0
+    for ai in a:
+        curr = [0] * (len(b) + 1)
+        for j, bj in enumerate(b, start=1):
+            if ai == bj:
+                curr[j] = prev[j - 1] + 1
+                if curr[j] > best:
+                    best = curr[j]
+        prev = curr
+    return best
+
+
+def check_voice(answer_texts: list[str], facts: SourceFacts) -> list[Finding]:
+    """D-05 PV-DIRECTIVE: flags an answer sentence that opens with a
+    denylisted imperative or the "Do not"/"don't" phrase, an answer that
+    addresses the reader in the second person or passes a verdict on the
+    reader, or an answer sharing a long verbatim run of words with §6's
+    Recommended approach paragraph. Over-reports by design; proves none of
+    these phrasings are present, never that the answer's meaning is sound.
+    The question text itself is never passed here -- only the answer that
+    follows it."""
+    findings: list[Finding] = []
+    source_tokens = _voice_tokens(facts.recommended_approach) if facts.recommended_approach else []
+    for answer in answer_texts:
+        for s in sentences(answer):
+            if not s.strip():
+                continue
+            words = _sentence_opener_words(s)
+            if not words:
+                continue
+            first = words[0]
+            if first in DIRECTIVE_OPENERS:
+                findings.append(Finding(
+                    "PV-DIRECTIVE",
+                    f"answer sentence opens with a denylisted imperative: {first.capitalize()}"))
+                continue
+            for phrase in DIRECTIVE_PHRASE_OPENERS:
+                if tuple(words[: len(phrase)]) == phrase:
+                    findings.append(Finding(
+                        "PV-DIRECTIVE",
+                        "answer sentence opens with 'Do not'"))
+                    break
+        if _SECOND_PERSON_RE.search(answer):
+            findings.append(Finding("PV-DIRECTIVE", "second-person address"))
+        if _READER_VERDICT_RE.search(answer):
+            findings.append(Finding("PV-DIRECTIVE", "verdict on the reader"))
+        if source_tokens:
+            run = _longest_shared_run(_voice_tokens(answer), source_tokens)
+            if run >= VERBATIM_RUN_WORDS:
+                findings.append(Finding(
+                    "PV-DIRECTIVE",
+                    f"shares {run}+ consecutive words with §6's recommended approach"))
+    return findings
+
+
+# ---------------------------------------------------------------------------
 # check_view
 # ---------------------------------------------------------------------------
 
@@ -627,6 +773,8 @@ def check_view(
         findings.extend(q_findings)
     else:
         citation_texts = [u.text for u in valid_units]
+
+    findings.extend(check_voice(citation_texts, facts))
 
     for text in citation_texts:
         for s in sentences(text):
@@ -703,6 +851,25 @@ def _p04_questions_parity() -> str | None:
                 return f"{slug} question carries an unexpected number: {q!r}"
             if re.search(r"\byou\b|\byour\b", q, re.IGNORECASE):
                 return f"{slug} question carries you/your: {q!r}"
+    return None
+
+
+_DENYLIST_LINE_RE = re.compile(
+    r'^\*\*Denylisted openers:\*\* (?P<list>.+?); and the two-word opener "Do not"\.$',
+    re.MULTILINE)
+
+
+def _p05_denylist_parity(contract_path: Path = CONTRACT) -> str | None:
+    """P05: the contract's own **Denylisted openers:** line (Voice section)
+    is the sole source for DIRECTIVE_OPENERS -- a hand-edited constant
+    cannot silently drift from the contract's own prose."""
+    contract_text = contract_path.read_text()
+    m = _DENYLIST_LINE_RE.search(contract_text)
+    if m is None:
+        return "Denylisted openers line not found, or does not match the expected shape"
+    openers = frozenset(w.strip().lower() for w in m.group("list").split(", ") if w.strip())
+    if openers != DIRECTIVE_OPENERS:
+        return f"contract openers {sorted(openers)} != DIRECTIVE_OPENERS {sorted(DIRECTIVE_OPENERS)}"
     return None
 
 
@@ -784,6 +951,29 @@ def _m_q_invent(text: str) -> str:
         "**Where do I find the recommendation?**", "**What else does the analysis cover?**", 1)
 
 
+# D-05 Phase 87: all three mutations replace the same single anchor sentence
+# in the decision-owner fixture, so each is a single-code probe of exactly
+# one PV-DIRECTIVE trigger (denylisted opener / second-person / verbatim
+# run) without disturbing any other check (citation, word band, shape).
+_M_D_ANCHOR = "If that evidence improves, the recommendation is reconsidered (C3)."
+
+
+def _m_d_open(text: str) -> str:
+    return text.replace(_M_D_ANCHOR, "Decide again if that evidence improves (C3).", 1)
+
+
+def _m_d_you(text: str) -> str:
+    return text.replace(
+        _M_D_ANCHOR, "If that evidence improves, you should reconsider the recommendation (C3).", 1)
+
+
+def _m_d_run(text: str) -> str:
+    # Shares "defer the slack integration to the next planning cycle" (9
+    # words) with product-business-2.md's §6 Recommended approach paragraph.
+    return text.replace(
+        _M_D_ANCHOR, "Under that evidence, defer the Slack integration to the next planning cycle (C3).", 1)
+
+
 _MUTATIONS: tuple[tuple[str, str, str, Callable[[str], str], frozenset[str]], ...] = (
     ("M-ID", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
      lambda t: t.replace("GT-5?", "GT-6"), frozenset({"PV-ID"})),
@@ -817,6 +1007,12 @@ _MUTATIONS: tuple[tuple[str, str, str, Callable[[str], str], frozenset[str]], ..
      _m_q_order, frozenset({"PV-QUESTIONS"})),
     ("M-Q-INVENT", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
      _m_q_invent, frozenset({"PV-QUESTIONS"})),
+    ("M-D-OPEN", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
+     _m_d_open, frozenset({"PV-DIRECTIVE"})),
+    ("M-D-YOU", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
+     _m_d_you, frozenset({"PV-DIRECTIVE"})),
+    ("M-D-RUN", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
+     _m_d_run, frozenset({"PV-DIRECTIVE"})),
 )
 
 
@@ -926,6 +1122,90 @@ def _u04_code_registry_complete() -> str | None:
     missing = set(FINDING_CODES) - observed
     if missing:
         return f"codes never observed by any control: {sorted(missing)}"
+    return None
+
+
+# D-05 (Phase 87): the behavior block's positive and negative inline
+# sentences, run through check_voice directly -- no private text appears in
+# this checker; these are constructed strings only.
+_U05_POSITIVE_SENTENCES: tuple[str, ...] = tuple(
+    f"{w} the remaining work under the procedure (C1)."
+    for w in (
+        "Build", "Classify", "Confirm", "Consider", "Decide", "Finish", "Keep",
+        "Move", "Read", "Reject", "Risk-classify", "Switch", "Take", "Treat",
+    )
+) + (
+    "Do not change the method now (C1).",
+    "Your objection is right about the timing and wrong about the method (C1).",
+    "The reader's objection is wrong (C1).",
+)
+
+_U05_NEGATIVE_SENTENCES: tuple[str, ...] = (
+    "Which assurance method fits the unexecuted remainder (§1).",
+    "CSV and CSA serve one unchanged obligation (C1).",
+    "All three rate HIGH (C8).",
+    "MEDIUM overall, because three facts are not yet established (§6, GT-9?).",
+    "In the Answer block and §6, together with the three conditions it depends on (§6).",
+    "Confidence is MEDIUM because the estimates are top-down (§6).",
+    "Raising to HIGH needs bottom-up costs (§6).",
+    "Would change it: a win/loss audit (C3).",
+    "Risk retired by the analysis is the cost question (C1).",
+    "Reading at source confirmed it (GT-1).",
+)
+
+
+def _u05_directive_lexicon() -> str | None:
+    facts = SourceFacts(frozenset(), {}, 0, frozenset(), "MEDIUM", frozenset(), "")
+    for text in _U05_POSITIVE_SENTENCES:
+        codes = {f.code for f in check_voice([text], facts)}
+        if codes != {"PV-DIRECTIVE"}:
+            return f"expected {{'PV-DIRECTIVE'}} for {text!r}, got {sorted(codes)}"
+    for text in _U05_NEGATIVE_SENTENCES:
+        codes = {f.code for f in check_voice([text], facts)}
+        if codes:
+            return f"expected no findings for {text!r}, got {sorted(codes)}"
+    return None
+
+
+# D-05 (Phase 87): the pre-87 shipped decision-owner example, frozen before
+# re-derivation, kept as a must-fail fixture. Never added to FIXTURES: P01
+# requires zero findings on every FIXTURES member, and this file is a
+# must-fail by design.
+PRE87_FIXTURE = FIXTURE_DIR / "pre87-product-business-2-decision-owner.md"
+
+
+def _d_pre87_directive() -> str | None:
+    """D-PRE87: the frozen pre-87 example fails for PV-DIRECTIVE alone among
+    content-voice rules -- it opens "Decide to build the reporting
+    rewrite..." and restates §6's own Recommended approach paragraph almost
+    verbatim. PV-QUESTIONS also fires on the full check_view reading because
+    the file predates the question format (structural, not a voice
+    failure). Pins the exact two-code set so any new failure mode on this
+    artifact is caught."""
+    persona_text = PRE87_FIXTURE.read_text()
+    source_path = REPO_ROOT / "shared" / "examples" / "product-business-2.md"
+    analysis_text = source_path.read_text()
+    roster = _load_roster_from_contract()
+    analysis_name = _provenance_name(persona_text)
+    if analysis_name is None:
+        return "could not parse the pre-87 fixture's provenance analysis name from line 3"
+
+    facts = source_facts(analysis_text)
+    header = split_header(persona_text, analysis_name, roster)
+    units = body_units(header.body)
+    valid_units = [u for u in units if u.kind != "violation"]
+    voice_findings = check_voice([u.text for u in valid_units], facts)
+    voice_codes = {f.code for f in voice_findings}
+    if voice_codes != {"PV-DIRECTIVE"}:
+        return f"expected check_voice alone to yield only PV-DIRECTIVE, got {voice_findings}"
+    if not any("denylisted imperative" in f.detail for f in voice_findings):
+        return f"expected at least one opener finding, got {voice_findings}"
+    if not any("consecutive words" in f.detail for f in voice_findings):
+        return f"expected at least one verbatim-run finding, got {voice_findings}"
+
+    full_codes = {f.code for f in check_view(persona_text, analysis_text, analysis_name, roster)}
+    if full_codes != {"PV-DIRECTIVE", "PV-QUESTIONS"}:
+        return f"expected exactly {{'PV-DIRECTIVE', 'PV-QUESTIONS'}} from check_view, got {sorted(full_codes)}"
     return None
 
 
@@ -1099,6 +1379,7 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("P02", _p02_contract_parity),
     ("P03", _p03_guide_passes),
     ("P04", _p04_questions_parity),
+    ("P05", _p05_denylist_parity),
 ) + tuple(
     (cid, _make_mutation_control(fixture, src, build, expected))
     for cid, fixture, src, build, expected in _MUTATIONS
@@ -1110,6 +1391,8 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("U02", _u02_sentence_boundaries),
     ("U03", _u03_band_reader),
     ("U04", _u04_code_registry_complete),
+    ("U05", _u05_directive_lexicon),
+    ("D-PRE87", _d_pre87_directive),
     ("EX-REACH", _ex_reach),
     ("EX-REACH-ID", _ex_reach_id_mutation),
     ("EX-REACH-EMPTY", _ex_reach_empty),
@@ -1153,6 +1436,7 @@ def describe() -> dict:
         {_relpath(FIXTURE_DIR / name) for name, _src in FIXTURES} | {src for _name, src in FIXTURES}
         | {_relpath(p) for p in persona_example_files}
         | persona_example_sources
+        | {_relpath(PRE87_FIXTURE)}
     )
     return {
         "control_ids": [cid for cid, _fn in _CONTROLS],
@@ -1164,6 +1448,9 @@ def describe() -> dict:
             "questions": {slug: list(qs) for slug, qs in LOCKED_QUESTIONS.items()},
             "guide_max_words": GUIDE_MAX_WORDS,
             "provenance_template": PROVENANCE_TEMPLATE,
+            "directive_openers": sorted(DIRECTIVE_OPENERS),
+            "directive_phrase_openers": [list(p) for p in DIRECTIVE_PHRASE_OPENERS],
+            "verbatim_run_words": VERBATIM_RUN_WORDS,
         },
         "derived_counts": {
             "finding_codes": len(FINDING_CODES),
@@ -1177,6 +1464,9 @@ def describe() -> dict:
             "absent-input-sentences-not-checked-for-truth",
             "guide-names-checked-against-output-template-only",
             "fixtures-are-worked-examples-not-live-analyses",
+            "directive-check-is-lexical-not-semantic",
+            "imperative-check-is-sentence-initial-only",
+            "verbatim-run-checked-against-section6-recommended-approach-only",
         ]),
     }
 
