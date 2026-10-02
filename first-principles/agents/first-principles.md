@@ -380,14 +380,16 @@ then the six sections, then the process-output appendix.
 6. **Write the Markdown reader report.** Choose a plain title of at most ten words that names
    the subject of the analysis, then run this with Bash, filling in `<path>` and `<title>`. It
    copies the Answer — retitled Executive Summary — and the six sections under the title and a
-   date line, and leaves out the process-output appendix, its structured summary, any
+   date line and a `Read with:` line linking the reading guide, the working file and the folder
+   index, and leaves out the process-output appendix, its structured summary, any
    `**Disclosed:**` paragraph and the `**Pre-check:**` lines, none of which is for the reader:
 
    ```sh
    F="<path>"; R="${F%/*}/report-${F##*/analysis-}"; { printf '# '; cat <<'FP_EOF'
    <title>
    FP_EOF
-   printf '\n*First-principles analysis · %s*\n\n' "$(date -u '+%-d %B %Y')"; awk '
+   printf '\n*First-principles analysis · %s*\n\n' "$(date -u '+%-d %B %Y')"
+   printf '*Read with: [How to read this analysis]''(HOW-TO-READ.md) · [Working file]''(%s) · [All files]''(INDEX.md)*\n\n' "${F##*/}"; awk '
    /^```/ { f = !f }
    !f && /^## Appendix — process output$/ { exit }
    !f && /^\*\*Disclosed:\*\*/ { skip = 1 }
@@ -406,13 +408,13 @@ then the six sections, then the process-output appendix.
    — filling in `<path>` with the path step 1 printed:
 
    ```sh
-   F="<path>"; H="${F%/*}/HOW-TO-READ.md"; awk 'NR == 1 && /^<!-- GENERATED/ { m = 1; next } NR == 2 && m && $0 == "" { next } { print }' "${CLAUDE_PLUGIN_ROOT}/references/how-to-read.md" > "$H.tmp" 2>/dev/null && [ -s "$H.tmp" ] && mv "$H.tmp" "$H" && echo "$H"; rm -f "$H.tmp"
+   F="<path>"; H="${F%/*}/HOW-TO-READ.md"; awk 'NR == 1 && /^<!-- GENERATED/ { m = 1; next } NR == 2 && m && $0 == "" { next } { print }' "${CLAUDE_PLUGIN_ROOT}/references/how-to-read.md" > "$H.tmp" 2>/dev/null && [ -s "$H.tmp" ] && printf '\n---\n\n[All files in this folder]''(INDEX.md)\n' >> "$H.tmp" && mv "$H.tmp" "$H" && echo "$H"; rm -f "$H.tmp"
    ```
 
    Run it once; it overwrites any earlier copy, so a rerun leaves one identical file; if it
    prints no path, carry on — the guide never blocks the reports, and the final message leaves
-   it out. The copy is a byte copy of the shipped file: the agent does not Read it and does not
-   edit it.
+   it out. The copy is a byte copy of the shipped file with one link to the folder index added at
+   its end: the agent does not Read it and does not edit it.
 
 7. **Draw the report figures.** Draw the evidence trace and the assumption verdict matrix from
    the structured summary with the figure library carried in
@@ -463,7 +465,7 @@ then the six sections, then the process-output appendix.
    filling in `<report>` with the path step 6 printed:
 
    ```sh
-   R="<report>"; P="${R%.md}.pdf"; S="${R%.md}.layout.typ"; E="${R%.md}.pandoc-err"; awk '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f' "${CLAUDE_PLUGIN_ROOT}/references/report-layout.md" > "$S" && pandoc "$R" -f commonmark_x --template="$S" --pdf-engine=typst --resource-path="${R%/*}" -M title="$(sed -n '1s/^# //p' "$R")" -M date="$(date -u '+%-d %B %Y')" -o "$P" 2>"$E"; rc=$?; grep -q 'Could not fetch resource' "$E" && rc=1; rm -f "$S" "$E"; if [ "$rc" -eq 0 ]; then echo "$P"; else rm -f "$P"; fi
+   R="<report>"; P="${R%.md}.pdf"; S="${R%.md}.layout.typ"; E="${R%.md}.pandoc-err"; awk '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f' "${CLAUDE_PLUGIN_ROOT}/references/report-layout.md" > "$S" && sed 's/](HOW-TO-READ\.md)/](HOW-TO-READ.pdf)/g; s/](INDEX\.md)/](INDEX.pdf)/g' "$R" | pandoc -f commonmark_x --template="$S" --pdf-engine=typst --resource-path="${R%/*}" -M title="$(sed -n '1s/^# //p' "$R")" -M date="$(date -u '+%-d %B %Y')" -o "$P" 2>"$E"; rc=$?; grep -q 'Could not fetch resource' "$E" && rc=1; rm -f "$S" "$E"; if [ "$rc" -eq 0 ]; then echo "$P"; else rm -f "$P"; fi
    ```
 
    Run it once. If it fails — pandoc or typst not installed, most often, or a figure could not be
@@ -476,19 +478,31 @@ then the six sections, then the process-output appendix.
    with the path step 1 printed:
 
    ```sh
-   F="<path>"; H="${F%/*}/HOW-TO-READ.md"; P="${H%.md}.pdf"; S="${H%.md}.layout.typ"; E="${H%.md}.pandoc-err"; rc=1; if [ -s "$H" ]; then awk '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f' "${CLAUDE_PLUGIN_ROOT}/references/report-layout.md" > "$S" && pandoc "$H" -f commonmark_x --template="$S" --pdf-engine=typst -M title="$(sed -n '1s/^# //p' "$H")" -M date="$(date -u '+%-d %B %Y')" -o "$P" 2>"$E"; rc=$?; fi; rm -f "$S" "$E"; if [ "$rc" -eq 0 ] && [ -s "$P" ]; then echo "$P"; else rm -f "$P"; fi
+   F="<path>"; H="${F%/*}/HOW-TO-READ.md"; P="${H%.md}.pdf"; S="${H%.md}.layout.typ"; E="${H%.md}.pandoc-err"; rc=1; if [ -s "$H" ]; then awk '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f' "${CLAUDE_PLUGIN_ROOT}/references/report-layout.md" > "$S" && sed 's/](INDEX\.md)/](INDEX.pdf)/g' "$H" | pandoc -f commonmark_x --template="$S" --pdf-engine=typst -M title="$(sed -n '1s/^# //p' "$H")" -M date="$(date -u '+%-d %B %Y')" -o "$P" 2>"$E"; rc=$?; fi; rm -f "$S" "$E"; if [ "$rc" -eq 0 ] && [ -s "$P" ]; then echo "$P"; else rm -f "$P"; fi
    ```
 
    Run it once; if it prints no path, carry on — the guide PDF never blocks the reports, and the
    final message leaves it out. The guide is not Read or edited; only its shipped copy is
-   rendered.
+   rendered. In both PDFs, the links to the guide and the index point at their PDFs.
+
+   Then write the folder index, which lists every analysis in the folder and links its reports,
+   its persona memos and its working file. Fill in `<path>` with the path step 1 printed:
+
+   ```sh
+   F="<path>"; L="${CLAUDE_PLUGIN_ROOT}/references/report-layout.md"; awk '/^```sh$/ { f = 1; next } f && /^```$/ { exit } f' "$L" | sh -s -- "${F%/*}" "$L"
+   ```
+
+   Run it once, whether or not the reports were written. It prints the path of `INDEX.md` and
+   of `INDEX.pdf` if that was rendered. If it prints nothing, carry on: the index never blocks
+   the reports, and the final message leaves it out.
 9. **Your final message is a short pointer, not the analysis:** the path of the Markdown report,
    then of the PDF report or the reason it was not produced, then the path of each figure step 7
    printed as `figure:` or, for each `skipped` line, the figure's name (evidence trace /
    assumption verdict matrix) and its reason, then the path of the working file; then, if step 6
    printed it, the path of the reading guide `HOW-TO-READ.md` (and of `HOW-TO-READ.pdf`, if
    step 8 printed it), as the place a reader deciding
-   what to do with the analysis should start; the
+   what to do with the analysis should start; then the path of `INDEX.md` (and of `INDEX.pdf`)
+   if step 8 printed it, as the page that links every file in the folder; the
    top-of-response disclosure repeated from step 3, if any; a line stating that the working file
    is the complete analysis and the reports are its reader copies, that each must be read in full,
    and that this message is not the analysis; and the Conclusion's recommendation

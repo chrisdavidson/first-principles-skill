@@ -2,9 +2,10 @@
 
 # Report Layout
 
-> **Scope:** the page layout for the PDF reader report. The agent body's *Deliver the analysis
-> as a file* steps extract the template below and pass it to pandoc; nothing here is read by the
-> model for its content. The Markdown reader report needs no layout file — it is plain
+> **Scope:** the page layout for the PDF reader report, and the folder index that links every
+> delivered file. The agent body's *Deliver the analysis as a file* steps, and the persona skill,
+> extract the template and the index script below by awk; nothing here is read by the model for
+> its content. The Markdown reader report needs no layout file — it is plain
 > CommonMark, readable as text and in any Markdown viewer.
 
 Each analysis produces two reader reports beside the working file
@@ -22,6 +23,19 @@ Each analysis produces two reader reports beside the working file
   the template below: US Letter, Noto Sans with Liberation Sans as fallback (both SIL Open Font
   License), a navy heading scheme, banded tables, a running header carrying the title, and a
   `Page N of M` footer.
+
+Every delivered file links to its neighbours. Links in a Markdown file target the Markdown
+siblings, and links in a PDF target the PDF siblings. The working file has no PDF, so every link
+to it targets the `.md`:
+
+- the reports carry a `Read with:` line under the date, linking the reading guide, the working
+  file and the folder index;
+- the reading guide's delivered copy ends with a link to the folder index;
+- each persona memo's Basis field links its analysis, its report and the folder index;
+- **`INDEX.md`** and **`INDEX.pdf`** list every analysis in the folder, newest first, with links
+  to its report, each persona memo and the working file. The index is rewritten whenever an
+  analysis is delivered and whenever a persona memo is written. The report is written before
+  any memo exists, so this rewritten index is how the report reaches the memos.
 
 Every tool on the PDF path is free software: pandoc (GPL-2.0-or-later), typst (Apache-2.0), and
 the fonts above (SIL OFL-1.1). If pandoc or typst is not installed, the Markdown report is still
@@ -112,4 +126,50 @@ template variables, filled from the `-M title=` and `-M date=` arguments; `$body
   text(fill: slate, it.body))
 
 $body$
+```
+
+## Folder index
+
+The block below is a POSIX `sh` script. Its first argument is the folder that holds the delivered
+files. Its second argument is the path of this file, which it reads for the template above. It
+rewrites `INDEX.md` and, if pandoc renders it, `INDEX.pdf`, and prints the path of each file it
+writes. It only writes `INDEX.*` files. Each memo's display name comes from the memo's own title
+line.
+
+```sh
+D="$1"; L="$2"; cd "$D" || exit 1
+emit() {
+  ext="$1"
+  t() { if [ "$ext" = pdf ] && [ -s "${1%.md}.pdf" ]; then printf '%s' "${1%.md}.pdf"; else printf '%s' "$1"; fi; }
+  printf '# First-Principles Analyses\n\n'
+  printf '*Every analysis in this folder, newest first, with its reader reports and memos.*\n\n'
+  if [ -s HOW-TO-READ.md ]; then
+    printf 'New to these reports? Start with [How to read this analysis]''(%s).\n\n' "$(t HOW-TO-READ.md)"
+  fi
+  ls -1 analysis-*.md 2>/dev/null | sort -r | while read -r A; do
+    U="${A#analysis-}"; U="${U%.md}"
+    case "$U" in [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]T[0-9][0-9][0-9][0-9][0-9][0-9]Z) ;; *) continue ;; esac
+    R="report-$U.md"; T=""
+    [ -s "$R" ] && T=$(sed -n '1s/^# //p' "$R")
+    [ -n "$T" ] || T="Analysis $U"
+    printf '## %s\n\n' "$T"
+    printf '*%s-%s-%s %s:%s UTC*\n\n' "$(echo "$U" | cut -c1-4)" "$(echo "$U" | cut -c5-6)" \
+      "$(echo "$U" | cut -c7-8)" "$(echo "$U" | cut -c10-11)" "$(echo "$U" | cut -c12-13)"
+    [ -s "$R" ] && printf -- '- [Report]''(%s)\n' "$(t "$R")"
+    ls -1 persona-*-"$U".md 2>/dev/null | while read -r P; do
+      N=$(sed -n '1s/^# \(.*\) memo — .*$/\1/p' "$P")
+      [ -n "$N" ] && printf -- '- [%s memo]''(%s)\n' "$N" "$(t "$P")"
+    done
+    printf -- '- [Working file]''(%s), the complete analysis and its audit record\n\n' "$A"
+  done
+}
+emit md > INDEX.md.tmp && [ -s INDEX.md.tmp ] && mv INDEX.md.tmp INDEX.md && echo "$D/INDEX.md"
+rm -f INDEX.md.tmp
+if [ -s INDEX.md ] && [ -s "$L" ] && command -v pandoc >/dev/null 2>&1; then
+  awk '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f' "$L" > INDEX.layout.typ
+  if emit pdf | pandoc -f commonmark_x --template=INDEX.layout.typ --pdf-engine=typst \
+      -M title="First-Principles Analyses" -M date="$(date -u '+%-d %B %Y')" -o INDEX.pdf 2>/dev/null \
+      && [ -s INDEX.pdf ]; then echo "$D/INDEX.pdf"; else rm -f INDEX.pdf; fi
+  rm -f INDEX.layout.typ
+fi
 ```

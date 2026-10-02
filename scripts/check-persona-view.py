@@ -380,6 +380,16 @@ _MEMO_FIELDS: tuple[tuple[str, re.Pattern, str], ...] = (
 )
 
 
+def basis_value(analysis_name: str) -> str:
+    """D-12 (plan 87-11): the Basis field links the analysis, its reader
+    report and the folder index -- the three files beside the view. The
+    report's name swaps the analysis's `analysis-` prefix for `report-`, the
+    same mapping the agent's delivery step 6 uses; a name without that prefix
+    (a hand-written fixture named after its worked example) is prefixed."""
+    report = "report-" + analysis_name.removeprefix("analysis-")
+    return f"[{analysis_name}]({analysis_name}) · [Report]({report}) · [All files](INDEX.md)"
+
+
 @dataclass
 class HeaderResult:
     role: str | None
@@ -445,9 +455,9 @@ def split_header(persona_text: str, analysis_name: str, roster: dict[str, tuple[
         if "Re" in values and atitle is not None and values["Re"] != atitle:
             findings.append(Finding(
                 "PV-HEADER", f"Re field {values['Re']!r} disagrees with line 1's analysis title {atitle!r}"))
-        if "Basis" in values and values["Basis"] != analysis_name:
+        if "Basis" in values and values["Basis"] != basis_value(analysis_name):
             findings.append(Finding(
-                "PV-HEADER", f"Basis field {values['Basis']!r} disagrees with the analysis name {analysis_name!r}"))
+                "PV-HEADER", f"Basis field {values['Basis']!r} is not the linked form for {analysis_name!r}"))
         band = values.get("Band")
         search_start = 2 + len(memo_lines)
 
@@ -1034,6 +1044,23 @@ def _m_h_to(text: str) -> str:
     return text.replace("> **To:** Decision Owner\\", "> **To:** Operator\\", 1)
 
 
+# D-12 (plan 87-11): the pre-link bare Basis must fail, and so must a link
+# whose report target names a different analysis than the view's own.
+_M_H_BASIS_LINKED = (
+    "> **Basis:** [product-business-2.md](product-business-2.md) · "
+    "[Report](report-product-business-2.md) · [All files](INDEX.md)\\")
+
+
+def _m_h_basis(text: str) -> str:
+    return text.replace(_M_H_BASIS_LINKED, "> **Basis:** product-business-2.md\\", 1)
+
+
+def _m_h_link(text: str) -> str:
+    return text.replace(
+        _M_H_BASIS_LINKED,
+        _M_H_BASIS_LINKED.replace("(report-product-business-2.md)", "(report-personal-general.md)"), 1)
+
+
 def _m_h_break(text: str) -> str:
     return text.replace("> **To:** Decision Owner\\", "> **To:** Decision Owner", 1)
 
@@ -1102,6 +1129,10 @@ _MUTATIONS: tuple[tuple[str, str, str, Callable[[str], str], frozenset[str]], ..
      _m_h_to, frozenset({"PV-HEADER"})),
     ("M-H-BREAK", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
      _m_h_break, frozenset({"PV-HEADER"})),
+    ("M-H-BASIS", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
+     _m_h_basis, frozenset({"PV-HEADER"})),
+    ("M-H-LINK", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
+     _m_h_link, frozenset({"PV-HEADER"})),
     ("M-D-OPEN", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
      _m_d_open, frozenset({"PV-DIRECTIVE"})),
     ("M-D-YOU", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",

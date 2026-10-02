@@ -2,7 +2,7 @@
 
 > **To:** Risk\
 > **Re:** Worked Example: Personal and General\
-> **Basis:** personal-general.md\
+> **Basis:** [personal-general.md](personal-general.md) · [Report](report-personal-general.md) · [All files](INDEX.md)\
 > **Band (from §6):** MEDIUM
 
 *Derived from §6 and the structured summary of personal-general.md; the six sections remain the source of truth.*

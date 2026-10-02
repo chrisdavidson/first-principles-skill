@@ -1021,6 +1021,10 @@ _FROZEN_PATHS=(
     # checks.tsv are falsifiable only against these sources, manifests and out/ artifacts;
     # raw.jsonl streams were kept in scratch by design, never committed.
     'tests/persona-live-v9.18c'
+    # persona-live-v9.18d (2026-10-02) -- the four 87-11 example re-derivation runs under the
+    # linked Basis header (D-12). Frozen because the shipped examples' sha256 equality with
+    # their runs is falsifiable only against this manifest, checks.tsv and out/.
+    'tests/persona-live-v9.18d'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null

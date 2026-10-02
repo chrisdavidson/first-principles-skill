@@ -79,7 +79,8 @@ Refusal sentences, used verbatim with `<file>` replaced by the analysis's basena
 For the chosen role, follow the contract's own section for that role (what it reads and its fixed
 absent-input sentences), its Questions section, its Voice section, and its File format and
 Citation grammar sections exactly. The view is a memo: the title line, the memo block (To, Re,
-Basis, Band — Band copied from the analysis's own §6 `**Confidence:**` line), and the provenance
+Basis, Band — Basis is the contract's three links to the analysis, its report and the folder
+index, and Band is copied from the analysis's own §6 `**Confidence:**` line), and the provenance
 sentence, then the body. The body opens with a paragraph starting `In brief:` — one or two cited
 sentences on what the analysis gives this reader, never a recommendation — then exactly one prose
 paragraph per question in the role's Questions list, in that order. The questions set the order
@@ -105,8 +106,9 @@ unchanged from the analysis's own filename. A rerun of the same role on the same
 overwrites only that one persona file.
 
 Before writing, confirm the target basename starts with `persona-`. Never write to, rename, or
-delete any `analysis-*`, `report-*`, or `HOW-TO-READ.md` file — this skill only ever adds a new
-`persona-*` sibling or replaces one it wrote itself.
+delete any `analysis-*`, `report-*`, or `HOW-TO-READ.*` file. This skill only ever adds a new
+`persona-*` sibling, replaces one it wrote itself, or rewrites the folder index `INDEX.md` /
+`INDEX.pdf` (see Update the folder index).
 
 ## Self-check before finishing
 
@@ -169,16 +171,31 @@ same package as the report and the reading guide. Fill in `<view>` with the path
 written:
 
 ```sh
-V="<view>"; P="${V%.md}.pdf"; S="${V%.md}.layout.typ"; E="${V%.md}.pandoc-err"; awk '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f' "${CLAUDE_PLUGIN_ROOT}/references/report-layout.md" > "$S" && pandoc "$V" -f commonmark_x --template="$S" --pdf-engine=typst -M title="$(sed -n '1s/^# //p' "$V")" -M date="$(date -u '+%-d %B %Y')" -o "$P" 2>"$E"; rc=$?; rm -f "$S" "$E"; if [ "$rc" -eq 0 ] && [ -s "$P" ]; then echo "$P"; else rm -f "$P"; fi
+V="<view>"; P="${V%.md}.pdf"; S="${V%.md}.layout.typ"; E="${V%.md}.pandoc-err"; awk '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f' "${CLAUDE_PLUGIN_ROOT}/references/report-layout.md" > "$S" && sed 's/](\(report-[0-9TZ]*\)\.md)/](\1.pdf)/g; s/](INDEX\.md)/](INDEX.pdf)/g' "$V" | pandoc -f commonmark_x --template="$S" --pdf-engine=typst -M title="$(sed -n '1s/^# //p' "$V")" -M date="$(date -u '+%-d %B %Y')" -o "$P" 2>"$E"; rc=$?; rm -f "$S" "$E"; if [ "$rc" -eq 0 ] && [ -s "$P" ]; then echo "$P"; else rm -f "$P"; fi
 ```
 
-Run it once per view. Every file it touches starts with `persona-`. If it prints no path —
+Run it once per view. Every file it touches starts with `persona-`. In the PDF, the Basis
+links to the report and the index point at their PDFs, and the link to the analysis stays on the
+Markdown file. If it prints no path —
 pandoc or typst not installed, most often — keep the Markdown view, do not retry with another
 engine, and say in the report that the PDF was not produced and why. The Markdown view is the
 checked file; the PDF is rendered from it and never edited.
 
+## Update the folder index
+
+After the last view of the run is written and rendered, or deleted on a failed self-check,
+rewrite the folder index once so it lists every memo now beside the analysis. Fill in `<dir>`
+with the directory of the analysis:
+
+```sh
+L="${CLAUDE_PLUGIN_ROOT}/references/report-layout.md"; awk '/^```sh$/ { f = 1; next } f && /^```$/ { exit } f' "$L" | sh -s -- "<dir>" "$L"
+```
+
+It writes only `INDEX.md` and `INDEX.pdf`, and prints the path of each. If it prints nothing,
+carry on: the index never blocks a view.
+
 ## Finish
 
 Report the path(s) written — each Markdown view and its PDF, or the reason the PDF was not
-produced — the role(s), the source analysis read, and either `self-check: pass` or the list of
+produced — the index path(s) the index step printed, the role(s), the source analysis read, and either `self-check: pass` or the list of
 failing codes. Do not paste the analysis or the persona view into the report.

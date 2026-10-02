@@ -13,6 +13,22 @@ installed session.
 
 ## [Unreleased]
 
+### Added — delivered files link to each other, through a folder index
+
+Every delivered file now links to its neighbours. Links in a Markdown file go to the Markdown
+siblings, and links in a PDF go to the PDF siblings. The working file has no PDF, so links to it
+always go to the `.md`. The reader report gains a `Read with:` line under its date that links the
+reading guide, the working file and the folder index. The guide's delivered copy ends with a link
+to the index. The persona memo's Basis field links the analysis, its report and the index.
+`INDEX.md` and `INDEX.pdf` list every analysis in `.first-principles/`, newest first, each with
+its report, its memos and its working file. The analysis delivery rewrites the index, and so does
+every persona run. The report is written before any memo exists, so the index is how a report
+reaches the memos written after it. The index script ships in `report-layout.md`, extracted by
+awk like the page template. PERSONA-GATE's header check requires the linked Basis form and gains
+two must-fail controls: a bare Basis, and a report link naming another analysis. The shipped
+persona examples are re-derived by real runs under the new header. The frozen
+`tests/persona-live-v9.18c/` reading reproduces only against the checker at commit `0f663cf8`.
+
 ### Changed — persona views summarise and point; they no longer decide
 
 Each role now answers a fixed, ordered question list held in the persona contract, carried through

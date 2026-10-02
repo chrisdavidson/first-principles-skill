@@ -2,7 +2,7 @@
 
 > **To:** Operator\
 > **Re:** Worked Example: Product and Business (Feature Prioritization)\
-> **Basis:** product-business-2.md\
+> **Basis:** [product-business-2.md](product-business-2.md) · [Report](report-product-business-2.md) · [All files](INDEX.md)\
 > **Band (from §6):** MEDIUM
 
 *Derived from §6 and the structured summary of product-business-2.md; the six sections remain the source of truth.*

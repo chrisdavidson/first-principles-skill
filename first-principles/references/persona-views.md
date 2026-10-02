@@ -29,7 +29,7 @@ Every persona view file carries this exact nine-line header, then a body:
 
 > **To:** <Title>\
 > **Re:** <analysis title>\
-> **Basis:** analysis-<UTC>.md\
+> **Basis:** <analysis link> · <report link> · <index link>\
 > **Band (from §6):** HIGH|MEDIUM|LOW
 
 *Derived from §6 and the structured summary of analysis-<UTC>.md; the six sections remain the source of truth.*
@@ -43,8 +43,13 @@ Every persona view file carries this exact nine-line header, then a body:
   Title column exactly, the same value as line 1's.
 - Line 4 is `> **Re:** <analysis title>\`, ending in a hard-break backslash; identical to line 1's
   analysis title.
-- Line 5 is `> **Basis:** <analysis basename>\`, ending in a hard-break backslash; `<analysis
-  basename>` names the basename of the analysis the view was derived from.
+- Line 5 is `> **Basis:** `, then three Markdown links separated by ` · ` (a space, a middle
+  dot, a space), then a hard-break backslash. The first link's text and target are both
+  `<analysis basename>`, the basename of the analysis the view was derived from. The second
+  link's text is `Report` and its target is `report-<UTC>.md`, where `<UTC>` is that basename's
+  own stamp. The third link's text is `All files` and its target is `INDEX.md`.
+  The three links reach the analysis, its reader report and the folder index, all of which sit
+  beside the view. The PDF render points the report and index links at their PDFs.
 - Line 6 is `> **Band (from §6):** HIGH|MEDIUM|LOW`, with no trailing backslash, equal to the
   analysis's own §6 `**Confidence:**` band.
 - Line 7 is blank.
