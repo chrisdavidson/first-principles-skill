@@ -11,10 +11,10 @@ carry.
 
 | Slug | Title | Body words |
 |------|-------|------------|
-| decision-owner | Decision Owner | 80–120 |
-| operator | Operator | 100–150 |
-| risk | Risk | 100–150 |
-| skeptic | Skeptic | 80–120 |
+| decision-owner | Decision Owner | 93–173 |
+| operator | Operator | 90–170 |
+| risk | Risk | 80–160 |
+| skeptic | Skeptic | 86–166 |
 
 This table is the single source for role slugs, titles and word bands. Cells are plain text — no
 backticks, no bold — so a checker can read them mechanically rather than this contract's bands
@@ -44,11 +44,13 @@ Every persona view file carries this exact five-line header, then a body:
 - Line 5 is `**Band (from §6):** HIGH|MEDIUM|LOW`, equal to the analysis's own §6
   `**Confidence:**` band.
 - Line 6 is blank.
-- Line 7 onward is the body: paragraphs and `- ` bullets only — no other headings, no tables, no
-  code fences, no numbered lists.
+- Line 7 onward is the body: exactly one `- ` bullet per role question, in the order the role
+  section's Questions list states them, each written on a single line — no paragraphs outside a
+  bullet, no other headings, tables, code fences or numbered lists.
 
 Body words are counted over everything after line 5, whitespace-separated; each bullet's leading
-`- ` marker is not itself counted as a word.
+`- ` marker is not itself counted as a word. The bold question text at the start of each bullet
+counts toward the body's word count.
 
 ## Citation grammar
 
@@ -75,24 +77,65 @@ This grammar proves that every cited id resolves to something the analysis decla
 prove that the cited id actually supports the sentence it is attached to — it is a
 presence-and-resolution check, not a semantic-support check.
 
+## Questions
+
+Each role answers its fixed, ordered list of questions, held verbatim in its own section below.
+Each bullet opens with the question verbatim as a bold lead-in (`**<question>**`), followed by the
+answer on the same line. The first question of every role carries the value of the analysis to
+that reader. The question text itself is exempt from the citation rule, the same way an
+absent-input sentence is exempt — but the answer that follows it is not: every answer sentence
+carries a citation token. A reworded or invented question is not exempt and is an error. Where an
+absent-input sentence applies, it is written inside the answer to the question whose input is
+absent.
+
+## Voice
+
+A view describes what the analysis found, in the third person about the analysis. It carries no
+imperative addressed to the reader, no "you" or "your" (so no "you should", "you must", "you need
+to"), no verdict on the reader (for example on "your objection" or on the reader being right or
+wrong), and it never restates the recommendation — it points to it (the Answer block and §6) with
+the conditions the analysis says it depends on.
+
+**Denylisted openers:** Build, Classify, Confirm, Consider, Decide, Finish, Keep, Move, Read, Reject, Risk-classify, Switch, Take, Treat; and the two-word opener "Do not".
+
+PERSONA-GATE's PV-DIRECTIVE check is lexical — it flags an answer sentence that opens with a
+denylisted word, any "you" or "your", a verdict on the reader, or a run of six or more consecutive
+words shared with §6's `**Recommended approach:**` paragraph; it over-reports by design and does
+not judge meaning.
+
 ## Decision Owner
 
 **Reads:** the `## Answer` block's Recommendation, Band and "Would change it"; §6 Conclusion; the
 key risks named in any MEDIUM- or LOW-confidence chain.
 
-**Writes:** what to decide, how sure the analysis is, and what would change the advice — in the
-fewest words a decision owner needs to act or to ask a sharper question.
+**Writes:** what the analysis examined and why it matters, what it has settled, how sure it is and
+why, and where the recommendation and the conditions it depends on are stated.
+
+**Questions (in order):**
+
+1. What was examined, and why does it matter?
+2. What has it settled that I can rely on?
+3. How sure is it, and what is it unsure about?
+4. Where do I find the recommendation?
 
 **Absent-input sentences:**
 
-- "This analysis has no Answer block, so the recommendation is read from §6."
+- "This analysis has no Answer block; its recommendation and the conditions it depends on are stated in §6."
 
 ## Operator
 
 **Reads:** every §4 chain whose endpoint names an action; every `current constraint` assumption
 that survived to Accept, with its expiry condition; §5 dead ends.
 
-**Writes:** which steps to take, in what order, and which previously-tried paths not to repeat.
+**Writes:** what the analysis means for the work in hand, which constraints hold and until when,
+which paths were tried and set aside, and which facts are still missing.
+
+**Questions (in order):**
+
+1. What does this mean for the work in front of me?
+2. Which constraints hold, and until when?
+3. What was tried and set aside, and why?
+4. What facts are still missing?
 
 **Absent-input sentences:**
 
@@ -104,8 +147,15 @@ that survived to Accept, with its expiry condition; §5 dead ends.
 **Reads:** every `?`-marked ground truth (`read_at_source: false`); every assumption typed
 `current constraint` or `untested belief`; each chain's confidence caveats; the §6 Pre-check line.
 
-**Writes:** what is unverified, what could change, and what the analysis itself flags as a cause
-for caution.
+**Writes:** what risk the analysis retires, what is unverified, what could change, and what the
+analysis itself flags for caution.
+
+**Questions (in order):**
+
+1. What risk does the analysis retire?
+2. What is unverified?
+3. What could change?
+4. What does the analysis itself flag for caution?
 
 **Absent-input sentences:**
 
@@ -121,8 +171,15 @@ instead of using the fixed sentence.
 **Reads:** each chain's rival-ruled-out sentence inside its `**Confidence:**` line; the
 lowest-confidence chain the Conclusion rests on, named as the weakest link; §5 dead ends.
 
-**Writes:** which rival explanation was considered and why it was ruled out, and where the
-argument is weakest.
+**Writes:** what the argument rests on, which alternatives were considered and why they were set
+aside, where the argument is weakest, and what evidence would overturn it.
+
+**Questions (in order):**
+
+1. What does the argument rest on?
+2. What alternatives were considered, and why were they set aside?
+3. Where is the argument weakest?
+4. What evidence would overturn it?
 
 **Absent-input sentences:**
 
@@ -141,6 +198,10 @@ argument is weakest.
 7. The body carries no heading, table or code fence.
 8. Where an input is absent, the fixed absent-input sentence is used verbatim — never filled in
    with invented content.
+9. Every role question appears verbatim and in order as the bold lead-in of its own single-line
+   bullet, there is no other body content, and every answer carries a citation.
+10. No answer sentence opens with a denylisted opener, uses you or your, passes a verdict on the
+    reader, or repeats six or more consecutive words of §6's recommended approach.
 
-The repo gate `scripts/check-persona-view.py` (PERSONA-GATE) enforces items 2 through 7
+The repo gate `scripts/check-persona-view.py` (PERSONA-GATE) enforces items 2 through 7, 9 and 10
 mechanically; this list is what a writer checks before emitting a view.

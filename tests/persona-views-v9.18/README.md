@@ -34,4 +34,15 @@ declares it is not) must also fail with exactly `PV-ID`. Both are exercised as t
 Every fixture here is hand-written directly against the persona contract
 (`shared/spine/references/persona-views.md`): the exact five-line header, the role's word band,
 and the citation grammar. None is copied from, or post-processed from, the output of a live
-`first-principles` run.
+`first-principles` run — with the one exception named below.
+
+## Frozen pre-87 must-fail fixture
+
+`pre87-product-business-2-decision-owner.md` is a byte copy of the persona example shipped at
+commit `87e9d0ac` (`shared/persona-examples/product-business-2-decision-owner.md`), itself a real
+`/first-principles:persona` run against `shared/examples/product-business-2.md` rendered as
+`analysis-20260101T000001Z.md`. It was frozen before Phase 87 re-derived that example under the
+new voice rule. It is the one file in this directory that is not hand-written, and it is never
+edited. It exists so PERSONA-GATE can show it fails for PV-DIRECTIVE: it opens "Decide to build
+the reporting rewrite this quarter..." and repeats several consecutive words of §6's own
+`**Recommended approach:**` line — the restated-recommendation shape the voice rule now bars.

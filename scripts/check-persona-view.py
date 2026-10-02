@@ -58,12 +58,15 @@ FIXTURES: tuple[tuple[str, str], ...] = (
 )
 
 # D-04: the independent transcription this module's own contract-parity control
-# (P02) compares the shipped contract's roster table against.
+# (P02) compares the shipped contract's roster table against. Band = each role's
+# fixed question words (33/30/20/26, counted by this module's own counting rule)
+# plus 60-140 words of answer; the D-01 approved sample (144 words) sits inside
+# the decision-owner band.
 LOCKED_ROSTER: dict[str, tuple[str, int, int]] = {
-    "decision-owner": ("Decision Owner", 80, 120),
-    "operator": ("Operator", 100, 150),
-    "risk": ("Risk", 100, 150),
-    "skeptic": ("Skeptic", 80, 120),
+    "decision-owner": ("Decision Owner", 93, 173),
+    "operator": ("Operator", 90, 170),
+    "risk": ("Risk", 80, 160),
+    "skeptic": ("Skeptic", 86, 166),
 }
 
 GUIDE_MAX_WORDS = 500
@@ -577,8 +580,10 @@ def _m_remove_provenance(text: str) -> str:
 
 
 def _m_pad_over(text: str) -> str:
+    # Padding strong enough to clear the widest roster band's ceiling (173,
+    # decision-owner, Phase 87 D-05) with margin, not just the pre-87 one (120).
     extra = "\n- The engineering team has 3.2 engineer-quarters of capacity this quarter (C1)."
-    return text + extra * 6
+    return text + extra * 10
 
 
 def _m_cut_under(text: str) -> str:
