@@ -720,6 +720,29 @@ gate "SUMM-BLOCK" \
     "python3 scripts/check-summary-block.py --exemplar shared/examples/*.md" \
     "python3 scripts/check-summary-block.py --exemplar first-principles/references/examples/*.md"
 
+# FIG-GATE — renders both figures of the typst library in
+#            shared/spine/references/report-figures.md against the real
+#            analysis fixture, a two-digit-id worst-case fixture and every
+#            worked example's structured-summary block, and asserts through
+#            `typst eval 'query(...)'` that drawn-edge, cell and overflow
+#            counts match the source JSON exactly, with must-fail mutation
+#            controls and a typst-absent exit-2 contract. Needs typst on
+#            PATH; when absent, the bash wrapper below — not the script's own
+#            exit code — decides [PREREQ]/BLOCKED instead of [PASS]/GREEN,
+#            matching VAL-03's own command -v gated branch: gate_prereq
+#            reports any non-zero sub-command as [FAIL], so the prerequisite
+#            decision has to be made before the self-test is even attempted.
+if command -v typst >/dev/null 2>&1; then
+    gate "FIG-GATE" \
+        "check-report-figures.py --self-test" \
+        "python3 scripts/check-report-figures.py --self-test"
+else
+    gate_prereq "FIG-GATE" \
+        "check-report-figures.py --describe (self-test SKIPPED — no typst)" \
+        "typst not found on PATH — the figure-rendering self-test did NOT run. Remedy: install typst v0.15.1 (the CI job's pinned tarball; see shared/spine/references/report-figures.md) and Noto Sans or Liberation Sans." \
+        "python3 scripts/check-report-figures.py --describe"
+fi
+
 # ---------------------------------------------------------------------------
 # Invariant re-confirm (D-07) — byte-frozen constants in _battery_core.py.
 #

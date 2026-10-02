@@ -967,6 +967,39 @@ ENTRIES: tuple[GateEntry, ...] = (
             "disclosed_bounds_anchors",
         ),
     ),
+    GateEntry(
+        key="FIG-GATE",
+        gate_id="FIG-GATE",
+        extra_ids=(),
+        mechanism=_ci("check-report-figures"),
+        ci_job="check-report-figures",
+        script="scripts/check-report-figures.py",
+        run_command="python3 scripts/check-report-figures.py --self-test",
+        summary=(
+            "Renders both figures of the typst library in "
+            "`shared/spine/references/report-figures.md` (the shipped source) "
+            "against the real-analysis fixture, a two-digit-id worst-case "
+            "fixture and every worked example's structured-summary block, and "
+            "asserts through `typst eval 'query(...)'` that drawn edges equal "
+            "the total of every chain `rests_on` entry, conclusion edges equal "
+            "`conclusion.rests_on`, the matrix total equals the assumption "
+            "count, no label overflows its box and every SVG fits the text "
+            "column. Must-fail controls — a dropped edge, a miscounted cell, a "
+            "shrunk node, an edge dropped from a fixture — each fail for their "
+            "own finding code alone. Counts come from the library's own "
+            "metadata, not SVG geometry; legibility is checked by inspection, "
+            "not by this gate. typst absent means BLOCKED, never PASS."
+        ),
+        consumes=(
+            "control_ids",
+            "control_count",
+            "registered_surfaces",
+            "checked_files",
+            "locked_constants",
+            "derived_counts",
+            "disclosed_bounds_anchors",
+        ),
+    ),
 )
 
 

@@ -2620,28 +2620,25 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     # of prose changed; only the coincidences did. If EMIT-STAGE-A's control count
     # ever leaves 16, both residuals resurface and both permits must be re-added.
     ('CLAUDE.md', '23'): ('999.75', 3, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md section 2 exception, D-06 proviso 3), RE-ADDED at W2 2026-09-27 after its coincidental cover lapsed a SECOND time. The three occurrences are all transitions in the battery-composition chain ("moved it from 22 to 23", "moved it from 23 to 24", "moved it from 24 to 23") -- arrow-free historical counts, not current-fact claims about the battery or CI. This literal lost its cover once already at Phase 40, when COLLIDE-01 retirement moved the CI-job count off 23, and was ledgered then; the key was later dropped as stale when the count returned to 23. Registering CHAIN-JUDGE and EMIT-STAGE-A moved the CI-job count 23 -> 25, so nothing inside a generated fence says 23 again and the residue resurfaced. Same digit-value-not-provenance blindness as 999.75; the prose has never changed.'),
-    ('docs/gates/CONF-SURFACE.md', '5'): ('999.73', 4, 'NOT A COUNT CLAIM: four occurrences, none a population total -- the bound enumerator "**(5) The deferred-literal-ledger is an enumerated PER-HIT permit**" and its two back-references ("bound (5)\'s sibling argument", "bound (5)"), plus the pre-commit-gate ordinal "pre-commit gate 5 (`gen-gate-docs.py --check`)" and its repeat. An enumerator and an ordinal, neither stating how many of anything exist. RE-ADDED at Phase 75 plan 05 (SUMM-BLOCK registration): removing the stale (\'CLAUDE.md\', \'26\') key above (SUMM-BLOCK\'s CI-job registration moved the CI-job count 25 -> 26, un-covering it again) dropped this page\'s own `containment_ledger_frozen_historical` derived count 5 -> 4, which removed the only in-fence `5` on this page and re-surfaced this pre-existing residue a further time -- the SAME eating-its-own-tail arithmetic this key\'s own retained history already describes, now produced by a CI-job registration rather than a stale-key removal alone. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own shape-stripper recognises enumerator and ordinal shapes. Re-remove if this page\'s derived `containment_ledger_frozen_historical` field ever returns to 5.'),
+    # ('docs/gates/CONF-SURFACE.md', '5') REMOVED at Phase 81 plan 04
+    # (FIG-GATE registration), exactly as this key's own prior entry
+    # predicted ("Re-remove if this page's derived
+    # `containment_ledger_frozen_historical` field ever returns to 5").
+    # Re-adding ('CLAUDE.md', '26') above -- itself a FROZEN HISTORICAL
+    # COUNT-tagged entry -- raised this page's own generated
+    # `containment_ledger_frozen_historical` field back to 5, which
+    # coincidentally re-covers the page's own bare enumerator/ordinal '5'
+    # occurrences in-fence again. The underlying prose was NOT fixed; the
+    # SAME eating-its-own-tail arithmetic this key's own retained history
+    # already describes, now running in the opposite direction. Re-add with
+    # a fresh reason (see git history for the retained prior text) if this
+    # page's `containment_ledger_frozen_historical` field ever drops below 5
+    # again.
     ('CLAUDE.md', '16'): ('999.75', 2, 'CANNOT-REACH (no harvest field). RE-ADDED at W3 2026-09-27, exactly as the W2 removal note directly above predicted it would have to be. "The 16 links *between* files in `first-principles/references/`" is a frozen count of emitted cross-technique links that no gate harvests. Its cover has lapsed and returned three times purely because unrelated derived counts passed through 16: HARN-01 branch_count (999.91 moved it to 17), then EMIT-STAGE-A control_count (16 at registration, 20 once W3 added four controls). The prose has never changed. Two occurrences adjudicated together: the count at its definition and the same figure restated as "contributes 16 real links".'),
     ('CLAUDE.md', '20'): ('999.75', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md section 2 exception, D-06 proviso 3), RE-ADDED at quick task 260929-tg9 exactly as the removal note above (see git history) predicted: EMIT-STAGE-A\'s control_count left 20 -- 21 once C21, the answer-first document reader control, was registered -- so the coincidental in-fence corroboration this permit used to excuse lapsed again. "moved it from 17 to 20" is an arrow-free historical count in the battery-composition-chain paragraph, not a current-fact claim about the battery or CI. Same 999.75 digit-value-not-provenance blindness as the \'16\' and \'23\' entries elsewhere in this ledger; the prose has never changed. Re-remove if EMIT-STAGE-A\'s control_count ever returns to 20.'),
     ('CLAUDE.md', '22'): ('999.104', 2, 'NOT A COUNT CLAIM: "this phase\'s own `/bm:code-review 22`" -- a phase-number citation, the same shape as `CLAUDE.md`\'s own \'03\' half-strip entry above, not a population total. Occurrence count lowered from 2 to 1 when VAL-05\'s retirement (Phase 40, docs/v9.4-gate-retirement.md §2.3) reworded the tally sentence off \'22\' entirely, onto \'21\' (see that key\'s own entry).'),
     ('CLAUDE.md', '260728'): ('999.73', 1, 'NOT A COUNT CLAIM: "quick task `260728-vxn`" -- a quick-task id (date-shaped digits plus a suffix), not a count. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises quick-task-id shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
-    # ('CLAUDE.md', '26') REMOVED at Phase 75 plan 05 (SUMM-BLOCK
-    # registration), and as with the other removals recorded in this ledger,
-    # the reason matters more than the removal. Its underlying claim was NOT
-    # fixed: "docs/history/ -- frozen per-milestone REQUIREMENTS.md /
-    # ROADMAP.md / MILESTONE-AUDIT.md snapshots (26 milestones, v1.0 through
-    # v5.3)" is still a frozen historical count with no harvest field behind
-    # it, exactly as every prior cycle of this same key said. The finding
-    # disappeared because registering SUMM-BLOCK's CI job moved the CI-job
-    # count 25 -> 26, so an UNRELATED generated `26` now sits inside a fence
-    # (the population-arithmetic sentence's "26 in CI" / "26 CI gates") and
-    # coincidentally re-covers the archive-snapshot prose again -- the sixth
-    # recorded live instance of backlog 999.75 ("containment's 'contained'
-    # test matches by digit value, not by provenance"), after
-    # ('CLAUDE.md', '17'), ('CLAUDE.md', '16'), ('CLAUDE.md', '23') and this
-    # same key's own two prior removal/re-add cycles above. The prose has
-    # never changed in any of these six cycles. Re-add with the retained
-    # reason text above (see git history) if the CI-job count ever leaves 26.
+    ('CLAUDE.md', '26'): ('999.75', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3). RE-ADDED at Phase 81 plan 04 (FIG-GATE registration), exactly as this key\'s own prior removal note (git history) predicted: registering the check-report-figures CI job moved the CI-job count 26 -> 27, so the coincidental in-fence cover this permit used to excuse -- "CONF-SURFACE ... moved it from 25 to 26" in the battery-composition-chain paragraph -- lapsed again. The seventh recorded live instance of backlog 999.75 (containment matches by digit value, never by provenance), after (\'CLAUDE.md\', \'17\'), (\'CLAUDE.md\', \'16\'), (\'CLAUDE.md\', \'23\') and this same key\'s own two prior removal/re-add cycles. The prose has never changed. Re-remove if the CI-job count ever returns to 26.'),
     ('CLAUDE.md', '266'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "... 174/92, 214 -> 237 rows; ... unchanged at 266; the 20 v8.26 milestone requirements ..." -- an arrow-free restatement of a prior milestone\'s row count inside the historical requirements-ledger paragraph (its two arrow-adjacent occurrences elsewhere in the same paragraph are already stripped structurally by the slash-paired and single-operand delta patterns).'),
     ('CLAUDE.md', '60'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "60 live claude invocations (manual only, not run in CI)" and "(60 invocations) / offline `--self-test`" -- the Step 0 live-harness manual run count. Re-verified live this plan: `python3 scripts/check-step0-live.py --describe` emits `control_count: 25` and fixture/control ids only -- no field for "60 manual invocations" exists today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
     ('CLAUDE.md', '18'): ('999.69', 1, 'CANNOT-REACH (no harvest field): "the 18 v9.1 milestone requirements registered as matrix rows at Phase 27 / REL-07" -- the v9.1 milestone\'s own row count in the requirements-ledger derivation chain, the same shape as the pre-existing "19"/"20" milestone-row-count mentions in this same paragraph (neither of which is ledgered, because each happens to share a same-page in-fence match today by coincidence -- see the `_CONTAINMENT_LEDGER_MAX` comment above the `disclosed_bounds_anchors` reconciliation for the identical coincidental-corroboration shape; the paragraph\'s "23" mention lost that same coincidental cover at Phase 40 when COLLIDE-01\'s retirement moved the CI-job count off 23, and is ledgered separately above). Re-verified live this plan: `python3 scripts/check-traceability.py --describe` emits `coverage_headline`, `registered_surfaces`, `scan_globs`, `branch_roster`/`branch_count` (19) and `locked_constants` only -- no field exposes the per-milestone matrix-row count (18) that this sentence states. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
@@ -2965,23 +2962,31 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # identical cascade its own retained history already describes. Both entries
 # emitted by `--emit-containment-ledger`, then hand-adjudicated, per this
 # ledger's standing rule; no prose on any affected page changed.
+#
+# Net 21 -> 21 at Phase 81 plan 04 (FIG-GATE registration), via one addition
+# and one removal -- recorded as two movements rather than a no-op, because
+# the key set changed and the digest below proves it. Registering the
+# check-report-figures CI job moved the CI-job count 26 -> 27: (a) dropped
+# the only in-fence `26` in CLAUDE.md, uncovering `('CLAUDE.md', '26')`'s
+# frozen historical occurrence -- exactly the re-add that key's own prior
+# removal note (git history) predicted; (b) adding that FROZEN HISTORICAL
+# COUNT-tagged entry raised docs/gates/CONF-SURFACE.md's own generated
+# `containment_ledger_frozen_historical` field from 4 back to 5, which
+# re-covered that page's own bare enumerator/ordinal '5' occurrences
+# in-fence and made `('docs/gates/CONF-SURFACE.md', '5')` stale, removed per
+# the same discipline applied to every prior cascade recorded in this
+# ledger's history. The key COUNT is unchanged at 21; the key SET differs
+# from the prior pin, so the digest moves even though
+# `_CONTAINMENT_LEDGER_MAX` does not.
 _CONTAINMENT_LEDGER_MAX: int = 21
 
-# Re-pinned in the same commit as Phase 75 plan 05's SUMM-BLOCK
-# registration, per this mechanism's own standing rule. Net movement within
-# this one fix: ('CLAUDE.md', '26') removed (SUMM-BLOCK's CI-job
-# registration moved the CI-job count 25 -> 26, un-covering it), and
-# ('docs/gates/CONF-SURFACE.md', '5') re-added as a direct consequence
-# (removing the '26' key dropped this page's own
-# `containment_ledger_frozen_historical` derived count, which uncovered
-# that residue). The key COUNT is unchanged at 21 -- one key removed, one
-# re-added -- but the key SET differs from the prior pin, so the digest
-# moves even though `_CONTAINMENT_LEDGER_MAX` does not. Recomputed live via
+# Re-pinned in the same commit as Phase 81 plan 04's FIG-GATE registration,
+# per this mechanism's own standing rule. Recomputed live via
 # `_deferred_ledger_keys_digest()`, never hand-typed. Never recompute this
 # digest to make a failing check pass; it changed here only because the key
 # set legitimately changed, adjudicated above.
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:156991608d21168c3e04938862cd7a5f6aacbc2c70571473ecaba65595c668bc"
+    "sha256:de7ae628f9f748b857f5133a86d3640df12f79b363e71e108aa2c21ceee36cca"
 )
 
 

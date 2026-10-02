@@ -383,3 +383,30 @@ jobs:
       - run: uv run python3 scripts/check-summary-block.py --self-test
       - run: uv run python3 scripts/check-summary-block.py --exemplar shared/examples/*.md
       - run: uv run python3 scripts/check-summary-block.py --exemplar first-principles/references/examples/*.md
+
+  check-report-figures:
+    name: check-report-figures (FIG-GATE)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install typst v0.15.1 (pinned, sha256-verified)
+        # typst publishes no checksum file for its release assets (verified
+        # against the v0.15.1 GitHub Releases API, 2026-10-01) — this sha256
+        # was self-computed by downloading the official asset below and must
+        # be re-derived from a freshly downloaded asset on any version bump,
+        # never hand-edited.
+        run: |
+          curl -fsSL -o typst.tar.xz https://github.com/typst/typst/releases/download/v0.15.1/typst-x86_64-unknown-linux-musl.tar.xz
+          echo "a6d077d0a95eed5a2eba715b2dae06be954f624ccbf85758a03f389ded33118c  typst.tar.xz" | sha256sum -c -
+          tar xf typst.tar.xz
+          sudo install -m 0755 typst-x86_64-unknown-linux-musl/typst /usr/local/bin/typst
+          typst --version
+      - name: Install Liberation Sans (figure-library font fallback)
+        run: sudo apt-get install -y --no-install-recommends fonts-liberation
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --locked --group dev
+      - run: uv run python3 scripts/check-report-figures.py --self-test

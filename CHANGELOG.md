@@ -47,6 +47,23 @@ frozen `tests/summary-block-v9.16/` fixtures carry it. Motivated by a 2026-10-01
 evidence-trace prototype drew a ground truth the Conclusion cites directly (`GT-18?`) as an orphan,
 because the block recorded only chain-to-ground-truth edges.
 
+### Added — `report-figures.md`, a typst figure library, and its FIG-GATE check
+
+A new spine reference, [`shared/spine/references/report-figures.md`](shared/spine/references/report-figures.md),
+ships a typst figure library in a fenced block — pure Markdown, no executable code in the plugin —
+drawing two figures from the structured-summary block: an evidence trace (ground truths through
+chains to the conclusion, one edge per `rests_on` entry, unverified inputs dashed, fills by
+confidence, each chain-to-chain arc in its own lane so a chain resting on several others stays
+legible) and an assumption verdict matrix (type by verdict counts). Neither figure is wired into
+the agent's delivery steps yet — that is Phase 82's work.
+
+`scripts/check-report-figures.py` renders both figures against the real analysis fixture, a
+two-digit-id worst-case fixture and every worked example's structured-summary block, and asserts
+through `typst eval 'query(...)'` that drawn-edge, matrix-cell and label-overflow counts match the
+source JSON exactly, with must-fail mutation controls. Registered on the battery and in CI as
+`FIG-GATE` (`check-report-figures` job): BLOCKED, never PASS, when typst is absent; CI installs a
+pinned, checksum-verified typst release before running the self-test.
+
 ## [9.16.0] — 2026-10-01
 
 Milestone release: **v9.16.0 Structured Summary**. Every full-agent analysis now ends with
