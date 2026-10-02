@@ -79,6 +79,11 @@ the Band line copied from the analysis's own §6 `**Confidence:**` line. Use the
 absent-input sentences verbatim, character for character, whenever the input they cover is absent
 from the analysis — never paraphrase one or fill it in with invented content.
 
+Size the body before writing it: aim for the middle of the role's word band, count the draft
+body with `wc -w`, and cut or add a cited sentence until the count sits inside the band. A view
+that is too long loses whole sentences rather than shortened ones, so every remaining sentence
+keeps its citation.
+
 ## Write
 
 Write `persona-<role>-<UTC>.md` in the same directory as the analysis, with `<UTC>` copied
@@ -119,9 +124,12 @@ PERSONA-GATE finding code and a shell-approximate check:
 9. `PV-SOURCE` — already enforced before composition began, in Refuse before composing above; a
    source that fails that check never reaches this list.
 
-On any miss: fix the file and re-run this whole list once. If any item still fails the second
-time, delete the persona file this run wrote and report the failing codes by name — never leave a
-persona file on disk that fails its own contract.
+On a miss of `PV-WORDS` alone: remove or add one whole cited sentence, re-count with `wc -w`, and
+repeat, up to three passes, re-running this whole list after each — length is mechanical, so it
+is corrected by measurement rather than abandoned. On any other miss: fix the file and re-run
+this whole list once. If any item still fails after those passes, delete the persona file this
+run wrote and report the failing codes by name — never leave a persona file on disk that fails
+its own contract.
 
 ## Finish
 

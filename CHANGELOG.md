@@ -32,6 +32,19 @@ provenance header every view opens with, and the citation grammar a view's every
 bullet must follow. It ships before any persona text exists, so the contract, not a shipped
 example, is what a future persona view is checked against.
 
+### Added — `/first-principles:persona`, on-demand persona views
+
+A slash-only skill, `/first-principles:persona <role> [analysis-path]`, writes a role-specific view
+of a delivered analysis — `decision-owner`, `operator`, `risk`, `skeptic`, or `all` — as
+`persona-<role>-<UTC>.md` beside it, following the persona contract. It reads the newest
+`.first-principles/analysis-*.md` by default, never edits the analysis, its reports or the reading
+guide, and refuses (naming the reason) when the analysis has no structured summary or no section 6
+`**Pre-check:**` line. Before finishing it self-checks the view against every PERSONA-GATE rule.
+A view that is only too long or too short is corrected by measuring with `wc -w` over up to three
+passes rather than deleted; any other failure still deletes the view and names the failing codes.
+The first live run found the earlier one-pass rule deleting a fully cited view that missed its
+word band by 7 words.
+
 ### Added — PERSONA-GATE: a mechanical check that a persona view invents nothing
 
 `scripts/check-persona-view.py` checks a persona view against the analysis it was derived from
