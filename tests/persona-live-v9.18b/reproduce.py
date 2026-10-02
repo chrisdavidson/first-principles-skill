@@ -118,7 +118,13 @@ def recompute_row(cell: str, rec: dict, cpv, roster, out_dir: Path) -> tuple[str
     if source_unchanged is False:
         codes.add("SOURCE-MODIFIED")
 
-    if extra_files:
+    # Amended 2026-10-02 (doc §11): a passing view now always renders a companion PDF
+    # beside its Markdown file (PKG-01, `## Render the PDF` in shared/skills/persona/SKILL.md).
+    # That expected companion is not an EXTRA-FILE; anything else recorded in extra_files is.
+    persona_name = rec.get("persona")
+    expected_pdf = persona_name[: -len(".md")] + ".pdf" if persona_name and persona_name.endswith(".md") else None
+    unexpected_extra = [f for f in extra_files if f != expected_pdf]
+    if unexpected_extra:
         codes.add("EXTRA-FILE")
 
     persona_sha256 = None
@@ -137,7 +143,12 @@ def recompute_row(cell: str, rec: dict, cpv, roster, out_dir: Path) -> tuple[str
             codes |= {f.code for f in findings}
 
     pv_codes_present = {c for c in codes if c.startswith("PV-")}
-    is_pass = status == "complete" and source_unchanged is True and not extra_files and not pv_codes_present
+    is_pass = (
+        status == "complete"
+        and source_unchanged is True
+        and not unexpected_extra
+        and not pv_codes_present
+    )
     result = "PASS" if is_pass else "FAIL"
     return result, sorted(codes), persona_sha256
 

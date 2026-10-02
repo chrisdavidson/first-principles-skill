@@ -6,8 +6,7 @@
 
 **Band (from §6):** MEDIUM
 
-- C1 weighed the rival that the Slack case is equally well evidenced, with GT-1's 41 inbound requests as a comparable revenue anchor; §5 "Sixty percent of polled customers said they want Slack, therefore build Slack" rules it out because that count mixes three selection-biased surfaces.
-- C2 weighed the rival that the Slack delay is equally irreversible; GT-3's exit clause has no Slack-side counterpart.
-- C3 weighed the rival that stated-preference counts already supply Slack-side evidence; the same §5 dead end, grounded in GT-1, rules it out.
-
-The weakest link is that the Conclusion rests on two MEDIUM chains (§6). C1's equal-cost comparison leans on A-3, which only top-down estimates support, and C3 leans on the unverified GT-5? (§6).
+- **What does the argument rest on?** The analysis rests on GT-2 and GT-3, a signed letter-of-intent tying $180,000/year of expansion ARR to the reporting rewrite, plus the binding capacity limit in GT-4 (C1, C2).
+- **What alternatives were considered, and why were they set aside?** The aggregated-demand argument was abandoned in §5 "Sixty percent of polled customers said they want Slack, therefore build Slack" because it conflates three selection-biased response surfaces. C2 rules out the rival that a Slack delay is equally irreversible, since the exit clause in GT-3 has no Slack-side counterpart.
+- **Where is the argument weakest?** Both chains the Conclusion rests on rate MEDIUM (§6): the equal-cost comparison in C1 depends on the top-down estimates behind A-3, and C3 depends on GT-5?, whose retention and acquisition magnitudes are unmeasured.
+- **What evidence would overturn it?** C3 names a re-coded churn-survey instrument surfacing a Slack-attributed reason code on a material fraction of exits, or a win/loss audit isolating Slack-integration absence as a deal-deciding factor.

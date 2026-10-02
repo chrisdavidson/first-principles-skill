@@ -6,9 +6,7 @@
 
 **Band (from §6):** MEDIUM
 
-This analysis has no Answer block, so the recommendation is read from §6.
-
-- Decide: do not treat molten-salt TES as cost-competitive with lithium-ion for four-hour storage, because once the power block is priced it costs ~$279–384 per kWh_e against lithium-ion's $150–300 (§6, C1).
-- Consider it only where discharge is long, since break-even runs from ~3.7 h to ~18 h (C1).
-- Confidence is MEDIUM, capped by the carried-not-read conversion factor GT-7?, although the verdict no longer depends on it (§6).
-- What would change the advice is the discharge duration, and a power-block quotation at this system's scale could only move break-even toward longer durations (§6, GT-8).
+- **What was examined, and why does it matter?** The analysis rebuilds the installed cost of a 5 MWh molten-salt thermal store from unit-factors and tests whether it competes with lithium-ion storage (§1, GT-5, GT-6).
+- **What has it settled that I can rely on?** The store itself is cheap, at $12.0–$34.4/kWh_th installed (C1, GT-4). At a four-hour duration the whole molten-salt system lands at ~$279 to ~$384 per kWh_e, above nearly all of the lithium-ion range of $150–300/kWh_e (C1, GT-6, GT-8).
+- **How sure is it, and what is it unsure about?** Confidence is MEDIUM, capped by the carried-not-read conversion factor GT-7?, although the verdict holds at any efficiency (§6, C1). The deciding input is discharge duration, with break-even durations between ~3.7 h and ~18 h (§2, C1).
+- **Where do I find the recommendation?** This analysis has no Answer block; its recommendation and the conditions it depends on are stated in §6.

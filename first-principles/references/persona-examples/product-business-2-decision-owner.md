@@ -6,9 +6,7 @@
 
 **Band (from §6):** MEDIUM
 
-This analysis has no Answer block, so the recommendation is read from §6.
-
-Decide to build the reporting rewrite this quarter and defer the Slack integration to the next planning cycle (§6, C1, C3). The rewrite is backed by a signed $180K expansion commitment whose exit clause permits non-renewal if it slips (GT-3, C2). Confidence is MEDIUM because the equal-cost comparison rests on top-down estimates only (A-3, C1) and the Slack-side retention effect is unmeasured (GT-5?, C3).
-
-- Would change it: a re-coded churn survey or win/loss audit showing Slack absence drives exits or lost deals (C3).
-- Raising to HIGH needs bottom-up cost decompositions for both candidates (§6).
+- **What was examined, and why does it matter?** The analysis weighs a Slack integration against a reporting rewrite when one engineering quarter funds only one of them (§1, A-6). The stakes are concrete: the reporting side carries a signed $180,000/year expansion contingency with a written exit clause (GT-3).
+- **What has it settled that I can rely on?** The reporting rewrite has a verified expansion-revenue case that the Slack candidate lacks (C1).
+- **How sure is it, and what is it unsure about?** The analysis rates itself MEDIUM (§6). Its equal-cost comparison rests on top-down estimates only (A-3), and the Slack-side retention and acquisition magnitudes are unmeasured (GT-5?).
+- **Where do I find the recommendation?** This analysis has no Answer block; its recommendation and the conditions it depends on are stated in §6. That recommendation holds only while the Slack-side evidence stays anecdotal, and C3 names the churn-survey and win/loss findings that would reopen it (C3).
