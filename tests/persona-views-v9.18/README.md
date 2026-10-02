@@ -4,6 +4,11 @@ Five hand-written persona views used by `scripts/check-persona-view.py`'s `--sel
 its CLI-mode smoke checks. Every fixture cites only facts, ids and numbers that its named source
 analysis already carries — none is derived from a user's private analysis (D-08).
 
+Each fixture is in the Phase 87 question format: the five-line header, then exactly four
+single-line bullets, one per the role's fixed `**Questions (in order):**` list from
+`shared/spine/references/persona-views.md`, each bullet's bold lead-in the question verbatim and
+the rest of the line its cited answer. No other body content is present.
+
 ## Provenance
 
 | Fixture | Role | Source |
@@ -32,9 +37,10 @@ declares it is not) must also fail with exactly `PV-ID`. Both are exercised as t
 ## Hand-written, not generated
 
 Every fixture here is hand-written directly against the persona contract
-(`shared/spine/references/persona-views.md`): the exact five-line header, the role's word band,
-and the citation grammar. None is copied from, or post-processed from, the output of a live
-`first-principles` run — with the one exception named below.
+(`shared/spine/references/persona-views.md`): the exact five-line header, the role's fixed
+question list in order, the role's word band, and the citation grammar. None is copied from, or
+post-processed from, the output of a live `first-principles` run — with the one exception named
+below.
 
 ## Frozen pre-87 must-fail fixture
 

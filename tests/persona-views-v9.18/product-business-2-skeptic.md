@@ -4,7 +4,7 @@
 
 **Band (from §6):** MEDIUM
 
-The rival view that Slack's case is equally evidenced by its inbound requests is ruled out by §5 "Sixty percent of polled customers said they want Slack, therefore build Slack", showing the aggregated count conflates three biased response surfaces (C1). Chain C3 is the weakest link the Conclusion rests on, at MEDIUM, because GT-5? leaves the Slack-side magnitude unmeasured (C3).
-
-- The same §5 "Sixty percent of polled customers said they want Slack, therefore build Slack" dead end also rules out stated-preference counts as sufficient evidence (C3).
-- Chain C2 stays HIGH because GT-3's exit clause has no Slack-side counterpart, ruling out an equally irreversible delay (C2).
+- **What does the argument rest on?** The argument rests on GT-2, GT-3, GT-1 and GT-4: a signed customer commitment set against an inbound request volume with no churn-survey reason code behind it, compared at equal engineering cost (C1).
+- **What alternatives were considered, and why were they set aside?** The rival view that Slack's case is equally evidenced by its inbound requests was set aside: it is ruled out by §5 "Sixty percent of polled customers said they want Slack, therefore build Slack", which shows the aggregated count conflates three differently biased response surfaces (C1).
+- **Where is the argument weakest?** The weakest link the Conclusion rests on is chain C3, rated MEDIUM because GT-5? leaves the Slack-side magnitude unmeasured (C3).
+- **What evidence would overturn it?** A re-coded churn-survey instrument surfacing a Slack-attributed reason code, or a win/loss audit isolating Slack-integration absence, would promote GT-5? to a verified ground truth (C3).

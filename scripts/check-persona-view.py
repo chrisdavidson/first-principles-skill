@@ -9,7 +9,10 @@ Proves that a persona view (a role-scoped overlay of one delivered first-princip
 analysis — decision-owner, operator, risk, skeptic) adds no claim its source analysis
 does not already carry. Checks, mechanically: the file-format header (title line,
 provenance sentence, Band line), the body's word count against the role's band, that
-every body sentence and bullet carries a citation token, that every cited chain id,
+every role's fixed question list appears verbatim and in order as each bullet's bold
+lead-in (PV-QUESTIONS) with a dropped, reordered or invented question each failing
+alone, that every body sentence and bullet carries a citation token (the question's
+own text is exempt, the answer after it is not), that every cited chain id,
 ground-truth id (including its `?` marking), assumption id and quoted dead-end title
 resolves against the source analysis, that every number in the body appears as a
 number in the source, and that the Band line agrees with the source's own §6
@@ -69,6 +72,36 @@ LOCKED_ROSTER: dict[str, tuple[str, int, int]] = {
     "skeptic": ("Skeptic", 86, 166),
 }
 
+# D-05/P04: the independent transcription of the contract's four D-02 fixed
+# question lists (87-CONTEXT.md), checked the same way LOCKED_ROSTER is --
+# never retyped from this module's own parser's output.
+LOCKED_QUESTIONS: dict[str, tuple[str, ...]] = {
+    "decision-owner": (
+        "What was examined, and why does it matter?",
+        "What has it settled that I can rely on?",
+        "How sure is it, and what is it unsure about?",
+        "Where do I find the recommendation?",
+    ),
+    "operator": (
+        "What does this mean for the work in front of me?",
+        "Which constraints hold, and until when?",
+        "What was tried and set aside, and why?",
+        "What facts are still missing?",
+    ),
+    "risk": (
+        "What risk does the analysis retire?",
+        "What is unverified?",
+        "What could change?",
+        "What does the analysis itself flag for caution?",
+    ),
+    "skeptic": (
+        "What does the argument rest on?",
+        "What alternatives were considered, and why were they set aside?",
+        "Where is the argument weakest?",
+        "What evidence would overturn it?",
+    ),
+}
+
 GUIDE_MAX_WORDS = 500
 PROVENANCE_TEMPLATE = (
     "Derived from §6 and the structured summary of {name}; "
@@ -91,6 +124,7 @@ FINDING_CODES: tuple[str, ...] = (
     "PV-GUIDE-NAME",
     "PV-GUIDE-WORDS",
     "PV-SOURCE",
+    "PV-QUESTIONS",
 )
 
 
@@ -162,6 +196,30 @@ def load_roster(contract_text: str) -> dict[str, tuple[str, int, int]]:
             continue
         roster[slug] = (title, int(parts[0]), int(parts[1]))
     return roster
+
+
+_ROLE_SECTION_RE = re.compile(r"^## (?P<title>[A-Za-z ]+)\n(?P<body>.*?)(?=^## |\Z)", re.MULTILINE | re.DOTALL)
+_QUESTIONS_BLOCK_RE = re.compile(r"\*\*Questions \(in order\):\*\*\n\n(?P<list>(?:\d+\.\s+.+\n)+)")
+_QUESTION_LINE_RE = re.compile(r"^\d+\.\s+(?P<q>.+?)\s*$", re.MULTILINE)
+
+
+def load_questions(
+    contract_text: str, roster: dict[str, tuple[str, int, int]],
+) -> dict[str, tuple[str, ...]]:
+    """Parse each roster role's `## <Title>` section's `**Questions (in
+    order):**` numbered list into slug -> ordered question tuple. A role
+    section carrying no such block maps to an empty tuple."""
+    title_to_slug = {title: slug for slug, (title, _lo, _hi) in roster.items()}
+    questions: dict[str, tuple[str, ...]] = {slug: () for slug in roster}
+    for m in _ROLE_SECTION_RE.finditer(contract_text):
+        slug = title_to_slug.get(m.group("title").strip())
+        if slug is None:
+            continue
+        qm = _QUESTIONS_BLOCK_RE.search(m.group("body"))
+        if qm is None:
+            continue
+        questions[slug] = tuple(_QUESTION_LINE_RE.findall(qm.group("list")))
+    return questions
 
 
 # ---------------------------------------------------------------------------
@@ -466,16 +524,85 @@ def check_guide(guide_text: str, template_text: str) -> list[Finding]:
 
 
 # ---------------------------------------------------------------------------
+# Questions (Phase 87 D-05): each role answers its fixed, ordered question
+# list; the question text itself is exempt from the citation rule (like an
+# absent-input sentence) but the answer following it is not.
+# ---------------------------------------------------------------------------
+
+_LEAD_IN_RE = re.compile(r"^\*\*(?P<q>[^*]+?)\*\*\s*(?P<answer>.*)$")
+
+
+def check_questions(
+    units: list[BodyUnit], expected: tuple[str, ...],
+) -> tuple[list[Finding], list[str]]:
+    """Walk valid body units against a role's fixed `expected` question list.
+
+    Returns (findings, citation_texts): citation_texts is what the PV-UNCITED
+    sentence loop checks instead of raw unit text -- a matched question's
+    citation text is its answer only (the question itself is exempt); an
+    invented/reworded question, a bare paragraph or a lead-in-less bullet is
+    NOT exempt and contributes its full unit text instead.
+    """
+    findings: list[Finding] = []
+    citations: list[str] = []
+    seen: list[str] = []
+    seen_set: set[str] = set()
+
+    for u in units:
+        if u.kind == "paragraph":
+            findings.append(Finding(
+                "PV-QUESTIONS", f"content outside a question bullet: {u.text!r}"))
+            citations.append(u.text)
+            continue
+        m = _LEAD_IN_RE.match(u.text)
+        if not m:
+            findings.append(Finding(
+                "PV-QUESTIONS", f"bullet has no bold question lead-in: {u.text!r}"))
+            citations.append(u.text)
+            continue
+        q = m.group("q").strip()
+        if q not in expected:
+            findings.append(Finding(
+                "PV-QUESTIONS", f"invented or reworded question: {q!r}"))
+            citations.append(u.text)
+            continue
+        if q in seen_set:
+            findings.append(Finding("PV-QUESTIONS", f"question repeated: {q!r}"))
+        else:
+            seen_set.add(q)
+            seen.append(q)
+        answer = m.group("answer").strip()
+        if not answer:
+            findings.append(Finding("PV-QUESTIONS", f"question has no answer: {q!r}"))
+        citations.append(answer)
+
+    for q in expected:
+        if q not in seen_set:
+            findings.append(Finding("PV-QUESTIONS", f"missing question: {q!r}"))
+
+    expected_seen = [q for q in expected if q in seen_set]
+    if seen != expected_seen:
+        findings.append(Finding(
+            "PV-QUESTIONS", f"questions out of order: {seen} != {expected_seen}"))
+
+    return findings, citations
+
+
+# ---------------------------------------------------------------------------
 # check_view
 # ---------------------------------------------------------------------------
 
 def check_view(
     persona_text: str, analysis_text: str, analysis_name: str, roster: dict[str, tuple[str, int, int]],
+    *, questions: dict[str, tuple[str, ...]] | None = None,
 ) -> list[Finding]:
     try:
         facts = source_facts(analysis_text)
     except SourceError as exc:
         return [Finding("PV-SOURCE", str(exc))]
+
+    if questions is None:
+        questions = load_questions(CONTRACT.read_text(), roster)
 
     header = split_header(persona_text, analysis_name, roster)
     findings: list[Finding] = list(header.findings)
@@ -495,8 +622,14 @@ def check_view(
                 "PV-WORDS",
                 f"body is {word_count} words, outside the {header.role} band [{lo}, {hi}]"))
 
-    for u in valid_units:
-        for s in sentences(u.text):
+    if header.role is not None:
+        q_findings, citation_texts = check_questions(valid_units, questions.get(header.role, ()))
+        findings.extend(q_findings)
+    else:
+        citation_texts = [u.text for u in valid_units]
+
+    for text in citation_texts:
+        for s in sentences(text):
             if s.strip() and not _CITATION_PRESENT_RE.search(s):
                 findings.append(Finding("PV-UNCITED", f"no citation token: {s.strip()!r}"))
 
@@ -554,6 +687,25 @@ def _p02_contract_parity() -> str | None:
     return None
 
 
+def _p04_questions_parity() -> str | None:
+    contract_text = CONTRACT.read_text()
+    roster = load_roster(contract_text)
+    questions = load_questions(contract_text, roster)
+    if questions != LOCKED_QUESTIONS:
+        return f"questions {questions} does not equal LOCKED_QUESTIONS {LOCKED_QUESTIONS}"
+    for slug, qs in questions.items():
+        for q in qs:
+            if not q.endswith("?"):
+                return f"{slug} question does not end in '?': {q!r}"
+            if _CITATION_PRESENT_RE.search(q):
+                return f"{slug} question carries a citation token: {q!r}"
+            if numbers_in(q):
+                return f"{slug} question carries an unexpected number: {q!r}"
+            if re.search(r"\byou\b|\byour\b", q, re.IGNORECASE):
+                return f"{slug} question carries you/your: {q!r}"
+    return None
+
+
 def _p03_guide_passes() -> str | None:
     if not GUIDE.exists():
         return "shared/spine/references/how-to-read.md is absent (Phase 83 prerequisite missing)"
@@ -581,16 +733,24 @@ def _m_remove_provenance(text: str) -> str:
 
 def _m_pad_over(text: str) -> str:
     # Padding strong enough to clear the widest roster band's ceiling (173,
-    # decision-owner, Phase 87 D-05) with margin, not just the pre-87 one (120).
-    extra = "\n- The engineering team has 3.2 engineer-quarters of capacity this quarter (C1)."
-    return text + extra * 10
+    # decision-owner, Phase 87 D-05) with margin, not just the pre-87 one
+    # (120). Appended inside the last bullet's own answer (never as new
+    # bullets) so the strict one-bullet-per-question shape survives the
+    # mutation and only PV-WORDS fires, not PV-QUESTIONS (Phase 87 Task 2).
+    padding = " The engineering team has 3.2 engineer-quarters of capacity this quarter (C1)."
+    return text.rstrip("\n") + padding * 10 + "\n"
 
 
 def _m_cut_under(text: str) -> str:
+    # Four bullets, each a valid question lead-in with a minimal cited
+    # answer -- 45 words total (33 fixed question words + 4 x 3 answer
+    # words), below the decision-owner band's 93 floor, so this mutation
+    # trips PV-WORDS alone, never PV-QUESTIONS (Phase 87 Task 2).
     lines = text.split("\n")
     band_idx = next(i for i, l in enumerate(lines) if l.startswith("**Band"))
     head = lines[: band_idx + 1]
-    short_body = ["", "- The reporting rewrite has a verified expansion case (C1)."]
+    qs = load_questions(CONTRACT.read_text(), _load_roster_from_contract())["decision-owner"]
+    short_body = [""] + [f"- **{q}** Stated in §6." for q in qs]
     return "\n".join(head + short_body)
 
 
@@ -605,6 +765,23 @@ def _m_deadend(text: str) -> str:
     original = '§5 "Sixty percent of polled customers said they want Slack, therefore build Slack"'
     mutated = '§5 "Fifty percent of polled customers said they want Slack, therefore build Slack"'
     return text.replace(original, mutated, 1)
+
+
+def _m_q_drop(text: str) -> str:
+    return text.replace("**How sure is it, and what is it unsure about?** ", "", 1)
+
+
+def _m_q_order(text: str) -> str:
+    lines = text.split("\n")
+    bullet_idxs = [i for i, l in enumerate(lines) if l.startswith("- **")]
+    i2, i3 = bullet_idxs[1], bullet_idxs[2]
+    lines[i2], lines[i3] = lines[i3], lines[i2]
+    return "\n".join(lines)
+
+
+def _m_q_invent(text: str) -> str:
+    return text.replace(
+        "**Where do I find the recommendation?**", "**What else does the analysis cover?**", 1)
 
 
 _MUTATIONS: tuple[tuple[str, str, str, Callable[[str], str], frozenset[str]], ...] = (
@@ -634,6 +811,12 @@ _MUTATIONS: tuple[tuple[str, str, str, Callable[[str], str], frozenset[str]], ..
      _m_insert_shape, frozenset({"PV-SHAPE"})),
     ("M-DEADEND", "product-business-2-skeptic.md", "shared/examples/product-business-2.md",
      _m_deadend, frozenset({"PV-DEADEND"})),
+    ("M-Q-DROP", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
+     _m_q_drop, frozenset({"PV-QUESTIONS"})),
+    ("M-Q-ORDER", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
+     _m_q_order, frozenset({"PV-QUESTIONS"})),
+    ("M-Q-INVENT", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
+     _m_q_invent, frozenset({"PV-QUESTIONS"})),
 )
 
 
@@ -915,6 +1098,7 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("P01", _p01_fixtures_clean),
     ("P02", _p02_contract_parity),
     ("P03", _p03_guide_passes),
+    ("P04", _p04_questions_parity),
 ) + tuple(
     (cid, _make_mutation_control(fixture, src, build, expected))
     for cid, fixture, src, build, expected in _MUTATIONS
@@ -977,6 +1161,7 @@ def describe() -> dict:
         "checked_files": checked_files,
         "locked_constants": {
             "roster": {slug: [title, lo, hi] for slug, (title, lo, hi) in LOCKED_ROSTER.items()},
+            "questions": {slug: list(qs) for slug, qs in LOCKED_QUESTIONS.items()},
             "guide_max_words": GUIDE_MAX_WORDS,
             "provenance_template": PROVENANCE_TEMPLATE,
         },
