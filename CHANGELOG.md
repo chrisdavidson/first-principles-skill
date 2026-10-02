@@ -15,16 +15,26 @@ installed session.
 
 ### Changed — persona views summarise and point; they no longer decide
 
-Each role now answers a fixed, ordered question list held in the persona contract, one bullet per
-question, the question itself as the bullet's bold lead-in and a cited answer after it. Every
-answer describes what the analysis found, in the third person about the analysis — no imperative
-addressed to the reader, no "you"/"your", no verdict on the reader — and points to the
-recommendation (the Answer block and §6, with its conditions) rather than restating it.
-PERSONA-GATE gains two finding codes, `PV-QUESTIONS` and `PV-DIRECTIVE`; the latter is lexical and
-over-reports by design, never judging meaning. Word bands moved to reflect the fixed question text
-now counted in the body. The shipped persona examples are re-derived by real skill runs under the
-new contract. The frozen v9.18 reading in `tests/persona-live-v9.18/` reproduces only against the
-checker as of commit `7193cbf7`, since the current checker rejects its pre-question outputs.
+Each role now answers a fixed, ordered question list held in the persona contract, carried through
+the body in that order as a cited answer to each question. Every answer describes what the
+analysis found, in the third person about the analysis — no imperative addressed to the reader, no
+"you"/"your", no verdict on the reader — and points to the recommendation (the Answer block and
+§6, with its conditions) rather than restating it. PERSONA-GATE gains two finding codes,
+`PV-QUESTIONS` and `PV-DIRECTIVE`; the latter is lexical and over-reports by design, never judging
+meaning. Word bands moved to reflect the fixed question text now counted in the body. The shipped
+persona examples are re-derived by real skill runs under the new contract. The frozen v9.18
+reading in `tests/persona-live-v9.18/` reproduces only against the checker as of commit
+`7193cbf7`, since the current checker rejects its pre-question outputs.
+
+### Changed — persona views read as a memo
+
+Each view now opens with a memo block (To, Re, Basis, Band) and the provenance sentence, then an
+In brief paragraph and one prose paragraph per fixed reader question — the questions set the order
+and are not printed, and there are no bullets. PERSONA-GATE's header check reads the memo block
+and PV-QUESTIONS now checks the memo structure (it counts paragraphs and cannot prove each answers
+its question). Every role's word band is re-set from the approved memo's measured length. The
+shipped persona examples are re-derived again by real runs. The frozen `tests/persona-live-v9.18b/`
+reading reproduces only against the checker at commit `27f45a56`.
 
 ### Added — the reading guide and persona views ship as PDFs too
 
