@@ -237,6 +237,20 @@ EXAMPLES = (
     "software-systems-2",
 )
 
+# Canonical persona-example list (filename stem under shared/persona-examples/).
+# Lives outside shared/examples/ so the non-recursive `shared/examples/*.md`
+# readers (report-conformance.py, check-conf-gate.py, check-summary-block.py
+# --exemplar) never see it — non-interference proven by
+# tests/persona-live-v9.18/non-interference/. Each file is a byte copy of a
+# real `/first-principles:persona` run (shipped via `cp`, never hand-edited;
+# see 86-02-SUMMARY.md). Explicit list, never a glob.
+PERSONA_EXAMPLES = (
+    "product-business-2-decision-owner",
+    "product-business-2-skeptic",
+    "estimate-fermi-decision-owner",
+    "estimate-fermi-skeptic",
+)
+
 # Canonical spine-references list (filename stem under shared/spine/references/)
 # emitted verbatim as agent-side reference siblings under
 # first-principles/references/. Phase 31-02 introduces this list to ship
@@ -342,9 +356,9 @@ AGENT_REF_PREFIX = "${CLAUDE_PLUGIN_ROOT}/references/"
 SKILL_PEER_PREFIX = "${CLAUDE_PLUGIN_ROOT}/skills/"
 
 # Canonical total count of files that sync-content.py generates (len(generate_all())).
-# Breakdown: 1 agent + 12 reference siblings (11 Markdown + 1 JSON schema) +
-# 4 agent detail siblings + 14 worked-example siblings + 15 skill stubs +
-# 4 skill detail siblings.
+# Breakdown: 1 agent + 16 reference siblings (11 Markdown + 1 JSON schema) +
+# 4 agent detail siblings + 14 worked-example siblings + 4 persona-example
+# siblings + 15 skill stubs + 4 skill detail siblings.
 # DISPATCH-05 adds the 14th skill stub: the `first-principles-analysis` launcher
 # (LAUNCHER_SKILLS). It emits one stub and no detail sibling — a launcher inlines
 # no technique procedure, so it adds exactly 1 to this count.
@@ -353,6 +367,11 @@ SKILL_PEER_PREFIX = "${CLAUDE_PLUGIN_ROOT}/skills/"
 # v8.5 Phase 154 (MECH-02) adds the two four-entry detail-sibling families for
 # SLUGS_WITH_DETAIL, raising the previous total (documented pre-Phase-154 in
 # git history) to the count below.
+# Phase 86-03 adds PERSONA_EXAMPLES: 4 agent persona-example siblings at
+# first-principles/references/persona-examples/<name>.md, each a byte copy of
+# a real `/first-principles:persona` run (never opened by the agent with
+# Read — see check-quality-harness.py's _REFERENCE_READ_EXCLUDED_TAILS),
+# raising the count below from its prior value.
 # Three committed-but-hand-maintained files (first-principles/README.md,
 # first-principles/LICENSE, first-principles/.claude-plugin/plugin.json) are NOT
 # counted here because the path-safety assertion in generate_all() (the allowed_roots
@@ -360,7 +379,7 @@ SKILL_PEER_PREFIX = "${CLAUDE_PLUGIN_ROOT}/skills/"
 # out-of-generator-scope.
 # generate_all() raises ValueError if len(targets) != GENERATED_TARGET_COUNT so this
 # number cannot silently drift again (D-01, DEBT-02).
-GENERATED_TARGET_COUNT = 54
+GENERATED_TARGET_COUNT = 58
 
 # v8.5 Phase 154 GATE-02 (D-11): module-level re-entrancy sentinel guarding
 # cmd_self_test()'s dispatch control. That control drives main(["--self-test"])
@@ -1444,6 +1463,33 @@ def generate_agent_examples() -> dict[Path, str]:
     return targets
 
 
+def generate_agent_persona_examples() -> dict[Path, str]:
+    """Return {AGENT_DIR/references/persona-examples/{name}.md: body} for PERSONA_EXAMPLES.
+
+    Source = shared/persona-examples/{name}.md — a real `/first-principles:persona`
+    run shipped by `cp` (86-02-SUMMARY.md), never hand-edited. Mirrors
+    generate_agent_examples(): verbatim copy of the source body, NO
+    frontmatter, NO `{{TOOL:<slug>}}` marker expansion, NO link rewriting, NO
+    token expansion. A `GENERATED_MARKER` HTML-comment line is prepended.
+    Trailing newline normalised.
+    """
+    targets: dict[Path, str] = {}
+    for name in PERSONA_EXAMPLES:
+        body = _read_required(
+            SHARED / "persona-examples" / f"{name}.md",
+            hint=(
+                f"shared/persona-examples/{name}.md is required for the agent's "
+                f"on-demand persona-example sibling at "
+                f"first-principles/references/persona-examples/{name}.md"
+            ),
+        )
+        marker = GENERATED_MARKER.format(source_rel=f"persona-examples/{name}.md")
+        targets[REFERENCES_DIR / "persona-examples" / f"{name}.md"] = (
+            _normalise_trailing_newline(marker + "\n" + body)
+        )
+    return targets
+
+
 def generate_all() -> dict[Path, str]:
     """Return {target_path: content} for every emitted file.
 
@@ -1463,8 +1509,12 @@ def generate_all() -> dict[Path, str]:
     figure library) raises it once more. The how-to-read Markdown spine
     reference (the static business-reading guide) raises it once more.
     The persona-views Markdown spine reference (the reader-persona contract)
-    raises it once more.
-    Current target count: 53 total.
+    raises it once more. PSKILL-01 adds a 15th skill stub (the `persona`
+    companion, NON_TECHNIQUE_SKILLS), raising it once more. Phase 86-03 adds
+    the PERSONA_EXAMPLES siblings: 4 agent persona-example siblings
+    (first-principles/references/persona-examples/<name>.md), raising the
+    count below from its prior value.
+    Current target count: 58 total.
 
       - 1 agent SKILL.md (first-principles/agents/first-principles.md)
       - 16 agent reference siblings (first-principles/references/*.md and
@@ -1474,16 +1524,20 @@ def generate_all() -> dict[Path, str]:
       - 4 agent detail siblings (first-principles/references/<slug>-detail.md,
         SLUGS_WITH_DETAIL: five-whys, theoretical-limit, estimate, fishbone)
       - 14 agent worked-example siblings (first-principles/references/examples/<name>.md)
-      - 14 slash-invocable focused-mode stubs (first-principles/skills/<slug>/SKILL.md,
-        the 13 companion/phase skills plus the first-principles-analysis launcher)
+      - 4 agent persona-example siblings (first-principles/references/persona-examples/<name>.md,
+        PERSONA_EXAMPLES)
+      - 15 slash-invocable focused-mode stubs (first-principles/skills/<slug>/SKILL.md,
+        the 13 companion/phase skills, the first-principles-analysis launcher, and
+        the persona companion)
       - 4 skill detail siblings (first-principles/skills/<slug>/references/<slug>-detail.md,
         same SLUGS_WITH_DETAIL set)
-    Total: 1 + 16 + 4 + 14 + 14 + 4 = 53.
+    Total: 1 + 16 + 4 + 14 + 4 + 15 + 4 = 58.
 
-    Note: the total count (53) reflects the 8 TOOLS + 7 Markdown spine-refs +
+    Note: the total count (58) reflects the 8 TOOLS + 7 Markdown spine-refs +
     1 JSON spine-ref (for the reference siblings), 4 SLUGS_WITH_DETAIL
     (doubled — once per agent surface, once per skill surface), 14 EXAMPLES,
-    and 14 SKILLS. generate_all() now gates on this count via the
+    4 PERSONA_EXAMPLES, and 15 SKILLS (14 technique/launcher stubs plus the
+    persona companion). generate_all() now gates on this count via the
     GENERATED_TARGET_COUNT invariant (raises on drift), and the
     sync-content.py --check pass additionally validates byte-identity
     per-file.
@@ -1517,6 +1571,7 @@ def generate_all() -> dict[Path, str]:
     targets.update(generate_agent_spine_references())
     targets.update(generate_agent_schema_references())
     targets.update(generate_agent_examples())
+    targets.update(generate_agent_persona_examples())
 
     # --- Slash-invocable focused-mode stubs (Phase 46-02) ---
     # disable-model-invocation: true on every stub → no orchestrator

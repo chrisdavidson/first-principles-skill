@@ -58,6 +58,13 @@ that merely ends in C and digits (`SPEC1`, `RFC2119`) is not a citation, a code-
 fixed with its own must-fail control. "e.g.", "i.e.", "vs." and "cf." do not end a sentence.
 Registered on the battery, in CI, and in the generated gate docs as PERSONA-GATE.
 
+### Added — persona examples, shipped and gated
+
+Persona examples (decision-owner and skeptic views of `product-business-2` and `estimate-fermi`)
+ship under `first-principles/references/persona-examples/`, each a byte copy of a real
+`/first-principles:persona` run that passes PERSONA-GATE, which now checks every shipped example
+against its source.
+
 ## [9.17.0] — 2026-10-02
 
 Milestone release: **v9.17.0 Report Figures**. A full-agent analysis now ends in two reader

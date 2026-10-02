@@ -31,10 +31,12 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import ast
 import importlib.util
 import json
 import re
 import sys
+import tempfile
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -739,6 +741,171 @@ def _u04_code_registry_complete() -> str | None:
     return None
 
 
+# ---------------------------------------------------------------------------
+# EX-REACH -- D-02 gate reach over every shipped persona example (Phase 86-03)
+# ---------------------------------------------------------------------------
+
+PERSONA_EXAMPLES_DIR = REPO_ROOT / "shared" / "persona-examples"
+SYNC_SCRIPT = REPO_ROOT / "scripts" / "sync-content.py"
+
+_PROVENANCE_NAME_RE = re.compile(
+    r"^\*Derived from §6 and the structured summary of (?P<name>.+?); "
+    r"the six sections remain the source of truth\.\*\s*$"
+)
+_EX_REACH_CITED_ID_RE = re.compile(r"\bC(\d+)\b|\bGT-(\d+)\b")
+
+
+def _read_persona_examples_tuple() -> tuple[str, ...]:
+    """ast-parse PERSONA_EXAMPLES out of scripts/sync-content.py -- never
+    import that module directly, since it requires PyYAML and this script
+    carries no such dependency."""
+    tree = ast.parse(SYNC_SCRIPT.read_text(), filename=str(SYNC_SCRIPT))
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and any(
+            isinstance(t, ast.Name) and t.id == "PERSONA_EXAMPLES" for t in node.targets
+        ):
+            return tuple(ast.literal_eval(node.value))
+    raise ValueError("PERSONA_EXAMPLES tuple not found in scripts/sync-content.py")
+
+
+def _provenance_name(persona_text: str) -> str | None:
+    """The {name} a persona's own line 3 cites. Parsed, never assumed to
+    equal its shared/examples/ source's filename: the shipped examples cite
+    an analysis-<UTC>.md name instead, since each was a real
+    /first-principles:persona run against a worked example rendered as an
+    analysis file (86-02-SUMMARY.md)."""
+    lines = persona_text.split("\n")
+    if len(lines) < 3:
+        return None
+    m = _PROVENANCE_NAME_RE.match(lines[2].strip())
+    return m.group("name") if m else None
+
+
+def _ex_reach_split_role(
+    stem: str, roster: dict[str, tuple[str, int, int]]
+) -> tuple[str, str] | None:
+    """Split stem into (example, role) by matching the LONGEST role suffix
+    in roster -- guards a stem like "estimate-fermi-decision-owner" against
+    mis-splitting on a shorter role slug that also happens to be a suffix."""
+    best: tuple[str, str] | None = None
+    for role in roster:
+        suffix = "-" + role
+        if stem.endswith(suffix) and (best is None or len(role) > len(best[1])):
+            best = (stem[: -len(suffix)], role)
+    return best
+
+
+def _ex_reach(
+    persona_dir: Path = PERSONA_EXAMPLES_DIR,
+    roster_stems: tuple[str, ...] | None = None,
+) -> str | None:
+    """D-02: PERSONA-GATE's reach over every shipped persona example.
+
+    (a) population = sorted persona_dir/*.md; an empty population is a
+        FAILURE, never a vacuous pass (T-86-10).
+    (b) roster_stems (PERSONA_EXAMPLES, ast-parsed by default) and the disk
+        population must be set-equal; a mismatch names whichever side is
+        short.
+    (c) each stem splits into <example>-<role> against the contract's role
+        roster; shared/examples/<example>.md must exist.
+    (d) each persona checked against its real source (not the analysis-<UTC>
+        name its own provenance line cites) via check_view -- the checker's
+        own entry point -- must yield zero findings.
+    """
+    files = sorted(persona_dir.glob("*.md"))
+    if not files:
+        return f"no persona example files found under {_relpath(persona_dir)}"
+    population = tuple(p.stem for p in files)
+
+    if roster_stems is None:
+        roster_stems = _read_persona_examples_tuple()
+    pop_set, roster_set = set(population), set(roster_stems)
+    if pop_set != roster_set:
+        return (
+            "PERSONA_EXAMPLES roster and the shared/persona-examples/ "
+            f"population disagree: on disk only={sorted(pop_set - roster_set)}, "
+            f"in roster only={sorted(roster_set - pop_set)}"
+        )
+
+    roster = _load_roster_from_contract()
+    for stem in population:
+        split = _ex_reach_split_role(stem, roster)
+        if split is None:
+            return f"{stem}: no role suffix in {sorted(roster)} matches"
+        example, _role = split
+        source_path = REPO_ROOT / "shared" / "examples" / f"{example}.md"
+        if not source_path.exists():
+            return f"{stem}: source shared/examples/{example}.md does not exist"
+        persona_text = (persona_dir / f"{stem}.md").read_text()
+        analysis_name = _provenance_name(persona_text)
+        if analysis_name is None:
+            return f"{stem}: could not parse the provenance analysis name from line 3"
+        findings = check_view(persona_text, source_path.read_text(), analysis_name, roster)
+        if findings:
+            return f"{stem}: expected zero findings against {source_path.name}, got {findings}"
+    return None
+
+
+def _ex_reach_empty() -> str | None:
+    """EX-REACH-EMPTY: an empty population must be reported as a failure,
+    never pass vacuously (T-86-10)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        result = _ex_reach(persona_dir=Path(tmp))
+    if result is None:
+        return "an empty persona_dir unexpectedly reported success"
+    return None
+
+
+def _ex_reach_roster_mismatch() -> str | None:
+    """EX-REACH-ROSTER: a roster carrying one name absent from disk must be
+    named in the failure, not silently ignored."""
+    real = _read_persona_examples_tuple()
+    extra = "nonexistent-example-skeptic"
+    result = _ex_reach(roster_stems=real + (extra,))
+    if result is None or extra not in result:
+        return f"expected a failure naming {extra!r}, got {result!r}"
+    return None
+
+
+def _ex_reach_id_mutation() -> str | None:
+    """EX-REACH-ID: replacing one cited C<n>/GT-<n> token in the first
+    shipped example with an id one above the source's own highest of that
+    kind must produce PV-ID -- proving the reach is real, not a presence
+    check."""
+    roster = _load_roster_from_contract()
+    stem = sorted(p.stem for p in PERSONA_EXAMPLES_DIR.glob("*.md"))[0]
+    split = _ex_reach_split_role(stem, roster)
+    if split is None:
+        return f"{stem}: no role suffix in {sorted(roster)} matches"
+    example, _role = split
+    source_path = REPO_ROOT / "shared" / "examples" / f"{example}.md"
+    source_text = source_path.read_text()
+    facts = source_facts(source_text)
+    persona_text = (PERSONA_EXAMPLES_DIR / f"{stem}.md").read_text()
+    analysis_name = _provenance_name(persona_text)
+    if analysis_name is None:
+        return f"{stem}: could not parse the provenance analysis name from line 3"
+
+    m = _EX_REACH_CITED_ID_RE.search(persona_text)
+    if not m:
+        return f"{stem}: no cited C<n>/GT-<n> token found to mutate"
+    if m.group(1) is not None:
+        highest = max((int(c[1:]) for c in facts.chain_ids), default=0)
+        bad_token = f"C{highest + 1}"
+    else:
+        highest = max((int(g[3:]) for g in facts.gt_declared), default=0)
+        bad_token = f"GT-{highest + 1}"
+    mutated = persona_text[: m.start()] + bad_token + persona_text[m.end():]
+    if mutated == persona_text:
+        return "mutation was a no-op"
+
+    findings = check_view(mutated, source_text, analysis_name, roster)
+    codes = {f.code for f in findings}
+    if "PV-ID" not in codes:
+        return f"{stem}: expected PV-ID among findings for {bad_token!r}, got {sorted(codes)}"
+    return None
+
+
 _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("P01", _p01_fixtures_clean),
     ("P02", _p02_contract_parity),
@@ -754,6 +921,10 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("U02", _u02_sentence_boundaries),
     ("U03", _u03_band_reader),
     ("U04", _u04_code_registry_complete),
+    ("EX-REACH", _ex_reach),
+    ("EX-REACH-ID", _ex_reach_id_mutation),
+    ("EX-REACH-EMPTY", _ex_reach_empty),
+    ("EX-REACH-ROSTER", _ex_reach_roster_mismatch),
 )
 
 
@@ -782,8 +953,17 @@ def self_test() -> int:
 
 def describe() -> dict:
     """Pure self-description. Every value is derived from this module's own data."""
+    roster = _load_roster_from_contract()
+    persona_example_files = sorted(PERSONA_EXAMPLES_DIR.glob("*.md"))
+    persona_example_sources: set[str] = set()
+    for p in persona_example_files:
+        split = _ex_reach_split_role(p.stem, roster)
+        if split is not None:
+            persona_example_sources.add(_relpath(REPO_ROOT / "shared" / "examples" / f"{split[0]}.md"))
     checked_files = sorted(
         {_relpath(FIXTURE_DIR / name) for name, _src in FIXTURES} | {src for _name, src in FIXTURES}
+        | {_relpath(p) for p in persona_example_files}
+        | persona_example_sources
     )
     return {
         "control_ids": [cid for cid, _fn in _CONTROLS],
@@ -799,6 +979,7 @@ def describe() -> dict:
             "finding_codes": len(FINDING_CODES),
             "fixtures": len(FIXTURES),
             "personas": len(LOCKED_ROSTER),
+            "persona_examples": len(persona_example_files),
         },
         "disclosed_bounds_anchors": sorted([
             "citation-presence-not-semantic-support",

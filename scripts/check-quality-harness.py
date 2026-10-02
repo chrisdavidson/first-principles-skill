@@ -787,13 +787,17 @@ _REFERENCE_READ_TARGETS: dict[str, tuple[str, ...]] = {
 # and never opened with Read, so it is excluded on the same footing.
 # persona-views.md is the reader-persona contract, read by the persona skill
 # and the repo gate, never opened by the agent during an analysis, so it is
-# excluded on the same footing.
+# excluded on the same footing. references/persona-examples/ is a derived
+# reader view (a real persona-skill run shipped verbatim), not a reference
+# procedure, never opened by the agent with Read, so it is excluded on the
+# same footing as references/examples/.
 _REFERENCE_READ_EXCLUDED_TAILS = (
     "references/examples/",
     "references/report-layout.md",
     "references/report-figures.md",
     "references/how-to-read.md",
     "references/persona-views.md",
+    "references/persona-examples/",
 )
 
 _REFERENCE_READS_FIELDS = (
