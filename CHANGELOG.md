@@ -82,6 +82,17 @@ The PDF-render step now passes `--resource-path` set to the report's own directo
 `Could not fetch resource` on pandoc's stderr as failure, rather than shipping a PDF whose figure
 was silently replaced by its own alt text. The final message says so when it happens.
 
+### Fixed — the report template's `divider` no longer shadows typst's built-in as content
+
+[`shared/spine/references/report-layout.md`](shared/spine/references/report-layout.md) bound
+`divider` to an already-evaluated line (content), not a function. typst 0.15 ships its own
+`divider()` function, which is what pandoc's typst writer emits for a Markdown thematic break
+(`---`); calling the shadowed binding failed PDF generation with `error: expected function, found
+content`. Every pre-existing test fixture happened to contain zero `---` lines, so the bug was
+invisible until a 2026-10-02 live full-agent run — whose own analysis used `---` between sections,
+as the shipped output format does — hit it and the PDF step silently produced no PDF. `divider` is
+now defined as a function, keeping the report's gray stroke styling.
+
 ## [9.16.0] — 2026-10-01
 
 Milestone release: **v9.16.0 Structured Summary**. Every full-agent analysis now ends with

@@ -38,8 +38,10 @@ template variables, filled from the `-M title=` and `-M date=` arguments; `$body
 #let rule-gray = rgb("#c9ced6")
 #let band = rgb("#f2f4f7")
 
-#let horizontalRule = line(length: 100%, stroke: 0.5pt + rule-gray)
-#let divider = horizontalRule
+// typst 0.15 ships a built-in `divider()` function; pandoc's typst writer emits `#divider()`
+// for a Markdown thematic break (`---`). Binding `divider` to a function (not a content value)
+// here keeps that call working while giving the rule the report's own gray stroke.
+#let divider() = line(length: 100%, stroke: 0.5pt + rule-gray)
 
 #set document(title: [$title$])
 #set page(
