@@ -255,6 +255,9 @@ SPINE_REFERENCES = (
     # The static business-reading guide; delivery copies it beside the reader
     # reports and the agent never opens it with Read.
     "how-to-read",
+    # The reader-persona contract: role sources, word bands, citation grammar;
+    # read by the persona skill and by PERSONA-GATE, never by the agent.
+    "persona-views",
 )
 
 # Phase 74-01: JSON spine references (filename stem under
@@ -345,7 +348,7 @@ SKILL_PEER_PREFIX = "${CLAUDE_PLUGIN_ROOT}/skills/"
 # out-of-generator-scope.
 # generate_all() raises ValueError if len(targets) != GENERATED_TARGET_COUNT so this
 # number cannot silently drift again (D-01, DEBT-02).
-GENERATED_TARGET_COUNT = 52
+GENERATED_TARGET_COUNT = 53
 
 # v8.5 Phase 154 GATE-02 (D-11): module-level re-entrancy sentinel guarding
 # cmd_self_test()'s dispatch control. That control drives main(["--self-test"])
@@ -1437,13 +1440,15 @@ def generate_all() -> dict[Path, str]:
     report-figures Markdown spine reference (the reader report's typst
     figure library) raises it once more. The how-to-read Markdown spine
     reference (the static business-reading guide) raises it once more again.
-    Current target count: 52 total.
+    The persona-views Markdown spine reference (the reader-persona contract)
+    raises it once more again.
+    Current target count: 53 total.
 
       - 1 agent SKILL.md (first-principles/agents/first-principles.md)
-      - 15 agent reference siblings (first-principles/references/*.md and
+      - 16 agent reference siblings (first-principles/references/*.md and
         *.json: 8 companion-tool refs + assumption-taxonomy + output-template
         + validation-rubric + report-layout + report-figures + how-to-read
-        + summary-schema.json)
+        + persona-views + summary-schema.json)
       - 4 agent detail siblings (first-principles/references/<slug>-detail.md,
         SLUGS_WITH_DETAIL: five-whys, theoretical-limit, estimate, fishbone)
       - 14 agent worked-example siblings (first-principles/references/examples/<name>.md)
@@ -1451,9 +1456,9 @@ def generate_all() -> dict[Path, str]:
         the 13 companion/phase skills plus the first-principles-analysis launcher)
       - 4 skill detail siblings (first-principles/skills/<slug>/references/<slug>-detail.md,
         same SLUGS_WITH_DETAIL set)
-    Total: 1 + 15 + 4 + 14 + 14 + 4 = 52.
+    Total: 1 + 16 + 4 + 14 + 14 + 4 = 53.
 
-    Note: the total count (52) reflects the 8 TOOLS + 6 Markdown spine-refs +
+    Note: the total count (53) reflects the 8 TOOLS + 7 Markdown spine-refs +
     1 JSON spine-ref (for the reference siblings), 4 SLUGS_WITH_DETAIL
     (doubled — once per agent surface, once per skill surface), 14 EXAMPLES,
     and 14 SKILLS. generate_all() now gates on this count via the
