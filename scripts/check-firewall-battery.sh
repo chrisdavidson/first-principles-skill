@@ -1013,6 +1013,14 @@ _FROZEN_PATHS=(
     # checks.tsv are falsifiable only against these sources, manifests and out/ artifacts;
     # raw.jsonl streams were kept in scratch by design, never committed.
     'tests/persona-live-v9.18b'
+    # persona-live-v9.18c (2026-10-02) -- the memo-format live reading
+    # (docs/v9.18c-persona-live-reading.md) and the four 87-09 example re-derivation runs'
+    # provenance. Frozen because the Results table's 11/12-pass verdict (one NO-FILE result,
+    # the skill's own self-check rejecting an over-length draft on PV-WORDS and deleting it,
+    # recorded as observed per the pre-registration's own §7 rule) and the examples'
+    # checks.tsv are falsifiable only against these sources, manifests and out/ artifacts;
+    # raw.jsonl streams were kept in scratch by design, never committed.
+    'tests/persona-live-v9.18c'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null

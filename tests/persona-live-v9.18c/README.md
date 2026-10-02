@@ -1,5 +1,14 @@
 # persona-live-v9.18c
 
+**FROZEN-EVIDENCE as of 2026-10-02 (plan 87-10).** Registered in `_FROZEN_PATHS` in
+`scripts/check-firewall-battery.sh` alongside `tests/persona-live-v9.18` and
+`tests/persona-live-v9.18b`: the twelve S-series reading cells in `reading/` ran, were checked, and
+the `## 9. Results` table in
+[`docs/v9.18c-persona-live-reading.md`](../../docs/v9.18c-persona-live-reading.md) is now
+falsifiable only against the committed `reading/manifest.jsonl`, `reading/results.tsv` and
+`reading/out/` artifacts recorded here, the same way `examples/` has been frozen since 87-09.
+Nothing under this directory is edited after this point.
+
 Fixtures and the reproducer for the post-87 memo-format live-reading pre-registration,
 [`docs/v9.18c-persona-live-reading.md`](../../docs/v9.18c-persona-live-reading.md). That document
 is the authority on the cell order, pass definition and bar; this file only describes what lives
@@ -24,11 +33,15 @@ example.
 
 ## reading/
 
-Will hold the twelve post-87 memo-format reading-run cells (S01-S12), run by a later plan:
+Holds the twelve post-87 memo-format reading-run cells (S01-S12), run by plan 87-10:
 `manifest.jsonl` (one JSON line per cell, the same fields as `examples/manifest.jsonl`),
 `results.tsv` (cell, source, role, persona file, PASS/FAIL, codes, persona sha256 — 12 rows, no
-persona prose), and `out/` (the twelve persisted persona files, one per cell). Empty at
-registration time — no S-series cell has run yet under this id.
+persona prose), and `out/` (the eleven persisted persona files that were produced, one per
+completed cell). 11/12 cells PASS; S12 (estimate-fermi, skeptic) is `FAIL`/`NO-FILE` — the skill's
+own self-check rejected the draft on `PV-WORDS` (two words over the skeptic band's 170-word
+ceiling after three allowed cut passes) and deleted it, producing no persona file at all. Recorded
+as observed per the pre-registration's §7 rule and never re-run (only a non-terminal `limit_stub`
+result is re-run; S12 reached a terminal `no_file` state).
 
 ## reproduce.py
 
