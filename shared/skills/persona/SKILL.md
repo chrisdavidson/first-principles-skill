@@ -42,9 +42,10 @@ A missing or unrecognised role stops here: list the five valid values above and 
 Before composing anything, read
 [the persona-views contract](${CLAUDE_PLUGIN_ROOT}/references/persona-views.md) in full. It is
 the single source for role slugs and titles, body word bands, the file-format header, the
-citation grammar, and each role's absent-input sentences — none of that is restated here, so this
-skill and the contract cannot drift apart. If the read fails, stop and say so. Never compose a
-view from memory of a prior read.
+citation grammar, each role's fixed, ordered questions, the voice rule and its denylisted
+openers, and each role's absent-input sentences — none of that is restated here, so this skill
+and the contract cannot drift apart. If the read fails, stop and say so. Never compose a view
+from memory of a prior read.
 
 ## Refuse before composing
 
@@ -73,17 +74,27 @@ Refusal sentences, used verbatim with `<file>` replaced by the analysis's basena
 
 ## Compose
 
-For the chosen role, follow the contract's own section for that role (what it reads, what it
-writes, and its fixed absent-input sentences) and its File format and Citation grammar sections
-exactly: the five-line header, the role's word band, a citation on every sentence and bullet, and
-the Band line copied from the analysis's own §6 `**Confidence:**` line. Use the contract's
+For the chosen role, follow the contract's own section for that role (what it reads and its fixed
+absent-input sentences), its Questions section, its Voice section, and its File format and
+Citation grammar sections exactly. The body is exactly one single-line `- ` bullet per question,
+in the contract's order, the question copied verbatim as the bullet's bold lead-in, with nothing
+else in the body. Each bullet's answer follows the lead-in on the same line, describes what the
+analysis found in the third person about the analysis, and carries at least one citation. The
+first answer carries what the analysis offers this reader. The contract's Voice section governs
+every answer: no imperative addressed to the reader, no "you" or "your", no verdict on the reader,
+and never a restated recommendation — an answer that would restate one instead points to the
+Answer block and §6, with the conditions the analysis says it depends on. Use the contract's
 absent-input sentences verbatim, character for character, whenever the input they cover is absent
-from the analysis — never paraphrase one or fill it in with invented content.
+from the analysis, written inside the answer to the question whose input is absent — never
+paraphrase one or fill it in with invented content. Use the five-line header, the role's word
+band, and the Band line copied from the analysis's own §6 `**Confidence:**` line.
 
-Size the body before writing it: aim for the middle of the role's word band, count the draft
-body with `wc -w`, and cut or add a cited sentence until the count sits inside the band. A view
-that is too long loses whole sentences rather than shortened ones, so every remaining sentence
-keeps its citation.
+Size the body before writing it: aim for the middle of the role's word band, count the draft body
+with `wc -w` — the bold question text at the start of each bullet counts toward the band — and cut
+or add a cited sentence within an answer until the count sits inside the band, without dropping a
+question bullet or adding one outside the fixed list. A view that is too long loses a whole
+sentence from an answer rather than shortening it word by word, so every remaining sentence keeps
+its citation.
 
 ## Write
 
@@ -125,13 +136,26 @@ PERSONA-GATE finding code and a shell-approximate check:
    analysis exactly. Check: grep the quoted title against the analysis's `### Dead End:` headings.
 9. `PV-SOURCE` — the analysis's sections can be read and section 6 carries a `**Confidence:**`
    band. Check: the §6 band item 6 compares against was found; a source missing it is refused.
+10. `PV-QUESTIONS` — every role question from the contract appears verbatim, in order, as the
+    bold lead-in of its own single-line bullet; there is no other body content; every answer
+    carries a citation. Check: `awk 'NR>5 && NF' <file> | sed -n 's/^- \*\*\([^*]*\)\*\*.*/\1/p'`
+    and compare the printed lines, in order, against the role's Questions list read from the
+    contract; also confirm `awk 'NR>5 && NF' <file> | grep -vc '^- \*\*'` prints 0.
+11. `PV-DIRECTIVE` — no answer sentence opens with one of the contract's denylisted openers, no
+    answer uses "you" or "your" or passes a verdict on the reader, and no answer repeats six or
+    more consecutive words of §6's `**Recommended approach:**` paragraph. Check:
+    `awk 'NR>5' <file> | sed 's/^- \*\*[^*]*\*\* //' | grep -inwE 'you|your'` prints nothing; read
+    the first word of each answer against the contract's Denylisted openers line; compare any long
+    phrase against §6's recommended approach.
 
 On a miss of `PV-WORDS` alone: remove or add one whole cited sentence, re-count with `wc -w`, and
 repeat, up to three passes, re-running this whole list after each — length is mechanical, so it
 is corrected by measurement rather than abandoned. On any other miss: fix the file and re-run
-this whole list once. If any item still fails after those passes, delete the persona file this
-run wrote and report the failing codes by name — never leave a persona file on disk that fails
-its own contract.
+this whole list once — a `PV-DIRECTIVE` or `PV-QUESTIONS` miss is fixed by rewriting the offending
+answer or restoring the question verbatim, then re-running the whole list once, the same as any
+other miss. If any item still fails after those passes, delete the persona file this run wrote
+and report the failing codes by name — never leave a persona file on disk that fails its own
+contract.
 
 ## Render the PDF
 

@@ -13,6 +13,19 @@ installed session.
 
 ## [Unreleased]
 
+### Changed — persona views summarise and point; they no longer decide
+
+Each role now answers a fixed, ordered question list held in the persona contract, one bullet per
+question, the question itself as the bullet's bold lead-in and a cited answer after it. Every
+answer describes what the analysis found, in the third person about the analysis — no imperative
+addressed to the reader, no "you"/"your", no verdict on the reader — and points to the
+recommendation (the Answer block and §6, with its conditions) rather than restating it.
+PERSONA-GATE gains two finding codes, `PV-QUESTIONS` and `PV-DIRECTIVE`; the latter is lexical and
+over-reports by design, never judging meaning. Word bands moved to reflect the fixed question text
+now counted in the body. The shipped persona examples are re-derived by real skill runs under the
+new contract. The frozen v9.18 reading in `tests/persona-live-v9.18/` reproduces only against the
+checker as of commit `7193cbf7`, since the current checker rejects its pre-question outputs.
+
 ### Added — the reading guide and persona views ship as PDFs too
 
 A full-agent analysis now renders `HOW-TO-READ.pdf` beside the report PDF, and

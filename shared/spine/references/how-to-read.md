@@ -22,8 +22,9 @@ traced.
   unproven. Then look in the "Ground Truths" for any id written as `GT-N?`: that fact was not
   verified.
 
-If a persona view for your role sits beside the report, it is a shorter route to the same
-material; the six sections remain the source.
+If a persona view for your role sits beside the report,
+it summarises what the analysis offers you and points to the recommendation; the six sections
+remain the source.
 
 ## Audit path for high-stakes decisions
 
