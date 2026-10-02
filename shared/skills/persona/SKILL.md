@@ -133,7 +133,24 @@ this whole list once. If any item still fails after those passes, delete the per
 run wrote and report the failing codes by name — never leave a persona file on disk that fails
 its own contract.
 
+## Render the PDF
+
+Only for a view that passed its self-check, render it as `persona-<role>-<UTC>.pdf` beside the
+Markdown view, with the same page template as the PDF reader report, so the view ships in the
+same package as the report and the reading guide. Fill in `<view>` with the path of the view just
+written:
+
+```sh
+V="<view>"; P="${V%.md}.pdf"; S="${V%.md}.layout.typ"; E="${V%.md}.pandoc-err"; awk '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f' "${CLAUDE_PLUGIN_ROOT}/references/report-layout.md" > "$S" && pandoc "$V" -f commonmark_x --template="$S" --pdf-engine=typst -M title="$(sed -n '1s/^# //p' "$V")" -M date="$(date -u '+%-d %B %Y')" -o "$P" 2>"$E"; rc=$?; rm -f "$S" "$E"; if [ "$rc" -eq 0 ] && [ -s "$P" ]; then echo "$P"; else rm -f "$P"; fi
+```
+
+Run it once per view. Every file it touches starts with `persona-`. If it prints no path —
+pandoc or typst not installed, most often — keep the Markdown view, do not retry with another
+engine, and say in the report that the PDF was not produced and why. The Markdown view is the
+checked file; the PDF is rendered from it and never edited.
+
 ## Finish
 
-Report the path(s) written, the role(s), the source analysis read, and either `self-check: pass`
-or the list of failing codes. Do not paste the analysis or the persona view into the report.
+Report the path(s) written — each Markdown view and its PDF, or the reason the PDF was not
+produced — the role(s), the source analysis read, and either `self-check: pass` or the list of
+failing codes. Do not paste the analysis or the persona view into the report.

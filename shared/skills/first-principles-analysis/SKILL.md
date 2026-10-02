@@ -26,6 +26,14 @@ return what that agent produces.
    - any constraints the user stated,
    - the paths to any files or directories the user pointed at.
 
+   Add nothing the user did not say. Do not invent a constraint, a scope limit or an
+   output instruction of your own — above all, never tell the agent not to write files.
+   The agent's own delivery procedure writes its `.first-principles/analysis-<UTC>.md`
+   working file and reader reports, and the persona companion reads that file; a
+   dispatch that forbids writing leaves the user with no analysis on disk. Observed on
+   2026-10-02: a launcher run appended "Do not write any files to the user's project
+   directory" to an otherwise verbatim dispatch, and the agent obeyed it.
+
 3. **Return the agent's analysis.** Present what the agent produced. Do not summarise it
    down to a verdict, and do not re-run any phase yourself.
 

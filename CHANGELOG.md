@@ -13,6 +13,22 @@ installed session.
 
 ## [Unreleased]
 
+### Added — the reading guide and persona views ship as PDFs too
+
+A full-agent analysis now renders `HOW-TO-READ.pdf` beside the report PDF, and
+`/first-principles:persona` renders `persona-<role>-<UTC>.pdf` beside each view that passes its
+self-check. Both use the report's own page template, so the report, its reading guide and the
+persona views reach a customer as one matching package. Neither PDF blocks anything: when pandoc
+or typst is missing, the Markdown file stays the reader's copy and the final message says why.
+
+### Fixed — the launcher no longer adds constraints the user never stated
+
+`/first-principles:first-principles-analysis` passed the problem through verbatim but did not
+forbid additions, and a live run appended "Do not write any files to the user's project
+directory" to its dispatch. The agent obeyed, so no `.first-principles/analysis-<UTC>.md` was
+written and the persona companion had nothing to read. The launcher now says to add nothing the
+user did not say, and above all never to tell the agent not to write files.
+
 ### Added — a reading guide beside the reports
 
 A full-agent analysis now leaves `.first-principles/HOW-TO-READ.md` beside the reports — a

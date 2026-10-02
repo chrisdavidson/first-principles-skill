@@ -470,11 +470,24 @@ then the six sections, then the process-output appendix.
    embedded — leave the Markdown report as the reader's copy, do not retry with another engine,
    and say in the final message that the PDF was not produced and why. Neither report is edited
    by hand after it is written.
+
+   Then render the reading guide as a PDF beside the report PDF, with the same page template, so
+   the reader receives the report and its guide as one matching package — filling in `<path>`
+   with the path step 1 printed:
+
+   ```sh
+   F="<path>"; H="${F%/*}/HOW-TO-READ.md"; P="${H%.md}.pdf"; S="${H%.md}.layout.typ"; E="${H%.md}.pandoc-err"; rc=1; if [ -s "$H" ]; then awk '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f' "${CLAUDE_PLUGIN_ROOT}/references/report-layout.md" > "$S" && pandoc "$H" -f commonmark_x --template="$S" --pdf-engine=typst -M title="$(sed -n '1s/^# //p' "$H")" -M date="$(date -u '+%-d %B %Y')" -o "$P" 2>"$E"; rc=$?; fi; rm -f "$S" "$E"; if [ "$rc" -eq 0 ] && [ -s "$P" ]; then echo "$P"; else rm -f "$P"; fi
+   ```
+
+   Run it once; if it prints no path, carry on — the guide PDF never blocks the reports, and the
+   final message leaves it out. The guide is not Read or edited; only its shipped copy is
+   rendered.
 9. **Your final message is a short pointer, not the analysis:** the path of the Markdown report,
    then of the PDF report or the reason it was not produced, then the path of each figure step 7
    printed as `figure:` or, for each `skipped` line, the figure's name (evidence trace /
    assumption verdict matrix) and its reason, then the path of the working file; then, if step 6
-   printed it, the path of the reading guide `HOW-TO-READ.md`, as the place a reader deciding
+   printed it, the path of the reading guide `HOW-TO-READ.md` (and of `HOW-TO-READ.pdf`, if
+   step 8 printed it), as the place a reader deciding
    what to do with the analysis should start; the
    top-of-response disclosure repeated from step 3, if any; a line stating that the working file
    is the complete analysis and the reports are its reader copies, that each must be read in full,
