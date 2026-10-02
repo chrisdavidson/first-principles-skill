@@ -49,7 +49,8 @@ Every persona view file carries this exact nine-line header, then a body:
   link's text is `Report` and its target is `report-<UTC>.md`, where `<UTC>` is that basename's
   own stamp. The third link's text is `All files` and its target is `INDEX.md`.
   The three links reach the analysis, its reader report and the folder index, all of which sit
-  beside the view. The PDF render points the report and index links at their PDFs.
+  beside the view. The PDF render points the report and index links at their PDFs and leaves the analysis name as
+  plain text, since the analysis has no PDF.
 - Line 6 is `> **Band (from §6):** HIGH|MEDIUM|LOW`, with no trailing backslash, equal to the
   analysis's own §6 `**Confidence:**` band.
 - Line 7 is blank.

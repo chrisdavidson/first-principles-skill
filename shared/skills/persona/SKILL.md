@@ -169,12 +169,12 @@ same package as the report and the reading guide. Fill in `<view>` with the path
 written:
 
 ```sh
-V="<view>"; P="${V%.md}.pdf"; S="${V%.md}.layout.typ"; E="${V%.md}.pandoc-err"; awk '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f' "${CLAUDE_PLUGIN_ROOT}/references/report-layout.md" > "$S" && sed 's/](\(report-[0-9TZ]*\)\.md)/](\1.pdf)/g; s/](INDEX\.md)/](INDEX.pdf)/g' "$V" | pandoc -f commonmark_x --template="$S" --pdf-engine=typst -M title="$(sed -n '1s/^# //p' "$V")" -M date="$(date -u '+%-d %B %Y')" -o "$P" 2>"$E"; rc=$?; rm -f "$S" "$E"; if [ "$rc" -eq 0 ] && [ -s "$P" ]; then echo "$P"; else rm -f "$P"; fi
+V="<view>"; P="${V%.md}.pdf"; S="${V%.md}.layout.typ"; E="${V%.md}.pandoc-err"; awk '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f' "${CLAUDE_PLUGIN_ROOT}/references/report-layout.md" > "$S" && sed 's/](\(report-[0-9TZ]*\)\.md)/](\1.pdf)/g; s/](INDEX\.md)/](INDEX.pdf)/g; s/\[\([^]]*\)\](\([^)]*\)\.md)/\1/g' "$V" | pandoc -f commonmark_x --template="$S" --pdf-engine=typst -M title="$(sed -n '1s/^# //p' "$V")" -M date="$(date -u '+%-d %B %Y')" -o "$P" 2>"$E"; rc=$?; rm -f "$S" "$E"; if [ "$rc" -eq 0 ] && [ -s "$P" ]; then echo "$P"; else rm -f "$P"; fi
 ```
 
 Run it once per view. Every file it touches starts with `persona-`. In the PDF, the Basis
-links to the report and the index point at their PDFs, and the link to the analysis stays on the
-Markdown file. If it prints no path —
+links to the report and the index point at their PDFs, and the analysis name, which has no PDF,
+stays as plain text, so the PDF links only to PDFs. If it prints no path —
 pandoc or typst not installed, most often — keep the Markdown view, do not retry with another
 engine, and say in the report that the PDF was not produced and why. The Markdown view is the
 checked file; the PDF is rendered from it and never edited.

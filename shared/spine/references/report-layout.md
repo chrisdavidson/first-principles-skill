@@ -22,16 +22,19 @@ Each analysis produces two reader reports beside the working file
   License), a navy heading scheme, banded tables, a running header carrying the title, and a
   `Page N of M` footer.
 
-Every delivered file links to its neighbours. Links in a Markdown file target the Markdown
-siblings, and links in a PDF target the PDF siblings. The working file has no PDF, so every link
-to it targets the `.md`:
+Every delivered file links to its neighbours, and the two formats never mix: a Markdown file
+links only to Markdown files, and a PDF links only to PDFs. The working file has no PDF, so it is
+linked from the Markdown files only. Each PDF render rewrites a link to a sibling that has a PDF
+to point at that PDF, and turns any remaining link to a `.md` file into plain text:
 
 - the reports carry a `Read with:` line under the date, linking the reading guide, the working
   file and the folder index;
 - the reading guide's delivered copy ends with a link to the folder index;
 - each persona memo's Basis field links its analysis, its report and the folder index;
 - **`INDEX.md`** and **`INDEX.pdf`** list every analysis in the folder, newest first, with links
-  to its report, each persona memo and the working file. The index is rewritten whenever an
+  to its report and each persona memo. Working files are not listed. `INDEX.md` links only the
+  Markdown outputs and `INDEX.pdf` only the PDF outputs; an output with no PDF is left out of
+  `INDEX.pdf`. The index is rewritten whenever an
   analysis is delivered and whenever a persona memo is written. The report is written before
   any memo exists, so this rewritten index is how the report reaches the memos.
 
@@ -132,18 +135,17 @@ The block below is a POSIX `sh` script. Its first argument is the folder that ho
 files. Its second argument is the path of this file, which it reads for the template above. It
 rewrites `INDEX.md` and, if pandoc renders it, `INDEX.pdf`, and prints the path of each file it
 writes. It only writes `INDEX.*` files. Each memo's display name comes from the memo's own title
-line.
+line. In the PDF pass, `t` prints nothing for an output with no PDF, so that line is skipped.
 
 ```sh
 D="$1"; L="$2"; cd "$D" || exit 1
 emit() {
   ext="$1"
-  t() { if [ "$ext" = pdf ] && [ -s "${1%.md}.pdf" ]; then printf '%s' "${1%.md}.pdf"; else printf '%s' "$1"; fi; }
+  t() { if [ "$ext" = pdf ]; then [ -s "${1%.md}.pdf" ] && printf '%s' "${1%.md}.pdf"; else printf '%s' "$1"; fi; }
   printf '# First-Principles Analyses\n\n'
   printf '*Every analysis in this folder, newest first, with its reader reports and memos.*\n\n'
-  if [ -s HOW-TO-READ.md ]; then
-    printf 'New to these reports? Start with [How to read this analysis]''(%s).\n\n' "$(t HOW-TO-READ.md)"
-  fi
+  G=""; [ -s HOW-TO-READ.md ] && G=$(t HOW-TO-READ.md)
+  [ -n "$G" ] && printf 'New to these reports? Start with [How to read this analysis]''(%s).\n\n' "$G"
   ls -1 analysis-*.md 2>/dev/null | sort -r | while read -r A; do
     U="${A#analysis-}"; U="${U%.md}"
     case "$U" in [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]T[0-9][0-9][0-9][0-9][0-9][0-9]Z) ;; *) continue ;; esac
@@ -153,12 +155,13 @@ emit() {
     printf '## %s\n\n' "$T"
     printf '*%s-%s-%s %s:%s UTC*\n\n' "$(echo "$U" | cut -c1-4)" "$(echo "$U" | cut -c5-6)" \
       "$(echo "$U" | cut -c7-8)" "$(echo "$U" | cut -c10-11)" "$(echo "$U" | cut -c12-13)"
-    [ -s "$R" ] && printf -- '- [Report]''(%s)\n' "$(t "$R")"
+    K=""; [ -s "$R" ] && K=$(t "$R")
+    [ -n "$K" ] && printf -- '- [Report]''(%s)\n' "$K"
     ls -1 persona-*-"$U".md 2>/dev/null | while read -r P; do
-      N=$(sed -n '1s/^# \(.*\) memo — .*$/\1/p' "$P")
-      [ -n "$N" ] && printf -- '- [%s memo]''(%s)\n' "$N" "$(t "$P")"
+      N=$(sed -n '1s/^# \(.*\) memo — .*$/\1/p' "$P"); K=$(t "$P")
+      [ -n "$N" ] && [ -n "$K" ] && printf -- '- [%s memo]''(%s)\n' "$N" "$K"
     done
-    printf -- '- [Working file]''(%s), the complete analysis and its audit record\n\n' "$A"
+    printf '\n'
   done
 }
 emit md > INDEX.md.tmp && [ -s INDEX.md.tmp ] && mv INDEX.md.tmp INDEX.md && echo "$D/INDEX.md"

@@ -15,13 +15,16 @@ installed session.
 
 ### Added — delivered files link to each other, through a folder index
 
-Every delivered file now links to its neighbours. Links in a Markdown file go to the Markdown
-siblings, and links in a PDF go to the PDF siblings. The working file has no PDF, so links to it
-always go to the `.md`. The reader report gains a `Read with:` line under its date that links the
-reading guide, the working file and the folder index. The guide's delivered copy ends with a link
-to the index. The persona memo's Basis field links the analysis, its report and the index.
-`INDEX.md` and `INDEX.pdf` list every analysis in `.first-principles/`, newest first, each with
-its report, its memos and its working file. The analysis delivery rewrites the index, and so does
+Every delivered file now links to its neighbours, and the two formats never mix: a Markdown
+file links only to Markdown files, and a PDF links only to PDFs. The reader report gains a
+`Read with:` line under its date. In the Markdown report it links the reading guide, the working
+file and the folder index. In the PDF report it links the guide and index PDFs and leaves out the
+working file, which has no PDF. The guide's delivered copy ends with a link to the index. The
+persona memo's Basis field links the analysis, its report and the index. In the memo PDF the
+analysis name stays plain text, and the other two links point at their PDFs. `INDEX.md` and
+`INDEX.pdf` list every analysis in `.first-principles/`, newest first, each with its report and
+its memos. Working files are not listed. `INDEX.md` links only Markdown outputs, and `INDEX.pdf`
+links only PDF outputs. The analysis delivery rewrites the index, and so does
 every persona run. The report is written before any memo exists, so the index is how a report
 reaches the memos written after it. The index script ships in `report-layout.md`, extracted by
 awk like the page template. PERSONA-GATE's header check requires the linked Basis form and gains
