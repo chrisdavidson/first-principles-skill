@@ -324,12 +324,9 @@ REGISTRY: tuple[RetractedClaim, ...] = (
         #                   built on it (1), and the v9.8.0 entry cites the
         #                   same assertion as the worked example of a criterion
         #                   that pinned a claim which was itself false (1).
-        #   CLAUDE.md     - the "Claims and falsifiers" rule cites it as the
-        #                   worked example of an assertion that pinned a
-        #                   claim which was itself false (1).
         # Both are two-sided: deleting the erratum fires this gate just as a
         # new unexempted occurrence does.
-        exemptions=(("CHANGELOG.md", 3), ("CLAUDE.md", 1)),
+        exemptions=(("CHANGELOG.md", 3),),
     ),
     RetractedClaim(
         literal="no new registered gate asserts",

@@ -2589,10 +2589,7 @@ def _chain_terminus_live_tallies() -> tuple[int, int, int]:
 # ---------------------------------------------------------------------------
 
 _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
-    ('CLAUDE.md', '03'): ('999.73', 2, "NOT A COUNT CLAIM: the half-stripped digit suffix of the slash-compound gate-id mention \"HARN-01/02/03\" (§ 'Standing of the ...' framing text) -- \"HARN-01\" matches the letter-prefixed identifier pattern and is stripped whole, stranding \"02\"/\"03\" as bare fragments, the same half-strip shape CONTAIN-02's terminus arm addresses for delta chains but here for an identifier compound. Out of Phase 26's D-E quantity-shaped scope: closes only when containment's own citation-shape stripper is widened to recognise slash-compound identifiers, not by a generated region. Split out of 999.69 into 999.73 at Phase 26 plan 05 (CONTAIN-04 reconciles quantity-shaped residue only)."),
     ('CLAUDE.md', '1024'): ('999.69', 1, 'CANNOT-REACH (no harvest field IN THIS FILE\'S OWN generated fence): "Skill `description` fields must be third-person, ≤ 1,024 chars" (Key invariants) -- the agent-side ceiling GATE-01 (`scripts/check-agent.py`) enforces via `_MAX_DESCRIPTION_LEN = 1024`, re-used in the same sentence as a skill-side convention. VAL-05, which once carried this residue, is retired (docs/v9.4-gate-retirement.md §2.3); GATE-01 asserts the agent-side bound directly. For skill descriptions the figure has no source on the platform\'s skills page and no gate behind it (M3(b), 40-EVIDENCE.md: a 1,100-character skill description left both `claude plugin validate` and `check-agent.py` green) -- it stays a documented convention, matching docs/CONFIGURATION.md\'s row. Re-verified live this plan: `python3 scripts/check-agent.py --describe` DOES emit `locked_constants: {"max_description_len": 1024}`, and `docs/gates/GATE-01.md` -- a DIFFERENT file -- renders it verbatim; but CLAUDE.md\'s own generated GATE-01 table row only ever states `locked_constants=N entries` (a count, never the raw values), so this file\'s own inside-fence text still carries no `1024` for the outside occurrence to corroborate against -- containment is scored per file (`_containment_missing_numbers`), not tree-wide. CONTAIN-04 reconciles this residue if CLAUDE.md\'s own table row is ever widened to inline raw constant values; deferred as cannot-reach residue (D-06 proviso 2) until then.'),
-    ('CLAUDE.md', '15'): ('999.69', 2, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "15 v4.0/v4.1 builder requirements retired at quick task" and "the 15 v8.24 milestone requirements registered as matrix rows" -- both arrow-free historical counts in the requirements-ledger paragraph, the same exception as \'14\' above.'),
-    ('CLAUDE.md', '20'): ('999.75', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md section 2 exception, D-06 proviso 3), RE-ADDED at Phase 86 plan 03 exactly as the Phase 84 code-review fix\'s own removal note predicted ("Re-remove if ... control_count ever returns to 20"): registering PERSONA-GATE\'s EX-REACH, EX-REACH-ID, EX-REACH-EMPTY and EX-REACH-ROSTER controls (D-02, 86-CONTEXT.md) moved its own control_count 20 -> 24, so the coincidental in-fence cover this permit used to excuse lapsed again. "moved it from 17 to 20" is an arrow-free historical count in the battery-composition-chain paragraph, not a current-fact claim about the battery or CI. Same 999.75 digit-value-not-provenance blindness as the \'16\', \'23\' and \'26\' entries elsewhere in this ledger; the prose has never changed. Re-remove if PERSONA-GATE\'s control_count ever returns to 20.'),
     # ('CLAUDE.md', '17') REMOVED 2026-09-23, and the reason matters more than
     # the removal. Its underlying claim was NOT fixed: "all 17 version stamps
     # move in lockstep" is still hand-maintained with no harvest field behind
@@ -2620,7 +2617,6 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     # eating-its-own-tail chain the removed `5` entry itself predicted. Neither piece
     # of prose changed; only the coincidences did. If EMIT-STAGE-A's control count
     # ever leaves 16, both residuals resurface and both permits must be re-added.
-    ('CLAUDE.md', '23'): ('999.75', 3, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md section 2 exception, D-06 proviso 3), RE-ADDED at W2 2026-09-27 after its coincidental cover lapsed a SECOND time. The three occurrences are all transitions in the battery-composition chain ("moved it from 22 to 23", "moved it from 23 to 24", "moved it from 24 to 23") -- arrow-free historical counts, not current-fact claims about the battery or CI. This literal lost its cover once already at Phase 40, when COLLIDE-01 retirement moved the CI-job count off 23, and was ledgered then; the key was later dropped as stale when the count returned to 23. Registering CHAIN-JUDGE and EMIT-STAGE-A moved the CI-job count 23 -> 25, so nothing inside a generated fence says 23 again and the residue resurfaced. Same digit-value-not-provenance blindness as 999.75; the prose has never changed.'),
     # ('docs/gates/CONF-SURFACE.md', '5') REMOVED at Phase 81 plan 04
     # (FIG-GATE registration), exactly as this key's own prior entry
     # predicted ("Re-remove if this page's derived
@@ -2635,11 +2631,7 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     # a fresh reason (see git history for the retained prior text) if this
     # page's `containment_ledger_frozen_historical` field ever drops below 5
     # again.
-    ('CLAUDE.md', '16'): ('999.75', 2, 'CANNOT-REACH (no harvest field). RE-ADDED at W3 2026-09-27, exactly as the W2 removal note directly above predicted it would have to be. "The 16 links *between* files in `first-principles/references/`" is a frozen count of emitted cross-technique links that no gate harvests. Its cover has lapsed and returned three times purely because unrelated derived counts passed through 16: HARN-01 branch_count (999.91 moved it to 17), then EMIT-STAGE-A control_count (16 at registration, 20 once W3 added four controls). The prose has never changed. Two occurrences adjudicated together: the count at its definition and the same figure restated as "contributes 16 real links".'),
     ('CLAUDE.md', '22'): ('999.104', 2, 'NOT A COUNT CLAIM: "this phase\'s own `/bm:code-review 22`" -- a phase-number citation, the same shape as `CLAUDE.md`\'s own \'03\' half-strip entry above, not a population total. Occurrence count lowered from 2 to 1 when VAL-05\'s retirement (Phase 40, docs/v9.4-gate-retirement.md §2.3) reworded the tally sentence off \'22\' entirely, onto \'21\' (see that key\'s own entry).'),
-    ('CLAUDE.md', '260728'): ('999.73', 1, 'NOT A COUNT CLAIM: "quick task `260728-vxn`" -- a quick-task id (date-shaped digits plus a suffix), not a count. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises quick-task-id shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
-    ('CLAUDE.md', '26'): ('999.75', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3). RE-ADDED at Phase 81 plan 04 (FIG-GATE registration), exactly as this key\'s own prior removal note (git history) predicted: registering the check-report-figures CI job moved the CI-job count 26 -> 27, so the coincidental in-fence cover this permit used to excuse -- "CONF-SURFACE ... moved it from 25 to 26" in the battery-composition-chain paragraph -- lapsed again. The seventh recorded live instance of backlog 999.75 (containment matches by digit value, never by provenance), after (\'CLAUDE.md\', \'17\'), (\'CLAUDE.md\', \'16\'), (\'CLAUDE.md\', \'23\') and this same key\'s own two prior removal/re-add cycles. The prose has never changed. Re-remove if the CI-job count ever returns to 26.'),
-    ('CLAUDE.md', '266'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "... 174/92, 214 -> 237 rows; ... unchanged at 266; the 20 v8.26 milestone requirements ..." -- an arrow-free restatement of a prior milestone\'s row count inside the historical requirements-ledger paragraph (its two arrow-adjacent occurrences elsewhere in the same paragraph are already stripped structurally by the slash-paired and single-operand delta patterns).'),
     ('CLAUDE.md', '60'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "60 live claude invocations (manual only, not run in CI)" and "(60 invocations) / offline `--self-test`" -- the Step 0 live-harness manual run count. Re-verified live this plan: `python3 scripts/check-step0-live.py --describe` emits `control_count: 25` and fixture/control ids only -- no field for "60 manual invocations" exists today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
     # ('docs/gates/CONF-SURFACE.md', '5') REMOVED at Phase 86 plan 03: re-adding
     # the ('CLAUDE.md', '20') key above (PERSONA-GATE's control_count 20 -> 24
@@ -2651,7 +2643,6 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     # The underlying prose was NOT fixed. Re-add with a fresh reason (see git
     # history for the retained prior text) if this page's
     # `containment_ledger_frozen_historical` field ever drops below 5 again.
-    ('CLAUDE.md', '18'): ('999.69', 1, 'CANNOT-REACH (no harvest field): "the 18 v9.1 milestone requirements registered as matrix rows at Phase 27 / REL-07" -- the v9.1 milestone\'s own row count in the requirements-ledger derivation chain, the same shape as the pre-existing "19"/"20" milestone-row-count mentions in this same paragraph (neither of which is ledgered, because each happens to share a same-page in-fence match today by coincidence -- see the `_CONTAINMENT_LEDGER_MAX` comment above the `disclosed_bounds_anchors` reconciliation for the identical coincidental-corroboration shape; the paragraph\'s "23" mention lost that same coincidental cover at Phase 40 when COLLIDE-01\'s retirement moved the CI-job count off 23, and is ledgered separately above). Re-verified live this plan: `python3 scripts/check-traceability.py --describe` emits `coverage_headline`, `registered_surfaces`, `scan_globs`, `branch_roster`/`branch_count` (19) and `locked_constants` only -- no field exposes the per-milestone matrix-row count (18) that this sentence states. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
     ('docs/ARCHITECTURE.md', '03'): ('999.73', 1, 'NOT A COUNT CLAIM: the same half-stripped slash-compound gate-id shape as `CLAUDE.md`\'s \'03\' entry -- "matching PROV-GUARD\'s and REG-GUARD\'s shape rather than HARN-01/02/03\'s and HC-BOUND\'s" leaves "02"/"03" stranded once "HARN-01" is consumed whole. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper is widened. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('docs/TESTING.md', '1'):('999.73', 1, 'NOT A COUNT CLAIM: the arithmetic expression `_COMPOSER_FOCUS_CEILING - 1` (RR-77-08\'s surviving-conjuncts paragraph) -- an offset in a formula, not a count-noun-adjacent claim. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises arithmetic-expression shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('docs/TESTING.md', '2'): ('999.69', 2, 'CANNOT-REACH (no harvest field): `MIN_HEADER_HITS: int = 2` and the bolded "`MIN_HEADER_HITS=2`" heading -- `scripts/_battery_core.py`\'s own constant. Re-verified live this plan: `python3 scripts/check-routing-battery.py --describe`\'s `locked_constants` exposes only the four routing thresholds (`boundary_n_threshold`, `boundary_p_threshold`, `focused_n_threshold`, `focused_p_threshold`) -- no field for `MIN_HEADER_HITS` exists today. Deferred as cannot-reach residue (D-06 proviso 2).'),
@@ -3029,7 +3020,7 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # movement. The key COUNT is unchanged at 20; the key SET differs from the
 # prior pin, so the digest moves even though `_CONTAINMENT_LEDGER_MAX` does
 # not.
-_CONTAINMENT_LEDGER_MAX: int = 20
+_CONTAINMENT_LEDGER_MAX: int = 11
 
 # Re-pinned in the same commit as Phase 86 plan 03 (and before it Phase 85
 # plan 03, the Phase 84 code-review fix, and before that Phase 81 plan 04's
@@ -3038,7 +3029,7 @@ _CONTAINMENT_LEDGER_MAX: int = 20
 # recompute this digest to make a failing check pass; it changed here only
 # because the key set legitimately changed, adjudicated above.
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:e2b728e3a03b35093273c52132b8bd9536bf8ab2de75b8520f8f8d425d2a5094"
+    "sha256:7049c770d2a216ddf1b85066b5deef61187502b06263b468b288159d157e68a4"
 )
 
 
@@ -3771,15 +3762,8 @@ def _match_commonmark_heading_depth(hit: LiteralHit) -> bool:
 # end.
 _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('CLAUDE.md', '(33 controls)'): ('999.42', 1, 'Correct: check-provenance.py --describe reports control_count 33 (live-verified).'),
-    ('CLAUDE.md', '1. The **sync-drift gate**'): ('999.42', 1, "NOT-A-COUNT: an enumerated-list marker ('1.') the adjacency heuristic mistakes for a count -- it identifies which list item, not how many pre-commit gates exist."),
     ('CLAUDE.md', 'Five gates'): ('999.42', 1, 'Correct: 5 pre-commit gates fire on git commit (sync-drift, conformance generator self-test, conformance-baseline drift, claim-surface generator self-test, claim-surface drift) -- verified against both hook scripts in plan 21-13.'),
-    ('CLAUDE.md', 'rows; the 14'): ('999.42', 1, "Correct: 14 v8.25 milestone requirements were registered as matrix rows at Phase 12 / 12-01 -- same headline-provenance narrative as the '23' entry above."),
-    ('CLAUDE.md', 'rows; the 15'): ('999.42', 1, "Correct: 15 v8.24 milestone requirements were registered as matrix rows at Phase 6 / D-06 -- same headline-provenance narrative as the '23' entry above."),
-    ('CLAUDE.md', 'rows; the 23'): ('999.42', 1, "Correct: 23 v8.18 milestone requirements were registered as matrix rows at Phase 4 / D-05 -- historical provenance narrative for the coverage headline, matching docs/requirements-traceability.md; not caught by the headline-provenance-delta class because 23 is not one of that class's row-delta numbers."),
     ('CLAUDE.md', 'surface now contributes 16'): ('999.42', 1, 'Correct: the skill-stub cross-technique-link surface contributes 16 real links (12 cross-technique + 4 detail.md pointers) as of v8.17.5 -- a structural fact, not derived by any script.'),
-    ('CLAUDE.md', 'three surfaces,'): ('999.42', 1, 'Correct: gates run on three surfaces -- CI, the offline battery, and pre-commit -- a structural fact restated at CLAUDE.md:181, not derived by any script.'),
-    ('CLAUDE.md', 'two assembly surfaces,'): ('999.42', 1, 'Correct: the assembled agent body and the skill stub are the two assembly surfaces _rewrite_detail_link() adapts a detail-sibling pointer for -- a structural fact, not derived by any script.'),
-    ('CLAUDE.md', 'two inline checks'): ('999.42', 1, 'Correct: INVARIANT-CHECK and FROZEN-EVIDENCE are the two inline (non-gate/gate_prereq) battery checks -- a structural fact, not derived by any script.'),
     ('CONTRIBUTING.md', 'Five gates'): ('999.44', 1, "Correct: the same fixed five-gate pre-commit pipeline (sync-drift, conformance generator self-test, conformance-baseline drift, claim-surface generator self-test, claim-surface drift) already ledgered for CLAUDE.md's and docs/TESTING.md's own 'Five gates' hits (999.42) -- verified again here against both hook scripts, 2026-09-08, on this newly-registered surface (plan 22-07)."),
     ('CONTRIBUTING.md', 'one shot and check'): ('999.44', 1, "NOT-A-COUNT: 'run the whole offline set in one shot and check for a GREEN verdict' uses 'one shot' as an idiom for a single invocation of the battery script, not a count of any external population."),
     ('docs/ARCHITECTURE.md', '(five gates'): ('999.42', 1, "Correct: both pre-commit hooks now run 5 gates each -- same fact as 'up from three)' above, second number on the same line."),
@@ -4061,7 +4045,7 @@ def _deferred_ledger_keys_digest(
 # reconciliation discipline (re-deriving every "live-verified" reason from
 # a fresh `--describe` invocation, never trusting a prior reading) for the
 # practice that actually catches this, since the ratchet itself cannot.
-_DEFERRED_LEDGER_MAX: int = 174
+_DEFERRED_LEDGER_MAX: int = 167
 
 
 # A sha256 pin over the ledger's sorted `(relpath, text)` key set (plan
@@ -4121,7 +4105,7 @@ _DEFERRED_LEDGER_MAX: int = 174
 # reworded count-free once the persona skill made the historical 13-vs-14
 # split obsolete. 175 -> 174.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:95bfe37d531be0e8243aa13515e588cec3ebdf8829ada06a07fd9c4762d15655"
+    "sha256:bc757f9b25bf5e6521ba4bdf54f81c1b5579d6cc06dc13be526043e79fc59276"
 )
 
 
