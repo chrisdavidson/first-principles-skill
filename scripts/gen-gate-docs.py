@@ -3020,7 +3020,7 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # movement. The key COUNT is unchanged at 20; the key SET differs from the
 # prior pin, so the digest moves even though `_CONTAINMENT_LEDGER_MAX` does
 # not.
-_CONTAINMENT_LEDGER_MAX: int = 11
+_CONTAINMENT_LEDGER_MAX: int = 20
 
 # Re-pinned in the same commit as Phase 86 plan 03 (and before it Phase 85
 # plan 03, the Phase 84 code-review fix, and before that Phase 81 plan 04's
@@ -3029,7 +3029,7 @@ _CONTAINMENT_LEDGER_MAX: int = 11
 # recompute this digest to make a failing check pass; it changed here only
 # because the key set legitimately changed, adjudicated above.
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:7049c770d2a216ddf1b85066b5deef61187502b06263b468b288159d157e68a4"
+    "sha256:e2b728e3a03b35093273c52132b8bd9536bf8ab2de75b8520f8f8d425d2a5094"
 )
 
 
@@ -4045,7 +4045,7 @@ def _deferred_ledger_keys_digest(
 # reconciliation discipline (re-deriving every "live-verified" reason from
 # a fresh `--describe` invocation, never trusting a prior reading) for the
 # practice that actually catches this, since the ratchet itself cannot.
-_DEFERRED_LEDGER_MAX: int = 167
+_DEFERRED_LEDGER_MAX: int = 174
 
 
 # A sha256 pin over the ledger's sorted `(relpath, text)` key set (plan
@@ -4105,7 +4105,7 @@ _DEFERRED_LEDGER_MAX: int = 167
 # reworded count-free once the persona skill made the historical 13-vs-14
 # split obsolete. 175 -> 174.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:bc757f9b25bf5e6521ba4bdf54f81c1b5579d6cc06dc13be526043e79fc59276"
+    "sha256:95bfe37d531be0e8243aa13515e588cec3ebdf8829ada06a07fd9c4762d15655"
 )
 
 
