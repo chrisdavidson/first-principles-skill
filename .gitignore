@@ -1,5 +1,6 @@
 .planning/
 .claude/
+.first-principles/
 scripts/__pycache__/
 scripts/*.pyc
 __pycache__/
