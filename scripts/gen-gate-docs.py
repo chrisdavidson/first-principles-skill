@@ -2631,10 +2631,7 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     # a fresh reason (see git history for the retained prior text) if this
     # page's `containment_ledger_frozen_historical` field ever drops below 5
     # again.
-    ('CLAUDE.md', '16'): ('999.75', 2, 'FROZEN HISTORICAL COUNT (CANNOT-REACH, no harvest field). "The 16 links *between* files in `first-principles/references/`" — a structural fact, not derived by any script. The prose has never changed.'),
     ('CLAUDE.md', '22'): ('999.104', 2, 'NOT A COUNT CLAIM: "this phase\'s own `/bm:code-review 22`" -- a phase-number citation, the same shape as `CLAUDE.md`\'s own \'03\' half-strip entry above, not a population total. Occurrence count lowered from 2 to 1 when VAL-05\'s retirement (Phase 40, docs/v9.4-gate-retirement.md §2.3) reworded the tally sentence off \'22\' entirely, onto \'21\' (see that key\'s own entry).'),
-    ('CLAUDE.md', '26'): ('999.75', 1, 'FROZEN HISTORICAL COUNT (CANNOT-REACH, no harvest field). "CONF-SURFACE ... moved it from 25 to 26" in battery-composition-chain paragraph — arrow-free historical count, never changes independent of this ledger.'),
-    ('docs/gates/CONF-SURFACE.md', '5'): ('999.75', 2, 'FROZEN HISTORICAL COUNT (ordinal/section references, not a population). "pre-commit gate 5" and "§5a" section citations — arrow-free ordinal mentions that never change.'),
     ('CLAUDE.md', '60'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "60 live claude invocations (manual only, not run in CI)" and "(60 invocations) / offline `--self-test`" -- the Step 0 live-harness manual run count. Re-verified live this plan: `python3 scripts/check-step0-live.py --describe` emits `control_count: 25` and fixture/control ids only -- no field for "60 manual invocations" exists today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
     # ('docs/gates/CONF-SURFACE.md', '5') REMOVED at Phase 86 plan 03: re-adding
     # the ('CLAUDE.md', '20') key above (PERSONA-GATE's control_count 20 -> 24
@@ -3025,11 +3022,11 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # not.
 _CONTAINMENT_LEDGER_MAX: int = 11
 
-# Re-pinned after removing stale ledger entries. The live ledger now contains
-# 11 entries (down from 20). Recomputed live via `_deferred_ledger_keys_digest()`,
+# Re-pinned after removing stale ledger entries and froze entries that created conflicts.
+# The live ledger now contains 11 entries. Recomputed live via `_deferred_ledger_keys_digest()`,
 # never hand-typed. Never recompute this digest to make a failing check pass.
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:7049c770d2a216ddf1b85066b5deef61187502b06263b468b288159d157e68a4"
+    "sha256:b744ee7a1ee6c9957ffa8a6efa878d111a2a0490f2a801c866413d61ebc5a5f1"
 )
 
 
@@ -4045,7 +4042,7 @@ def _deferred_ledger_keys_digest(
 # reconciliation discipline (re-deriving every "live-verified" reason from
 # a fresh `--describe` invocation, never trusting a prior reading) for the
 # practice that actually catches this, since the ratchet itself cannot.
-_DEFERRED_LEDGER_MAX: int = 174
+_DEFERRED_LEDGER_MAX: int = 167
 
 
 # A sha256 pin over the ledger's sorted `(relpath, text)` key set (plan
@@ -4103,9 +4100,9 @@ _DEFERRED_LEDGER_MAX: int = 174
 # rather than 13.') -- its underlying prose ("The launcher is why
 # shared/skills/*/SKILL.md holds 14 version stamps rather than 13.") was
 # reworded count-free once the persona skill made the historical 13-vs-14
-# split obsolete. 175 -> 174.
+# split obsolete. 174 -> 167 (removed stale entries).
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:95bfe37d531be0e8243aa13515e588cec3ebdf8829ada06a07fd9c4762d15655"
+    "sha256:397aa907e73c9dc1747214e429754d2e89a98d32fd532b9833f3ec316427c366"
 )
 
 
