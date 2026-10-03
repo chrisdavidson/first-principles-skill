@@ -2631,11 +2631,8 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     # a fresh reason (see git history for the retained prior text) if this
     # page's `containment_ledger_frozen_historical` field ever drops below 5
     # again.
-    ('CLAUDE.md', '16'): ('999.75', 2, 'CANNOT-REACH (no harvest field). RE-ADDED after ledger restructuring. "The 16 links *between* files in `first-principles/references/`" is a frozen count of emitted cross-technique links that no gate harvests. Same 999.75 digit-value-not-provenance blindness as other entries; the prose has never changed.'),
     ('CLAUDE.md', '22'): ('999.104', 2, 'NOT A COUNT CLAIM: "this phase\'s own `/bm:code-review 22`" -- a phase-number citation, the same shape as `CLAUDE.md`\'s own \'03\' half-strip entry above, not a population total. Occurrence count lowered from 2 to 1 when VAL-05\'s retirement (Phase 40, docs/v9.4-gate-retirement.md §2.3) reworded the tally sentence off \'22\' entirely, onto \'21\' (see that key\'s own entry).'),
-    ('CLAUDE.md', '26'): ('999.75', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3). "CONF-SURFACE ... moved it from 25 to 26" in the battery-composition-chain paragraph -- arrow-free historical count of a prior battery total. Same digit-value-not-provenance blindness as 999.75; the prose has never changed.'),
     ('CLAUDE.md', '60'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "60 live claude invocations (manual only, not run in CI)" and "(60 invocations) / offline `--self-test`" -- the Step 0 live-harness manual run count. Re-verified live this plan: `python3 scripts/check-step0-live.py --describe` emits `control_count: 25` and fixture/control ids only -- no field for "60 manual invocations" exists today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
-    ('docs/gates/CONF-SURFACE.md', '5'): ('999.75', 2, 'FROZEN HISTORICAL COUNT (ordinal/section citation, not a population). "pre-commit gate 5" and "§5a" section citations -- arrow-free ordinal references to the pre-commit gate ordering and documentation sections. Same digit-value-not-provenance blindness as other entries; the prose ordering has never changed.'),
     # ('docs/gates/CONF-SURFACE.md', '5') REMOVED at Phase 86 plan 03: re-adding
     # the ('CLAUDE.md', '20') key above (PERSONA-GATE's control_count 20 -> 24
     # un-covered it) raised this page's own derived
@@ -3023,7 +3020,7 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # movement. The key COUNT is unchanged at 20; the key SET differs from the
 # prior pin, so the digest moves even though `_CONTAINMENT_LEDGER_MAX` does
 # not.
-_CONTAINMENT_LEDGER_MAX: int = 14
+_CONTAINMENT_LEDGER_MAX: int = 11
 
 # Re-pinned in the same commit as Phase 86 plan 03 (and before it Phase 85
 # plan 03, the Phase 84 code-review fix, and before that Phase 81 plan 04's
@@ -3032,7 +3029,7 @@ _CONTAINMENT_LEDGER_MAX: int = 14
 # recompute this digest to make a failing check pass; it changed here only
 # because the key set legitimately changed, adjudicated above.
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:1c017d8647d20a1c4b3dc02acf27f96f2016b73855a25411712851aaa2a1045f"
+    "sha256:7049c770d2a216ddf1b85066b5deef61187502b06263b468b288159d157e68a4"
 )
 
 
@@ -3765,7 +3762,6 @@ def _match_commonmark_heading_depth(hit: LiteralHit) -> bool:
 # end.
 _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('CLAUDE.md', '(33 controls)'): ('999.42', 1, 'Correct: check-provenance.py --describe reports control_count 33 (live-verified).'),
-    ('CLAUDE.md', '174'): ('999.42', 1, "Correct: historical deferred-literal-ledger max from Phase 85 plan 03 ('175 → 174, removing a ...'). Frozen count for narrative chain documentation."),
     ('CLAUDE.md', 'Five gates'): ('999.42', 1, 'Correct: 5 pre-commit gates fire on git commit (sync-drift, conformance generator self-test, conformance-baseline drift, claim-surface generator self-test, claim-surface drift) -- verified against both hook scripts in plan 21-13.'),
     ('CLAUDE.md', 'surface now contributes 16'): ('999.42', 1, 'Correct: the skill-stub cross-technique-link surface contributes 16 real links (12 cross-technique + 4 detail.md pointers) as of v8.17.5 -- a structural fact, not derived by any script.'),
     ('CONTRIBUTING.md', 'Five gates'): ('999.44', 1, "Correct: the same fixed five-gate pre-commit pipeline (sync-drift, conformance generator self-test, conformance-baseline drift, claim-surface generator self-test, claim-surface drift) already ledgered for CLAUDE.md's and docs/TESTING.md's own 'Five gates' hits (999.42) -- verified again here against both hook scripts, 2026-09-08, on this newly-registered surface (plan 22-07)."),
@@ -4049,7 +4045,7 @@ def _deferred_ledger_keys_digest(
 # reconciliation discipline (re-deriving every "live-verified" reason from
 # a fresh `--describe` invocation, never trusting a prior reading) for the
 # practice that actually catches this, since the ratchet itself cannot.
-_DEFERRED_LEDGER_MAX: int = 168
+_DEFERRED_LEDGER_MAX: int = 167
 
 
 # A sha256 pin over the ledger's sorted `(relpath, text)` key set (plan
@@ -4109,7 +4105,7 @@ _DEFERRED_LEDGER_MAX: int = 168
 # reworded count-free once the persona skill made the historical 13-vs-14
 # split obsolete. 175 -> 174.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:5d6b8a0f488ea8606ebd9caa81a1cdb59b691b2f09363611a682855b3381c2a2"
+    "sha256:bc757f9b25bf5e6521ba4bdf54f81c1b5579d6cc06dc13be526043e79fc59276"
 )
 
 
