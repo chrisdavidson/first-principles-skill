@@ -564,6 +564,9 @@ def init_check(jsonl: str, arm: str) -> list[str]:
     EXACTLY one, at PLUGIN_DIR -- the repository's working-tree copy, not the
     user-scope installed one (planner finding F4: `--plugin-dir` shadows the
     installed plugin, so the inline copy is what must be confirmed present).
+
+    Path comparison is relative to repository root to work across different
+    checkout locations (local vs. CI).
     """
     plugins = init_plugins(jsonl)
     fp = [p for p in plugins if p.get("name") == "first-principles"]
@@ -577,7 +580,21 @@ def init_check(jsonl: str, arm: str) -> list[str]:
                 f"arm T init event lists {len(fp)} first-principles plugin(s), "
                 f"expected exactly 1: {fp!r}"
             ]
-        if fp[0].get("path") != str(PLUGIN_DIR):
+        # Compare relative paths from repository root to work across checkout locations
+        plugin_path_str = fp[0].get("path") or ""
+        plugin_path = Path(plugin_path_str)
+        try:
+            plugin_relative = plugin_path.relative_to(REPO_ROOT)
+        except ValueError:
+            # If the path is not relative to REPO_ROOT, compare it as-is
+            plugin_relative = plugin_path.name if plugin_path.name == PLUGIN_DIR.name else plugin_path
+
+        try:
+            expected_relative = PLUGIN_DIR.relative_to(REPO_ROOT)
+        except ValueError:
+            expected_relative = PLUGIN_DIR.name
+
+        if plugin_relative != expected_relative:
             return [
                 f"arm T first-principles plugin path is {fp[0].get('path')!r}, "
                 f"expected {str(PLUGIN_DIR)!r}"
