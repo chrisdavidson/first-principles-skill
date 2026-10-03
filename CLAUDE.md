@@ -73,10 +73,11 @@ python3 scripts/check-step0-live.py --self-test
 python3 scripts/check-step0-emulator.py --self-test
 ```
 
-### Plugin validation (CI equivalent, requires `claude` CLI)
+### Plugin validation and installation
 
 ```sh
-claude plugin validate ./first-principles
+claude plugin validate ./first-principles          # validate plugin manifest
+claude --plugin-dir ./first-principles             # install for local development
 ```
 
 ### Install pre-commit hooks
@@ -130,25 +131,17 @@ The reference tree ships at the plugin root, sibling to `agents/` and `skills/`,
 
 `scripts/sync-content.py --write` reads `shared/` and regenerates the assembled agent, the entire `first-principles/references/` tree (including the `<slug>-detail.md` on-demand siblings) and all `first-principles/skills/*/SKILL.md` files (including each split skill's own `skills/<slug>/references/<slug>-detail.md` sibling). It stamps every generated file with a `<!-- GENERATED — DO NOT EDIT -->` marker.
 
-### Token substitution in SKILL-body.md
+### Token substitution
 
-`{{TOOL:slug}}` tokens in `shared/spine/SKILL-body.md` are replaced by the phrase held under that slug's `agent` key in `shared/spine/tool-map.yml` — e.g. `{{TOOL:fishbone}}` → "the inlined fishbone procedure". **That token substitutes a name, not content.**
+- `{{TOOL:slug}}` → phrase from `tool-map.yml` (agent key)
+- `{{PROCEDURE:slug}}` → full body from `shared/references/<slug>.md`
+- `-detail.md` pointers use `references/<slug>-detail.md` in agent/skill surfaces; bare paths in `shared/references/`
 
-**Do not generalise that from the token to the body.** `generate_agent()` separately appends a `## Companion Techniques` section carrying **each technique's `## Procedure` block, inlined verbatim** from `shared/references/<slug>.md` — one per slug in `TOOLS`, via `_extract_procedure()`, whose own docstring states it: *"each slug's `## Procedure` block is inlined verbatim."* So the substituted phrase "the inlined fishbone procedure" is **accurate**: the procedure it names is in the always-loaded body, alongside the hand-written `## Companion tools` summaries.
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#token-substitution) for full detail.
 
-This correction was made 2026-09-26. The prior text asserted the opposite — that companion-technique procedures were *not* in the body — and warned the reader that the word "inlined" invited the wrong conclusion. It was the warning that was wrong, and anything reasoning about what the model has in context on the strength of it was reasoning from a false premise. The literal is registered in `RETRACT-01`.
+### Plugin layout
 
-What genuinely does **not** reach the agent body, and arrives only as on-demand siblings: `output-template.md` and `validation-rubric.md` (Phase 34-02, Path B), and the `<slug>-detail.md` appendices. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#token-substitution) for the token table.
-
-`{{PROCEDURE:slug}}` tokens in `shared/skills/<slug>/SKILL.md` are replaced by the full body of `shared/references/<slug>.md` (from `## When to reach for this` onward) when generating the focused-mode skill stubs.
-
-**On-demand `-detail.md` load convention (v8.5 Phase 154):** `SLUGS_WITH_DETAIL` in `scripts/sync-content.py` is the single set of slugs authorised to carry a split `shared/references/<slug>-detail.md` appendix — every core-file `## Procedure` section ends with a named-trigger pointer block that directs the reader to the detail sibling on demand, rather than inlining that content into every emission. The pointer must appear exactly once per core file; the `GATE-02-v8.5` pointer drift-guard gate (see CI gates below) asserts this. Because the assembled agent body and the skill stub each sit one directory level above their own detail sibling, `_rewrite_detail_link()` adapts the pointer's link target to `references/<slug>-detail.md` on those two assembly surfaces, while the agent reference sibling (which lands alongside its own `<slug>-detail.md`) keeps the bare, unrewritten form.
-
-### Plugin layout and skill registration
-
-The plugin root is `first-principles/`. The agent is registered at `first-principles/agents/first-principles.md`. Fifteen skill directories live under `first-principles/skills/<slug>/SKILL.md` — the thirteen companion skills, the `first-principles-analysis` launcher, and the `persona` reader-view companion — all registered with `disable-model-invocation: true` (slash-only; the orchestrator never auto-routes to them).
-
-Install for development: `claude --plugin-dir ./first-principles`
+The plugin root is `first-principles/` with the agent at `first-principles/agents/first-principles.md`. Fifteen skills (thirteen companions, launcher, persona) live under `first-principles/skills/<slug>/SKILL.md` — all slash-only (`disable-model-invocation: true`).
 
 ### CI gates
 
@@ -198,108 +191,28 @@ Both surfaces render the same population and the same columns from `scripts/_gat
 Gates run on three surfaces: **28 in CI** (`.github/workflows/validation.yml`, on push/PR to master), **32 tallied in the offline battery** (`bash scripts/check-firewall-battery.sh`), and **5 pre-commit gates** (2 hook mechanisms run the identical set in the identical order). The battery is a strict superset of CI: all 28 CI gates plus 2 battery-only gates plus 2 inline checks. That is 28 + 2 + 2 = 32.
 <!-- END GENERATED -->
 
-**a guard guards the product; a guard is not itself guarded** — measured justification: the
-chain `999.27 → 999.28 → 999.30`. [docs/PROCESS.md](docs/PROCESS.md) holds the full depth rule,
-the product/apparatus review split, and the rework cap; cite it, do not restate its rules here.
-
-HARN-01, HARN-02 and HARN-03 were registered under HARN-04 at v8.18.0 — each is a CI job plus a
-single `--self-test`-only battery `gate` call, and each is counted in the battery total below. HC-BOUND
-was registered at v8.19.0 under Phase 6 (HC-04). REG-GUARD was registered at v8.21.0 under Phase 3 (REG-03).
-PROV-GUARD was registered at v8.24.0 under Phase 6 (GATE-02/GATE-03) — a CI job plus a battery `gate`
-call running both `--self-test` and the live leg — and is counted in the battery total below; its CI
-job and live leg were retired at v9.4.0 Phase 40, leaving a battery-only `--self-test` call
-([`docs/v9.4-gate-retirement.md`](docs/v9.4-gate-retirement.md)).
-SCAN-GUARD was registered at v8.26.0 under Phase 15 — a CI job plus a battery `gate` call running
-both `--self-test` and the live leg (plan 15-09, closing `15-VERIFICATION.md` gap 2's WR-05
-finding), matching REG-GUARD's shape (and PROV-GUARD's, until v9.4.0 Phase 40) rather than
-HARN-01/02/03's and HC-BOUND's
-`--self-test`-only shape — and is counted in the battery total below. CONF-SURFACE was registered
-at v9.0.0 under Phase 21 (D-21-C, plan 21-11) — a CI job plus a battery `gate` call running
-`gen-gate-docs.py --self-test` then `--check` — and is counted in the battery total below.
-
-`bash scripts/check-firewall-battery.sh` runs the full offline gate set — the total the generated population-arithmetic sentence above states, which is the only place it is written down — in one shot and prints a FIREWALL: GREEN / RED / BLOCKED verdict (SHIP-06: BLOCKED, exit 2, is a third outcome for an unmet external prerequisite — currently only VAL-03's pytest interpreter — and is distinct from a genuine gate failure, RED, exit 1). QUAL-01 (added at v8.7 Phase 164, HARNESS-01) moved the battery from 15 to 16; VERSION-01 (added by the 2026-08-16 audit, [`docs/audit-2026-08-16-duplication-staleness.md`](docs/audit-2026-08-16-duplication-staleness.md)) moved it from 16 to 17; HARN-01/02/03 (added under HARN-04, Phase 4, v8.18.0) moved it from 17 to 20; HC-BOUND (added under HC-04, Phase 6, v8.19.0) moved it from 20 to 21; REG-GUARD (added under REG-03, Phase 3, v8.21.0) moved it from 21 to 22; PROV-GUARD (added under Phase 6, v8.24.0) moved it from 22 to 23; SCAN-GUARD (added under Phase 15, v8.26.0) moved it from 23 to 24. CONF-GATE (added under Phase 18, v9.0.0) moved it from 24 to 25. CONF-SURFACE (added under Phase 21, v9.0.0, D-21-C) moved it from 25 to 26 — generated by this same gate rather than hand-swept, the phase's own demonstration. COLLIDE-01 (retired under v9.4.0 Phase 40, [`docs/v9.4-gate-retirement.md`](docs/v9.4-gate-retirement.md)) moved it from 26 to 25 — its own live scan was vacuous (no second install surface to collide against), and the name-versus-directory property it was believed to enforce is, and was already, owned by REG-GUARD and GATE-01. VAL-04 (retired under v9.4.0 Phase 40, successor assertion in REG-GUARD) moved it from 25 to 24 — with every shipped stub slash-only, only one routing description remains in the model's context, and a 4-gram collision needs two. VAL-05 (retired under v9.4.0 Phase 40, [`docs/v9.4-gate-retirement.md`](docs/v9.4-gate-retirement.md) §2.3) moved it from 24 to 23 — the platform documents no 2,000-character skill-listing ceiling, and every shipped skill stub is slash-only, so the one ceiling the platform does state (a 1,536-character combined-text truncation in a listing) never renders for any of them. RETRACT-01 was added at v9.8.0 after v9.7.0 shipped seven blocking product defects, two of them the same claim shipping twice. PROV-ROLLUP (added at backlog 999.173's registration residual) is the most recent addition — `scripts/check-provenance-rollup.py` shipped registered in neither the battery nor CI, so the reading it produced gated nothing, which is how backlog 999.176's fourteen non-conforming exemplars shipped with the battery green. The generated population-arithmetic sentence above states the current total rather than this chain restating it, following the Phase 40 CR-01 remediation precedent; for the same reason this sentence no longer states the `gate`/`gate_prereq` registration count as a digit either — the tally is those registrations plus two inline checks (INVARIANT-CHECK, FROZEN-EVIDENCE). See [`docs/v8.7-quality-baseline-freeze.md`](docs/v8.7-quality-baseline-freeze.md) and [`docs/v8.7-constraint-teardown.md`](docs/v8.7-constraint-teardown.md) for the milestone's full gate-composition and retired-constraint record.
+**a guard guards the product; a guard is not itself guarded.** See [docs/PROCESS.md](docs/PROCESS.md) and the gate definition files in `docs/gates/` for full detail. The `bash scripts/check-firewall-battery.sh` runs the full offline gate set and prints a FIREWALL: GREEN / RED / BLOCKED verdict.
 
 ### Pre-commit gates
 
-Five gates fire on `git commit` (whichever hook mechanism is active) — both `.githooks/pre-commit`
-and `scripts/git-hooks/pre-commit` run the same five, in the same order:
+Five gates fire on `git commit`:
 
-1. The **sync-drift gate** — blocks if `shared/` and the generated tree have diverged.
-2. The **conformance generator self-test** — `scripts/report-conformance.py --self-test` — blocks
-   if the generator's own falsifiability controls fail, ahead of gate 3's comparison against
-   committed output (WR-05 ordering).
-3. The **conformance-baseline drift gate** — `scripts/report-conformance.py --check` — blocks if
-   `docs/conformance-baseline.md` or `docs/data/conformance.json` no longer match a fresh run.
-   This check is deliberately NOT registered a second time in `scripts/check-firewall-battery.sh`
-   and adds no CI job (REG-GUARD's CI-job axis is unaffected) — it fails on staleness of the
-   committed baseline only, never on a conformance count being too high (D-06,
-   `.planning/phases/17-conformance-baseline/17-CONTEXT.md`). `docs/conformance-baseline.md`
-   carries the pre-existing labelled surface `adversarial-corpus`, measuring
-   `tests/adversarial-corpus-v9.0/`'s deliberately-wrong probes under `detect_defects` — its
-   CONTRACT-06-frozen extractors unmodified, its column set widened at backlog 999.120 — a clean
-   probe reading there is a MEASUREMENT of detector reach, never a statement that an artifact
-   conforms — and now carries a fifth labelled surface, `live-conformance`, measuring the agent's
-   own live-invoked output, captured under `tests/live-conformance-v9.0/`, through that same
-   `detect_defects`. Its rate is a recorded observation, stated with its N, never a gate —
-   conditional on delegation having occurred (D-04) — and subject to the same K-of-5 noise
-   discipline as every other live reading in this file. `tests/live-conformance-v9.0` and
-   `tests/live-conformance-catalog.md` are now registered `_FROZEN_PATHS` entries (Phase 20)
-   alongside `tests/adversarial-corpus-v9.0`, `tests/quality-provenance-v8.24` and
-   `tests/quality-ledger-v8.26`, and the battery total (see
-   the generated population-arithmetic sentence above) is unaffected by either
-   registered-vs-unregistered pre-commit gate because FROZEN-EVIDENCE is an inline check that
-   increments once regardless of array length.
-4. The **claim-surface generator self-test** — `scripts/gen-gate-docs.py --self-test` — same
-   WR-05 ordering discipline as gate 2, ahead of gate 5's comparison.
-5. The **claim-surface drift gate** — `scripts/gen-gate-docs.py --check` (CONF-SURFACE, D-21-C,
-   plan 21-11) — blocks if this file's, `docs/ARCHITECTURE.md`'s, `docs/TESTING.md`'s or any
-   `docs/gates/<ID>.md` page's generated region no longer matches a fresh `--write` run, or if
-   CONF-13's standing literal scanner finds a non-exempt hand-maintained count literal. Unlike
-   gates 2-3's generator, CONF-SURFACE is *also* registered in `scripts/check-firewall-battery.sh`
-   with a matching `gen-gate-docs (CONF-SURFACE)` CI job (see the gate table above) — it runs on
-   all three surfaces, not pre-commit only.
+1. **Sync-drift** — `shared/` ↔ generated tree are in sync (DUAL-04)
+2. **Conformance generator self-test** — `scripts/report-conformance.py --self-test`
+3. **Conformance-baseline drift** — `docs/conformance-baseline.md` and `docs/data/conformance.json` match fresh run
+4. **Claim-surface generator self-test** — `scripts/gen-gate-docs.py --self-test`
+5. **Claim-surface drift** — `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/gates/*.md` match fresh generated output (CONF-SURFACE)
 
-The agent body's line count (`first-principles/agents/first-principles.md`) is neither reported nor
-gated by any script — the pre-commit gate was retired under TEARDOWN-01
-(`docs/v8.7-constraint-teardown.md`), and its report-only reporter was itself retired under
-[`docs/v9.4-gate-retirement.md`](docs/v9.4-gate-retirement.md) §2.5. To read the body's current
-size, run `wc -l first-principles/agents/first-principles.md`.
+Bypass: `git commit --no-verify`
 
-Bypass for intentional in-progress work: `git commit --no-verify`
+### Claims and falsifiers
 
-### Claims and falsifiers — an acceptance criterion asserts truth, not presence
+**Key rule:** A factual claim requires a falsifier — a command that exits non-zero if the claim is false. Never rely on presence checks alone.
 
-**Binding on any plan, plan-check or execution in this repository.** Added after v9.7.0 shipped
-seven blocking product defects, every one caught by code review and every one caught *after* some
-verification step had passed the same area.
-
-The mechanism was uniform. Every acceptance criterion in that milestone had the shape
-`grep -c '<literal>' <file> == N` — a **presence check** — asking only whether a string appears. None
-asked whether the sentence it pinned was *true*. A presence check and a falsifier look identical and do opposite work, and the
-whole plan/verify layer was built from the first kind. Phase 57's criteria all passed while rows they guarded
-were false; a criterion there pinned the literal `no phase owns`, which was itself the false
-claim.
-
-So:
-
-- **A plan that ships a factual claim about this tree enumerates it, and pairs it with a
-  falsifier** — a command that exits **non-zero if the claim is false**, not one that confirms the
-   sentence is present. Run it at plan time, before the edit, and record the exit code.
-- **The plan-checker re-derives falsifiers independently; it never re-runs the planner's.** A
-  falsifier written by the claim's author reproduces the author's blind spot. Measured: while
-   designing RETRACT-01, a first falsifier for 55-CR-01 reported "claim holds" against the very
-  commit where the false claim shipped, because it encoded *invocation = `{{TOOL:}}` token* — the
-  same wrong model of the tree that produced the claim. `theoretical-limit` is invoked in prose at
-  Phase 1 and `inversion` via a `Read` link at Phase 5, and both were invisible to it. **Derive the
-  falsifier from observed text, not from your model of the text.**
-- **A noisy falsifier that fires beats a clean presence check that does not.** The corrected
-  version over-reports mentions-versus-invocations. That is the right failure direction: it forces
-  disambiguation instead of passing silently.
-- **When a review retracts a claim, add it to `REGISTRY` in `scripts/check-retracted-claims.py`**
-  (RETRACT-01) in the same change as the fix. Correcting the claim where it was found is not
-  enough — 58-CR-01 was 55-CR-01's retracted premise resurfacing three phases later in
-  `docs/requirements-matrix.md`, because the requirement statement that generated the matrix row
-  was never updated alongside the body and the payment record.
+- Pair claims with falsifiers that test *truth*, not presence
+- Plan-checker must re-derive falsifiers independently (never reuse planner's)
+- Derive falsifiers from observed text, not model assumptions
+- On claim retraction: add literal to `REGISTRY` in `scripts/check-retracted-claims.py` (RETRACT-01)
 
 ### Review protocol
 
@@ -344,27 +257,6 @@ the counterexample: an edit made entirely in `docs/` prose (`docs/README.md`,
 names) that produced a product-tier defect, which the rejected
 `shared/`-plus-`first-principles/` glob would have tiered apparatus.
 
-### Routing battery
-
-Two verifiers cover different layers of routing correctness (`check-routing.py` for the
-main-agent DELEGATE / NO-DELEGATE boundary; `check-routing-battery.py` for the merged
-boundary + focused-output signal (FU-21 gate, FOCUS-01), whose offline `--self-test` is the
-BATT-06 CI gate). Live catalog runs are developer tools, not CI gates, and are read by
-aggregate K-of-N across repeats — never a single run's verdict.
-
-Namespaced threshold defaults for the merged battery, one flag per signal:
-`--boundary-p-threshold 2`, `--boundary-n-threshold 2`, `--focused-p-threshold 4`,
-`--focused-n-threshold 1`. The un-namespaced `--p-threshold` / `--n-threshold` flags belonged
-to the two pre-merge batteries and no longer exist.
-
-The two deprecated shims that used to wrap this battery (`check-sub-skill-routing.py`,
-`check-focused-output.py`) were **retired at the 2026-08-16 audit**, together with
-`check-inventory.py`; their thresholds and self-test guards moved onto
-`check-routing-battery.py`. See
-[`docs/audit-2026-08-16-duplication-staleness.md`](docs/audit-2026-08-16-duplication-staleness.md).
-
-Full detail — thresholds, catalog fixtures, and the per-sentinel ownership map — lives in
-`docs/TESTING.md` and `docs/MEASUREMENT-MAP.md`. Read those before touching the batteries.
 
 ## Requirements surface
 
@@ -376,65 +268,6 @@ The canonical requirements and traceability surface lives in the git-tracked tre
   (**277 reproducible / 269 audit-only / 0 gap / 546 total**), compact historical ledger, and gap
   findings.
   <!-- END GENERATED:CLAUDE-COVERAGE-HEADLINE -->
-  (Derived from regenerated matrix Phase 138 Plan 03; META-Q4 re-tiered
-  reproducible→audit-only in the v8.8 post-close TEARDOWN-01 cleanup, 133/96 → 132/97; 15
-  v4.0/v4.1 builder requirements retired at quick task `260728-vxn`, 132/97 → 126/88,
-  229 → 214 rows; the 23 v8.18 milestone requirements registered as matrix rows at Phase 4 / D-05,
-  126/88 → 147/90, 214 → 237 rows; the 15 v8.24 milestone requirements registered as matrix rows
-  at Phase 6 / D-06, 147/90 → 161/91, 237 → 252 rows; the 14 v8.25 milestone requirements
-  registered as matrix rows at Phase 12 / 12-01, 161/91 → 174/92 (row count 252 → 266);
-  CONTRACT-06 re-tiered reproducible at Phase 13 / CHAINHEAD-07, 174/92 → 175/91, row count
-  unchanged at 266; the 20 v8.26 milestone requirements registered as matrix rows at Phase 16 /
-  SHIP-03, 175/91 → 192/94, row count 266 → 286; the 19 v9.0 milestone requirements registered as
-  matrix rows at Phase 23 / REL-03, 192/94 → 208/97, row count 286 → 305; the 18 v9.1 milestone
-  requirements registered as matrix rows at Phase 27 / REL-07, 208/97 → 217/106, row count
-  305 → 323; the v9.2 milestone requirements registered as matrix rows at Phase 28 / REL-12,
-  217/106 → 225/110, row count
-  323 → 335; the v9.2.1 milestone requirements registered as matrix rows at Phase 31 / REL-17,
-  225/110 → 229/116, row count
-  335 → 345; the v8.19, v8.20 and v8.21 milestone requirements and residuals
-  RR-108-04/RR-108-05 registered as matrix rows at Phase 33 / ROWS-01, 229/116 → 246/125, row
-  count 345 → 371. The test_69 dispositions moved audit-only at Phase 34 / TIER-02,
-  246/125 → 242/129, with no matrix population change. The heading-only RIGOR rows moved
-  audit-only at the Phase 34 code review / WR-02, 242/129 → 239/132, with no matrix population
-  change. The v9.3.0 milestone requirements were registered as matrix rows at Phase 35 / REL-20,
-  239/132 → 244/151, row count
-  371 → 395. TIER-03 moved audit-only at the Phase 35 code review / CR-02, 244/151 → 243/152,
-  and SCHEMA-01, STMT-01 and ANCH-01 at the same review / WR-01, 243/152 → 240/155, both with no
-  matrix population change. The v9.4.0 Phase 40 gate retirements (backlog 999.104-999.107) moved
-  VAL-04's, VAL-05's and the retired dual-install collision scan's re-tiered rows plus the v8.24 PROV-GUARD-adjacent rows named
-  in docs/v9.4-gate-retirement.md §2 audit-only, 240/155 → 228/167, with no matrix population
-  change. The v9.5.0 milestone requirements were registered as matrix rows at Phase 49 / REL-26,
-  228/167 → 228/185, row count
-  395 → 413. The v9.6.0 milestone requirements were registered as matrix rows at Phase 54 /
-  BASE-02, 228/185 → 232/190, row count
-  413 → 422. The v9.7.0 milestone requirements were registered as matrix rows at Phase 58 /
-  REL-28, 232/190 → 233/208, row count
-  422 → 441. The 6 v9.8.0 milestone requirements were registered as matrix rows at
-  `_rows_v98()`, 233/208 → 237/210, row count
-  441 → 447. The 10 v9.9.0 milestone requirements were registered as matrix rows at
-  `_rows_v99()`, 237/210 → 242/215, row count
-  447 → 457. The 23 v9.10.0 milestone requirements were registered as matrix rows at
-  `_rows_v910()`, 242/215 → 242/238, row count
-  457 → 480 — every one audit-only, measured by mutate-run-restore rather than assumed; each
-  probe left the battery GREEN, and `_rows_v910()` names which requirements were probed. The v9.11.0
-  milestone requirements were registered as matrix rows at
-  `_rows_v911()`, 242/238 → 248/248, row count
-  480 → 496 — six of them reproducible, because that milestone edited surfaces gates already
-  owned rather than technique prose no gate reads. The v9.16.0 milestone requirements were
-  registered as matrix rows at `_rows_v916()`, 248/248 → 255/256, row count
-  496 → 511 — seven of them reproducible, each tier decided by mutate-run-restore against the
-  gates Phase 75 registered this same milestone (SUMM-BLOCK, plus DUAL-04 and REG-GUARD). The
-  v9.17.0 milestone requirements were registered as matrix rows at `_rows_v917()`,
-  255/256 → 264/262, row count
-  511 → 526 — nine of them reproducible, each tier decided by mutate-run-restore against
-  FIG-GATE, SUMM-BLOCK, DUAL-04 and REG-GUARD; the delivery-step requirements stayed
-  audit-only because every probe of the agent body's delivery steps left the battery GREEN. The
-  v9.18.0 milestone requirements were registered as matrix rows at `_rows_v918()`,
-  264/262 → 277/269, row count
-  526 → 546 — thirteen of them reproducible, each tier decided by mutate-run-restore against
-  PERSONA-GATE, DUAL-04, HARN-03 and REG-GUARD; the delivery-step and skill-prose requirements
-  stayed audit-only because every probe of them left the battery GREEN.)
 - **`docs/v8.0-final-closure.md`** — **historical record, not current state.** Accepted
   limitations (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5) and deferred-ledger disposition as of
   v8.0 (Phase 142). It calls 133/96/0/229 the "final" coverage headline because v8.0 was meant to
@@ -463,30 +296,12 @@ planning artifacts are published to the public repo.
 
 ## Step 0 measurement harness
 
-Two tools measure the agent body's Step 0 technique-selection logic, at different layers. They complement the routing battery (see [Routing battery](#routing-battery)) and each other.
+Two tools measure Step 0 technique-selection logic:
 
-**`scripts/check-step0-emulator.py`** — offline phrase-detection emulator (STEP0-08 CI gate
-via `--self-test`, the only supported batch mode; no live session, no heavy manual run).
+- **`scripts/check-step0-emulator.py`** — offline phrase-detection classifier (STEP0-08 gate)
+- **`scripts/check-step0-live.py`** — live agent-body harness (STEP0-06 gate); canonical baseline: `tests/step0-baseline-v8.5.md`
 
-**`scripts/check-step0-live.py`** — live agent-body harness over the Plan-36-locked
-`claude -p --output-format stream-json --verbose` transport; offline `--self-test` is the
-STEP0-06 CI gate. Canonical baseline: **`tests/step0-baseline-v8.5.md`** — the version
-`_BASELINE_VERSION` in `scripts/check-step0-live.py` pins, the label the harness emits, and the
-file `docs/gates/STEP0-06.md` lists among its `checked_files`. Priors are frozen in
-`tests/step0-baseline-v*.md` and are never rewritten.
-
-`tests/step0-baseline-v7.8.md` is **not** a prior in the ordinary sense and this line previously
-misnamed it canonical (corrected 2026-09-23): it is the last **full-run** baseline (30 invocations,
-6 prompts x 5), and it is the generation the RR-* residual sentinels in `scripts/_battery_core.py`
-cite in their lineage comments (CONF-03, Phase 119). v8.5 is later but **narrower** (25
-invocations, 5 prompts x 5) and carries a `BATTERY: FAIL` verdict of its own. Read v8.5 for what
-the harness compares against today; read v7.8 for the last time every prompt in the bar was
-measured together.
-
-Mechanism detail for both — bypass channel, MODE classification, fault-injection fixtures —
-is in `docs/TESTING.md` and `docs/MEASUREMENT-MAP.md`.
-
-**K-of-5 is a recorded observation, not a gate (governing record §2 item 3, `docs/v8.7-constraint-teardown.md`).** A K-of-5 result from this harness is demoted to an observation that a phase records — it may not gate a phase. The evidence: the S-P04 (five-whys) vector swung 2/5 → 0/5 → 2/5 across v7.11, v8.5, and v8.6 with no source change to the five-whys technique between those measurements. At N=5, noise equals effect. The tool itself is untouched — its pass-threshold flag and its verdict line survive byte-unchanged, because every frozen baseline from v7.4 through v8.6 depends on that comparability staying intact; what changed is the authority a phase gives the verdict, not the verdict itself.
+**K-of-5 is recorded observation, not a gate** (see `docs/v8.7-constraint-teardown.md`). Full mechanism detail in `docs/TESTING.md` and `docs/MEASUREMENT-MAP.md`.
 
 ### Measurement comparison
 
