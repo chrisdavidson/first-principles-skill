@@ -260,15 +260,12 @@ the scanner could not see because `citation`/`citations` is outside
 CR-01, and both rows now send the reader to `docs/data/matrix.json` for
 the figure, so no replacement hits are needed on the same ground as the
 hops above — the rewrite introduced no new non-conforming digit.
-A subsequent phase lowered it again by removing a
+Phase 85 plan 03 lowered it once more by removing a
 `docs/ARCHITECTURE.md` permit for a sentence comparing the launcher's
 stamp count against the companion-skill count by name, reworded count-free
 once the `persona` skill joined the launcher and the thirteen companion
 skills as a third non-focused-mode skill directory, needing no replacement
 hit since the rewrite introduced no new non-conforming digit.
-The chain's terminus is
-the figure the Facts fence above publishes as `literal_scan_ledger_max` —
-read it there, not restated here as a bare digit.
 What the mechanism actually forbids is a SILENT size change: a genuine
 growth is legal precisely because it lands with both guards re-pinned, in
 the same commit, from the real final state.
