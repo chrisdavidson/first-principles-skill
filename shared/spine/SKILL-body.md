@@ -410,7 +410,7 @@ then the six sections, then the process-output appendix.
    filling in `<report>` with the path step 6 printed:
 
    ```sh
-   R="<report>"; P="${R%.md}.pdf"; S="${R%.md}.layout.typ"; E="${R%.md}.pandoc-err"; awk '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f' "${CLAUDE_PLUGIN_ROOT}/references/report-layout.md" > "$S" && sed 's/ · \[Working file\][(][^)]*)//; s/](HOW-TO-READ\.md)/](HOW-TO-READ.pdf)/g; s/](INDEX\.md)/](INDEX.pdf)/g; s/\[\([^]]*\)\](\([^)]*\)\.md)/\1/g' "$R" | pandoc -f commonmark_x --template="$S" --pdf-engine=typst --resource-path="${R%/*}" -M title="$(sed -n '1s/^# //p' "$R")" -M date="$(date -u '+%-d %B %Y')" -o "$P" 2>"$E"; rc=$?; grep -q 'Could not fetch resource' "$E" && rc=1; rm -f "$S" "$E"; if [ "$rc" -eq 0 ]; then echo "$P"; else rm -f "$P"; fi
+   R="<report>"; P="${R%.md}.pdf"; S="${R%.md}.layout.typ"; E="${R%.md}.pandoc-err"; awk '/^```typst$/ { f = 1; next } f && /^```$/ { exit } f' "${CLAUDE_PLUGIN_ROOT}/references/report-layout.md" > "$S" && sed 's/ · \[Working file\][(][^)]*)//; s/](HOW-TO-READ\.md)/](..\/..\/guides\/HOW-TO-READ.pdf)/g; s/](INDEX\.md)/](..\/..\/guides\/INDEX.pdf)/g; s/\[\([^]]*\)\](\([^)]*\)\.md)/\1/g' "$R" | pandoc -f commonmark_x --template="$S" --pdf-engine=typst --resource-path="${R%/*}" -M title="$(sed -n '1s/^# //p' "$R")" -M date="$(date -u '+%-d %B %Y')" -o "$P" 2>"$E"; rc=$?; grep -q 'Could not fetch resource' "$E" && rc=1; rm -f "$S" "$E"; if [ "$rc" -eq 0 ]; then echo "$P"; else rm -f "$P"; fi
    ```
 
    Run it once. If it fails — pandoc or typst not installed, most often, or a figure could not be
