@@ -273,6 +273,8 @@ SPINE_REFERENCES = (
     # The PDF reader report's pandoc/typst page template, carried in a fenced
     # block so the plugin stays pure Markdown; the agent body extracts it.
     "report-layout",
+    # Alternative Eisvogel LaTeX template for PDF rendering (optional)
+    "report-layout-eisvogel",
     # The reader report's typst figure library, carried in a fenced block so
     # the plugin stays pure Markdown; delivery extracts it.
     "report-figures",
@@ -379,7 +381,7 @@ SKILL_PEER_PREFIX = "${CLAUDE_PLUGIN_ROOT}/skills/"
 # out-of-generator-scope.
 # generate_all() raises ValueError if len(targets) != GENERATED_TARGET_COUNT so this
 # number cannot silently drift again (D-01, DEBT-02).
-GENERATED_TARGET_COUNT = 58
+GENERATED_TARGET_COUNT = 59
 
 # v8.5 Phase 154 GATE-02 (D-11): module-level re-entrancy sentinel guarding
 # cmd_self_test()'s dispatch control. That control drives main(["--self-test"])
