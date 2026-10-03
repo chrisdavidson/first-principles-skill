@@ -260,7 +260,7 @@ the scanner could not see because `citation`/`citations` is outside
 CR-01, and both rows now send the reader to `docs/data/matrix.json` for
 the figure, so no replacement hits are needed on the same ground as the
 hops above — the rewrite introduced no new non-conforming digit.
-A subsequent phase removed a
+A subsequent phase lowered it again by removing a
 `docs/ARCHITECTURE.md` permit for a sentence comparing the launcher's
 stamp count against the companion-skill count by name, reworded count-free
 once the `persona` skill joined the launcher and the thirteen companion
