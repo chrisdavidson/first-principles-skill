@@ -1,0 +1,261 @@
+# Switching an In-Flight CSV Project to CSA
+
+*First-principles analysis · 2 October 2026*
+
+*Read with: [How to read this analysis](HOW-TO-READ.md) · [Working file](analysis-20261002T111530Z.md) · [All files](INDEX.md)*
+
+## Executive Summary
+
+**Recommendation:** Do not switch the whole project now. Finish under the approved CSV plan by default. Move only the unexecuted remainder to CSA, at a documented boundary, when three things hold: the SOP permits it, the plan is amended first, and your own counts show a net saving (chain C5).
+
+**Band (from §6):** MEDIUM (chain C5).
+
+**Would change it:** Read your validation SOP and plan (chain C3). Risk-classify the remaining tests and count their effort (chain C4). Confirm the system is device production/QMS software (chain C7).
+
+## 1. Problem Essence
+
+**Core problem:** For the validation work on this in-flight project that has not yet been executed, which assurance method — finishing under the current scripted CSV plan, switching to the FDA's risk-based Computer Software Assurance (CSA) approach, or splitting at a defined boundary — produces evidence of fitness for intended use that is consistent with the firm's own approved procedures and defensible at inspection, at the lowest total risk and effort?
+
+What triggered the analysis ("the team wants the new way; I think it is a bad move") is not the question. The question is not "is CSA good or bad" either: it is whether *changing method part-way through one project* costs or risks more than it saves, and under which conditions that flips.
+
+**Success criteria:**
+
+- The Conclusion names one default course of action for the unexecuted remainder of this project.
+- The Conclusion states the conditions under which that default flips, each as a fact the user can check in their own documents or counts.
+- The Conclusion states whether validation evidence already executed must be redone under each option.
+- The Conclusion requires every CSA activity it permits to run under an approved, effective procedure and plan.
+- The Conclusion points to a register of risks covering every option considered — including the status quo and a split — with a control per risk.
+- The Conclusion may recommend a split or a conditional combination of methods; it is not required to pick "old way" or "new way".
+
+## 2. Assumptions Table
+
+![Assumption verdict matrix: assumption types against verdicts](report-20261002T111530Z-fig-verdicts.svg)
+
+Labels A-1 to A-19 are positional (row order) and are what the `[Assumes: A-N]` marks in section 4 refer to. Rows A-15 to A-19 were surfaced by the end-of-phase Assumption Audit (appendix).
+
+| Assumption | Type | Treatment | Verdict | Verification |
+|------------|------|-----------|---------|--------------|
+| A-1: The FDA requires scripted, step-by-step CSV test protocols for production and quality-system software | convention | Challenge before use | Discard — the regulation requires validation proportionate to risk; the guidance is nonbinding and permits alternative approaches (GT-1, GT-3) | FDA CSA guidance (Feb 2026), header and §V.A, read at source |
+| A-2: CSA is a lower compliance bar ("less validation") | untested belief | Verify or flag | Discard — the requirement is unchanged; CSA changes the evidence method and record content, not the obligation (GT-3, GT-7) | CSA guidance §V.A.6, read at source |
+| A-3: Switching mid-flight invalidates scripted tests already executed | untested belief | Verify or flag | Discard — scripted testing is itself a CSA assurance activity and the recommended rigor for high process risk (GT-6) | CSA guidance §V.A.4, read at source |
+| A-4: The firm's current SOPs and the approved validation plan prescribe scripted CSV and do not yet permit CSA methods | current constraint | Record expiry conditions | Challenge — load-bearing; expires when the software-validation SOP is revised to permit risk-based assurance and the project plan is amended under change control | unverified — flagged (GT-9?) |
+| A-5: The system is production or quality-management-system software for medical devices (inside CSA guidance scope) | untested belief | Verify or flag | Challenge — if the firm is drug/biologic (21 CFR 211) or the software is a device software function, the CSA guidance does not directly apply (GT-2) | unverified — flagged (GT-13?) |
+| A-6: FDA investigators will treat CSA-style records (unscripted testing, digital evidence) with suspicion | untested belief | Verify or flag | Challenge — undercut by the guidance being final and aligned to the QMSR (GT-1, GT-4); individual investigator practice is not verifiable here | unverified — flagged; no chain rests on it |
+| A-7: The team is trained and competent in process-risk determination and unscripted testing | untested belief | Verify or flag | Challenge — the switch's execution risk rests on it | unverified — flagged; priced as a trade-off score |
+| A-8: Switching would save meaningful effort on the remaining scope | untested belief | Verify or flag | Challenge — true only in proportion to the remaining scope that is not high process risk (GT-5, GT-10?) | unverified — flagged (GT-10?) |
+| A-9: A validation package mixing scripted and unscripted methods is inherently non-compliant | convention | Challenge before use | Discard — the guidance names a hybrid of scripted and unscripted testing and lets the method be chosen per feature (GT-6) | CSA guidance §V.A.4, read at source |
+| A-10: The QMSR/ISO 13485 requires a documented procedure for validating QMS software, which the firm must follow | current constraint | Record expiry conditions | Accept — expires only with a regulation change; until then deviating from one's own validation procedure is a nonconformance regardless of method | ISO 13485 text not opened — flagged (GT-11?) |
+| A-11: A change of validation method mid-project must go through a plan amendment under document/change control | convention | Challenge before use | Accept — survives challenge: it follows from A-10 and from the record needing an approved conclusion (GT-7) | derived from GT-7 and GT-11? |
+| A-12: Part 11 applies to electronic validation evidence | current constraint | Record expiry conditions | Accept — expires only with a regulation change; Part 11 generally applies to records needed to evidence validation, and validation enforcement discretion does not cover QMS software validation (GT-8) | CSA guidance §V.B, read at source |
+| A-13: The user's position — "switching is a bad move" — is correct as stated | untested belief | Verify or flag | Challenge — it is the subject of the analysis; section 4 shows it is conditionally right (C5) | tested in C5 |
+| A-14: Supporting software (tools not directly used in production/QMS) can be assured by vendor records and installation/configuration evidence | current constraint | Record expiry conditions | Accept — current FDA recommendation; expires if the guidance is superseded (GT-12) | CSA guidance §V.A.5, read at source |
+| A-15: The executed CSV package already holds requirement-to-test traceability, so a retrospective risk determination can be mapped onto it | untested belief | Verify or flag | Challenge — if absent, the bridging document must build it; the endpoint of C2 survives either way | unverified — surfaced by the Assumption Audit |
+| A-16: Unscripted testing reduces execution-plus-documentation effort on a not-high-risk feature by roughly 50–80% versus a full scripted protocol | untested belief | Verify or flag | Challenge — an estimate, not a measurement; used only to bracket C4 | unverified — surfaced by the Assumption Audit |
+| A-17: The one-off cost of a mid-flight switch (plan amendment, retrospective risk assessment, training, SOP update if needed) is roughly 10–40 person-days | untested belief | Verify or flag | Challenge — an estimate; used only to bracket C4 | unverified — surfaced by the Assumption Audit |
+| A-18: Changes made to the system after go-live are assured under whichever validation procedure is effective at the time of the change | convention | Challenge before use | Accept — follows from change control under the effective procedure and the guidance's treatment of changes across the life cycle (GT-1) | CSA guidance §III, read at source |
+| A-19: The firm will revise its software-validation SOP to QMSR/ISO 13485 terms in any case, independent of this project | untested belief | Verify or flag | Challenge — plausible because the QMSR has applied since February 2026 (GT-4) but not verified for this firm; if the SOP is already revised, C3's gate is already open | unverified — surfaced by the Assumption Audit |
+
+## 3. Ground Truths
+
+- **GT-1** The FDA's CSA guidance is final (February 2026, superseding the final version of September 24, 2025), contains nonbinding recommendations, and states "You can use an alternative approach if it satisfies the requirements of the applicable statutes and regulations"; it applies the risk-based approach of the existing Software Validation guidance, which covers managing changes across the life cycle — source: FDA, *Computer Software Assurance for Production and Quality Management System Software* (fda.gov guidance page and PDF media/188844); read-at-source: guidance page issue date and "supersedes" statement; PDF header (nonbinding statement) and §III Scope. Published regulatory text.
+- **GT-2** The guidance's scope is computers or automated data processing systems used as part of production or the quality management system for medical devices; it "does not provide recommendations for the design and development verification or validation requirements for device software functions" — source: CSA guidance; read-at-source: §III Scope. Published regulatory text.
+- **GT-3** Under ISO 13485 subclauses 4.1.6, 7.5.6 and 7.6 as incorporated by the QMSR, "the specific approach and activities associated with software validation and revalidation are required to be proportionate to the risk associated with the use of the software" — source: CSA guidance; read-at-source: §V.A.1, paragraph beginning "As described in Subclauses 4.1.6, 7.5.6, and 7.6". Published regulatory text (the standard itself was not opened; the guidance's statement of it was).
+- **GT-4** The QMSR took effect February 2, 2026 and incorporates ISO 13485:2016 by reference; FDA discontinued the QSIT inspection technique on that date and now inspects under Compliance Program 7382.850 — source: FDA QMSR web page; read-at-source: "The rule is effective February 2, 2026…" and the QSIT discontinuation paragraph. Published regulatory text.
+- **GT-5** A software feature, function or operation is "high process risk" when its failure to perform as intended may result in a quality problem that foreseeably compromises safety; CAPA routing, complaint tracking, change-control and procedure-management automation and data-management functions are given as generally not high process risk — source: CSA guidance; read-at-source: §V.A.2. Published regulatory text.
+- **GT-6** For high process risk features the guidance points to scripted testing or a hybrid of scripted and unscripted testing; for not-high-risk features, unscripted methods (scenario, error-guessing, exploratory); and it says these are "not exclusive to those categories" — source: CSA guidance; read-at-source: §V.A.4, paragraph beginning "In general, FDA recommends that manufacturers apply principles of risk-based testing". Published regulatory text.
+- **GT-7** FDA recommends the record include the intended use, the result of the risk-based analysis, a description of testing, issues found, a conclusion statement of acceptability, who performed it and when, and review/approval when appropriate; documentation "need not include more evidence than necessary" — source: CSA guidance; read-at-source: §V.A.6 "Establishing the Appropriate Record". Published regulatory text.
+- **GT-8** Part 11 generally applies to electronic records needed to evidence required validation, and Part 11 validation enforcement discretion "expressly does not apply" to validation of production/QMS software under ISO 13485 — source: CSA guidance; read-at-source: §V.B. Published regulatory text.
+- **GT-9?** The firm's current software-validation SOP and the project's approved validation plan prescribe scripted CSV and do not yet permit CSA methods — unverified: a fact about the user's quality system, not stated in the request.
+- **GT-10?** The fraction of the project's remaining, unexecuted test scope that is not high process risk — unverified: depends on the system and its intended uses, not stated in the request.
+- **GT-11?** ISO 13485:2016 subclause 4.1.6 requires the organization to document procedures for validating the application of computer software used in the QMS — unverified: the standard is a paid document and was not opened; GT-3 confirms the subclause's risk-proportionality, not its wording on documented procedures.
+- **GT-12** Supporting software can often be assured by leveraging vendor evaluation and validation records, installation or configuration, "such that additional assurance activities (e.g., scripted or unscripted testing) may be unnecessary" — source: CSA guidance; read-at-source: §V.A.5. Published regulatory text.
+- **GT-13?** The project's system is medical-device production/QMS software (inside GT-2's scope) rather than drug/biologic GMP software or a device software function — unverified: the request says only "regulated by the FDA".
+
+**Provenance summary:**
+
+```text
+?-marked: GT-9?, GT-10?, GT-11?, GT-13? (4 of 13)
+Read-at-source: GT-1 — FDA guidance page + PDF header and §III; GT-2 — §III; GT-3 — §V.A.1; GT-4 — FDA QMSR page; GT-5 — §V.A.2; GT-6 — §V.A.4; GT-7 — §V.A.6; GT-8 — §V.B; GT-12 — §V.A.5
+```
+
+Phase 3 failure record: GT-11? — ISO 13485:2016 not opened: paywalled standard; the CSA guidance quotes its risk-proportionality requirement (GT-3) but not its documented-procedure wording. GT-9?, GT-10?, GT-13? cite no external source; they are facts about the user's own system and quality system, and only the user can supply them.
+
+## 4. Derivation Chains
+
+![Evidence trace: ground truths, chains and the conclusion](report-20261002T111530Z-fig-trace.svg)
+
+### Conclusion C1: CSV and CSA are two evidence methods for one unchanged obligation
+
+GT-1 (alternative approaches permitted, guidance nonbinding) + GT-3 (validation must be proportionate to risk) + GT-4 (QMSR in force, incorporating ISO 13485) + GT-7 (what the record must show)
+→ the regulation fixes the outcome — risk-proportionate evidence that the software is fit for its intended use — and leaves the test method open
+→ scripted CSV and risk-based CSA are two ways of producing that one required evidence
+→ choosing between them on this project is a decision about execution risk and effort, not about the level of compliance
+
+**Confidence:** HIGH — every input is read at source (CSA guidance header, §III, §V.A.1, §V.A.6; FDA QMSR page); each hop is a deduction from the line above; the rival "CSA is a lower compliance bar" is ruled out by GT-3 and GT-7 in section 5, Dead End 1 (chain C1).
+
+### Conclusion C2: Evidence already executed carries over; a switch needs a mapping, not re-execution
+
+GT-6 (scripted testing is a CSA method, hybrids named) + GT-7 (record contents) + C1 (HIGH, method open)
+→ an executed, approved scripted protocol already supplies the testing description, issues, conclusion, performer and date that the CSA record asks for
+→ the one CSA record element it may lack is an explicit per-feature process-risk determination *[Assumes: A-15]*
+→ a switch therefore requires a retrospective risk-determination mapping onto executed tests, not their re-execution
+
+**Confidence:** HIGH — A-15 is priced: if the executed package lacks requirement-to-test traceability, the mapping document must build it, which raises the one-off switch cost B used in C4 but still requires no re-execution, so the endpoint stands; the rival "a package must use one method throughout" is ruled out by GT-6 in section 5, Dead End 2.
+
+### Conclusion C3: No CSA activity may run until the firm's own procedure and plan permit it
+
+GT-11? (ISO 13485 requires a documented software-validation procedure) + GT-9? (current SOP and plan prescribe scripted CSV) + GT-7 (record needs an approved conclusion)
+→ an assurance activity performed by a method the effective SOP and approved plan do not permit is a deviation from the firm's own procedure
+→ that deviation is a nonconformance regardless of whether FDA would accept the method itself
+→ a switch is admissible only once the SOP permits risk-based assurance and the plan is amended under change control, before the first CSA activity is executed
+
+**Confidence:** MEDIUM — Inputs axis short: GT-11? is removed as a cause by reading ISO 13485:2016 subclause 4.1.6; GT-9? is removed by reading the firm's current software-validation SOP and the project's approved validation plan. If the SOP already permits risk-based assurance, the gate reduces to a plan amendment. The rival "FDA endorses CSA, so the team may start now" is ruled out in section 5, Dead End 3.
+
+### Conclusion C4: A switch pays back only when R × f × r exceeds the one-off switch cost B
+
+GT-5 (definition of high process risk) + GT-6 (high-risk features keep scripted or hybrid rigor) + GT-10? (share of remaining scope that is not high risk)
+→ any effort saving from switching accrues only on remaining, unexecuted features that are not high process risk
+→ net saving equals R × f × r minus B, with R the remaining scripted effort in person-days, f the not-high share, r the per-feature effort reduction and B the one-off switch cost
+→ illustrative bracket: at f = 0.5 and r = 0.65, breakeven R is B ÷ 0.325, about 31 to 123 person-days for B between 10 and 40 *[Assumes: A-16, A-17]*
+→ at the conservative end (f = 0.3, r = 0.5) breakeven R is about 67 to 267 person-days
+→ at the aggressive end (f = 0.8, r = 0.8) breakeven R is about 16 to 63 person-days
+→ a remaining scripted effort under about 16 person-days cannot pay back a switch at any bracketed value
+→ the decision rule is to measure R, f and B on this project and switch the remainder only if R × f × r exceeds B
+
+**Confidence:** MEDIUM — Inputs axis short: GT-10? is removed by classifying every remaining unexecuted test case as high or not high process risk under GT-5's definition. A-16 and A-17 are priced: they set only the illustrative bracket; if either is wrong the bracket moves but the endpoint — measure R, f and B and compare — stands. Rival "a fixed breakeven number can be stated" is abandoned in section 5, Dead End 6.
+
+### Conclusion C5: Finish under the approved CSV plan by default; switch the remainder at a documented boundary only when C3's gate is open and C4's rule shows a net saving
+
+GT-1 (method open) + GT-6 (hybrids named) + GT-9? (SOP state) + GT-10? (not-high share) + C2 (HIGH, evidence carries over) + C3 (MEDIUM, procedure gate)
+→ must-have knock-out: any option that executes CSA activities before C3's gate is open is not viable, so the switching options are viable only conditionally
+→ weighted totals with weights locked before scoring: O1 finish under CSV = 78, O3 boundary switch = 78, O4 pause-then-switch = 67, O2 immediate full re-plan = 53
+→ the exact tie resolves to O1 because O3's decisive effort score rests on GT-10? and O1's scores rest on read ground truths
+→ the flip test shows a ±1 change on any of five criteria moves the winner to O3, so the generic comparison is a near-tie that only project facts can break
+→ finish under CSV unless the gate in C3 is open and C4's rule shows a net saving, in which case switch only the unexecuted remainder at a documented boundary
+
+**Confidence:** MEDIUM — Inputs axis short: GT-9? (read the SOP and plan) and GT-10? (risk-classify the remaining tests); C3 is MEDIUM. The near-tie between O1 and O3 is not a live rival: the endpoint states the observation that selects between them. O2 and O4 are ruled out in section 5, Dead Ends 4 and 5. Full matrix, anchors and flip test are in the appendix.
+
+### Conclusion C6: Finishing under CSV defers this system's CSA benefit rather than forfeiting it
+
+C5 (MEDIUM, default recommendation) + GT-1 (risk-based approach covers changes across the life cycle) + GT-4 (QMSR in force, new inspection program)
+→[2nd] time lens: after go-live every change is assured under the procedure then effective, so a system finished under CSV moves to CSA at its first change *[Assumes: A-18]*
+→[2nd] time lens: the CSA saving forgone by O1 is bounded to the remaining pre-go-live scope
+→[2nd] actor lens: a team overruled on method may execute the remaining scripts as box-ticking, degrading the very evidence O1 is chosen to protect
+→[2nd] actor lens: managers told CSA saves money will read O1 as resistance unless the deferral and C4's rule are shown to them
+→[2nd] actor lens: investigators now inspect against the QMSR, which incorporates ISO 13485's risk-proportionate validation
+→[3rd] the firm's SOP revision is therefore a QMSR-driven task, so its cost belongs outside B in C4's comparison *[Assumes: A-19]*
+
+**Confidence:** MEDIUM — capped by C5 (MEDIUM). The rival "O1 locks the system into CSV for life" is ruled out in section 5, Dead End 7. A-18 is priced: if post-go-live changes stayed under CSV, the deferral claim weakens but the endpoint about SOP cost does not depend on it. A-19 is priced: if the SOP is already revised, C3's gate is already open and B is smaller still, so the endpoint stands. The box-ticking effect works against success criterion 1 (record quality) and is carried as a risk (R9) in C7. No effect contradicts a ground truth.
+
+### Conclusion C7: The risks of the transition are execution risks with known controls, concentrated in five failure classes
+
+C1 (HIGH, obligation unchanged) + C2 (HIGH, evidence carries over) + C3 (MEDIUM, procedure gate) + GT-5 (risk definition) + GT-8 (Part 11 on evidence) + GT-13? (system inside CSA scope)
+→ because the obligation is unchanged and executed evidence carries over, the transition does not raise regulatory-level risk from CSA itself
+→ the risks concentrate in procedure/plan mismatch, process-risk misclassification, thin records, uncontrolled digital evidence and scope misapplication
+→ each has a named control in the register below, so a switch made through the gate is a manageable change rather than a compliance gamble
+
+**Confidence:** MEDIUM — Inputs axis short: C3 is MEDIUM, and GT-13? is removed by confirming the system is medical-device production or QMS software and not drug/biologic GMP software or a device software function. Rival "the switch is a compliance gamble" is ruled out by C1 and C2 (section 5, Dead End 1).
+
+### Conclusion C8: Under CSA the remaining work's rigor is re-allocated toward safety-relevant features, never removed from them
+
+GT-2 (scope: production/QMS software, not device software functions) + GT-5 (high process risk definition) + GT-8 (Part 11 applies to validation evidence) + GT-12 (supporting software via vendor and configuration evidence)
+→ inside the guidance's scope, the rigor a remaining feature needs is set by whether its failure could foreseeably compromise safety
+→ that rigor has a floor wherever electronic evidence is relied on, because Part 11 controls apply to it
+→ effort can fall only on not-high-risk and supporting features, where vendor and configuration evidence may replace testing
+→ a CSA remainder re-allocates effort from low-risk and supporting features toward safety-relevant ones under a fixed evidence-integrity floor
+
+**Confidence:** HIGH — every input is read at source (CSA guidance §III, §V.A.2, §V.B, §V.A.5); each hop is a deduction from the line above; the rival "CSA reduces rigor across the board" is ruled out by GT-5 and GT-8 in section 5, Dead End 1. Whether this system is inside the guidance's scope at all is GT-13?, carried on C7, not an input here: C8 states what holds inside the scope (chain C8).
+
+**Risk register (supports C7) — every option's risks, with controls** (O1 finish under CSV; O2 immediate full switch with re-plan; O3 boundary switch of the unexecuted remainder; O4 pause, revise, then switch):
+
+| # | Risk | Options exposed | Basis | Control |
+|---|------|-----------------|-------|---------|
+| R1 | CSA activities executed before the SOP and plan permit them — a self-inflicted procedural nonconformance | O2 high; O3, O4 only if the gate is skipped | C3 | SOP permits risk-based assurance and plan amendment approved before the first CSA activity |
+| R2 | A safety-relevant feature misclassified as not high process risk and tested only unscripted | O2, O3, O4 | GT-5, GT-6 | Documented per-feature risk determination with QA approval; when uncertain, classify high |
+| R3 | Unscripted-test records missing intended use, risk result, issues or conclusion | O2, O3, O4 | GT-7 | Record template carrying every GT-7 element; reviewer checks against it |
+| R4 | System logs, audit trails or screenshots used as evidence without Part 11 controls | All options using digital evidence | GT-8 | Confirm the evidence-holding system's Part 11 controls before relying on it |
+| R5 | CSA guidance applied outside its scope (drug/biologic GMP software, or device software functions) | O2, O3, O4 | GT-2, GT-13? | Confirm scope first; outside it, follow the procedures that apply to that product type |
+| R6 | A two-method package with no stated boundary or rationale reads as incoherent at inspection | O3 | C2, GT-7 | Plan amendment naming the boundary, the reason, and the risk mapping onto executed tests |
+| R7 | Executed scripted evidence re-documented or re-run needlessly | O2 | C2 | Keep it; map it |
+| R8 | Re-planning, training and SOP work delay go-live | O2, O4 high; O3 medium | C4, C5 | Switch only where C4's rule shows a net saving |
+| R9 | Team overruled on method executes the remaining scripts as box-ticking | O1 | C6 | Explain the deferral; make post-go-live changes the team's first CSA work |
+| R10 | An untrained team performs unscripted testing poorly | O2, O3, O4 | A-7 | Training and an experienced reviewer; start on not-high-risk features |
+| R11 | Management books savings that do not materialise on a mostly high-risk remainder | O2, O3 | C4 | Show R, f and B before committing |
+| R12 | Supporting software over-tested when vendor records would suffice | All, once the SOP permits it | GT-12 | Leverage vendor evaluation and installation/configuration evidence |
+
+## 5. Abandoned Reasoning
+
+### Dead End: 1 — "CSA is a lower compliance bar, so switching lowers our compliance"
+
+**What was tried:** Treating the choice as old-strict versus new-lenient, so that switching trades compliance for speed.
+
+**Why abandoned:** Contradicted by GT-3 (validation proportionate to risk is required either way) and GT-7 (CSA still expects intended use, risk result, testing description, issues, an approved conclusion, performer and date). The obligation does not move; only the method does (C1). GT-5 and GT-8 also show that rigor is redistributed by process risk under a fixed Part 11 evidence floor, not lowered (C8).
+
+**What it ruled out:** Arguing against the switch on the grounds that CSA is "less validation", and arguing for it on the grounds that it is "less work across the board". Both misread the guidance.
+
+### Dead End: 2 — "A validation package must use one method throughout, so a mid-flight switch means redoing what is done"
+
+**What was tried:** Assuming method consistency is required inside one package, which would make the executed scripted work sunk cost.
+
+**Why abandoned:** GT-6 names a hybrid of scripted and unscripted testing and lets the method be chosen per feature; scripted testing is itself a CSA method. C2 shows executed tests need a risk mapping, not re-execution.
+
+**What it ruled out:** Treating executed work as lost under a switch, and treating a two-method package as inherently non-compliant (it needs a stated boundary — R6 — not uniformity).
+
+### Dead End: 3 — "FDA has endorsed CSA, so the team can start working the new way now"
+
+**What was tried:** Reading the final guidance as permission that overrides the firm's current procedure and approved plan.
+
+**Why abandoned:** GT-1 shows the guidance is nonbinding; it permits an approach, it does not amend the firm's SOP. Executing outside one's own approved procedure is a nonconformance whatever the method's merits (C3).
+
+**What it ruled out:** Any switch that begins before the SOP permits risk-based assurance and the plan is amended (risk R1).
+
+### Dead End: 4 — Option O2 — switch everything now and re-plan the whole package to CSA
+
+**What was tried:** Scoring an immediate, complete switch, including re-documenting executed work in CSA form.
+
+**Why abandoned:** Lowest weighted total (53 against 78 for O1 and O3) in C5's trade-off; it pays re-planning cost on work C2 shows already carries over, and it fails C3's must-have unless the SOP is already revised.
+
+**What it ruled out:** The "go fully to the new way now" reading of the team's proposal.
+
+### Dead End: 5 — Option O4 — pause execution, revise the SOP, train, then switch
+
+**What was tried:** Stopping the project until the quality system and team are ready, then running O3.
+
+**Why abandoned:** 67 against 78 in C5; it adds O3's switching cost plus a schedule stop, without evidence advantage over O3, because O3 already requires the gate to be open before any CSA activity.
+
+**What it ruled out:** Halting the in-flight project as a way to "do the transition properly".
+
+### Dead End: 6 — Stating one breakeven number for when a switch pays
+
+**What was tried:** Computing a single person-day threshold above which switching is worth it.
+
+**Why abandoned:** The threshold depends on GT-10? (the not-high-risk share of remaining work) and on two estimates (A-16, A-17) that only the project can measure; the bracket spans about 16 to 267 person-days (C4).
+
+**What it ruled out:** Quoting a generic threshold. C4 keeps the rule (compare R × f × r with B) and leaves the numbers to the project's own counts.
+
+### Dead End: 7 — "Finishing under CSV locks this system into the old way for its whole life"
+
+**What was tried:** Treating O1 as forfeiting CSA's benefit for this system permanently, which would weigh against it.
+
+**Why abandoned:** GT-1 places changes across the life cycle under the risk-based approach, and A-18 records that post-go-live changes are assured under the procedure then effective; C6 shows the benefit is deferred to the first change, not lost.
+
+**What it ruled out:** Counting the whole future maintenance saving of CSA against O1; only the pre-go-live remainder is at stake.
+
+## 6. Conclusion
+
+**Recommended approach:** Do not switch the whole in-flight project now; finish it under its approved CSV plan by default, and move only the unexecuted remainder to CSA, at a documented boundary, if the firm's SOP already permits risk-based assurance, the plan is amended before any CSA activity, and the project's own counts show R × f × r exceeding the switch cost B (chain C5).
+
+**Key insight:** CSV and CSA are two methods for one unchanged obligation, so the danger is not CSA itself but changing method mid-stream outside your own approved procedure (chain C1). Your objection is right about an uncontrolled switch and wrong if it rests on CSA being riskier or weaker (chain C3).
+
+**Trade-offs acknowledged:** Finishing under CSV gives up savings on not-high-risk remaining features, but defers them rather than forfeiting them: the system moves to CSA at its first post-go-live change, and the SOP revision is a QMSR-driven task anyway (chain C6). The default is a near-tie that a ±1 weight change flips, so the project facts below decide it (chain C5).
+
+**What decides it, and what holds either way:**
+
+- Confirm the system is medical-device production or quality-system software, inside the CSA guidance's scope (chain C7).
+- Read the current software-validation SOP and approved plan to see whether risk-based assurance is permitted (chain C3).
+- Classify every remaining unexecuted test case as high or not high process risk, and count its scripted effort (chain C4).
+- Executed scripted evidence is kept and mapped to a risk determination, never re-run because of a switch (chain C2).
+- If the remainder does move to CSA, its rigor shifts toward safety-relevant features under a Part 11 evidence floor rather than falling everywhere (chain C8).
+- Whichever option is chosen, the twelve risks in C7's register each carry a named control (chain C7).
+
+**Confidence:** MEDIUM — C3, C4, C5, C6 and C7 are rated MEDIUM; the decision turns on the firm's SOP state, the not-high-risk share of remaining work and the system's scope, carried in those chains, and establishing those three facts would remove them as causes of the downgrade (chain C5).

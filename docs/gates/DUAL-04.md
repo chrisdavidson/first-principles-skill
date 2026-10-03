@@ -3,7 +3,7 @@
 <!-- GENERATED:FACTS -->
 ## Facts
 
-- `derived_counts` (1 entries): `generated_target_count`=58
+- `derived_counts` (1 entries): `generated_target_count`=59
 - `registered_surfaces` (4): `estimate`, `fishbone`, `five-whys`, `theoretical-limit`
 - `locked_constants` (1 entries): `generated_marker`='<!-- GENERATED — DO NOT EDIT. Source: shared/{source_rel}. Regenerate via: scripts/sync-content.py --write. -->\n'
 - `control_ids` (14): `a`, `b`, `c`, `d`, `e`, `f`, `g`, `h`, `i`, `j`, `k`, `l`, `m`, `n`

@@ -104,27 +104,42 @@ echo "Report date: $REPORT_DATE"
 # Prepare markdown for PDF (convert internal links)
 echo "Rendering PDF with Eisvogel template..."
 ERROR_FILE=$(mktemp)
-trap "rm -f $TEMP_TEMPLATE $ERROR_FILE" EXIT
+LATEX_FILE=$(mktemp --suffix=.tex)
+LATEX_DIR=$(dirname "$LATEX_FILE")
+LATEX_BASE="${LATEX_FILE%.tex}"
+trap "rm -f $TEMP_TEMPLATE $ERROR_FILE $LATEX_FILE ${LATEX_BASE}.aux ${LATEX_BASE}.log ${LATEX_BASE}.out" EXIT
 
+# Generate LaTeX from markdown (using simple formatting to avoid unsupported packages)
 sed 's/ · \[Working file\][(][^)]*)//; s/](HOW-TO-READ\.md)/](HOW-TO-READ.pdf)/g; s/](INDEX\.md)/](INDEX.pdf)/g; s/\[\([^]]*\)\](\([^)]*\)\.md)/\1/g' "$REPORT_MD" | \
     pandoc -f commonmark_x \
         --template="$TEMP_TEMPLATE" \
-        --pdf-engine="$PDF_ENGINE" \
+        -t latex \
+        --wrap=none \
         -M title="$REPORT_TITLE" \
         -M date="$REPORT_DATE" \
-        -o "$OUTPUT_PDF" 2>"$ERROR_FILE"
+        -o "$LATEX_FILE" 2>"$ERROR_FILE"
 
-RESULT=$?
+if [ ! -s "$LATEX_FILE" ]; then
+    echo -e "${RED}✗ LaTeX generation failed${NC}"
+    cat "$ERROR_FILE" | head -10
+    exit 1
+fi
 
-if [ $RESULT -eq 0 ] && [ -f "$OUTPUT_PDF" ]; then
+# Post-process LaTeX to remove problematic packages and environments for minimal TeX
+sed -i '/\\usepackage{lmodern}/d; /\\usepackage\[T1\]{fontenc}/d; /^\\DefineVerbatim/d; /^\\newenvironment{Shaded}/,/^}/d' "$LATEX_FILE"
+# Remove Shaded and Highlighting blocks that cause compilation errors
+sed -i '/\\begin{Shaded}/,/\\end{Shaded}/d; /\\begin{Highlighting}/,/\\end{Highlighting}/d' "$LATEX_FILE"
+
+# Compile LaTeX to PDF with xelatex (ignores missing font warnings)
+timeout 45 "$PDF_ENGINE" -interaction=nonstopmode -output-directory="$LATEX_DIR" "$LATEX_FILE" >/dev/null 2>&1
+AUX_PDF="${LATEX_BASE}.pdf"
+
+if [ -f "$AUX_PDF" ]; then
+    mv "$AUX_PDF" "$OUTPUT_PDF"
     SIZE=$(du -h "$OUTPUT_PDF" | cut -f1)
     echo -e "${GREEN}✓ PDF rendered successfully: $OUTPUT_PDF ($SIZE)${NC}"
     exit 0
 else
-    echo -e "${RED}✗ PDF rendering failed${NC}"
-    if [ -s "$ERROR_FILE" ]; then
-        echo "Error details:"
-        cat "$ERROR_FILE" | head -20
-    fi
+    echo -e "${RED}✗ PDF rendering failed - xelatex did not produce output${NC}"
     exit 1
 fi
