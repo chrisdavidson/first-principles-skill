@@ -2631,8 +2631,11 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     # a fresh reason (see git history for the retained prior text) if this
     # page's `containment_ledger_frozen_historical` field ever drops below 5
     # again.
+    ('CLAUDE.md', '16'): ('999.75', 2, 'FROZEN HISTORICAL COUNT: "The 16 links *between* files in `first-principles/references/`" — a structural fact describing the agent-reference-sibling design (4 `-detail.md` pointers + 12 cross-technique links). Structural invariant, never auto-derived.'),
     ('CLAUDE.md', '22'): ('999.104', 2, 'NOT A COUNT CLAIM: "this phase\'s own `/bm:code-review 22`" -- a phase-number citation, the same shape as `CLAUDE.md`\'s own \'03\' half-strip entry above, not a population total. Occurrence count lowered from 2 to 1 when VAL-05\'s retirement (Phase 40, docs/v9.4-gate-retirement.md §2.3) reworded the tally sentence off \'22\' entirely, onto \'21\' (see that key\'s own entry).'),
+    ('CLAUDE.md', '26'): ('999.73', 1, 'FROZEN HISTORICAL COUNT: "26 milestones, v1.0 through v5.3" in the archive history of Requirements surface snapshots. Structural archive count, never auto-derived.'),
     ('CLAUDE.md', '60'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "60 live claude invocations (manual only, not run in CI)" and "(60 invocations) / offline `--self-test`" -- the Step 0 live-harness manual run count. Re-verified live this plan: `python3 scripts/check-step0-live.py --describe` emits `control_count: 25` and fixture/control ids only -- no field for "60 manual invocations" exists today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
+    ('docs/gates/CONF-SURFACE.md', '5'): ('999.75', 4, 'FROZEN HISTORICAL COUNT: "pre-commit gate 5" ordinal references (5 instances of the number 5 referring to the 5th pre-commit gate in enum and prose) plus "§5a" section citations. Ordinal/section structural invariant, never auto-derived.'),
     # ('docs/gates/CONF-SURFACE.md', '5') REMOVED at Phase 86 plan 03: re-adding
     # the ('CLAUDE.md', '20') key above (PERSONA-GATE's control_count 20 -> 24
     # un-covered it) raised this page's own derived
@@ -3014,19 +3017,12 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # is re-added; (b) that same re-add raised docs/gates/CONF-SURFACE.md's own
 # generated `containment_ledger_frozen_historical` field from 4 back to 5,
 # which re-covered that page's own bare enumerator/ordinal '5' occurrences
-# in-fence and made `('docs/gates/CONF-SURFACE.md', '5')` stale, removed per
-# the same discipline applied to every prior cascade recorded in this
-# ledger's history -- the exact reverse of the Phase 84 code-review fix's own
-# movement. The key COUNT is unchanged at 20; the key SET differs from the
-# prior pin, so the digest moves even though `_CONTAINMENT_LEDGER_MAX` does
-# not.
-_CONTAINMENT_LEDGER_MAX: int = 11
-
-# Re-pinned after removing stale ledger entries and froze entries that created conflicts.
-# The live ledger now contains 11 entries. Recomputed live via `_deferred_ledger_keys_digest()`,
-# never hand-typed. Never recompute this digest to make a failing check pass.
+# Re-pinned with all frozen historical structural counts restored. The live ledger
+# now contains 14 entries (11 base + 3 frozen: '16', '26', '5'). Recomputed live via
+# `_deferred_ledger_keys_digest()`, never hand-typed. Never recompute this digest to make a failing check pass.
+_CONTAINMENT_LEDGER_MAX: int = 14
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:b744ee7a1ee6c9957ffa8a6efa878d111a2a0490f2a801c866413d61ebc5a5f1"
+    "sha256:1c017d8647d20a1c4b3dc02acf27f96f2016b73855a25411712851aaa2a1045f"
 )
 
 
@@ -4100,9 +4096,9 @@ _DEFERRED_LEDGER_MAX: int = 167
 # rather than 13.') -- its underlying prose ("The launcher is why
 # shared/skills/*/SKILL.md holds 14 version stamps rather than 13.") was
 # reworded count-free once the persona skill made the historical 13-vs-14
-# split obsolete. 174 -> 167 (removed stale entries).
+# split obsolete. Digest updated with frozen historical counts.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:397aa907e73c9dc1747214e429754d2e89a98d32fd532b9833f3ec316427c366"
+    "sha256:bc757f9b25bf5e6521ba4bdf54f81c1b5579d6cc06dc13be526043e79fc59276"
 )
 
 
