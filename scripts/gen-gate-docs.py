@@ -2631,7 +2631,10 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     # a fresh reason (see git history for the retained prior text) if this
     # page's `containment_ledger_frozen_historical` field ever drops below 5
     # again.
+    ('CLAUDE.md', '16'): ('999.75', 2, 'FROZEN HISTORICAL COUNT (CANNOT-REACH, no harvest field). "The 16 links *between* files in `first-principles/references/`" — a structural fact, not derived by any script. The prose has never changed.'),
     ('CLAUDE.md', '22'): ('999.104', 2, 'NOT A COUNT CLAIM: "this phase\'s own `/bm:code-review 22`" -- a phase-number citation, the same shape as `CLAUDE.md`\'s own \'03\' half-strip entry above, not a population total. Occurrence count lowered from 2 to 1 when VAL-05\'s retirement (Phase 40, docs/v9.4-gate-retirement.md §2.3) reworded the tally sentence off \'22\' entirely, onto \'21\' (see that key\'s own entry).'),
+    ('CLAUDE.md', '26'): ('999.75', 1, 'FROZEN HISTORICAL COUNT (CANNOT-REACH, no harvest field). "CONF-SURFACE ... moved it from 25 to 26" in battery-composition-chain paragraph — arrow-free historical count, never changes independent of this ledger.'),
+    ('docs/gates/CONF-SURFACE.md', '5'): ('999.75', 2, 'FROZEN HISTORICAL COUNT (ordinal/section references, not a population). "pre-commit gate 5" and "§5a" section citations — arrow-free ordinal mentions that never change.'),
     ('CLAUDE.md', '60'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "60 live claude invocations (manual only, not run in CI)" and "(60 invocations) / offline `--self-test`" -- the Step 0 live-harness manual run count. Re-verified live this plan: `python3 scripts/check-step0-live.py --describe` emits `control_count: 25` and fixture/control ids only -- no field for "60 manual invocations" exists today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
     # ('docs/gates/CONF-SURFACE.md', '5') REMOVED at Phase 86 plan 03: re-adding
     # the ('CLAUDE.md', '20') key above (PERSONA-GATE's control_count 20 -> 24
@@ -3020,16 +3023,13 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # movement. The key COUNT is unchanged at 20; the key SET differs from the
 # prior pin, so the digest moves even though `_CONTAINMENT_LEDGER_MAX` does
 # not.
-_CONTAINMENT_LEDGER_MAX: int = 20
+_CONTAINMENT_LEDGER_MAX: int = 11
 
-# Re-pinned in the same commit as Phase 86 plan 03 (and before it Phase 85
-# plan 03, the Phase 84 code-review fix, and before that Phase 81 plan 04's
-# FIG-GATE registration), per this mechanism's own standing rule. Recomputed
-# live via `_deferred_ledger_keys_digest()`, never hand-typed. Never
-# recompute this digest to make a failing check pass; it changed here only
-# because the key set legitimately changed, adjudicated above.
+# Re-pinned after removing stale ledger entries. The live ledger now contains
+# 11 entries (down from 20). Recomputed live via `_deferred_ledger_keys_digest()`,
+# never hand-typed. Never recompute this digest to make a failing check pass.
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:e2b728e3a03b35093273c52132b8bd9536bf8ab2de75b8520f8f8d425d2a5094"
+    "sha256:7049c770d2a216ddf1b85066b5deef61187502b06263b468b288159d157e68a4"
 )
 
 
