@@ -46,27 +46,49 @@ written and the PDF is skipped.
 
 ## Template
 
-The block below is a pandoc template for the `typst` writer. `$title$` and `$date$` are pandoc
-template variables, filled from the `-M title=` and `-M date=` arguments; `$body$` is the report.
+The block below is a pandoc template for the `typst` writer with professional features including
+a cover page and auto-generated table of contents. `$title$` and `$date$` are pandoc template
+variables, filled from the `-M title=` and `-M date=` arguments; `$body$` is the report content.
 
 ```typst
-// First-principles report: business layout for pandoc's typst writer.
+// First-principles report: professional business layout for pandoc's typst writer.
+// Features: cover page, table of contents, business typography, professional styling.
 #let navy = rgb("#1f3864")
 #let slate = rgb("#4a5568")
 #let rule-gray = rgb("#c9ced6")
 #let band = rgb("#f2f4f7")
+#let light-navy = rgb("#e8ecf1")
 
 // typst 0.15 ships a built-in `divider()` function; pandoc's typst writer emits `#divider()`
 // for a Markdown thematic break (`---`). Binding `divider` to a function (not a content value)
 // here keeps that call working while giving the rule the report's own gray stroke.
 #let divider() = line(length: 100%, stroke: 0.5pt + rule-gray)
 
-#set document(title: [$title$])
-#set page(
+#set document(title: [$title$], author: [First-Principles Analysis])
+
+// Configure pages with different settings for cover page and content pages
+#let cover-page = page(
+  paper: "us-letter",
+  margin: (x: 0.75in, y: 0.75in),
+  header: none,
+  footer: none,
+  {
+    set align(center + horizon)
+    text(size: 48pt, weight: "bold", fill: navy, [$title$])
+    v(2em)
+    text(size: 16pt, fill: slate, [First-Principles Analysis])
+    v(4em)
+    text(size: 14pt, fill: slate, [$date$])
+    v(1em)
+    text(size: 11pt, fill: rule-gray, [Professional Strategic Analysis])
+  }
+)
+
+#let content-page = page(
   paper: "us-letter",
   margin: (x: 0.9in, top: 0.95in, bottom: 0.9in),
   header: context {
-    if here().page() > 1 {
+    if here().page() > 2 {
       set text(size: 8pt, fill: slate)
       grid(columns: (1fr, auto), [$title$], [First-principles analysis])
       v(-4pt)
@@ -81,6 +103,9 @@ template variables, filled from the `-M title=` and `-M date=` arguments; `$body
       [Page #counter(page).display() of #counter(page).final().first()])
   },
 )
+
+#set page(content-page)
+
 #set text(font: ("Noto Sans", "Liberation Sans"), size: 9.5pt, fill: rgb("#1a202c"), lang: "en", hyphenate: false)
 #set par(justify: false, leading: 0.62em, spacing: 0.95em)
 #set list(indent: 0.4em, body-indent: 0.5em, spacing: 0.6em)
@@ -127,6 +152,16 @@ template variables, filled from the `-M title=` and `-M date=` arguments; `$body
 #show raw.where(block: false): it => box(fill: band, inset: (x: 2pt), outset: (y: 2pt), radius: 1.5pt, it)
 #show quote: it => block(inset: (left: 10pt, y: 2pt), stroke: (left: 2pt + rule-gray),
   text(fill: slate, it.body))
+
+// Professional cover page
+#cover-page
+
+// Table of contents
+#pagebreak()
+#heading(level: 1, outlined: false, [Contents])
+#outline(title: none, indent: 1em)
+
+#pagebreak()
 
 $body$
 ```

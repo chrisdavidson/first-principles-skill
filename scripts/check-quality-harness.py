@@ -794,7 +794,6 @@ _REFERENCE_READ_TARGETS: dict[str, tuple[str, ...]] = {
 _REFERENCE_READ_EXCLUDED_TAILS = (
     "references/examples/",
     "references/report-layout.md",
-    "references/report-layout-eisvogel.md",
     "references/report-figures.md",
     "references/how-to-read.md",
     "references/persona-views.md",
