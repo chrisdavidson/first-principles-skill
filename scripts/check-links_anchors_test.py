@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Behavioral test for docs/ anchor + bad-link detection in check-links.py.
 
 Tests:

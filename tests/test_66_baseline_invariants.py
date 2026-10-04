@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Tests for Phase 66: committed baseline invariant guards.
 
 LINEAGE MARKER: Superseded by `tests/test_69_merged_baseline_invariants.py` (BATT-08)

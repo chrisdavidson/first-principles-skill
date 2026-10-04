@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Tests for Phase 67: unified battery core invariant guards.
 
 Requirements covered:

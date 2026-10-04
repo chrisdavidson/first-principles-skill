@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Tests for Phase 69: migrated merged-baseline invariant guards (BATT-08).
 
 Supersedes test_66's two-file v4.2 guards by asserting over the single merged v4.3

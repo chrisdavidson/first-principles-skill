@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Tests for Phase 70: offline Step 0 emulator invariants (STEP0-01/02/03).
 
 Pins the ``--self-test`` exit code to 0 so a breakage in the emulator or the

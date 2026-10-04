@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Tests for Phase 82: traceability matrix gate (TRACE-01..TRACE-03, GAP-01, GAP-02).
 
 Pins the ``--self-test`` exit code to 0 so a breakage in the gate logic or its

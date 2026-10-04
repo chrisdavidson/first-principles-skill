@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Tests for Phase 65: fixture and documentation-correction invariants.
 
 Requirements covered:
