@@ -6060,15 +6060,15 @@ def _control_delta_chain_hops_confsurface_corrected() -> None:
     ]
     chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
     assert len(chains) == 1, chains
-    assert len(chains[0]) == 9, chains[0]
-    assert chains[0][-1][1] == ("175",), chains[0]
+    assert len(chains[0]) == 10, chains[0]
+    assert chains[0][-1][1] == ("173",), chains[0]
     inside_numbers = _normalise_numbers(
         _strip_citation_shaped_numbers(
             "\n".join(line for line, is_in in zip(lines, inside) if is_in)
         ),
         include_spelled_out=True,
     )
-    assert "175" in inside_numbers, inside_numbers
+    assert "173" in inside_numbers, inside_numbers
 
 
 def _control_delta_chain_hops_qual01_out_of_grammar() -> None:

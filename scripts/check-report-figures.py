@@ -19,9 +19,9 @@ FIG-EDGES, FIG-CONCL-EDGES, FIG-CELLS, FIG-OVERFLOW, FIG-SVG, FIG-FONT and
 FIG-ANCHOR.
 
 Two-layer BLOCKED design (see Pitfall 1 in the phase research): this script's
-own `--self-test`/`--render` exit with code 2 and print BLOCKED the moment
-typst is absent from PATH, before any other work -- a directly self-testable
-contract (control B01). The battery's own [PREREQ] verdict is a SEPARATE
+own `--self-test`/`--render` exit with code 1 (RED, since Phase 89 plan 01;
+previously 2) and print BLOCKED the moment typst is absent from PATH, before
+any other work -- a directly self-testable contract (control B01). The battery's own [PREREQ] verdict is a SEPARATE
 bash-level decision (`command -v typst`) made by the caller, not derived from
 this exit code; `--describe` is typst-independent so it still answers when
 typst is absent.
@@ -588,8 +588,8 @@ def _b01_typst_absent_is_blocked() -> str | None:
             [sys.executable, str(Path(__file__).resolve()), "--self-test"],
             env=env, capture_output=True, text=True,
         )
-    if result.returncode != 2:
-        return f"expected exit 2, got {result.returncode} (stdout={result.stdout!r})"
+    if result.returncode != 1:
+        return f"expected exit 1, got {result.returncode} (stdout={result.stdout!r})"
     if "BLOCKED" not in result.stdout:
         return f"expected BLOCKED in stdout, got {result.stdout!r}"
     if "PASS" in result.stdout:
