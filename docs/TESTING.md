@@ -24,6 +24,7 @@ For the full at-a-glance gate inventory — every gate mapped to its owning scri
 | STEP0-08 | [`docs/gates/STEP0-08.md`](gates/STEP0-08.md) | `python3 scripts/check-step0-emulator.py --self-test` |
 | STEP0-06 | [`docs/gates/STEP0-06.md`](gates/STEP0-06.md) | `python3 scripts/check-step0-live.py --self-test` |
 | TRACE-03 | [`docs/gates/TRACE-03.md`](gates/TRACE-03.md) | `python3 scripts/check-traceability.py --self-test` |
+| — | [`docs/gates/conformance-baseline-drift.md`](gates/conformance-baseline-drift.md) | `python3 scripts/report-conformance.py --check` |
 | QUAL-01 | [`docs/gates/QUAL-01.md`](gates/QUAL-01.md) | `python3 scripts/check-quality-harness.py --self-test` |
 | PROV-GUARD | [`docs/gates/PROV-GUARD.md`](gates/PROV-GUARD.md) | `python3 scripts/check-provenance.py --self-test` |
 | HARN-01 | [`docs/gates/HARN-01.md`](gates/HARN-01.md) | `python3 scripts/check-act-limb.py --self-test` |
@@ -36,9 +37,7 @@ For the full at-a-glance gate inventory — every gate mapped to its owning scri
 | FROZEN-EVIDENCE | [`docs/gates/FROZEN-EVIDENCE.md`](gates/FROZEN-EVIDENCE.md) | `bash scripts/check-firewall-battery.sh  # FROZEN-EVIDENCE runs inline; no standalone command` |
 | — | [`docs/gates/PRECOMMIT-sync-drift-gate.md`](gates/PRECOMMIT-sync-drift-gate.md) | `python3 scripts/sync-content.py --check` |
 | — | [`docs/gates/PRECOMMIT-conformance-generator-self-test.md`](gates/PRECOMMIT-conformance-generator-self-test.md) | `python3 scripts/report-conformance.py --self-test` |
-| — | [`docs/gates/PRECOMMIT-conformance-baseline-drift-gate.md`](gates/PRECOMMIT-conformance-baseline-drift-gate.md) | `python3 scripts/report-conformance.py --check` |
 | — | [`docs/gates/PRECOMMIT-claim-surface-generator-self-test.md`](gates/PRECOMMIT-claim-surface-generator-self-test.md) | `python3 scripts/gen-gate-docs.py --self-test` |
-| — | [`docs/gates/PRECOMMIT-claim-surface-drift-gate.md`](gates/PRECOMMIT-claim-surface-drift-gate.md) | `python3 scripts/gen-gate-docs.py --check` |
 | CONF-SURFACE | [`docs/gates/CONF-SURFACE.md`](gates/CONF-SURFACE.md) | `python3 scripts/gen-gate-docs.py --self-test && python3 scripts/gen-gate-docs.py --check` |
 | RETRACT-01 | [`docs/gates/RETRACT-01.md`](gates/RETRACT-01.md) | `python3 scripts/check-retracted-claims.py --self-test && python3 scripts/check-retracted-claims.py` |
 | PROV-ROLLUP | [`docs/gates/PROV-ROLLUP.md`](gates/PROV-ROLLUP.md) | `python3 scripts/check-provenance-rollup.py --self-test && python3 scripts/check-provenance-rollup.py --dir shared/examples` |

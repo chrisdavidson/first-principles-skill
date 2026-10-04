@@ -58,4 +58,14 @@ if HOOKS_PATH="$(git config --get core.hooksPath 2>/dev/null)"; then
     } >&2
 fi
 
+# Optional: auto-generation hook
+# If you want generators to run automatically before every commit:
+#
+#   git config core.hooksPath .githooks
+#   ln -s pre-commit-auto-gen .githooks/pre-commit
+#
+# This replaces the normal pre-commit with auto-gen. Generators will run
+# automatically, staging their output before the normal pre-commit checks run.
+# Use this if you frequently modify shared/ or gate documentation.
+
 exit 0

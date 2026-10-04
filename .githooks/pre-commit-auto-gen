@@ -1,0 +1,52 @@
+#!/bin/sh
+# Optional pre-commit hook: auto-run generators before checking.
+#
+# This hook is NOT installed by default. Install it if you want generators
+# to run automatically before every commit:
+#
+#   git config core.hooksPath .githooks
+#   ln -s pre-commit-auto-gen .githooks/pre-commit
+#
+# When active, this hook will:
+# 1. Run generators (report-conformance --write, gen-gate-docs --write)
+# 2. If generators succeed: stage the output and continue to pre-commit checks
+# 3. If generators fail: exit immediately, report the error
+#
+# After fixing the generator error, commit again.
+
+set -eu
+
+cd "$(git rev-parse --show-toplevel)"
+
+echo "pre-commit-auto-gen: Running generators..."
+
+if command -v uv >/dev/null 2>&1; then
+    PY="uv run python3"
+elif command -v python3 >/dev/null 2>&1; then
+    PY="python3"
+else
+    echo "pre-commit-auto-gen: neither 'uv' nor 'python3' on PATH." >&2
+    exit 1
+fi
+
+# Run generators
+echo "  Running report-conformance --write..."
+$PY scripts/report-conformance.py --write || exit $?
+
+echo "  Running gen-gate-docs --write..."
+$PY scripts/gen-gate-docs.py --write || exit $?
+
+# Stage the generated files (optional; developers can review before staging)
+# Omit this if you want developers to review before staging manually.
+# For now, auto-stage them:
+
+git add docs/conformance-baseline.md docs/data/conformance.json 2>/dev/null || true
+git add CLAUDE.md docs/ARCHITECTURE.md docs/TESTING.md 2>/dev/null || true
+git add docs/gates/*.md 2>/dev/null || true
+
+echo "  Generators finished; proceeding to pre-commit checks..."
+
+# Now run the normal pre-commit checks (sync-drift + self-tests)
+# This calls the normal pre-commit hook logic, not auto-gen again.
+
+exec sh .githooks/pre-commit

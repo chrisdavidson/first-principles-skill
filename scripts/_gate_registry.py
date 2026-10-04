@@ -388,6 +388,22 @@ ENTRIES: tuple[GateEntry, ...] = (
         ),
     ),
     GateEntry(
+        key="conformance-baseline-drift",
+        gate_id=None,
+        extra_ids=(),
+        mechanism="battery only (pre-commit moved to battery in D-01)",
+        ci_job=None,
+        script="scripts/report-conformance.py",
+        run_command="python3 scripts/report-conformance.py --check",
+        summary=(
+            "`docs/conformance-baseline.md` and `docs/data/conformance.json` "
+            "reproduce byte-for-byte a fresh `report-conformance.py` run (D-06); "
+            "moved to battery-only from pre-commit by decision D-01. Deliberately "
+            "not registered in CI."
+        ),
+        consumes=("registered_surfaces", "checked_files", "control_ids", "control_count", "locked_constants"),
+    ),
+    GateEntry(
         key="QUAL-01",
         gate_id="QUAL-01",
         extra_ids=(),
@@ -628,22 +644,6 @@ ENTRIES: tuple[GateEntry, ...] = (
         ),
     ),
     GateEntry(
-        key="PRECOMMIT:conformance-baseline-drift-gate",
-        gate_id=None,
-        extra_ids=(),
-        mechanism="conformance-baseline drift gate (pre-commit)",
-        ci_job=None,
-        script="scripts/report-conformance.py",
-        run_command="python3 scripts/report-conformance.py --check",
-        summary=(
-            "`docs/conformance-baseline.md` and `docs/data/conformance.json` "
-            "reproduce byte-for-byte a fresh `report-conformance.py` run (D-06); "
-            "fires before commit. Deliberately not registered in the battery or "
-            "in CI."
-        ),
-        consumes=("registered_surfaces", "checked_files", "control_ids", "control_count", "locked_constants"),
-    ),
-    GateEntry(
         key="PRECOMMIT:claim-surface-generator-self-test",
         gate_id=None,
         extra_ids=(),
@@ -657,24 +657,6 @@ ENTRIES: tuple[GateEntry, ...] = (
             "broken generator's own controls must be caught before its "
             "comparison against committed output (the claim-surface drift "
             "gate) is even attempted."
-        ),
-    ),
-    GateEntry(
-        key="PRECOMMIT:claim-surface-drift-gate",
-        gate_id=None,
-        extra_ids=(),
-        mechanism="claim-surface drift gate (pre-commit)",
-        ci_job=None,
-        script="scripts/gen-gate-docs.py",
-        run_command="python3 scripts/gen-gate-docs.py --check",
-        summary=(
-            "Blocks if `CLAUDE.md`'s/`docs/ARCHITECTURE.md`'s generated gate "
-            "tables, `docs/TESTING.md`'s generated index, or any "
-            "`docs/gates/<ID>.md` page no longer match a fresh "
-            "`scripts/gen-gate-docs.py --write` run, or if CONF-13's standing "
-            "literal scanner finds a non-exempt hand-maintained count literal "
-            "— the same check as CONF-SURFACE, fired before commit rather "
-            "than in CI/battery."
         ),
     ),
     # --- CONF-SURFACE (D-21-C) ---------------------------------------------
