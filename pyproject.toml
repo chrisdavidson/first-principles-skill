@@ -13,10 +13,37 @@ dependencies = ["pyyaml>=6.0"]
 [dependency-groups]
 # pytest is needed only by scripts/check-links_anchors_test.py, which the
 # VAL-03 battery leg shells out to. It is not a script dependency, so it is not
-# declared in any PEP 723 block.
-dev = ["pytest>=8"]
+# declared in any PEP 723 block. ruff is the pinned local linter/formatter, also
+# a dev tool and so likewise absent from the PEP 723 blocks.
+dev = ["pytest>=8", "ruff==0.16.10"]
 
 [tool.uv]
 # No build step — this project exists only to pin an interpreter and its
 # packages for scripts/. Without this, uv tries to build a wheel and fails.
 package = false
+
+[tool.ruff]
+target-version = "py312"
+# Frozen evidence (the FROZEN-EVIDENCE gate, `_FROZEN_PATHS` in
+# scripts/check-firewall-battery.sh) and recorded one-off measurement runners
+# must stay byte-identical to the runs they reproduce, so every tests/<run-dir>/
+# holding a .py is excluded. Listed explicitly rather than globbed so the list
+# can be reviewed against `_FROZEN_PATHS` and cannot swallow tests/test_*.py.
+extend-exclude = [
+    "tests/abandonment",
+    "tests/answer-first",
+    "tests/confidence-transitivity-v9.4",
+    "tests/delivery",
+    "tests/delivery-fix",
+    "tests/delivery-fix-2",
+    "tests/delivery-fix-3",
+    "tests/delivery-fix-4",
+    "tests/example-rerun",
+    "tests/persona-live-v9.18",
+    "tests/persona-live-v9.18b",
+    "tests/persona-live-v9.18c",
+    "tests/regression-rerun",
+    "tests/regression-rerun-2",
+    "tests/structured-summary-live",
+    "tests/w4-paired",
+]
