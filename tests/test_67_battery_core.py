@@ -181,7 +181,6 @@ def test_transport_argv_locked() -> None:
     Uses a monkeypatched subprocess.run that captures the argv list so we assert
     the LIVE argv (not just source text).
     """
-    import subprocess as _subprocess_mod
     import types
 
     captured_argv: list | None = None

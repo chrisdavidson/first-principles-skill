@@ -160,15 +160,15 @@ Exit codes:
 
 from __future__ import annotations
 
-import json
 import argparse
 import importlib.util
+import json
 import re
-import shutil
 import sys
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, NamedTuple
+from typing import NamedTuple
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 _HARNESS_PATH = REPO_ROOT / "scripts" / "check-quality-harness.py"

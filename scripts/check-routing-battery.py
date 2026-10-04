@@ -70,7 +70,7 @@ _SCRIPTS_DIR = str(Path(__file__).resolve().parent)
 if _SCRIPTS_DIR not in sys.path:
     sys.path.insert(0, _SCRIPTS_DIR)
 
-import _battery_core as _bc  # noqa: E402  (must follow sys.path surgery)
+import _battery_core as _bc
 
 # Bind exported names for convenience and type-checker visibility
 MergedPrompt = _bc.MergedPrompt
@@ -503,7 +503,7 @@ def self_test() -> int:
 
 def _default_out_dir() -> Path:
     """Return a timestamped /tmp directory unique to this battery run (D-07 / Pitfall 4)."""
-    ts = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    ts = _dt.datetime.now(_dt.UTC).strftime("%Y%m%dT%H%M%SZ")
     return Path("/tmp") / f"check-routing-battery-{ts}"
 
 

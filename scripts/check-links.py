@@ -99,7 +99,6 @@ import os
 import re
 import sys
 import tempfile
-import unicodedata
 from pathlib import Path
 
 # Path resolution: relative to this script's location, not Path.cwd() (mirrors sync-content.py).

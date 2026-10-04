@@ -35,16 +35,16 @@ New symbols (no source analog, added for merged battery):
 from __future__ import annotations
 
 import argparse
-import datetime as _dt
 import json
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Literal
+from typing import Literal
 
 # Python 3.13 compat: when loaded via importlib spec loader without
 # pre-registering in sys.modules, dataclasses._process_class raises
@@ -207,7 +207,7 @@ LOCKED_TRANSPORT_ARGV_TEMPLATE: tuple[str, ...] = (
 )
 
 
-def _run_prompt_to(prompt: "BoundaryPrompt | FocusedPrompt | MergedPrompt", plugin_dir: Path, out_path: Path) -> Path:
+def _run_prompt_to(prompt: BoundaryPrompt | FocusedPrompt | MergedPrompt, plugin_dir: Path, out_path: Path) -> Path:
     """Issue one prompt via `claude -p` and capture the stream-json log to out_path.
 
     Transport per D-10 (verbatim, copied from check-routing.py lines 329-341):
@@ -238,7 +238,7 @@ def _run_prompt_to(prompt: "BoundaryPrompt | FocusedPrompt | MergedPrompt", plug
 
 # new in Phase 67 (CR-1): path-returning transport so both detectors score the same .jsonl
 def _run_prompt_n_times_to_paths(
-    prompt: "MergedPrompt", plugin_dir: Path, out_dir: Path, repeat: int
+    prompt: MergedPrompt, plugin_dir: Path, out_dir: Path, repeat: int
 ) -> list[Path]:
     """Run a single prompt N times and return the list of written JSONL paths.
 
@@ -1484,8 +1484,8 @@ def self_test_boundary() -> int:
     _fishbone_pattern_count = len(_TECHNIQUE_CATEGORIES["fishbone"])
     if _fishbone_pattern_count == 7:
         print(
-            f"  Fishbone drift guard PASS: len(_TECHNIQUE_CATEGORIES['fishbone']) == 7 "
-            f"(Phase 117 FIX-02 added 'candidate causes'; 6→7; count locked)."
+            "  Fishbone drift guard PASS: len(_TECHNIQUE_CATEGORIES['fishbone']) == 7 "
+            "(Phase 117 FIX-02 added 'candidate causes'; 6→7; count locked)."
         )
     else:
         print(
@@ -2121,7 +2121,7 @@ def self_test_boundary() -> int:
         all_passed = False
 
     if all_passed:
-        print(f"self-test PASS (8 fixtures + RR-80-01 [S-N04 2/5 FAIL CARRIED; v7.11] + RR-79-01 [S-P01 CLOSED; SUSTAINED 5/5 v7.11] + RR-114-01 [S-P02 0/5 FAIL CARRIED; v8.5] + RR-114-01 teeth [OCH-02 inversion 9→13] + RR-108-02 [S-P05 CLOSED; SUSTAINED 5/5 v7.11] + RR-108-02 teeth [OCH-02 trade-off 6→10] + RR-108-03 [S-P09 v7.4 frozen] + RR-108-04 [S-P10 0/5 CARRIED; v8.5] + RR-108-05 [S-P14 0/5 CARRIED; v8.5] + RR-77-08 + RR-117-01 [S-P03 fishbone; 4/5 PASS CLOSE v8.6] + RR-117-02 [S-N03 precision; v7.11] + RR-119-01 [S-N01 REGRESSED 1/5 v7.11] + RR-119-02 [S-N02 SUSTAINED 3/5 v7.11] named assertions)")
+        print("self-test PASS (8 fixtures + RR-80-01 [S-N04 2/5 FAIL CARRIED; v7.11] + RR-79-01 [S-P01 CLOSED; SUSTAINED 5/5 v7.11] + RR-114-01 [S-P02 0/5 FAIL CARRIED; v8.5] + RR-114-01 teeth [OCH-02 inversion 9→13] + RR-108-02 [S-P05 CLOSED; SUSTAINED 5/5 v7.11] + RR-108-02 teeth [OCH-02 trade-off 6→10] + RR-108-03 [S-P09 v7.4 frozen] + RR-108-04 [S-P10 0/5 CARRIED; v8.5] + RR-108-05 [S-P14 0/5 CARRIED; v8.5] + RR-77-08 + RR-117-01 [S-P03 fishbone; 4/5 PASS CLOSE v8.6] + RR-117-02 [S-N03 precision; v7.11] + RR-119-01 [S-N01 REGRESSED 1/5 v7.11] + RR-119-02 [S-N02 SUSTAINED 3/5 v7.11] named assertions)")
         return 0
     return 1
 

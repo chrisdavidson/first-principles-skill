@@ -40,7 +40,6 @@ import re
 import sys
 from pathlib import Path
 
-
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 CANONICAL_RUBRIC: Path = REPO_ROOT / "shared" / "spine" / "references" / "validation-rubric.md"
 EMITTED_RUBRIC: Path = REPO_ROOT / "first-principles" / "references" / "validation-rubric.md"
@@ -457,24 +456,24 @@ def _check_sync(canonical_text: str, emitted_text: str) -> list[str]:
     emitted_lines = emitted_text.split("\n")
     if len(emitted_lines) < 2:
         failures.append(
-            f"HC-17: emitted rubric has fewer than 2 lines; "
-            f"expected GENERATED header + blank line"
+            "HC-17: emitted rubric has fewer than 2 lines; "
+            "expected GENERATED header + blank line"
         )
         return failures
 
     # Check first line contains GENERATED
     if "GENERATED" not in emitted_lines[0]:
         failures.append(
-            f"HC-17: emitted rubric first line does not contain 'GENERATED'; "
-            f"expected 'GENERATED — DO NOT EDIT' marker"
+            "HC-17: emitted rubric first line does not contain 'GENERATED'; "
+            "expected 'GENERATED — DO NOT EDIT' marker"
         )
         return failures
 
     # Check second line is blank
     if emitted_lines[1].strip() != "":
         failures.append(
-            f"HC-17: emitted rubric second line is not blank; "
-            f"expected blank line after GENERATED header"
+            "HC-17: emitted rubric second line is not blank; "
+            "expected blank line after GENERATED header"
         )
         return failures
 
@@ -482,8 +481,8 @@ def _check_sync(canonical_text: str, emitted_text: str) -> list[str]:
     emitted_content = "\n".join(emitted_lines[2:])
     if emitted_content != canonical_text:
         failures.append(
-            f"HC-17: emitted rubric diverges from canonical source; "
-            f"sync-content.py regeneration required"
+            "HC-17: emitted rubric diverges from canonical source; "
+            "sync-content.py regeneration required"
         )
 
     return failures
@@ -802,7 +801,7 @@ def _run_self_test() -> int:
         _check_negative("b", b_failures, "HC-5")
     except AssertionError as e:
         print(f"(b) fixture derivation failed: {e}")
-        problems.append(f"b: fixture error")
+        problems.append("b: fixture error")
 
     # (c) HC-11: Remove Criterion 5 speculative EXCEPT
     try:
@@ -818,10 +817,10 @@ def _run_self_test() -> int:
             print(f"(c) HC-12 should NOT fire when only speculative removed: {c_failures}")
             problems.append("c: HC-12 spuriously fired")
         else:
-            print(f"(c) correctly failed (HC-11 only)")
+            print("(c) correctly failed (HC-11 only)")
     except AssertionError as e:
         print(f"(c) fixture derivation failed: {e}")
-        problems.append(f"c: fixture error")
+        problems.append("c: fixture error")
 
     # (d) HC-13: Remove Exceptions Summary
     try:
@@ -830,7 +829,7 @@ def _run_self_test() -> int:
         _check_negative("d", d_failures, "HC-13")
     except AssertionError as e:
         print(f"(d) fixture derivation failed: {e}")
-        problems.append(f"d: fixture error")
+        problems.append("d: fixture error")
 
     # (e) HC-14: Move Exceptions Summary after Scoring Model
     try:
@@ -846,10 +845,10 @@ def _run_self_test() -> int:
             print(f"(e) HC-13 should NOT fire when section still exists: {e_failures}")
             problems.append("e: HC-13 spuriously fired")
         else:
-            print(f"(e) correctly failed (HC-14 only)")
+            print("(e) correctly failed (HC-14 only)")
     except AssertionError as e:
         print(f"(e) fixture derivation failed: {e}")
-        problems.append(f"e: fixture error")
+        problems.append("e: fixture error")
 
     # (e2) HC-14: Remove "How to Apply This Gate" heading (anchor control for _HOW_TO_APPLY)
     try:
@@ -874,10 +873,10 @@ def _run_self_test() -> int:
             print(f"(f) HC-11 should NOT fire when only absent-fails removed: {f_failures}")
             problems.append("f: HC-11 spuriously fired")
         else:
-            print(f"(f) correctly failed (HC-12 only)")
+            print("(f) correctly failed (HC-12 only)")
     except AssertionError as e:
         print(f"(f) fixture derivation failed: {e}")
-        problems.append(f"f: fixture error")
+        problems.append("f: fixture error")
 
     # (g) HC-17: Emitted drift
     try:
@@ -886,7 +885,7 @@ def _run_self_test() -> int:
         _check_negative("g", g_failures, "HC-17")
     except AssertionError as e:
         print(f"(g) fixture derivation failed: {e}")
-        problems.append(f"g: fixture error")
+        problems.append("g: fixture error")
 
     # (h)-(k): Controls for remaining check IDs (HC-1, HC-2, HC-3, HC-4, HC-6)
     # HC-1: Remove Criterion 3 slice heading
@@ -1046,7 +1045,7 @@ def _run_self_test() -> int:
         )
 
     # CLI dispatch control
-    print(f"\n=== Roster ===")
+    print("\n=== Roster ===")
     print(f"Controls run: 20, problems: {len(problems)}")
 
     if problems:

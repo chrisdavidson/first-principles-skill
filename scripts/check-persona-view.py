@@ -755,8 +755,7 @@ def _longest_shared_run(a: list[str], b: list[str]) -> int:
         for j, bj in enumerate(b, start=1):
             if ai == bj:
                 curr[j] = prev[j - 1] + 1
-                if curr[j] > best:
-                    best = curr[j]
+                best = max(best, curr[j])
         prev = curr
     return best
 

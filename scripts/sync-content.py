@@ -1032,9 +1032,9 @@ def _expand_focused_validation_token(body: str, slug: str) -> str:
     # check-agent.py.
     if "{{" in snippet:
         raise ValueError(
-            f"shared/spine/focused-validation-step.md contains a nested "
-            f"'{{{{' token sequence. A surviving marker would ship into "
-            f"every emitted stub unresolved — remove the nested token."
+            "shared/spine/focused-validation-step.md contains a nested "
+            "'{{' token sequence. A surviving marker would ship into "
+            "every emitted stub unresolved — remove the nested token."
         )
 
     replacement = snippet.rstrip("\n")

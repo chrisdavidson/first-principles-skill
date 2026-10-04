@@ -45,7 +45,6 @@ from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import NamedTuple
 
-
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 
 # ---------------------------------------------------------------------------
@@ -10803,7 +10802,7 @@ def _self_test_v818_rows_sentinel(wrong_results: list[str]) -> None:
         )
         wrong_results.append("V818-ROWS: row count drift (expected 23)")
     else:
-        print(f"  V818-ROWS PASS: row count == 23")
+        print("  V818-ROWS PASS: row count == 23")
 
     # (b) bare_id set assertion.
     _v818_ids = {r.bare_id for r in _v818_rows}
@@ -10948,7 +10947,7 @@ def _self_test_v824_rows_sentinel(wrong_results: list[str]) -> None:
         )
         wrong_results.append("V824-ROWS: row count drift (expected 15)")
     else:
-        print(f"  V824-ROWS PASS: row count == 15")
+        print("  V824-ROWS PASS: row count == 15")
 
     # (b) bare_id set assertion.
     _v824_ids = {r.bare_id for r in _v824_rows}
@@ -11122,7 +11121,7 @@ def _self_test_v825_rows_sentinel(wrong_results: list[str]) -> None:
         )
         wrong_results.append("V825-ROWS: row count drift (expected 14)")
     else:
-        print(f"  V825-ROWS PASS: row count == 14")
+        print("  V825-ROWS PASS: row count == 14")
 
     # (b) bare_id set assertion.
     _v825_ids = {r.bare_id for r in _v825_rows}
@@ -11520,7 +11519,7 @@ def _self_test_v826_rows_sentinel(wrong_results: list[str]) -> None:
         )
         wrong_results.append("V826-ROWS: row count drift (expected 20)")
     else:
-        print(f"  V826-ROWS PASS: row count == 20")
+        print("  V826-ROWS PASS: row count == 20")
 
     # (b) bare_id set assertion.
     _v826_ids = {r.bare_id for r in _v826_rows}
@@ -11821,7 +11820,7 @@ def _self_test_v9_rows_sentinel(wrong_results: list[str]) -> None:
         )
         wrong_results.append("V9-ROWS: row count drift (expected 19)")
     else:
-        print(f"  V9-ROWS PASS: row count == 19")
+        print("  V9-ROWS PASS: row count == 19")
 
     # (b) bare_id set assertion — equality, not subset.
     _v9_ids = {r.bare_id for r in _v9_rows}
@@ -12024,7 +12023,7 @@ def _self_test_v91_rows_sentinel(wrong_results: list[str]) -> None:
         )
         wrong_results.append("V91-ROWS: row count drift (expected 18)")
     else:
-        print(f"  V91-ROWS PASS: row count == 18")
+        print("  V91-ROWS PASS: row count == 18")
 
     # (b) bare_id set assertion — equality, not subset.
     _v91_ids = {r.bare_id for r in _v91_rows}
@@ -12227,7 +12226,7 @@ def _self_test_v92_rows_sentinel(wrong_results: list[str]) -> None:
         )
         wrong_results.append("V92-ROWS: row count drift (expected 12)")
     else:
-        print(f"  V92-ROWS PASS: row count == 12")
+        print("  V92-ROWS PASS: row count == 12")
 
     # (b) bare_id set assertion — equality, not subset.
     _v92_ids = {r.bare_id for r in _v92_rows}
@@ -12457,7 +12456,7 @@ def _self_test_v921_rows_sentinel(wrong_results: list[str]) -> None:
         )
         wrong_results.append("V921-ROWS: row count drift (expected 10)")
     else:
-        print(f"  V921-ROWS PASS: row count == 10")
+        print("  V921-ROWS PASS: row count == 10")
 
     # (b) bare_id set assertion — equality, not subset.
     _v921_ids = {r.bare_id for r in _v921_rows}

@@ -1267,12 +1267,7 @@ def _corpus_target_problems(
                 f"TARGET FORM [{r['analysis_id']}]: stratum={stratum!r} target={target!r}"
             )
             continue
-        if stratum == "A" and target == "none":
-            problems.append(
-                f"TARGET/STRATUM CONTRADICTION [{r['analysis_id']}]: stratum {stratum} "
-                f"with target {target}"
-            )
-        elif stratum != "A" and target != "none":
+        if stratum == "A" and target == "none" or stratum != "A" and target != "none":
             problems.append(
                 f"TARGET/STRATUM CONTRADICTION [{r['analysis_id']}]: stratum {stratum} "
                 f"with target {target}"

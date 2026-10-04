@@ -265,7 +265,7 @@ def _load_battery_core():
     scripts_dir = str(REPO_ROOT / "scripts")
     if scripts_dir not in sys.path:
         sys.path.insert(0, scripts_dir)
-    import _battery_core as bc  # noqa: PLC0415 -- deliberate late import, see module docstring
+    import _battery_core as bc
 
     return bc
 

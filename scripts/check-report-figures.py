@@ -335,7 +335,7 @@ def expected_trace(summary: dict) -> dict:
     known = {g.get("id") for g in gts} | {c.get("id") for c in chains}
 
     def _resolves(ref: str) -> bool:
-        return (ref[:-1] if ref.endswith("?") else ref) in known
+        return (ref.removesuffix("?")) in known
 
     edges = sum(1 for c in chains for r in (c.get("rests_on") or []) if _resolves(r))
     concl = summary.get("conclusion") or {}

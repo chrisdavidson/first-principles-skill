@@ -41,7 +41,6 @@ import sys
 import tempfile
 from pathlib import Path
 
-
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 
 # Canonical source — always read from shared/, never from the generated tree.

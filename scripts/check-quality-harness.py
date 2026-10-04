@@ -525,9 +525,7 @@ def _strip_handback_frame(text: str) -> str:
         if line.strip() and not line.startswith(_HANDBACK_REPORT_INDENT):
             return text
     return "\n".join(
-        line[len(_HANDBACK_REPORT_INDENT) :]
-        if line.startswith(_HANDBACK_REPORT_INDENT)
-        else line
+        line.removeprefix(_HANDBACK_REPORT_INDENT)
         for line in lines
     )
 
@@ -2711,9 +2709,9 @@ def _selftest_capture_tool_reader() -> bool:
     )
     if wrapper_triples != filtered_triples:
         print(
-            f"self-test FAIL: capture_tool_reader control 13 (wrapper) — "
-            f"_capture_subagent_tool_calls does not equal control 8's "
-            f"filtered result",
+            "self-test FAIL: capture_tool_reader control 13 (wrapper) — "
+            "_capture_subagent_tool_calls does not equal control 8's "
+            "filtered result",
             file=sys.stderr,
         )
         ok = False
@@ -5401,8 +5399,7 @@ _LEDGER_QUOTE_RE = re.compile(r"[\"\u201c]([^\"\u201d\n]{8,})[\"\u201d]")
 _TOKEN_RE = re.compile(r"[a-z0-9]+(?:\.[0-9]+)?")
 
 _TRACE_STOPWORDS = frozenset(
-    "a an and are as at be by do does for from in is it its of on or "
-    "that the to with not no was were this these those".split()
+    ["a", "an", "and", "are", "as", "at", "be", "by", "do", "does", "for", "from", "in", "is", "it", "its", "of", "on", "or", "that", "the", "to", "with", "not", "no", "was", "were", "this", "these", "those"]
 )
 
 # A fragment below this many content tokens is too generic to discharge a
@@ -7027,7 +7024,7 @@ class ProvGroundTruth:
 # valid CommonMark list items and all appear in real agent output. The `**GT-n**`
 # bold-id anchor is what actually identifies the line and is unchanged.
 _PROV_GT_LINE_RE = re.compile(
-    r"^(?:[-*+]|\d+[.)])\s+\*\*(GT-\d+\??)\*\*\s+(.*)$", re.M
+    r"^(?:[-*+]|\d+[.)])\s+\*\*(GT-\d+\??)\*\*\s+(.*)$", re.MULTILINE
 )
 
 # The literal label FORM, never the bare "read-at-source" substring: the fixture's
@@ -11355,7 +11352,7 @@ def _render_coverage_floor_problems(
 
 def _render_chain_form_surface_problems(
     texts: dict[str, str],
-    signature: "re.Pattern[str]",
+    signature: re.Pattern[str],
     registered: frozenset[str],
     exempt: tuple[tuple[str, str], ...],
 ) -> list[str]:
@@ -12555,7 +12552,7 @@ _RENDER_EXAMPLE_CLAIMING_FILES: tuple[str, ...] = (
 # fewer (or more) files than this locked set is a loud failure rather
 # than a quiet narrowing of scope.
 
-_RENDER_CHAIN_FORM_SIGNATURE: "re.Pattern[str]" = re.compile(
+_RENDER_CHAIN_FORM_SIGNATURE: re.Pattern[str] = re.compile(
     _CHAIN_HEAD_TOKEN + r".*?" + _ARROW + r"[ \t]*\[[a-z]"
 )
 # Matches a chain-form TEMPLATE rendering: a GT-N/GT-1/Cn/C1-shaped head
@@ -12670,7 +12667,7 @@ class _RenderRegistrySnapshot:
     chain_form_exempt: tuple[tuple[str, str], ...]
 
     @classmethod
-    def live(cls) -> "_RenderRegistrySnapshot":
+    def live(cls) -> _RenderRegistrySnapshot:
         """The only producer that reads the real module constants."""
         return cls(
             extraction_rows=_RENDER_CONTRACT_EXTRACTION_TABLE,
@@ -12725,7 +12722,7 @@ _RENDER_REGISTRY_FIELDS: tuple[str, ...] = (
 )
 
 def _render_registry_lock_problems(
-    snapshot: "_RenderRegistrySnapshot",
+    snapshot: _RenderRegistrySnapshot,
 ) -> tuple[list[str], set[str]]:
     """Compare *snapshot* field by field against literals written INLINE
     here — never against the module constant each field mirrors, so the
@@ -13894,7 +13891,7 @@ def _extract_heading_block(source_text: str, anchor: str, source_file: str) -> s
     return "\n".join(block_lines)
 
 
-_FENCED_TEXT_BLOCK_RE = re.compile(r"```text\n(.*?)\n```", re.S)
+_FENCED_TEXT_BLOCK_RE = re.compile(r"```text\n(.*?)\n```", re.DOTALL)
 
 
 def _extract_fenced_block(source_text: str, anchor: str, source_file: str) -> str:
@@ -15398,7 +15395,7 @@ def _selftest_render_contract() -> bool:
     #     that happens to fail.
     if conforming is not None and numbered is not None:
         for line in conforming.split("\n"):
-            bare = line[2:] if line.startswith("→ ") else line
+            bare = line.removeprefix("→ ")
             if bare not in numbered:
                 _fail(
                     f"(d) R-CHAIN-CONFORMING hop {bare!r} does not appear "
@@ -19173,7 +19170,7 @@ def _selftest_ledger_traceability() -> bool:
             # No `mutated_5 == ledger_fixture_text` precondition here: a
             # pure insertion cannot equal the original, so that branch was
             # unreachable and its `_fail` could never fire.
-            if True:  # noqa: SIM103 - kept to preserve the block's indentation
+            if True:
                 rec_5 = detect_defects(mutated_5, "PR-P1-ledger-v8.26-arm5")
                 reading_5 = (
                     rec_5["conclusion_claims"],
@@ -20029,7 +20026,7 @@ def _write_blinding_key(rows: list[tuple[str, str]], path: Path) -> None:
 
 
 def run_judging_arm(
-    items: list[tuple[str, "str | Path"]],
+    items: list[tuple[str, str | Path]],
     out_dir: Path,
     dest_subdir: str,
     kind: str,

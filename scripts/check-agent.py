@@ -25,7 +25,6 @@ import re
 import sys
 from pathlib import Path
 
-
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 AGENT_FILE: Path = REPO_ROOT / "first-principles" / "agents" / "first-principles.md"
 
@@ -461,7 +460,7 @@ def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
         _EXECUTED_CHECK_INDICES.add(1)
         name = frontmatter.get("name")
         if name is None:
-            failures.append(f"frontmatter missing required key 'name'")
+            failures.append("frontmatter missing required key 'name'")
         elif name != _EXPECTED_NAME:
             failures.append(f"name must be '{_EXPECTED_NAME}', got '{name}'")
 

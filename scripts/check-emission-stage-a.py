@@ -76,8 +76,8 @@ _RESULT = re.compile(r"=|≈|→")
 _URL = re.compile(r"https?://")
 _GT = re.compile(r"\bGT-\d+")
 _CHAIN_HOP = re.compile(r"^\s*→")
-_UNGROUNDED = re.compile(r"\[(?:ungrounded|external[^\]]*|unverified[^\]]*)\]", re.I)
-_WEIGHT_HEADER = re.compile(r"^\|.*\b(weight|score)\b.*\|", re.I)
+_UNGROUNDED = re.compile(r"\[(?:ungrounded|external[^\]]*|unverified[^\]]*)\]", re.IGNORECASE)
+_WEIGHT_HEADER = re.compile(r"^\|.*\b(weight|score)\b.*\|", re.IGNORECASE)
 
 
 def derivation_lines(text: str) -> list[str]:
@@ -390,9 +390,9 @@ def cmd_plan() -> int:
     print(f"  prompts          : {len(prompts)}")
     print(f"  model            : {MODEL}")
     print(f"  live calls       : {len(prompts)} (generation only; no judge)")
-    print(f"  capture          : subagent message (parent_tool_use_id), stream-json")
+    print("  capture          : subagent message (parent_tool_use_id), stream-json")
     print(f"  void unless      : >= {MIN_SECTIONS} of 6 sections, >= {MIN_WORDS} words,")
-    print(f"                     no rubric contamination, from the subagent")
+    print("                     no rubric contamination, from the subagent")
     print(f"  protocol         : {PREREG.relative_to(REPO_ROOT)}")
     return 0
 

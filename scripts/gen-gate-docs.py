@@ -1802,7 +1802,7 @@ class NarrativeFieldNotFoundError(LookupError):
     unrelated missing dict key."""
 
 
-def _render_narrative_sentence(region: "_NarrativeRegion", blob: dict) -> str:
+def _render_narrative_sentence(region: _NarrativeRegion, blob: dict) -> str:
     """Resolve `region.field_path` (a dotted path, e.g.
     `'coverage_headline.prose'`) against `region.source_script`'s own
     `--describe` blob, and render the WHOLE sentence (D-02) --
@@ -1822,7 +1822,7 @@ def _render_narrative_sentence(region: "_NarrativeRegion", blob: dict) -> str:
     return region.template.format(value=node)
 
 
-def _narrative_region_value_on_disk(region: "_NarrativeRegion", text: str) -> str | None:
+def _narrative_region_value_on_disk(region: _NarrativeRegion, text: str) -> str | None:
     """Harvest-free recovery of a region's live rendered value straight from
     its own on-disk body -- no subprocess, no harvest import, no escape
     hatch. This does not weaken D-03: `cmd_check()`'s existing drift diff
@@ -1899,7 +1899,7 @@ def _line_container_prefix(line: str) -> str:
 
 
 def narrative_region_marker_context_problems(
-    regions: tuple["_NarrativeRegion", ...] = _NARRATIVE_REGIONS,
+    regions: tuple[_NarrativeRegion, ...] = _NARRATIVE_REGIONS,
     surface_texts: dict[str, str] | None = None,
 ) -> list[str]:
     """For every registered region: the START marker's own line-prefix must
@@ -1968,9 +1968,9 @@ def narrative_region_marker_context_problems(
 
 
 def _narrative_restatement_findings(
-    regions: tuple["_NarrativeRegion", ...] = _NARRATIVE_REGIONS,
+    regions: tuple[_NarrativeRegion, ...] = _NARRATIVE_REGIONS,
     surface_texts: dict[str, str] | None = None,
-) -> list[tuple[str, "_NarrativeRegion", str, int]]:
+) -> list[tuple[str, _NarrativeRegion, str, int]]:
     """Every occurrence of a recoverable region's own on-disk value, across
     every roster surface, classified as `'finding'` (a live restatement
     outside any generated region, outside a fenced code block, and not part
@@ -2005,7 +2005,7 @@ def _narrative_restatement_findings(
         marker_pairs_by_surface.setdefault(r.surface, []).append(r.markers)
 
     surfaces = sorted({r.surface for r in regions})
-    findings: list[tuple[str, "_NarrativeRegion", str, int]] = []
+    findings: list[tuple[str, _NarrativeRegion, str, int]] = []
 
     for region in regions:
         source_text = _text_for(region.surface)
@@ -2040,7 +2040,7 @@ def _narrative_restatement_findings(
 
 
 def narrative_restatement_counts(
-    regions: tuple["_NarrativeRegion", ...] = _NARRATIVE_REGIONS,
+    regions: tuple[_NarrativeRegion, ...] = _NARRATIVE_REGIONS,
     surface_texts: dict[str, str] | None = None,
 ) -> dict[str, int]:
     """Per-class tallies over `_narrative_restatement_findings` -- for later
@@ -2053,7 +2053,7 @@ def narrative_restatement_counts(
 
 
 def narrative_restatement_problems(
-    regions: tuple["_NarrativeRegion", ...] = _NARRATIVE_REGIONS,
+    regions: tuple[_NarrativeRegion, ...] = _NARRATIVE_REGIONS,
     surface_texts: dict[str, str] | None = None,
 ) -> list[str]:
     """The `'finding'`-class subset of `_narrative_restatement_findings`, one
@@ -2099,7 +2099,7 @@ def _containment_missing_number_counts(
     text: str,
     marker_pairs=_ALL_DETAIL_MARKER_PAIRS,
     check_spelled_out: bool = True,
-) -> "Counter[str]":
+) -> Counter[str]:
     """Occurrence COUNTS (not just presence) of every number stated outside
     a generated fence, over the same citation-stripped outside-text
     `_containment_missing_numbers()` extracts from -- the containment
@@ -3936,7 +3936,7 @@ def _match_deferred_ledger(hit: LiteralHit) -> bool:
     return _ledger_key_for(hit) in _DEFERRED_LITERAL_HITS
 
 
-def _match_generated_narrative_region(hit: LiteralHit) -> bool:  # noqa: ARG001
+def _match_generated_narrative_region(hit: LiteralHit) -> bool:
     """Always `False` -- the D-04 mechanism correction 26-RESEARCH.md's own
     "Mechanism-Level Findings" section documents: `_literal_hits_outside_
     generated()` already filters a hit inside a registered GENERATED fence

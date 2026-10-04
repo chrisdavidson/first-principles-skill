@@ -33,7 +33,6 @@ from __future__ import annotations
 import argparse
 import glob
 import json
-import os
 import re
 import sys
 import tempfile
@@ -436,7 +435,7 @@ def verify_manifest_paths(
     plugin_dir_resolved = plugin_dir.resolve()
 
     def _resolve(declared_path: str) -> bool:
-        stripped = declared_path[2:] if declared_path.startswith("./") else declared_path
+        stripped = declared_path.removeprefix("./")
         candidate = plugin_dir / stripped
         if not candidate.exists():
             return False

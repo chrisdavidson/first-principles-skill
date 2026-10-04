@@ -63,7 +63,6 @@ import tempfile
 from pathlib import Path
 from unittest import mock
 
-
 # Repo-anchored, not caller-supplied: check-agent.py's rationale reproduced here --
 # a constant derived from __file__ keeps the gate cwd-independent and its target
 # cannot be silently re-pointed by an argv/env override.

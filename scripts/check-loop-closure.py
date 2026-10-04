@@ -764,7 +764,7 @@ def _reinstate_hard_wrapped(base: str, literal: str) -> str:
     must contain it once whitespace is normalised (otherwise the fixture is not
     a reinstatement at all). If either guard trips, this raises rather than
     handing back a vacuous fixture."""
-    for filler in range(0, 80):
+    for filler in range(80):
         lead = "The analysis re-scores, " + ("fixes it again, " * filler)
         sentence = f"{lead}{literal}, however many passes that takes."
         wrapped = "\n".join(textwrap.wrap(sentence, width=_WRAP_WIDTH))

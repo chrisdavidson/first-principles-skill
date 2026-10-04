@@ -56,7 +56,7 @@ import re
 import statistics
 import subprocess
 import sys
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from pathlib import Path
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
@@ -661,7 +661,7 @@ def is_limit_stub(jsonl: str) -> bool:
         if (last_result.get("result") or "").strip():
             return False
     return (
-        bool(re.search(r"usage limit|rate limit", jsonl[-4000:], re.I))
+        bool(re.search(r"usage limit|rate limit", jsonl[-4000:], re.IGNORECASE))
         and '"parent_tool_use_id":"' not in jsonl
     )
 
@@ -771,7 +771,7 @@ def cmd_plan() -> int:
     print(f"  prompts              : {len(prompts)}")
     domains = sorted({p.domain for p in prompts})
     print(f"  domains              : {', '.join(domains)}")
-    print(f"  arms                 : 2 (T=plugin, C=unaided)")
+    print("  arms                 : 2 (T=plugin, C=unaided)")
     print(f"  runs per cell        : {RUNS_PER_CELL}")
     print(f"  generations          : {gens}")
     print(f"  judgings             : {judgings} ({JUDGES_PER_DOC} judges/doc)")
@@ -993,9 +993,9 @@ def cmd_plan_2() -> int:
 def _judge_call_2(doc_text: str, out_path: Path, model: str) -> str:
     """One blinded trackb-2 judging. Packet holds exactly analysis.md +
     rubric.md, outside the repository -- same discipline as `_judge_once`."""
+    import os as _os
     import shutil
     import tempfile
-    import os as _os
 
     packet = Path(tempfile.mkdtemp(prefix="tb2-packet-"))
     resolved = packet.resolve()
@@ -1305,7 +1305,7 @@ def cmd_run_2(out_dir: Path, scratch_root: Path, model: str) -> int:
     body_sha256 = hashlib.sha256(body_path.read_bytes()).hexdigest()
 
     manifest_path = out_dir / "manifest.json"
-    now = datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z")
+    now = datetime.datetime.now(datetime.UTC).isoformat().replace("+00:00", "Z")
     if manifest_path.is_file():
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         if manifest.get("body_sha256") != body_sha256:

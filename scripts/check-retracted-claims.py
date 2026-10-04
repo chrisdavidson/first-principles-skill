@@ -939,7 +939,7 @@ def self_test() -> int:
     """Falsifiability controls. Each asserts the gate CAN fail, not just pass."""
     import tempfile
 
-    global REGISTRY  # noqa: PLW0603 — controls swap the registry deliberately
+    global REGISTRY
     original = REGISTRY
     failures: list[str] = []
 

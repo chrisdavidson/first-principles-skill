@@ -590,7 +590,7 @@ def test_active_tail_items_present() -> None:
                 f"got {row.deliverable_path!r}"
             )
     assert not errors, (
-        f"Active-tail row tagging errors:\n" + "\n".join(errors)
+        "Active-tail row tagging errors:\n" + "\n".join(errors)
     )
 
     # RESID-01: RR-108-04 and RR-108-05 specifically must be reproducible, tagged
@@ -619,7 +619,7 @@ def test_active_tail_items_present() -> None:
                 f"got {row.artifact_link!r}"
             )
     assert not resid_errors, (
-        f"RESID-01 row field errors:\n" + "\n".join(resid_errors)
+        "RESID-01 row field errors:\n" + "\n".join(resid_errors)
     )
 
 

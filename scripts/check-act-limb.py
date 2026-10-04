@@ -68,7 +68,6 @@ import re
 import sys
 from pathlib import Path
 
-
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 AGENT_FILE: Path = REPO_ROOT / "first-principles" / "agents" / "first-principles.md"
 RUBRIC_FILE: Path = (
@@ -2903,7 +2902,7 @@ def _run_self_test(real_body: str | None = None, real_rubric: str | None = None)
         print(f"ANTI-MASKING GATE FAILURE: {len(uncovered)} branch(es) not covered: {sorted(uncovered)}")
         problems.append(f"Anti-masking: {len(uncovered)} branches uncovered")
     else:
-        print(f"ANTI-MASKING GATE: All 16 branches covered ✓")
+        print("ANTI-MASKING GATE: All 16 branches covered ✓")
 
     # (m) Dispatch control: prove the CLI layer reaches this block, not merely
     # that _run_self_test() is correct when called directly.

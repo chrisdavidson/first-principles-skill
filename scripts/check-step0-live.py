@@ -82,7 +82,7 @@ _spec.loader.exec_module(_mod)  # type: ignore[union-attr]
 detect_output_structure_from_file = _mod.detect_output_structure_from_file
 _run_prompt_n_times_to_paths = _mod._run_prompt_n_times_to_paths
 _validate_kn = _mod._validate_kn
-DEFAULT_PLUGIN_DIR = _mod.DEFAULT_PLUGIN_DIR  # noqa: F811 — override with _battery_core value
+DEFAULT_PLUGIN_DIR = _mod.DEFAULT_PLUGIN_DIR
 
 # ---------------------------------------------------------------------------
 # Catalog data types
@@ -1472,7 +1472,7 @@ def _write_baseline(
     _s_p16_result = next((r for r in results if r.prompt.id == "S-P16"), None)
 
     if not recorded_ts:
-        recorded_ts = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        recorded_ts = _dt.datetime.now(_dt.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     lines: list[str] = [
         f"# Step 0 Live Harness Baseline — {_BASELINE_VERSION}",
@@ -1832,7 +1832,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # (6) Resolve out_dir
     if args.out_dir is None:
-        ts = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        ts = _dt.datetime.now(_dt.UTC).strftime("%Y%m%dT%H%M%SZ")
         args.out_dir = Path(f"/tmp/check-step0-live-{ts}")
     args.out_dir.mkdir(parents=True, exist_ok=True)
 

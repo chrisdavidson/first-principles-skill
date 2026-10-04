@@ -716,9 +716,7 @@ def self_test() -> int:
     wrapper_call_sites = 0
     for line in self_test_source.splitlines():
         stripped = line.strip()
-        if stripped.startswith(_FIXTURE_WRAPPER_CALL):
-            wrapper_call_sites += 1
-        elif stripped.startswith(_FIXTURE_BUILDER_CALL) and _FIXTURE_DELEGATION_ARGS not in stripped:
+        if stripped.startswith(_FIXTURE_WRAPPER_CALL) or stripped.startswith(_FIXTURE_BUILDER_CALL) and _FIXTURE_DELEGATION_ARGS not in stripped:
             wrapper_call_sites += 1
     expect(
         "fixture-count-matches-call-sites",
