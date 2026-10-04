@@ -2631,9 +2631,7 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     # a fresh reason (see git history for the retained prior text) if this
     # page's `containment_ledger_frozen_historical` field ever drops below 5
     # again.
-    ('CLAUDE.md', '16'): ('999.75', 2, 'FROZEN HISTORICAL COUNT: "The 16 links *between* files in `first-principles/references/`" — a structural fact describing the agent-reference-sibling design (4 `-detail.md` pointers + 12 cross-technique links). Structural invariant, never auto-derived.'),
     ('CLAUDE.md', '22'): ('999.104', 2, 'NOT A COUNT CLAIM: "this phase\'s own `/bm:code-review 22`" -- a phase-number citation, the same shape as `CLAUDE.md`\'s own \'03\' half-strip entry above, not a population total. Occurrence count lowered from 2 to 1 when VAL-05\'s retirement (Phase 40, docs/v9.4-gate-retirement.md §2.3) reworded the tally sentence off \'22\' entirely, onto \'21\' (see that key\'s own entry).'),
-    ('CLAUDE.md', '26'): ('999.73', 1, 'FROZEN HISTORICAL COUNT: "26 milestones, v1.0 through v5.3" in the archive history of Requirements surface snapshots. Structural archive count, never auto-derived.'),
     ('CLAUDE.md', '60'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "60 live claude invocations (manual only, not run in CI)" and "(60 invocations) / offline `--self-test`" -- the Step 0 live-harness manual run count. Re-verified live this plan: `python3 scripts/check-step0-live.py --describe` emits `control_count: 25` and fixture/control ids only -- no field for "60 manual invocations" exists today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
     ('docs/gates/CONF-SURFACE.md', '5'): ('999.75', 4, 'FROZEN HISTORICAL COUNT: "pre-commit gate 5" ordinal references (5 instances of the number 5 referring to the 5th pre-commit gate in enum and prose) plus "§5a" section citations. Ordinal/section structural invariant, never auto-derived.'),
     # ('docs/gates/CONF-SURFACE.md', '5') REMOVED at Phase 86 plan 03: re-adding
@@ -3020,9 +3018,9 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # Re-pinned with all frozen historical structural counts restored. The live ledger
 # now contains 14 entries (11 base + 3 frozen: '16', '26', '5'). Recomputed live via
 # `_deferred_ledger_keys_digest()`, never hand-typed. Never recompute this digest to make a failing check pass.
-_CONTAINMENT_LEDGER_MAX: int = 14
+_CONTAINMENT_LEDGER_MAX: int = 12
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:1c017d8647d20a1c4b3dc02acf27f96f2016b73855a25411712851aaa2a1045f"
+    "sha256:9c68ff1ccbbf2e0d4a2fe9def5b38db7030b8c394c1a50a335a40de969c1b60c"
 )
 
 
@@ -3754,9 +3752,7 @@ def _match_commonmark_heading_depth(hit: LiteralHit) -> bool:
 # transcription of exactly this shape is the defect this plan exists to
 # end.
 _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
-    ('CLAUDE.md', '(33 controls)'): ('999.42', 1, 'Correct: check-provenance.py --describe reports control_count 33 (live-verified).'),
     ('CLAUDE.md', 'Five gates'): ('999.42', 1, 'Correct: 5 pre-commit gates fire on git commit (sync-drift, conformance generator self-test, conformance-baseline drift, claim-surface generator self-test, claim-surface drift) -- verified against both hook scripts in plan 21-13.'),
-    ('CLAUDE.md', 'surface now contributes 16'): ('999.42', 1, 'Correct: the skill-stub cross-technique-link surface contributes 16 real links (12 cross-technique + 4 detail.md pointers) as of v8.17.5 -- a structural fact, not derived by any script.'),
     ('CONTRIBUTING.md', 'Five gates'): ('999.44', 1, "Correct: the same fixed five-gate pre-commit pipeline (sync-drift, conformance generator self-test, conformance-baseline drift, claim-surface generator self-test, claim-surface drift) already ledgered for CLAUDE.md's and docs/TESTING.md's own 'Five gates' hits (999.42) -- verified again here against both hook scripts, 2026-09-08, on this newly-registered surface (plan 22-07)."),
     ('CONTRIBUTING.md', 'one shot and check'): ('999.44', 1, "NOT-A-COUNT: 'run the whole offline set in one shot and check for a GREEN verdict' uses 'one shot' as an idiom for a single invocation of the battery script, not a count of any external population."),
     ('docs/ARCHITECTURE.md', '(five gates'): ('999.42', 1, "Correct: both pre-commit hooks now run 5 gates each -- same fact as 'up from three)' above, second number on the same line."),
@@ -4038,7 +4034,7 @@ def _deferred_ledger_keys_digest(
 # reconciliation discipline (re-deriving every "live-verified" reason from
 # a fresh `--describe` invocation, never trusting a prior reading) for the
 # practice that actually catches this, since the ratchet itself cannot.
-_DEFERRED_LEDGER_MAX: int = 167
+_DEFERRED_LEDGER_MAX: int = 165
 
 
 # A sha256 pin over the ledger's sorted `(relpath, text)` key set (plan
@@ -4098,7 +4094,7 @@ _DEFERRED_LEDGER_MAX: int = 167
 # reworded count-free once the persona skill made the historical 13-vs-14
 # split obsolete. Digest updated with frozen historical counts.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:bc757f9b25bf5e6521ba4bdf54f81c1b5579d6cc06dc13be526043e79fc59276"
+    "sha256:1705d03941e472c07db928834322c6dbf5c6741fe1d88e9950850b18c3d24f58"
 )
 
 

@@ -22,33 +22,20 @@ python3 scripts/sync-content.py --check   # verify no drift (exit 1 on drift)
 uv run scripts/sync-content.py --write    # uv alternative (auto-resolves deps)
 ```
 
-### Validation scripts (Python ≥ 3.12; those that parse frontmatter also need PyYAML — `check-quality-harness.py` and `check-provenance.py` are stdlib-only)
+### Validation scripts (Python ≥ 3.12; PyYAML required for frontmatter parsing)
 
 ```sh
-python3 scripts/check-agent.py            # GATE-01: agent structural checks
-python3 scripts/check-links.py            # VAL-03: broken relative MD links
-python3 scripts/check-version-stamps.py   # VERSION-01: all hand-maintained version stamps agree
-python3 scripts/check-quality-harness.py --self-test     # QUAL-01: offline blind A/B quality-harness self-test
-python3 scripts/check-provenance.py --self-test           # PROV-GUARD: provenance-verifier self-test (33 controls)
-python3 scripts/check-provenance.py                        # manual fixture regression against tests/quality-provenance-v8.24/ -- neither the battery nor CI runs this leg as of v9.4.0 (docs/v9.4-gate-retirement.md §2.4)
-python3 scripts/check-conf-gate.py --self-test              # CONF-GATE: exemplar-conformance comparator self-test (control count: see the CI gates table's CONF-GATE row below)
-python3 scripts/check-conf-gate.py                           # CONF-GATE: live comparator against source-literal conformance targets
-python3 scripts/check-report-figures.py --self-test   # FIG-GATE: renders both report figures (needs typst; exit 1 RED without it)
-python3 scripts/check-persona-view.py --self-test    # PERSONA-GATE: persona-view citation/ID/number checker self-test
+python3 scripts/check-agent.py                # GATE-01
+python3 scripts/check-links.py                # VAL-03
+python3 scripts/check-version-stamps.py       # VERSION-01
+python3 scripts/check-quality-harness.py --self-test  # QUAL-01
+python3 scripts/check-provenance.py --self-test       # PROV-GUARD
+python3 scripts/check-conf-gate.py --self-test        # CONF-GATE
+python3 scripts/check-report-figures.py --self-test   # FIG-GATE (needs typst)
+python3 scripts/check-persona-view.py --self-test     # PERSONA-GATE
 ```
 
-This list is a convenience, not the authority — a hand-maintained list of gates goes stale by
-construction. `bash scripts/check-firewall-battery.sh` runs the set that actually exists.
-
-**pytest is a prerequisite for the full battery, not for any script above.** None of the
-scripts listed here need it — it is needed only by VAL-03's third leg, which runs
-`scripts/check-links_anchors_test.py` under pytest (`check-links.py` itself has no such
-dependency). `scripts/check-firewall-battery.sh` resolves a pytest-capable interpreter itself:
-`.venv/bin/python3` first, then `python3`, each confirmed by an `import pytest` preflight.
-Run `uv sync` to create `.venv` (it ships pytest), or install pytest for whichever interpreter
-`python3` resolves to. If neither interpreter can import pytest, the battery prints
-`[PREREQ] VAL-03` and `FIREWALL: BLOCKED`, exiting 2 — distinct from `FIREWALL: RED` / exit 1,
-which still means a gate genuinely failed.
+Authority: `bash scripts/check-firewall-battery.sh` (runs all gates). pytest is required only by VAL-03's anchor-check leg. Run `uv sync` to install dependencies in `.venv`.
 
 ### Routing battery (requires a running Claude Code session)
 
@@ -91,35 +78,17 @@ git config core.hooksPath .githooks   # same sync-drift gate via .githooks/pre-c
 
 ### Fast-path: SKIP_DRIFT_CHECK for generators
 
-When running generators that intentionally change outputs (e.g., `python3 scripts/report-conformance.py --write` or `python3 scripts/gen-gate-docs.py --write`), the pre-commit drift checks will fail because the committed baseline is now stale. To skip pre-commit drift checks in this workflow:
+Skip pre-commit drift checks when intentionally regenerating outputs:
 
 ```sh
 SKIP_DRIFT_CHECK=1 git commit
 ```
 
-This flag skips only pre-commit drift checks (sync-drift). It still runs the generator self-tests, ensuring the generators themselves are not broken. Use only when you are intentionally regenerating outputs.
+Skips only pre-commit sync-drift; generator self-tests still run. CI and battery verify all drifts on PR.
 
-**Why this is safe:** CI and the offline battery still run all drift checks on every PR. Pre-commit is developer convenience, not the final safety gate. The fast-path trades commit-time friction for the guarantee that PR checks are always complete.
+### Bypass patterns
 
-### Bypass patterns: when git commit --no-verify is safe
-
-`git commit --no-verify` bypasses all pre-commit gates. Use carefully — some gates are pre-commit-only and will not be checked by CI.
-
-**Safe to bypass:**
-- Conformance generator self-test — also runs in CI via QUAL-01 (blind A/B harness)
-- Gen-gate self-test — also runs in CI via CONF-SURFACE
-- Reason: Pre-commit is convenience; CI will catch correctness issues on the PR
-
-**NOT safe to bypass:**
-- Sync-drift gate (`scripts/sync-content.py --check`) — pre-commit only, has no CI equivalent
-- Reason: This is the only place sync drift is checked; bypassing leaves sync issues uncommitted
-
-**Recommended workflow:**
-1. **Normal work:** `git commit` (run all pre-commit gates)
-2. **Running generators:** `SKIP_DRIFT_CHECK=1 git commit` (run self-tests only)
-3. **Rare emergency:** `git commit --no-verify` (bypass everything, but sync-drift may be undetected)
-
-Never use `--no-verify` for a final PR commit; run the battery offline first (`bash scripts/check-firewall-battery.sh`) to verify all gates.
+`git commit --no-verify` bypasses all pre-commit gates. Sync-drift is pre-commit-only (no CI equivalent) — never bypass it for PR commits. Recommended: use `SKIP_DRIFT_CHECK=1` for generator runs, `git commit` for normal work, `bash scripts/check-firewall-battery.sh` before pushing.
 
 ## Architecture
 
@@ -159,9 +128,9 @@ first-principles/               ← generated plugin (committed, never hand-edit
   LICENSE
 ```
 
-The reference tree ships at the plugin root, sibling to `agents/` and `skills/`, never nested under `agents/` — Claude Code registers every Markdown file it finds in a subdirectory of a plugin's `agents/` tree as its own selectable agent type at session start, so a reference or worked-example file nested there would ship as a spurious agent alongside the real one (measured 2026-09-29 by headless `system/init`). `scripts/sync-content.py --check` fails on any file reappearing under `first-principles/agents/` other than `first-principles.md`.
+The reference tree lives at plugin root, not under `agents/` (Claude Code registers every file in `agents/` subdirectories as a selectable agent type). `scripts/sync-content.py --check` enforces this: any stray file under `first-principles/agents/` other than `first-principles.md` fails the gate. 
 
-`scripts/sync-content.py --write` reads `shared/` and regenerates the assembled agent, the entire `first-principles/references/` tree (including the `<slug>-detail.md` on-demand siblings) and all `first-principles/skills/*/SKILL.md` files (including each split skill's own `skills/<slug>/references/<slug>-detail.md` sibling). It stamps every generated file with a `<!-- GENERATED — DO NOT EDIT -->` marker.
+`scripts/sync-content.py --write` regenerates from `shared/`: the assembled agent, all reference trees, skill files, and detail siblings. Every generated file carries `<!-- GENERATED — DO NOT EDIT -->`.
 
 ### Token substitution
 
@@ -295,94 +264,56 @@ names) that produced a product-tier defect, which the rejected
 
 ## Requirements surface
 
-The canonical requirements and traceability surface lives in the git-tracked tree:
-
-- **`docs/requirements-traceability.md`** — **the authoritative source of truth; start here.**
+- **`docs/requirements-traceability.md`** — authoritative source. Current coverage:
   <!-- GENERATED:CLAUDE-COVERAGE-HEADLINE -->
   Active residuals, the current coverage headline
   (**277 reproducible / 269 audit-only / 0 gap / 546 total**), compact historical ledger, and gap
   findings.
   <!-- END GENERATED:CLAUDE-COVERAGE-HEADLINE -->
-  (Derived from regenerated matrix Phase 138 Plan 03; META-Q4 re-tiered reproducible→audit-only in the v8.8 post-close TEARDOWN-01 cleanup.)
-- **`docs/v8.0-final-closure.md`** — **historical record, not current state.** Accepted
-  limitations (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5) and deferred-ledger disposition as of
-  v8.0 (Phase 142). It calls 133/96/0/229 the "final" coverage headline because v8.0 was meant to
-  wrap the project; work continued and that figure has since been superseded repeatedly — see
-  the bullet above. Do not quote its headline as current.
-- **`docs/requirements-matrix.md`** — generated capability→requirement→test matrix (row count:
-  see the coverage headline above). Regenerate with:
+
+- **`docs/requirements-matrix.md`** — generated from:
   ```sh
   python3 scripts/check-traceability.py emit \
       --md-output docs/requirements-matrix.md \
       --json-output docs/data/matrix.json
   ```
-- **`docs/data/matrix.json`** — the structured JSON sidecar behind
-  `docs/requirements-matrix.md`, written by the same `emit` run.
-- **`docs/history/`** — frozen per-milestone REQUIREMENTS.md / ROADMAP.md /
-  MILESTONE-AUDIT.md snapshots (26 milestones, v1.0 through v5.3). **Local-only:
-  git-ignored and untracked, so it is absent from a fresh clone.** Nothing in the
-  tracked tree may link into it (`docs/requirements-traceability.md` names the
-  files as plain text, not links) — a link would break the VAL-03 gate in CI.
 
-`docs/data/matrix.json` is git-tracked (TEARDOWN-03, `docs/v8.7-constraint-teardown.md`), so
-regenerating the matrix via the `emit` subcommand above dirties a tracked file, not an ignored
-one. It lived at `.planning/phases/82-traceability-matrix-and-gap-findings/matrix.json` until it
-was relocated under `docs/` so that `.planning/` could return to a blanket gitignore — no
-planning artifacts are published to the public repo.
+- **`docs/v8.0-final-closure.md`** — historical record (Phase 142); not current.
+- **`docs/history/`** — local-only per-milestone snapshots (git-ignored).
+- **`docs/data/matrix.json`** — git-tracked structured sidecar to matrix.
 
 ## Step 0 measurement harness
 
-Two tools measure Step 0 technique-selection logic:
+- `scripts/check-step0-emulator.py` — offline phrase-detection (STEP0-08)
+- `scripts/check-step0-live.py` — live agent-body harness (STEP0-06); baseline: `tests/step0-baseline-v8.5.md`
 
-- **`scripts/check-step0-emulator.py`** — offline phrase-detection classifier (STEP0-08 gate)
-- **`scripts/check-step0-live.py`** — live agent-body harness (STEP0-06 gate); canonical baseline: `tests/step0-baseline-v8.5.md`
-
-**K-of-5 is recorded observation, not a gate** (see `docs/v8.7-constraint-teardown.md`). Full mechanism detail in `docs/TESTING.md` and `docs/MEASUREMENT-MAP.md`.
+K-of-5 is recorded observation, not gated. See `docs/TESTING.md` and `docs/MEASUREMENT-MAP.md`.
 
 ### Measurement comparison
 
-The four Step-0/routing tools, for orientation. The canonical layer map — which adds the
-traceability, quality-harness and sentinel layers — is
-[`docs/MEASUREMENT-MAP.md`](docs/MEASUREMENT-MAP.md#measurement-layers).
+See [`docs/MEASUREMENT-MAP.md`](docs/MEASUREMENT-MAP.md#measurement-layers) for layer architecture.
 
-| Tool | Measured layer | Run command | CI gate |
-|------|---------------|-------------|---------|
-| `check-routing.py` | Main-agent DELEGATE / NO-DELEGATE routing boundary | `--catalog tests/routing-catalog.md --repeat 5 --min-pass 3` | None — developer tool, not wired into `validation.yml` |
-| `check-routing-battery.py` | Merged dual-signal: boundary + focused-output (FU-21 gate, FOCUS-01) | `--repeat 5 --min-pass 3` / offline `--self-test` | BATT-06 |
-| `check-step0-emulator.py` | Offline Step 0 phrase-detection classifier (deterministic, no live session) | `--self-test` | STEP0-08 |
-| `check-step0-live.py` | Live Step 0 MODE classification via approach-② bypass channel | Manual `--repeat 5 --min-pass 3` (60 invocations) / offline `--self-test` | STEP0-06 |
+| Tool | Measured | CI gate |
+|------|----------|---------|
+| `check-routing.py` | DELEGATE / NO-DELEGATE boundary | None |
+| `check-routing-battery.py` | Dual-signal: boundary + focused-output | BATT-06 |
+| `check-step0-emulator.py` | Offline phrase-detection classifier | STEP0-08 |
+| `check-step0-live.py` | Live MODE classification | STEP0-06 |
 
-### Step 0 residual sentinels (RR-* ownership map)
+### Step 0 residual sentinels
 
-The BATT-06 and STEP0-08 offline self-tests own a set of named per-residual sentinels
-(RR-80-01, RR-79-01, RR-114-01, RR-117-01, RR-117-02, RR-119-01, RR-119-02, RR-108-02,
-RR-108-04, RR-108-05, RR-77-08). Each asserts a **documented honest count vector, not a
-live pass rate** (honesty-not-score, D-01) against git-tracked frozen capture excerpts, so
-tampering is visible in diff review.
+BATT-06 and STEP0-08 own sentinels (RR-80-01, RR-79-01, RR-114-01, RR-117-01, RR-117-02, RR-119-01, RR-119-02, RR-108-02, RR-108-04, RR-108-05, RR-77-08) asserting documented honest counts against frozen captures. Do not edit without first reading:
 
-Do not edit a sentinel, its drift guard, or its capture generation without reading the
-authoritative record first:
-
-- `docs/requirements-traceability.md` — active residuals, dispositions, coverage headline.
-- `docs/v8.0-final-closure.md` — terminal ACCEPTED-FINAL dispositions.
-- `scripts/_battery_core.py` — the sentinel source, with per-RR lineage comments and the
-  `_load_excerpt_v*` generation helpers (all prior generations retained byte-frozen).
+- `docs/requirements-traceability.md` — active residuals, dispositions
+- `docs/v8.0-final-closure.md` — terminal ACCEPTED-FINAL dispositions  
+- `scripts/_battery_core.py` — sentinel source with lineage comments
 
 ### Key invariants
 
-- All reference file links use forward slashes and are one level deep from the file that references them (never nested `a.md → b.md → c.md`).
-- **Agent-body reference links are plugin-root-anchored, not file-relative.** Every `references/…` link in `shared/spine/SKILL-body.md` — and the four `-detail.md` pointers the agent surface emits — carries the `${CLAUDE_PLUGIN_ROOT}/references/` prefix (`AGENT_REF_PREFIX` in `scripts/sync-content.py`). An agent body is read with the *session* working directory in force, not the plugin directory, so a file-relative target resolves against the user's project and the read fails — observed live at v8.14.0, where the Phase 5 Self-Audit Gate never fired. `${CLAUDE_PLUGIN_ROOT}` is substituted in agent and skill content wherever it appears. **Skill stubs deliberately keep the file-relative form** — a slash-invoked skill is resolved against its own directory. VAL-03 *resolves* the token onto `first-principles/` rather than skipping it, so the agent body stays fully link-checked.
-- **Agent reference siblings are anchored too, as of v8.17.4 — this overturns DEC-A.** The 16 links *between* files in `first-principles/references/` (4 `-detail.md` pointers + 12 cross-technique) were bare filenames. DEC-A left them bare on the reasoning that they land in the same directory as their target — true of the filesystem, false of the reader, since a model opens them with the session working directory in force. `_absolutise_agent_ref_links()` anchors them at emission; `shared/references/*.md` deliberately keeps the bare form because it also feeds the skill stubs, whose correct target is a different path. GATE-02-v8.5's (g) assertion was inverted to match (anchored once, bare zero) and gained a directory-wide bare-target sweep, because the per-slug loop never reached the 12 cross-technique links. An unrecognised bare `.md` target now **raises** rather than passing through.
-- **Scope the claim on the sibling surface narrowly.** The documented substitution table covers "Skill and agent content" — registered components the harness loads. Reference siblings are *not* registered components; they are plain files the model opens with Read, and the docs are **silent** on substitution inside them (checked 2026-08-17). The token is used there because it is **self-describing and inference-resolvable** — the model arrived via an already-expanded absolute path — not because substitution is guaranteed. Do not restate the body's guarantee for that surface.
-- **The reference tree lives at plugin-root `first-principles/references/`, never under `first-principles/agents/`.** Claude Code registers every Markdown file it finds in a subdirectory of a plugin's `agents/` tree as its own selectable agent type at session start — measured by headless `system/init` (2026-09-29) against the prior layout, which listed a spurious `first-principles:references:*` agent for every reference and worked-example file alongside the real `first-principles:first-principles` agent. Enforced by `sync-content.py --check`, which fails on any file reappearing under `first-principles/agents/` other than `first-principles.md`.
-- **Skill stubs: cross-technique links target the peer stub, as of v8.17.5 — this closes D-02.** The 12 links (`](five-whys.md)` in `skills/fishbone/SKILL.md`) broke for a *different* reason than the agent surface's: a wrong path inside a resolution mechanism that works, since the harness does resolve a slash-invoked skill against its own directory but `skills/fishbone/five-whys.md` does not exist. They now target `${CLAUDE_PLUGIN_ROOT}/skills/<slug>/SKILL.md` (`SKILL_PEER_PREFIX`), chosen over a backticked namespace ref and over pointing into the agent's reference tree because it leaves the prose byte-identical and resolves on disk. **The four `references/<slug>-detail.md` pointers stay file-relative** — they resolve against the stub's own directory, which is how the harness loads a skill.
-- **`_absolutise_skill_peer_links()` must run AFTER `_rewrite_detail_link()`.** The detail rewrite gives its target a `/`, taking it out of `_BARE_MD_TARGET_RE`'s reach; the reverse order would mis-target the detail sibling as a peer skill.
-- **VAL-03 full-checks skill stubs as of v8.17.5, retiring D-05's deferral.** `first-principles/skills/*/SKILL.md` was namely namespace-only *because* those 12 links did not resolve; with that fixed it was promoted into `FULL_CHECK_GLOBS` (it stays in `NAMESPACE_ONLY_GLOBS` too — `_collect_files` dedups, and the surface wants both axes). The self-test's old *disjointness* assertion became an intended-overlap-plus-dedup assertion, and D-06's "both surfaces match zero live findings" note is superseded: this surface now contributes 16 real links.
-- Skill `name` in frontmatter must match the parent directory name exactly.
-- Skill `description` fields must be third-person, ≤ 1,024 chars, no XML tags.
-- `metadata.version` must be a double-quoted YAML string (e.g. `version: "3.8"`), not a bare number.
-- Every hand-maintained version stamp must carry the *same* value — see VERSION-01 above. A bump touches every stamp or none.
-- Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
-- The agent body's line count is **not** an invariant: the 644-line gate was retired under TEARDOWN-01, and nothing reports or gates it.
+**Link resolution:** Agent-body links use `${CLAUDE_PLUGIN_ROOT}/references/` (session WD, not plugin dir). Skill stubs: file-relative for detail siblings, `${CLAUDE_PLUGIN_ROOT}/skills/<slug>/SKILL.md` for cross-technique peers. Reference tree at plugin root, never under `agents/`. VAL-03 full-checks all links.
 
-Each invariant is paired with the gate that enforces it in [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md#key-invariants) — including any that are conventions with no gate behind them.
+**Skill structure:** `name:` matches parent directory exactly. `description:` third-person, ≤1,024 chars, no XML. `metadata.version:` double-quoted string. Reserved: `anthropic`, `claude` in names.
+
+**Versioning:** Every hand-maintained version stamp carries the same value (VERSION-01). A bump touches all stamps or none.
+
+See [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md#key-invariants) for gate enforcement.
