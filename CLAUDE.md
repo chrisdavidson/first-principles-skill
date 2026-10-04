@@ -33,7 +33,7 @@ python3 scripts/check-provenance.py --self-test           # PROV-GUARD: provenan
 python3 scripts/check-provenance.py                        # manual fixture regression against tests/quality-provenance-v8.24/ -- neither the battery nor CI runs this leg as of v9.4.0 (docs/v9.4-gate-retirement.md §2.4)
 python3 scripts/check-conf-gate.py --self-test              # CONF-GATE: exemplar-conformance comparator self-test (control count: see the CI gates table's CONF-GATE row below)
 python3 scripts/check-conf-gate.py                           # CONF-GATE: live comparator against source-literal conformance targets
-python3 scripts/check-report-figures.py --self-test   # FIG-GATE: renders both report figures (needs typst; exit 2 BLOCKED without it)
+python3 scripts/check-report-figures.py --self-test   # FIG-GATE: renders both report figures (needs typst; exit 1 RED without it)
 python3 scripts/check-persona-view.py --self-test    # PERSONA-GATE: persona-view citation/ID/number checker self-test
 ```
 
