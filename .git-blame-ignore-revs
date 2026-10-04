@@ -1,0 +1,2 @@
+# Mass reformat: ruff format (Ruff 0.16.10 defaults) over scripts/ and tests/test_*.py
+ecff2e55268704b2679a0c8619737b5040148dc3
