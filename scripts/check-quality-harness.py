@@ -17408,7 +17408,7 @@ def _selftest_render_contract() -> bool:
             render_bad_text, render_bad_problem = _read_text_or_problem(
                 render_bad_utf8_path, "not-utf8.md"
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001  control asserts that no exception of any type escapes
             _fail(
                 "(r) ISOLATION decode-error case: _read_text_or_problem "
                 f"raised {exc!r} instead of returning a named problem — a "
@@ -17434,7 +17434,7 @@ def _selftest_render_contract() -> bool:
             render_missing_text, render_missing_problem = _read_text_or_problem(
                 render_missing_path, "does-not-exist.md"
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001  control asserts that no exception of any type escapes
             _fail(
                 "(r) ISOLATION missing-file case: _read_text_or_problem "
                 f"raised {exc!r} instead of returning a named problem"

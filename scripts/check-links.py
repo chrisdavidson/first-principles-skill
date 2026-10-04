@@ -1057,7 +1057,7 @@ def main(argv: list[str] | None = None, root: Path = REPO_ROOT) -> int:
                 for name in os.listdir(plugin_skills_dir)
                 if (plugin_skills_dir / name / "SKILL.md").exists()
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001  any enumeration failure maps to a message and exit code 2
             sys.stderr.write(f"check-links: cannot enumerate plugin skills: {exc}\n")
             return 2
 

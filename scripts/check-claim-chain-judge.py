@@ -827,7 +827,7 @@ def judge_document(
     extract = extractor or extract_packets
     try:
         packets = extract(analysis_text)
-    except Exception as exc:  # SectionResolutionError and anything else
+    except Exception as exc:  # SectionResolutionError and anything else  # noqa: BLE001  a document that cannot be read is reported as not measurable, never raised
         return DocResult(label, 0, 0, (), f"{type(exc).__name__}: {exc}")
     judgeable = judgeable_packets(packets)
     excluded = len(packets) - len(judgeable)
@@ -2269,7 +2269,7 @@ def main(argv: list[str] | None = None) -> int:
             text = path.read_text(encoding="utf-8")
             try:
                 packets = extract_packets(text)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001  a document that cannot be read is reported as not measurable, never raised
                 print(f"# {path.name}: not measurable -- {type(exc).__name__}: {exc}")
                 continue
             judgeable = judgeable_packets(packets)

@@ -589,7 +589,7 @@ def self_test() -> int:
                 file=sys.stderr,
             )
             all_passed = False
-        except Exception as _e:
+        except Exception as _e:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
             print(
                 f"self-test FAIL: D-01a failing-S-P16 firewall — "
                 f"_write_baseline raised unexpected exception: {_e}",
@@ -640,7 +640,7 @@ def self_test() -> int:
                 file=sys.stderr,
             )
             all_passed = False
-        except Exception as _e:
+        except Exception as _e:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
             print(
                 f"self-test FAIL: D-01a failing-S-N firewall — "
                 f"_write_baseline raised unexpected exception on failing S-N01: {_e}",
@@ -844,7 +844,7 @@ def self_test() -> int:
                 file=sys.stderr,
             )
             all_passed = False
-    except Exception as _rr_cov_err:
+    except Exception as _rr_cov_err:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         print(
             f"self-test FAIL: {_rr_cov_label} — could not parse catalog"
             f" {_rr_cov_catalog_path}: {_rr_cov_err}",
@@ -884,7 +884,7 @@ def self_test() -> int:
                     file=sys.stderr,
                 )
                 all_passed = False
-        except Exception as _e:
+        except Exception as _e:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
             print(
                 f"self-test FAIL: null-subagent-no-raise — _agent_was_dispatched"
                 f" raised {type(_e).__name__}: {_e} (must return False, not raise)",
@@ -967,7 +967,7 @@ def self_test() -> int:
                     file=sys.stderr,
                 )
                 all_passed = False
-        except Exception as _e:
+        except Exception as _e:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
             print(
                 f"self-test FAIL: reduced-run-denominator — _write_baseline raised"
                 f" {type(_e).__name__} on a 3-row reduced results list: {_e}",
@@ -1011,7 +1011,7 @@ def self_test() -> int:
                     file=sys.stderr,
                 )
                 all_passed = False
-        except Exception as _e:
+        except Exception as _e:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
             print(
                 f"self-test FAIL: reduced-run-denominator — _write_baseline raised"
                 f" {type(_e).__name__} on the full 8-row counter-check: {_e}",
@@ -1442,7 +1442,7 @@ def _write_baseline(
                 capture_output=True, text=True, cwd=REPO_ROOT, check=False,
             )
             return r.stdout.strip() or "unknown"
-        except Exception:
+        except OSError:
             return "unknown"
 
     script_sha = _git_sha7("scripts/check-step0-live.py")

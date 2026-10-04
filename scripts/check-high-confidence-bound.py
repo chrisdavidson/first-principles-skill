@@ -855,7 +855,7 @@ def _run_self_test() -> int:
         e2_mutated = canonical.replace(_HOW_TO_APPLY, "")
         e2_failures = _check_exceptions_summary(e2_mutated, "test")
         _check_negative("e2", e2_failures, "HC-14")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         print(f"(e2) error: {e}")
         problems.append("e2: error")
 
@@ -893,7 +893,7 @@ def _run_self_test() -> int:
         h_mutated = canonical.replace(_CRITERION3_START, "")
         h_failures = _check_criterion3(h_mutated, "test")
         _check_negative("h", h_failures, "HC-1")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         print(f"(h) error: {e}")
         problems.append("h: error")
 
@@ -902,7 +902,7 @@ def _run_self_test() -> int:
         i_mutated = canonical.replace(_C3_SOUND_LEAD, "")
         i_failures = _check_criterion3(i_mutated, "test")
         _check_negative("i", i_failures, "HC-2")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         print(f"(i) error: {e}")
         problems.append("i: error")
 
@@ -911,7 +911,7 @@ def _run_self_test() -> int:
         j_mutated = canonical.replace("at least one HIGH-confidence chain", "")
         j_failures = _check_criterion3(j_mutated, "test")
         _check_negative("j", j_failures, "HC-3")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         print(f"(j) error: {e}")
         problems.append("j: error")
 
@@ -931,7 +931,7 @@ def _run_self_test() -> int:
                 raise AssertionError("C3 Rigorous not found")
         else:
             raise AssertionError("C3 slice not found")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         print(f"(k) error: {e}")
         problems.append("k: error")
 
@@ -951,7 +951,7 @@ def _run_self_test() -> int:
                 raise AssertionError("C3 Rigorous not found")
         else:
             raise AssertionError("C3 slice not found")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         print(f"(l) error: {e}")
         problems.append("l: error")
 
@@ -960,7 +960,7 @@ def _run_self_test() -> int:
         m_mutated = canonical.replace(_CRITERION5_START, "")
         m_failures = _check_criterion5(m_mutated, "test")
         _check_negative("m", m_failures, "HC-7")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         print(f"(m) error: {e}")
         problems.append("m: error")
 
@@ -969,7 +969,7 @@ def _run_self_test() -> int:
         n_mutated = canonical.replace(_C5_SOUND_LEAD, "")
         n_failures = _check_criterion5(n_mutated, "test")
         _check_negative("n", n_failures, "HC-8")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         print(f"(n) error: {e}")
         problems.append("n: error")
 
@@ -984,7 +984,7 @@ def _run_self_test() -> int:
                                      "one chain may be presented at HIGH")
         o_failures = _check_criterion5(o_mutated, "test")
         _check_negative("o", o_failures, "HC-9")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         print(f"(o) error: {e}")
         problems.append("o: error")
 
@@ -1006,7 +1006,7 @@ def _run_self_test() -> int:
                 raise AssertionError("C5 Rigorous not found")
         else:
             raise AssertionError("C5 slice not found")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         print(f"(p) error: {e}")
         problems.append("p: error")
 
@@ -1015,7 +1015,7 @@ def _run_self_test() -> int:
         q_mutated = canonical.replace("**(a) Unreachable source**", "")
         q_failures = _check_exceptions_summary(q_mutated, "test")
         _check_negative("q", q_failures, "HC-15")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         print(f"(q) error: {e}")
         problems.append("q: error")
 
@@ -1024,7 +1024,7 @@ def _run_self_test() -> int:
         r_mutated = _mutate_remove_c3_except(canonical)
         r_failures = _check_except_distribution(r_mutated, "test")
         _check_negative("r", r_failures, "HC-16")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         print(f"(r) error: {e}")
         problems.append("r: error")
 

@@ -1746,7 +1746,7 @@ def cmd_self_test() -> int:
             )
         else:
             print(f"(a) count positive control: PASS — {len(result)} targets")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         failures.append(f"FAIL (a): generate_all() raised unexpectedly: {exc}")
 
     # (b) Count negative control — temporarily set GENERATED_TARGET_COUNT to wrong value.
@@ -1762,7 +1762,7 @@ def cmd_self_test() -> int:
             failures.append("FAIL (b): generate_all() did NOT raise on wrong count")
         except ValueError:
             print("(b) count negative control: PASS — generate_all() raised ValueError on drift")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
             failures.append(f"FAIL (b): unexpected exception type: {exc!r}")
     finally:
         _this_module.GENERATED_TARGET_COUNT = original_count  # always restore
@@ -1787,7 +1787,7 @@ def cmd_self_test() -> int:
                 failures.append("FAIL (c): guard did not write 'orphan' to stderr")
             else:
                 print("(c) orphan-guard teeth: PASS — flags SKILL.md-less, skips SKILL.md-present")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         failures.append(f"FAIL (c): unexpected exception: {exc!r}")
 
     # (d) GATE-02 positive control: the real extractor output must be clean.
@@ -1807,7 +1807,7 @@ def cmd_self_test() -> int:
                 f"{len(SLUGS_WITH_DETAIL)} slugs carry exactly one "
                 f"well-formed detail-sibling pointer"
             )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         failures.append(f"FAIL (d): unexpected exception: {exc!r}")
 
     # (e) GATE-02 negative control 1 (missing) — stripping the pointer from an
@@ -1832,7 +1832,7 @@ def cmd_self_test() -> int:
                 f"stripping the pointer fails the checker for all "
                 f"{len(SLUGS_WITH_DETAIL)} slugs"
             )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         failures.append(f"FAIL (e): unexpected exception: {exc!r}")
 
     # (f) GATE-02 negative control 2 (duplicate) — the failure must cite the
@@ -1865,7 +1865,7 @@ def cmd_self_test() -> int:
                 f"duplicating the pointer fails the checker, citing the "
                 f"count, for all {len(SLUGS_WITH_DETAIL)} slugs"
             )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         failures.append(f"FAIL (f): unexpected exception: {exc!r}")
 
     # (g) GATE-02 rewrite assertion — a distinct property from (d)-(f)'s
@@ -2014,7 +2014,7 @@ def cmd_self_test() -> int:
                 f"across {swept} emitted agent reference files and "
                 f"{stub_swept} skill stubs"
             )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         failures.append(f"FAIL (g): unexpected exception: {exc!r}")
 
     # (h) GATE-02 dispatch control (Phase 152 WR-01 lesson): prove main()
@@ -2051,7 +2051,7 @@ def cmd_self_test() -> int:
                         "(h) GATE-02 dispatch control: PASS — "
                         "main(['--self-test']) reaches this block end-to-end"
                     )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
                 failures.append(f"FAIL (h): unexpected exception: {exc!r}")
         finally:
             _this_module._GATE02_DISPATCH_REENTRANT = False
@@ -2078,9 +2078,9 @@ def cmd_self_test() -> int:
                 failures.append(
                     f"FAIL (i): raised for the wrong reason: {exc}"
                 )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
             failures.append(f"FAIL (i): unexpected exception type: {exc!r}")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         failures.append(f"FAIL (i): unexpected exception: {exc!r}")
 
     # (j) FOCUSED_VALIDATION launcher control: an in-memory launcher body
@@ -2105,9 +2105,9 @@ def cmd_self_test() -> int:
                 failures.append(
                     f"FAIL (j): raised for the wrong reason: {exc}"
                 )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
             failures.append(f"FAIL (j): unexpected exception type: {exc!r}")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         failures.append(f"FAIL (j): unexpected exception: {exc!r}")
 
     # (k) FOCUSED_VALIDATION bare-link control: a snippet fixture carrying a
@@ -2146,13 +2146,13 @@ def cmd_self_test() -> int:
                         failures.append(
                             f"FAIL (k): raised for the wrong reason: {exc}"
                         )
-                except Exception as exc:
+                except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
                     failures.append(
                         f"FAIL (k): unexpected exception type: {exc!r}"
                     )
             finally:
                 _this_module.FOCUSED_VALIDATION_SOURCE = original_source
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         failures.append(f"FAIL (k): unexpected exception: {exc!r}")
 
     # (l) --describe consistency control (Phase 21, D-03): describe()'s
@@ -2177,7 +2177,7 @@ def cmd_self_test() -> int:
                 f"(l) describe() consistency control: PASS — "
                 f"generated_target_count moved {before} -> {after}"
             )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         failures.append(f"FAIL (l): unexpected exception: {exc!r}")
     finally:
         _this_module.GENERATED_TARGET_COUNT = _orig_gtc
@@ -2213,7 +2213,7 @@ def cmd_self_test() -> int:
                     f"fires and names both directions: missing_clause={missing_clause!r} "
                     f"extra_clause={extra_clause!r}"
                 )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         failures.append(f"FAIL (m): unexpected exception: {exc!r}")
 
     # (n) NON_TECHNIQUE_SKILLS token-presence control (PSKILL-03): a
@@ -2236,7 +2236,7 @@ def cmd_self_test() -> int:
                     f"FAIL (n): _expand_skill_token raised for the wrong "
                     f"reason: {exc}"
                 )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
             failures.append(
                 f"FAIL (n): _expand_skill_token unexpected exception type: {exc!r}"
             )
@@ -2254,7 +2254,7 @@ def cmd_self_test() -> int:
                     f"FAIL (n): _expand_focused_validation_token raised for "
                     f"the wrong reason: {exc}"
                 )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
             failures.append(
                 f"FAIL (n): _expand_focused_validation_token unexpected "
                 f"exception type: {exc!r}"
@@ -2266,7 +2266,7 @@ def cmd_self_test() -> int:
                 "a persona body carrying either token raises, naming "
                 "NON_TECHNIQUE_SKILLS"
             )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         failures.append(f"FAIL (n): unexpected exception: {exc!r}")
 
     # Executed-vs-registered floor (Phase 21-14, CR-02): _SELF_TEST_CONTROL_IDS
