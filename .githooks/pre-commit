@@ -1,6 +1,7 @@
 #!/bin/sh
-# Five gates for shared/ <-> generated trees, the conformance baseline, and
-# the CI-gate claim surface.
+# Three gates for shared/ <-> generated trees and generator correctness.
+# Gates 3 (conformance-baseline drift) and 5 (claim-surface drift) moved to
+# battery-only (D-01, D-02), allowing commits when output naturally changes.
 # Opt in:  git config core.hooksPath .githooks
 #
 # Mirrors scripts/git-hooks/pre-commit verbatim (module logic; header prose
@@ -17,27 +18,12 @@
 # Gate 2 -- conformance generator self-test: blocks if
 # scripts/report-conformance.py --self-test fails. Runs the generator's own
 # falsifiability controls before its output is compared to anything (WR-05).
-# Gate 3 -- conformance-baseline drift gate: blocks if
-# docs/conformance-baseline.md / docs/data/conformance.json no longer match a
-# fresh run (scripts/report-conformance.py --check). This fails on STALENESS
-# of the committed baseline relative to a fresh measurement, never on a
-# conformance count being too high -- no count in that baseline gates
-# anything. By decision D-06 report-conformance.py's own controls are
-# deliberately NOT registered a second time in scripts/check-firewall-battery.sh
-# and NOT added to .github/workflows/validation.yml -- they run here, at
-# commit time, instead.
+# Gate 3 (REMOVED, D-01) -- conformance-baseline drift gate: now battery-only.
 # Gate 4 -- claim-surface generator self-test: blocks if
 # scripts/gen-gate-docs.py --self-test fails. Same WR-05 ordering rationale
-# as Gate 2 -- a broken generator's own controls must be caught before its
-# comparison against committed output (Gate 5) is even attempted.
-# Gate 5 -- claim-surface drift gate: blocks if CLAUDE.md's/
-# docs/ARCHITECTURE.md's generated gate tables, docs/TESTING.md's generated
-# index, or any docs/gates/<ID>.md page no longer match a fresh
-# scripts/gen-gate-docs.py --write run, or if CONF-13's standing literal
-# scanner finds a non-exempt hand-maintained count literal
-# (scripts/gen-gate-docs.py --check). CONF-SURFACE (D-21-C, plan 21-11) --
-# also registered in scripts/check-firewall-battery.sh with a matching
-# gen-gate-docs (CONF-SURFACE) CI job, unlike Gates 2/3's generator.
+# as Gate 2 -- a broken generator's own controls must be caught before any
+# comparison against committed output is attempted.
+# Gate 5 (REMOVED, D-02) -- claim-surface drift gate: now battery-only.
 
 set -eu
 
@@ -91,21 +77,9 @@ $PY scripts/sync-content.py --check || exit $?
 
 $PY scripts/report-conformance.py --self-test || exit $?
 
-# --- Gate 3: conformance-baseline drift gate ---------------------------------
-# Not exec'd -- two more gates follow.
-
-$PY scripts/report-conformance.py --check || exit $?
-
-# --- Gate 4: claim-surface generator self-test -------------------------------
+# --- Gate 3: claim-surface generator self-test (terminal) --------------------
 # Same WR-05 ordering discipline as Gate 2, for scripts/gen-gate-docs.py
 # (CONF-SURFACE, D-21-C, plan 21-11): the generator's own controls must be
-# caught before Gate 5 compares its output to the committed tree, since that
-# comparison is meaningless if the generator itself is broken. Not exec'd --
-# one more gate follows.
+# caught as the final pre-commit check. Terminal -- only this one may use exec.
 
-$PY scripts/gen-gate-docs.py --self-test || exit $?
-
-# --- Gate 5: claim-surface drift gate ----------------------------------------
-# Terminal check -- only this one may use exec, because nothing follows it.
-
-exec $PY scripts/gen-gate-docs.py --check
+exec $PY scripts/gen-gate-docs.py --self-test
