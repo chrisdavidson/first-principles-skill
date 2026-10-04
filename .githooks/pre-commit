@@ -51,35 +51,62 @@ else
     exit 2
 fi
 
-# --- Gate 1: sync-drift gate (preserved verbatim from prior version) --------
-# Not exec'd -- four more gates follow, so its exit status is propagated
-# explicitly with "|| exit $?" rather than replacing the shell process with
-# it. A failing sync check must not be silently replaced by a passing
-# conformance check, or the reverse.
-
-$PY scripts/sync-content.py --check || exit $?
-
-# --- Gate 2: conformance generator self-test ---------------------------------
-# WR-05 (Phase 20 20-REVIEW): the generator's own falsifiability battery ran
-# nowhere automated -- no CI job, no scripts/check-firewall-battery.sh
-# registration, and both hooks ran only --check. Its controls therefore
-# executed only when a human typed the command, which is the direct reason a
-# missing positive arm (CR-02) shipped able to hide the deletion of an entire
-# enforcement floor with --self-test and --check both green.
+# --- Fast-path: SKIP_DRIFT_CHECK for regeneration workflows --------
+# When developers run generators (--write), drift checks are expected to fail
+# because the output changed. Set SKIP_DRIFT_CHECK=1 to bypass pre-commit
+# drift checks and run only self-tests (which verify generators are not broken):
+#   SKIP_DRIFT_CHECK=1 git commit
 #
-# Ordered BEFORE --check on purpose: --check compares the committed baseline
-# against a fresh run of this same generator, so a generator whose own controls
-# are failing makes that comparison meaningless. Costs ~0.1s. Not exec'd --
-# three more gates follow.
-#
-# Deliberately NOT registered in scripts/check-firewall-battery.sh; that
-# decision, and why, is recorded in that file's header.
+# This skips only pre-commit drift checks; CI and battery still run them.
+# Use only when intentionally regenerating outputs. Safe because CI gates
+# always run on every PR, regardless of pre-commit bypass.
+# ---------------------------------------------------------------------
 
-$PY scripts/report-conformance.py --self-test || exit $?
+# --- Gate execution: SKIP_DRIFT_CHECK conditional wrapper --------
 
-# --- Gate 3: claim-surface generator self-test (terminal) --------------------
-# Same WR-05 ordering discipline as Gate 2, for scripts/gen-gate-docs.py
-# (CONF-SURFACE, D-21-C, plan 21-11): the generator's own controls must be
-# caught as the final pre-commit check. Terminal -- only this one may use exec.
+if [ "${SKIP_DRIFT_CHECK:-0}" = "1" ]; then
+    # Fast-path: run only self-tests (which verify generators are not broken),
+    # skip drift checks (which fail when outputs naturally change).
+    echo "pre-commit: SKIP_DRIFT_CHECK=1 — skipping drift checks, running self-tests only"
 
-exec $PY scripts/gen-gate-docs.py --self-test
+    # Gate 2: conformance generator self-test
+    $PY scripts/report-conformance.py --self-test || exit $?
+
+    # Gate 3: claim-surface generator self-test (terminal)
+    exec $PY scripts/gen-gate-docs.py --self-test
+else
+    # Normal mode: run all gates (drift checks + self-tests)
+
+    # --- Gate 1: sync-drift gate (preserved verbatim from prior version) --------
+    # Not exec'd -- four more gates follow, so its exit status is propagated
+    # explicitly with "|| exit $?" rather than replacing the shell process with
+    # it. A failing sync check must not be silently replaced by a passing
+    # conformance check, or the reverse.
+
+    $PY scripts/sync-content.py --check || exit $?
+
+    # --- Gate 2: conformance generator self-test ---------------------------------
+    # WR-05 (Phase 20 20-REVIEW): the generator's own falsifiability battery ran
+    # nowhere automated -- no CI job, no scripts/check-firewall-battery.sh
+    # registration, and both hooks ran only --check. Its controls therefore
+    # executed only when a human typed the command, which is the direct reason a
+    # missing positive arm (CR-02) shipped able to hide the deletion of an entire
+    # enforcement floor with --self-test and --check both green.
+    #
+    # Ordered BEFORE --check on purpose: --check compares the committed baseline
+    # against a fresh run of this same generator, so a generator whose own controls
+    # are failing makes that comparison meaningless. Costs ~0.1s. Not exec'd --
+    # three more gates follow.
+    #
+    # Deliberately NOT registered in scripts/check-firewall-battery.sh; that
+    # decision, and why, is recorded in that file's header.
+
+    $PY scripts/report-conformance.py --self-test || exit $?
+
+    # --- Gate 3: claim-surface generator self-test (terminal) --------------------
+    # Same WR-05 ordering discipline as Gate 2, for scripts/gen-gate-docs.py
+    # (CONF-SURFACE, D-21-C, plan 21-11): the generator's own controls must be
+    # caught as the final pre-commit check. Terminal -- only this one may use exec.
+
+    exec $PY scripts/gen-gate-docs.py --self-test
+fi
