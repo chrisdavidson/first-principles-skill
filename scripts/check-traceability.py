@@ -1433,7 +1433,6 @@ def _rows_testnet_ci_gates() -> list[MatrixRow]:
     collision-scan claim, and VAL-05 has no successor assertion at all.
     """
     hook = ".githooks/pre-commit"
-    audit_v30 = "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
     audit_v33 = "Validated by v3.3-MILESTONE-AUDIT; no re-runnable gate"
     return [
         # VAL-01/02 via KNOWN_CLI_GATES whitelist (Pitfall 6)
@@ -1814,8 +1813,6 @@ def _rows_testnet_routing_v39_plus() -> list[MatrixRow]:
     Statements: no tracked surface quotes these requirements as their own wording (D-02), so each row carries _STATEMENT_UNRECOVERABLE (D-T4); this batch has no citation exception.
     """
     cat = "tests/routing-catalog.md"
-    batt = "tests/routing-battery-catalog.md"
-    audit_v39 = "Validated by v3.9-MILESTONE-AUDIT; no re-runnable gate"
     audit_v311 = "Validated by v3.11-MILESTONE-AUDIT; no re-runnable gate"
     return [
         # v3.9 P8 routing fix
@@ -1918,8 +1915,6 @@ def _rows_testnet_merged_battery() -> list[MatrixRow]:
     V818-ROWS precedent).
     """
     batt = "scripts/check-routing-battery.py"
-    audit_v42 = "Validated by v4.2-MILESTONE-AUDIT; no re-runnable gate"
-    audit_v43 = "Validated by v4.3-MILESTONE-AUDIT; no re-runnable gate"
     bcat = "tests/routing-battery-catalog.md"
     test69_audit = (
         "Re-tiered audit-only at v9.3.0 Phase 34 (TIER-02, D-06): "
@@ -2171,7 +2166,6 @@ def _rows_testnet_v52_v53() -> list[MatrixRow]:
     Statements: no tracked surface quotes these requirements as their own wording (D-02), so each row carries _STATEMENT_UNRECOVERABLE (D-T4); this batch has no citation exception.
     """
     emul = "scripts/check-step0-emulator.py"
-    live = "scripts/check-step0-live.py"
     audit_v52 = "Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate"
     audit_v53 = "Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate"
     agent = "first-principles/agents/first-principles.md"
@@ -8809,7 +8803,7 @@ def build_matrix_rows() -> list[MatrixRow]:
 
 
 def _require_python_version() -> None:
-    if sys.version_info < (3, 12):
+    if sys.version_info < (3, 12):  # noqa: UP036  guard for a bare python3 older than requires-python
         sys.stderr.write(
             f"scripts/check-traceability.py requires Python >=3.12 "
             f"(running {sys.version_info.major}.{sys.version_info.minor}).\n"

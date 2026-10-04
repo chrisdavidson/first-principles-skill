@@ -1417,7 +1417,6 @@ def _apply_case_c_inflection(real_body: str) -> str:
             f"block while building fixture (bx), found {len(matches)}"
         )
     match = matches[0]
-    span_text = match.group(0)
     before = step_block[: match.start()]
     word_match = re.search(r"(\S+)\s+$", before)
     if word_match is None:
@@ -3158,7 +3157,7 @@ def main(argv: list[str] | None = None) -> int:
     the self-test block rather than only `_run_self_test()` being correct when
     called directly.
     """
-    if sys.version_info < (3, 12):
+    if sys.version_info < (3, 12):  # noqa: UP036  guard for a bare python3 older than requires-python
         sys.stderr.write(
             "scripts/check-act-limb.py requires Python >=3.12 "
             f"(running {sys.version_info.major}.{sys.version_info.minor}).\n"

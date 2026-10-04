@@ -1498,7 +1498,7 @@ def _control_d08_needle_not_unique_reported() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / "fixture.md"
         path.write_text(_D08_FIXTURE_DUPLICATE_HOP, encoding="utf-8")
-        problems, lines = _run_d08_arm_on(path, "personal-general")
+        problems, _lines = _run_d08_arm_on(path, "personal-general")
     assert any(
         "D-08(a)" in p and "not found (or not unique)" in p for p in problems
     ), problems
@@ -1519,7 +1519,7 @@ def _control_d08_fenced_duplicate_ignored() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / "fixture.md"
         path.write_text(_D08_FIXTURE_FENCED_DUPLICATE, encoding="utf-8")
-        problems, lines = _run_d08_arm_on(path, "personal-general")
+        problems, _lines = _run_d08_arm_on(path, "personal-general")
     assert not any("not found (or not unique)" in p for p in problems), problems
     assert len(problems) == 3, problems
     assert all("did not increment" in p for p in problems), problems

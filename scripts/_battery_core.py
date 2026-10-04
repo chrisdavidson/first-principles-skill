@@ -556,9 +556,7 @@ def _is_match(actual: SubSkill, expected: SubSkill) -> bool:
     """
     if actual == expected:
         return True
-    if actual == "both" and expected in ("pre-mortem", "inversion"):
-        return True
-    return False
+    return bool(actual == "both" and expected in ("pre-mortem", "inversion"))
 
 
 # ---------------------------------------------------------------------------

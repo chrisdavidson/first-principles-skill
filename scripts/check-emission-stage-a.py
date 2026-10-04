@@ -602,7 +602,6 @@ def cmd_read(out_dir: Path) -> int:
               f"{('?' if r['agent_dispatches'] is None else r['agent_dispatches']):>6}"
               f"{(r['delivery_route'] or '?'):>10}")
 
-    n = len(rows) or 1
     p1 = sum(1 for r in rows.values() if r["section_count"] >= MIN_SECTIONS)
     p2 = sum(1 for r in rows.values() if r["urls"] > 0)
     p3 = sum(1 for r in rows.values() if r["derivation_lines"] > 0)

@@ -2249,7 +2249,7 @@ def _run_self_test_body() -> int:
     # HAND-01..04 / D-29-P2: proves the narrowed loop still reaches an
     # unclassified-facts stub. Target slug is derived, not hand-picked, so it
     # tracks `_HANDOFF_ROUTED_SLUGS` automatically if the roster ever changes.
-    g8_target_slug = sorted(set(real_stubs) - {LAUNCHER_SLUG} - _HANDOFF_ROUTED_SLUGS)[0]
+    g8_target_slug = min(set(real_stubs) - {LAUNCHER_SLUG} - _HANDOFF_ROUTED_SLUGS)
     g8_stubs = _mutate_one(real_stubs, g8_target_slug, _HANDOFF_CANDIDATE_TAIL)
     _check_negative(
         "g8",
@@ -3027,7 +3027,7 @@ def _run_self_test_body() -> int:
     # the live `_PHASE_STUB_SLUGS` mapping so a future phase added there is
     # covered without editing these controls.
     # -----------------------------------------------------------------
-    _ec_slug, _ec_heading = sorted(_PHASE_STUB_SLUGS.items())[0]
+    _ec_slug, _ec_heading = min(_PHASE_STUB_SLUGS.items())
 
     def _ec_clauses(conditions: int) -> str:
         return ", AND ".join(f"({i}) condition {i}" for i in range(1, conditions + 1))
@@ -3220,7 +3220,7 @@ def main(argv: list[str] | None = None) -> int:
     the CLI dispatch itself reaches the self-test block rather than only
     `_run_self_test()` being correct when called directly.
     """
-    if sys.version_info < (3, 12):
+    if sys.version_info < (3, 12):  # noqa: UP036  guard for a bare python3 older than requires-python
         sys.stderr.write(
             "scripts/check-focused-parity.py requires Python >=3.12 "
             f"(running {sys.version_info.major}.{sys.version_info.minor}).\n"

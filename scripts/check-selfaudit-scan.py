@@ -1169,18 +1169,16 @@ def _check_rubric_text(text: str) -> list[str]:
     # evaluated only when both indices it compares are `!= -1`, and each
     # emits its own detail so narrowing either half alone fails a distinct
     # named control rather than being covered by the other half's fixture.
-    if aa_idx != -1 and scan_idx != -1:
-        if not (aa_idx < scan_idx):
-            failures.append(
-                "Rubric-2: scan block does not follow the Assumption Audit "
-                "block (placement violated, Assumption Audit half)"
-            )
-    if scan_idx != -1 and precedence_idx != -1:
-        if not (scan_idx < precedence_idx):
-            failures.append(
-                "Rubric-2: scan block does not precede the Precedence rule "
-                "(placement violated, Precedence half)"
-            )
+    if aa_idx != -1 and scan_idx != -1 and not (aa_idx < scan_idx):
+        failures.append(
+            "Rubric-2: scan block does not follow the Assumption Audit "
+            "block (placement violated, Assumption Audit half)"
+        )
+    if scan_idx != -1 and precedence_idx != -1 and not (scan_idx < precedence_idx):
+        failures.append(
+            "Rubric-2: scan block does not precede the Precedence rule "
+            "(placement violated, Precedence half)"
+        )
 
     scan_slice = _slice(text, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE)
     if scan_slice is None:
@@ -3856,7 +3854,7 @@ def main(argv: list[str] | None = None) -> int:
     CLI dispatch itself reaches the self-test block rather than only
     `_run_self_test()` being correct when called directly.
     """
-    if sys.version_info < (3, 12):
+    if sys.version_info < (3, 12):  # noqa: UP036  guard for a bare python3 older than requires-python
         sys.stderr.write(
             "scripts/check-selfaudit-scan.py requires Python >=3.12 "
             f"(running {sys.version_info.major}.{sys.version_info.minor}).\n"

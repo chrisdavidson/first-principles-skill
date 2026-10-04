@@ -124,7 +124,7 @@ def test_b_dangling_anchor_caught(check_links_mod, tmp_path):
 
     assert total_links[0] == 1
     assert len(broken) == 1, f"Expected 1 broken anchor, got {broken}"
-    _, _, ref, reason = broken[0]
+    _, _, _ref, reason = broken[0]
     assert "anchor" in reason.lower() or "heading" in reason.lower(), (
         f"Reason should mention anchor/heading; got reason={reason!r}"
     )

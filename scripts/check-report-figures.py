@@ -531,7 +531,7 @@ def _p01_shipped_library_all_fixtures_clean() -> str | None:
 
 
 def _f01_drop_chain_edge() -> str | None:
-    label, summary = _real_fixture()
+    _label, summary = _real_fixture()
     original_expected = expected_trace(summary)
     modified = copy.deepcopy(summary)
     for chain in modified.get("chains", []):

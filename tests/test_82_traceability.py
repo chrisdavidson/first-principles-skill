@@ -679,12 +679,11 @@ def test_v819_v820_v821_milestone_rows_present() -> None:
 
     order_errors: list[str] = []
     for i, r in enumerate(rows):
-        if r.key in expected_keys:
-            if not (last_v818 < i < first_v824):
-                order_errors.append(
-                    f"{r.key} at index {i} is not strictly between last v8.18 row "
-                    f"(index {last_v818}) and first v8.24 row (index {first_v824})"
-                )
+        if r.key in expected_keys and not (last_v818 < i < first_v824):
+            order_errors.append(
+                f"{r.key} at index {i} is not strictly between last v8.18 row "
+                f"(index {last_v818}) and first v8.24 row (index {first_v824})"
+            )
     assert not order_errors, (
         "ROWS-01 build-order errors:\n" + "\n".join(order_errors)
     )

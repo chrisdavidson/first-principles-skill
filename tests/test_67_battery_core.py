@@ -430,7 +430,7 @@ def test_both_match_na_auto_pass() -> None:
     assert passed2 is True, "matching boundary + n-a output should PASS"
 
     # Case 3: real mismatch — boundary expected pre-mortem but all verdicts none-or-other.
-    b_count3, f_count3, passed3 = bc._both_match(
+    b_count3, _f_count3, passed3 = bc._both_match(
         ["none-or-other"] * 5,  # boundary verdicts: all wrong
         ["none"] * 5,
         "pre-mortem",            # expected_boundary: real signal that all verdicts miss
@@ -494,7 +494,7 @@ def test_verdict_output_format(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) 
     )
 
     # Call run_battery via crb (uses the monkeypatched transport + availability check).
-    rc = crb.run_battery(
+    crb.run_battery(
         prompts_p=[test_prompt],
         prompts_n=[],
         plugin_dir=Path("/tmp/fake-plugin"),

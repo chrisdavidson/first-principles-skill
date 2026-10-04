@@ -1056,7 +1056,7 @@ def _judge_pool_2(out_dir: Path, prompts: tuple, model: str, *, live: bool) -> d
 
     def _text(kind: str, ident: str) -> str:
         if kind == "primary":
-            pid, arm = ident.rsplit("-", 1)
+            _pid, arm = ident.rsplit("-", 1)
             suffix = "md" if arm == "T" else "txt"
             return (gen_dir / f"{ident}.{suffix}").read_text(encoding="utf-8")
         return (gen_dir / f"{ident}-T.orchestrator.txt").read_text(encoding="utf-8")

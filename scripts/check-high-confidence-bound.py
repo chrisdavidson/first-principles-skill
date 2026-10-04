@@ -1072,7 +1072,7 @@ def describe() -> dict[str, object]:
 
 def main(argv: list[str] | None = None) -> int:
     """Run the check-high-confidence-bound CLI and return a process exit code."""
-    if sys.version_info < (3, 12):
+    if sys.version_info < (3, 12):  # noqa: UP036  guard for a bare python3 older than requires-python
         sys.stderr.write(
             "scripts/check-high-confidence-bound.py requires Python >=3.12 "
             f"(running {sys.version_info.major}.{sys.version_info.minor}).\n"

@@ -13966,7 +13966,7 @@ def _extract_contract_example(row: tuple[str, str, str, str]) -> str:
     `C-RENDER-EXAMPLE-PREFIX`, `whole-physical-line`) cannot interfere with
     each other in either evaluation order.
     """
-    fixture_id, source_file, habitat_mode, anchor = row
+    _fixture_id, source_file, habitat_mode, anchor = row
     source_path = REPO_ROOT / source_file
     try:
         source_text = source_path.read_text(encoding="utf-8")
@@ -21381,9 +21381,7 @@ def _selftest_describe_consistency() -> bool:
         return False
     if desc["contract_pins"]["_conclusion_claims"]["digest"] != _CONCLUSION_CLAIMS_PINNED_DIGEST:
         return False
-    if desc["contract_pins"]["_slice_sections"]["digest"] != _SLICE_SECTIONS_PINNED_DIGEST:
-        return False
-    return True
+    return desc["contract_pins"]["_slice_sections"]["digest"] == _SLICE_SECTIONS_PINNED_DIGEST
 
 
 def _selftest_reference_reads() -> bool:

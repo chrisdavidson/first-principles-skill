@@ -382,7 +382,7 @@ _FIXTURE_DISALLOWED_TOOLS_EXTRA = _FIXTURE_VALID_CANONICAL.replace(
 
 
 def _require_python_version() -> None:
-    if sys.version_info < (3, 12):
+    if sys.version_info < (3, 12):  # noqa: UP036  guard for a bare python3 older than requires-python
         sys.stderr.write(
             f"scripts/check-agent.py requires Python >=3.12 "
             f"(running {sys.version_info.major}.{sys.version_info.minor}).\n"

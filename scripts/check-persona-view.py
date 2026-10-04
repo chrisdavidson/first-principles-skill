@@ -1480,7 +1480,7 @@ def _ex_reach_id_mutation() -> str | None:
     kind must produce PV-ID -- proving the reach is real, not a presence
     check."""
     roster = _load_roster_from_contract()
-    stem = sorted(p.stem for p in PERSONA_EXAMPLES_DIR.glob("*.md"))[0]
+    stem = min(p.stem for p in PERSONA_EXAMPLES_DIR.glob("*.md"))
     split = _ex_reach_split_role(stem, roster)
     if split is None:
         return f"{stem}: no role suffix in {sorted(roster)} matches"

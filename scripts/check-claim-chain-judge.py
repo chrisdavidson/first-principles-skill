@@ -390,7 +390,12 @@ def extract_packets(analysis_text: str) -> list[ClaimPacket]:
         chains: list[ChainText] = []
         seen: set[str] = set()
 
-        def add(chain_id: str, via: str) -> None:
+        def add(
+            chain_id: str,
+            via: str,
+            seen: set[str] = seen,
+            chains: list[ChainText] = chains,
+        ) -> None:
             if chain_id in seen or chain_id not in by_id:
                 return
             seen.add(chain_id)

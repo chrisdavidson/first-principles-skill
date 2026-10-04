@@ -255,9 +255,7 @@ def _signal_a(parsed_lines: list[object], raw_text: str) -> bool:
                 blob = json.dumps(node.get("input", {}))
                 if needle in blob.lower():
                     return True
-    if _SIGNAL_A_FALLBACK_RE.search(raw_text):
-        return True
-    return False
+    return bool(_SIGNAL_A_FALLBACK_RE.search(raw_text))
 
 
 def _signal_b(parsed_lines: list[object]) -> bool:

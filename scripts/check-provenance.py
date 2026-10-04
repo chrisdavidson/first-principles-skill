@@ -112,7 +112,7 @@ _MIN_RETRIEVED_TEXT_CHARS = _mod._PROV_MIN_RETRIEVED_TEXT_CHARS
 
 
 def _require_python_version() -> None:
-    if sys.version_info < (3, 12):
+    if sys.version_info < (3, 12):  # noqa: UP036  guard for a bare python3 older than requires-python
         sys.stderr.write(
             f"scripts/check-provenance.py requires Python >=3.12 "
             f"(running {sys.version_info.major}.{sys.version_info.minor}).\n"
@@ -1154,7 +1154,7 @@ def _control_gate01_antimask_selfproof() -> None:
     """
     shrunk = set(_covered_controls)
     assert shrunk, "cannot self-proof against an empty covered_controls set"
-    removed = sorted(shrunk)[0]
+    removed = min(shrunk)
     shrunk.discard(removed)
     diff = REQUIRED_CONTROLS - shrunk
     assert diff, "anti-masking diff was empty against a deliberately shrunk set"
