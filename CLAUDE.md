@@ -89,6 +89,18 @@ git config core.hooksPath .githooks   # same sync-drift gate via .githooks/pre-c
 # (do not use both — they are mutually exclusive at the Git level)
 ```
 
+### Fast-path: SKIP_DRIFT_CHECK for generators
+
+When running generators that intentionally change outputs (e.g., `python3 scripts/report-conformance.py --write` or `python3 scripts/gen-gate-docs.py --write`), the pre-commit drift checks will fail because the committed baseline is now stale. To skip pre-commit drift checks in this workflow:
+
+```sh
+SKIP_DRIFT_CHECK=1 git commit
+```
+
+This flag skips only pre-commit drift checks (sync-drift). It still runs the generator self-tests, ensuring the generators themselves are not broken. Use only when you are intentionally regenerating outputs.
+
+**Why this is safe:** CI and the offline battery still run all drift checks on every PR. Pre-commit is developer convenience, not the final safety gate. The fast-path trades commit-time friction for the guarantee that PR checks are always complete.
+
 ## Architecture
 
 ### Source-of-truth vs. generated surface
@@ -216,6 +228,7 @@ Bypass: `git commit --no-verify`
 - Plan-checker must re-derive falsifiers independently (never reuse planner's)
 - Derive falsifiers from observed text, not model assumptions
 - On claim retraction: add literal to `REGISTRY` in `scripts/check-retracted-claims.py` (RETRACT-01)
+- **Literal counts:** Some gates pin literal counts (INVARIANT-CHECK: `pre-mortem=9 fishbone=7 inversion=13 trade-off=10 MIN_HEADER_HITS=2`). These are locked because they measure intrinsic agent design (technique marker counts, detection parameters), not generated output. Other counts (coverage headlines, control counts) should be auto-derived from source when safe to reduce cascading edits. See `scripts/_battery_core.py` (lines 2246–2271) for locked-count justification and `scripts/check-firewall-battery.sh` (line 762+) for validation.
 
 ### Review protocol
 
