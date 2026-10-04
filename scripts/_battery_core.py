@@ -2243,6 +2243,29 @@ _COMPOSER_FOCUS_CEILING: int = 4
 # ---------------------------------------------------------------------------
 
 
+# LOCKED LITERAL COUNTS — D-04 (Phase 89 Refactoring)
+# ======================================================
+# These counts are PINNED because they reflect intrinsic agent design properties:
+#
+#   - pre-mortem=9, fishbone=7, inversion=13, trade-off=10:
+#     Number of canonical technique marker patterns (regex entries in
+#     _TECHNIQUE_CATEGORIES below). These counts measure the agent's core
+#     Step-0 routing structure, not generated output.
+#
+#   - MIN_HEADER_HITS=2:
+#     Minimum distinct marker patterns required to fire a technique. This is
+#     an intrinsic detection parameter designed into the agent's analysis.
+#
+# These counts are immune to normal content edits (docs/ prose, comments, etc.)
+# because they measure the agent's core structure, not its output. If any of
+# these change without an explicit agent body or example refactoring, the
+# INVARIANT-CHECK gate is catching a real regression (unexpected technique
+# deletion, marker removal, step-0 degradation).
+#
+# See scripts/check-firewall-battery.sh §Invariant re-confirm (line 762+)
+# for how the battery validates these pinned counts on every run.
+# See CLAUDE.md §INVARIANT-CHECK for gate documentation.
+
 # Per-technique marker regex sets — verbatim from 46-RESEARCH §Q4.1-Q4.6.
 # Case-insensitive matching is applied uniformly. Each entry cites its
 # source file + approximate line (pre-Phase-43 lines may have shifted by
