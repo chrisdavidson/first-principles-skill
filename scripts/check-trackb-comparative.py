@@ -577,8 +577,8 @@ def init_check(jsonl: str, arm: str) -> list[str]:
     if arm == "T":
         if len(fp) != 1:
             return [
-                f"arm T init event lists {len(fp)} first-principles plugin(s), "
-                f"expected exactly 1: {fp!r}"
+                (f"arm T init event lists {len(fp)} first-principles plugin(s), "
+                f"expected exactly 1: {fp!r}")
             ]
         # Compare relative paths from repository root to work across checkout locations
         plugin_path_str = fp[0].get("path") or ""
@@ -596,8 +596,8 @@ def init_check(jsonl: str, arm: str) -> list[str]:
 
         if plugin_relative != expected_relative:
             return [
-                f"arm T first-principles plugin path is {fp[0].get('path')!r}, "
-                f"expected {str(PLUGIN_DIR)!r}"
+                (f"arm T first-principles plugin path is {fp[0].get('path')!r}, "
+                f"expected {str(PLUGIN_DIR)!r}")
             ]
         return []
     raise TrackBError(f"init_check: unknown arm {arm!r}")

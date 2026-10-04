@@ -593,8 +593,8 @@ def coverage_observations(
     """
     if not population:
         return [
-            "not evaluated: section 3 yields no ground truths, so no input's "
-            "provenance label can be resolved"
+            ("not evaluated: section 3 yields no ground truths, so no input's "
+            "provenance label can be resolved")
         ]
 
     by_key = {g.key: g for g in population}

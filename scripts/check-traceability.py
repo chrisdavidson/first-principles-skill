@@ -467,8 +467,8 @@ def _headline_scan_floor_breaches(read: _HeadlineScanRead) -> list[str]:
     )
     if _unreachable:
         return [
-            f"(j) coverage floor unmet: the scan never READ {_unreachable} — the "
-            "tree-wide scan cannot be load-bearing for surfaces it never opened"
+            (f"(j) coverage floor unmet: the scan never READ {_unreachable} — the "
+            "tree-wide scan cannot be load-bearing for surfaces it never opened")
         ]
     _starved = sorted(
         _surface
@@ -477,10 +477,10 @@ def _headline_scan_floor_breaches(read: _HeadlineScanRead) -> list[str]:
     )
     if _starved:
         return [
-            f"(j) accounted-hit floor unmet: {_starved} registered surface(s) accounted "
+            (f"(j) accounted-hit floor unmet: {_starved} registered surface(s) accounted "
             "for zero non-historical hits — either the scan is not reading what it claims "
             "to read, or that surface no longer states the current headline (check the "
-            "(f) results above first)"
+            "(f) results above first)")
         ]
     return []
 
@@ -8980,8 +8980,8 @@ def _selftest_dispatch_problems(anchor: str, content: str, file_part: str) -> li
     if _match is None:
         _names = " or ".join(f"{_n}()" for _n in _SELFTEST_DISPATCHER_NAMES)
         return [
-            f"anchor {anchor!r} is defined in {file_part!r} but the file defines no "
-            f"top-level {_names} to dispatch it from — never called from any dispatcher"
+            (f"anchor {anchor!r} is defined in {file_part!r} but the file defines no "
+            f"top-level {_names} to dispatch it from — never called from any dispatcher")
         ]
     _dispatcher_name = _match.group(1)
 
@@ -9009,9 +9009,9 @@ def _selftest_dispatch_problems(anchor: str, content: str, file_part: str) -> li
 
     if (anchor + "(") not in _stripped_body:
         return [
-            f"anchor {anchor!r} is defined in {file_part!r} but is never called from "
+            (f"anchor {anchor!r} is defined in {file_part!r} but is never called from "
             f"{_dispatcher_name}() — a 'reproducible' tier pointing at a "
-            f"defined-but-never-dispatched sub-check is unenforced"
+            f"defined-but-never-dispatched sub-check is unenforced")
         ]
     return []
 

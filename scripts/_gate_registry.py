@@ -2017,8 +2017,8 @@ def self_test() -> int:
         failures.append(
             (
                 "coverage-floor",
-                f"registered/executed control-id mismatch: missing={sorted(missing)} "
-                f"extra={sorted(extra)}",
+                (f"registered/executed control-id mismatch: missing={sorted(missing)} "
+                f"extra={sorted(extra)}"),
             )
         )
 

@@ -339,17 +339,17 @@ _R6B_SHARED_REASON = _SHARED_NOT_FOUND_REASON
 _PRE05_REGRESSION_SUBSTITUTIONS: tuple[tuple[str, str], ...] = (
     (
         # The population clause's gate — the blocking defect itself.
-        "whose asserted figure or wording this analysis has not yet located in "
-        "the cited source",
+        ("whose asserted figure or wording this analysis has not yet located in "
+        "the cited source"),
         "whose cited source this analysis has not yet opened",
     ),
     (
         # The exclusion clause's first limb, plus the termination limb 01-05 added.
-        "A ground truth whose asserted figure or wording this analysis has "
+        ("A ground truth whose asserted figure or wording this analysis has "
         "already located in the cited source, a ground truth that already "
-        "carries a Phase 3 failure record for this citation, and",
-        "A ground truth whose cited source this analysis has already opened and "
-        "in which the asserted figure or wording was located, and",
+        "carries a Phase 3 failure record for this citation, and"),
+        ("A ground truth whose cited source this analysis has already opened and "
+        "in which the asserted figure or wording was located, and"),
     ),
 )
 
@@ -460,8 +460,8 @@ def _control_roster_problems(
     extra = executed_set - registered_set
     if missing or extra:
         return [
-            f"control roster/executed mismatch: missing={sorted(missing)} "
-            f"extra={sorted(extra)}"
+            (f"control roster/executed mismatch: missing={sorted(missing)} "
+            f"extra={sorted(extra)}")
         ]
     return []
 

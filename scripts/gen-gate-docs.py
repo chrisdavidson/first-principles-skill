@@ -367,8 +367,8 @@ def roster_arm_shape_census_problems(
 
     if not sources:
         return [
-            "roster-arm-shape-census: population is empty — the census "
-            "cannot scan nothing"
+            ("roster-arm-shape-census: population is empty — the census "
+            "cannot scan nothing")
         ]
 
     problems: list[str] = []
@@ -1540,9 +1540,9 @@ def containment_surface_roster_problems(
     extra = sorted(reached_keys - lock)
     if missing or extra:
         return [
-            f"containment-surface-roster: missing={missing} extra={extra} "
+            (f"containment-surface-roster: missing={missing} extra={extra} "
             "(CONTAIN-01, D-05 proviso 3 -- the reached-surface set must "
-            "equal the locked four, never a subset)"
+            "equal the locked four, never a subset)")
         ]
     return []
 
@@ -1786,9 +1786,9 @@ def narrative_region_surface_roster_problems(
     extra = sorted(reached_keys - lock)
     if missing or extra:
         return [
-            f"narrative-region-surface-roster: missing={missing} extra={extra} "
+            (f"narrative-region-surface-roster: missing={missing} extra={extra} "
             "(NARR-02 -- the reached-surface set must equal the locked two, "
-            "never a subset)"
+            "never a subset)")
         ]
     return []
 
@@ -3297,8 +3297,8 @@ def version01_narrative_problems(
 
     if not tokens:
         return [
-            "version01-narrative-control-ids-live: no backticked control-id-shaped "
-            "token found in docs/gates/VERSION-01.md's narrative"
+            ("version01-narrative-control-ids-live: no backticked control-id-shaped "
+            "token found in docs/gates/VERSION-01.md's narrative")
         ]
 
     return [
@@ -3330,9 +3330,9 @@ _BACKTICK_ROSTER_ARM_ID_RE = re.compile(r"`(roster-arm-[a-z0-9-]+)`")
 # pin seeded only from the page's wording would never fire on a docstring
 # regression — the hole this four-entry roster closes.
 _CENSUS_OVERCLAIM_PHRASES: tuple[str, ...] = (
-    "proves that every `.py` file directly under `scripts/` asserts a "
+    ("proves that every `.py` file directly under `scripts/` asserts a "
     "roster-mismatch finding against an extracted clause, never against a "
-    "whole message",
+    "whole message"),
     "never against a whole message",
     "carries none of the defective roster-arm shapes",
     "the two defective roster-arm shapes",
@@ -7888,8 +7888,8 @@ def self_test() -> int:
         failures.append(
             (
                 "coverage-floor",
-                f"registered/executed control-id mismatch: missing={sorted(missing)} "
-                f"extra={sorted(extra)}",
+                (f"registered/executed control-id mismatch: missing={sorted(missing)} "
+                f"extra={sorted(extra)}"),
             )
         )
 

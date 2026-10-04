@@ -4777,9 +4777,9 @@ def _control_live_row_askuserquestion_derivation() -> None:
             ("without", "# a\n\nNo marker in this one.\n"),
             (
                 "buried",
-                "# a\n\nOpening paragraph with no marker at all.\n\n"
+                ("# a\n\nOpening paragraph with no marker at all.\n\n"
                 "## 4. Reasoning\n\nA late mention of "
-                f"{_NONINTERACTIVE_DISCLOSURE_MARKER} deep in the body.\n",
+                f"{_NONINTERACTIVE_DISCLOSURE_MARKER} deep in the body.\n"),
             ),
         ):
             (root / f"{stem}.jsonl").write_text("", encoding="utf-8")
@@ -5370,8 +5370,8 @@ def _control_live_population_surfacewide_breach_detected() -> None:
     ), problems
     assert not any(
         "LIVE POPULATION FLOOR BREACH chain_blocks" in p for p in problems
-    ), ("chain_blocks is no longer a surface-wide floor (CR-01); a breach reported "
-        "under that name means the floor set regressed to the corpus copy", problems)
+    ), (("chain_blocks is no longer a surface-wide floor (CR-01); a breach reported "
+        "under that name means the floor set regressed to the corpus copy"), problems)
 
 
 def _control_live_population_per_item_verdict_cells_zero_detected() -> None:
@@ -6353,8 +6353,8 @@ def self_test() -> int:
         failures.append(
             (
                 "coverage-floor",
-                f"registered/executed control-id mismatch: missing={sorted(missing)} "
-                f"extra={sorted(extra)}",
+                (f"registered/executed control-id mismatch: missing={sorted(missing)} "
+                f"extra={sorted(extra)}"),
             )
         )
 

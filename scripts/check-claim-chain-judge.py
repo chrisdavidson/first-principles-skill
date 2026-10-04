@@ -1785,8 +1785,8 @@ def structure_problems() -> list[str]:
 _PARSE_CASES: tuple[tuple[str, str, int, tuple[str, ...]], ...] = (
     (
         "well-formed",
-        f"prose\n{_VERDICT_START}\nITEM-1: {SUPPORTS} -- fine\n"
-        f"ITEM-2: {DOES_NOT_SUPPORT} -- wrong chain\n{_VERDICT_END}\n",
+        (f"prose\n{_VERDICT_START}\nITEM-1: {SUPPORTS} -- fine\n"
+        f"ITEM-2: {DOES_NOT_SUPPORT} -- wrong chain\n{_VERDICT_END}\n"),
         2,
         (SUPPORTS, DOES_NOT_SUPPORT),
     ),
@@ -1822,8 +1822,8 @@ _PARSE_CASES: tuple[tuple[str, str, int, tuple[str, ...]], ...] = (
     ),
     (
         "duplicate item number",
-        f"{_VERDICT_START}\nITEM-1: {SUPPORTS} -- fine\n"
-        f"ITEM-1: {DOES_NOT_SUPPORT} -- no\n{_VERDICT_END}",
+        (f"{_VERDICT_START}\nITEM-1: {SUPPORTS} -- fine\n"
+        f"ITEM-1: {DOES_NOT_SUPPORT} -- no\n{_VERDICT_END}"),
         1,
         (UNPARSEABLE,),
     ),

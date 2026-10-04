@@ -1426,8 +1426,8 @@ def _check_phase_stub_exit_criteria(
     if body is None:
         if not AGENT_FILE.exists():
             return [
-                f"phase-stub exit-criterion check could not read the agent body: "
-                f"{AGENT_FILE} does not exist"
+                (f"phase-stub exit-criterion check could not read the agent body: "
+                f"{AGENT_FILE} does not exist")
             ]
         body = AGENT_FILE.read_text(encoding="utf-8")
 

@@ -433,8 +433,8 @@ def _control_roster_problems(
     extra = executed_set - registered_set
     if missing or extra:
         return [
-            f"control roster/executed mismatch: missing={sorted(missing)} "
-            f"extra={sorted(extra)}"
+            (f"control roster/executed mismatch: missing={sorted(missing)} "
+            f"extra={sorted(extra)}")
         ]
     return []
 

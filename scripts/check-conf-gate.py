@@ -796,8 +796,8 @@ def _run_d08_arm(rows: list[dict]) -> tuple[list[str], list[str]]:
     if target_row is None:
         return (
             [
-                f"D-08 target {_D08_TARGET_ID!r} not found on surface "
-                f"{_D08_TARGET_SURFACE!r}; the anti-vacuity arm cannot run"
+                (f"D-08 target {_D08_TARGET_ID!r} not found on surface "
+                f"{_D08_TARGET_SURFACE!r}; the anti-vacuity arm cannot run")
             ],
             [],
         )
@@ -1712,8 +1712,8 @@ def self_test() -> int:
         failures.append(
             (
                 "coverage-floor",
-                f"registered/executed control-id mismatch: missing={sorted(missing)} "
-                f"extra={sorted(extra)}",
+                (f"registered/executed control-id mismatch: missing={sorted(missing)} "
+                f"extra={sorted(extra)}"),
             )
         )
 

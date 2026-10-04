@@ -585,8 +585,8 @@ def cmd_read(out_dir: Path) -> int:
         rows[pid]["agent_dispatches"] = disp
         rows[pid]["delivery_route"] = delivery_route(rawtext) if rawtext is not None else None
         if disp == 0:
-            probs = ["agent never dispatched (0 Agent tool calls) -- routing miss, "
-                     "not an extraction failure"] + probs
+            probs = [("agent never dispatched (0 Agent tool calls) -- routing miss, "
+                     "not an extraction failure")] + probs
         if probs:
             voids[pid] = probs
 

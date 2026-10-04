@@ -905,9 +905,9 @@ def _self_test_loop03_bounded_reentry(body, rubric, check_body, check_rubric, gu
             f'{_RUBRIC_NAME}: unbounded re-score instruction still present',
         ),
         (
-            "N14 (body: reinstate X1 hard-wrapped at the file's own width — the "
+            ("N14 (body: reinstate X1 hard-wrapped at the file's own width — the "
             "shape a real regression takes; this is the control whose absence "
-            "let a whitespace-sensitive removal check ship)",
+            "let a whitespace-sensitive removal check ship)"),
             lambda: _reinstate_hard_wrapped(body, _UNBOUNDED_REPEAT),
             check_body,
             f'{_BODY_NAME}: unbounded Repeat instruction still present',
@@ -919,16 +919,16 @@ def _self_test_loop03_bounded_reentry(body, rubric, check_body, check_rubric, gu
             f'{_RUBRIC_NAME}: unbounded re-score instruction still present',
         ),
         (
-            "N26 (body: duplicate the bound paragraph — exercises S3's arity "
+            ("N26 (body: duplicate the bound paragraph — exercises S3's arity "
             "guard, the untested half of the sole assertion protecting the "
-            "second-order edge)",
+            "second-order edge)"),
             lambda: _duplicate_bound_paragraph(body),
             check_body,
             f"{_BODY_NAME}: expected exactly one paragraph in Turn discipline containing",
         ),
         (
-            "N27 (body: invert the bound with 'more than' — the bare noun phrase "
-            "survives, the rule does not)",
+            ("N27 (body: invert the bound with 'more than' — the bare noun phrase "
+            "survives, the rule does not)"),
             lambda: _strip_everywhere(
                 body,
                 _BOUND_BODY,
@@ -938,8 +938,8 @@ def _self_test_loop03_bounded_reentry(body, rubric, check_body, check_rubric, gu
             f'{_BODY_NAME}: the bound has lost its polarity carrier',
         ),
         (
-            "N28 (rubric: invert the bound with 'not' — a plain substring test "
-            "swallows the negation whole)",
+            ("N28 (rubric: invert the bound with 'not' — a plain substring test "
+            "swallows the negation whole)"),
             lambda: _strip_everywhere(
                 rubric,
                 _BOUND_RUBRIC,
@@ -984,15 +984,15 @@ def _self_test_loop04_exit_criterion(body, check_body, guarded, report, holder) 
             f'{_BODY_NAME}: the mid-run re-open route is not widened past Criterion 1',
         ),
         (
-            "N21 (body: strip L14, the clause subordinating the degradation "
-            "sentence to the edge-scoped bound)",
+            ("N21 (body: strip L14, the clause subordinating the degradation "
+            "sentence to the edge-scoped bound)"),
             lambda: _strip_everywhere(body, _BOUND_SUBORDINATION),
             check_body,
             f'{_BODY_NAME}: the degradation sentence is not subordinated to the edge-scoped bound',
         ),
         (
-            "N31 (body: relocate L3 out of its owning paragraph — whole-text "
-            "presence still holds, the scoped assertion must not)",
+            ("N31 (body: relocate L3 out of its owning paragraph — whole-text "
+            "presence still holds, the scoped assertion must not)"),
             lambda: _mutate_block(
                 body, _S4_ANCHOR, lambda b: _strip_from_block(b, _PHASE1_ROUTE)
             )
@@ -1003,8 +1003,8 @@ def _self_test_loop04_exit_criterion(body, check_body, guarded, report, holder) 
             f'{_BODY_NAME}: missing the Phase-1 re-entry route from the paragraph that owns it',
         ),
         (
-            "N32 (body: replace the Phase 3 exception clause with its negation — "
-            "the old seven-character 're-entry' token survived this)",
+            ("N32 (body: replace the Phase 3 exception clause with its negation — "
+            "the old seven-character 're-entry' token survived this)"),
             lambda: _mutate_block(
                 body,
                 _S2_ANCHOR,
@@ -1173,9 +1173,9 @@ def _run_self_test() -> int:
             f'{_BODY_NAME}: missing the re-entry bound',
         ),
         (
-            "N4 (body: strip L2 degradation path — occurs twice in the real "
+            ("N4 (body: strip L2 degradation path — occurs twice in the real "
             "text, so every occurrence must be stripped for the control to "
-            "be load-bearing)",
+            "be load-bearing)"),
             lambda: _strip_everywhere(body, _DEGRADE),
             check_body,
             f'{_BODY_NAME}: missing the degradation path',
@@ -1199,8 +1199,8 @@ def _run_self_test() -> int:
             f'{_RUBRIC_NAME}: unbounded re-score instruction still present in its reworded form',
         ),
         (
-            "N17 (rubric: reinstate X3 hard-wrapped — the exact two-blind-spot "
-            "shape that shipped the Usage Note contradiction)",
+            ("N17 (rubric: reinstate X3 hard-wrapped — the exact two-blind-spot "
+            "shape that shipped the Usage Note contradiction)"),
             lambda: _reinstate_hard_wrapped(rubric, _UNBOUNDED_RESCORE_ALT),
             check_rubric,
             f'{_RUBRIC_NAME}: unbounded re-score instruction still present in its reworded form',
@@ -1224,23 +1224,23 @@ def _run_self_test() -> int:
             f'{_RUBRIC_NAME}: missing the Turn discipline cross-reference',
         ),
         (
-            "N25 (body: rename the Turn discipline heading — the section becomes "
-            "unlocatable)",
+            ("N25 (body: rename the Turn discipline heading — the section becomes "
+            "unlocatable)"),
             lambda: body.replace(_TURN_DISCIPLINE_HEADING, "### Turn budget", 1),
             check_body,
             f'{_BODY_NAME}: could not locate the "{_TURN_DISCIPLINE_HEADING}" section',
         ),
         (
-            "N29 (body: duplicate the Turn discipline heading — a duplicate must "
-            "report distinctly from a missing heading, not be silently accepted)",
+            ("N29 (body: duplicate the Turn discipline heading — a duplicate must "
+            "report distinctly from a missing heading, not be silently accepted)"),
             lambda: _duplicate_line(body, _TURN_DISCIPLINE_HEADING),
             check_body,
             f'{_BODY_NAME}: expected exactly one "{_TURN_DISCIPLINE_HEADING}" heading, found 2',
         ),
         (
-            "N30 (body: demote the Turn discipline heading one level — "
+            ("N30 (body: demote the Turn discipline heading one level — "
             "'#### Turn discipline' CONTAINS the anchor, so a substring search "
-            "accepted it)",
+            "accepted it)"),
             lambda: body.replace(
                 _TURN_DISCIPLINE_HEADING, "#" + _TURN_DISCIPLINE_HEADING, 1
             ),

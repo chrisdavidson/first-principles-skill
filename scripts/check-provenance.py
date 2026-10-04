@@ -847,8 +847,8 @@ def _control_floor_zerogt_positive() -> None:
         unreadable = _synth_analysis(
             ["| ID | Claim | Source |",
              "|---|---|---|",
-             "| GT-1 | claims 42 | https://example.com/pricing "
-             "*Provenance: read-at-source.* |"]
+             ("| GT-1 | claims 42 | https://example.com/pricing "
+             "*Provenance: read-at-source.* |")]
         )
         result = verify(unreadable, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
         assert result.provenance_labels == 0, (
@@ -993,8 +993,8 @@ def _control_reach_labelled_source_positive() -> None:
               "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
         )
         analysis = _synth_analysis(
-            ["- **GT-1** claims 42. *Provenance: read-at-source* — "
-             "example.com/pricing, rate table row 7, quoted verbatim."]
+            [("- **GT-1** claims 42. *Provenance: read-at-source* — "
+             "example.com/pricing, rate table row 7, quoted verbatim.")]
         )
         result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
         assert result.provenance_labels == 1, (

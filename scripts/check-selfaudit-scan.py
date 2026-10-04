@@ -1642,8 +1642,8 @@ def _selfaudit_meta_floor_problems(
     extra = executed_set - registered_set
     if missing or extra:
         return [
-            f"control roster/executed mismatch: missing={sorted(missing)} "
-            f"extra={sorted(extra)}"
+            (f"control roster/executed mismatch: missing={sorted(missing)} "
+            f"extra={sorted(extra)}")
         ]
     return []
 
@@ -1935,8 +1935,8 @@ def _entry_source_problems(source_text: str, expected_call_args: str) -> list[st
     if _contains(source_text, expected_call_args):
         return []
     return [
-        f"real call's argument-triple text {expected_call_args!r} not "
-        "found in source (rewritten, aliased, or missing call site)"
+        (f"real call's argument-triple text {expected_call_args!r} not "
+        "found in source (rewritten, aliased, or missing call site)")
     ]
 
 

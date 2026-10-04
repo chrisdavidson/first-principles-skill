@@ -143,8 +143,8 @@ def _stamp_roster_problems(
     extra = walked_set - registered_set
     if missing or extra:
         return [
-            f"stamp-source-kind roster/walked mismatch: "
-            f"missing={sorted(missing)} extra={sorted(extra)}"
+            (f"stamp-source-kind roster/walked mismatch: "
+            f"missing={sorted(missing)} extra={sorted(extra)}")
         ]
     return []
 

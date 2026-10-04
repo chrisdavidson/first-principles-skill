@@ -1272,8 +1272,8 @@ def _step0_control_roster_problems(
     extra = executed_set - registered_set
     if missing or extra:
         return [
-            f"control roster/executed mismatch: missing={sorted(missing)} "
-            f"extra={sorted(extra)}"
+            (f"control roster/executed mismatch: missing={sorted(missing)} "
+            f"extra={sorted(extra)}")
         ]
     return []
 
@@ -1485,14 +1485,14 @@ def _write_baseline(
         f"**Run flags:** `--repeat {repeat} --min-pass {min_pass}`",
         "**Run cwd:** `/tmp` (out-of-repo — see Methodology notes)",
         f"**Baseline verdict:** BATTERY: {battery_verdict}",
-        f"**Summary:** P {canonical_pass}/{canonical_n} ({canonical_n}-technique canonical bar: "
+        (f"**Summary:** P {canonical_pass}/{canonical_n} ({canonical_n}-technique canonical bar: "
         f"S-P01–06 + S-P10 estimate, S-P14 theoretical-limit) | "
         f"S-N {n_pass}/{len(n_rows)} | "
         f"S-P07/08/11/12/13/15 expected-FAIL (context-free / alternation falsifiers, excluded from the bar) | "
         f"S-P16 merge-validation (outside /8): "
         f"{(_s_p16_result.match_count if _s_p16_result else 'N/A')}/"
         f"{(args.repeat if _s_p16_result else 'N/A')} "
-        f"({'PASS' if _s_p16_result and _s_p16_result.row_pass else ('FAIL' if _s_p16_result else 'not measured this run')})",
+        f"({'PASS' if _s_p16_result and _s_p16_result.row_pass else ('FAIL' if _s_p16_result else 'not measured this run')})"),
         "",
         "---",
         "",

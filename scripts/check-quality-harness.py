@@ -1364,10 +1364,10 @@ def _persist_or_diagnose_analysis(
     ) as exc:
         return (
             None,
-            f"Probe analysis NOT written — the capture completed but its "
+            (f"Probe analysis NOT written — the capture completed but its "
             f"analysis could not be persisted: {exc}. The raw capture is "
             f"intact at {jsonl_path} and can be re-extracted without another "
-            f"live run.",
+            f"live run."),
             1,
         )
     if path is not None:
@@ -5089,12 +5089,12 @@ def _chain_detector_pin_problems(source: str) -> list[str]:
     if digest == _CHAIN_DETECTOR_PINNED_DIGEST:
         return []
     return [
-        f"chain-detector: source digest {digest!r} != pinned "
+        (f"chain-detector: source digest {digest!r} != pinned "
         f"{_CHAIN_DETECTOR_PINNED_DIGEST!r} — _chain_block_well_formed is "
         "frozen under CONTRACT-06. If this change is intended, amend the "
         "milestone goal in writing FIRST (STATE.md's standing "
         "pre-commitment), then recompute. Do not recompute to make this "
-        "pass."
+        "pass.")
     ]
 
 
@@ -5146,12 +5146,12 @@ def _conclusion_claims_pin_problems(source: str) -> list[str]:
     if digest == _CONCLUSION_CLAIMS_PINNED_DIGEST:
         return []
     return [
-        f"conclusion-claims-detector: source digest {digest!r} != pinned "
+        (f"conclusion-claims-detector: source digest {digest!r} != pinned "
         f"{_CONCLUSION_CLAIMS_PINNED_DIGEST!r} — _conclusion_claims is "
         "frozen under CONTRACT-06. If this change is intended, amend the "
         "milestone goal in writing FIRST (STATE.md's standing "
         "pre-commitment), then recompute. Do not recompute to make this "
-        "pass."
+        "pass.")
     ]
 
 
@@ -5197,12 +5197,12 @@ def _slice_sections_pin_problems(source: str) -> list[str]:
     if digest == _SLICE_SECTIONS_PINNED_DIGEST:
         return []
     return [
-        f"slice-sections-detector: source digest {digest!r} != pinned "
+        (f"slice-sections-detector: source digest {digest!r} != pinned "
         f"{_SLICE_SECTIONS_PINNED_DIGEST!r} — _slice_sections is frozen "
         "under CONTRACT-06. If this change is intended, amend the "
         "milestone goal in writing FIRST (STATE.md's standing "
         "pre-commitment), then recompute. Do not recompute to make this "
-        "pass."
+        "pass.")
     ]
 
 
@@ -12312,21 +12312,21 @@ _RENDER_PRE_CONTRACT_WORDINGS: tuple[str, ...] = (
     # surfaces"). Verified via `git show 54cad62~1:shared/spine/SKILL-body.md`
     # showing no wrap wording, then `git show 54cad62:shared/spine/SKILL-body.md`
     # carrying this sentence.
-    "**A chain too long for one line wraps with arrow-led continuation "
-    "lines — never numbered steps.**",
+    ("**A chain too long for one line wraps with arrow-led continuation "
+    "lines — never numbered steps.**"),
     # shared/spine/references/output-template.md, pre-Phase-11, the same
     # commit 54cad62 — a differently-worded twin added to the second
     # surface in the same commit.
-    "**Multi-hop chains wrap with arrow-led continuation lines — never "
-    "numbered steps.**",
+    ("**Multi-hop chains wrap with arrow-led continuation lines — never "
+    "numbered steps.**"),
     # shared/spine/references/validation-rubric.md, removed by plan 11-06
     # commit e4ff9c0 ("fix(11-06): reword validation-rubric.md Criterion 4
     # to the split-not-wrap form") — CR-01's own finding
     # (`11-REVIEW.md`/`11-VERIFICATION.md`): this wording shipped for a
     # full milestone inside the tree while sitting outside this gate's
     # pre-Plan-11-07 scan scope.
-    "a chain too long for one line wraps with `→`-led continuation "
-    "lines, never as an ordered list",
+    ("a chain too long for one line wraps with `→`-led continuation "
+    "lines, never as an ordered list"),
 )
 
 # Real fabricated-example wordings this tree actually shipped — the
@@ -12342,8 +12342,8 @@ _RENDER_PRE_CONTRACT_WORDINGS: tuple[str, ...] = (
 # DISCLOSED LIMITATION: this leg detects an ENUMERATED frame set pinned
 # against a wording this tree really shipped, not arbitrary fabrication.
 _RENDER_FABRICATED_EXAMPLE_WORDINGS: tuple[str, ...] = (
-    "Rendered examples follow the prescribed head form (`GT-1? "
-    "([brief fact label]) + C2 ([brief fact label])`).",
+    ("Rendered examples follow the prescribed head form (`GT-1? "
+    "([brief fact label]) + C2 ([brief fact label])`)."),
     "Rendered examples follow",
     "examples follow the prescribed head form",
 )
@@ -13183,12 +13183,12 @@ def _render_registry_lock_problems(
     # GREEN with (l1) running zero real cases. Locked by value here; the
     # non-tautology and case-count floors live beside (l1) itself.
     expected_pre_contract_wordings = (
-        "**A chain too long for one line wraps with arrow-led continuation "
-        "lines — never numbered steps.**",
-        "**Multi-hop chains wrap with arrow-led continuation lines — never "
-        "numbered steps.**",
-        "a chain too long for one line wraps with `→`-led continuation "
-        "lines, never as an ordered list",
+        ("**A chain too long for one line wraps with arrow-led continuation "
+        "lines — never numbered steps.**"),
+        ("**Multi-hop chains wrap with arrow-led continuation lines — never "
+        "numbered steps.**"),
+        ("a chain too long for one line wraps with `→`-led continuation "
+        "lines, never as an ordered list"),
     )
     if snapshot.pre_contract_wordings != expected_pre_contract_wordings:
         problems.append(
@@ -13247,8 +13247,8 @@ def _render_registry_lock_problems(
     # surface for. Locked here by value, never against the module
     # constant it mirrors.
     expected_fabricated_example_wordings = (
-        "Rendered examples follow the prescribed head form (`GT-1? "
-        "([brief fact label]) + C2 ([brief fact label])`).",
+        ("Rendered examples follow the prescribed head form (`GT-1? "
+        "([brief fact label]) + C2 ([brief fact label])`)."),
         "Rendered examples follow",
         "examples follow the prescribed head form",
     )
@@ -17028,8 +17028,8 @@ def _selftest_render_contract() -> bool:
         tuple[str, str, str, _RenderRegistrySnapshot]
     ] = [
         (
-            "extraction_rows with every source_file repointed at the "
-            "generated tree (WR-03 reproduction)",
+            ("extraction_rows with every source_file repointed at the "
+            "generated tree (WR-03 reproduction)"),
             "extraction_rows",
             "!= expected",
             replace(
@@ -17037,8 +17037,8 @@ def _selftest_render_contract() -> bool:
                 extraction_rows=tuple(
                     (
                         row[0],
-                        "first-principles/agents/references/"
-                        "output-template.md",
+                        ("first-principles/agents/references/"
+                        "output-template.md"),
                         row[2],
                         row[3],
                     )
@@ -17047,8 +17047,8 @@ def _selftest_render_contract() -> bool:
             ),
         ),
         (
-            "extraction_rows with one anchor repointed at a sibling "
-            "block (WR-03 reproduction)",
+            ("extraction_rows with one anchor repointed at a sibling "
+            "block (WR-03 reproduction)"),
             "extraction_rows",
             "!= expected",
             replace(
@@ -17082,8 +17082,8 @@ def _selftest_render_contract() -> bool:
             ),
         ),
         (
-            "fixture_shape with a chain needle tuple degraded to the "
-            "undiscriminating pair (IN-04 reproduction)",
+            ("fixture_shape with a chain needle tuple degraded to the "
+            "undiscriminating pair (IN-04 reproduction)"),
             "fixture_shape",
             'expected discriminating shape',
             replace(
@@ -17095,8 +17095,8 @@ def _selftest_render_contract() -> bool:
             ),
         ),
         (
-            "fixture_shape with a non-chain needle tuple emptied "
-            "(WR-01 reproduction)",
+            ("fixture_shape with a non-chain needle tuple emptied "
+            "(WR-01 reproduction)"),
             "fixture_shape",
             "expected discriminating shape",
             replace(
@@ -17197,8 +17197,8 @@ def _selftest_render_contract() -> bool:
             replace(render_live_snapshot, pre_contract_wordings=()),
         ),
         (
-            "pre_contract_wordings with an entry replaced by a bare "
-            "contradiction phrase (CR-01's tautology reproduction)",
+            ("pre_contract_wordings with an entry replaced by a bare "
+            "contradiction phrase (CR-01's tautology reproduction)"),
             "pre_contract_wordings",
             "!= expected",
             replace(
@@ -17241,8 +17241,8 @@ def _selftest_render_contract() -> bool:
             replace(render_live_snapshot, chain_family_prefixes=()),
         ),
         (
-            "example_claim_literal replaced with a different string "
-            "(plan 13-14)",
+            ("example_claim_literal replaced with a different string "
+            "(plan 13-14)"),
             "example_claim_literal",
             "!= expected",
             replace(
@@ -17268,15 +17268,15 @@ def _selftest_render_contract() -> bool:
             ),
         ),
         (
-            "fabricated_example_wordings emptied (plan 13-23, CR-02 "
-            "reproduction)",
+            ("fabricated_example_wordings emptied (plan 13-23, CR-02 "
+            "reproduction)"),
             "fabricated_example_wordings",
             "!= expected",
             replace(render_live_snapshot, fabricated_example_wordings=()),
         ),
         (
-            "chain_form_signature replaced with a different pattern "
-            "(plan 13-24)",
+            ("chain_form_signature replaced with a different pattern "
+            "(plan 13-24)"),
             "chain_form_signature",
             "!= expected",
             replace(
@@ -18820,12 +18820,12 @@ def _selftest_ledger_traceability() -> bool:
     )
     rows = "\n".join(
         (
-            '- "Do not start with Lambda; measure bill composition and duty '
-            'cycle first" -> chain C1',
-            '- "Lambda is 2.10 times more expensive per unit of actual '
-            'compute than Fargate" -> chain C2',
-            '- "A Savings Plan commits you to an hourly floor for three '
-            'years" -> chain C3',
+            ('- "Do not start with Lambda; measure bill composition and duty '
+            'cycle first" -> chain C1'),
+            ('- "Lambda is 2.10 times more expensive per unit of actual '
+            'compute than Fargate" -> chain C2'),
+            ('- "A Savings Plan commits you to an hourly floor for three '
+            'years" -> chain C3'),
         )
     ) + "\n"
     ledgered = prose + "\n## Closure ledger\n\n" + '```' + "text\n" + rows + '```' + "\n"
@@ -19306,8 +19306,8 @@ def _selftest_ledger_traceability() -> bool:
             ("arm 8", "`~~~` block quoting an unclosed ``` example",
              _insert_into_s6("\n~~~text\n## x\n```python\nnever closed\n~~~\n"),
              baseline_reading),
-            ("arm 9", "unterminated fence at the top of section 6 "
-                      "(DISCLOSED BOUND: reads as code to end of document)",
+            ("arm 9", ("unterminated fence at the top of section 6 "
+                      "(DISCLOSED BOUND: reads as code to end of document)"),
              _insert_into_s6("\n```text\nnever closed\n"),
              (0, 0, 0)),
         )

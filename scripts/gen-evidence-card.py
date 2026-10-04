@@ -383,8 +383,8 @@ def _fact_block(fact: Fact) -> list[str]:
         "",
         f"**{_sentence_case(fact.reading)}**",
         "",
-        f"*Sample: {fact.n} · Measured: {fact.measured} · "
-        f"Source: [`{fact.source}`]({_rel_link(fact.source)})*",
+        (f"*Sample: {fact.n} · Measured: {fact.measured} · "
+        f"Source: [`{fact.source}`]({_rel_link(fact.source)})*"),
         "",
         f"What this does not say: {fact.bound}",
         "",
@@ -457,8 +457,8 @@ def render(
                 "",
                 f"**{trackb['observed_effect']}**",
                 "",
-                f"*Sample: {trackb['n_per_arm']} per arm · Measured: {trackb['measured']} · "
-                f"Run: `{trackb['run_id']}`*",
+                (f"*Sample: {trackb['n_per_arm']} per arm · Measured: {trackb['measured']} · "
+                f"Run: `{trackb['run_id']}`*"),
                 "",
             ]
         )
@@ -469,9 +469,9 @@ def render(
             at_max = sum(1 for v in crit["T"].values() if v >= 3.0)
             lines.extend(
                 [
-                    f"**Scores:** agent {t_total:.2f} / 15, unaided {c_total:.2f} / 15. The agent "
+                    (f"**Scores:** agent {t_total:.2f} / 15, unaided {c_total:.2f} / 15. The agent "
                     f"arm is at the rubric's maximum on {at_max} of {len(crit['T'])} criteria, so "
-                    "the scale cannot show how much further apart the two would be.",
+                    "the scale cannot show how much further apart the two would be."),
                     "",
                 ]
             )
@@ -482,10 +482,10 @@ def render(
             t_w, c_w = words["T"]["mean"], words["C"]["mean"]
             lines.extend(
                 [
-                    f"**Length:** the agent's documents averaged {t_w:,.0f} words against "
+                    (f"**Length:** the agent's documents averaged {t_w:,.0f} words against "
                     f"{c_w:,.0f} for the unaided answers (about {t_w / c_w:.0f}×). Length is a "
                     "registered covariate, not controlled for, so credit for thoroughness "
-                    "cannot be separated from credit for substance.",
+                    "cannot be separated from credit for substance."),
                     "",
                 ]
             )
@@ -494,19 +494,19 @@ def render(
             summary_total = t_total - gap
             lines.extend(
                 [
-                    "*Partial context, not part of the threshold: scored on the short message "
+                    ("*Partial context, not part of the threshold: scored on the short message "
                     "the main session hands back instead of the delivered file, the agent arm "
                     f"averaged {summary_total:.2f} / 15 — {gap:.2f} below the delivered file and "
-                    f"{summary_total - c_total:+.2f} against the unaided answer.*",
+                    f"{summary_total - c_total:+.2f} against the unaided answer.*"),
                     "",
                 ]
             )
         elif gap is not None:
             lines.extend(
                 [
-                    "*Partial context, not part of the threshold: scored on the short message "
+                    ("*Partial context, not part of the threshold: scored on the short message "
                     "the main session hands back instead of the delivered file, the agent arm "
-                    f"scored {gap:.2f} points below the delivered file.*",
+                    f"scored {gap:.2f} points below the delivered file.*"),
                     "",
                 ]
             )

@@ -90,18 +90,18 @@ _REQUIRED_PHRASES = [
 # itself fires.
 _CHECK_DESCRIPTIONS: tuple[str, ...] = (
     "Check 1: file begins with a frontmatter fence and splits into exactly 3 parts",
-    "Check 2: 'name' key present and equals the locked identity "
-    "(skipped under --skip-name-check)",
+    ("Check 2: 'name' key present and equals the locked identity "
+    "(skipped under --skip-name-check)"),
     "Check 3: 'description' is a non-empty string within the max-length budget",
-    "Check 4: 'disallowedTools' key is present; for the canonical identity "
+    ("Check 4: 'disallowedTools' key is present; for the canonical identity "
     "only, also equals the locked tool list (value clause skipped under "
-    "--skip-name-check)",
-    "Check 5: 'maxTurns' key is present; for the canonical identity only,"
-    "also carries the locked value (value clause skipped under --skip-name-check)",
+    "--skip-name-check)"),
+    ("Check 5: 'maxTurns' key is present; for the canonical identity only, "
+    "also carries the locked value (value clause skipped under --skip-name-check)"),
     "Check 6: body is non-empty after stripping whitespace",
     "Check 7: body contains no unresolved sync markers",
-    "Check 8: 'description' contains all mandatory trigger phrases "
-    "(skipped under --skip-name-check)",
+    ("Check 8: 'description' contains all mandatory trigger phrases "
+    "(skipped under --skip-name-check)"),
 )
 
 # Indices into _CHECK_DESCRIPTIONS scoped out under --skip-name-check — a
@@ -131,8 +131,8 @@ def _index_roster_problems(executed: set[int], expected: set[int]) -> list[str]:
     extra = executed - expected
     if missing or extra:
         return [
-            f"executed/registered check-index mismatch: missing={sorted(missing)} "
-            f"extra={sorted(extra)}"
+            (f"executed/registered check-index mismatch: missing={sorted(missing)} "
+            f"extra={sorted(extra)}")
         ]
     return []
 

@@ -730,10 +730,10 @@ def format_ci_registration_text(records: list[dict]) -> str:
     lines = [
         "",
         "CI job registration (GATE-02 — battery gate -> validation.yml job):",
-        f"  Battery gates: {len(records)} registered in "
-        "scripts/check-firewall-battery.sh",
-        f"  CI-matched: {len(matched)}; battery-only by design: "
-        f"{len(exempt)} ({', '.join(r['gate_id'] for r in exempt) or 'none'})",
+        (f"  Battery gates: {len(records)} registered in "
+        "scripts/check-firewall-battery.sh"),
+        (f"  CI-matched: {len(matched)}; battery-only by design: "
+        f"{len(exempt)} ({', '.join(r['gate_id'] for r in exempt) or 'none'})"),
     ]
     failures = collect_ci_registration_failures(records)
     if failures:
@@ -2079,8 +2079,8 @@ def describe() -> dict[str, object]:
         "control_ids": sorted(_CONTROL_IDS),
         "control_count": len(_CONTROL_IDS),
         "registered_surfaces": [
-            "plugin axis (skill/agent frontmatter name: matches directory/file "
-            "basename; every skill stub's disable-model-invocation is true)",
+            ("plugin axis (skill/agent frontmatter name: matches directory/file "
+            "basename; every skill stub's disable-model-invocation is true)"),
             "CI-job axis (every battery gate id has a matching name: <job> (<GATE-ID>) job)",
         ],
         "checked_files": sorted(

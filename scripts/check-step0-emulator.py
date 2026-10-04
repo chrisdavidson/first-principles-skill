@@ -101,8 +101,8 @@ def _semgate02_pair_problems(
     extra = executed - registered
     if missing or extra:
         return [
-            f"SEMGATE-02 pair roster/executed mismatch: missing={sorted(missing)} "
-            f"extra={sorted(extra)}"
+            (f"SEMGATE-02 pair roster/executed mismatch: missing={sorted(missing)} "
+            f"extra={sorted(extra)}")
         ]
     return []
 
@@ -450,49 +450,49 @@ def _run_self_test() -> None:
         # D-05.1: anchor missing — no "**Phrase detection rules**" in text
         (
             "D-05.1 anchor-missing",
-            "| Technique | Trigger phrases (any one fires) |\n"
+            ("| Technique | Trigger phrases (any one fires) |\n"
             "|---|---|\n"
-            '| pre-mortem | "pre-mortem" |\n',
+            '| pre-mortem | "pre-mortem" |\n'),
             "anchor",
         ),
         # D-05.2: zero rows — anchor present but table has only a header + separator
         (
             "D-05.2 zero-rows",
-            "**Phrase detection rules** (case-insensitive)\n"
+            ("**Phrase detection rules** (case-insensitive)\n"
             "\n"
             "| Technique | Trigger phrases (any one fires) |\n"
-            "|---|---|\n",
+            "|---|---|\n"),
             "zero",
         ),
         # D-05.3: unknown technique — row with name "unknown-technique"
         (
             "D-05.3 unknown-technique",
-            "**Phrase detection rules** (case-insensitive)\n"
+            ("**Phrase detection rules** (case-insensitive)\n"
             "\n"
             "| Technique | Trigger phrases (any one fires) |\n"
             "|---|---|\n"
-            '| unknown-technique | "trigger phrase" |\n',
+            '| unknown-technique | "trigger phrase" |\n'),
             "unknown technique",
         ),
         # D-05.4: uncompilable regex — quoted cell contains "[" (invalid regex)
         (
             "D-05.4 bad-regex",
-            "**Phrase detection rules** (case-insensitive)\n"
+            ("**Phrase detection rules** (case-insensitive)\n"
             "\n"
             "| Technique | Trigger phrases (any one fires) |\n"
             "|---|---|\n"
-            '| pre-mortem | "[" |\n',
+            '| pre-mortem | "[" |\n'),
             "not a valid Python regex",
         ),
         # D-05.5: guard cell with unbalanced quote (D-G / WR-03 applied to guard cell)
         # A 3-column row where the guard cell has an odd number of '"' → loud failure.
         (
             "D-05.5 guard-unbalanced-quote",
-            "**Phrase detection rules** (case-insensitive)\n"
+            ("**Phrase detection rules** (case-insensitive)\n"
             "\n"
             "| Technique | Trigger phrases (any one fires) | Guard phrases (suppress if any fires) |\n"
             "|---|---|---|\n"
-            '| pre-mortem | "pre-mortem" | "unmatched quote |\n',
+            '| pre-mortem | "pre-mortem" | "unmatched quote |\n'),
             "unbalanced quote",
         ),
         # D-05.6: ragged row missing the guard cell in a 3-column table (D-G)
@@ -1238,8 +1238,8 @@ def _run_self_test() -> None:
         (
             "S-A11", _SEMGATE07_PM_TO_PROMPT, _SEMGATE07_PM_TO_EXPECTED,
             "pre-mortem↔trade-off co-fire (4 trade-off triggers vs 1 pre-mortem trigger)",
-            "regression: trade-off may have moved above pre-mortem in row order — "
-            "precedence is by row, not by trigger count",
+            ("regression: trade-off may have moved above pre-mortem in row order — "
+            "precedence is by row, not by trigger count"),
         ),
     )
 
