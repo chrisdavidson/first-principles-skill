@@ -86,7 +86,7 @@ def test_self_test_exits_zero() -> None:
     result = subprocess.run(
         [sys.executable, str(EMULATOR), "--self-test"],
         capture_output=True,
-        text=True,
+        text=True, check=False,
     )
     assert result.returncode == 0, (
         f"check-step0-emulator.py --self-test exited {result.returncode} "
@@ -101,7 +101,7 @@ def test_self_test_prints_pass() -> None:
     result = subprocess.run(
         [sys.executable, str(EMULATOR), "--self-test"],
         capture_output=True,
-        text=True,
+        text=True, check=False,
     )
     assert "check-step0-emulator --self-test: PASS" in result.stdout, (
         f"Expected 'check-step0-emulator --self-test: PASS' in stdout but got:\n"

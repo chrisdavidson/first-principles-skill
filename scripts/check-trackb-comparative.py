@@ -523,7 +523,7 @@ def run_prompt(prompt_text: str, out_path: Path, plugin: bool, model: str) -> Pa
     ]
     env = {**os.environ, **_PRINT_BG_WAIT_ENV}
     proc = subprocess.run(
-        argv, capture_output=True, text=True, timeout=5400, env=env
+        argv, capture_output=True, text=True, timeout=5400, env=env, check=False
     )
     out_path.write_text(proc.stdout + proc.stderr, encoding="utf-8")
     return out_path
@@ -815,7 +815,7 @@ def _judge_once(doc_text: str, out_path: Path, model: str) -> dict | None:
         JUDGE_PROMPT,
     ]
     proc = subprocess.run(
-        argv, capture_output=True, text=True, timeout=1800, cwd=packet, env=env
+        argv, capture_output=True, text=True, timeout=1800, cwd=packet, env=env, check=False
     )
     out = proc.stdout + proc.stderr
     out_path.write_text(out, encoding="utf-8")
@@ -1010,7 +1010,7 @@ def _judge_call_2(doc_text: str, out_path: Path, model: str) -> str:
         raise TrackBError("JUDGE_PROMPT leaks comparison terms; run void")
     env = {**_os.environ, **_PRINT_BG_WAIT_ENV}
     argv = argv_judge(model)
-    proc = subprocess.run(argv, capture_output=True, text=True, timeout=1800, cwd=packet, env=env)
+    proc = subprocess.run(argv, capture_output=True, text=True, timeout=1800, cwd=packet, env=env, check=False)
     out = proc.stdout + proc.stderr
     out_path.write_text(out, encoding="utf-8")
     shutil.rmtree(packet, ignore_errors=True)
@@ -1367,7 +1367,7 @@ def cmd_run_2(out_dir: Path, scratch_root: Path, model: str) -> int:
             argv = argv_t(pr.text, model) if arm == "T" else argv_c(pr.text, model)
             print(f"[gen] {cell} attempt {n} ...", flush=True)
             proc = subprocess.run(
-                argv, capture_output=True, text=True, timeout=5400, env=env, cwd=subdir
+                argv, capture_output=True, text=True, timeout=5400, env=env, cwd=subdir, check=False
             )
             jsonl = proc.stdout
             raw_path = raw_dir / f"{cell}.a{n}.jsonl"

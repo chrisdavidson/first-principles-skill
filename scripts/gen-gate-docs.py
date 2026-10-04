@@ -129,7 +129,7 @@ def harvest(entries) -> tuple[dict[str, dict], list[str]]:
                 [sys.executable, str(script_path), "--describe"],
                 capture_output=True,
                 text=True,
-                timeout=120,
+                timeout=120, check=False,
             )
         except OSError as exc:
             problems.append(f"harvest: {script} could not be invoked: {exc!r}")
@@ -7049,7 +7049,7 @@ def _control_registry_self_test_passes() -> None:
         [sys.executable, str(_REGISTRY_PATH), "--self-test"],
         capture_output=True,
         text=True,
-        timeout=60,
+        timeout=60, check=False,
     )
     assert proc.returncode == 0, (
         f"scripts/_gate_registry.py --self-test exited {proc.returncode}: "

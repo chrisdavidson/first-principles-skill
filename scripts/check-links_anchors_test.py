@@ -238,7 +238,7 @@ def test_d_live_clean_run():
         [sys.executable, str(SCRIPTS_DIR / "check-links.py")],
         capture_output=True,
         text=True,
-        cwd=str(REPO_ROOT),
+        cwd=str(REPO_ROOT), check=False,
     )
     assert result.returncode == 0, (
         f"check-links.py exited {result.returncode}.\n"

@@ -529,7 +529,7 @@ def _run_self_test() -> None:
                 _dg_ragged_path,
             ],
             capture_output=True,
-            text=True,
+            text=True, check=False,
         )
         _dg_exit_code = _dg_result.returncode
     finally:
@@ -566,7 +566,7 @@ def _run_self_test() -> None:
                     tmp_path,
                 ],
                 capture_output=True,
-                text=True,
+                text=True, check=False,
             )
             exit_code = result.returncode
             stderr_text = result.stderr

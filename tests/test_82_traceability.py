@@ -97,7 +97,7 @@ def test_self_test_exits_zero() -> None:
     result = subprocess.run(
         [sys.executable, str(SCRIPT), "--self-test"],
         capture_output=True,
-        text=True,
+        text=True, check=False,
     )
     assert result.returncode == 0, (
         f"check-traceability.py --self-test exited {result.returncode} "
@@ -306,7 +306,7 @@ def test_emit_writes_both_files() -> None:
             "--json-output", str(json_out),
         ],
         capture_output=True,
-        text=True,
+        text=True, check=False,
     )
     assert result.returncode == 0, (
         f"emit failed (expected 0): returncode={result.returncode}\n"
@@ -381,7 +381,7 @@ def test_load_rows_retuples_surfaces() -> None:
             "--json-output", str(json_out),
         ],
         capture_output=True,
-        text=True,
+        text=True, check=False,
     )
     assert result.returncode == 0, (
         f"emit failed (expected 0): returncode={result.returncode}\n"
@@ -505,7 +505,7 @@ def test_output_path_confinement() -> None:
             "--json-output", escape_json,
         ],
         capture_output=True,
-        text=True,
+        text=True, check=False,
     )
     assert result.returncode == 2, (
         f"Expected exit 2 for escaping --md-output path, "

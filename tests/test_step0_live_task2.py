@@ -37,7 +37,7 @@ def test_self_test_exits_0_offline():
     result = subprocess.run(
         [sys.executable, str(HARNESS), "--self-test"],
         capture_output=True,
-        text=True,
+        text=True, check=False,
     )
     assert result.returncode == 0, (
         f"--self-test exited {result.returncode}\nstdout: {result.stdout}\nstderr: {result.stderr}"
@@ -49,7 +49,7 @@ def test_self_test_prints_pass_anchor():
     result = subprocess.run(
         [sys.executable, str(HARNESS), "--self-test"],
         capture_output=True,
-        text=True,
+        text=True, check=False,
     )
     assert "self-test PASS" in result.stdout, (
         f"'self-test PASS' not found in stdout:\n{result.stdout}"
@@ -84,7 +84,7 @@ sys.exit(mod.self_test())
     result = subprocess.run(
         [sys.executable, "-c", wrapper],
         capture_output=True,
-        text=True,
+        text=True, check=False,
     )
     assert result.returncode == 0, (
         f"self_test() failed when claude was unavailable (not offline-safe!):\n"

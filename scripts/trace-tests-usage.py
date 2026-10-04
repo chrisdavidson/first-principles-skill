@@ -131,7 +131,7 @@ def gate_opened_paths() -> tuple[set[str], list[str]]:
     for command in GATE_COMMANDS:
         result = subprocess.run(
             [sys.executable, str(tracer), "--trace-one", *command],
-            cwd=REPO_ROOT, capture_output=True, text=True,
+            cwd=REPO_ROOT, capture_output=True, text=True, check=False,
         )
         paths = [line for line in result.stdout.splitlines() if line.startswith("tests/")]
         opened.update(paths)
@@ -157,7 +157,7 @@ def artifact_link_paths() -> set[str]:
 def pytest_collected_paths() -> set[str]:
     result = subprocess.run(
         [sys.executable, "-m", "pytest", "tests/", "--collect-only", "-q"],
-        cwd=REPO_ROOT, capture_output=True, text=True,
+        cwd=REPO_ROOT, capture_output=True, text=True, check=False,
     )
     return {
         line.split("::", 1)[0]

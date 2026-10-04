@@ -1439,7 +1439,7 @@ def _write_baseline(
         try:
             r = subprocess.run(
                 ["git", "log", "-1", "--format=%h", "--", rel_path],
-                capture_output=True, text=True, cwd=REPO_ROOT,
+                capture_output=True, text=True, cwd=REPO_ROOT, check=False,
             )
             return r.stdout.strip() or "unknown"
         except Exception:
@@ -1810,7 +1810,7 @@ def main(argv: list[str] | None = None) -> int:
     # (4) sync-content.py --check pre-flight (71/D-09 constraint #3, Pitfall 4, T-72-05)
     sync_check = subprocess.run(
         [sys.executable, str(REPO_ROOT / "scripts" / "sync-content.py"), "--check"],
-        capture_output=True,
+        capture_output=True, check=False,
     )
     if sync_check.returncode != 0:
         print(

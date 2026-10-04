@@ -1906,7 +1906,7 @@ def _live_describe(script_relpath: str) -> dict:
         [sys.executable, str(REPO_ROOT / script_relpath), "--describe"],
         capture_output=True,
         text=True,
-        timeout=60,
+        timeout=60, check=False,
     )
     if proc.returncode != 0:
         raise RuntimeError(

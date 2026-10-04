@@ -125,7 +125,7 @@ def test_battery_catalog_dry_run_parses() -> None:
          "--dry-run"],
         capture_output=True,
         text=True,
-        timeout=30,
+        timeout=30, check=False,
     )
     output = result.stdout + result.stderr
     assert result.returncode == 0, (
@@ -299,7 +299,7 @@ def test_battery_boundary_p_threshold_default_is_2() -> None:
         [sys.executable, str(CHECK_BATTERY), "--help"],
         capture_output=True,
         text=True,
-        timeout=15,
+        timeout=15, check=False,
     )
     output = result.stdout + result.stderr
     assert "--boundary-p-threshold" in output, (
@@ -333,7 +333,7 @@ def test_battery_self_test_passes() -> None:
         [sys.executable, str(CHECK_BATTERY), "--self-test"],
         capture_output=True,
         text=True,
-        timeout=120,
+        timeout=120, check=False,
     )
     output = result.stdout + result.stderr
     assert result.returncode == 0, (

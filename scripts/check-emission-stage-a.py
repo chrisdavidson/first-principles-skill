@@ -374,7 +374,7 @@ def run_one(prompt_text: str, raw_path: Path) -> str:
         prompt_text,
     ]
     env = {**os.environ, **_PRINT_BG_WAIT_ENV}
-    proc = subprocess.run(argv, capture_output=True, text=True, timeout=5400, env=env)
+    proc = subprocess.run(argv, capture_output=True, text=True, timeout=5400, env=env, check=False)
     raw_path.write_text(proc.stdout, encoding="utf-8")
     return proc.stdout
 

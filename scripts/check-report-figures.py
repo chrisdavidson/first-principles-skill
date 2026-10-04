@@ -251,7 +251,7 @@ def _real_fixture() -> tuple[str, dict]:
 # ---------------------------------------------------------------------------
 
 def font_findings(typst_bin: str) -> list[Finding]:
-    result = subprocess.run([typst_bin, "fonts"], capture_output=True, text=True)
+    result = subprocess.run([typst_bin, "fonts"], capture_output=True, text=True, check=False)
     lines = {line.strip() for line in result.stdout.split("\n")}
     if not any(font in lines for font in FONTS):
         return [Finding("FIG-FONT", "typst fonts", f"none of {FONTS} found in `typst fonts` output")]
@@ -275,7 +275,7 @@ def render(
         + ["--input", f"figure={figure}", "--input", f"summary={json.dumps(summary)}",
            str(lib_path), str(out_path)]
     )
-    result = subprocess.run(argv, capture_output=True, text=True)
+    result = subprocess.run(argv, capture_output=True, text=True, check=False)
     if result.returncode != 0:
         first_line = next(iter(result.stderr.strip().split("\n")), "")
         return None, [Finding("FIG-COMPILE", figure, first_line)]
@@ -314,7 +314,7 @@ def read_metadata(lib_path: Path, summary: dict, figure: str) -> tuple[dict | No
         "typst", "eval", f"query({label}).first().value", "--in", str(lib_path),
         "--input", f"summary={json.dumps(summary)}", "--input", f"figure={figure}",
     ]
-    result = subprocess.run(argv, capture_output=True, text=True)
+    result = subprocess.run(argv, capture_output=True, text=True, check=False)
     if result.returncode != 0:
         first_line = next(iter(result.stderr.strip().split("\n")), "")
         return None, [Finding("FIG-METADATA", figure, f"typst eval failed: {first_line}")]
@@ -586,7 +586,7 @@ def _b01_typst_absent_is_blocked() -> str | None:
         env = {"PATH": empty_path_dir, "HOME": os.environ.get("HOME", "")}
         result = subprocess.run(
             [sys.executable, str(Path(__file__).resolve()), "--self-test"],
-            env=env, capture_output=True, text=True,
+            env=env, capture_output=True, text=True, check=False,
         )
     if result.returncode != 1:
         return f"expected exit 1, got {result.returncode} (stdout={result.stdout!r})"
