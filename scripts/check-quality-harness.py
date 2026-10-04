@@ -5621,6 +5621,70 @@ def _claim_is_traced(
     return any(_ledger_fragment_covers(f, claim_text) for f in ledger_fragments)
 
 
+# P0: TSV Column Semantics Documentation
+# ============================================================================
+# Each column in _DEFECT_RECORD_FIELDS measures a specific defect class or
+# structural property of an analysis. Documented here rather than inline so
+# the column order remains unambiguous and column semantics can be traced.
+# Format: "column_name" — what it measures (test subject → check → result).
+# ============================================================================
+#
+# CONCLUSION FAMILY (Section 6 claims traceability):
+#   "analysis_id" — the analysis document's filename stem (identifier only)
+#   "conclusion_claims" — count of all claims extracted from Section 6
+#   "untraced_claims" — count of claims that do NOT cite a chain or 2+ GTs
+#   "untraced_flag" — 1 if untraced_claims > 0, else 0
+#
+# VERDICT FAMILY (Section 2 assumption verdicts conformance):
+#   "verdict_cells" — count of all verdict cells extracted from Section 2 table
+#   "nonconforming_verdict_cells" — count of cells that do NOT match R3's form
+#   "verdict_flag" — 1 if nonconforming_verdict_cells > 0, else 0
+#
+# CHAIN FAMILY (Section 4 derivation chain structure):
+#   "chain_blocks" — count of all chain blocks (one per "### Chain C#:" heading)
+#   "malformed_chain_blocks" — count of chains that fail _chain_block_well_formed
+#   "chain_flag" — 1 if malformed_chain_blocks > 0, else 0
+#
+# DEPENDENCY FAMILY (Section 4 chain dependencies):
+#   "dependency_cycles" — count of circular chains (A→B→C→A)
+#   "ungrounded_chains" — count of chains that eventually reference non-GTs
+#   "selfaudit_disagreements" — count of band assignments contradicting §5+§6 scoring
+#
+# PROVENANCE FAMILY (Capture-based source verification, Phase 5):
+#   "provenance_labels" — count of ground truths marked "read-at-source"
+#   "unmatched_sources" — count of GT sources with no WebFetch/Read in capture
+#   "unreadable_sources" — count of sources that WebFetch/Read failed to retrieve
+#   "literals_checked" — count of literals asserted as present in source text
+#   "unlocated_literals" — count of literals NOT found in retrieved source
+#   "misattributed_literals" — count of literals attributed to wrong source
+#   "zero_literal_gts" — count of GTs marked read-at-source with zero literals
+#   "orphan_fetches" — count of WebFetch/Read calls in capture not cited by any GT
+#   "provenance_flag" — 1 if any provenance check fails, else 0 (or "n/a" if unchecked)
+#
+# CONFIDENCE FAMILY (Section 4 conclusion chain strength, Phase 41):
+#   "high_conf_chains" — count of chains with no unverified head steps
+#   "high_conf_unverified_head" — count of HIGH-confidence-required chains with unverified heads
+#   "confidence_inversions" — count of chains where low-conf follows high-conf
+#   "confidence_unparsed" — count of chains with unparseable confidence markers
+#
+# SELF-AUDIT FAMILY (Criterion scoring consistency):
+#   "selfaudit_bands_parsed" — count of criterion bands successfully parsed (0-6 per criterion)
+#   "selfaudit_offvocab_bands" — count of band assignments using unknown vocabulary
+#
+# PRE-CHECK FAMILY (Section 6 confidence pre-assessment, Phase 52):
+#   "prechecks_parsed" — count of §6 pre-checks successfully parsed
+#   "precheck_unparsed" — count of §6 pre-check lines that cannot be parsed
+#   "precheck_disagreements" — count of §6 confidence levels contradicting conclusion
+#
+# ROLL-UP FAMILY (Section 6 conclusion confidence composition, Phase 52):
+#   "rollups_checked" — count of §6 roll-up inversions examined
+#   "rollup_inversions" — count of roll-ups where component confidence > conclusion
+#
+# HOP-ARITHMETIC FAMILY (Chain step logical soundness, Phase 53):
+#   "hop_arithmetic_checked" — count of chain hops with parseable step counts
+#   "hop_arithmetic_unparsed" — count of chain hops with invalid step syntax
+#   "hop_arithmetic_mismatches" — count of hops where stated steps ≠ actual steps
+#
 _DEFECT_RECORD_FIELDS = (
     "analysis_id",
     "conclusion_claims",

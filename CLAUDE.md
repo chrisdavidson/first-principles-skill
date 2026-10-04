@@ -191,6 +191,9 @@ Both surfaces render the same population and the same columns from `scripts/_gat
 Gates run on three surfaces: **28 in CI** (`.github/workflows/validation.yml`, on push/PR to master), **32 tallied in the offline battery** (`bash scripts/check-firewall-battery.sh`), and **5 pre-commit gates** (2 hook mechanisms run the identical set in the identical order). The battery is a strict superset of CI: all 28 CI gates plus 2 battery-only gates plus 2 inline checks. That is 28 + 2 + 2 = 32.
 <!-- END GENERATED -->
 
+HARN-01, HARN-02 and HARN-03 were registered under HARN-04 at v8.18.0 — each is a CI job plus a
+single `--self-test`-only battery `gate` call, and each is counted in the battery total above.
+
 **a guard guards the product; a guard is not itself guarded.** See [docs/PROCESS.md](docs/PROCESS.md) and the gate definition files in `docs/gates/` for full detail. The `bash scripts/check-firewall-battery.sh` runs the full offline gate set and prints a FIREWALL: GREEN / RED / BLOCKED verdict.
 
 ### Pre-commit gates
@@ -268,6 +271,7 @@ The canonical requirements and traceability surface lives in the git-tracked tre
   (**277 reproducible / 269 audit-only / 0 gap / 546 total**), compact historical ledger, and gap
   findings.
   <!-- END GENERATED:CLAUDE-COVERAGE-HEADLINE -->
+  (Derived from regenerated matrix Phase 138 Plan 03; META-Q4 re-tiered reproducible→audit-only in the v8.8 post-close TEARDOWN-01 cleanup.)
 - **`docs/v8.0-final-closure.md`** — **historical record, not current state.** Accepted
   limitations (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5) and deferred-ledger disposition as of
   v8.0 (Phase 142). It calls 133/96/0/229 the "final" coverage headline because v8.0 was meant to
