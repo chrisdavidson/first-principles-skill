@@ -71,7 +71,7 @@ def iter_plugin_skills() -> Iterator[tuple[str, dict, str]]:
         # WR-05: reject non-mapping results (None, list, scalar) with a structured error.
         if not isinstance(frontmatter, dict):
             got = "empty/null" if frontmatter is None else type(frontmatter).__name__
-            raise ValueError(
+            raise ValueError(  # noqa: TRY004  documented ValueError contract for callers
                 f"{slug}/SKILL.md frontmatter is not a mapping (got {got})"
             )
 

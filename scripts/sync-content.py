@@ -54,12 +54,12 @@ PROCEDURE_RE = re.compile(r"(^## Procedure\n.*?)(?=^## |\Z)", re.MULTILINE | re.
 
 # PyYAML emission flags — pinned for byte-deterministic output (Pitfall 5).
 # width=10**9 keeps short single-line description scalars on one line.
-YAML_DUMP_KWARGS = dict(
-    default_flow_style=False,
-    sort_keys=False,
-    allow_unicode=True,
-    width=10**9,
-)
+YAML_DUMP_KWARGS = {
+    "default_flow_style": False,
+    "sort_keys": False,
+    "allow_unicode": True,
+    "width": 10**9,
+}
 
 
 class _QuotedStr(str):
@@ -545,7 +545,7 @@ def _require_mapping(value, source_path: Path):
         except ValueError:
             rel = source_path
         got = "empty/null" if value is None else type(value).__name__
-        raise ValueError(
+        raise ValueError(  # noqa: TRY004  documented ValueError contract for callers
             f"{rel} did not parse to a YAML mapping (got {got}); "
             f"the file may be empty or malformed"
         )

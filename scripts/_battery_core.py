@@ -2002,14 +2002,14 @@ def self_test_boundary() -> int:
     # (tech-hit sum [0, 0, 0, 1, 0] for both) from estimate/theoretical-limit prose —
     # the exact per-run technique-hit sums are asserted (not forced all-zero) to be
     # honest about the measured evidence (honesty-not-score, D-03b).
+    # fmt: off
     _NEW_TECH_SENTINELS = (
-        # fmt: off
         # tuple: (rr_id, row_id, tech_name, expected_comp, expected_tech_sums, loader, ver_label)
         ("RR-108-03", "S-P09", "decompose",         [1, 0, 1, 1, 1], [0, 0, 0, 0, 0], _load_excerpt_v74,  "v7.4 (frozen; decompose retired)"),
         ("RR-108-04", "S-P10", "estimate",           [0, 0, 0, 0, 0], [0, 0, 0, 1, 0], _load_excerpt_v85, "v8.5"),
         ("RR-108-05", "S-P14", "theoretical-limit",  [0, 0, 0, 0, 0], [0, 0, 0, 1, 0], _load_excerpt_v85, "v8.5"),
-        # fmt: on
     )
+    # fmt: on
     for _rr_id, _row_id, _tech_name, _expected_comp, _expected_tech_sums, _loader, _ver_label in _NEW_TECH_SENTINELS:
         _comp_counts: list[int] = []
         _focused_tech_sums: list[int] = []

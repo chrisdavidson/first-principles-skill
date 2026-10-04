@@ -1702,9 +1702,9 @@ def _mutate_all_non_launcher(stubs: dict[str, str], target: str, replacement: st
     outside `NON_TECHNIQUE_SLUGS`) — builds the Stub-1 zero-match fixture
     (control b)."""
     new_stubs = dict(stubs)
-    for slug in stubs:
+    for slug, stub in stubs.items():
         if slug not in NON_TECHNIQUE_SLUGS:
-            new_stubs[slug] = _replace_once(stubs[slug], target, replacement)
+            new_stubs[slug] = _replace_once(stub, target, replacement)
     return new_stubs
 
 
@@ -1899,10 +1899,7 @@ def _reflow(text: str, width: int) -> str:
         stripped = line.strip()
         is_structural = (
             not stripped
-            or stripped.startswith("#")
-            or stripped.startswith("-")
-            or stripped.startswith("|")
-            or stripped.startswith("```")
+            or stripped.startswith(("#", "-", "|", "```"))
             or (stripped[:1].isdigit() and ". " in stripped[:4])
         )
         if is_structural:

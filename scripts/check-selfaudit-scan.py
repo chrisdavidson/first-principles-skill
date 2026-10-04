@@ -990,12 +990,16 @@ def _check_body_text(text: str) -> list[str]:
         failures.append(
             f"Body-3: ledger-clean handoff {_BODY_LEDGER_CLEAN!r} not found in whole file"
         )
-    if lead_idx != -1 and tail_idx != -1 and clean_idx != -1:
-        if not (tail_idx < lead_idx < clean_idx):
-            failures.append(
-                "Body-3: scan lead is not placed strictly between the ledger "
-                "fence tail and the ledger-clean handoff (placement violated)"
-            )
+    if (
+        lead_idx != -1
+        and tail_idx != -1
+        and clean_idx != -1
+        and not (tail_idx < lead_idx < clean_idx)
+    ):
+        failures.append(
+            "Body-3: scan lead is not placed strictly between the ledger "
+            "fence tail and the ledger-clean handoff (placement violated)"
+        )
 
     # Body-4: the scan heading occurs exactly once in the section slice.
     heading_in_slice = _count_flat(section, _SCAN_HEADING)

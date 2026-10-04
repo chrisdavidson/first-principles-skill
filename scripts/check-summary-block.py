@@ -289,21 +289,32 @@ def validate(value, spec: dict, path: str, *, exemplar: bool) -> list[Finding]:
     if "enum" in spec and value not in spec["enum"]:
         findings.append(Finding(
             "SB-SCHEMA", f"{path}: {value!r} is not one of {spec['enum']}"))
-    if "pattern" in spec and isinstance(value, str):
-        if re.fullmatch(spec["pattern"], value) is None:
-            findings.append(Finding(
-                "SB-SCHEMA", f"{path}: {value!r} does not match pattern {spec['pattern']!r}"))
+    if (
+        "pattern" in spec
+        and isinstance(value, str)
+        and re.fullmatch(spec["pattern"], value) is None
+    ):
+        findings.append(Finding(
+            "SB-SCHEMA", f"{path}: {value!r} does not match pattern {spec['pattern']!r}"))
     if "length" in spec and hasattr(value, "__len__") and len(value) != spec["length"]:
         findings.append(Finding(
             "SB-SCHEMA", f"{path}: expected length {spec['length']}, got {len(value)}"))
-    if "minimum" in spec and isinstance(value, (int, float)) and not isinstance(value, bool):
-        if value < spec["minimum"]:
-            findings.append(Finding(
-                "SB-SCHEMA", f"{path}: {value} is below minimum {spec['minimum']}"))
-    if "maximum" in spec and isinstance(value, (int, float)) and not isinstance(value, bool):
-        if value > spec["maximum"]:
-            findings.append(Finding(
-                "SB-SCHEMA", f"{path}: {value} is above maximum {spec['maximum']}"))
+    if (
+        "minimum" in spec
+        and isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and value < spec["minimum"]
+    ):
+        findings.append(Finding(
+            "SB-SCHEMA", f"{path}: {value} is below minimum {spec['minimum']}"))
+    if (
+        "maximum" in spec
+        and isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and value > spec["maximum"]
+    ):
+        findings.append(Finding(
+            "SB-SCHEMA", f"{path}: {value} is above maximum {spec['maximum']}"))
     if t == "array" and "items" in spec and isinstance(value, list):
         item_spec = spec["items"]
         for idx, item in enumerate(value):

@@ -4976,15 +4976,15 @@ def _control_live_headline_not_in_compute_headline() -> None:
 
 
 def _synthetic_live_row(relpath: str, analysis_id: str, **overrides) -> dict:
-    defaults = dict(
-        outcome="completed",
-        clean=True,
-        disposition="accept-with-reason: fine.",
-        form_defects=0,
-        analysis_present=True,
-        askuserquestion_disclosed=False,
-        capture_relpath=f"{analysis_id}.jsonl",
-    )
+    defaults = {
+        "outcome": "completed",
+        "clean": True,
+        "disposition": "accept-with-reason: fine.",
+        "form_defects": 0,
+        "analysis_present": True,
+        "askuserquestion_disclosed": False,
+        "capture_relpath": f"{analysis_id}.jsonl",
+    }
     defaults.update(overrides)
     return _synthetic_row("live-conformance", relpath, analysis_id, **defaults)
 

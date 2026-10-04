@@ -37,6 +37,7 @@ import argparse
 import contextlib
 import importlib.util
 import io
+import itertools
 import json
 import re
 import sys
@@ -9170,9 +9171,7 @@ def _statement_citation_problems(
             continue
         row = by_key[key]
         if (
-            rel_path.startswith("/")
-            or rel_path.startswith(".planning/")
-            or rel_path.startswith("docs/history/")
+            rel_path.startswith(("/", ".planning/", "docs/history/"))
         ):
             problems.append(
                 f"{key}: citation path {rel_path!r} is outside the tracked tree "
@@ -15262,7 +15261,7 @@ def _ledger_chain_problems(text: str, expected_tail: str) -> list[str]:
             )
             break
 
-    for _prev, _cur in zip(rows, rows[1:]):
+    for _prev, _cur in itertools.pairwise(rows):
         if _cur[2] != _prev[3]:
             problems.append(
                 f"ledger chain break at row {_cur[0]} ({_cur[1]!r}): its `from` "

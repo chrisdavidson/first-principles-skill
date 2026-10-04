@@ -3561,11 +3561,16 @@ def _scan_text_for_literal_hits(relpath: str, text: str) -> list[LiteralHit]:
                 cleaned[_si] = ""
 
         for i in range(n - 1):
-            if cleaned[i].lower() == "up" and i + 1 < n and cleaned[i + 1].lower() == "from":
-                if i + 2 < n and _literal_is_num_atom(cleaned[i + 2]):
-                    start = toks[i][0]
-                    end = toks[i + 2][1]
-                    hits.append(LiteralHit(relpath, lineno, line[start:end]))
+            if (
+                cleaned[i].lower() == "up"
+                and i + 1 < n
+                and cleaned[i + 1].lower() == "from"
+                and i + 2 < n
+                and _literal_is_num_atom(cleaned[i + 2])
+            ):
+                start = toks[i][0]
+                end = toks[i + 2][1]
+                hits.append(LiteralHit(relpath, lineno, line[start:end]))
 
         i = 0
         while i < n:

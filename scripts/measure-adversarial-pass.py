@@ -113,9 +113,13 @@ def _window_lines(lines: list[str], anchor_line: int, span: int = WINDOW_LINES) 
     out: list[str] = []
     for i in range(start, hard_end):
         stripped = lines[i].strip()
-        if i > start and _SECTION_BREAK_RE.match(stripped):
-            if "adversarial" not in stripped.lower() and "pre-mortem" not in stripped.lower():
-                break
+        if (
+            i > start
+            and _SECTION_BREAK_RE.match(stripped)
+            and "adversarial" not in stripped.lower()
+            and "pre-mortem" not in stripped.lower()
+        ):
+            break
         out.append(lines[i])
     return out
 

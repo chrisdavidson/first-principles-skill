@@ -2142,9 +2142,10 @@ def _c27_is_limit_stub_false_positive_fixed() -> str | None:
             "as a usage-limit stub (the TB-01-C false-positive class)"
         )
     real_stub_path = REPO_ROOT / "tests/trackb-run-v9.15/raw/TB-06-T.a1.limit-stub.jsonl"
-    if real_stub_path.is_file():
-        if not is_limit_stub(real_stub_path.read_text(encoding="utf-8")):
-            return f"{real_stub_path} (a genuine 429 spend-limit stub) was not detected"
+    if real_stub_path.is_file() and not is_limit_stub(
+        real_stub_path.read_text(encoding="utf-8")
+    ):
+        return f"{real_stub_path} (a genuine 429 spend-limit stub) was not detected"
     mutated = json.dumps(
         {
             "type": "result",

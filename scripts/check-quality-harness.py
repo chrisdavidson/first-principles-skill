@@ -1831,26 +1831,20 @@ _FIXTURE_SCORELINE_TEXT = (
 # optimized interpreter (repo memory bare-assert-selftest-vacuous-under-O.md).
 # ---------------------------------------------------------------------------
 
-_MALFORMED_CATALOG_FIXTURE = "\n".join(
-    [
-        "# Bad Catalog",
-        "",
-        "| ID | Prompt | Expected MODE | Notes |",
-        "|---|---|---|---|",
-        "| Q-P1 | some prompt | full-composer | note |",
-        "",
-    ]
+_MALFORMED_CATALOG_FIXTURE = (
+    "# Bad Catalog\n"
+    "\n"
+    "| ID | Prompt | Expected MODE | Notes |\n"
+    "|---|---|---|---|\n"
+    "| Q-P1 | some prompt | full-composer | note |\n"
 )
 
-_TRAVERSAL_ID_CATALOG_FIXTURE = "\n".join(
-    [
-        "# Traversal-Id Catalog",
-        "",
-        "| ID | Prompt | Notes |",
-        "|---|---|---|",
-        "| ../../scripts/check-agent | some prompt | note |",
-        "",
-    ]
+_TRAVERSAL_ID_CATALOG_FIXTURE = (
+    "# Traversal-Id Catalog\n"
+    "\n"
+    "| ID | Prompt | Notes |\n"
+    "|---|---|---|\n"
+    "| ../../scripts/check-agent | some prompt | note |\n"
 )
 
 
@@ -6498,7 +6492,7 @@ def _hop_sig_figs(text: str) -> int:
 def _hop_round_sig_figs(value: float, sig: int) -> float:
     if value == 0:
         return 0.0
-    d = sig - int(math.floor(math.log10(abs(value)))) - 1
+    d = sig - math.floor(math.log10(abs(value))) - 1
     return round(value, d)
 
 
@@ -15427,19 +15421,25 @@ def _selftest_render_contract() -> bool:
     #     closure-ledger — are proven, and the closure-ledger leg proves
     #     the SAME otherwise-untraced claim (R-CITE-NONE) flips from
     #     untraced to traced purely because the ledger row is present.
-    if conforming is not None and cite_inline is not None:
-        if not _score_traced("R-CITE-INLINE", cite_inline, ["C1"], [conforming]):
-            _fail(
-                "(f) R-CITE-INLINE (doc label 'Conforming — inline chain "
-                "citation:') scored untraced, expected traced"
-            )
-    if conforming is not None and cite_none is not None:
-        if _score_traced("R-CITE-NONE", cite_none, ["C1"], [conforming]):
-            _fail(
-                "(f) R-CITE-NONE (doc label 'Non-conforming — a claim "
-                "naming no chain and quoted by no ledger row:') scored "
-                "traced with no ledger fragments, expected untraced"
-            )
+    if (
+        conforming is not None
+        and cite_inline is not None
+        and not _score_traced("R-CITE-INLINE", cite_inline, ["C1"], [conforming])
+    ):
+        _fail(
+            "(f) R-CITE-INLINE (doc label 'Conforming — inline chain "
+            "citation:') scored untraced, expected traced"
+        )
+    if (
+        conforming is not None
+        and cite_none is not None
+        and _score_traced("R-CITE-NONE", cite_none, ["C1"], [conforming])
+    ):
+        _fail(
+            "(f) R-CITE-NONE (doc label 'Non-conforming — a claim "
+            "naming no chain and quoted by no ledger row:') scored "
+            "traced with no ledger fragments, expected untraced"
+        )
     if cite_ledger is not None:
         ledger_fragments = _score_ledger("R-CITE-LEDGER", cite_ledger, ["C1"])
         if not ledger_fragments:
@@ -15447,15 +15447,18 @@ def _selftest_render_contract() -> bool:
                 "(f) R-CITE-LEDGER (doc label 'Conforming — closure-ledger "
                 "row:') yielded zero closure-ledger fragments"
             )
-        elif conforming is not None and cite_none is not None:
-            if not _score_traced(
+        elif (
+            conforming is not None
+            and cite_none is not None
+            and not _score_traced(
                 "R-CITE-NONE", cite_none, ["C1"], [conforming], ledger_fragments
-            ):
-                _fail(
-                    "(f) R-CITE-NONE with R-CITE-LEDGER's fragments still "
-                    "scored untraced — the ledger row does not discharge "
-                    "the claim it quotes"
-                )
+            )
+        ):
+            _fail(
+                "(f) R-CITE-NONE with R-CITE-LEDGER's fragments still "
+                "scored untraced — the ledger row does not discharge "
+                "the claim it quotes"
+            )
 
     # (g) NON-VACUITY: the module's own long-standing base cases still
     #     hold from outside this item. A control that scored everything
@@ -18818,16 +18821,14 @@ def _selftest_ledger_traceability() -> bool:
         "floor for three years and is not reversible, so cleanup moves ahead "
         "of sizing it.\n"
     )
-    rows = "\n".join(
-        (
-            ('- "Do not start with Lambda; measure bill composition and duty '
-            'cycle first" -> chain C1'),
-            ('- "Lambda is 2.10 times more expensive per unit of actual '
-            'compute than Fargate" -> chain C2'),
-            ('- "A Savings Plan commits you to an hourly floor for three '
-            'years" -> chain C3'),
-        )
-    ) + "\n"
+    rows = (
+        '- "Do not start with Lambda; measure bill composition and duty '
+        'cycle first" -> chain C1\n'
+        '- "Lambda is 2.10 times more expensive per unit of actual '
+        'compute than Fargate" -> chain C2\n'
+        '- "A Savings Plan commits you to an hourly floor for three '
+        'years" -> chain C3\n'
+    )
     ledgered = prose + "\n## Closure ledger\n\n" + '```' + "text\n" + rows + '```' + "\n"
 
     # (a) POSITIVE: every prose claim is discharged by the ledger.
@@ -20208,12 +20209,11 @@ def _selftest_resume_classification() -> bool:
     ok = True
 
     def _fixture_path(events: list[dict]) -> Path:
-        tmp = tempfile.NamedTemporaryFile(
+        with tempfile.NamedTemporaryFile(
             mode="w", suffix=".jsonl", delete=False, encoding="utf-8"
-        )
-        for e in events:
-            tmp.write(json.dumps(e) + "\n")
-        tmp.close()
+        ) as tmp:
+            for e in events:
+                tmp.write(json.dumps(e) + "\n")
         return Path(tmp.name)
 
     cases = [
