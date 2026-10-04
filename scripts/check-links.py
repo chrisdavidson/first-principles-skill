@@ -319,7 +319,7 @@ def _resolve_link(raw_target: str, source_file: Path) -> Path:
     if not target:
         return source_file  # Pure anchor — no file to resolve.
     if target.startswith(PLUGIN_ROOT_TOKEN):
-        rest = target[len(PLUGIN_ROOT_TOKEN):].lstrip("/")
+        rest = target[len(PLUGIN_ROOT_TOKEN) :].lstrip("/")
         return (REPO_ROOT / PLUGIN_ROOT_TOKEN_TARGET / rest).resolve()
     if target.startswith("/"):
         return (REPO_ROOT / target.lstrip("/")).resolve()
@@ -454,15 +454,17 @@ def _check_docs_file(
         # --- Rule 1: docs/-prefixed link (CF-04 violation) ---
         if raw_target.startswith("docs/"):
             total_links[0] += 1
-            broken.append((
-                rel,
-                line_in_file,
-                raw_target,
+            broken.append(
                 (
-                    "docs/-prefixed link resolves to docs/docs/... (404); "
-                    "use bare filename (CF-04)"
-                ),
-            ))
+                    rel,
+                    line_in_file,
+                    raw_target,
+                    (
+                        "docs/-prefixed link resolves to docs/docs/... (404); "
+                        "use bare filename (CF-04)"
+                    ),
+                )
+            )
             continue
 
         # --- Pure anchor (no file component): validate against own headings ---
@@ -472,12 +474,14 @@ def _check_docs_file(
             if source_anchors is None:
                 source_anchors = _doc_anchors(source_file)
             if anchor not in source_anchors:
-                broken.append((
-                    rel,
-                    line_in_file,
-                    raw_target,
-                    f"anchor #{anchor} not found in {source_file.name}",
-                ))
+                broken.append(
+                    (
+                        rel,
+                        line_in_file,
+                        raw_target,
+                        f"anchor #{anchor} not found in {source_file.name}",
+                    )
+                )
             continue
 
         # --- Skip non-.md links and relative-up paths (../) ---
@@ -502,18 +506,20 @@ def _check_docs_file(
             if anchor:  # Non-empty anchor
                 target_anchors = _doc_anchors(target_path)
                 if anchor not in target_anchors:
-                    broken.append((
-                        rel,
-                        line_in_file,
-                        raw_target,
+                    broken.append(
                         (
-                            f"anchor #{anchor} not found in {target_path.name} "
-                            f"(heading anchors: {sorted(target_anchors)[:5]}...)"
-                            if len(target_anchors) > 5
-                            else f"anchor #{anchor} not found in {target_path.name} "
-                            f"(heading anchors: {sorted(target_anchors)})"
-                        ),
-                    ))
+                            rel,
+                            line_in_file,
+                            raw_target,
+                            (
+                                f"anchor #{anchor} not found in {target_path.name} "
+                                f"(heading anchors: {sorted(target_anchors)[:5]}...)"
+                                if len(target_anchors) > 5
+                                else f"anchor #{anchor} not found in {target_path.name} "
+                                f"(heading anchors: {sorted(target_anchors)})"
+                            ),
+                        )
+                    )
 
 
 def _check_file(
@@ -566,8 +572,12 @@ def _check_file(
             line_in_body = body[: match.start()].count("\n") + 1
             line_in_file = line_in_body + fm_offset
             broken.append(
-                (rel, line_in_file, f"`/first-principles:{name}`",
-                 "unknown namespace ref (not a sibling skill)")
+                (
+                    rel,
+                    line_in_file,
+                    f"`/first-principles:{name}`",
+                    "unknown namespace ref (not a sibling skill)",
+                )
             )
 
 
@@ -715,9 +725,13 @@ def _run_self_test() -> int:
             total_refs: list[int] = [0]
 
             for source_file in references_files:
-                _check_file(source_file, True, valid_slugs, broken, total_links, total_refs)
+                _check_file(
+                    source_file, True, valid_slugs, broken, total_links, total_refs
+                )
             for source_file in skill_files:
-                _check_file(source_file, False, valid_slugs, broken, total_links, total_refs)
+                _check_file(
+                    source_file, False, valid_slugs, broken, total_links, total_refs
+                )
 
             broken_runs.append(list(broken))
 
@@ -736,7 +750,8 @@ def _run_self_test() -> int:
         # temp paths (relative_to(REPO_ROOT) falls back to absolute) —
         # match on filename substring, never a full expected path.
         bad_flagged = [
-            entry for entry in broken
+            entry
+            for entry in broken
             if "bad.md" in str(entry[0]) and entry[3] == "file not found"
         ]
         if not bad_flagged:
@@ -758,7 +773,8 @@ def _run_self_test() -> int:
         # Positive detection — namespace axis (D-05): the unknown ref must
         # be flagged with the exact production reason string.
         unknown_flagged = [
-            entry for entry in broken
+            entry
+            for entry in broken
             if "unknown-fixture-skill" in entry[2]
             and entry[3] == "unknown namespace ref (not a sibling skill)"
         ]
@@ -772,8 +788,7 @@ def _run_self_test() -> int:
         # Negative control — namespace axis: the self-referential ref must
         # NOT be flagged (rules out a constant-true detector).
         self_flagged = [
-            entry for entry in broken
-            if f"/first-principles:{slug}`" in entry[2]
+            entry for entry in broken if f"/first-principles:{slug}`" in entry[2]
         ]
         if self_flagged:
             wrong.append(
@@ -845,8 +860,7 @@ def _run_self_test() -> int:
 
     resolved_hit = _resolve_link(token_link, agent_body)
     expected_hit = (
-        REPO_ROOT / PLUGIN_ROOT_TOKEN_TARGET
-        / "references" / "validation-rubric.md"
+        REPO_ROOT / PLUGIN_ROOT_TOKEN_TARGET / "references" / "validation-rubric.md"
     ).resolve()
     if resolved_hit != expected_hit:
         wrong.append(
@@ -911,10 +925,17 @@ def _run_self_test() -> int:
         docs_total_links: list[int] = [0]
         docs_total_refs: list[int] = [0]
         for source_file in docs_gates_files:
-            _check_docs_file(source_file, docs_tmp_root / "docs", docs_broken, docs_total_links, docs_total_refs)
+            _check_docs_file(
+                source_file,
+                docs_tmp_root / "docs",
+                docs_broken,
+                docs_total_links,
+                docs_total_refs,
+            )
 
         broken_fixture_flagged = [
-            entry for entry in docs_broken
+            entry
+            for entry in docs_broken
             if "BROKEN-FIXTURE.md" in str(entry[0]) and entry[3] == "file not found"
         ]
         if not broken_fixture_flagged:
@@ -924,7 +945,9 @@ def _run_self_test() -> int:
                 f"'file not found' via DOCS_CHECK_GLOBS — broken list: {docs_broken!r}"
             )
 
-        valid_fixture_flagged = [entry for entry in docs_broken if "VALID-FIXTURE.md" in str(entry[0])]
+        valid_fixture_flagged = [
+            entry for entry in docs_broken if "VALID-FIXTURE.md" in str(entry[0])
+        ]
         if valid_fixture_flagged:
             wrong.append(
                 "negative control (docs/gates axis): VALID-FIXTURE.md's "

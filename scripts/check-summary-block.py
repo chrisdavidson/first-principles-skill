@@ -19,6 +19,7 @@ Usage:
     python3 scripts/check-summary-block.py --self-test
     python3 scripts/check-summary-block.py --describe
 """
+
 from __future__ import annotations
 
 import argparse
@@ -82,10 +83,23 @@ class SchemaError(Exception):
 # ---------------------------------------------------------------------------
 
 _DOC_KEYS = frozenset({"source", "null_when", "$comment"})
-_KNOWN_FIELD_KEYS = frozenset({
-    "type", "nullable", "const", "enum", "pattern", "items", "fields",
-    "length", "minimum", "maximum",
-}) | _DOC_KEYS
+_KNOWN_FIELD_KEYS = (
+    frozenset(
+        {
+            "type",
+            "nullable",
+            "const",
+            "enum",
+            "pattern",
+            "items",
+            "fields",
+            "length",
+            "minimum",
+            "maximum",
+        }
+    )
+    | _DOC_KEYS
+)
 
 _TYPE_MAP: dict[str, type] = {
     "integer": int,
@@ -162,7 +176,9 @@ class _Block(NamedTuple):
     under_heading: bool
 
 
-def _fence_state(lines: list[str]) -> tuple[list[bool], list[tuple[int, int, str, str]]]:
+def _fence_state(
+    lines: list[str],
+) -> tuple[list[bool], list[tuple[int, int, str, str]]]:
     """Per line: is it inside a fenced code block? Also return every fence
     found as (start_line, end_line, info_string, body_text). An opening fence
     of three or more backticks closes on a line of at least the same number
@@ -220,7 +236,9 @@ def find_blocks(text: str) -> list[_Block]:
             continue
         under = heading_idx is not None and start > heading_idx
         if under or '"schema_version"' in body:
-            blocks.append(_Block(start=start, end=end, info=info, body=body, under_heading=under))
+            blocks.append(
+                _Block(start=start, end=end, info=info, body=body, under_heading=under)
+            )
     return blocks
 
 
@@ -230,31 +248,52 @@ def _placement_findings(text: str, block: _Block) -> list[Finding]:
     block's closing fence."""
     lines = text.split("\n")
     inside, _fences = _fence_state(lines)
-    heading_idxs = [i for i, l in enumerate(lines) if not inside[i] and l.strip() == BLOCK_HEADING]
-    appendix_idxs = [i for i, l in enumerate(lines) if not inside[i] and l.strip() == APPENDIX_HEADING]
+    heading_idxs = [
+        i for i, l in enumerate(lines) if not inside[i] and l.strip() == BLOCK_HEADING
+    ]
+    appendix_idxs = [
+        i
+        for i, l in enumerate(lines)
+        if not inside[i] and l.strip() == APPENDIX_HEADING
+    ]
     findings: list[Finding] = []
     if not heading_idxs:
         findings.append(Finding("SB-PLACEMENT", f"{BLOCK_HEADING!r} heading not found"))
         return findings
     if len(heading_idxs) > 1:
-        findings.append(Finding(
-            "SB-PLACEMENT", f"{BLOCK_HEADING!r} heading appears {len(heading_idxs)} times"))
+        findings.append(
+            Finding(
+                "SB-PLACEMENT",
+                f"{BLOCK_HEADING!r} heading appears {len(heading_idxs)} times",
+            )
+        )
     heading_idx = heading_idxs[0]
     if not any(a < heading_idx for a in appendix_idxs):
-        findings.append(Finding(
-            "SB-PLACEMENT", f"{BLOCK_HEADING!r} heading is not after {APPENDIX_HEADING!r}"))
+        findings.append(
+            Finding(
+                "SB-PLACEMENT",
+                f"{BLOCK_HEADING!r} heading is not after {APPENDIX_HEADING!r}",
+            )
+        )
     if block.start <= heading_idx:
-        findings.append(Finding("SB-PLACEMENT", "the summary block is not under its heading"))
+        findings.append(
+            Finding("SB-PLACEMENT", "the summary block is not under its heading")
+        )
     trailing = lines[block.end + 1 :]
     if any(l.strip() for l in trailing):
-        findings.append(Finding(
-            "SB-PLACEMENT", "non-whitespace content follows the block's closing fence"))
+        findings.append(
+            Finding(
+                "SB-PLACEMENT",
+                "non-whitespace content follows the block's closing fence",
+            )
+        )
     return findings
 
 
 # ---------------------------------------------------------------------------
 # Schema-driven value validator
 # ---------------------------------------------------------------------------
+
 
 def _type_ok(value, type_name: str) -> bool:
     if type_name == "integer":
@@ -280,45 +319,62 @@ def validate(value, spec: dict, path: str, *, exemplar: bool) -> list[Finding]:
         return findings
     t = spec.get("type")
     if t is not None and not _type_ok(value, t):
-        findings.append(Finding(
-            "SB-SCHEMA", f"{path}: expected type {t}, got {type(value).__name__}"))
+        findings.append(
+            Finding(
+                "SB-SCHEMA", f"{path}: expected type {t}, got {type(value).__name__}"
+            )
+        )
         return findings
     if "const" in spec and value != spec["const"]:
-        findings.append(Finding(
-            "SB-SCHEMA", f"{path}: expected {spec['const']!r}, got {value!r}"))
+        findings.append(
+            Finding("SB-SCHEMA", f"{path}: expected {spec['const']!r}, got {value!r}")
+        )
     if "enum" in spec and value not in spec["enum"]:
-        findings.append(Finding(
-            "SB-SCHEMA", f"{path}: {value!r} is not one of {spec['enum']}"))
+        findings.append(
+            Finding("SB-SCHEMA", f"{path}: {value!r} is not one of {spec['enum']}")
+        )
     if (
         "pattern" in spec
         and isinstance(value, str)
         and re.fullmatch(spec["pattern"], value) is None
     ):
-        findings.append(Finding(
-            "SB-SCHEMA", f"{path}: {value!r} does not match pattern {spec['pattern']!r}"))
+        findings.append(
+            Finding(
+                "SB-SCHEMA",
+                f"{path}: {value!r} does not match pattern {spec['pattern']!r}",
+            )
+        )
     if "length" in spec and hasattr(value, "__len__") and len(value) != spec["length"]:
-        findings.append(Finding(
-            "SB-SCHEMA", f"{path}: expected length {spec['length']}, got {len(value)}"))
+        findings.append(
+            Finding(
+                "SB-SCHEMA",
+                f"{path}: expected length {spec['length']}, got {len(value)}",
+            )
+        )
     if (
         "minimum" in spec
         and isinstance(value, (int, float))
         and not isinstance(value, bool)
         and value < spec["minimum"]
     ):
-        findings.append(Finding(
-            "SB-SCHEMA", f"{path}: {value} is below minimum {spec['minimum']}"))
+        findings.append(
+            Finding("SB-SCHEMA", f"{path}: {value} is below minimum {spec['minimum']}")
+        )
     if (
         "maximum" in spec
         and isinstance(value, (int, float))
         and not isinstance(value, bool)
         and value > spec["maximum"]
     ):
-        findings.append(Finding(
-            "SB-SCHEMA", f"{path}: {value} is above maximum {spec['maximum']}"))
+        findings.append(
+            Finding("SB-SCHEMA", f"{path}: {value} is above maximum {spec['maximum']}")
+        )
     if t == "array" and "items" in spec and isinstance(value, list):
         item_spec = spec["items"]
         for idx, item in enumerate(value):
-            findings.extend(validate(item, item_spec, f"{path}[{idx}]", exemplar=exemplar))
+            findings.extend(
+                validate(item, item_spec, f"{path}[{idx}]", exemplar=exemplar)
+            )
     if t == "object" and "fields" in spec and isinstance(value, dict):
         subfields = spec["fields"]
         for key in value:
@@ -326,9 +382,13 @@ def validate(value, spec: dict, path: str, *, exemplar: bool) -> list[Finding]:
                 findings.append(Finding("SB-SCHEMA", f"{path}.{key}: unknown key"))
         for key, subspec in subfields.items():
             if key not in value:
-                findings.append(Finding("SB-SCHEMA", f"{path}.{key}: missing required key"))
+                findings.append(
+                    Finding("SB-SCHEMA", f"{path}.{key}: missing required key")
+                )
                 continue
-            findings.extend(validate(value[key], subspec, f"{path}.{key}", exemplar=exemplar))
+            findings.extend(
+                validate(value[key], subspec, f"{path}.{key}", exemplar=exemplar)
+            )
     return findings
 
 
@@ -354,6 +414,7 @@ def validate_report(value: dict, schema: dict, *, exemplar: bool) -> list[Findin
 # Internal (block-only) invariants: INV-04, INV-05, INV-09
 # ---------------------------------------------------------------------------
 
+
 def _gate_invariant_findings(gate) -> list[Finding]:
     """INV-04: each pass's gate_cleared/hand_wavy_cap_cleared agree with its
     own bands (SB-INVARIANT). INV-05: gate.cleared follows the LAST pass's
@@ -368,30 +429,50 @@ def _gate_invariant_findings(gate) -> list[Finding]:
         if not isinstance(p, dict):
             continue
         bands = p.get("bands")
-        if not isinstance(bands, list) or len(bands) != 6 or not all(isinstance(b, str) for b in bands):
+        if (
+            not isinstance(bands, list)
+            or len(bands) != 6
+            or not all(isinstance(b, str) for b in bands)
+        ):
             continue
         actual_cleared = "Absent" not in bands
         actual_cap = bands.count("Hand-wavy") <= 1
         if p.get("gate_cleared") is not actual_cleared:
-            findings.append(Finding(
-                "SB-INVARIANT", f"gate.passes[{idx}].gate_cleared disagrees with its own bands"))
+            findings.append(
+                Finding(
+                    "SB-INVARIANT",
+                    f"gate.passes[{idx}].gate_cleared disagrees with its own bands",
+                )
+            )
         if p.get("hand_wavy_cap_cleared") is not actual_cap:
-            findings.append(Finding(
-                "SB-INVARIANT",
-                f"gate.passes[{idx}].hand_wavy_cap_cleared disagrees with its own bands"))
+            findings.append(
+                Finding(
+                    "SB-INVARIANT",
+                    f"gate.passes[{idx}].hand_wavy_cap_cleared disagrees with its own bands",
+                )
+            )
     if passes:
         last = passes[-1]
         if isinstance(last, dict):
-            expected_cleared = last.get("gate_cleared") is True and last.get("hand_wavy_cap_cleared") is True
+            expected_cleared = (
+                last.get("gate_cleared") is True
+                and last.get("hand_wavy_cap_cleared") is True
+            )
             if gate.get("cleared") is not expected_cleared:
-                findings.append(Finding(
-                    "SB-GATE-CLEARED",
-                    "gate.cleared disagrees with the last pass's gate_cleared/"
-                    "hand_wavy_cap_cleared"))
+                findings.append(
+                    Finding(
+                        "SB-GATE-CLEARED",
+                        "gate.cleared disagrees with the last pass's gate_cleared/"
+                        "hand_wavy_cap_cleared",
+                    )
+                )
     else:
         if gate.get("cleared") is not False:
-            findings.append(Finding(
-                "SB-GATE-CLEARED", "gate.cleared must be false when passes is empty"))
+            findings.append(
+                Finding(
+                    "SB-GATE-CLEARED", "gate.cleared must be false when passes is empty"
+                )
+            )
     return findings
 
 
@@ -406,8 +487,12 @@ def _re_entry_invariant_findings(re_entry) -> list[Finding]:
     fired = re_entry.get("fired")
     expected_fired = len(edges) > 0
     if fired is not expected_fired:
-        return [Finding(
-            "SB-INVARIANT", "re_entry.fired disagrees with whether re_entry.edges is empty")]
+        return [
+            Finding(
+                "SB-INVARIANT",
+                "re_entry.fired disagrees with whether re_entry.edges is empty",
+            )
+        ]
     return []
 
 
@@ -420,7 +505,8 @@ def _load_qh():
     import sys as _sys
 
     spec = _ilu.spec_from_file_location(
-        "_qh_for_summary_block", REPO_ROOT / "scripts" / "check-quality-harness.py")
+        "_qh_for_summary_block", REPO_ROOT / "scripts" / "check-quality-harness.py"
+    )
     qh = _ilu.module_from_spec(spec)
     _sys.modules["_qh_for_summary_block"] = qh
     spec.loader.exec_module(qh)
@@ -493,7 +579,9 @@ def _leading_verdict_token(cell: str) -> str | None:
     return m.group(1) if m else None
 
 
-def _table_columns(section_text: str, colnames: tuple[str, ...]) -> list[dict[str, str]]:
+def _table_columns(
+    section_text: str, colnames: tuple[str, ...]
+) -> list[dict[str, str]]:
     """Locate a Markdown table's header row by column NAME (never index) and
     return each data row's cells for the requested columns, in row order.
     Empty when no header row carries every requested name."""
@@ -526,7 +614,9 @@ def _table_columns(section_text: str, colnames: tuple[str, ...]) -> list[dict[st
         if not stripped.startswith("|"):
             break
         cells = qh._split_row(stripped)
-        rows.append({name: (cells[j] if j < len(cells) else "") for name, j in col_idx.items()})
+        rows.append(
+            {name: (cells[j] if j < len(cells) else "") for name, j in col_idx.items()}
+        )
         i += 1
     return rows
 
@@ -542,56 +632,68 @@ def _xc_assumptions(text, sections, block, exemplar) -> list[Finding]:
     section2 = (sections or {}).get(2, "")
     rows = _table_columns(section2, ("type", "verdict"))
     if len(rows) != len(items):
-        findings.append(Finding(
-            "SB-ASSUMPTION",
-            f"block has {len(items)} assumptions but section 2's table has "
-            f"{len(rows)} data row(s)",
-        ))
+        findings.append(
+            Finding(
+                "SB-ASSUMPTION",
+                f"block has {len(items)} assumptions but section 2's table has "
+                f"{len(rows)} data row(s)",
+            )
+        )
     for i in range(min(len(rows), len(items))):
         item = items[i]
         if not isinstance(item, dict):
             continue
         expected_id = f"A-{i + 1}"
         if item.get("id") != expected_id:
-            findings.append(Finding(
-                "SB-ASSUMPTION",
-                f"assumption {i + 1}: block id {item.get('id')!r} does not "
-                f"match its row position {expected_id!r}",
-            ))
+            findings.append(
+                Finding(
+                    "SB-ASSUMPTION",
+                    f"assumption {i + 1}: block id {item.get('id')!r} does not "
+                    f"match its row position {expected_id!r}",
+                )
+            )
         parent_type = _parent_type(rows[i]["type"])
         block_type = item.get("type")
         if exemplar:
             if block_type is None:
                 if parent_type in _TAXONOMY_TYPES:
-                    findings.append(Finding(
-                        "SB-ASSUMPTION",
-                        f"{expected_id}: block type is null but section 2's "
-                        f"cell {rows[i]['type']!r} is a single taxonomy type "
-                        f"({parent_type!r})",
-                    ))
+                    findings.append(
+                        Finding(
+                            "SB-ASSUMPTION",
+                            f"{expected_id}: block type is null but section 2's "
+                            f"cell {rows[i]['type']!r} is a single taxonomy type "
+                            f"({parent_type!r})",
+                        )
+                    )
             elif block_type != parent_type:
-                findings.append(Finding(
-                    "SB-ASSUMPTION",
-                    f"{expected_id}: block type {block_type!r} disagrees "
-                    f"with section 2's cell {rows[i]['type']!r} (parent type "
-                    f"{parent_type!r})",
-                ))
+                findings.append(
+                    Finding(
+                        "SB-ASSUMPTION",
+                        f"{expected_id}: block type {block_type!r} disagrees "
+                        f"with section 2's cell {rows[i]['type']!r} (parent type "
+                        f"{parent_type!r})",
+                    )
+                )
         elif block_type is not None and block_type != parent_type:
-            findings.append(Finding(
-                "SB-ASSUMPTION",
-                f"{expected_id}: block type {block_type!r} disagrees with "
-                f"section 2's cell {rows[i]['type']!r} (parent type "
-                f"{parent_type!r})",
-            ))
+            findings.append(
+                Finding(
+                    "SB-ASSUMPTION",
+                    f"{expected_id}: block type {block_type!r} disagrees with "
+                    f"section 2's cell {rows[i]['type']!r} (parent type "
+                    f"{parent_type!r})",
+                )
+            )
         expected_verdict = _leading_verdict_token(rows[i]["verdict"])
         block_verdict = item.get("verdict")
         if block_verdict != expected_verdict:
-            findings.append(Finding(
-                "SB-ASSUMPTION",
-                f"{expected_id}: block verdict {block_verdict!r} disagrees "
-                f"with section 2's Verdict cell {rows[i]['verdict']!r} "
-                f"(expected {expected_verdict!r})",
-            ))
+            findings.append(
+                Finding(
+                    "SB-ASSUMPTION",
+                    f"{expected_id}: block verdict {block_verdict!r} disagrees "
+                    f"with section 2's Verdict cell {rows[i]['verdict']!r} "
+                    f"(expected {expected_verdict!r})",
+                )
+            )
     return findings
 
 
@@ -630,29 +732,35 @@ def _xc_ground_truths(text, sections, block, exemplar) -> list[Finding]:
     section3 = (sections or {}).get(3, "")
     declared = _gt_declarations(section3)
     if len(declared) != len(items):
-        findings.append(Finding(
-            "SB-GROUND-TRUTH",
-            f"block has {len(items)} ground truths but section 3 declares "
-            f"{len(declared)}",
-        ))
+        findings.append(
+            Finding(
+                "SB-GROUND-TRUTH",
+                f"block has {len(items)} ground truths but section 3 declares "
+                f"{len(declared)}",
+            )
+        )
     for i in range(min(len(declared), len(items))):
         gid, read_at_source = declared[i]
         item = items[i]
         if not isinstance(item, dict):
             continue
         if item.get("id") != gid:
-            findings.append(Finding(
-                "SB-GROUND-TRUTH",
-                f"ground truth {i + 1}: block id {item.get('id')!r} disagrees "
-                f"with section 3's declared id {gid!r}",
-            ))
+            findings.append(
+                Finding(
+                    "SB-GROUND-TRUTH",
+                    f"ground truth {i + 1}: block id {item.get('id')!r} disagrees "
+                    f"with section 3's declared id {gid!r}",
+                )
+            )
         if item.get("read_at_source") != read_at_source:
-            findings.append(Finding(
-                "SB-GROUND-TRUTH",
-                f"{gid}: block read_at_source {item.get('read_at_source')!r} "
-                f"disagrees with section 3's declaration (expected "
-                f"{read_at_source!r})",
-            ))
+            findings.append(
+                Finding(
+                    "SB-GROUND-TRUTH",
+                    f"{gid}: block read_at_source {item.get('read_at_source')!r} "
+                    f"disagrees with section 3's declaration (expected "
+                    f"{read_at_source!r})",
+                )
+            )
     return findings
 
 
@@ -674,11 +782,13 @@ def _xc_chain_ids(text, sections, block, exemplar) -> list[Finding]:
     doc_ids, _blocks = _doc_chain_index(section4)
     block_ids = [c.get("id") for c in items if isinstance(c, dict)]
     if block_ids != doc_ids:
-        return [Finding(
-            "SB-CHAIN-ID",
-            f"block chain ids {block_ids!r} disagree with section 4's chain "
-            f"ids {doc_ids!r}",
-        )]
+        return [
+            Finding(
+                "SB-CHAIN-ID",
+                f"block chain ids {block_ids!r} disagree with section 4's chain "
+                f"ids {doc_ids!r}",
+            )
+        ]
     return []
 
 
@@ -703,17 +813,21 @@ def _xc_chain_confidence(text, sections, block, exemplar) -> list[Finding]:
             continue
         label = qh._chain_confidence_label(doc_block)
         if label is None:
-            findings.append(Finding(
-                "SB-CHAIN-CONFIDENCE",
-                f"{cid}: no readable **Confidence:** line in section 4",
-            ))
+            findings.append(
+                Finding(
+                    "SB-CHAIN-CONFIDENCE",
+                    f"{cid}: no readable **Confidence:** line in section 4",
+                )
+            )
             continue
         if item.get("confidence") != label:
-            findings.append(Finding(
-                "SB-CHAIN-CONFIDENCE",
-                f"{cid}: block confidence {item.get('confidence')!r} "
-                f"disagrees with section 4's Confidence line ({label!r})",
-            ))
+            findings.append(
+                Finding(
+                    "SB-CHAIN-CONFIDENCE",
+                    f"{cid}: block confidence {item.get('confidence')!r} "
+                    f"disagrees with section 4's Confidence line ({label!r})",
+                )
+            )
     return findings
 
 
@@ -740,11 +854,13 @@ def _xc_chain_rests_on(text, sections, block, exemplar) -> list[Finding]:
         expected = set(gt_refs) | {c.upper() for c in chain_refs}
         actual = set(item.get("rests_on") or [])
         if actual != expected:
-            findings.append(Finding(
-                "SB-CHAIN-RESTS-ON",
-                f"{cid}: block rests_on {sorted(actual)!r} disagrees with "
-                f"section 4's head refs {sorted(expected)!r}",
-            ))
+            findings.append(
+                Finding(
+                    "SB-CHAIN-RESTS-ON",
+                    f"{cid}: block rests_on {sorted(actual)!r} disagrees with "
+                    f"section 4's head refs {sorted(expected)!r}",
+                )
+            )
     return findings
 
 
@@ -765,11 +881,13 @@ def _xc_dead_ends(text, sections, block, exemplar) -> list[Finding]:
         for m in _DEAD_END_HEADING_RE.finditer(section5)
     ]
     if names != doc_names:
-        return [Finding(
-            "SB-DEAD-END",
-            f"block dead_ends {names!r} disagree with section 5's Dead End "
-            f"headings {doc_names!r}",
-        )]
+        return [
+            Finding(
+                "SB-DEAD-END",
+                f"block dead_ends {names!r} disagree with section 5's Dead End "
+                f"headings {doc_names!r}",
+            )
+        ]
     return []
 
 
@@ -789,11 +907,13 @@ def _techniques_not_applied_lines(text: str) -> list[str] | None:
     output)' heading, or after a 'Techniques not applied:' label line, up to
     the next heading. None when neither marker is present anywhere (the
     exemplar null_when condition for `techniques`)."""
-    m = _TECH_NOT_APPLIED_HEADING_RE.search(text) or _TECH_NOT_APPLIED_LABEL_RE.search(text)
+    m = _TECH_NOT_APPLIED_HEADING_RE.search(text) or _TECH_NOT_APPLIED_LABEL_RE.search(
+        text
+    )
     if m is None:
         return None
     out: list[str] = []
-    for line in text[m.end():].splitlines():
+    for line in text[m.end() :].splitlines():
         if not line.strip():
             continue
         if line.lstrip().startswith("#"):
@@ -815,11 +935,13 @@ def _xc_techniques(text, sections, block, exemplar) -> list[Finding]:
     raw_lines = _techniques_not_applied_lines(text)
     if techniques is None:
         if exemplar and raw_lines is not None:
-            findings.append(Finding(
-                "SB-NULL",
-                "techniques is null but a Techniques not applied block is "
-                "present in the document",
-            ))
+            findings.append(
+                Finding(
+                    "SB-NULL",
+                    "techniques is null but a Techniques not applied block is "
+                    "present in the document",
+                )
+            )
         return findings
     if not isinstance(techniques, dict):
         return findings
@@ -827,48 +949,56 @@ def _xc_techniques(text, sections, block, exemplar) -> list[Finding]:
     if not isinstance(not_applied, list):
         return findings
     parsed: list[re.Match] = []
-    for raw in (raw_lines or []):
+    for raw in raw_lines or []:
         pm = _TECH_NOT_APPLIED_LINE_RE.match(raw.strip())
         if pm is None:
-            findings.append(Finding(
-                "SB-TECHNIQUES", f"could not parse not-applied line: {raw!r}"
-            ))
+            findings.append(
+                Finding("SB-TECHNIQUES", f"could not parse not-applied line: {raw!r}")
+            )
             continue
         parsed.append(pm)
     if len(parsed) != len(not_applied):
-        findings.append(Finding(
-            "SB-TECHNIQUES",
-            f"block has {len(not_applied)} not-applied entries but the "
-            f"document's not-applied block lists {len(parsed)} parseable "
-            f"line(s)",
-        ))
+        findings.append(
+            Finding(
+                "SB-TECHNIQUES",
+                f"block has {len(not_applied)} not-applied entries but the "
+                f"document's not-applied block lists {len(parsed)} parseable "
+                f"line(s)",
+            )
+        )
     for i in range(min(len(parsed), len(not_applied))):
         pm = parsed[i]
         item = not_applied[i]
         if not isinstance(item, dict):
             continue
         if item.get("technique") != pm.group("tech"):
-            findings.append(Finding(
-                "SB-TECHNIQUES",
-                f"not_applied[{i}]: block technique {item.get('technique')!r} "
-                f"disagrees with the document's {pm.group('tech')!r}",
-            ))
+            findings.append(
+                Finding(
+                    "SB-TECHNIQUES",
+                    f"not_applied[{i}]: block technique {item.get('technique')!r} "
+                    f"disagrees with the document's {pm.group('tech')!r}",
+                )
+            )
         phase_str = pm.group("phase")
         # disclosed bound: not-applied-phase-only-where-stated
         if phase_str is not None and item.get("phase") != int(phase_str):
-            findings.append(Finding(
-                "SB-TECHNIQUES",
-                f"not_applied[{i}]: block phase {item.get('phase')!r} "
-                f"disagrees with the document's Phase {phase_str}",
-            ))
+            findings.append(
+                Finding(
+                    "SB-TECHNIQUES",
+                    f"not_applied[{i}]: block phase {item.get('phase')!r} "
+                    f"disagrees with the document's Phase {phase_str}",
+                )
+            )
         expected_reason = re.sub(r"\s+", " ", pm.group("reason")).strip()
         actual_reason = re.sub(r"\s+", " ", str(item.get("reason") or "")).strip()
         if actual_reason != expected_reason:
-            findings.append(Finding(
-                "SB-TECHNIQUES",
-                f"not_applied[{i}]: block reason {item.get('reason')!r} "
-                f"disagrees with the document's reason {expected_reason!r}",
-            ))
+            findings.append(
+                Finding(
+                    "SB-TECHNIQUES",
+                    f"not_applied[{i}]: block reason {item.get('reason')!r} "
+                    f"disagrees with the document's reason {expected_reason!r}",
+                )
+            )
     return findings
 
 
@@ -897,16 +1027,21 @@ def _xc_run_mode(text, sections, block, exemplar) -> list[Finding]:
     run_mode = block.get("run_mode")
     if run_mode is None:
         if exemplar and stated is not None:
-            findings.append(Finding(
-                "SB-NULL", f"run_mode is null but the document states MODE = {stated}"
-            ))
+            findings.append(
+                Finding(
+                    "SB-NULL",
+                    f"run_mode is null but the document states MODE = {stated}",
+                )
+            )
         return findings
     if stated is not None and run_mode != stated:
-        findings.append(Finding(
-            "SB-RUN-MODE",
-            f"block run_mode {run_mode!r} disagrees with the document's "
-            f"MODE = {stated!r} statement",
-        ))
+        findings.append(
+            Finding(
+                "SB-RUN-MODE",
+                f"block run_mode {run_mode!r} disagrees with the document's "
+                f"MODE = {stated!r} statement",
+            )
+        )
     return findings
 
 
@@ -931,7 +1066,7 @@ def _section6_recommendation(section6: str) -> str | None:
     if m is None:
         return None
     tail = m.group("tail").strip().lstrip("—–").strip().rstrip(":").strip()
-    rest = section6[m.end():]
+    rest = section6[m.end() :]
     end = len(rest)
     for pat in (_BOLD_COLON_LEADIN_RE, _ANY_HEADING_RE):
         pm = pat.search(rest)
@@ -959,16 +1094,20 @@ def _xc_conclusion_text(text, sections, block, exemplar) -> list[Finding]:
     if block_norm == prose:
         return []
     if prose.startswith(block_norm) and len(prose) > len(block_norm):
-        missing = prose[len(block_norm):].strip()[:60]
-        return [Finding(
-            "SB-CONCLUSION-CUT",
-            f"conclusion.recommendation is cut short — missing: {missing!r}",
-        )]
-    return [Finding(
-        "SB-CONCLUSION-TEXT",
-        "conclusion.recommendation disagrees with section 6's Recommended "
-        "approach text",
-    )]
+        missing = prose[len(block_norm) :].strip()[:60]
+        return [
+            Finding(
+                "SB-CONCLUSION-CUT",
+                f"conclusion.recommendation is cut short — missing: {missing!r}",
+            )
+        ]
+    return [
+        Finding(
+            "SB-CONCLUSION-TEXT",
+            "conclusion.recommendation disagrees with section 6's Recommended "
+            "approach text",
+        )
+    ]
 
 
 def _xc_conclusion_confidence(text, sections, block, exemplar) -> list[Finding]:
@@ -991,15 +1130,20 @@ def _xc_conclusion_confidence(text, sections, block, exemplar) -> list[Finding]:
         if word in ("HIGH", "MEDIUM", "LOW"):
             band = word
     if band is None:
-        return [Finding(
-            "SB-CONCLUSION-CONFIDENCE", "no readable **Confidence:** line in section 6"
-        )]
+        return [
+            Finding(
+                "SB-CONCLUSION-CONFIDENCE",
+                "no readable **Confidence:** line in section 6",
+            )
+        ]
     if block_conf != band:
-        return [Finding(
-            "SB-CONCLUSION-CONFIDENCE",
-            f"conclusion.confidence {block_conf!r} disagrees with section "
-            f"6's Confidence line ({band!r})",
-        )]
+        return [
+            Finding(
+                "SB-CONCLUSION-CONFIDENCE",
+                f"conclusion.confidence {block_conf!r} disagrees with section "
+                f"6's Confidence line ({band!r})",
+            )
+        ]
     return []
 
 
@@ -1025,7 +1169,7 @@ def _section6_precheck_head_ids(section6: str) -> list[str] | str | None:
         parts = m.group("body").split(qh._PRECHECK_SEP)
         if len(parts) != 4 or not parts[0].startswith("head "):
             return "UNREADABLE"
-        head_str = parts[0][len("head "):].strip()
+        head_str = parts[0][len("head ") :].strip()
         ids: list[str] = []
         for item in (h.strip() for h in head_str.split(",") if h.strip()):
             im = qh._PRECHECK_HEAD_ITEM_RE.fullmatch(item) if "(" in item else None
@@ -1052,31 +1196,39 @@ def _xc_conclusion_rests_on(text, sections, block, exemplar) -> list[Finding]:
     head = _section6_precheck_head_ids(section6)
     if rests_on is None:
         if exemplar and head is not None:
-            return [Finding(
-                "SB-NULL",
-                "conclusion.rests_on is null but section 6 carries a "
-                "**Pre-check:** line",
-            )]
+            return [
+                Finding(
+                    "SB-NULL",
+                    "conclusion.rests_on is null but section 6 carries a "
+                    "**Pre-check:** line",
+                )
+            ]
         return []
     if head is None:
-        return [Finding(
-            "SB-CONCLUSION-RESTS-ON",
-            "conclusion.rests_on is non-null but section 6 carries no "
-            "**Pre-check:** line",
-        )]
+        return [
+            Finding(
+                "SB-CONCLUSION-RESTS-ON",
+                "conclusion.rests_on is non-null but section 6 carries no "
+                "**Pre-check:** line",
+            )
+        ]
     if head == "UNREADABLE":
-        return [Finding(
-            "SB-CONCLUSION-RESTS-ON",
-            "section 6's Pre-check line has no readable head field",
-        )]
+        return [
+            Finding(
+                "SB-CONCLUSION-RESTS-ON",
+                "section 6's Pre-check line has no readable head field",
+            )
+        ]
     expected = set(head)
     actual = set(rests_on)
     if actual != expected:
-        return [Finding(
-            "SB-CONCLUSION-RESTS-ON",
-            f"conclusion.rests_on {sorted(actual)!r} disagrees with section "
-            f"6's Pre-check head {sorted(expected)!r}",
-        )]
+        return [
+            Finding(
+                "SB-CONCLUSION-RESTS-ON",
+                f"conclusion.rests_on {sorted(actual)!r} disagrees with section "
+                f"6's Pre-check head {sorted(expected)!r}",
+            )
+        ]
     return []
 
 
@@ -1197,7 +1349,8 @@ def _gate_pass_lines(gate_span: str) -> list[str]:
     m = qh._SELFAUDIT_CRITERION_WIDE_RE.search(gate_span)
     head = gate_span[: m.start()] if m else gate_span
     return [
-        ln for ln in head.splitlines()
+        ln
+        for ln in head.splitlines()
         if ln.strip().startswith("**Pass") and "(before re-score):" in ln
     ]
 
@@ -1215,8 +1368,11 @@ def _gate_result_matches(span: str) -> list[re.Match]:
 
 
 _RE_ENTRY_EDGE_ENUM = _SCHEMA_FOR_CONSTANTS["fields"]["re_entry"]["fields"]["edges"][
-    "items"]["fields"]["edge"]["enum"]
-_EDGE_SECOND_ORDER, _EDGE_FIX_REPEAT, _EDGE_CRITERION1, _EDGE_MIDRUN = _RE_ENTRY_EDGE_ENUM
+    "items"
+]["fields"]["edge"]["enum"]
+_EDGE_SECOND_ORDER, _EDGE_FIX_REPEAT, _EDGE_CRITERION1, _EDGE_MIDRUN = (
+    _RE_ENTRY_EDGE_ENUM
+)
 
 
 def _xc_gate_bands(text, sections, block, exemplar) -> list[Finding]:
@@ -1245,17 +1401,21 @@ def _xc_gate_bands(text, sections, block, exemplar) -> list[Finding]:
         n = i + 1
         prose_band = prose_bands.get(n)
         if prose_band is None:
-            findings.append(Finding(
-                "SB-GATE-BANDS",
-                f"Criterion {n}: no readable band in the Self-Audit Gate section",
-            ))
+            findings.append(
+                Finding(
+                    "SB-GATE-BANDS",
+                    f"Criterion {n}: no readable band in the Self-Audit Gate section",
+                )
+            )
             continue
         if bands[i] != prose_band:
-            findings.append(Finding(
-                "SB-GATE-BANDS",
-                f"Criterion {n}: block band {bands[i]!r} disagrees with the "
-                f"Gate's own {prose_band!r}",
-            ))
+            findings.append(
+                Finding(
+                    "SB-GATE-BANDS",
+                    f"Criterion {n}: block band {bands[i]!r} disagrees with the "
+                    f"Gate's own {prose_band!r}",
+                )
+            )
     return findings
 
 
@@ -1269,24 +1429,32 @@ def _xc_gate_passes(text, sections, block, exemplar) -> list[Finding]:
     if exemplar:
         if gate is None:
             if span is not None:
-                findings.append(Finding(
-                    "SB-NULL", "gate is null but the document carries a Self-Audit Gate section"
-                ))
+                findings.append(
+                    Finding(
+                        "SB-NULL",
+                        "gate is null but the document carries a Self-Audit Gate section",
+                    )
+                )
             return findings
         if span is None:
-            findings.append(Finding(
-                "SB-NULL", "gate is non-null but the document carries no Self-Audit Gate section"
-            ))
+            findings.append(
+                Finding(
+                    "SB-NULL",
+                    "gate is non-null but the document carries no Self-Audit Gate section",
+                )
+            )
             return findings
     if not isinstance(gate, dict):
         return findings
     if span is None:
         if gate != {"passes": [], "fix_repeat_fired": False, "cleared": False}:
-            findings.append(Finding(
-                "SB-GATE-PASSES",
-                "the document carries no Self-Audit Gate section but gate is "
-                "not {passes: [], fix_repeat_fired: false, cleared: false}",
-            ))
+            findings.append(
+                Finding(
+                    "SB-GATE-PASSES",
+                    "the document carries no Self-Audit Gate section but gate is "
+                    "not {passes: [], fix_repeat_fired: false, cleared: false}",
+                )
+            )
         return findings
     passes = gate.get("passes")
     if not isinstance(passes, list):
@@ -1296,68 +1464,86 @@ def _xc_gate_passes(text, sections, block, exemplar) -> list[Finding]:
     for raw in raw_lines:
         p = _parse_pass_line(raw)
         if p is None:
-            findings.append(Finding("SB-GATE-PASSES", f"could not parse Pass line: {raw!r}"))
+            findings.append(
+                Finding("SB-GATE-PASSES", f"could not parse Pass line: {raw!r}")
+            )
             continue
         parsed.append(p)
     nums = [p[0] for p in parsed]
     if nums != list(range(1, len(nums) + 1)):
-        findings.append(Finding(
-            "SB-GATE-PASSES",
-            f"Pass line numbers {nums!r} are not consecutive starting at 1",
-        ))
+        findings.append(
+            Finding(
+                "SB-GATE-PASSES",
+                f"Pass line numbers {nums!r} are not consecutive starting at 1",
+            )
+        )
     for num, bands, gate_cleared, cap_cleared in parsed:
         expected_cleared = "Absent" not in bands
         expected_cap = bands.count("Hand-wavy") <= 1
         if gate_cleared != expected_cleared:
-            findings.append(Finding(
-                "SB-GATE-PASSES",
-                f"Pass {num}: Gate cleared: {'yes' if gate_cleared else 'no'} "
-                f"disagrees with its own bands",
-            ))
+            findings.append(
+                Finding(
+                    "SB-GATE-PASSES",
+                    f"Pass {num}: Gate cleared: {'yes' if gate_cleared else 'no'} "
+                    f"disagrees with its own bands",
+                )
+            )
         if cap_cleared != expected_cap:
-            findings.append(Finding(
-                "SB-GATE-PASSES",
-                f"Pass {num}: Hand-wavy cap cleared: "
-                f"{'yes' if cap_cleared else 'no'} disagrees with its own bands",
-            ))
+            findings.append(
+                Finding(
+                    "SB-GATE-PASSES",
+                    f"Pass {num}: Hand-wavy cap cleared: "
+                    f"{'yes' if cap_cleared else 'no'} disagrees with its own bands",
+                )
+            )
     k = len(parsed)
     if len(passes) != k + 1:
-        findings.append(Finding(
-            "SB-GATE-PASSES",
-            f"block has {len(passes)} pass(es) but the Gate section shows "
-            f"{k} Pass line(s) plus the final verdict blocks (expected {k + 1})",
-        ))
+        findings.append(
+            Finding(
+                "SB-GATE-PASSES",
+                f"block has {len(passes)} pass(es) but the Gate section shows "
+                f"{k} Pass line(s) plus the final verdict blocks (expected {k + 1})",
+            )
+        )
     result_matches = _gate_result_matches(span)
     if len(result_matches) == 1:
         stated_n = int(result_matches[0].group("passes"))
         if len(passes) != stated_n:
-            findings.append(Finding(
-                "SB-GATE-PASSES",
-                f"block has {len(passes)} pass(es) but the Gate result line "
-                f"states passes: {stated_n}",
-            ))
+            findings.append(
+                Finding(
+                    "SB-GATE-PASSES",
+                    f"block has {len(passes)} pass(es) but the Gate result line "
+                    f"states passes: {stated_n}",
+                )
+            )
     for i in range(min(k, max(len(passes) - 1, 0))):
         num, bands, gate_cleared, cap_cleared = parsed[i]
         bp = passes[i]
         if not isinstance(bp, dict):
             continue
         if bp.get("bands") != bands:
-            findings.append(Finding(
-                "SB-GATE-PASSES",
-                f"block passes[{i}].bands {bp.get('bands')!r} disagree with "
-                f"Pass {num}'s own bands {bands!r}",
-            ))
+            findings.append(
+                Finding(
+                    "SB-GATE-PASSES",
+                    f"block passes[{i}].bands {bp.get('bands')!r} disagree with "
+                    f"Pass {num}'s own bands {bands!r}",
+                )
+            )
         if bp.get("gate_cleared") != gate_cleared:
-            findings.append(Finding(
-                "SB-GATE-PASSES",
-                f"block passes[{i}].gate_cleared disagrees with Pass {num}'s own line",
-            ))
+            findings.append(
+                Finding(
+                    "SB-GATE-PASSES",
+                    f"block passes[{i}].gate_cleared disagrees with Pass {num}'s own line",
+                )
+            )
         if bp.get("hand_wavy_cap_cleared") != cap_cleared:
-            findings.append(Finding(
-                "SB-GATE-PASSES",
-                f"block passes[{i}].hand_wavy_cap_cleared disagrees with "
-                f"Pass {num}'s own line",
-            ))
+            findings.append(
+                Finding(
+                    "SB-GATE-PASSES",
+                    f"block passes[{i}].hand_wavy_cap_cleared disagrees with "
+                    f"Pass {num}'s own line",
+                )
+            )
     return findings
 
 
@@ -1371,38 +1557,48 @@ def _xc_gate_result(text, sections, block, exemplar) -> list[Finding]:
     span = _gate_span(text)
     if span is None:
         return []
-    candidate_lines = [ln for ln in span.splitlines() if ln.strip().startswith("**Gate result:**")]
+    candidate_lines = [
+        ln for ln in span.splitlines() if ln.strip().startswith("**Gate result:**")
+    ]
     matches = _gate_result_matches(span)
     if len(candidate_lines) != 1 or len(matches) != 1:
         quote = candidate_lines[0] if candidate_lines else "(none found)"
-        return [Finding(
-            "SB-GATE-RESULT",
-            f"expected exactly one well-formed Gate result line, found "
-            f"{len(candidate_lines)} candidate line(s) (e.g. {quote!r})",
-        )]
+        return [
+            Finding(
+                "SB-GATE-RESULT",
+                f"expected exactly one well-formed Gate result line, found "
+                f"{len(candidate_lines)} candidate line(s) (e.g. {quote!r})",
+            )
+        ]
     gm = matches[0]
     findings: list[Finding] = []
     expected_cleared = gm.group("cleared") == "cleared"
     if gate.get("cleared") != expected_cleared:
-        findings.append(Finding(
-            "SB-GATE-RESULT",
-            f"block gate.cleared {gate.get('cleared')!r} disagrees with the "
-            f"Gate result line ({gm.group('cleared')!r})",
-        ))
+        findings.append(
+            Finding(
+                "SB-GATE-RESULT",
+                f"block gate.cleared {gate.get('cleared')!r} disagrees with the "
+                f"Gate result line ({gm.group('cleared')!r})",
+            )
+        )
     expected_fired = gm.group("fired") == "yes"
     if gate.get("fix_repeat_fired") != expected_fired:
-        findings.append(Finding(
-            "SB-GATE-RESULT",
-            f"block gate.fix_repeat_fired {gate.get('fix_repeat_fired')!r} "
-            f"disagrees with the Gate result line (Fix/Repeat fired: "
-            f"{gm.group('fired')!r})",
-        ))
+        findings.append(
+            Finding(
+                "SB-GATE-RESULT",
+                f"block gate.fix_repeat_fired {gate.get('fix_repeat_fired')!r} "
+                f"disagrees with the Gate result line (Fix/Repeat fired: "
+                f"{gm.group('fired')!r})",
+            )
+        )
     if expected_fired and gm.group("passes") == "1":
-        findings.append(Finding(
-            "SB-GATE-RESULT",
-            "the Gate result line states Fix/Repeat fired: yes with "
-            "passes: 1, which is internally inconsistent",
-        ))
+        findings.append(
+            Finding(
+                "SB-GATE-RESULT",
+                "the Gate result line states Fix/Repeat fired: yes with "
+                "passes: 1, which is internally inconsistent",
+            )
+        )
     return findings
 
 
@@ -1424,12 +1620,14 @@ def _xc_gate_cleared(text, sections, block, exemplar) -> list[Finding]:
     band_values = [bands[n] for n in range(1, 7)]
     fails_rubric = ("Absent" in band_values) or (band_values.count("Hand-wavy") >= 2)
     if matches[0].group("cleared") == "cleared" and fails_rubric:
-        return [Finding(
-            "SB-GATE-CLEARED",
-            "the Gate result line says cleared but the Gate's own final "
-            "bands fail the rubric rule (an Absent band, or two or more "
-            "Hand-wavy bands)",
-        )]
+        return [
+            Finding(
+                "SB-GATE-CLEARED",
+                "the Gate result line says cleared but the Gate's own final "
+                "bands fail the rubric rule (an Absent band, or two or more "
+                "Hand-wavy bands)",
+            )
+        ]
     return []
 
 
@@ -1447,11 +1645,13 @@ def _xc_reentry(text, sections, block, exemplar) -> list[Finding]:
     )
     if exemplar and re_entry is None:
         if span is not None or has_reentry_disclosure:
-            return [Finding(
-                "SB-NULL",
-                "re_entry is null but the document carries a Self-Audit "
-                "Gate section or a re-entry disclosure",
-            )]
+            return [
+                Finding(
+                    "SB-NULL",
+                    "re_entry is null but the document carries a Self-Audit "
+                    "Gate section or a re-entry disclosure",
+                )
+            ]
         return []
     if not isinstance(re_entry, dict) or not isinstance(gate, dict):
         return []
@@ -1464,18 +1664,25 @@ def _xc_reentry(text, sections, block, exemplar) -> list[Finding]:
     findings: list[Finding] = []
 
     # R1 / INV-07
-    if fix_repeat_fired is True and not (fired is True and _EDGE_FIX_REPEAT in edge_names):
-        findings.append(Finding(
-            "SB-REENTRY",
-            "gate.fix_repeat_fired is true but re_entry.fired is not true "
-            "with the Fix/Repeat edge listed",
-        ))
+    if fix_repeat_fired is True and not (
+        fired is True and _EDGE_FIX_REPEAT in edge_names
+    ):
+        findings.append(
+            Finding(
+                "SB-REENTRY",
+                "gate.fix_repeat_fired is true but re_entry.fired is not true "
+                "with the Fix/Repeat edge listed",
+            )
+        )
 
     # R2 / INV-08
     if len(passes) >= 2 and fired is not True:
-        findings.append(Finding(
-            "SB-REENTRY", "gate.passes has two or more entries but re_entry.fired is not true"
-        ))
+        findings.append(
+            Finding(
+                "SB-REENTRY",
+                "gate.passes has two or more entries but re_entry.fired is not true",
+            )
+        )
 
     # R3
     if span is not None:
@@ -1484,11 +1691,13 @@ def _xc_reentry(text, sections, block, exemplar) -> list[Finding]:
             result_fired = result_matches[0].group("fired") == "yes"
             has_fix_repeat_edge = _EDGE_FIX_REPEAT in edge_names
             if has_fix_repeat_edge != result_fired:
-                findings.append(Finding(
-                    "SB-REENTRY",
-                    "the Fix/Repeat edge's presence in re_entry.edges "
-                    "disagrees with the Gate result line's Fix/Repeat fired value",
-                ))
+                findings.append(
+                    Finding(
+                        "SB-REENTRY",
+                        "the Fix/Repeat edge's presence in re_entry.edges "
+                        "disagrees with the Gate result line's Fix/Repeat fired value",
+                    )
+                )
 
     # R4
     criterion1_absent_in_pass = False
@@ -1500,37 +1709,45 @@ def _xc_reentry(text, sections, block, exemplar) -> list[Finding]:
                 break
     has_criterion1_edge = _EDGE_CRITERION1 in edge_names
     if has_criterion1_edge != criterion1_absent_in_pass:
-        findings.append(Finding(
-            "SB-REENTRY",
-            "the Criterion 1 Absent edge's presence in re_entry.edges "
-            "disagrees with whether a Pass line shows Criterion 1 Absent",
-        ))
+        findings.append(
+            Finding(
+                "SB-REENTRY",
+                "the Criterion 1 Absent edge's presence in re_entry.edges "
+                "disagrees with whether a Pass line shows Criterion 1 Absent",
+            )
+        )
 
     # R5
     if _EDGE_SECOND_ORDER in edge_names and not any(
         _names_second_order(p) for p in disclosed_paragraphs
     ):
-        findings.append(Finding(
-            "SB-REENTRY",
-            "re_entry.edges names the second-order return edge but no "
-            "**Disclosed:** paragraph at the top of the document names it",
-        ))
+        findings.append(
+            Finding(
+                "SB-REENTRY",
+                "re_entry.edges names the second-order return edge but no "
+                "**Disclosed:** paragraph at the top of the document names it",
+            )
+        )
     if _EDGE_MIDRUN in edge_names and not any(
         _names_input_reopen(p) for p in disclosed_paragraphs
     ):
-        findings.append(Finding(
-            "SB-REENTRY",
-            "re_entry.edges names the mid-run input re-open edge but no "
-            "**Disclosed:** paragraph at the top of the document names it",
-        ))
+        findings.append(
+            Finding(
+                "SB-REENTRY",
+                "re_entry.edges names the mid-run input re-open edge but no "
+                "**Disclosed:** paragraph at the top of the document names it",
+            )
+        )
 
     # R6
     if fired is False and has_reentry_disclosure:
-        findings.append(Finding(
-            "SB-REENTRY",
-            "re_entry.fired is false but a **Disclosed:** paragraph at the "
-            "top of the document names a re-entry edge",
-        ))
+        findings.append(
+            Finding(
+                "SB-REENTRY",
+                "re_entry.fired is false but a **Disclosed:** paragraph at the "
+                "top of the document names a re-entry edge",
+            )
+        )
 
     return findings
 
@@ -1561,7 +1778,10 @@ _CROSS_CHECKS: tuple[tuple[str, Callable[..., list[Finding]]], ...] = (
 # Top-level entry point
 # ---------------------------------------------------------------------------
 
-def check_report(text: str, *, exemplar: bool = False, schema: dict | None = None) -> list[Finding]:
+
+def check_report(
+    text: str, *, exemplar: bool = False, schema: dict | None = None
+) -> list[Finding]:
     """Detection -> placement -> parse -> schema -> null-mode -> internal
     invariants -> cross-checks. Never raises on a malformed report; raises
     SchemaError only for a schema problem."""
@@ -1577,13 +1797,17 @@ def check_report(text: str, *, exemplar: bool = False, schema: dict | None = Non
     try:
         value = json.loads(block.body)
     except json.JSONDecodeError as exc:
-        findings.append(Finding(
-            "SB-JSON", f"summary block body does not parse as JSON: {exc}"))
+        findings.append(
+            Finding("SB-JSON", f"summary block body does not parse as JSON: {exc}")
+        )
         return findings
     if not isinstance(value, dict):
-        findings.append(Finding(
-            "SB-JSON",
-            f"summary block body is not a JSON object (got {type(value).__name__})"))
+        findings.append(
+            Finding(
+                "SB-JSON",
+                f"summary block body is not a JSON object (got {type(value).__name__})",
+            )
+        )
         return findings
     schema_findings = validate_report(value, schema, exemplar=exemplar)
     findings.extend(schema_findings)
@@ -1647,7 +1871,9 @@ def _synthetic_report(block: dict, **overrides) -> str:
     disclosed = overrides.get("disclosed")
     omit_gate_section = overrides.get("omit_gate_section", False)
 
-    body_json = raw_block_body if raw_block_body is not None else json.dumps(block, indent=2)
+    body_json = (
+        raw_block_body if raw_block_body is not None else json.dumps(block, indent=2)
+    )
     block_fence = f"```{BLOCK_FENCE}\n{body_json}\n```"
 
     assumptions = block.get("assumptions") or []
@@ -1655,7 +1881,11 @@ def _synthetic_report(block: dict, **overrides) -> str:
     chains = block.get("chains") or []
     dead_ends = block.get("dead_ends") or []
     techniques = block.get("techniques") or {"applied": [], "not_applied": []}
-    gate = block.get("gate") or {"passes": [], "cleared": False, "fix_repeat_fired": False}
+    gate = block.get("gate") or {
+        "passes": [],
+        "cleared": False,
+        "fix_repeat_fired": False,
+    }
     conclusion = block.get("conclusion") or {}
 
     lines: list[str] = []
@@ -1690,8 +1920,12 @@ def _synthetic_report(block: dict, **overrides) -> str:
     for c in chains:
         lines.append(f"### Conclusion {c['id']}: synthetic conclusion")
         head = " + ".join(c.get("rests_on") or []) or "GT-1"
-        lines.append(f"{head} → synthetic intermediate reasoning → synthetic conclusion.")
-        lines.append(f"**Confidence:** {c['confidence']} — synthetic confidence rationale.")
+        lines.append(
+            f"{head} → synthetic intermediate reasoning → synthetic conclusion."
+        )
+        lines.append(
+            f"**Confidence:** {c['confidence']} — synthetic confidence rationale."
+        )
         lines.append("")
     lines.append("## 5. Abandoned Reasoning")
     if dead_ends:
@@ -1724,7 +1958,11 @@ def _synthetic_report(block: dict, **overrides) -> str:
                     q_marked.append(rid)
         items_str = ", ".join(rendered)
         q_str = ", ".join(q_marked) if q_marked else "none"
-        low_str = min(cited_bands, key=lambda b: _band_rank.get(b, 0)) if cited_bands else "none"
+        low_str = (
+            min(cited_bands, key=lambda b: _band_rank.get(b, 0))
+            if cited_bands
+            else "none"
+        )
         lines.append(
             f"**Pre-check:** head {items_str} · ?-marked: {q_str} · "
             f"lowest cited: {low_str} · Inputs ceiling: {conclusion_band}"
@@ -1755,7 +1993,9 @@ def _synthetic_report(block: dict, **overrides) -> str:
         gate_lines.append("## Self-Audit Gate (process output)")
         for i, p in enumerate(passes[:-1], start=1):
             bands = p.get("bands") or []
-            pieces = " · ".join(f"Criterion {n} {b}" for n, b in enumerate(bands, start=1))
+            pieces = " · ".join(
+                f"Criterion {n} {b}" for n, b in enumerate(bands, start=1)
+            )
             gate_lines.append(
                 f"**Pass {i} (before re-score):** {pieces} · "
                 f"Gate cleared: {'yes' if p.get('gate_cleared') else 'no'} · "
@@ -1766,7 +2006,9 @@ def _synthetic_report(block: dict, **overrides) -> str:
             gate_lines.append(f"**Criterion {n}: {title}**")
             gate_lines.append('Quoted span: "synthetic evidence span."')
             gate_lines.append(f"Band: **{band}**")
-            gate_lines.append("Justification: synthetic justification tying the span to the band.")
+            gate_lines.append(
+                "Justification: synthetic justification tying the span to the band."
+            )
             gate_lines.append("")
         cleared_word = "cleared" if gate.get("cleared") else "not cleared"
         fired_word = "yes" if gate.get("fix_repeat_fired") else "no"
@@ -1786,13 +2028,20 @@ def _synthetic_report(block: dict, **overrides) -> str:
 
     if heading_before_appendix:
         appendix_section = (
-            summary_heading_lines + block_lines + [""] + appendix_heading_lines
-            + techniques_lines + gate_lines
+            summary_heading_lines
+            + block_lines
+            + [""]
+            + appendix_heading_lines
+            + techniques_lines
+            + gate_lines
         )
     else:
         appendix_section = (
-            appendix_heading_lines + techniques_lines + gate_lines
-            + summary_heading_lines + block_lines
+            appendix_heading_lines
+            + techniques_lines
+            + gate_lines
+            + summary_heading_lines
+            + block_lines
         )
 
     lines.extend(appendix_section)
@@ -1805,6 +2054,7 @@ def _synthetic_report(block: dict, **overrides) -> str:
 # ---------------------------------------------------------------------------
 # Self-test controls
 # ---------------------------------------------------------------------------
+
 
 def _c01_example_block_is_clean() -> str | None:
     schema = load_schema(DEFAULT_SCHEMA)
@@ -1837,12 +2087,16 @@ def _c03_duplicated_block_is_rejected() -> str | None:
 def _c04_malformed_json_is_rejected() -> str | None:
     schema = load_schema(DEFAULT_SCHEMA)
     trailing_comma = _synthetic_report(
-        schema["example"], raw_block_body='{"schema_version": 1, "run_mode": "full-composer",}')
+        schema["example"],
+        raw_block_body='{"schema_version": 1, "run_mode": "full-composer",}',
+    )
     findings = check_report(trailing_comma, schema=schema)
     codes = {f.code for f in findings}
     if codes != {"SB-JSON"}:
         return f"trailing comma: expected {{'SB-JSON'}}, got {codes!r} ({findings!r})"
-    array_body = _synthetic_report(schema["example"], raw_block_body='["schema_version", 1]')
+    array_body = _synthetic_report(
+        schema["example"], raw_block_body='["schema_version", 1]'
+    )
     findings2 = check_report(array_body, schema=schema)
     codes2 = {f.code for f in findings2}
     if codes2 != {"SB-JSON"}:
@@ -1854,11 +2108,15 @@ def _c05_placement_defects_are_rejected() -> str | None:
     schema = load_schema(DEFAULT_SCHEMA)
     example = schema["example"]
 
-    trailing = _synthetic_report(example, trailing_after_block="Some trailing prose after the block.")
+    trailing = _synthetic_report(
+        example, trailing_after_block="Some trailing prose after the block."
+    )
     findings = check_report(trailing, schema=schema)
     codes = {f.code for f in findings}
     if codes != {"SB-PLACEMENT"}:
-        return f"trailing prose: expected {{'SB-PLACEMENT'}}, got {codes!r} ({findings!r})"
+        return (
+            f"trailing prose: expected {{'SB-PLACEMENT'}}, got {codes!r} ({findings!r})"
+        )
 
     no_heading = _synthetic_report(example, omit_heading=True)
     findings2 = check_report(no_heading, schema=schema)
@@ -1885,7 +2143,9 @@ def _c06_schema_violations_are_named() -> str | None:
         if codes != {"SB-SCHEMA"}:
             return f"expected codes == {{'SB-SCHEMA'}}, got {codes!r} ({findings!r})"
         if not any(expected_path_substr in f.message for f in findings):
-            return f"expected a message naming {expected_path_substr!r}, got {findings!r}"
+            return (
+                f"expected a message naming {expected_path_substr!r}, got {findings!r}"
+            )
         return None
 
     cases = []
@@ -1951,7 +2211,14 @@ def _c08_gate_and_reentry_invariants_are_enforced() -> str | None:
     schema = load_schema(DEFAULT_SCHEMA)
 
     m = copy.deepcopy(schema["example"])
-    m["gate"]["passes"][0]["bands"] = ["Sound", "Hand-wavy", "Sound", "Hand-wavy", "Sound", "Sound"]
+    m["gate"]["passes"][0]["bands"] = [
+        "Sound",
+        "Hand-wavy",
+        "Sound",
+        "Hand-wavy",
+        "Sound",
+        "Sound",
+    ]
     m["gate"]["passes"][0]["hand_wavy_cap_cleared"] = True
     text = _synthetic_report(m)
     findings = check_report(text, schema=schema)
@@ -1979,7 +2246,14 @@ def _c09_gate_cleared_follows_last_pass() -> str | None:
     schema = load_schema(DEFAULT_SCHEMA)
 
     m = copy.deepcopy(schema["example"])
-    m["gate"]["passes"][-1]["bands"] = ["Sound", "Hand-wavy", "Sound", "Hand-wavy", "Sound", "Sound"]
+    m["gate"]["passes"][-1]["bands"] = [
+        "Sound",
+        "Hand-wavy",
+        "Sound",
+        "Hand-wavy",
+        "Sound",
+        "Sound",
+    ]
     m["gate"]["passes"][-1]["hand_wavy_cap_cleared"] = False
     m["gate"]["passes"][-1]["gate_cleared"] = True
     m["gate"]["cleared"] = True
@@ -1990,7 +2264,14 @@ def _c09_gate_cleared_follows_last_pass() -> str | None:
         return f"two hand-wavy, cleared true: expected {{'SB-GATE-CLEARED'}}, got {codes!r} ({findings!r})"
 
     m2 = copy.deepcopy(schema["example"])
-    m2["gate"]["passes"][-1]["bands"] = ["Sound", "Hand-wavy", "Sound", "Sound", "Sound", "Sound"]
+    m2["gate"]["passes"][-1]["bands"] = [
+        "Sound",
+        "Hand-wavy",
+        "Sound",
+        "Sound",
+        "Sound",
+        "Sound",
+    ]
     m2["gate"]["passes"][-1]["hand_wavy_cap_cleared"] = True
     m2["gate"]["passes"][-1]["gate_cleared"] = True
     m2["gate"]["cleared"] = True
@@ -2060,7 +2341,9 @@ def _c11_all_observed_codes_are_registered() -> str | None:
     if unknown:
         return f"observed codes outside FINDING_CODES: {sorted(unknown)!r}"
     if not observed:
-        return "no codes observed across fixtures -- controls are not exercising findings"
+        return (
+            "no codes observed across fixtures -- controls are not exercising findings"
+        )
     return None
 
 
@@ -2157,15 +2440,21 @@ def _c14_single_block_mutations_fire_named_codes() -> str | None:
 
     m = copy.deepcopy(example)
     m["conclusion"]["recommendation"] = full.replace("Adopt", "Reject", 1)
-    cases.append(("recommendation with one word changed", m, {"SB-CONCLUSION-TEXT"}, True))
+    cases.append(
+        ("recommendation with one word changed", m, {"SB-CONCLUSION-TEXT"}, True)
+    )
 
     m = copy.deepcopy(example)
     m["conclusion"]["rests_on"] = m["conclusion"]["rests_on"][1:]
-    cases.append(("conclusion rests_on drops an id", m, {"SB-CONCLUSION-RESTS-ON"}, True))
+    cases.append(
+        ("conclusion rests_on drops an id", m, {"SB-CONCLUSION-RESTS-ON"}, True)
+    )
 
     m = copy.deepcopy(example)
     m["conclusion"]["rests_on"] = m["conclusion"]["rests_on"] + ["C99"]
-    cases.append(("conclusion rests_on adds an uncited id", m, {"SB-CONCLUSION-RESTS-ON"}, True))
+    cases.append(
+        ("conclusion rests_on adds an uncited id", m, {"SB-CONCLUSION-RESTS-ON"}, True)
+    )
 
     m = copy.deepcopy(example)
     m["conclusion"]["rests_on"] = ["GT-x"]
@@ -2250,7 +2539,10 @@ def _c15b_annotated_type_cells_match_parent() -> str | None:
     m = copy.deepcopy(example)
     m["assumptions"][0]["type"] = "convention"
     text = _synthetic_report(
-        m, type_cells={"A-1": "convention \u2014 context-dependent technical / untested belief"}
+        m,
+        type_cells={
+            "A-1": "convention \u2014 context-dependent technical / untested belief"
+        },
     )
     codes = {f.code for f in check_report(text, schema=schema)}
     if codes != {"SB-ASSUMPTION"}:
@@ -2318,7 +2610,9 @@ def _c16_exemplar_null_iff_absent() -> str | None:
     text2 = _synthetic_report(with_tech, raw_block_body=json.dumps(null_tech))
     findings2 = check_report(text2, exemplar=True, schema=schema)
     if {f.code for f in findings2} != {"SB-NULL"}:
-        return f"techniques null, block present: expected {{'SB-NULL'}}, got {findings2!r}"
+        return (
+            f"techniques null, block present: expected {{'SB-NULL'}}, got {findings2!r}"
+        )
 
     m3 = copy.deepcopy(example)
     m3["run_mode"] = None
@@ -2475,11 +2769,13 @@ def _c21_reentry_fix_repeat_mismatches() -> str | None:
 def _one_pass_block(example: dict) -> dict:
     m = copy.deepcopy(example)
     m["gate"] = {
-        "passes": [{
-            "bands": ["Sound", "Sound", "Sound", "Sound", "Sound", "Sound"],
-            "gate_cleared": True,
-            "hand_wavy_cap_cleared": True,
-        }],
+        "passes": [
+            {
+                "bands": ["Sound", "Sound", "Sound", "Sound", "Sound", "Sound"],
+                "gate_cleared": True,
+                "hand_wavy_cap_cleared": True,
+            }
+        ],
         "fix_repeat_fired": False,
         "cleared": True,
     }
@@ -2576,7 +2872,9 @@ def _c25_conclusion_rests_on_null_and_absence() -> str | None:
         return f"unmutated example, live mode: expected [], got {findings_live!r}"
     findings_exemplar = check_report(text, exemplar=True, schema=schema)
     if findings_exemplar:
-        return f"unmutated example, exemplar mode: expected [], got {findings_exemplar!r}"
+        return (
+            f"unmutated example, exemplar mode: expected [], got {findings_exemplar!r}"
+        )
 
     # reversed order is clean (disclosed bound: rests_on-order-not-compared).
     reversed_rests_on = copy.deepcopy(example)
@@ -2605,7 +2903,9 @@ def _c25_conclusion_rests_on_null_and_absence() -> str | None:
     text_null_present = _synthetic_report(
         example, raw_block_body=json.dumps(null_version)
     )
-    findings_null_present = check_report(text_null_present, exemplar=True, schema=schema)
+    findings_null_present = check_report(
+        text_null_present, exemplar=True, schema=schema
+    )
     if {f.code for f in findings_null_present} != {"SB-NULL"}:
         return (
             f"rests_on null, Pre-check line present: expected {{'SB-NULL'}}, "
@@ -2618,7 +2918,9 @@ def _c25_conclusion_rests_on_null_and_absence() -> str | None:
     text_nonnull_absent = _synthetic_report(
         null_version, raw_block_body=json.dumps(example)
     )
-    codes_live = {f.code for f in check_report(text_nonnull_absent, exemplar=False, schema=schema)}
+    codes_live = {
+        f.code for f in check_report(text_nonnull_absent, exemplar=False, schema=schema)
+    }
     if codes_live != {"SB-CONCLUSION-RESTS-ON"}:
         return (
             f"rests_on non-null, no Pre-check line, live mode: expected "
@@ -2642,7 +2944,6 @@ def _c25_conclusion_rests_on_null_and_absence() -> str | None:
             f"{{'SB-CONCLUSION-RESTS-ON'}}, got {codes_unreadable!r}"
         )
 
-
     # fenced decoy (80-REVIEW AP-01): a Pre-check line inside a fenced block
     # is illustration, not the Conclusion's own line -- the real one wins.
     decoy = (
@@ -2656,7 +2957,9 @@ def _c25_conclusion_rests_on_null_and_absence() -> str | None:
         return f"fenced decoy Pre-check line: expected ['C1', 'GT-2?'], got {got!r}"
     fenced_only = "```\n**Pre-check:** head C9 (LOW) · ?-marked: none · lowest cited: LOW · Inputs ceiling: LOW\n```\n"
     if _section6_precheck_head_ids(fenced_only) is not None:
-        return "a section 6 whose only Pre-check line is fenced must read as absent (None)"
+        return (
+            "a section 6 whose only Pre-check line is fenced must read as absent (None)"
+        )
     return None
 
 
@@ -2784,6 +3087,7 @@ def _x1_extraction_floor() -> str | None:
 # 75-04-PLAN.md's interfaces table.
 # ---------------------------------------------------------------------------
 
+
 def _assert_codes_and_substring(
     findings: list[Finding], expected_codes: set[str], substring: str, label: str
 ) -> str | None:
@@ -2804,7 +3108,8 @@ def _m1_missing_block() -> str | None:
     mutated = "\n".join(lines[: b.start] + lines[b.end + 1 :])
     findings = check_report(mutated)
     return _assert_codes_and_substring(
-        findings, {"SB-MISSING"}, "no summary block", "M1-missing-block")
+        findings, {"SB-MISSING"}, "no summary block", "M1-missing-block"
+    )
 
 
 def _m2_two_blocks() -> str | None:
@@ -2831,7 +3136,9 @@ def _m3_malformed_json() -> str | None:
     lines = text.split("\n")
     mutated = "\n".join(lines[: b.start + 1] + new_body.split("\n") + lines[b.end :])
     findings = check_report(mutated)
-    return _assert_codes_and_substring(findings, {"SB-JSON"}, "JSON", "M3-malformed-json")
+    return _assert_codes_and_substring(
+        findings, {"SB-JSON"}, "JSON", "M3-malformed-json"
+    )
 
 
 def _m4_chain_confidence() -> str | None:
@@ -2841,7 +3148,8 @@ def _m4_chain_confidence() -> str | None:
     mutated = _splice_block(text, block)
     findings = check_report(mutated)
     return _assert_codes_and_substring(
-        findings, {"SB-CHAIN-CONFIDENCE"}, "C1", "M4-chain-confidence")
+        findings, {"SB-CHAIN-CONFIDENCE"}, "C1", "M4-chain-confidence"
+    )
 
 
 def _m5_reentry_fired_personal_general() -> str | None:
@@ -2854,28 +3162,38 @@ def _m5_reentry_fired_personal_general() -> str | None:
     case1 = copy.deepcopy(block)
     case1["re_entry"] = {
         "fired": True,
-        "edges": [{
-            "edge": _EDGE_SECOND_ORDER,
-            "trigger": "The second-order pass considered a Phase 2 re-entry.",
-        }],
+        "edges": [
+            {
+                "edge": _EDGE_SECOND_ORDER,
+                "trigger": "The second-order pass considered a Phase 2 re-entry.",
+            }
+        ],
     }
     msg1 = _assert_codes_and_substring(
-        check_report(_splice_block(text, case1)), {"SB-REENTRY"}, "re_entry",
-        "M5-reentry-fired-personal-general (second-order edge)")
+        check_report(_splice_block(text, case1)),
+        {"SB-REENTRY"},
+        "re_entry",
+        "M5-reentry-fired-personal-general (second-order edge)",
+    )
     if msg1:
         return msg1
 
     case2 = copy.deepcopy(block)
     case2["re_entry"] = {
         "fired": True,
-        "edges": [{
-            "edge": _EDGE_FIX_REPEAT,
-            "trigger": "The Fix/Repeat loop was considered.",
-        }],
+        "edges": [
+            {
+                "edge": _EDGE_FIX_REPEAT,
+                "trigger": "The Fix/Repeat loop was considered.",
+            }
+        ],
     }
     msg2 = _assert_codes_and_substring(
-        check_report(_splice_block(text, case2)), {"SB-REENTRY"}, "re_entry",
-        "M5-reentry-fired-personal-general (Fix/Repeat edge)")
+        check_report(_splice_block(text, case2)),
+        {"SB-REENTRY"},
+        "re_entry",
+        "M5-reentry-fired-personal-general (Fix/Repeat edge)",
+    )
     if msg2:
         return msg2
     return None
@@ -2888,7 +3206,8 @@ def _m6_reentry_not_fired_software_systems() -> str | None:
     mutated = _splice_block(text, block)
     findings = check_report(mutated)
     return _assert_codes_and_substring(
-        findings, {"SB-REENTRY"}, "Fix/Repeat", "M6-reentry-not-fired-software-systems")
+        findings, {"SB-REENTRY"}, "Fix/Repeat", "M6-reentry-not-fired-software-systems"
+    )
 
 
 def _m7_single_pass_before_fix() -> str | None:
@@ -2898,7 +3217,8 @@ def _m7_single_pass_before_fix() -> str | None:
     mutated = _splice_block(text, block)
     findings = check_report(mutated)
     return _assert_codes_and_substring(
-        findings, {"SB-GATE-PASSES"}, "passes", "M7-single-pass-before-fix")
+        findings, {"SB-GATE-PASSES"}, "passes", "M7-single-pass-before-fix"
+    )
 
 
 def _m8_conclusion_cut() -> str | None:
@@ -2907,12 +3227,15 @@ def _m8_conclusion_cut() -> str | None:
     marker = "(chains C3, C4):"
     full = block["conclusion"]["recommendation"]
     idx = full.find(marker)
-    assert idx != -1, f"marker {marker!r} not found in science-engineering.md's recommendation"
+    assert idx != -1, (
+        f"marker {marker!r} not found in science-engineering.md's recommendation"
+    )
     block["conclusion"]["recommendation"] = full[: idx + len(marker)]
     mutated = _splice_block(text, block)
     findings = check_report(mutated)
     return _assert_codes_and_substring(
-        findings, {"SB-CONCLUSION-CUT"}, "cut short", "M8-conclusion-cut")
+        findings, {"SB-CONCLUSION-CUT"}, "cut short", "M8-conclusion-cut"
+    )
 
 
 _BAND_TOKEN_RE = re.compile(r"Band: \*\*[^*]+\*\*")
@@ -2938,17 +3261,21 @@ def _m9_two_hand_wavy_cleared() -> str | None:
         return "Band: **Hand-wavy**" if count <= 2 else m.group(0)
 
     new_span = _BAND_TOKEN_RE.sub(_repl, span)
-    assert count >= 2, f"expected at least two 'Band: **...**' tokens in the Gate span, found {count}"
+    assert count >= 2, (
+        f"expected at least two 'Band: **...**' tokens in the Gate span, found {count}"
+    )
     mutated = mutated_block_text.replace(span, new_span, 1)
 
     findings = check_report(mutated)
     return _assert_codes_and_substring(
-        findings, {"SB-GATE-CLEARED"}, "Hand-wavy", "M9-two-hand-wavy-cleared")
+        findings, {"SB-GATE-CLEARED"}, "Hand-wavy", "M9-two-hand-wavy-cleared"
+    )
 
 
 # ---------------------------------------------------------------------------
 # X2: every registered cross-check must be load-bearing (an ablation)
 # ---------------------------------------------------------------------------
+
 
 def _x2_cross_check_ablation() -> str | None:
     """For each ENTRY (code, fn) in `_CROSS_CHECKS` -- by position, not by
@@ -2965,7 +3292,8 @@ def _x2_cross_check_ablation() -> str | None:
     global _CROSS_CHECKS
     original = _CROSS_CHECKS
     exercised = [
-        (cid, fn) for cid, fn in _CONTROLS
+        (cid, fn)
+        for cid, fn in _CONTROLS
         if cid not in ("X1-extraction-floor", "X2-cross-check-ablation")
     ]
     dead: list[str] = []
@@ -3079,15 +3407,17 @@ def describe() -> dict:
             "finding_codes": len(FINDING_CODES),
             "cross_checks": len(_CROSS_CHECKS),
         },
-        "disclosed_bounds_anchors": sorted([
-            "rests_on-order-not-compared",
-            "not-applied-phase-only-where-stated",
-            "techniques-applied-vocabulary-only",
-            "run-mode-only-where-stated",
-            "recommendation-bold-markers-ignored",
-            "reentry-read-from-gate-span-and-disclosure-only",
-            "second-order-and-input-reopen-edges-need-a-disclosed-paragraph",
-        ]),
+        "disclosed_bounds_anchors": sorted(
+            [
+                "rests_on-order-not-compared",
+                "not-applied-phase-only-where-stated",
+                "techniques-applied-vocabulary-only",
+                "run-mode-only-where-stated",
+                "recommendation-bold-markers-ignored",
+                "reentry-read-from-gate-span-and-disclosure-only",
+                "second-order-and-input-reopen-edges-need-a-disclosed-paragraph",
+            ]
+        ),
     }
 
 
@@ -3140,7 +3470,9 @@ def main(argv: list[str] | None = None) -> int:
                 {
                     "path": path,
                     "passed": not findings,
-                    "findings": [{"code": f.code, "message": f.message} for f in findings],
+                    "findings": [
+                        {"code": f.code, "message": f.message} for f in findings
+                    ],
                 }
                 for path, findings in results
             ],

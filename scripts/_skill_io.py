@@ -49,7 +49,8 @@ def iter_plugin_skills() -> Iterator[tuple[str, dict, str]]:
         return
 
     skill_dirs = sorted(
-        d for d in PLUGIN_SKILLS_DIR.iterdir()
+        d
+        for d in PLUGIN_SKILLS_DIR.iterdir()
         if d.is_dir() and (d / "SKILL.md").exists()
     )
 

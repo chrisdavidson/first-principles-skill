@@ -170,8 +170,10 @@ def run_battery(
         f_verdicts = [detect_output_structure_from_file(p) for p in paths]
 
         b_count, f_count, prompt_passed = _both_match(
-            b_verdicts, f_verdicts,
-            prompt.expected_boundary, prompt.expected_output,
+            b_verdicts,
+            f_verdicts,
+            prompt.expected_boundary,
+            prompt.expected_output,
             min_pass,
         )
         results.append((prompt, b_count, f_count, prompt_passed))
@@ -208,20 +210,25 @@ def run_battery(
     # B-N1/B-N2) only, not the 4 focused P-rows that are n-a on this side.
     # ------------------------------------------------------------------
     boundary_results = [
-        (prompt, b_count) for prompt, b_count, _f, _p in results
+        (prompt, b_count)
+        for prompt, b_count, _f, _p in results
         if prompt.expected_boundary != "n-a"
     ]
     b_p_total = sum(1 for prompt, _ in boundary_results if _is_p_row(prompt.id))
     b_n_total = sum(1 for prompt, _ in boundary_results if not _is_p_row(prompt.id))
     b_p_pass = sum(
-        1 for prompt, b_count in boundary_results
+        1
+        for prompt, b_count in boundary_results
         if _is_p_row(prompt.id) and b_count >= min_pass
     )
     b_n_pass = sum(
-        1 for prompt, b_count in boundary_results
+        1
+        for prompt, b_count in boundary_results
         if not _is_p_row(prompt.id) and b_count >= min_pass
     )
-    boundary_pass = b_p_pass >= boundary_p_threshold and b_n_pass >= boundary_n_threshold
+    boundary_pass = (
+        b_p_pass >= boundary_p_threshold and b_n_pass >= boundary_n_threshold
+    )
 
     # ------------------------------------------------------------------
     # Tally: focused output
@@ -231,17 +238,20 @@ def run_battery(
     # check-focused-output.py's verdict over its rows (F-P12/24/25/26, F-N1).
     # ------------------------------------------------------------------
     focused_results = [
-        (prompt, f_count) for prompt, _b, f_count, _p in results
+        (prompt, f_count)
+        for prompt, _b, f_count, _p in results
         if prompt.expected_output != "n-a"
     ]
     fp_p_total = sum(1 for prompt, _ in focused_results if _is_p_row(prompt.id))
     fp_n_total = sum(1 for prompt, _ in focused_results if not _is_p_row(prompt.id))
     fp_p_pass = sum(
-        1 for prompt, f_count in focused_results
+        1
+        for prompt, f_count in focused_results
         if _is_p_row(prompt.id) and f_count >= min_pass
     )
     fp_n_pass = sum(
-        1 for prompt, f_count in focused_results
+        1
+        for prompt, f_count in focused_results
         if not _is_p_row(prompt.id) and f_count >= min_pass
     )
     focused_pass = fp_p_pass >= focused_p_threshold and fp_n_pass >= focused_n_threshold
@@ -263,10 +273,12 @@ def run_battery(
         for prompt, b_count, f_count, prompt_passed in results:
             if b_count < min_pass:
                 if repeat == 1:
-                    boundary_rows_map = {
-                        p.id: bv for p, bv, _ in boundary_rows
-                    }
-                    actual_b = boundary_rows_map[prompt.id][0] if prompt.id in boundary_rows_map else "?"
+                    boundary_rows_map = {p.id: bv for p, bv, _ in boundary_rows}
+                    actual_b = (
+                        boundary_rows_map[prompt.id][0]
+                        if prompt.id in boundary_rows_map
+                        else "?"
+                    )
                     verdict_lines.append(
                         f"  {prompt.id}: expected={prompt.expected_boundary} actual={actual_b}"
                     )
@@ -296,10 +308,12 @@ def run_battery(
         for prompt, b_count, f_count, prompt_passed in results:
             if f_count < min_pass:
                 if repeat == 1:
-                    focused_rows_map = {
-                        p.id: fv for p, fv, _ in focused_rows
-                    }
-                    actual_f = focused_rows_map[prompt.id][0] if prompt.id in focused_rows_map else "?"
+                    focused_rows_map = {p.id: fv for p, fv, _ in focused_rows}
+                    actual_f = (
+                        focused_rows_map[prompt.id][0]
+                        if prompt.id in focused_rows_map
+                        else "?"
+                    )
                     verdict_lines.append(
                         f"  {prompt.id}: expected={prompt.expected_output} actual={actual_f}"
                     )
@@ -338,7 +352,12 @@ def run_battery(
             fh.write("id\texpected\tactual\tpass\n")
             for prompt, b_verdicts, _ in boundary_rows:
                 actual = b_verdicts[0]
-                b_count_row = 1 if _is_match(actual, prompt.expected_boundary) or prompt.expected_boundary == "n-a" else 0  # type: ignore[arg-type]
+                b_count_row = (
+                    1
+                    if _is_match(actual, prompt.expected_boundary)
+                    or prompt.expected_boundary == "n-a"
+                    else 0
+                )  # type: ignore[arg-type]
                 fh.write(
                     f"{prompt.id}\t{prompt.expected_boundary}\t{actual}\t"
                     f"{'pass' if b_count_row else 'fail'}\n"
@@ -350,7 +369,9 @@ def run_battery(
                     if prompt.expected_boundary == "n-a":
                         match_flag = 1
                     else:
-                        match_flag = 1 if _is_match(actual, prompt.expected_boundary) else 0  # type: ignore[arg-type]
+                        match_flag = (
+                            1 if _is_match(actual, prompt.expected_boundary) else 0
+                        )  # type: ignore[arg-type]
                     fh.write(
                         f"{prompt.id}\t{run_idx}\t{prompt.expected_boundary}\t"
                         f"{actual}\t{match_flag}\n"
@@ -368,7 +389,9 @@ def run_battery(
                 if prompt.expected_output == "n-a":
                     f_count_row = 1
                 else:
-                    f_count_row = 1 if _verdict_matches(actual, prompt.expected_output) else 0
+                    f_count_row = (
+                        1 if _verdict_matches(actual, prompt.expected_output) else 0
+                    )
                 fh.write(
                     f"{prompt.id}\t{prompt.expected_output}\t{actual}\t"
                     f"{'pass' if f_count_row else 'fail'}\n"
@@ -380,7 +403,9 @@ def run_battery(
                     if prompt.expected_output == "n-a":
                         match_flag = 1
                     else:
-                        match_flag = 1 if _verdict_matches(actual, prompt.expected_output) else 0
+                        match_flag = (
+                            1 if _verdict_matches(actual, prompt.expected_output) else 0
+                        )
                     fh.write(
                         f"{prompt.id}\t{run_idx}\t{prompt.expected_output}\t"
                         f"{actual}\t{match_flag}\n"
@@ -439,7 +464,9 @@ def self_test() -> int:
     # RR-114-01") — retired predecessor ids that are not themselves
     # assertions, and would otherwise register as false "extra" findings.
     _RR_LEAD_RE = re.compile(r"^\s*(RR-\d+-\d+)\s", re.MULTILINE)
-    _rr_fired = set(_RR_LEAD_RE.findall(boundary_out.getvalue() + focused_out.getvalue()))
+    _rr_fired = set(
+        _RR_LEAD_RE.findall(boundary_out.getvalue() + focused_out.getvalue())
+    )
     _rr_roster = set(_bc.RR_SENTINEL_IDS)
     # RR-108-03 (S-P09 decompose) is a distinct, frozen-at-v7.4 legacy
     # sentinel for a technique retired at Phase 111 (decompose merged into

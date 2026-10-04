@@ -68,7 +68,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 # Bare `version: 8.17` parses as a float and silently stops matching the string
 # the install cache compares against; bare `version: 8.17.1` happens to parse as
 # a string, which makes the failure mode intermittent and therefore worse.
-_YAML_STAMP_RE = re.compile(r'^\s*version:\s*(?P<raw>\S.*?)\s*$', re.MULTILINE)
+_YAML_STAMP_RE = re.compile(r"^\s*version:\s*(?P<raw>\S.*?)\s*$", re.MULTILINE)
 _FENCE_RE = re.compile(r"^---\s*$", re.MULTILINE)
 
 # Phase 21 (D-03/D-21-A): the static roster of stamp-source KINDS
@@ -123,9 +123,7 @@ _EXCLUDED_GENERATED_GLOBS: tuple[str, ...] = (
 _LAST_WALKED_SOURCE_KINDS: list[str] = []
 
 
-def _stamp_roster_problems(
-    walked: list[str], registered: tuple[str, ...]
-) -> list[str]:
+def _stamp_roster_problems(walked: list[str], registered: tuple[str, ...]) -> list[str]:
     """Pure set-equality floor between what `collect_stamps()` actually
     walked and the published `_STAMP_SOURCE_KINDS` roster.
 
@@ -143,8 +141,10 @@ def _stamp_roster_problems(
     extra = walked_set - registered_set
     if missing or extra:
         return [
-            (f"stamp-source-kind roster/walked mismatch: "
-            f"missing={sorted(missing)} extra={sorted(extra)}")
+            (
+                f"stamp-source-kind roster/walked mismatch: "
+                f"missing={sorted(missing)} extra={sorted(extra)}"
+            )
         ]
     return []
 
@@ -314,7 +314,10 @@ def collect_stamps(root: Path) -> tuple[list[Stamp], list[str]]:
     # Manifests. Both are hand-maintained: sync-content.py explicitly does NOT
     # generate first-principles/.claude-plugin/plugin.json.
     for manifest, manifest_kind in (
-        (root / ".claude-plugin" / "marketplace.json", ".claude-plugin/marketplace.json"),
+        (
+            root / ".claude-plugin" / "marketplace.json",
+            ".claude-plugin/marketplace.json",
+        ),
         (
             root / "first-principles" / ".claude-plugin" / "plugin.json",
             "first-principles/.claude-plugin/plugin.json",
@@ -401,7 +404,12 @@ def _build_fixture(
         d = root / ".claude-plugin"
         d.mkdir(parents=True, exist_ok=True)
         (d / "marketplace.json").write_text(
-            json.dumps({"name": "fx", "plugins": [{"name": "fx", "version": marketplace_stamp}]}),
+            json.dumps(
+                {
+                    "name": "fx",
+                    "plugins": [{"name": "fx", "version": marketplace_stamp}],
+                }
+            ),
             encoding="utf-8",
         )
 
@@ -643,9 +651,7 @@ def self_test() -> int:
         # raise ValueError on a message missing the ' extra=' marker,
         # proving the guard is live rather than decorative.
         try:
-            _roster_arm_clauses(
-                "stamp-source-kind roster/walked mismatch: missing=[]"
-            )
+            _roster_arm_clauses("stamp-source-kind roster/walked mismatch: missing=[]")
             expect(
                 "kind-roster-arm-shape-guard",
                 False,
@@ -662,7 +668,9 @@ def self_test() -> int:
             for k in module._LAST_WALKED_SOURCE_KINDS
             if k in module._EXCLUDED_GENERATED_GLOBS
         ]
-        expect("excluded-globs-never-walked", not excluded_walked, f"({excluded_walked})")
+        expect(
+            "excluded-globs-never-walked", not excluded_walked, f"({excluded_walked})"
+        )
 
     # (l) describe() consistency control (Phase 21, D-03): mutate a copy of
     # _STAMP_SOURCE_KINDS and confirm describe()'s emitted count moves with
@@ -716,7 +724,11 @@ def self_test() -> int:
     wrapper_call_sites = 0
     for line in self_test_source.splitlines():
         stripped = line.strip()
-        if stripped.startswith(_FIXTURE_WRAPPER_CALL) or stripped.startswith(_FIXTURE_BUILDER_CALL) and _FIXTURE_DELEGATION_ARGS not in stripped:
+        if (
+            stripped.startswith(_FIXTURE_WRAPPER_CALL)
+            or stripped.startswith(_FIXTURE_BUILDER_CALL)
+            and _FIXTURE_DELEGATION_ARGS not in stripped
+        ):
             wrapper_call_sites += 1
     expect(
         "fixture-count-matches-call-sites",

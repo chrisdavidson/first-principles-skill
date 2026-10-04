@@ -57,7 +57,13 @@ _EXPECTED_MAX_TURNS = 60
 # tried SendMessage/ListAgents to chase the truncated hand-back. Checking
 # only that `disallowedTools` is present (as Check 4 did before) let any
 # entry — including these three — be silently dropped with every gate green.
-_EXPECTED_DISALLOWED_TOOLS: tuple[str, ...] = ("Write", "Edit", "Agent", "SendMessage", "ListAgents")
+_EXPECTED_DISALLOWED_TOOLS: tuple[str, ...] = (
+    "Write",
+    "Edit",
+    "Agent",
+    "SendMessage",
+    "ListAgents",
+)
 _REQUIRED_PHRASES = [
     "first principles",
     "challenge assumptions",
@@ -90,18 +96,26 @@ _REQUIRED_PHRASES = [
 # itself fires.
 _CHECK_DESCRIPTIONS: tuple[str, ...] = (
     "Check 1: file begins with a frontmatter fence and splits into exactly 3 parts",
-    ("Check 2: 'name' key present and equals the locked identity "
-    "(skipped under --skip-name-check)"),
+    (
+        "Check 2: 'name' key present and equals the locked identity "
+        "(skipped under --skip-name-check)"
+    ),
     "Check 3: 'description' is a non-empty string within the max-length budget",
-    ("Check 4: 'disallowedTools' key is present; for the canonical identity "
-    "only, also equals the locked tool list (value clause skipped under "
-    "--skip-name-check)"),
-    ("Check 5: 'maxTurns' key is present; for the canonical identity only, "
-    "also carries the locked value (value clause skipped under --skip-name-check)"),
+    (
+        "Check 4: 'disallowedTools' key is present; for the canonical identity "
+        "only, also equals the locked tool list (value clause skipped under "
+        "--skip-name-check)"
+    ),
+    (
+        "Check 5: 'maxTurns' key is present; for the canonical identity only, "
+        "also carries the locked value (value clause skipped under --skip-name-check)"
+    ),
     "Check 6: body is non-empty after stripping whitespace",
     "Check 7: body contains no unresolved sync markers",
-    ("Check 8: 'description' contains all mandatory trigger phrases "
-    "(skipped under --skip-name-check)"),
+    (
+        "Check 8: 'description' contains all mandatory trigger phrases "
+        "(skipped under --skip-name-check)"
+    ),
 )
 
 # Indices into _CHECK_DESCRIPTIONS scoped out under --skip-name-check — a
@@ -131,8 +145,10 @@ def _index_roster_problems(executed: set[int], expected: set[int]) -> list[str]:
     extra = executed - expected
     if missing or extra:
         return [
-            (f"executed/registered check-index mismatch: missing={sorted(missing)} "
-            f"extra={sorted(extra)}")
+            (
+                f"executed/registered check-index mismatch: missing={sorted(missing)} "
+                f"extra={sorted(extra)}"
+            )
         ]
     return []
 
@@ -424,11 +440,15 @@ def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
 
     # Check 1: file must begin with a frontmatter fence, then split into 3 parts
     if not text.startswith("---"):
-        sys.stderr.write("check-agent: agent file does not begin with a frontmatter fence\n")
+        sys.stderr.write(
+            "check-agent: agent file does not begin with a frontmatter fence\n"
+        )
         sys.exit(2)
     parts = _FENCE_RE.split(text, maxsplit=2)
     if len(parts) < 3 or parts[0].strip():
-        sys.stderr.write("check-agent: agent file is missing/has malformed frontmatter fences\n")
+        sys.stderr.write(
+            "check-agent: agent file is missing/has malformed frontmatter fences\n"
+        )
         sys.exit(2)
 
     fm_text = parts[1]
@@ -470,7 +490,9 @@ def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
         if description is None:
             failures.append("frontmatter missing required key 'description'")
         elif not isinstance(description, str):
-            failures.append(f"'description' must be a string, got {type(description).__name__}")
+            failures.append(
+                f"'description' must be a string, got {type(description).__name__}"
+            )
         elif len(description) == 0:
             failures.append("'description' must not be empty")
         elif len(description) > _MAX_DESCRIPTION_LEN:
@@ -494,7 +516,9 @@ def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
             _EXECUTED_CHECK_INDICES.add(3)
         if "disallowedTools" not in frontmatter:
             failures.append("frontmatter missing required key 'disallowedTools'")
-        elif not skip_name_check and frontmatter.get("disallowedTools") != list(_EXPECTED_DISALLOWED_TOOLS):
+        elif not skip_name_check and frontmatter.get("disallowedTools") != list(
+            _EXPECTED_DISALLOWED_TOOLS
+        ):
             got = frontmatter.get("disallowedTools")
             expected = list(_EXPECTED_DISALLOWED_TOOLS)
             got_set = set(got) if isinstance(got, list) else set()
@@ -531,7 +555,9 @@ def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
     if 5 < n_checks:
         _EXECUTED_CHECK_INDICES.add(5)
         if not body.strip():
-            failures.append("agent file body is empty (whitespace-only after closing '---')")
+            failures.append(
+                "agent file body is empty (whitespace-only after closing '---')"
+            )
 
     # Check 7: no unresolved sync markers in body
     if 6 < n_checks:
@@ -598,7 +624,9 @@ def _assert_live_coverage(text: str, agent_path: Path) -> None:
     # engaging this file's actual content, not merely a self-test fixture —
     # the self-test fixtures are in-memory by design and never read the
     # shipped tree.
-    agent_mutated, agent_substitutions = _DISALLOWED_AGENT_LINE_RE.subn("", text, count=1)
+    agent_mutated, agent_substitutions = _DISALLOWED_AGENT_LINE_RE.subn(
+        "", text, count=1
+    )
     if agent_substitutions != 1:
         sys.stderr.write(
             f"check-agent: COVERAGE FAIL — could not locate a '- Agent' "
@@ -608,7 +636,9 @@ def _assert_live_coverage(text: str, agent_path: Path) -> None:
         sys.exit(1)
 
     agent_control_failures = _check_agent_text(agent_mutated)
-    if not any("'disallowedTools' must be exactly" in msg for msg in agent_control_failures):
+    if not any(
+        "'disallowedTools' must be exactly" in msg for msg in agent_control_failures
+    ):
         sys.stderr.write(
             f"check-agent: COVERAGE FAIL — stripping '- Agent' from "
             f"{agent_path} did not produce the expected failure; the "
@@ -620,9 +650,7 @@ def _assert_live_coverage(text: str, agent_path: Path) -> None:
 def _validate_agent_file(agent_path: Path, skip_name_check: bool = False) -> None:
     """Validate the agent file at *agent_path*. Exits non-zero on failure."""
     if not agent_path.exists():
-        sys.stderr.write(
-            f"check-agent: agent file not found: {agent_path}\n"
-        )
+        sys.stderr.write(f"check-agent: agent file not found: {agent_path}\n")
         sys.exit(2)
 
     text = agent_path.read_text(encoding="utf-8")
@@ -676,32 +704,67 @@ def _run_self_test() -> None:
     # Each fixture declares the substring its *intended* check must emit, so a
     # fixture cannot pass for the wrong reason (e.g. an unrelated defect firing).
     fixtures = [
-        ("fixture-a (missing name)", _FIXTURE_MISSING_NAME,
-         "missing required key 'name'"),
-        ("fixture-b (empty body)", _FIXTURE_EMPTY_BODY,
-         "body is empty"),
-        ("fixture-c (unresolved sync marker)", _FIXTURE_UNRESOLVED_MARKER,
-         "unresolved sync markers"),
-        ("fixture-d (wrong name)", _FIXTURE_WRONG_NAME,
-         f"name must be '{_EXPECTED_NAME}'"),
-        ("fixture-e (over-length description)", _FIXTURE_LONG_DESCRIPTION,
-         "exceeds max"),
-        ("fixture-f (missing maxTurns)", _FIXTURE_MISSING_MAXTURNS,
-         "missing required key 'maxTurns'"),
-        ("fixture-j (wrong maxTurns value)", _FIXTURE_WRONG_MAXTURNS_VALUE,
-         f"'maxTurns' must be {_EXPECTED_MAX_TURNS}"),
-        ("fixture-g (missing disallowedTools)", _FIXTURE_MISSING_DISALLOWED_TOOLS,
-         "missing required key 'disallowedTools'"),
-        ("fixture-h (missing trigger phrase)", _FIXTURE_MISSING_TRIGGER_PHRASE,
-         "missing required trigger phrase"),
-        ("fixture-k (disallowedTools missing 'Agent')", _FIXTURE_DISALLOWED_TOOLS_AGENT_REMOVED,
-         "'disallowedTools' must be exactly"),
-        ("fixture-l (disallowedTools missing 'SendMessage')", _FIXTURE_DISALLOWED_TOOLS_SENDMESSAGE_REMOVED,
-         "'disallowedTools' must be exactly"),
-        ("fixture-m (disallowedTools missing 'ListAgents')", _FIXTURE_DISALLOWED_TOOLS_LISTAGENTS_REMOVED,
-         "'disallowedTools' must be exactly"),
-        ("fixture-n (disallowedTools has extra entry)", _FIXTURE_DISALLOWED_TOOLS_EXTRA,
-         "'disallowedTools' must be exactly"),
+        (
+            "fixture-a (missing name)",
+            _FIXTURE_MISSING_NAME,
+            "missing required key 'name'",
+        ),
+        ("fixture-b (empty body)", _FIXTURE_EMPTY_BODY, "body is empty"),
+        (
+            "fixture-c (unresolved sync marker)",
+            _FIXTURE_UNRESOLVED_MARKER,
+            "unresolved sync markers",
+        ),
+        (
+            "fixture-d (wrong name)",
+            _FIXTURE_WRONG_NAME,
+            f"name must be '{_EXPECTED_NAME}'",
+        ),
+        (
+            "fixture-e (over-length description)",
+            _FIXTURE_LONG_DESCRIPTION,
+            "exceeds max",
+        ),
+        (
+            "fixture-f (missing maxTurns)",
+            _FIXTURE_MISSING_MAXTURNS,
+            "missing required key 'maxTurns'",
+        ),
+        (
+            "fixture-j (wrong maxTurns value)",
+            _FIXTURE_WRONG_MAXTURNS_VALUE,
+            f"'maxTurns' must be {_EXPECTED_MAX_TURNS}",
+        ),
+        (
+            "fixture-g (missing disallowedTools)",
+            _FIXTURE_MISSING_DISALLOWED_TOOLS,
+            "missing required key 'disallowedTools'",
+        ),
+        (
+            "fixture-h (missing trigger phrase)",
+            _FIXTURE_MISSING_TRIGGER_PHRASE,
+            "missing required trigger phrase",
+        ),
+        (
+            "fixture-k (disallowedTools missing 'Agent')",
+            _FIXTURE_DISALLOWED_TOOLS_AGENT_REMOVED,
+            "'disallowedTools' must be exactly",
+        ),
+        (
+            "fixture-l (disallowedTools missing 'SendMessage')",
+            _FIXTURE_DISALLOWED_TOOLS_SENDMESSAGE_REMOVED,
+            "'disallowedTools' must be exactly",
+        ),
+        (
+            "fixture-m (disallowedTools missing 'ListAgents')",
+            _FIXTURE_DISALLOWED_TOOLS_LISTAGENTS_REMOVED,
+            "'disallowedTools' must be exactly",
+        ),
+        (
+            "fixture-n (disallowedTools has extra entry)",
+            _FIXTURE_DISALLOWED_TOOLS_EXTRA,
+            "'disallowedTools' must be exactly",
+        ),
     ]
 
     wrong_passes: list[str] = []
@@ -718,7 +781,9 @@ def _run_self_test() -> None:
             )
             wrong_passes.append(f"{label} (expected '{expected}')")
         else:
-            print(f"check-agent --self-test: {label} correctly failed ({len(failures)} failure(s))")
+            print(
+                f"check-agent --self-test: {label} correctly failed ({len(failures)} failure(s))"
+            )
 
     # Fixture-i: structurally valid candidate with skip_name_check=True
     # This is a "positive" fixture — expects zero failures (pass case)
@@ -745,7 +810,9 @@ def _run_self_test() -> None:
     # the fully valid fixture with skip_name_check=False and assert every
     # index in _CHECK_DESCRIPTIONS was actually reached — not merely gated on
     # n_checks in the abstract.
-    canonical_positive_failures = _check_agent_text(_FIXTURE_VALID_CANONICAL, skip_name_check=False)
+    canonical_positive_failures = _check_agent_text(
+        _FIXTURE_VALID_CANONICAL, skip_name_check=False
+    )
     if canonical_positive_failures:
         print(
             f"check-agent --self-test: canonical-positive-control FAIL — "
@@ -758,7 +825,9 @@ def _run_self_test() -> None:
     full_expected = set(range(len(_CHECK_DESCRIPTIONS)))
     full_problems = _index_roster_problems(_EXECUTED_CHECK_INDICES, full_expected)
     if full_problems:
-        print(f"check-agent --self-test: index-floor (unconditional) FAIL — {'; '.join(full_problems)}")
+        print(
+            f"check-agent --self-test: index-floor (unconditional) FAIL — {'; '.join(full_problems)}"
+        )
         wrong_passes.append("index-floor-unconditional: " + "; ".join(full_problems))
     else:
         print(
@@ -774,8 +843,12 @@ def _run_self_test() -> None:
     scoped_expected = full_expected - set(_SKIP_NAME_CHECK_SCOPED_INDICES)
     scoped_problems = _index_roster_problems(_EXECUTED_CHECK_INDICES, scoped_expected)
     if scoped_problems:
-        print(f"check-agent --self-test: index-floor (skip-name-check) FAIL — {'; '.join(scoped_problems)}")
-        wrong_passes.append("index-floor-skip-name-check: " + "; ".join(scoped_problems))
+        print(
+            f"check-agent --self-test: index-floor (skip-name-check) FAIL — {'; '.join(scoped_problems)}"
+        )
+        wrong_passes.append(
+            "index-floor-skip-name-check: " + "; ".join(scoped_problems)
+        )
     else:
         print(
             f"check-agent --self-test: index-floor (skip-name-check) PASS — "
@@ -791,10 +864,16 @@ def _run_self_test() -> None:
     synthetic_executed = {0, 1, 3}
     synthetic_problems = _index_roster_problems(synthetic_executed, synthetic_expected)
     synthetic_text = " ".join(synthetic_problems)
-    missing_clause = synthetic_text.split("missing=", 1)[-1].split(" extra=", 1)[0] if synthetic_problems else ""
+    missing_clause = (
+        synthetic_text.split("missing=", 1)[-1].split(" extra=", 1)[0]
+        if synthetic_problems
+        else ""
+    )
     extra_clause = synthetic_text.split("extra=", 1)[-1] if synthetic_problems else ""
     if not synthetic_problems:
-        print("check-agent --self-test: index-floor negative-arm WRONGLY PASSED (expected failure)")
+        print(
+            "check-agent --self-test: index-floor negative-arm WRONGLY PASSED (expected failure)"
+        )
         wrong_passes.append("index-floor-negative-arm (no failures produced)")
     elif "2" not in missing_clause or "3" not in extra_clause:
         print(
@@ -815,7 +894,9 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
-    total_fixtures = len(fixtures) + 1  # + fixture-i (the skip_name_check positive case)
+    total_fixtures = (
+        len(fixtures) + 1
+    )  # + fixture-i (the skip_name_check positive case)
     # + canonical-positive-control + the two index-floor arms + the negative arm
     total_controls = total_fixtures + 4
     print(

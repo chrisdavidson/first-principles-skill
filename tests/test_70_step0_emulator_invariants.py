@@ -29,11 +29,10 @@ EMULATOR = REPO / "scripts" / "check-step0-emulator.py"
 # Structural guards
 # ---------------------------------------------------------------------------
 
+
 def test_emulator_script_exists() -> None:
     """scripts/check-step0-emulator.py must exist."""
-    assert EMULATOR.exists(), (
-        f"check-step0-emulator.py not found at {EMULATOR}"
-    )
+    assert EMULATOR.exists(), f"check-step0-emulator.py not found at {EMULATOR}"
 
 
 def test_emulator_contains_known_techniques_constant() -> None:
@@ -59,6 +58,7 @@ def test_emulator_contains_known_techniques_constant() -> None:
 def test_emulator_does_not_import_battery_core() -> None:
     """check-step0-emulator.py must not import from _battery_core (D-11 standalone)."""
     import re
+
     text = EMULATOR.read_text(encoding="utf-8")
     pattern = re.compile(r"(import|from)\s+_battery_core")
     assert not pattern.search(text), (
@@ -70,6 +70,7 @@ def test_emulator_does_not_import_battery_core() -> None:
 # ---------------------------------------------------------------------------
 # Behavioural invariant: --self-test exits 0
 # ---------------------------------------------------------------------------
+
 
 def test_self_test_exits_zero() -> None:
     """``python3 scripts/check-step0-emulator.py --self-test`` must exit 0.
@@ -86,7 +87,8 @@ def test_self_test_exits_zero() -> None:
     result = subprocess.run(
         [sys.executable, str(EMULATOR), "--self-test"],
         capture_output=True,
-        text=True, check=False,
+        text=True,
+        check=False,
     )
     assert result.returncode == 0, (
         f"check-step0-emulator.py --self-test exited {result.returncode} "
@@ -101,7 +103,8 @@ def test_self_test_prints_pass() -> None:
     result = subprocess.run(
         [sys.executable, str(EMULATOR), "--self-test"],
         capture_output=True,
-        text=True, check=False,
+        text=True,
+        check=False,
     )
     assert "check-step0-emulator --self-test: PASS" in result.stdout, (
         f"Expected 'check-step0-emulator --self-test: PASS' in stdout but got:\n"
@@ -111,4 +114,5 @@ def test_self_test_prints_pass() -> None:
 
 if __name__ == "__main__":
     import pytest
+
     sys.exit(pytest.main([__file__, "-v"]))

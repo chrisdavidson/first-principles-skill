@@ -41,8 +41,12 @@ import sys
 from pathlib import Path
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
-CANONICAL_RUBRIC: Path = REPO_ROOT / "shared" / "spine" / "references" / "validation-rubric.md"
-EMITTED_RUBRIC: Path = REPO_ROOT / "first-principles" / "references" / "validation-rubric.md"
+CANONICAL_RUBRIC: Path = (
+    REPO_ROOT / "shared" / "spine" / "references" / "validation-rubric.md"
+)
+EMITTED_RUBRIC: Path = (
+    REPO_ROOT / "first-principles" / "references" / "validation-rubric.md"
+)
 
 # --- Heading literals (identica in both canonical and emitted copies) ---
 _HOW_TO_APPLY = "## How to Apply This Gate"
@@ -199,7 +203,9 @@ def _check_anchor_control_coverage(
         # `_B11_FAILURE_RECORD_PLAIN`, and a plain `str.count` would credit the
         # shorter name with the longer name's references.
         count = len(
-            re.findall(rf"(?<![A-Za-z0-9_]){re.escape(name)}(?![A-Za-z0-9_])", counting_source)
+            re.findall(
+                rf"(?<![A-Za-z0-9_]){re.escape(name)}(?![A-Za-z0-9_])", counting_source
+            )
         )
         if is_exempt and is_pending:
             failures.append(
@@ -275,16 +281,22 @@ def _check_criterion3(text: str, surface: str) -> list[str]:
     # HC-2: Criterion 3 Rigorous region present
     c3_rigorous = _rigorous_region(c3_slice, _C3_SOUND_LEAD)
     if c3_rigorous is None:
-        failures.append(f"HC-2: {surface} — Criterion 3 Rigorous region not found (Sound anchor missing)")
+        failures.append(
+            f"HC-2: {surface} — Criterion 3 Rigorous region not found (Sound anchor missing)"
+        )
         return failures
 
     # HC-3: "at least one HIGH-confidence chain"
     if not _contains(c3_rigorous, "at least one HIGH-confidence chain"):
-        failures.append(f"HC-3: {surface} — Criterion 3 Rigorous: 'at least one HIGH-confidence chain' not found")
+        failures.append(
+            f"HC-3: {surface} — Criterion 3 Rigorous: 'at least one HIGH-confidence chain' not found"
+        )
 
     # HC-4: "reachable"
     if not _contains(c3_rigorous, "reachable"):
-        failures.append(f"HC-4: {surface} — Criterion 3 Rigorous: 'reachable' not found")
+        failures.append(
+            f"HC-4: {surface} — Criterion 3 Rigorous: 'reachable' not found"
+        )
 
     # HC-5: EXCEPT clause with "unreachable"
     # Split on EXCEPT: and check if unreachable appears after the EXCEPT token
@@ -292,11 +304,15 @@ def _check_criterion3(text: str, surface: str) -> list[str]:
     unreachable_found = False
     if len(except_parts) > 1:
         # Check the text following the first EXCEPT token (only the part of the first clause)
-        first_clause = except_parts[1].split(".")[0] if "." in except_parts[1] else except_parts[1]
+        first_clause = (
+            except_parts[1].split(".")[0] if "." in except_parts[1] else except_parts[1]
+        )
         if _contains(first_clause, "unreachable"):
             unreachable_found = True
     if not unreachable_found:
-        failures.append(f"HC-5: {surface} — Criterion 3 Rigorous: EXCEPT clause with 'unreachable' not found")
+        failures.append(
+            f"HC-5: {surface} — Criterion 3 Rigorous: EXCEPT clause with 'unreachable' not found"
+        )
 
     # HC-6: "Phase 3"
     if not _contains(c3_rigorous, "Phase 3"):
@@ -318,16 +334,24 @@ def _check_criterion5(text: str, surface: str) -> list[str]:
     # HC-8: Criterion 5 Rigorous region present
     c5_rigorous = _rigorous_region(c5_slice, _C5_SOUND_LEAD)
     if c5_rigorous is None:
-        failures.append(f"HC-8: {surface} — Criterion 5 Rigorous region not found (Sound anchor missing)")
+        failures.append(
+            f"HC-8: {surface} — Criterion 5 Rigorous region not found (Sound anchor missing)"
+        )
         return failures
 
     # HC-9: "at least one HIGH-confidence"
     if not _contains(c5_rigorous, "at least one HIGH-confidence"):
-        failures.append(f"HC-9: {surface} — Criterion 5 Rigorous: 'at least one HIGH-confidence' not found")
+        failures.append(
+            f"HC-9: {surface} — Criterion 5 Rigorous: 'at least one HIGH-confidence' not found"
+        )
 
     # HC-10: "Conclusion" (case-insensitive for first letter)
-    if not (_contains(c5_rigorous, "Conclusion") or _contains(c5_rigorous, "conclusion")):
-        failures.append(f"HC-10: {surface} — Criterion 5 Rigorous: 'Conclusion' not found")
+    if not (
+        _contains(c5_rigorous, "Conclusion") or _contains(c5_rigorous, "conclusion")
+    ):
+        failures.append(
+            f"HC-10: {surface} — Criterion 5 Rigorous: 'Conclusion' not found"
+        )
 
     # HC-11: EXCEPT clause mentioning "speculative"
     # Split on EXCEPT: and check if any following text contains "speculative"
@@ -340,7 +364,9 @@ def _check_criterion5(text: str, surface: str) -> list[str]:
                 speculative_found = True
                 break
     if not speculative_found:
-        failures.append(f"HC-11: {surface} — Criterion 5 Rigorous: EXCEPT clause with 'speculative' not found")
+        failures.append(
+            f"HC-11: {surface} — Criterion 5 Rigorous: EXCEPT clause with 'speculative' not found"
+        )
 
     # HC-12: EXCEPT clause mentioning "absent-fails" (or "absent fails")
     absent_fails_found = False
@@ -348,11 +374,15 @@ def _check_criterion5(text: str, surface: str) -> list[str]:
         # Check each EXCEPT clause
         for part in except_parts[1:]:
             part_text = part.split("EXCEPT:")[0]
-            if _contains(part_text, "absent-fails") or _contains(part_text, "absent fails"):
+            if _contains(part_text, "absent-fails") or _contains(
+                part_text, "absent fails"
+            ):
                 absent_fails_found = True
                 break
     if not absent_fails_found:
-        failures.append(f"HC-12: {surface} — Criterion 5 Rigorous: EXCEPT clause with 'absent-fails' not found")
+        failures.append(
+            f"HC-12: {surface} — Criterion 5 Rigorous: EXCEPT clause with 'absent-fails' not found"
+        )
 
     return failures
 
@@ -364,7 +394,9 @@ def _check_exceptions_summary(text: str, surface: str) -> list[str]:
     # HC-13: Exceptions Summary occurs exactly once
     count = _count_flex(text, _EXCEPTIONS_SUMMARY)
     if count != 1:
-        failures.append(f"HC-13: {surface} — Exceptions Summary occurs {count} time(s), expected 1")
+        failures.append(
+            f"HC-13: {surface} — Exceptions Summary occurs {count} time(s), expected 1"
+        )
         return failures
 
     # HC-14: Placement — strictly between How to Apply and Scoring Model
@@ -378,9 +410,13 @@ def _check_exceptions_summary(text: str, surface: str) -> list[str]:
         return failures
 
     if exceptions_idx < how_to_idx:
-        failures.append(f"HC-14: {surface} — Exceptions Summary appears before How to Apply This Gate")
+        failures.append(
+            f"HC-14: {surface} — Exceptions Summary appears before How to Apply This Gate"
+        )
     elif exceptions_idx > scoring_idx:
-        failures.append(f"HC-14: {surface} — Exceptions Summary appears after Scoring Model")
+        failures.append(
+            f"HC-14: {surface} — Exceptions Summary appears after Scoring Model"
+        )
 
     # HC-15: lettered entries present, in order, inside the section (module-
     # level _EXCEPTIONS_ROSTER, D-21-J — see its own comment for why this is
@@ -390,19 +426,25 @@ def _check_exceptions_summary(text: str, surface: str) -> list[str]:
         entry_positions = []
         for letter, keyword in _EXCEPTIONS_ROSTER:
             # Check if both letter and keyword appear in the span
-            if _contains(exceptions_span, letter) and _contains(exceptions_span, keyword):
+            if _contains(exceptions_span, letter) and _contains(
+                exceptions_span, keyword
+            ):
                 # Find position of the letter to check order
                 letter_idx = exceptions_span.lower().find(letter)
                 entry_positions.append((letter, keyword, letter_idx))
             else:
-                failures.append(f"HC-15: {surface} — Exceptions Summary: entry '{letter}' with '{keyword}' not found")
+                failures.append(
+                    f"HC-15: {surface} — Exceptions Summary: entry '{letter}' with '{keyword}' not found"
+                )
 
         # Check order
         if len(entry_positions) == len(_EXCEPTIONS_ROSTER):
             # Verify they are in a-b-c order by position
             positions = [pos[2] for pos in entry_positions]
             if positions != sorted(positions):
-                failures.append(f"HC-15: {surface} — Exceptions Summary: entries not in a-b-c order")
+                failures.append(
+                    f"HC-15: {surface} — Exceptions Summary: entries not in a-b-c order"
+                )
 
     return failures
 
@@ -593,7 +635,9 @@ def _run_self_test() -> int:
             )
             problems.append(f"{label}: wrong-reason failure")
             return
-        if expected_detail is not None and not any(expected_detail in f for f in matched):
+        if expected_detail is not None and not any(
+            expected_detail in f for f in matched
+        ):
             print(
                 f"({label}) failed for the WRONG reason (check ID "
                 f"{expected_check_id!r} fired but detail {expected_detail!r} not found)"
@@ -634,7 +678,7 @@ def _run_self_test() -> int:
             raise AssertionError("End of EXCEPT clause not found")
 
         # Reconstruct with the EXCEPT clause removed
-        mutated_rigorous = c3_rigorous[:except_start] + c3_rigorous[except_end + 1:]
+        mutated_rigorous = c3_rigorous[:except_start] + c3_rigorous[except_end + 1 :]
 
         # Reconstruct the slice
         mutated_slice = c3_slice.replace(c3_rigorous, mutated_rigorous)
@@ -665,12 +709,14 @@ def _run_self_test() -> int:
             raise AssertionError("End of first EXCEPT clause not found")
 
         # Check if this clause contains "speculative"
-        first_clause = c5_rigorous[first_except_start:first_except_end + 1]
+        first_clause = c5_rigorous[first_except_start : first_except_end + 1]
         if "speculative" not in first_clause.lower():
             raise AssertionError("First EXCEPT clause does not contain 'speculative'")
 
         # Remove just the first EXCEPT clause
-        mutated_rigorous = c5_rigorous[:first_except_start] + c5_rigorous[first_except_end + 1:]
+        mutated_rigorous = (
+            c5_rigorous[:first_except_start] + c5_rigorous[first_except_end + 1 :]
+        )
 
         # Reconstruct
         mutated_slice = c5_slice.replace(c5_rigorous, mutated_rigorous)
@@ -704,11 +750,16 @@ def _run_self_test() -> int:
 
         # Check if this clause contains "absent-fails" or "absent fails"
         second_clause = c5_rigorous[second_except_start:second_except_end]
-        if not (_contains(second_clause, "absent-fails") or _contains(second_clause, "absent fails")):
+        if not (
+            _contains(second_clause, "absent-fails")
+            or _contains(second_clause, "absent fails")
+        ):
             raise AssertionError("Second EXCEPT clause does not contain 'absent-fails'")
 
         # Remove just the second EXCEPT clause
-        mutated_rigorous = c5_rigorous[:second_except_start] + c5_rigorous[second_except_end:]
+        mutated_rigorous = (
+            c5_rigorous[:second_except_start] + c5_rigorous[second_except_end:]
+        )
 
         # Reconstruct
         mutated_slice = c5_slice.replace(c5_rigorous, mutated_rigorous)
@@ -735,7 +786,9 @@ def _run_self_test() -> int:
         # Find Scoring Model and insert after it
         scoring_idx = text_without_summary.find(_SCORING_MODEL)
         if scoring_idx == -1:
-            raise AssertionError("Scoring Model not found after removing Exceptions Summary")
+            raise AssertionError(
+                "Scoring Model not found after removing Exceptions Summary"
+            )
 
         # Find end of Scoring Model line
         end_of_line = text_without_summary.find("\n", scoring_idx)
@@ -744,9 +797,10 @@ def _run_self_test() -> int:
 
         # Insert the summary section after Scoring Model
         return (
-            text_without_summary[:end_of_line + 1]
-            + _EXCEPTIONS_SUMMARY + summary_span
-            + text_without_summary[end_of_line + 1:]
+            text_without_summary[: end_of_line + 1]
+            + _EXCEPTIONS_SUMMARY
+            + summary_span
+            + text_without_summary[end_of_line + 1 :]
         )
 
     def _mutate_emitted_drift(emitted_text: str) -> str:
@@ -764,7 +818,11 @@ def _run_self_test() -> int:
             raise AssertionError("Criterion 5 not found in emitted text")
 
         # Insert a character after Criterion 5 heading
-        mutated = content[:c5_start_idx + len(_CRITERION5_START)] + "X" + content[c5_start_idx + len(_CRITERION5_START):]
+        mutated = (
+            content[: c5_start_idx + len(_CRITERION5_START)]
+            + "X"
+            + content[c5_start_idx + len(_CRITERION5_START) :]
+        )
 
         # Reconstruct with header
         return emitted_lines[0] + "\n" + emitted_lines[1] + "\n" + mutated
@@ -814,7 +872,9 @@ def _run_self_test() -> int:
             print(f"(c) expected HC-11 but got: {c_failures}")
             problems.append("c: HC-11 not fired")
         elif has_hc12:
-            print(f"(c) HC-12 should NOT fire when only speculative removed: {c_failures}")
+            print(
+                f"(c) HC-12 should NOT fire when only speculative removed: {c_failures}"
+            )
             problems.append("c: HC-12 spuriously fired")
         else:
             print("(c) correctly failed (HC-11 only)")
@@ -870,7 +930,9 @@ def _run_self_test() -> int:
             print(f"(f) expected HC-12 but got: {f_failures}")
             problems.append("f: HC-12 not fired")
         elif has_hc11:
-            print(f"(f) HC-11 should NOT fire when only absent-fails removed: {f_failures}")
+            print(
+                f"(f) HC-11 should NOT fire when only absent-fails removed: {f_failures}"
+            )
             problems.append("f: HC-11 spuriously fired")
         else:
             print("(f) correctly failed (HC-12 only)")
@@ -980,8 +1042,10 @@ def _run_self_test() -> int:
         # is unchanged — the phrase must be present in the C5 Rigorous region, and its
         # removal must be detected. Only the surrounding words moved. A stale literal
         # here would make .replace() a no-op and the control would silently stop testing.
-        o_mutated = canonical.replace("at least one HIGH-confidence chain may be presented at HIGH",
-                                     "one chain may be presented at HIGH")
+        o_mutated = canonical.replace(
+            "at least one HIGH-confidence chain may be presented at HIGH",
+            "one chain may be presented at HIGH",
+        )
         o_failures = _check_criterion5(o_mutated, "test")
         _check_negative("o", o_failures, "HC-9")
     except Exception as e:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
@@ -997,7 +1061,8 @@ def _run_self_test() -> int:
                 # Remove "Conclusion" case-insensitively from C5 Rigorous
                 # Use case-preserving replacement
                 import re
-                c5_rigorous_mutated = re.sub(r'[Cc]onclusion', '', c5_rigorous)
+
+                c5_rigorous_mutated = re.sub(r"[Cc]onclusion", "", c5_rigorous)
                 mutated_slice = c5_slice.replace(c5_rigorous, c5_rigorous_mutated)
                 p_mutated = canonical.replace(c5_slice, mutated_slice)
                 p_failures = _check_criterion5(p_mutated, "test")

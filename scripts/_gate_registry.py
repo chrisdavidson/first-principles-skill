@@ -331,7 +331,12 @@ ENTRIES: tuple[GateEntry, ...] = (
             "Offline merged dual-signal routing-battery self-test (boundary + "
             "focused-output); owns the honest-state and anti-masking sentinels."
         ),
-        consumes=("locked_constants", "disclosed_bounds_anchors", "derived_counts", "checked_files"),
+        consumes=(
+            "locked_constants",
+            "disclosed_bounds_anchors",
+            "derived_counts",
+            "checked_files",
+        ),
     ),
     GateEntry(
         key="STEP0-08",
@@ -342,7 +347,12 @@ ENTRIES: tuple[GateEntry, ...] = (
         script="scripts/check-step0-emulator.py",
         run_command="python3 scripts/check-step0-emulator.py --self-test",
         summary="Offline Step 0 phrase-detection classifier self-test.",
-        consumes=("locked_constants", "derived_counts", "disclosed_bounds_anchors", "checked_files"),
+        consumes=(
+            "locked_constants",
+            "derived_counts",
+            "disclosed_bounds_anchors",
+            "checked_files",
+        ),
     ),
     GateEntry(
         key="STEP0-06",
@@ -401,7 +411,13 @@ ENTRIES: tuple[GateEntry, ...] = (
             "moved to battery-only from pre-commit by decision D-01. Deliberately "
             "not registered in CI."
         ),
-        consumes=("registered_surfaces", "checked_files", "control_ids", "control_count", "locked_constants"),
+        consumes=(
+            "registered_surfaces",
+            "checked_files",
+            "control_ids",
+            "control_count",
+            "locked_constants",
+        ),
     ),
     GateEntry(
         key="QUAL-01",
@@ -446,7 +462,12 @@ ENTRIES: tuple[GateEntry, ...] = (
             "(`docs/v9.4-gate-retirement.md` §2.4). One of the named battery-only "
             "CI exemptions in REG-GUARD's `BATTERY_ONLY_GATE_IDS`."
         ),
-        consumes=("control_ids", "control_count", "registered_surfaces", "locked_constants"),
+        consumes=(
+            "control_ids",
+            "control_count",
+            "registered_surfaces",
+            "locked_constants",
+        ),
     ),
     GateEntry(
         key="HARN-01",
@@ -461,7 +482,14 @@ ENTRIES: tuple[GateEntry, ...] = (
             "Criterion 3 Fix note are present, correctly placed, and internally "
             "coherent in the emitted tree."
         ),
-        consumes=("branch_roster", "branch_count", "control_ids", "control_count", "checked_files", "disclosed_bounds_anchors"),
+        consumes=(
+            "branch_roster",
+            "branch_count",
+            "control_ids",
+            "control_count",
+            "checked_files",
+            "disclosed_bounds_anchors",
+        ),
     ),
     GateEntry(
         key="HARN-02",
@@ -493,7 +521,11 @@ ENTRIES: tuple[GateEntry, ...] = (
             "non-technique skills from the technique checks, and its must-fail "
             "control fails if any technique slug is added to it."
         ),
-        consumes=("locked_constants", "registered_surfaces", "disclosed_bounds_anchors"),
+        consumes=(
+            "locked_constants",
+            "registered_surfaces",
+            "disclosed_bounds_anchors",
+        ),
     ),
     GateEntry(
         key="SCAN-GUARD",
@@ -1134,9 +1166,7 @@ def _registry_precommit_ids() -> frozenset[str]:
     structurally cannot see either, so leaving them in the comparison set
     would report both as a phantom `extra=` forever."""
     precommit_keys = frozenset(
-        e.key
-        for e in ENTRIES
-        if e.gate_id is None and e.key.startswith("PRECOMMIT:")
+        e.key for e in ENTRIES if e.gate_id is None and e.key.startswith("PRECOMMIT:")
     )
     return precommit_keys | frozenset({"INVARIANT-CHECK", "FROZEN-EVIDENCE"})
 
@@ -1166,7 +1196,7 @@ _HOOK_ROSTER_EXTRA_PREFIX = "hook-roster extra=: "
 # `exec`, the other four use `|| exit $?`, which this pattern ignores since
 # it only needs the script and the leading flag).
 _HOOK_GATE_INVOCATION_RE = re.compile(
-    r'^[ \t]*(?:exec[ \t]+)?\$PY[ \t]+(scripts/\S+)[ \t]+(--\S+)',
+    r"^[ \t]*(?:exec[ \t]+)?\$PY[ \t]+(scripts/\S+)[ \t]+(--\S+)",
     re.MULTILINE,
 )
 
@@ -1228,8 +1258,7 @@ def hook_roster_problems(
     problems: list[str] = []
     if hook_a_invocations != hook_b_invocations:
         problems.append(
-            _HOOK_DIVERGENCE_PREFIX
-            + "the two hook scripts' derived invocation "
+            _HOOK_DIVERGENCE_PREFIX + "the two hook scripts' derived invocation "
             f"sequences differ: {list(hook_a_invocations)} != "
             f"{list(hook_b_invocations)}"
         )
@@ -1238,14 +1267,12 @@ def hook_roster_problems(
     extra = registry_run_commands - derived
     if missing:
         problems.append(
-            _HOOK_ROSTER_MISSING_PREFIX
-            + "hook gate(s) with no PRECOMMIT: registry "
+            _HOOK_ROSTER_MISSING_PREFIX + "hook gate(s) with no PRECOMMIT: registry "
             f"row: {sorted(missing)}"
         )
     if extra:
         problems.append(
-            _HOOK_ROSTER_EXTRA_PREFIX
-            + "PRECOMMIT: registry row(s) naming an "
+            _HOOK_ROSTER_EXTRA_PREFIX + "PRECOMMIT: registry row(s) naming an "
             f"invocation neither hook makes: {sorted(extra)}"
         )
     return problems
@@ -1553,9 +1580,7 @@ def _control_d01_precommit_excluded() -> None:
     battery_src = 'gate "A" "x" "true"\n'
     derived = frozenset(battery_gate_ids(battery_src))
     registry = frozenset({"A", "PRECOMMIT:thing"})
-    problems = registry_id_problems(
-        registry, derived, frozenset({"PRECOMMIT:thing"})
-    )
+    problems = registry_id_problems(registry, derived, frozenset({"PRECOMMIT:thing"}))
     assert problems == [], problems
     # And WITHOUT the exclusion, the same registry set would report the
     # precommit key as a phantom "extra" battery id — proving the exclusion
@@ -1665,7 +1690,9 @@ def _control_cr04_hook_roster_divergence_fires() -> None:
     assert "python3 scripts/report-conformance.py --self-test" in clauses.divergence, (
         clauses
     )
-    assert "python3 scripts/report-conformance.py --check" in clauses.divergence, clauses
+    assert "python3 scripts/report-conformance.py --check" in clauses.divergence, (
+        clauses
+    )
 
 
 def _control_cr04_hook_roster_arm_shape_guard() -> None:
@@ -1723,8 +1750,7 @@ def _control_cr04_hook_roster_arm_shape_guard() -> None:
         assert "fixture-command-e" in str(exc), exc
     else:
         assert False, (
-            "_hook_roster_arm_clauses accepted two entries sharing the "
-            "missing= prefix"
+            "_hook_roster_arm_clauses accepted two entries sharing the missing= prefix"
         )
 
     # (d) two entries sharing the extra= prefix (line 1006's raise site,
@@ -1740,8 +1766,7 @@ def _control_cr04_hook_roster_arm_shape_guard() -> None:
         assert "fixture-command-i" in str(exc), exc
     else:
         assert False, (
-            "_hook_roster_arm_clauses accepted two entries sharing the "
-            "extra= prefix"
+            "_hook_roster_arm_clauses accepted two entries sharing the extra= prefix"
         )
 
     # (e) two hook-divergence entries (line 1019's raise site).
@@ -1755,9 +1780,7 @@ def _control_cr04_hook_roster_arm_shape_guard() -> None:
     except ValueError as exc:
         assert "hook-divergence" in str(exc), exc
     else:
-        assert False, (
-            "_hook_roster_arm_clauses accepted two hook-divergence entries"
-        )
+        assert False, "_hook_roster_arm_clauses accepted two hook-divergence entries"
 
     # (f) a single entry carrying both clause markers, reached through the
     # extra= branch (line 1013's raise site — an entry starting with the
@@ -1906,7 +1929,8 @@ def _live_describe(script_relpath: str) -> dict:
         [sys.executable, str(REPO_ROOT / script_relpath), "--describe"],
         capture_output=True,
         text=True,
-        timeout=60, check=False,
+        timeout=60,
+        check=False,
     )
     if proc.returncode != 0:
         raise RuntimeError(
@@ -2017,14 +2041,18 @@ def self_test() -> int:
         failures.append(
             (
                 "coverage-floor",
-                (f"registered/executed control-id mismatch: missing={sorted(missing)} "
-                f"extra={sorted(extra)}"),
+                (
+                    f"registered/executed control-id mismatch: missing={sorted(missing)} "
+                    f"extra={sorted(extra)}"
+                ),
             )
         )
 
     if failures:
         for control_id, message in failures:
-            sys.stderr.write(f"_gate_registry: SELF-TEST FAIL [{control_id}] — {message}\n")
+            sys.stderr.write(
+                f"_gate_registry: SELF-TEST FAIL [{control_id}] — {message}\n"
+            )
         return 1
     print(f"_gate_registry: SELF-TEST PASS — {len(executed)} controls run")
     return 0
@@ -2064,7 +2092,9 @@ def main(argv: list[str] | None = None) -> int:
         description="Gate registry: one entry per documented gate row (D-01).",
     )
     g = p.add_mutually_exclusive_group(required=True)
-    g.add_argument("--self-test", action="store_true", help="Run the offline control battery.")
+    g.add_argument(
+        "--self-test", action="store_true", help="Run the offline control battery."
+    )
     g.add_argument(
         "--describe",
         action="store_true",

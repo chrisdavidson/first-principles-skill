@@ -67,7 +67,9 @@ from unittest import mock
 # a constant derived from __file__ keeps the gate cwd-independent and its target
 # cannot be silently re-pointed by an argv/env override.
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
-_FIXTURE_CAPTURE: Path = REPO_ROOT / "tests" / "quality-provenance-v8.24" / "PR-P1.jsonl"
+_FIXTURE_CAPTURE: Path = (
+    REPO_ROOT / "tests" / "quality-provenance-v8.24" / "PR-P1.jsonl"
+)
 _FIXTURE_ANALYSIS: Path = REPO_ROOT / "tests" / "quality-provenance-v8.24" / "PR-P1.md"
 _FIXTURE_SUBAGENT_TYPE: str = "first-principles:first-principles"
 
@@ -86,7 +88,9 @@ _EXPECTED_LITERALS: int = 35
 _HARNESS_PATH: Path = REPO_ROOT / "scripts" / "check-quality-harness.py"
 _spec = importlib.util.spec_from_file_location("_quality_harness", _HARNESS_PATH)
 _mod = importlib.util.module_from_spec(_spec)  # type: ignore[arg-type]
-sys.modules["_quality_harness"] = _mod  # Python 3.13+ dataclass compat -- must precede exec_module
+sys.modules["_quality_harness"] = (
+    _mod  # Python 3.13+ dataclass compat -- must precede exec_module
+)
 _spec.loader.exec_module(_mod)  # type: ignore[union-attr]
 
 _slice_sections = _mod._slice_sections
@@ -130,7 +134,9 @@ def verify(
     return _mod.prov_verify(analysis_text, capture_path, subagent_type)
 
 
-def provenance_defect_record(analysis_text: str, analysis_id: str, result: ProvenanceResult) -> dict:
+def provenance_defect_record(
+    analysis_text: str, analysis_id: str, result: ProvenanceResult
+) -> dict:
     """PROV-05: `detect_defects`'s full-width record with the nine provenance keys
     overwritten from a real `ProvenanceResult` -- replacing the harness's "n/a"
     sentinel only when a capture was actually read. Does not modify
@@ -258,9 +264,7 @@ def _synth_capture(
             }
         )
     path = tmpdir / "synthetic.jsonl"
-    path.write_text(
-        "\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8"
-    )
+    path.write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
     return path
 
 
@@ -335,7 +339,14 @@ def _control_prov02_readarm_positive() -> None:
         tmp = Path(d)
         capture = _synth_capture(
             tmp,
-            [("Read", "/tmp/fixture-source.txt", "the retrieved literal value is 42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+            [
+                (
+                    "Read",
+                    "/tmp/fixture-source.txt",
+                    "the retrieved literal value is 42 "
+                    + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                )
+            ],
         )
         analysis = _synth_analysis(
             [_gt_line("GT-1", "a fact citing 42", "`/tmp/fixture-source.txt`")]
@@ -364,7 +375,14 @@ def _control_prov02_readarm_negative() -> None:
         tmp = Path(d)
         capture = _synth_capture(
             tmp,
-            [("Read", "/tmp/other-file.txt", "the retrieved literal value is 42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+            [
+                (
+                    "Read",
+                    "/tmp/other-file.txt",
+                    "the retrieved literal value is 42 "
+                    + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                )
+            ],
         )
         analysis = _synth_analysis(
             [_gt_line("GT-1", "a fact citing 42", "`/tmp/fixture-source.txt`")]
@@ -442,7 +460,14 @@ def _control_prov02_dispatch_raises() -> None:
         tmp = Path(d)
         capture = _synth_capture(
             tmp,
-            [("Read", "/tmp/fixture-source.txt", "the retrieved literal value is 42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+            [
+                (
+                    "Read",
+                    "/tmp/fixture-source.txt",
+                    "the retrieved literal value is 42 "
+                    + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                )
+            ],
             dispatch=False,
         )
         analysis = _synth_analysis(
@@ -466,7 +491,9 @@ def _labelform_analysis() -> str:
     """
     return _synth_analysis(
         [
-            _gt_line("GT-1", "a fact citing 42", "`/tmp/a.txt`", label="read-at-source"),
+            _gt_line(
+                "GT-1", "a fact citing 42", "`/tmp/a.txt`", label="read-at-source"
+            ),
             _gt_line("GT-2", "a fact citing 7", "`/tmp/b.txt`", label="unverified"),
         ]
     )
@@ -483,7 +510,9 @@ def _control_prov01_labelform_positive() -> None:
                 ("Read", "/tmp/b.txt", "7 " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
             ],
         )
-        result = verify(_labelform_analysis(), capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        result = verify(
+            _labelform_analysis(), capture, _FIXTURE_SUBAGENT_TYPE, "synthetic"
+        )
         assert result.provenance_labels == 1, (
             f"expected 1 read-at-source label, got {result.provenance_labels}"
         )
@@ -502,7 +531,9 @@ def _control_prov01_labelform_negative() -> None:
                 ("Read", "/tmp/b.txt", "7 " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
             ],
         )
-        result = verify(_labelform_analysis(), capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        result = verify(
+            _labelform_analysis(), capture, _FIXTURE_SUBAGENT_TYPE, "synthetic"
+        )
         assert result.provenance_labels == 1, (
             f"the bare substring in GT-2's location clause must never be "
             f"counted, got provenance_labels={result.provenance_labels}"
@@ -517,7 +548,13 @@ def _control_prov02_bind_positive() -> None:
         tmp = Path(d)
         capture = _synth_capture(
             tmp,
-            [("WebFetch", "https://example.com/pricing", "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+            [
+                (
+                    "WebFetch",
+                    "https://example.com/pricing",
+                    "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                )
+            ],
         )
         analysis = _synth_analysis(
             [_gt_line("GT-1", "a fact citing 42", "example.com/pricing")]
@@ -557,8 +594,16 @@ def _control_prov02_ambiguous_positive() -> None:
         capture = _synth_capture(
             tmp,
             [
-                ("WebFetch", "https://example.com/pricing", "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
-                ("WebFetch", "https://example.com/pricing?ref=other", "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+                (
+                    "WebFetch",
+                    "https://example.com/pricing",
+                    "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                ),
+                (
+                    "WebFetch",
+                    "https://example.com/pricing?ref=other",
+                    "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                ),
             ],
         )
         analysis = _synth_analysis(
@@ -586,8 +631,16 @@ def _control_prov02_ambiguous_negative() -> None:
         capture = _synth_capture(
             tmp,
             [
-                ("WebFetch", "https://example.com/pricing", "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
-                ("WebFetch", "https://example.com/pricing", "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+                (
+                    "WebFetch",
+                    "https://example.com/pricing",
+                    "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                ),
+                (
+                    "WebFetch",
+                    "https://example.com/pricing",
+                    "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                ),
             ],
         )
         analysis = _synth_analysis(
@@ -623,7 +676,8 @@ def _control_prov02_anchor_negative() -> None:
                 (
                     "WebFetch",
                     "https://spam-aggregator.test/links?ref=example.com-mirror",
-                    "the number 42 shows up here too " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                    "the number 42 shows up here too "
+                    + "z" * _MIN_RETRIEVED_TEXT_CHARS,
                 ),
             ],
         )
@@ -649,7 +703,13 @@ def _control_prov03_located_positive() -> None:
         tmp = Path(d)
         capture = _synth_capture(
             tmp,
-            [("Read", "/tmp/a.txt", "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+            [
+                (
+                    "Read",
+                    "/tmp/a.txt",
+                    "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                )
+            ],
         )
         analysis = _synth_analysis(
             [_gt_line("GT-1", "a fact citing 42", "`/tmp/a.txt`")]
@@ -672,7 +732,13 @@ def _control_prov03_unlocated_negative() -> None:
         tmp = Path(d)
         capture = _synth_capture(
             tmp,
-            [("Read", "/tmp/a.txt", "no matching number here " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+            [
+                (
+                    "Read",
+                    "/tmp/a.txt",
+                    "no matching number here " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                )
+            ],
         )
         analysis = _synth_analysis(
             [_gt_line("GT-1", "a fact citing 42", "`/tmp/a.txt`")]
@@ -697,8 +763,16 @@ def _control_d04_misattributed_positive() -> None:
         capture = _synth_capture(
             tmp,
             [
-                ("Read", "/tmp/a.txt", "no matching number here " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
-                ("Read", "/tmp/b.txt", "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+                (
+                    "Read",
+                    "/tmp/a.txt",
+                    "no matching number here " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                ),
+                (
+                    "Read",
+                    "/tmp/b.txt",
+                    "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                ),
             ],
         )
         analysis = _synth_analysis(
@@ -723,8 +797,16 @@ def _control_d04_misattributed_negative() -> None:
         capture = _synth_capture(
             tmp,
             [
-                ("Read", "/tmp/a.txt", "no matching number here " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
-                ("Read", "/tmp/b.txt", "still nothing here " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+                (
+                    "Read",
+                    "/tmp/a.txt",
+                    "no matching number here " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                ),
+                (
+                    "Read",
+                    "/tmp/b.txt",
+                    "still nothing here " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                ),
             ],
         )
         analysis = _synth_analysis(
@@ -747,7 +829,14 @@ def _control_d03_zeroliteral_positive() -> None:
         tmp = Path(d)
         capture = _synth_capture(
             tmp,
-            [("Read", "/tmp/a.txt", "no digits in this retrieved text at all " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+            [
+                (
+                    "Read",
+                    "/tmp/a.txt",
+                    "no digits in this retrieved text at all "
+                    + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                )
+            ],
         )
         analysis = _synth_analysis(
             [_gt_line("GT-1", "a claim with no numeric token", "`/tmp/a.txt`")]
@@ -770,7 +859,13 @@ def _control_d03_zeroliteral_negative() -> None:
         tmp = Path(d)
         capture = _synth_capture(
             tmp,
-            [("Read", "/tmp/a.txt", "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+            [
+                (
+                    "Read",
+                    "/tmp/a.txt",
+                    "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                )
+            ],
         )
         analysis = _synth_analysis(
             [_gt_line("GT-1", "a claim citing 42", "`/tmp/a.txt`")]
@@ -791,8 +886,16 @@ def _control_d06_orphan_positive() -> None:
         capture = _synth_capture(
             tmp,
             [
-                ("Read", "/tmp/a.txt", "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
-                ("Read", "/tmp/uncited.txt", "cited by nothing " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+                (
+                    "Read",
+                    "/tmp/a.txt",
+                    "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                ),
+                (
+                    "Read",
+                    "/tmp/uncited.txt",
+                    "cited by nothing " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                ),
             ],
         )
         analysis = _synth_analysis(
@@ -813,7 +916,13 @@ def _control_d06_orphan_negative() -> None:
         tmp = Path(d)
         capture = _synth_capture(
             tmp,
-            [("Read", "/tmp/a.txt", "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+            [
+                (
+                    "Read",
+                    "/tmp/a.txt",
+                    "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                )
+            ],
         )
         analysis = _synth_analysis(
             [_gt_line("GT-1", "a claim citing 42", "`/tmp/a.txt`")]
@@ -841,14 +950,24 @@ def _control_floor_zerogt_positive() -> None:
         tmp = Path(d)
         capture = _synth_capture(
             tmp,
-            [("WebFetch", "https://example.com/pricing", "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+            [
+                (
+                    "WebFetch",
+                    "https://example.com/pricing",
+                    "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                )
+            ],
         )
         # Table rendering: no list item, so no marker widening reaches it.
         unreadable = _synth_analysis(
-            ["| ID | Claim | Source |",
-             "|---|---|---|",
-             ("| GT-1 | claims 42 | https://example.com/pricing "
-             "*Provenance: read-at-source.* |")]
+            [
+                "| ID | Claim | Source |",
+                "|---|---|---|",
+                (
+                    "| GT-1 | claims 42 | https://example.com/pricing "
+                    "*Provenance: read-at-source.* |"
+                ),
+            ]
         )
         result = verify(unreadable, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
         assert result.provenance_labels == 0, (
@@ -874,10 +993,23 @@ def _control_floor_zerolabel_positive() -> None:
         tmp = Path(d)
         capture = _synth_capture(
             tmp,
-            [("WebFetch", "https://example.com/pricing", "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+            [
+                (
+                    "WebFetch",
+                    "https://example.com/pricing",
+                    "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                )
+            ],
         )
         analysis = _synth_analysis(
-            [_gt_line("GT-1", "claims 42", "https://example.com/pricing", label="unverified")]
+            [
+                _gt_line(
+                    "GT-1",
+                    "claims 42",
+                    "https://example.com/pricing",
+                    label="unverified",
+                )
+            ]
         )
         result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
         assert result.provenance_labels == 0, (
@@ -906,7 +1038,14 @@ def _control_floor_nofetch_negative() -> None:
         tmp = Path(d)
         capture = _synth_capture(tmp, [])
         analysis = _synth_analysis(
-            [_gt_line("GT-1", "claims 42", "https://example.com/pricing", label="unverified")]
+            [
+                _gt_line(
+                    "GT-1",
+                    "claims 42",
+                    "https://example.com/pricing",
+                    label="unverified",
+                )
+            ]
         )
         result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
         assert result.provenance_labels == 0, (
@@ -931,7 +1070,13 @@ def _control_floor_covered_negative() -> None:
         tmp = Path(d)
         capture = _synth_capture(
             tmp,
-            [("WebFetch", "https://example.com/pricing", "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+            [
+                (
+                    "WebFetch",
+                    "https://example.com/pricing",
+                    "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                )
+            ],
         )
         analysis = _synth_analysis(
             [_gt_line("GT-1", "claims 42", "https://example.com/pricing")]
@@ -957,8 +1102,10 @@ def _control_reach_marker_positive() -> None:
     claim.
     """
     for marker in ("-", "*", "+", "1.", "2)"):
-        line = f"{marker} **GT-1** claims 42 — source: https://example.com/p; " \
-               "read-at-source: rate table. *Provenance: read-at-source.*"
+        line = (
+            f"{marker} **GT-1** claims 42 — source: https://example.com/p; "
+            "read-at-source: rate table. *Provenance: read-at-source.*"
+        )
         gts = _parse_ground_truths(line)
         assert len(gts) == 1, f"marker {marker!r} did not yield a GT: {gts!r}"
         assert gts[0].label == "read-at-source", (
@@ -969,8 +1116,10 @@ def _control_reach_marker_positive() -> None:
 def _control_reach_labelperiod_positive() -> None:
     """999.7 reach: the label counts with or without its trailing period."""
     for label_form in ("*Provenance: read-at-source.*", "*Provenance: read-at-source*"):
-        line = f"- **GT-1** claims 42 — source: https://example.com/p; " \
-               f"read-at-source: rate table. {label_form}"
+        line = (
+            f"- **GT-1** claims 42 — source: https://example.com/p; "
+            f"read-at-source: rate table. {label_form}"
+        )
         gts = _parse_ground_truths(line)
         assert len(gts) == 1 and gts[0].label == "read-at-source", (
             f"label form {label_form!r} not recognised: {gts!r}"
@@ -989,12 +1138,21 @@ def _control_reach_labelled_source_positive() -> None:
         tmp = Path(d)
         capture = _synth_capture(
             tmp,
-            [("WebFetch", "https://example.com/pricing",
-              "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+            [
+                (
+                    "WebFetch",
+                    "https://example.com/pricing",
+                    "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                )
+            ],
         )
         analysis = _synth_analysis(
-            [("- **GT-1** claims 42. *Provenance: read-at-source* — "
-             "example.com/pricing, rate table row 7, quoted verbatim.")]
+            [
+                (
+                    "- **GT-1** claims 42. *Provenance: read-at-source* — "
+                    "example.com/pricing, rate table row 7, quoted verbatim."
+                )
+            ]
         )
         result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
         assert result.provenance_labels == 1, (
@@ -1023,8 +1181,10 @@ def _control_reach_labelform_negative() -> None:
     is still not a labelled GT. This is the property `_PROVENANCE_LABEL_RE`'s
     comment exists to protect, restated against the widened form.
     """
-    line = ("- **GT-1** claims 42 — source: https://example.com/p; "
-            "read-at-source: rate table.")
+    line = (
+        "- **GT-1** claims 42 — source: https://example.com/p; "
+        "read-at-source: rate table."
+    )
     gts = _parse_ground_truths(line)
     assert len(gts) == 1, f"precondition broken: {gts!r}"
     assert gts[0].label != "read-at-source", (
@@ -1043,7 +1203,13 @@ def _control_prov05_record_roundtrip() -> None:
         tmp = Path(d)
         capture = _synth_capture(
             tmp,
-            [("WebFetch", "https://example.com/pricing", "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+            [
+                (
+                    "WebFetch",
+                    "https://example.com/pricing",
+                    "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                )
+            ],
         )
         analysis = _synth_analysis(
             [_gt_line("GT-1", "a fact citing 42", "example.com/pricing")]
@@ -1104,7 +1270,9 @@ def _control_prov04_network_blocked() -> None:
         ),
     ):
         analysis_text = _FIXTURE_ANALYSIS.read_text(encoding="utf-8")
-        result = verify(analysis_text, _FIXTURE_CAPTURE, _FIXTURE_SUBAGENT_TYPE, "PR-P1")
+        result = verify(
+            analysis_text, _FIXTURE_CAPTURE, _FIXTURE_SUBAGENT_TYPE, "PR-P1"
+        )
         assert result.provenance_labels == _EXPECTED_SOURCES, (
             f"expected {_EXPECTED_SOURCES} sources, got {result.provenance_labels}"
         )
@@ -1315,7 +1483,9 @@ def _run_self_test() -> None:
     _run_control("D06-orphan-negative", _control_d06_orphan_negative)
     _run_control("REACH-marker-positive", _control_reach_marker_positive)
     _run_control("REACH-labelperiod-positive", _control_reach_labelperiod_positive)
-    _run_control("REACH-labelled-source-positive", _control_reach_labelled_source_positive)
+    _run_control(
+        "REACH-labelled-source-positive", _control_reach_labelled_source_positive
+    )
     _run_control("REACH-labelform-negative", _control_reach_labelform_negative)
     _run_control("FLOOR-zerogt-positive", _control_floor_zerogt_positive)
     _run_control("FLOOR-zerolabel-positive", _control_floor_zerolabel_positive)
@@ -1378,10 +1548,14 @@ def _validate_live_fixture() -> None:
     frozen evidence, and FROZEN-EVIDENCE sweeps for untracked files too.
     """
     if not _FIXTURE_ANALYSIS.is_file():
-        sys.stderr.write(f"check-provenance: fixture analysis not found: {_FIXTURE_ANALYSIS}\n")
+        sys.stderr.write(
+            f"check-provenance: fixture analysis not found: {_FIXTURE_ANALYSIS}\n"
+        )
         sys.exit(2)
     if not _FIXTURE_CAPTURE.is_file():
-        sys.stderr.write(f"check-provenance: fixture capture not found: {_FIXTURE_CAPTURE}\n")
+        sys.stderr.write(
+            f"check-provenance: fixture capture not found: {_FIXTURE_CAPTURE}\n"
+        )
         sys.exit(2)
 
     analysis_text = _FIXTURE_ANALYSIS.read_text(encoding="utf-8")
@@ -1429,7 +1603,9 @@ def _validate_live_fixture() -> None:
     # COVERAGE: a clean PASS cannot be taken on trust -- mutate the bytes this run
     # actually read (one numeric literal, GT-1's) and require the checker to
     # report that specific defect before printing PASS.
-    mutated_text, count = re.subn(re.escape(_MUTATE_FROM), _MUTATE_TO, analysis_text, count=1)
+    mutated_text, count = re.subn(
+        re.escape(_MUTATE_FROM), _MUTATE_TO, analysis_text, count=1
+    )
     if count != 1:
         sys.stderr.write(
             f"check-provenance: COVERAGE FAIL — could not locate the literal to "
@@ -1437,7 +1613,9 @@ def _validate_live_fixture() -> None:
         )
         sys.exit(1)
 
-    mutated_result = verify(mutated_text, _FIXTURE_CAPTURE, _FIXTURE_SUBAGENT_TYPE, "PR-P1")
+    mutated_result = verify(
+        mutated_text, _FIXTURE_CAPTURE, _FIXTURE_SUBAGENT_TYPE, "PR-P1"
+    )
     if not any(gt_id == "GT-1" for gt_id, _lit in mutated_result._unlocated_pairs):
         sys.stderr.write(
             "check-provenance: COVERAGE FAIL — the mutated literal did NOT produce "
@@ -1447,7 +1625,11 @@ def _validate_live_fixture() -> None:
         sys.exit(1)
 
     sources_matched = result.provenance_labels - result.unmatched_sources
-    literals_located = result.literals_checked - result.unlocated_literals - result.misattributed_literals
+    literals_located = (
+        result.literals_checked
+        - result.unlocated_literals
+        - result.misattributed_literals
+    )
     print(
         f"check-provenance: COVERAGE — verified {_FIXTURE_ANALYSIS} against "
         f"{_FIXTURE_CAPTURE} ({sources_matched}/{result.provenance_labels} sources "

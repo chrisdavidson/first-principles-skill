@@ -52,7 +52,16 @@ CATALOG_PATH: Path = REPO_ROOT / "tests" / "step0-fixture-catalog.md"
 # Do NOT derive this from the parsed table: the independence is what makes
 # D-05.3 actually catch renames/typos in the table.
 # Phase 110 merged decompose into five-whys; Phase 111 removes it here (9→8).
-KNOWN_TECHNIQUES = ("pre-mortem", "inversion", "fishbone", "five-whys", "trade-off", "second-order", "estimate", "theoretical-limit")
+KNOWN_TECHNIQUES = (
+    "pre-mortem",
+    "inversion",
+    "fishbone",
+    "five-whys",
+    "trade-off",
+    "second-order",
+    "estimate",
+    "theoretical-limit",
+)
 
 # D-21-J (Phase 21 plan 04): SEMGATE-02's six documented semantic-overlap
 # pairs — the original three (S-A01/A03/A05) plus fishbone<->five-whys,
@@ -85,9 +94,7 @@ SEMGATE02_OVERLAP_PAIRS: tuple[tuple[str, str], ...] = (
 # disclosed-bounds roster, not merely test the floor).
 
 
-def _semgate02_pair_problems(
-    executed: set[str], registered: set[str]
-) -> list[str]:
+def _semgate02_pair_problems(executed: set[str], registered: set[str]) -> list[str]:
     """Pure set-equality floor shared by `_run_self_test()`'s live check and
     its own negative arm, so the arm exercises the SAME code the live floor
     uses rather than a re-implementation.
@@ -101,8 +108,10 @@ def _semgate02_pair_problems(
     extra = executed - registered
     if missing or extra:
         return [
-            (f"SEMGATE-02 pair roster/executed mismatch: missing={sorted(missing)} "
-            f"extra={sorted(extra)}")
+            (
+                f"SEMGATE-02 pair roster/executed mismatch: missing={sorted(missing)} "
+                f"extra={sorted(extra)}"
+            )
         ]
     return []
 
@@ -130,6 +139,7 @@ def _roster_arm_clauses(text: str) -> tuple[str, str]:
 # ---------------------------------------------------------------------------
 # Table parsing helpers
 # ---------------------------------------------------------------------------
+
 
 def _extract_phrases(cell: str) -> list[str]:
     """Extract quoted trigger phrases from a table cell.
@@ -171,12 +181,14 @@ def _parse_table_rows(lines: list[str]) -> list[tuple[str, str]]:
         # technique = text up to the first unquoted pipe; remainder = rest of line
         first_pipe = body.index("|")
         first_cell = body[:first_pipe].strip()
-        remainder = body[first_pipe + 1:]
+        remainder = body[first_pipe + 1 :]
         rows.append((first_cell, remainder))
     return rows
 
 
-def _parse_phrase_table(path: Path) -> list[tuple[str, list[re.Pattern[str]], list[re.Pattern[str]]]]:
+def _parse_phrase_table(
+    path: Path,
+) -> list[tuple[str, list[re.Pattern[str]], list[re.Pattern[str]]]]:
     """Parse the phrase-detection table from the canonical SKILL-body.md source.
 
     Returns a list of ``(technique, [compiled_trigger_regex, ...], [compiled_guard_regex, ...])``
@@ -327,7 +339,10 @@ def _parse_phrase_table(path: Path) -> list[tuple[str, list[re.Pattern[str]], li
 # Classifier
 # ---------------------------------------------------------------------------
 
-def classify(prompt: str, rules: list[tuple[str, list[re.Pattern[str]], list[re.Pattern[str]]]]) -> str:
+
+def classify(
+    prompt: str, rules: list[tuple[str, list[re.Pattern[str]], list[re.Pattern[str]]]]
+) -> str:
     """Classify a prompt string to a MODE.
 
     Iterates rules in declaration order (D-04, first-row-wins). Returns
@@ -354,6 +369,7 @@ def classify(prompt: str, rules: list[tuple[str, list[re.Pattern[str]], list[re.
 # ---------------------------------------------------------------------------
 # Catalog reader
 # ---------------------------------------------------------------------------
+
 
 def _read_catalog(path: Path) -> list[tuple[str, str, str]]:
     """Parse the fixture catalog at ``path`` into ``(id, prompt, expected_mode)`` tuples.
@@ -419,6 +435,7 @@ def _read_catalog(path: Path) -> list[tuple[str, str, str]]:
 # Self-test
 # ---------------------------------------------------------------------------
 
+
 def _run_self_test() -> None:
     """Run TWO fixture categories and exit non-zero if any produces the wrong verdict.
 
@@ -450,49 +467,59 @@ def _run_self_test() -> None:
         # D-05.1: anchor missing — no "**Phrase detection rules**" in text
         (
             "D-05.1 anchor-missing",
-            ("| Technique | Trigger phrases (any one fires) |\n"
-            "|---|---|\n"
-            '| pre-mortem | "pre-mortem" |\n'),
+            (
+                "| Technique | Trigger phrases (any one fires) |\n"
+                "|---|---|\n"
+                '| pre-mortem | "pre-mortem" |\n'
+            ),
             "anchor",
         ),
         # D-05.2: zero rows — anchor present but table has only a header + separator
         (
             "D-05.2 zero-rows",
-            ("**Phrase detection rules** (case-insensitive)\n"
-            "\n"
-            "| Technique | Trigger phrases (any one fires) |\n"
-            "|---|---|\n"),
+            (
+                "**Phrase detection rules** (case-insensitive)\n"
+                "\n"
+                "| Technique | Trigger phrases (any one fires) |\n"
+                "|---|---|\n"
+            ),
             "zero",
         ),
         # D-05.3: unknown technique — row with name "unknown-technique"
         (
             "D-05.3 unknown-technique",
-            ("**Phrase detection rules** (case-insensitive)\n"
-            "\n"
-            "| Technique | Trigger phrases (any one fires) |\n"
-            "|---|---|\n"
-            '| unknown-technique | "trigger phrase" |\n'),
+            (
+                "**Phrase detection rules** (case-insensitive)\n"
+                "\n"
+                "| Technique | Trigger phrases (any one fires) |\n"
+                "|---|---|\n"
+                '| unknown-technique | "trigger phrase" |\n'
+            ),
             "unknown technique",
         ),
         # D-05.4: uncompilable regex — quoted cell contains "[" (invalid regex)
         (
             "D-05.4 bad-regex",
-            ("**Phrase detection rules** (case-insensitive)\n"
-            "\n"
-            "| Technique | Trigger phrases (any one fires) |\n"
-            "|---|---|\n"
-            '| pre-mortem | "[" |\n'),
+            (
+                "**Phrase detection rules** (case-insensitive)\n"
+                "\n"
+                "| Technique | Trigger phrases (any one fires) |\n"
+                "|---|---|\n"
+                '| pre-mortem | "[" |\n'
+            ),
             "not a valid Python regex",
         ),
         # D-05.5: guard cell with unbalanced quote (D-G / WR-03 applied to guard cell)
         # A 3-column row where the guard cell has an odd number of '"' → loud failure.
         (
             "D-05.5 guard-unbalanced-quote",
-            ("**Phrase detection rules** (case-insensitive)\n"
-            "\n"
-            "| Technique | Trigger phrases (any one fires) | Guard phrases (suppress if any fires) |\n"
-            "|---|---|---|\n"
-            '| pre-mortem | "pre-mortem" | "unmatched quote |\n'),
+            (
+                "**Phrase detection rules** (case-insensitive)\n"
+                "\n"
+                "| Technique | Trigger phrases (any one fires) | Guard phrases (suppress if any fires) |\n"
+                "|---|---|---|\n"
+                '| pre-mortem | "pre-mortem" | "unmatched quote |\n'
+            ),
             "unbalanced quote",
         ),
         # D-05.6: ragged row missing the guard cell in a 3-column table (D-G)
@@ -529,7 +556,8 @@ def _run_self_test() -> None:
                 _dg_ragged_path,
             ],
             capture_output=True,
-            text=True, check=False,
+            text=True,
+            check=False,
         )
         _dg_exit_code = _dg_result.returncode
     finally:
@@ -546,7 +574,9 @@ def _run_self_test() -> None:
             f"(expected exit 0 / graceful no-guard, got exit {_dg_exit_code}; "
             f"stderr: {_dg_result.stderr.strip()!r})"
         )
-        wrong.append("D-05.6 ragged-row-no-guard (expected graceful parse, got non-zero exit)")
+        wrong.append(
+            "D-05.6 ragged-row-no-guard (expected graceful parse, got non-zero exit)"
+        )
 
     for label, table_text, expected_substring in fault_fixtures:
         # Write the malformed table to a temporary file and run the parser
@@ -566,7 +596,8 @@ def _run_self_test() -> None:
                     tmp_path,
                 ],
                 capture_output=True,
-                text=True, check=False,
+                text=True,
+                check=False,
             )
             exit_code = result.returncode
             stderr_text = result.stderr
@@ -629,9 +660,7 @@ def _run_self_test() -> None:
                 f"(expected {expected_mode!r}, got {computed!r}, "
                 f"prompt: {prompt[:60]!r})"
             )
-            wrong.append(
-                f"{row_id} (expected {expected_mode!r}, got {computed!r})"
-            )
+            wrong.append(f"{row_id} (expected {expected_mode!r}, got {computed!r})")
 
     # -----------------------------------------------------------------------
     # Category 3: RR-80-01 named emulator assertion (D-02 / D-04)
@@ -660,9 +689,7 @@ def _run_self_test() -> None:
     # gate keeps running catalog-independently).  But a silent *edit* to the catalog
     # row (e.g. the fragile em-dash mangled to `--` or a different dash codepoint)
     # now fails loudly here instead of leaving the gate testing a stale prompt.
-    _sn04_catalog_prompt = next(
-        (p for rid, p, _ in fixtures if rid == "S-N04"), None
-    )
+    _sn04_catalog_prompt = next((p for rid, p, _ in fixtures if rid == "S-N04"), None)
     if _sn04_catalog_prompt is not None and _sn04_catalog_prompt != _RR80_01_PROMPT:
         print(
             "check-step0-emulator --self-test: RR-80-01 S-N04 FAIL "
@@ -733,10 +760,11 @@ def _run_self_test() -> None:
 
     # Drift guard: hardcoded positive literal must still match the live catalog
     # S-P16 row, OR the row must be absent.
-    _sp16_catalog_prompt = next(
-        (p for rid, p, _ in fixtures if rid == "S-P16"), None
-    )
-    if _sp16_catalog_prompt is not None and _sp16_catalog_prompt != _FIVEWHYS_ABSORB_POS_PROMPT:
+    _sp16_catalog_prompt = next((p for rid, p, _ in fixtures if rid == "S-P16"), None)
+    if (
+        _sp16_catalog_prompt is not None
+        and _sp16_catalog_prompt != _FIVEWHYS_ABSORB_POS_PROMPT
+    ):
         print(
             "check-step0-emulator --self-test: FIVEWHYS-ABSORB S-P16 FAIL "
             "(hardcoded positive literal drifted from the live catalog S-P16 row — re-sync "
@@ -749,10 +777,11 @@ def _run_self_test() -> None:
 
     # Drift guard: hardcoded negative literal must still match the live catalog
     # S-N08 row, OR the row must be absent.
-    _sn08_catalog_prompt = next(
-        (p for rid, p, _ in fixtures if rid == "S-N08"), None
-    )
-    if _sn08_catalog_prompt is not None and _sn08_catalog_prompt != _FIVEWHYS_ABSORB_NEG_PROMPT:
+    _sn08_catalog_prompt = next((p for rid, p, _ in fixtures if rid == "S-N08"), None)
+    if (
+        _sn08_catalog_prompt is not None
+        and _sn08_catalog_prompt != _FIVEWHYS_ABSORB_NEG_PROMPT
+    ):
         print(
             "check-step0-emulator --self-test: FIVEWHYS-ABSORB S-N08 FAIL "
             "(hardcoded negative literal drifted from the live catalog S-N08 row — re-sync "
@@ -830,10 +859,11 @@ def _run_self_test() -> None:
 
     # Drift guard: hardcoded positive literal must still match the live catalog
     # S-P10 row, OR the row must be absent.
-    _sp10_catalog_prompt = next(
-        (p for rid, p, _ in fixtures if rid == "S-P10"), None
-    )
-    if _sp10_catalog_prompt is not None and _sp10_catalog_prompt != _ESTIMATE07_POS_PROMPT:
+    _sp10_catalog_prompt = next((p for rid, p, _ in fixtures if rid == "S-P10"), None)
+    if (
+        _sp10_catalog_prompt is not None
+        and _sp10_catalog_prompt != _ESTIMATE07_POS_PROMPT
+    ):
         print(
             "check-step0-emulator --self-test: ESTIMATE-07 S-P10 FAIL "
             "(hardcoded positive literal drifted from the live catalog S-P10 row — re-sync "
@@ -846,10 +876,11 @@ def _run_self_test() -> None:
 
     # Drift guard: hardcoded negative literal must still match the live catalog
     # S-N06 row, OR the row must be absent.
-    _sn06_catalog_prompt = next(
-        (p for rid, p, _ in fixtures if rid == "S-N06"), None
-    )
-    if _sn06_catalog_prompt is not None and _sn06_catalog_prompt != _ESTIMATE07_NEG_PROMPT:
+    _sn06_catalog_prompt = next((p for rid, p, _ in fixtures if rid == "S-N06"), None)
+    if (
+        _sn06_catalog_prompt is not None
+        and _sn06_catalog_prompt != _ESTIMATE07_NEG_PROMPT
+    ):
         print(
             "check-step0-emulator --self-test: ESTIMATE-07 S-N06 FAIL "
             "(hardcoded negative literal drifted from the live catalog S-N06 row — re-sync "
@@ -930,10 +961,11 @@ def _run_self_test() -> None:
 
     # Drift guard: hardcoded positive literal must still match the live catalog
     # S-P14 row, OR the row must be absent.
-    _sp14_catalog_prompt = next(
-        (p for rid, p, _ in fixtures if rid == "S-P14"), None
-    )
-    if _sp14_catalog_prompt is not None and _sp14_catalog_prompt != _TLIMIT07_POS_PROMPT:
+    _sp14_catalog_prompt = next((p for rid, p, _ in fixtures if rid == "S-P14"), None)
+    if (
+        _sp14_catalog_prompt is not None
+        and _sp14_catalog_prompt != _TLIMIT07_POS_PROMPT
+    ):
         print(
             "check-step0-emulator --self-test: TLIMIT-07 S-P14 FAIL "
             "(hardcoded positive literal drifted from the live catalog S-P14 row — re-sync "
@@ -946,10 +978,11 @@ def _run_self_test() -> None:
 
     # Drift guard: hardcoded negative literal must still match the live catalog
     # S-N07 row, OR the row must be absent.
-    _sn07_catalog_prompt = next(
-        (p for rid, p, _ in fixtures if rid == "S-N07"), None
-    )
-    if _sn07_catalog_prompt is not None and _sn07_catalog_prompt != _TLIMIT07_NEG_PROMPT:
+    _sn07_catalog_prompt = next((p for rid, p, _ in fixtures if rid == "S-N07"), None)
+    if (
+        _sn07_catalog_prompt is not None
+        and _sn07_catalog_prompt != _TLIMIT07_NEG_PROMPT
+    ):
         print(
             "check-step0-emulator --self-test: TLIMIT-07 S-N07 FAIL "
             "(hardcoded negative literal drifted from the live catalog S-N07 row — re-sync "
@@ -1117,10 +1150,11 @@ def _run_self_test() -> None:
     # the live catalog S-A01 row, OR the row must be absent (deletion is the
     # survivable case — the hardcoded literal is what gets classified below).
     executed_pairs.append("S-A01")
-    _sa01_catalog_prompt = next(
-        (p for rid, p, _ in fixtures if rid == "S-A01"), None
-    )
-    if _sa01_catalog_prompt is not None and _sa01_catalog_prompt != _SEMGATE07_DECOMP_FW_PROMPT:
+    _sa01_catalog_prompt = next((p for rid, p, _ in fixtures if rid == "S-A01"), None)
+    if (
+        _sa01_catalog_prompt is not None
+        and _sa01_catalog_prompt != _SEMGATE07_DECOMP_FW_PROMPT
+    ):
         print(
             "check-step0-emulator --self-test: SEMGATE-07 S-A01 FAIL "
             "(hardcoded absorbed-decompose-phrase literal drifted from the live catalog S-A01 row — "
@@ -1134,10 +1168,11 @@ def _run_self_test() -> None:
     # Drift guard: hardcoded theoretical-limit↔inversion literal must still match
     # the live catalog S-A03 row, OR the row must be absent.
     executed_pairs.append("S-A03")
-    _sa03_catalog_prompt = next(
-        (p for rid, p, _ in fixtures if rid == "S-A03"), None
-    )
-    if _sa03_catalog_prompt is not None and _sa03_catalog_prompt != _SEMGATE07_TL_INV_PROMPT:
+    _sa03_catalog_prompt = next((p for rid, p, _ in fixtures if rid == "S-A03"), None)
+    if (
+        _sa03_catalog_prompt is not None
+        and _sa03_catalog_prompt != _SEMGATE07_TL_INV_PROMPT
+    ):
         print(
             "check-step0-emulator --self-test: SEMGATE-07 S-A03 FAIL "
             "(hardcoded theoretical-limit↔inversion literal drifted from the live catalog S-A03 row — "
@@ -1151,10 +1186,11 @@ def _run_self_test() -> None:
     # Drift guard: hardcoded inversion↔pre-mortem literal must still match the live
     # catalog S-A05 row, OR the row must be absent.
     executed_pairs.append("S-A05")
-    _sa05_catalog_prompt = next(
-        (p for rid, p, _ in fixtures if rid == "S-A05"), None
-    )
-    if _sa05_catalog_prompt is not None and _sa05_catalog_prompt != _SEMGATE07_INV_PM_PROMPT:
+    _sa05_catalog_prompt = next((p for rid, p, _ in fixtures if rid == "S-A05"), None)
+    if (
+        _sa05_catalog_prompt is not None
+        and _sa05_catalog_prompt != _SEMGATE07_INV_PM_PROMPT
+    ):
         print(
             "check-step0-emulator --self-test: SEMGATE-07 S-A05 FAIL "
             "(hardcoded inversion↔pre-mortem literal drifted from the live catalog S-A05 row — "
@@ -1226,20 +1262,28 @@ def _run_self_test() -> None:
 
     _SEMGATE07_CAP1_PAIRS = (
         (
-            "S-A07", _SEMGATE07_FB_FW_PROMPT, _SEMGATE07_FB_FW_EXPECTED,
+            "S-A07",
+            _SEMGATE07_FB_FW_PROMPT,
+            _SEMGATE07_FB_FW_EXPECTED,
             "fishbone↔five-whys co-fire",
             "regression: five-whys may have moved above fishbone in row order",
         ),
         (
-            "S-A09", _SEMGATE07_TL_EST_PROMPT, _SEMGATE07_TL_EST_EXPECTED,
+            "S-A09",
+            _SEMGATE07_TL_EST_PROMPT,
+            _SEMGATE07_TL_EST_EXPECTED,
             "theoretical-limit↔estimate co-fire",
             "regression: estimate may have moved above theoretical-limit in row order",
         ),
         (
-            "S-A11", _SEMGATE07_PM_TO_PROMPT, _SEMGATE07_PM_TO_EXPECTED,
+            "S-A11",
+            _SEMGATE07_PM_TO_PROMPT,
+            _SEMGATE07_PM_TO_EXPECTED,
             "pre-mortem↔trade-off co-fire (4 trade-off triggers vs 1 pre-mortem trigger)",
-            ("regression: trade-off may have moved above pre-mortem in row order — "
-            "precedence is by row, not by trigger count"),
+            (
+                "regression: trade-off may have moved above pre-mortem in row order — "
+                "precedence is by row, not by trigger count"
+            ),
         ),
     )
 
@@ -1377,10 +1421,11 @@ def _run_self_test() -> None:
 
     # Drift guard: hardcoded S-P01 literal must still match the live catalog
     # S-P01 row, OR the row must be absent (deletion is the survivable case).
-    _sp01_catalog_prompt = next(
-        (p for rid, p, _ in fixtures if rid == "S-P01"), None
-    )
-    if _sp01_catalog_prompt is not None and _sp01_catalog_prompt != _FIX01_LOCK_SP01_PROMPT:
+    _sp01_catalog_prompt = next((p for rid, p, _ in fixtures if rid == "S-P01"), None)
+    if (
+        _sp01_catalog_prompt is not None
+        and _sp01_catalog_prompt != _FIX01_LOCK_SP01_PROMPT
+    ):
         print(
             "check-step0-emulator --self-test: FIX01-LOCK S-P01 FAIL "
             "(hardcoded S-P01 literal drifted from the live catalog S-P01 row — "
@@ -1393,10 +1438,11 @@ def _run_self_test() -> None:
 
     # Drift guard: hardcoded S-P03 literal must still match the live catalog
     # S-P03 row, OR the row must be absent.
-    _sp03_catalog_prompt = next(
-        (p for rid, p, _ in fixtures if rid == "S-P03"), None
-    )
-    if _sp03_catalog_prompt is not None and _sp03_catalog_prompt != _FIX01_LOCK_SP03_PROMPT:
+    _sp03_catalog_prompt = next((p for rid, p, _ in fixtures if rid == "S-P03"), None)
+    if (
+        _sp03_catalog_prompt is not None
+        and _sp03_catalog_prompt != _FIX01_LOCK_SP03_PROMPT
+    ):
         print(
             "check-step0-emulator --self-test: FIX01-LOCK S-P03 FAIL "
             "(hardcoded S-P03 literal drifted from the live catalog S-P03 row — "
@@ -1516,9 +1562,7 @@ def _run_self_test() -> None:
     # TIEBREAK-DECISIVE: decisive trigger prompt → focused-inversion.
     # Confirms the tiebreaker does NOT suppress legitimate focused routes:
     # a prompt with a clear decisive trigger ("invert this claim") must still route correctly.
-    _TIEBREAK_DECISIVE_PROMPT = (
-        "invert this claim: our deployment pipeline is reliable enough for daily releases"
-    )
+    _TIEBREAK_DECISIVE_PROMPT = "invert this claim: our deployment pipeline is reliable enough for daily releases"
     _TIEBREAK_DECISIVE_EXPECTED = "focused-inversion"
 
     tiebreak_decisive_computed = classify(_TIEBREAK_DECISIVE_PROMPT, rules)
@@ -1755,10 +1799,11 @@ def _run_self_test() -> None:
     _NEGCAT_OBLIQUE_EXPECTED = "full-composer"
 
     # Drift guard: hardcoded literal must still match the live S-N13 catalog row (or be absent)
-    _sn13_catalog_prompt = next(
-        (p for rid, p, _ in fixtures if rid == "S-N13"), None
-    )
-    if _sn13_catalog_prompt is not None and _sn13_catalog_prompt != _NEGCAT_OBLIQUE_PROMPT:
+    _sn13_catalog_prompt = next((p for rid, p, _ in fixtures if rid == "S-N13"), None)
+    if (
+        _sn13_catalog_prompt is not None
+        and _sn13_catalog_prompt != _NEGCAT_OBLIQUE_PROMPT
+    ):
         print(
             "check-step0-emulator --self-test: NEGCAT-OBLIQUE FAIL "
             "(hardcoded literal drifted from the live catalog S-N13 row — re-sync "
@@ -1837,9 +1882,10 @@ def _run_self_test() -> None:
     )
     if _semgate02_floor_problems:
         wrong.extend(_semgate02_floor_problems)
-        print("check-step0-emulator --self-test: SEMGATE02-floor FAIL — " + "; ".join(
-            _semgate02_floor_problems
-        ))
+        print(
+            "check-step0-emulator --self-test: SEMGATE02-floor FAIL — "
+            + "; ".join(_semgate02_floor_problems)
+        )
     else:
         print(
             f"check-step0-emulator --self-test: SEMGATE02-floor PASS — "
@@ -1857,7 +1903,9 @@ def _run_self_test() -> None:
             "check-step0-emulator --self-test: SEMGATE02-floor-negative WRONGLY "
             "PASSED — _semgate02_pair_problems did NOT fire on a synthetic mismatch"
         )
-        wrong.append("SEMGATE02-floor-negative (floor did not fire on synthetic mismatch)")
+        wrong.append(
+            "SEMGATE02-floor-negative (floor did not fire on synthetic mismatch)"
+        )
     else:
         _semgate02_missing_clause, _semgate02_extra_clause = _roster_arm_clauses(
             _semgate02_synthetic_text
@@ -1872,7 +1920,9 @@ def _run_self_test() -> None:
                 f"clauses: missing_clause={_semgate02_missing_clause!r} "
                 f"extra_clause={_semgate02_extra_clause!r}"
             )
-            wrong.append("SEMGATE02-floor-negative (floor did not name both directions)")
+            wrong.append(
+                "SEMGATE02-floor-negative (floor did not name both directions)"
+            )
         else:
             print(
                 "check-step0-emulator --self-test: SEMGATE02-floor-negative PASS — "
@@ -1886,12 +1936,13 @@ def _run_self_test() -> None:
 
     if wrong:
         sys.stderr.write(
-            f"check-step0-emulator --self-test: FAIL — "
-            f"{', '.join(wrong)}\n"
+            f"check-step0-emulator --self-test: FAIL — {', '.join(wrong)}\n"
         )
         sys.exit(1)
 
-    print(f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + FIVEWHYS-ABSORB + ESTIMATE-07 + TLIMIT-07 + SEMGATE-07 (6 pairs: S-A01/A03/A05 + CAP-1 S-A07/A09/A11) + FIX01-LOCK + PREMORTEM-GUARD + TIEBREAK-OBLIQUE + TIEBREAK-DECISIVE + NEGCAT-GUARD-1 + NEGCAT-GUARD-2 + NEGCAT-GUARD-3 + NEGCAT-GUARD-4 + NEGCAT-OBLIQUE named assertions")
+    print(
+        f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + FIVEWHYS-ABSORB + ESTIMATE-07 + TLIMIT-07 + SEMGATE-07 (6 pairs: S-A01/A03/A05 + CAP-1 S-A07/A09/A11) + FIX01-LOCK + PREMORTEM-GUARD + TIEBREAK-OBLIQUE + TIEBREAK-DECISIVE + NEGCAT-GUARD-1 + NEGCAT-GUARD-2 + NEGCAT-GUARD-3 + NEGCAT-GUARD-4 + NEGCAT-OBLIQUE named assertions"
+    )
 
 
 def _require_python_version() -> None:
@@ -1914,7 +1965,9 @@ def describe() -> dict[str, object]:
             "known_technique_count": len(KNOWN_TECHNIQUES),
             "semgate02_pair_count": len(SEMGATE02_OVERLAP_PAIRS),
         },
-        "disclosed_bounds_anchors": [pair_id for pair_id, _desc in SEMGATE02_OVERLAP_PAIRS],
+        "disclosed_bounds_anchors": [
+            pair_id for pair_id, _desc in SEMGATE02_OVERLAP_PAIRS
+        ],
         "checked_files": sorted(
             str(p.relative_to(REPO_ROOT)) for p in (SKILL_BODY, CATALOG_PATH)
         ),

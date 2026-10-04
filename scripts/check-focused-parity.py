@@ -171,7 +171,9 @@ def _flex_pattern(target: str) -> re.Pattern[str]:
     LOCATE occurrences of a literal in raw (non-flattened) text, since
     flattening text loses the character offsets a placement assertion needs.
     """
-    return re.compile(r"\s+".join(re.escape(w) for w in _flat(target).strip().split(" ")))
+    return re.compile(
+        r"\s+".join(re.escape(w) for w in _flat(target).strip().split(" "))
+    )
 
 
 def _count_flex(text: str, literal: str) -> int:
@@ -194,7 +196,9 @@ def _replace_once(text: str, target: str, replacement: str = "") -> str:
     """
     pattern = _flex_pattern(target)
     if pattern.search(text) is None:
-        raise AssertionError(f"target not found in text while building fixture: {target!r}")
+        raise AssertionError(
+            f"target not found in text while building fixture: {target!r}"
+        )
     return pattern.sub(lambda _m: replacement, text, count=1)
 
 
@@ -320,7 +324,9 @@ _WRAPPER_RETIRED = "produce only its canonical output sections"
 # absorbs) and zero times in the launcher. Because the anchor contains the
 # em dash literally, an ASCII-hyphen regression (the exact defect
 # `260828-uzh` fixed) drops the count to zero.
-_WRAPPER_FOLLOW_ON = "step below — do not run the full 5-phase first-principles analysis."
+_WRAPPER_FOLLOW_ON = (
+    "step below — do not run the full 5-phase first-principles analysis."
+)
 
 # CR-02 closure guard, negative half: a line-initial ASCII hyphen followed by
 # the negative constraint is exactly the CommonMark defect that turned the
@@ -380,7 +386,9 @@ _EXIT_CRITERION_LINE = "**Exit criterion:**"
 # PAR-03: the amended focused-mode branching parenthetical, naming Validate.
 # Taken verbatim from `03-01-SUMMARY.md` and confirmed live against
 # `first-principles/agents/first-principles.md`.
-_AGENT_VALIDATE_NAMED = "Derivation Chains, Validate, and Second-Order Effects when applicable"
+_AGENT_VALIDATE_NAMED = (
+    "Derivation Chains, Validate, and Second-Order Effects when applicable"
+)
 
 # PAR-03 (negative half): the pre-edit parenthetical this amendment replaced.
 # Anchored starting at "Derivation Chains," rather than only the shorter
@@ -390,7 +398,9 @@ _AGENT_VALIDATE_NAMED = "Derivation Chains, Validate, and Second-Order Effects w
 # "Validate," was inserted earlier in the list), so it cannot distinguish
 # them. Confirmed live: the longer anchor below is 0 occurrences on the
 # correct (amended) tree; the shorter fragment alone is 1 (a false positive).
-_AGENT_VALIDATE_RETIRED = "Derivation Chains, Second-Order Effects when applicable) run as written"
+_AGENT_VALIDATE_RETIRED = (
+    "Derivation Chains, Second-Order Effects when applicable) run as written"
+)
 
 # Placement anchors for Agent-3: the validate-named literal must fall between
 # the branching label and the full-composer bullet.
@@ -578,7 +588,9 @@ def _check_anchor_control_coverage(
         # substring of a longer one must not be credited with the longer
         # name's references.
         count = len(
-            re.findall(rf"(?<![A-Za-z0-9_]){re.escape(name)}(?![A-Za-z0-9_])", counting_source)
+            re.findall(
+                rf"(?<![A-Za-z0-9_]){re.escape(name)}(?![A-Za-z0-9_])", counting_source
+            )
         )
         if is_exempt and is_pending:
             failures.append(
@@ -733,7 +745,9 @@ def _check_stub_surface(
         return failures
 
     launcher_body = stubs[LAUNCHER_SLUG]
-    techniques = {slug: body for slug, body in stubs.items() if slug not in non_technique}
+    techniques = {
+        slug: body for slug, body in stubs.items() if slug not in non_technique
+    }
 
     # --- Stub-1 (PAR-02, count) ---------------------------------------
     if len(techniques) != EXPECTED_STUB_COUNT:
@@ -742,7 +756,8 @@ def _check_stub_surface(
             f"present, expected exactly {EXPECTED_STUB_COUNT}"
         )
     carrying = sorted(
-        slug for slug, body in techniques.items()
+        slug
+        for slug, body in techniques.items()
         if _count_flex(body, _STUB_SECTION_HEADING) >= 1
     )
     if len(carrying) == 0:
@@ -857,7 +872,8 @@ def _check_stub_surface(
     unmatched_slugs: list[str] = []
     for slug, body in sorted(techniques.items()):
         forms = [
-            name for name, literal in _COMPLETION_CONDITION_FORMS.items()
+            name
+            for name, literal in _COMPLETION_CONDITION_FORMS.items()
             if _count_flex(body, literal) > 0
         ]
         if forms:
@@ -991,9 +1007,8 @@ def _check_stub_surface(
             )
             continue
         body = stubs[slug]
-        marker_count = (
-            _count_flex(body, _WHEN_TO_REACH_HEADING)
-            + _count_flex(body, _STUB_SECTION_HEADING)
+        marker_count = _count_flex(body, _WHEN_TO_REACH_HEADING) + _count_flex(
+            body, _STUB_SECTION_HEADING
         )
         if marker_count >= 1:
             failures.append(
@@ -1327,7 +1342,9 @@ def _check_cross_surface_parity(
     agent_set = set(derived)
 
     # --- Parity-4 (D-10, cross-surface equality) ----------------------------
-    techniques = {slug: body for slug, body in stubs.items() if slug not in non_technique}
+    techniques = {
+        slug: body for slug, body in stubs.items() if slug not in non_technique
+    }
     for slug, body in sorted(techniques.items()):
         stub_note = _stub_parity_note(body)
         if stub_note is None or not stub_note.strip():
@@ -1426,8 +1443,10 @@ def _check_phase_stub_exit_criteria(
     if body is None:
         if not AGENT_FILE.exists():
             return [
-                (f"phase-stub exit-criterion check could not read the agent body: "
-                f"{AGENT_FILE} does not exist")
+                (
+                    f"phase-stub exit-criterion check could not read the agent body: "
+                    f"{AGENT_FILE} does not exist"
+                )
             ]
         body = AGENT_FILE.read_text(encoding="utf-8")
 
@@ -1444,7 +1463,9 @@ def _check_phase_stub_exit_criteria(
         # The phase section ends at the next `### ` heading or the next `---`
         # rule, whichever comes first.
         rest = body[start + len(phase_heading) :]
-        end_candidates = [i for i in (rest.find("\n### "), rest.find("\n---")) if i != -1]
+        end_candidates = [
+            i for i in (rest.find("\n### "), rest.find("\n---")) if i != -1
+        ]
         section = rest[: min(end_candidates)] if end_candidates else rest
 
         body_shape = _exit_criterion_shape(section)
@@ -1550,7 +1571,9 @@ def _validate_files() -> int:
     for slug in _AGENT_REFERENCE_SLUGS:
         ref_path = AGENT_REFERENCES_DIR / f"{slug}.md"
         if not ref_path.exists():
-            sys.stderr.write(f"check-focused-parity: agent reference file not found: {ref_path}\n")
+            sys.stderr.write(
+                f"check-focused-parity: agent reference file not found: {ref_path}\n"
+            )
             return 2
         reference_texts[slug] = ref_path.read_text(encoding="utf-8")
 
@@ -1621,14 +1644,13 @@ def _check_negative(
     def _id_matches(msg: str, check_id: str) -> bool:
         if not msg.startswith(check_id):
             return False
-        rest = msg[len(check_id):]
+        rest = msg[len(check_id) :]
         return rest[:1] in (" ", ":")
 
     if not failures:
         if expect_rejection:
             print(
-                f"({label}) {_META_CONTROL_MARK}: expected failure, "
-                "correctly got none"
+                f"({label}) {_META_CONTROL_MARK}: expected failure, correctly got none"
             )
         else:
             print(f"({label}) WRONGLY PASSED (expected failure)")
@@ -1669,7 +1691,9 @@ def _check_negative(
     print(f"({label}) correctly failed ({expected_check_id})")
 
 
-def _check_positive(label: str, failures: list[str], *, expect_rejection: bool = False) -> None:
+def _check_positive(
+    label: str, failures: list[str], *, expect_rejection: bool = False
+) -> None:
     """Assert a fixture that should pass produced zero failures.
 
     `expect_rejection` (default `False`) reroutes the WORDING of the
@@ -1687,7 +1711,9 @@ def _check_positive(label: str, failures: list[str], *, expect_rejection: bool =
         print(f"({label}) correctly passed (0 failures)")
 
 
-def _mutate_one(stubs: dict[str, str], slug: str, target: str, replacement: str = "") -> dict[str, str]:
+def _mutate_one(
+    stubs: dict[str, str], slug: str, target: str, replacement: str = ""
+) -> dict[str, str]:
     """Return a copy of *stubs* with a single-site whitespace-tolerant
     substitution applied to one slug's body. Never mutates the input dict or
     any string it holds — `str` is immutable and `dict(stubs)` is a shallow
@@ -1697,7 +1723,9 @@ def _mutate_one(stubs: dict[str, str], slug: str, target: str, replacement: str 
     return new_stubs
 
 
-def _mutate_all_non_launcher(stubs: dict[str, str], target: str, replacement: str = "") -> dict[str, str]:
+def _mutate_all_non_launcher(
+    stubs: dict[str, str], target: str, replacement: str = ""
+) -> dict[str, str]:
     """Like `_mutate_one`, applied to every technique slug (every slug
     outside `NON_TECHNIQUE_SLUGS`) — builds the Stub-1 zero-match fixture
     (control b)."""
@@ -1738,7 +1766,9 @@ def _move_section_after_handoff(stubs: dict[str, str], slug: str) -> dict[str, s
     before = body[: heading_match.start()]
     middle = body[heading_match.start() : handoff_match.start()]
     tail_from_handoff = body[handoff_match.start() :]
-    mutated = before + tail_from_handoff.rstrip("\n") + "\n\n" + middle.rstrip("\n") + "\n"
+    mutated = (
+        before + tail_from_handoff.rstrip("\n") + "\n\n" + middle.rstrip("\n") + "\n"
+    )
     new_stubs = dict(stubs)
     new_stubs[slug] = mutated
     return new_stubs
@@ -1819,7 +1849,9 @@ def _strip_agent_note(text: str) -> str:
     distinct from "anchors not found" entirely."""
     note = _agent_parity_note(text)
     if not note:
-        raise AssertionError("agent parity note precondition failed: note is empty or None")
+        raise AssertionError(
+            "agent parity note precondition failed: note is empty or None"
+        )
     return _replace_once(text, note, "")
 
 
@@ -1834,7 +1866,9 @@ def _mutate_ref(
     return new_texts
 
 
-def _duplicate_in_ref(reference_texts: dict[str, str], slug: str, text: str) -> dict[str, str]:
+def _duplicate_in_ref(
+    reference_texts: dict[str, str], slug: str, text: str
+) -> dict[str, str]:
     """Return a copy of *reference_texts* with *text* appended a second time
     to one slug's body — the agent-reference-surface counterpart of
     `_append_to`, builds Agent-7's duplicate-count fixture."""
@@ -1843,7 +1877,9 @@ def _duplicate_in_ref(reference_texts: dict[str, str], slug: str, text: str) -> 
     return new_texts
 
 
-def _move_exit_criterion_to_top(reference_texts: dict[str, str], slug: str) -> dict[str, str]:
+def _move_exit_criterion_to_top(
+    reference_texts: dict[str, str], slug: str
+) -> dict[str, str]:
     """Build the Agent-7 "outside Procedure" placement-violation fixture:
     cut the Exit-criterion LINE (the whole line it sits on, not just the
     bold marker) out of its natural place inside `## Procedure` and prepend
@@ -1890,7 +1926,10 @@ def _reflow(text: str, width: int) -> str:
     def _flush() -> None:
         if buf:
             wrapped = textwrap.wrap(
-                " ".join(buf), width=width, break_long_words=False, break_on_hyphens=False
+                " ".join(buf),
+                width=width,
+                break_long_words=False,
+                break_on_hyphens=False,
             )
             out.extend(wrapped or [""])
             buf.clear()
@@ -1931,7 +1970,11 @@ def _transcript_alarm_verdict(text: str | None) -> tuple[str, list[str]]:
     """
     if text is None:
         return "unavailable", []
-    offending = [line for line in text.splitlines() if "WRONGLY" in line or "WRONG reason" in line]
+    offending = [
+        line
+        for line in text.splitlines()
+        if "WRONGLY" in line or "WRONG reason" in line
+    ]
     if offending:
         return "alarmed", offending
     return "clean", []
@@ -1982,13 +2025,14 @@ def _run_self_test_body() -> int:
     try:
         real_stubs = _load_real_stubs()
     except (ValueError, FileNotFoundError) as exc:
-        sys.stderr.write(f"check-focused-parity --self-test: could not read fixtures: {exc}\n")
+        sys.stderr.write(
+            f"check-focused-parity --self-test: could not read fixtures: {exc}\n"
+        )
         return 2
 
-    if (
-        not NON_TECHNIQUE_SLUGS.issubset(real_stubs)
-        or len(real_stubs) != EXPECTED_STUB_COUNT + len(NON_TECHNIQUE_SLUGS)
-    ):
+    if not NON_TECHNIQUE_SLUGS.issubset(real_stubs) or len(
+        real_stubs
+    ) != EXPECTED_STUB_COUNT + len(NON_TECHNIQUE_SLUGS):
         sys.stderr.write(
             "check-focused-parity --self-test: unexpected live stub set shape "
             f"({len(real_stubs)} entries, non-technique slugs present: "
@@ -1998,7 +2042,9 @@ def _run_self_test_body() -> int:
         return 2
 
     if not AGENT_FILE.exists():
-        sys.stderr.write(f"check-focused-parity --self-test: agent file not found: {AGENT_FILE}\n")
+        sys.stderr.write(
+            f"check-focused-parity --self-test: agent file not found: {AGENT_FILE}\n"
+        )
         return 2
     real_agent_text = AGENT_FILE.read_text(encoding="utf-8")
 
@@ -2024,7 +2070,9 @@ def _run_self_test_body() -> int:
     # Two module-level checks, printed before the fixture battery.
     coherence_failures = _check_anchor_coherence()
     if coherence_failures:
-        print(f"(coh) anchor coherence: WRONGLY FAILED: {'; '.join(coherence_failures)}")
+        print(
+            f"(coh) anchor coherence: WRONGLY FAILED: {'; '.join(coherence_failures)}"
+        )
         _problems.append("(coh): anchor coherence check failed unexpectedly")
     else:
         print(
@@ -2054,7 +2102,9 @@ def _run_self_test_body() -> int:
     # proved the precondition fires — if it went dead, `launcher_body =
     # stubs[LAUNCHER_SLUG]` would raise an unhandled KeyError rather than
     # producing the documented Stub-0 failure and exit code 2.
-    b0_stubs = {slug: body for slug, body in real_stubs.items() if slug != LAUNCHER_SLUG}
+    b0_stubs = {
+        slug: body for slug, body in real_stubs.items() if slug != LAUNCHER_SLUG
+    }
     _check_negative(
         "b0", _check_stub_surface(b0_stubs), "Stub-0", "is missing from the stub set"
     )
@@ -2068,7 +2118,9 @@ def _run_self_test_body() -> int:
     for _nt_slug in _nt_technique_slugs:
         _check_negative(
             f"nt-{_nt_slug}",
-            _check_stub_surface(real_stubs, non_technique=NON_TECHNIQUE_SLUGS | {_nt_slug}),
+            _check_stub_surface(
+                real_stubs, non_technique=NON_TECHNIQUE_SLUGS | {_nt_slug}
+            ),
             "Stub-14",
             _nt_slug,
         )
@@ -2103,7 +2155,9 @@ def _run_self_test_body() -> int:
     # its three reference siblings produce zero Agent-N failures.
     _check_positive(
         "a2",
-        _check_agent_surface(real_agent_text, real_reference_texts, real_stubs["fishbone"]),
+        _check_agent_surface(
+            real_agent_text, real_reference_texts, real_stubs["fishbone"]
+        ),
     )
 
     # (a3) cross-surface positive control: the real agent note and all 13
@@ -2126,7 +2180,9 @@ def _run_self_test_body() -> int:
     # content-only mutations never reach.
     c2_stubs = dict(real_stubs)
     del c2_stubs["five-whys"]
-    _check_negative("c2", _check_stub_surface(c2_stubs), "Stub-1", "non-launcher slugs are present")
+    _check_negative(
+        "c2", _check_stub_surface(c2_stubs), "Stub-1", "non-launcher slugs are present"
+    )
 
     # (d) Stub-2 placement control: move the section after the handoff.
     d_stubs = _move_section_after_handoff(real_stubs, "trade-off")
@@ -2137,13 +2193,17 @@ def _run_self_test_body() -> int:
     # intact, exercising the "is missing the ... anchor needed to check
     # ordering" branch for the When-to-reach anchor specifically.
     d2_stubs = _mutate_one(real_stubs, "trade-off", _WHEN_TO_REACH_HEADING)
-    _check_negative("d2", _check_stub_surface(d2_stubs), "Stub-2", _WHEN_TO_REACH_HEADING)
+    _check_negative(
+        "d2", _check_stub_surface(d2_stubs), "Stub-2", _WHEN_TO_REACH_HEADING
+    )
 
     # (d3) Stub-2 missing-handoff-anchor control: strip the closing handoff
     # anchor while leaving the other two anchors intact, exercising the
     # sibling "missing the closing handoff anchor" branch.
     d3_stubs = _mutate_one(real_stubs, "trade-off", _CLOSING_HANDOFF_ANCHOR)
-    _check_negative("d3", _check_stub_surface(d3_stubs), "Stub-2", "closing handoff anchor")
+    _check_negative(
+        "d3", _check_stub_surface(d3_stubs), "Stub-2", "closing handoff anchor"
+    )
 
     # (d4) Stub-2 "before When to reach" placement control: move the whole
     # heading+section+handoff tail to the front of the body, ahead of
@@ -2178,10 +2238,14 @@ def _run_self_test_body() -> int:
 
     # (h) Stub-5 mark control: strip the `?` clause from one stub.
     h_stubs = _mutate_one(real_stubs, "second-order", _UNVERIFIED_MARK_CLAUSE)
-    _check_negative("h", _check_stub_surface(h_stubs), "Stub-5", "unverified mark clause")
+    _check_negative(
+        "h", _check_stub_surface(h_stubs), "Stub-5", "unverified mark clause"
+    )
 
     # (i) Stub-5 provenance-leak control: inject `read-at-source` into one stub.
-    i_stubs = _append_to(real_stubs, "second-order", f"Provenance: {_PROVENANCE_LEAK_TERMS[0]}.")
+    i_stubs = _append_to(
+        real_stubs, "second-order", f"Provenance: {_PROVENANCE_LEAK_TERMS[0]}."
+    )
     _check_negative("i", _check_stub_surface(i_stubs), "Stub-5", "leaks")
 
     # (j) Stub-6 wrapper control: strip the amended wrapper clause.
@@ -2202,12 +2266,16 @@ def _run_self_test_body() -> int:
     # (g3), so the two Stub-11 halves are proven independently reachable —
     # a shared ID with two distinguishable details, per D-12.
     g4_stubs = _append_to(
-        real_stubs, "fishbone", "- do not run the full 5-phase first-principles analysis."
+        real_stubs,
+        "fishbone",
+        "- do not run the full 5-phase first-principles analysis.",
     )
     assert _WRAPPER_HYPHEN_RE.search(g4_stubs["fishbone"]) is not None, (
         "g4 fixture precondition failed: _WRAPPER_HYPHEN_RE does not match the injected line"
     )
-    _check_negative("g4", _check_stub_surface(g4_stubs), "Stub-11", "line-initial hyphen")
+    _check_negative(
+        "g4", _check_stub_surface(g4_stubs), "Stub-11", "line-initial hyphen"
+    )
 
     # (g5) Stub-12 unresolved-token control: append an unresolved
     # `{{TOOL:fishbone}}` marker to one stub and assert the failure names
@@ -2239,7 +2307,10 @@ def _run_self_test_body() -> int:
         real_stubs, LAUNCHER_SLUG, f"agent with this output as {_HANDOFF_EXEMPT_SLOT}."
     )
     _check_negative(
-        "g7", _check_stub_surface(g7_stubs), "Stub-13", f"{LAUNCHER_SLUG} routes its output into"
+        "g7",
+        _check_stub_surface(g7_stubs),
+        "Stub-13",
+        f"{LAUNCHER_SLUG} routes its output into",
     )
 
     # (g8) Stub-13 narrowed candidate-handoff-tail control, added at
@@ -2258,9 +2329,13 @@ def _run_self_test_body() -> int:
     # (l) Stub-8 completion-condition control: strip validate's Exit-criterion
     # marker; the failure must NAME the slug.
     l_stubs = _mutate_one(
-        real_stubs, form_reps["exit-criterion"], _COMPLETION_CONDITION_FORMS["exit-criterion"]
+        real_stubs,
+        form_reps["exit-criterion"],
+        _COMPLETION_CONDITION_FORMS["exit-criterion"],
     )
-    _check_negative("l", _check_stub_surface(l_stubs), "Stub-8", form_reps["exit-criterion"])
+    _check_negative(
+        "l", _check_stub_surface(l_stubs), "Stub-8", form_reps["exit-criterion"]
+    )
 
     # (m) Stub-8 all-forms control: for EACH of the four recognised forms, a
     # fixture in which that form is the ONLY thing carrying its
@@ -2278,7 +2353,9 @@ def _run_self_test_body() -> int:
 
     # (o) Stub-10 bound control: strip the one-pass bound clause.
     o_stubs = _mutate_one(real_stubs, "reason-upward", _ONE_PASS_BOUND)
-    _check_negative("o", _check_stub_surface(o_stubs), "Stub-10", "one-pass bound clause")
+    _check_negative(
+        "o", _check_stub_surface(o_stubs), "Stub-10", "one-pass bound clause"
+    )
 
     # (o2) Stub-10 other-bound control: inject a competing numeric revision
     # bound (`_OTHER_BOUND_RE`'s territory) into one stub, alongside the
@@ -2287,11 +2364,25 @@ def _run_self_test_body() -> int:
     # Two fixtures: the pre-existing narrow-window form, and (WR-02,
     # `03-REVIEW.md`) the widened-window form — the single-word drift of the
     # sanctioned clause the widened regex now sees.
-    o2_stubs = _append_to(real_stubs, "reason-upward", "Revise twice if the first pass fails.")
-    _check_negative("o2", _check_stub_surface(o2_stubs), "Stub-10", "additional numeric revision bound")
+    o2_stubs = _append_to(
+        real_stubs, "reason-upward", "Revise twice if the first pass fails."
+    )
+    _check_negative(
+        "o2",
+        _check_stub_surface(o2_stubs),
+        "Stub-10",
+        "additional numeric revision bound",
+    )
 
-    o2b_stubs = _append_to(real_stubs, "estimate", "Revise at most two times if the first pass fails.")
-    _check_negative("o2b", _check_stub_surface(o2b_stubs), "Stub-10", "additional numeric revision bound")
+    o2b_stubs = _append_to(
+        real_stubs, "estimate", "Revise at most two times if the first pass fails."
+    )
+    _check_negative(
+        "o2b",
+        _check_stub_surface(o2b_stubs),
+        "Stub-10",
+        "additional numeric revision bound",
+    )
 
     # (p) reflow control (positive): every real stub body re-wrapped at a
     # width distinct from the shipped files' must still PASS — the direct,
@@ -2358,7 +2449,9 @@ def _run_self_test_body() -> int:
     # be extracted" fallback branches had no control of their own. One
     # fixture, four assertions, each under its own label.
     u3_agent = _replace_once(real_agent_text, _AGENT_EXECUTION_BRANCHING_LABEL, "")
-    u3_failures = _check_agent_surface(u3_agent, real_reference_texts, real_stubs["fishbone"])
+    u3_failures = _check_agent_surface(
+        u3_agent, real_reference_texts, real_stubs["fishbone"]
+    )
     _check_negative("u3", u3_failures, "Agent-3", "label was not found")
     _check_negative("u3b", u3_failures, "Agent-4", "anchor pair")
     _check_negative("u3c", u3_failures, "Agent-5", "could not be extracted")
@@ -2403,7 +2496,9 @@ def _run_self_test_body() -> int:
     y_index = 0
     for ref_slug in _AGENT_REFERENCE_SLUGS:
         y_index += 1
-        strip_refs = _mutate_ref(real_reference_texts, ref_slug, _EXIT_CRITERION_LINE, "")
+        strip_refs = _mutate_ref(
+            real_reference_texts, ref_slug, _EXIT_CRITERION_LINE, ""
+        )
         _check_negative(
             f"y{y_index}",
             _check_agent_surface(real_agent_text, strip_refs, real_stubs["fishbone"]),
@@ -2412,7 +2507,9 @@ def _run_self_test_body() -> int:
         )
 
         y_index += 1
-        dup_refs = _duplicate_in_ref(real_reference_texts, ref_slug, _EXIT_CRITERION_LINE)
+        dup_refs = _duplicate_in_ref(
+            real_reference_texts, ref_slug, _EXIT_CRITERION_LINE
+        )
         _check_negative(
             f"y{y_index}",
             _check_agent_surface(real_agent_text, dup_refs, real_stubs["fishbone"]),
@@ -2446,7 +2543,9 @@ def _run_self_test_body() -> int:
     # heading itself in one reference file, so `_procedure_bounds()` returns
     # None even though the Exit-criterion line count is still exactly 1 —
     # distinct from (y3)'s "moved outside a Procedure that still exists".
-    y11_refs = _mutate_ref(real_reference_texts, "pre-mortem", "## Procedure", "## Steps")
+    y11_refs = _mutate_ref(
+        real_reference_texts, "pre-mortem", "## Procedure", "## Steps"
+    )
     _check_negative(
         "y11",
         _check_agent_surface(real_agent_text, y11_refs, real_stubs["fishbone"]),
@@ -2490,7 +2589,10 @@ def _run_self_test_body() -> int:
     # leaving the agent note untouched.
     ad_stubs = _mutate_one(real_stubs, "validate", _PT_STAYS_MARKED, "remains flagged")
     _check_negative(
-        "ad", _check_cross_surface_parity(real_agent_text, ad_stubs), "Parity-4", "validate"
+        "ad",
+        _check_cross_surface_parity(real_agent_text, ad_stubs),
+        "Parity-4",
+        "validate",
     )
 
     # (ad2) Parity-4 "no section" control: strip the
@@ -2516,9 +2618,14 @@ def _run_self_test_body() -> int:
     # reachable; the replacement is checked to not itself still contain the
     # original token.
     assert _PT_NO_ACQUIRE_EVIDENCE not in "cannot acquire evidence"
-    ad3_stubs = _mutate_one(real_stubs, "estimate", _PT_NO_ACQUIRE_EVIDENCE, "cannot acquire evidence")
+    ad3_stubs = _mutate_one(
+        real_stubs, "estimate", _PT_NO_ACQUIRE_EVIDENCE, "cannot acquire evidence"
+    )
     _check_negative(
-        "ad3", _check_cross_surface_parity(real_agent_text, ad3_stubs), "Parity-4", "estimate"
+        "ad3",
+        _check_cross_surface_parity(real_agent_text, ad3_stubs),
+        "Parity-4",
+        "estimate",
     )
 
     # (ad4) Parity-4 divider-less control (WR-10): strip the standalone
@@ -2530,7 +2637,10 @@ def _run_self_test_body() -> int:
     # (ad)/(ad2)/(ad3)/(af) already mutate.
     ad4_stubs = _strip_stub_trailing_divider(real_stubs, "inversion")
     _check_negative(
-        "ad4", _check_cross_surface_parity(real_agent_text, ad4_stubs), "Parity-4", "inversion"
+        "ad4",
+        _check_cross_surface_parity(real_agent_text, ad4_stubs),
+        "Parity-4",
+        "inversion",
     )
 
     # (ae) Parity-4 reverse control: reword a parity token in the AGENT note
@@ -2549,7 +2659,9 @@ def _run_self_test_body() -> int:
     # layer distinctly from Stub-1's own count check.
     af_stubs = dict(real_stubs)
     del af_stubs["five-whys"]
-    _check_negative("af", _check_cross_surface_parity(real_agent_text, af_stubs), "Parity-5")
+    _check_negative(
+        "af", _check_cross_surface_parity(real_agent_text, af_stubs), "Parity-5"
+    )
 
     # (ag) Coherence control: un-derive one anchor in a scratch namespace
     # (assign an independent literal that differs from a fresh
@@ -2574,7 +2686,8 @@ def _run_self_test_body() -> int:
     # own new surface.
     ah_agent = _reflow(real_agent_text, _WRAP_WIDTH)
     _check_positive(
-        "ah", _check_agent_surface(ah_agent, real_reference_texts, real_stubs["fishbone"])
+        "ah",
+        _check_agent_surface(ah_agent, real_reference_texts, real_stubs["fishbone"]),
     )
     _check_positive("ah2", _check_cross_surface_parity(ah_agent, real_stubs))
 
@@ -2609,10 +2722,14 @@ def _run_self_test_body() -> int:
         expect_rejection=True,
     )
     _check_positive(
-        "n0d-positive", ["synthetic failure for meta-control n0d"], expect_rejection=True
+        "n0d-positive",
+        ["synthetic failure for meta-control n0d"],
+        expect_rejection=True,
     )
     try:
-        _replace_once("no such target token anywhere in this text", "not present at all")
+        _replace_once(
+            "no such target token anywhere in this text", "not present at all"
+        )
     except AssertionError:
         pass
     else:
@@ -2695,7 +2812,9 @@ def _run_self_test_body() -> int:
         or "WRONGLY" in neg_flagged_text
         or "WRONG reason" in neg_flagged_text
     ):
-        n0f_failures.append(f"n0f: flagged _check_negative wording is wrong: {neg_flagged_text!r}")
+        n0f_failures.append(
+            f"n0f: flagged _check_negative wording is wrong: {neg_flagged_text!r}"
+        )
     if neg_flagged_delta != 1:
         n0f_failures.append(
             f"n0f: flagged _check_negative recorded {neg_flagged_delta} "
@@ -2715,7 +2834,9 @@ def _run_self_test_body() -> int:
         or "WRONGLY" in pos_flagged_text
         or "WRONG reason" in pos_flagged_text
     ):
-        n0f_failures.append(f"n0f: flagged _check_positive wording is wrong: {pos_flagged_text!r}")
+        n0f_failures.append(
+            f"n0f: flagged _check_positive wording is wrong: {pos_flagged_text!r}"
+        )
     if pos_flagged_delta != 1:
         n0f_failures.append(
             f"n0f: flagged _check_positive recorded {pos_flagged_delta} "
@@ -2744,7 +2865,9 @@ def _run_self_test_body() -> int:
     if any("referenced 1 time(s)" in f for f in q1_failures):
         print("(q1) under-referenced constant: correctly failed")
     else:
-        print(f"(q1) under-referenced constant: WRONGLY PASSED OR WRONG REASON: {q1_failures}")
+        print(
+            f"(q1) under-referenced constant: WRONGLY PASSED OR WRONG REASON: {q1_failures}"
+        )
         _problems.append("q1: under-referenced constant control did not fire correctly")
 
     q2_failures = _check_anchor_control_coverage(
@@ -2756,12 +2879,18 @@ def _run_self_test_body() -> int:
         print(f"(q2) valid exempt entry: WRONGLY FAILED: {q2_failures}")
         _problems.append("q2: valid exempt entry incorrectly failed")
 
-    q3_failures = _check_anchor_control_coverage(q1_source, exempt={"_FOO": "   "}, pending={})
+    q3_failures = _check_anchor_control_coverage(
+        q1_source, exempt={"_FOO": "   "}, pending={}
+    )
     if any("empty justification" in f for f in q3_failures):
         print("(q3) exempt entry with empty justification: correctly failed")
     else:
-        print(f"(q3) exempt entry with empty justification: WRONGLY PASSED OR WRONG REASON: {q3_failures}")
-        _problems.append("q3: empty-justification exempt control did not fire correctly")
+        print(
+            f"(q3) exempt entry with empty justification: WRONGLY PASSED OR WRONG REASON: {q3_failures}"
+        )
+        _problems.append(
+            "q3: empty-justification exempt control did not fire correctly"
+        )
 
     q4_failures = _check_anchor_control_coverage(
         q1_source, exempt={}, pending={"_FOO": "Task 2 discharges this"}
@@ -2779,7 +2908,9 @@ def _run_self_test_body() -> int:
     if any("already referenced 3 time(s)" in f for f in q5_failures):
         print("(q5) stale pending entry (count >= 3): correctly failed")
     else:
-        print(f"(q5) stale pending entry: WRONGLY PASSED OR WRONG REASON: {q5_failures}")
+        print(
+            f"(q5) stale pending entry: WRONGLY PASSED OR WRONG REASON: {q5_failures}"
+        )
         _problems.append("q5: stale pending entry control did not fire correctly")
 
     q6_failures = _check_anchor_control_coverage(
@@ -2802,7 +2933,9 @@ def _run_self_test_body() -> int:
     if any("bookkeeping markers not found" in f for f in q8_failures):
         print("(q8) missing bookkeeping markers: correctly failed")
     else:
-        print(f"(q8) missing-markers control: WRONGLY PASSED OR WRONG REASON: {q8_failures}")
+        print(
+            f"(q8) missing-markers control: WRONGLY PASSED OR WRONG REASON: {q8_failures}"
+        )
         _problems.append("q8: missing-markers control did not fire correctly")
 
     # (q11) stale exempt entry: an exempt-list name that matches no
@@ -2813,7 +2946,9 @@ def _run_self_test_body() -> int:
     if any("exempt entry" in f and "stale" in f for f in q11_failures):
         print("(q11) stale exempt entry: correctly failed")
     else:
-        print(f"(q11) stale-exempt control: WRONGLY PASSED OR WRONG REASON: {q11_failures}")
+        print(
+            f"(q11) stale-exempt control: WRONGLY PASSED OR WRONG REASON: {q11_failures}"
+        )
         _problems.append("q11: stale-exempt-entry control did not fire correctly")
 
     # (q12) stale pending entry: a pending-list name that matches no
@@ -2825,7 +2960,9 @@ def _run_self_test_body() -> int:
     if any("pending entry" in f and "stale" in f for f in q12_failures):
         print("(q12) stale pending entry (unmatched name): correctly failed")
     else:
-        print(f"(q12) stale-pending control: WRONGLY PASSED OR WRONG REASON: {q12_failures}")
+        print(
+            f"(q12) stale-pending control: WRONGLY PASSED OR WRONG REASON: {q12_failures}"
+        )
         _problems.append("q12: stale-pending-entry control did not fire correctly")
 
     # (q13)/(q14)/(q15) control-region branch (Task 1's D-12 region split,
@@ -2837,9 +2974,13 @@ def _run_self_test_body() -> int:
         q13_source, exempt={}, pending={}, require_control_region=True
     )
     if any("zero of them are in the control battery" in f for f in q13_failures):
-        print("(q13) anchor referenced 3x, all above control-region boundary: correctly failed")
+        print(
+            "(q13) anchor referenced 3x, all above control-region boundary: correctly failed"
+        )
     else:
-        print(f"(q13) control-region-boundary control: WRONGLY PASSED OR WRONG REASON: {q13_failures}")
+        print(
+            f"(q13) control-region-boundary control: WRONGLY PASSED OR WRONG REASON: {q13_failures}"
+        )
         _problems.append("q13: control-region boundary control did not fire correctly")
 
     q14_source = markers + '_FOO = "bar"\n_FOO\ndef _run_self_test():\n    _FOO\n'
@@ -2847,7 +2988,9 @@ def _run_self_test_body() -> int:
         q14_source, exempt={}, pending={}, require_control_region=True
     )
     if not q14_failures:
-        print("(q14) anchor with one reference below control-region boundary: correctly passed")
+        print(
+            "(q14) anchor with one reference below control-region boundary: correctly passed"
+        )
     else:
         print(f"(q14) control-region-boundary control: WRONGLY FAILED: {q14_failures}")
         _problems.append("q14: control-region boundary control incorrectly failed")
@@ -2857,10 +3000,16 @@ def _run_self_test_body() -> int:
         q15_source, exempt={}, pending={}, require_control_region=True
     )
     if any("control-battery boundary marker" in f for f in q15_failures):
-        print("(q15) missing control-region boundary with require_control_region=True: correctly failed")
+        print(
+            "(q15) missing control-region boundary with require_control_region=True: correctly failed"
+        )
     else:
-        print(f"(q15) missing-boundary control: WRONGLY PASSED OR WRONG REASON: {q15_failures}")
-        _problems.append("q15: missing-boundary ratchet-integrity control did not fire correctly")
+        print(
+            f"(q15) missing-boundary control: WRONGLY PASSED OR WRONG REASON: {q15_failures}"
+        )
+        _problems.append(
+            "q15: missing-boundary ratchet-integrity control did not fire correctly"
+        )
 
     _this_module = sys.modules[__name__]
     original_exempt = _this_module._ANCHOR_CONTROL_EXEMPT
@@ -2870,9 +3019,13 @@ def _run_self_test_body() -> int:
     finally:
         _this_module._ANCHOR_CONTROL_EXEMPT = original_exempt
     if any("must both be dicts" in f for f in q9_failures):
-        print("(q9) retyped machinery global (_ANCHOR_CONTROL_EXEMPT): correctly failed")
+        print(
+            "(q9) retyped machinery global (_ANCHOR_CONTROL_EXEMPT): correctly failed"
+        )
     else:
-        print(f"(q9) retyped-global control: WRONGLY PASSED OR WRONG REASON: {q9_failures}")
+        print(
+            f"(q9) retyped-global control: WRONGLY PASSED OR WRONG REASON: {q9_failures}"
+        )
         _problems.append("q9: retyped machinery global control did not fire correctly")
 
     original_reentrant = _this_module._DISPATCH_REENTRANT
@@ -2884,8 +3037,12 @@ def _run_self_test_body() -> int:
     if any("_DISPATCH_REENTRANT must be a bool" in f for f in q10_failures):
         print("(q10) retyped machinery global (_DISPATCH_REENTRANT): correctly failed")
     else:
-        print(f"(q10) retyped-reentrant control: WRONGLY PASSED OR WRONG REASON: {q10_failures}")
-        _problems.append("q10: retyped _DISPATCH_REENTRANT control did not fire correctly")
+        print(
+            f"(q10) retyped-reentrant control: WRONGLY PASSED OR WRONG REASON: {q10_failures}"
+        )
+        _problems.append(
+            "q10: retyped _DISPATCH_REENTRANT control did not fire correctly"
+        )
 
     # (r) dispatch control: prove the CLI layer reaches this block, not
     # merely that _run_self_test() is correct when called directly.
@@ -2902,7 +3059,10 @@ def _run_self_test_body() -> int:
         _this_module._DISPATCH_REENTRANT = True
         try:
             dispatch_out, dispatch_err = io.StringIO(), io.StringIO()
-            with contextlib.redirect_stdout(dispatch_out), contextlib.redirect_stderr(dispatch_err):
+            with (
+                contextlib.redirect_stdout(dispatch_out),
+                contextlib.redirect_stderr(dispatch_err),
+            ):
                 dispatch_rc = main(["--self-test"])
             dispatch_text = dispatch_out.getvalue()
             if dispatch_rc != 0:
@@ -2910,7 +3070,9 @@ def _run_self_test_body() -> int:
                     "(r) dispatch control: WRONGLY FAILED — main(['--self-test']) "
                     f"returned {dispatch_rc}, expected 0"
                 )
-                _problems.append(f"r: main(['--self-test']) returned {dispatch_rc}, expected 0")
+                _problems.append(
+                    f"r: main(['--self-test']) returned {dispatch_rc}, expected 0"
+                )
             elif "(a) correctly passed" not in dispatch_text:
                 print(
                     "(r) dispatch control: WRONGLY FAILED — captured stdout did not "
@@ -2923,7 +3085,9 @@ def _run_self_test_body() -> int:
                     "block end-to-end"
                 )
         except Exception as exc:  # noqa: BLE001 - self-test must report, not crash
-            print(f"(r) dispatch control: WRONGLY FAILED — unexpected exception: {exc!r}")
+            print(
+                f"(r) dispatch control: WRONGLY FAILED — unexpected exception: {exc!r}"
+            )
             _problems.append(f"r: unexpected exception: {exc!r}")
         finally:
             _this_module._DISPATCH_REENTRANT = False
@@ -2958,7 +3122,9 @@ def _run_self_test_body() -> int:
                 f"--self-test transcript contains {len(s_offending)} "
                 f"alarm-shaped line(s): {s_offending!r}"
             )
-            _problems.append(f"s: alarm-shaped line(s) in nested transcript: {s_offending!r}")
+            _problems.append(
+                f"s: alarm-shaped line(s) in nested transcript: {s_offending!r}"
+            )
         else:
             print(
                 "(s) whole-transcript no-alarm assertion: PASS — nested "
@@ -2984,7 +3150,9 @@ def _run_self_test_body() -> int:
             f"{s2_offending!r}), expected ('unavailable', [])"
         )
 
-    s2_clean_fixture = "check-focused-parity --self-test: PASS\n(a) correctly passed (0 failures)\n"
+    s2_clean_fixture = (
+        "check-focused-parity --self-test: PASS\n(a) correctly passed (0 failures)\n"
+    )
     s2_verdict, s2_offending = _transcript_alarm_verdict(s2_clean_fixture)
     if s2_verdict != "clean" or s2_offending != []:
         s2_failures.append(
@@ -3029,7 +3197,9 @@ def _run_self_test_body() -> int:
     def _ec_clauses(conditions: int) -> str:
         return ", AND ".join(f"({i}) condition {i}" for i in range(1, conditions + 1))
 
-    def _ec_body(word: str, conditions: int, *, subject_heading: str | None = None) -> str:
+    def _ec_body(
+        word: str, conditions: int, *, subject_heading: str | None = None
+    ) -> str:
         """Build a body covering EVERY mapped phase.
 
         The subject phase carries the (word, conditions) under test; every
@@ -3041,7 +3211,9 @@ def _run_self_test_body() -> int:
         parts = []
         for slug, heading in sorted(_PHASE_STUB_SLUGS.items()):
             if slug == _ec_slug:
-                use_heading = subject_heading if subject_heading is not None else heading
+                use_heading = (
+                    subject_heading if subject_heading is not None else heading
+                )
                 parts.append(
                     f"{use_heading}\n\n**Exit criterion:** ALL {word} conditions "
                     f"must hold: {_ec_clauses(conditions)}.\n\n---\n"
@@ -3059,28 +3231,28 @@ def _run_self_test_body() -> int:
             f"{_ec_clauses(conditions)}.\n"
         )
 
-    def _ec_stubs(word: str, conditions: int, subject: str | None = None) -> dict[str, str]:
+    def _ec_stubs(
+        word: str, conditions: int, subject: str | None = None
+    ) -> dict[str, str]:
         """Stub texts for every mapped slug; `subject` overrides the subject one."""
         out = {slug: _ec_stub("THREE", 3) for slug in _PHASE_STUB_SLUGS}
         out[_ec_slug] = subject if subject is not None else _ec_stub(word, conditions)
         return out
 
     # (ec1) POSITIVE: body and stub agree, and each is internally consistent.
-    _ec1 = _check_phase_stub_exit_criteria(
-        _ec_body("THREE", 3), _ec_stubs("THREE", 3)
-    )
+    _ec1 = _check_phase_stub_exit_criteria(_ec_body("THREE", 3), _ec_stubs("THREE", 3))
     if _ec1:
         _problems.append(f"(ec1) agreeing body/stub pair reported failures: {_ec1}")
     else:
-        print("(ec1) phase-stub exit criterion agreement: PASS — agreeing pair accepted")
+        print(
+            "(ec1) phase-stub exit criterion agreement: PASS — agreeing pair accepted"
+        )
 
     # (ec2) NEGATIVE — the measured 999.146 defect: the stub prescribes fewer
     # conditions than the body. This is the exact shape `/reason-upward`
     # shipped (ALL THREE against the body's ALL FOUR) while HARN-03 stayed
     # green, so a control that cannot catch it would re-open the gap.
-    _ec2 = _check_phase_stub_exit_criteria(
-        _ec_body("FOUR", 4), _ec_stubs("THREE", 3)
-    )
+    _ec2 = _check_phase_stub_exit_criteria(_ec_body("FOUR", 4), _ec_stubs("THREE", 3))
     if not any("prescribe" in m for m in _ec2):
         _problems.append(f"(ec2) body/stub disagreement was NOT caught: {_ec2}")
     else:
@@ -3090,11 +3262,11 @@ def _run_self_test_body() -> int:
     # INSIDE one document. `_ORDINAL_WORDS` is what makes this decidable;
     # without it the check could only compare two sides to each other and
     # would pass a pair that agreed on being wrong.
-    _ec3 = _check_phase_stub_exit_criteria(
-        _ec_body("THREE", 3), _ec_stubs("THREE", 2)
-    )
+    _ec3 = _check_phase_stub_exit_criteria(_ec_body("THREE", 3), _ec_stubs("THREE", 2))
     if not any("internally inconsistent" in m for m in _ec3):
-        _problems.append(f"(ec3) internally inconsistent stub criterion NOT caught: {_ec3}")
+        _problems.append(
+            f"(ec3) internally inconsistent stub criterion NOT caught: {_ec3}"
+        )
     else:
         print("(ec3) internal ordinal consistency: PASS — miscounted stub rejected")
 
@@ -3102,7 +3274,8 @@ def _run_self_test_body() -> int:
     # fail rather than be silently skipped — the skip path belongs to the
     # BODY side (a phase not using this form), never to the stub side.
     _ec4 = _check_phase_stub_exit_criteria(
-        _ec_body("THREE", 3), _ec_stubs("THREE", 3, subject="no criterion here at all\n")
+        _ec_body("THREE", 3),
+        _ec_stubs("THREE", 3, subject="no criterion here at all\n"),
     )
     if not any("states no" in m for m in _ec4):
         _problems.append(f"(ec4) stub with no ALL-form criterion NOT caught: {_ec4}")
@@ -3141,17 +3314,25 @@ def _run_self_test_body() -> int:
     _ec7_text = "**Exit criterion:** ALL FIVE conditions must hold: (1) a, AND (2) b.\n"
     _ec7_match = _ALL_WORD_RE.search(_ec7_text)
     _ec7_ordinals = _CONDITION_ORDINAL_RE.findall(_ec7_text)
-    if _ec7_match is None or _ec7_match.group(1) != "FIVE" or _ec7_ordinals != ["1", "2"]:
+    if (
+        _ec7_match is None
+        or _ec7_match.group(1) != "FIVE"
+        or _ec7_ordinals != ["1", "2"]
+    ):
         _problems.append(
             f"(ec7) regex helpers misread the criterion: word="
             f"{_ec7_match.group(1) if _ec7_match else None!r} ordinals={_ec7_ordinals!r}"
         )
     elif _exit_criterion_shape("no criterion at all") is not None:
-        _problems.append("(ec7) _exit_criterion_shape returned a shape for text with none")
+        _problems.append(
+            "(ec7) _exit_criterion_shape returned a shape for text with none"
+        )
     elif _ORDINAL_WORDS.get("FIVE") != 5:
         _problems.append("(ec7) _ORDINAL_WORDS disagrees with its own spelled-out key")
     else:
-        print("(ec7) criterion-parsing helpers: PASS — word, ordinals and None-path correct")
+        print(
+            "(ec7) criterion-parsing helpers: PASS — word, ordinals and None-path correct"
+        )
 
     # module state this self-test just exercised against — proving the
     # emitted facts are derived reads, not hand-typed literals that could
@@ -3165,8 +3346,7 @@ def _run_self_test_body() -> int:
         )
     elif set(_desc["disclosed_bounds_anchors"]) != set(_ANCHOR_CONTROL_EXEMPT):
         _problems.append(
-            "(describe): disclosed_bounds_anchors disagrees with "
-            "_ANCHOR_CONTROL_EXEMPT"
+            "(describe): disclosed_bounds_anchors disagrees with _ANCHOR_CONTROL_EXEMPT"
         )
     else:
         print(

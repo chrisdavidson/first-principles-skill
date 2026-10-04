@@ -988,7 +988,9 @@ def self_test() -> int:
             )
             root = _fixture(
                 Path(td) / "c3",
-                {"CHANGELOG.md": "erratum: 'no phase owns' was false. no phase owns again."},
+                {
+                    "CHANGELOG.md": "erratum: 'no phase owns' was false. no phase owns again."
+                },
             )
             ok, probs = check(root)
             record("C3-exempt-at-count-passes", ok, f"expected pass, got {probs}")
@@ -999,7 +1001,9 @@ def self_test() -> int:
                 {"CHANGELOG.md": "no phase owns / no phase owns / no phase owns"},
             )
             ok, _ = check(root)
-            record("C4-exempt-above-count-fails", not ok, "expected failure, gate passed")
+            record(
+                "C4-exempt-above-count-fails", not ok, "expected failure, gate passed"
+            )
 
             # C5 — exempt file BELOW its count fails (the erratum was deleted).
             root = _fixture(Path(td) / "c5", {"CHANGELOG.md": "no phase owns"})
@@ -1022,7 +1026,9 @@ def self_test() -> int:
             root = Path(td) / "c7"
             root.mkdir(parents=True, exist_ok=True)
             ok, _ = check(root)
-            record("C7-empty-population-fails", not ok, "empty population passed vacuously")
+            record(
+                "C7-empty-population-fails", not ok, "empty population passed vacuously"
+            )
 
             # C11 — BQ-01: a registered literal wrapped across two `>`
             # blockquote lines, spanning the wrap point, is counted just like
@@ -1156,14 +1162,20 @@ def self_test() -> int:
     if failures:
         print(f"\ncheck-retracted-claims: SELF-TEST FAIL — {len(failures)} control(s)")
         return 1
-    print(f"\ncheck-retracted-claims: SELF-TEST PASS — {len(_CONTROL_IDS)} controls run")
+    print(
+        f"\ncheck-retracted-claims: SELF-TEST PASS — {len(_CONTROL_IDS)} controls run"
+    )
     return 0
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="RETRACT-01 retracted-claim register")
-    ap.add_argument("--self-test", action="store_true", help="run falsifiability controls")
-    ap.add_argument("--describe", action="store_true", help="emit self-description JSON")
+    ap.add_argument(
+        "--self-test", action="store_true", help="run falsifiability controls"
+    )
+    ap.add_argument(
+        "--describe", action="store_true", help="emit self-description JSON"
+    )
     args = ap.parse_args(argv)
 
     if args.describe:

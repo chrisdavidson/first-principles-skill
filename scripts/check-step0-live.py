@@ -94,7 +94,7 @@ class Step0Prompt:
     """One row from the step0-fixture-catalog.md catalog."""
 
     id: str
-    text: str      # verbatim prompt text
+    text: str  # verbatim prompt text
     expected: str  # expected MODE string (e.g. "focused-pre-mortem")
 
 
@@ -111,9 +111,9 @@ class PromptResult:
     """Per-row K-of-N result."""
 
     prompt: Step0Prompt
-    modes: list[str]   # len == repeat
-    match_count: int   # how many runs matched expected
-    row_pass: bool     # match_count >= min_pass
+    modes: list[str]  # len == repeat
+    match_count: int  # how many runs matched expected
+    row_pass: bool  # match_count >= min_pass
 
 
 # ---------------------------------------------------------------------------
@@ -236,7 +236,11 @@ def _agent_was_dispatched(jsonl_path: Path) -> bool:
             # D-01 (Phase 141): null-coalesce before lowering — dict.get(key, default)
             # returns None (not the default) when the key is present with a JSON-null
             # value, and None.lower() would raise, breaking the no-raise contract.
-            subagent_type = (inp.get("subagent_type") or "").lower() if isinstance(inp, dict) else ""
+            subagent_type = (
+                (inp.get("subagent_type") or "").lower()
+                if isinstance(inp, dict)
+                else ""
+            )
             if subagent_type == "first-principles:first-principles":
                 return True
     return False
@@ -313,54 +317,66 @@ def _fixture_assistant_text(text: str) -> str:
 
 def _fixture_agent_dispatch(subagent_type: str, prompt: str) -> str:
     """Build a stream-json line with an Agent tool_use dispatch."""
-    return json.dumps({
-        "type": "assistant",
-        "message": {
-            "content": [{
-                "type": "tool_use",
-                "name": "Agent",
-                "input": {"subagent_type": subagent_type, "prompt": prompt},
-            }]
-        },
-    })
+    return json.dumps(
+        {
+            "type": "assistant",
+            "message": {
+                "content": [
+                    {
+                        "type": "tool_use",
+                        "name": "Agent",
+                        "input": {"subagent_type": subagent_type, "prompt": prompt},
+                    }
+                ]
+            },
+        }
+    )
 
 
 # Fixture A: focused-pre-mortem (>=2 distinct pre-mortem markers)
-_FIXTURE_ST_FOCUSED_PREMORTEM = "\n".join([
-    _fixture_assistant_text(
-        "Prospective-hindsight: the plan has already failed. What caused it?\n"
-        "Working backward: what caused the rollout to stall?"
-    ),
-])
+_FIXTURE_ST_FOCUSED_PREMORTEM = "\n".join(
+    [
+        _fixture_assistant_text(
+            "Prospective-hindsight: the plan has already failed. What caused it?\n"
+            "Working backward: what caused the rollout to stall?"
+        ),
+    ]
+)
 
 # Fixture B: full-composer via structural override (>=2 composer scaffold sections)
-_FIXTURE_ST_FULL_COMPOSER = "\n".join([
-    _fixture_assistant_text(
-        "## Phase 1 — Ground Truths\nFact A.\n\n"
-        "## Phase 2 — Assumption Audit\nUntested: B.\n\n"
-        "## Phase 3 — Verdict\nProceed.\n"
-    ),
-])
+_FIXTURE_ST_FULL_COMPOSER = "\n".join(
+    [
+        _fixture_assistant_text(
+            "## Phase 1 — Ground Truths\nFact A.\n\n"
+            "## Phase 2 — Assumption Audit\nUntested: B.\n\n"
+            "## Phase 3 — Verdict\nProceed.\n"
+        ),
+    ]
+)
 
 # Fixture C: none + agent dispatch → _classify_mode returns full-composer
 # LOAD-BEARING: this fixture guards the D-01 none→full-composer inference fix.
 # Removing _classify_mode's inference logic causes this fixture to return 'none'
 # and fail the self-test.
-_FIXTURE_ST_NONE_WITH_DISPATCH = "\n".join([
-    _fixture_agent_dispatch(
-        "first-principles:first-principles",
-        "The plan looks solid. Surface failure modes.",
-    ),
-    _fixture_assistant_text(
-        "I need more information about the plan to run the analysis. "
-        "Please share the plan details."
-    ),
-])
+_FIXTURE_ST_NONE_WITH_DISPATCH = "\n".join(
+    [
+        _fixture_agent_dispatch(
+            "first-principles:first-principles",
+            "The plan looks solid. Surface failure modes.",
+        ),
+        _fixture_assistant_text(
+            "I need more information about the plan to run the analysis. "
+            "Please share the plan details."
+        ),
+    ]
+)
 
 # Fixture D: none WITHOUT dispatch → _classify_mode returns none (inference does NOT fire)
-_FIXTURE_ST_NONE_NO_DISPATCH = "\n".join([
-    _fixture_assistant_text("Hello world. No methodology markers present."),
-])
+_FIXTURE_ST_NONE_NO_DISPATCH = "\n".join(
+    [
+        _fixture_assistant_text("Hello world. No methodology markers present."),
+    ]
+)
 
 
 def _run_one_fixture_step0(name: str, body: str, expected: str) -> bool:
@@ -405,7 +421,11 @@ def self_test() -> int:
         ("focused_premortem", _FIXTURE_ST_FOCUSED_PREMORTEM, "focused-pre-mortem"),
         ("full_composer_structural", _FIXTURE_ST_FULL_COMPOSER, "full-composer"),
         # LOAD-BEARING: removing the _classify_mode inference flips this to 'none'
-        ("none_with_dispatch_LOAD_BEARING", _FIXTURE_ST_NONE_WITH_DISPATCH, "full-composer"),
+        (
+            "none_with_dispatch_LOAD_BEARING",
+            _FIXTURE_ST_NONE_WITH_DISPATCH,
+            "full-composer",
+        ),
         ("none_without_dispatch", _FIXTURE_ST_NONE_NO_DISPATCH, "none"),
     ]:
         executed.append(f"fixture-{name}")
@@ -441,7 +461,11 @@ def self_test() -> int:
         cat_path = Path(tf.name)
     try:
         rows = _read_step0_catalog(cat_path)
-        if len(rows) != 2 or rows[0].id != "S-P01" or rows[1].expected != "full-composer":
+        if (
+            len(rows) != 2
+            or rows[0].id != "S-P01"
+            or rows[1].expected != "full-composer"
+        ):
             print(
                 f"self-test FAIL: catalog parse — expected 2 rows with S-P01 first, got {rows}",
                 file=sys.stderr,
@@ -580,8 +604,12 @@ def self_test() -> int:
         _d01a_path = Path(_d01a_tf.name)
     try:
         try:
-            _write_baseline(_d01a_results, _d01a_args, _d01a_path,
-                            recorded_ts="2026-01-01T00:00:00Z")
+            _write_baseline(
+                _d01a_results,
+                _d01a_args,
+                _d01a_path,
+                recorded_ts="2026-01-01T00:00:00Z",
+            )
         except ValueError as _e:
             print(
                 f"self-test FAIL: D-01a failing-S-P16 firewall — "
@@ -620,7 +648,7 @@ def self_test() -> int:
     executed.append("d01a-failing-sn-firewall")
     _d01a_sn01 = PromptResult(
         prompt=Step0Prompt(id="S-N01", text="oblique prompt", expected="full-composer"),
-        modes=["focused-pre-mortem"] * 5,   # over-routes — fails
+        modes=["focused-pre-mortem"] * 5,  # over-routes — fails
         match_count=0,
         row_pass=False,
     )
@@ -631,8 +659,12 @@ def self_test() -> int:
         _d01a_sn_path = Path(_d01a_sn_tf.name)
     try:
         try:
-            _write_baseline(_d01a_sn_results, _d01a_args, _d01a_sn_path,
-                            recorded_ts="2026-01-01T00:00:00Z")
+            _write_baseline(
+                _d01a_sn_results,
+                _d01a_args,
+                _d01a_sn_path,
+                recorded_ts="2026-01-01T00:00:00Z",
+            )
         except ValueError as _e:
             print(
                 f"self-test FAIL: D-01a failing-S-N firewall — "
@@ -669,7 +701,9 @@ def self_test() -> int:
         for cid in CANONICAL_TALLY_IDS
     ]
     _nb_sn04_fail = PromptResult(
-        prompt=Step0Prompt(id="S-N04", text="walk through failure modes", expected="full-composer"),
+        prompt=Step0Prompt(
+            id="S-N04", text="walk through failure modes", expected="full-composer"
+        ),
         modes=["focused-pre-mortem"] * 5,
         match_count=0,
         row_pass=False,
@@ -725,11 +759,15 @@ def self_test() -> int:
     # reusing the live check-routing.parse_catalog (no hand-rolled parser).
     executed.append("routing-count-drift")
     _rcheck_path = Path(__file__).resolve().parent / "check-routing.py"
-    _rcheck_spec = importlib.util.spec_from_file_location("_check_routing_module", _rcheck_path)
+    _rcheck_spec = importlib.util.spec_from_file_location(
+        "_check_routing_module", _rcheck_path
+    )
     _rcheck_mod = importlib.util.module_from_spec(_rcheck_spec)  # type: ignore[arg-type]
     sys.modules["_check_routing_module"] = _rcheck_mod
     _rcheck_spec.loader.exec_module(_rcheck_mod)  # type: ignore[union-attr]
-    _rc_pos, _rc_neg = _rcheck_mod.parse_catalog(REPO_ROOT / "tests" / "routing-catalog.md")
+    _rc_pos, _rc_neg = _rcheck_mod.parse_catalog(
+        REPO_ROOT / "tests" / "routing-catalog.md"
+    )
     if len(_rc_pos) != 13 or len(_rc_neg) != 20:
         print(
             f"self-test FAIL: routing-count drift"
@@ -828,7 +866,8 @@ def self_test() -> int:
         # residual_risk_rows. Any unmapped row that slips through would raise
         # ValueError in _write_baseline after 145 live invocations.
         _rr_cov_reachable = {
-            row.id for row in _rr_cov_catalog
+            row.id
+            for row in _rr_cov_catalog
             if not row.id.startswith("S-A")
             and row.id not in CONTEXT_FREE_IDS
             and row.id not in MERGE_VALIDATION_IDS
@@ -859,16 +898,20 @@ def self_test() -> int:
     # the key is present with a JSON-null value, so .lower() on None raised
     # AttributeError — contradicting the function's documented no-raise contract.
     executed.append("null-subagent-no-raise")
-    _null_dispatch_line = json.dumps({
-        "type": "assistant",
-        "message": {
-            "content": [{
-                "type": "tool_use",
-                "name": "Agent",
-                "input": {"subagent_type": None, "prompt": "test"},
-            }]
-        },
-    })
+    _null_dispatch_line = json.dumps(
+        {
+            "type": "assistant",
+            "message": {
+                "content": [
+                    {
+                        "type": "tool_use",
+                        "name": "Agent",
+                        "input": {"subagent_type": None, "prompt": "test"},
+                    }
+                ]
+            },
+        }
+    )
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".jsonl", delete=False, encoding="utf-8"
     ) as tf:
@@ -897,19 +940,23 @@ def self_test() -> int:
         except OSError:
             pass
     # Positive counter-check (non-vacuous): a real dispatch line still returns True.
-    _real_dispatch_line = json.dumps({
-        "type": "assistant",
-        "message": {
-            "content": [{
-                "type": "tool_use",
-                "name": "Agent",
-                "input": {
-                    "subagent_type": "first-principles:first-principles",
-                    "prompt": "test",
-                },
-            }]
-        },
-    })
+    _real_dispatch_line = json.dumps(
+        {
+            "type": "assistant",
+            "message": {
+                "content": [
+                    {
+                        "type": "tool_use",
+                        "name": "Agent",
+                        "input": {
+                            "subagent_type": "first-principles:first-principles",
+                            "prompt": "test",
+                        },
+                    }
+                ]
+            },
+        }
+    )
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".jsonl", delete=False, encoding="utf-8"
     ) as tf:
@@ -952,11 +999,18 @@ def self_test() -> int:
         _d07b_path = Path(_d07b_tf.name)
     try:
         try:
-            _write_baseline(_d07b_reduced, _d07b_args, _d07b_path,
-                            recorded_ts="2026-01-01T00:00:00Z")
+            _write_baseline(
+                _d07b_reduced,
+                _d07b_args,
+                _d07b_path,
+                recorded_ts="2026-01-01T00:00:00Z",
+            )
             _d07b_summary = next(
-                (ln for ln in _d07b_path.read_text(encoding="utf-8").splitlines()
-                 if ln.startswith("**Summary:**")),
+                (
+                    ln
+                    for ln in _d07b_path.read_text(encoding="utf-8").splitlines()
+                    if ln.startswith("**Summary:**")
+                ),
                 "",
             )
             if "P 3/3" not in _d07b_summary:
@@ -996,11 +1050,18 @@ def self_test() -> int:
         _d07b_full_path = Path(_d07b_full_tf.name)
     try:
         try:
-            _write_baseline(_d07b_full, _d07b_args, _d07b_full_path,
-                            recorded_ts="2026-01-01T00:00:00Z")
+            _write_baseline(
+                _d07b_full,
+                _d07b_args,
+                _d07b_full_path,
+                recorded_ts="2026-01-01T00:00:00Z",
+            )
             _d07b_full_summary = next(
-                (ln for ln in _d07b_full_path.read_text(encoding="utf-8").splitlines()
-                 if ln.startswith("**Summary:**")),
+                (
+                    ln
+                    for ln in _d07b_full_path.read_text(encoding="utf-8").splitlines()
+                    if ln.startswith("**Summary:**")
+                ),
                 "",
             )
             if "P 8/8" not in _d07b_full_summary:
@@ -1070,7 +1131,9 @@ def self_test() -> int:
     executed.append("roster-floor-extra")
     _synthetic_registered = ("synthetic-a", "synthetic-b")
     _synthetic_executed = ["synthetic-a", "synthetic-c"]
-    _synthetic_problems = _step0_control_roster_problems(_synthetic_executed, _synthetic_registered)
+    _synthetic_problems = _step0_control_roster_problems(
+        _synthetic_executed, _synthetic_registered
+    )
     _synthetic_text = " ".join(_synthetic_problems)
     if not _synthetic_problems:
         print(
@@ -1106,7 +1169,8 @@ def self_test() -> int:
     _roster_problems = _step0_control_roster_problems(executed, _CONTROL_IDS)
     if _roster_problems:
         print(
-            "self-test FAIL: control roster/executed floor — " + "; ".join(_roster_problems),
+            "self-test FAIL: control roster/executed floor — "
+            + "; ".join(_roster_problems),
             file=sys.stderr,
         )
         all_passed = False
@@ -1272,8 +1336,10 @@ def _step0_control_roster_problems(
     extra = executed_set - registered_set
     if missing or extra:
         return [
-            (f"control roster/executed mismatch: missing={sorted(missing)} "
-            f"extra={sorted(extra)}")
+            (
+                f"control roster/executed mismatch: missing={sorted(missing)} "
+                f"extra={sorted(extra)}"
+            )
         ]
     return []
 
@@ -1321,8 +1387,12 @@ def _roster_arm_clauses(text: str) -> tuple[str, str]:
 # Module-level constant so both _write_baseline and self_test() reference the
 # same object — drift-proofing against RR_ID_MAP growing stale (CR-01).
 _RR_ID_MAP: dict[str, str] = {
-    "S-P01": "RR-79-01", "S-P02": "RR-114-01", "S-P03": "RR-75-03",
-    "S-P04": "RR-75-04", "S-P05": "RR-108-02", "S-P06": "RR-75-06",
+    "S-P01": "RR-79-01",
+    "S-P02": "RR-114-01",
+    "S-P03": "RR-75-03",
+    "S-P04": "RR-75-04",
+    "S-P05": "RR-108-02",
+    "S-P06": "RR-75-06",
     "S-N04": "RR-80-01",
     # Negative-control rows that dipped below min_pass on this run ONLY because
     # of spend-limit `none` truncation (no routing happened), NOT genuine
@@ -1357,8 +1427,8 @@ _RR_ID_MAP: dict[str, str] = {
     # Falsifier rows (handled by the CONTEXT_FREE branch in the verdict loop;
     # never appended to residual_risk_rows) — share the minted ID of the
     # technique they falsify so no provisional placeholder survives.
-    "S-P07": "RR-79-01",   # pre-mortem falsifier
-    "S-P08": "RR-79-01",   # pre-mortem falsifier
+    "S-P07": "RR-79-01",  # pre-mortem falsifier
+    "S-P08": "RR-79-01",  # pre-mortem falsifier
     "S-P11": "RR-108-04",  # estimate falsifier
     "S-P12": "RR-108-04",  # estimate falsifier
     "S-P13": "RR-108-04",  # estimate falsifier
@@ -1406,7 +1476,8 @@ def _battery_gate(
     (all blocking S-N pass). Returns (p_context, p_context_pass, n_pass,
     battery_pass) where n_pass counts only blocking negatives."""
     p_context = [
-        r for r in p_rows
+        r
+        for r in p_rows
         if r.prompt.id not in CONTEXT_FREE_IDS
         and r.prompt.id not in MERGE_VALIDATION_IDS
     ]
@@ -1439,7 +1510,10 @@ def _write_baseline(
         try:
             r = subprocess.run(
                 ["git", "log", "-1", "--format=%h", "--", rel_path],
-                capture_output=True, text=True, cwd=REPO_ROOT, check=False,
+                capture_output=True,
+                text=True,
+                cwd=REPO_ROOT,
+                check=False,
             )
             return r.stdout.strip() or "unknown"
         except OSError:
@@ -1485,14 +1559,16 @@ def _write_baseline(
         f"**Run flags:** `--repeat {repeat} --min-pass {min_pass}`",
         "**Run cwd:** `/tmp` (out-of-repo — see Methodology notes)",
         f"**Baseline verdict:** BATTERY: {battery_verdict}",
-        (f"**Summary:** P {canonical_pass}/{canonical_n} ({canonical_n}-technique canonical bar: "
-        f"S-P01–06 + S-P10 estimate, S-P14 theoretical-limit) | "
-        f"S-N {n_pass}/{len(n_rows)} | "
-        f"S-P07/08/11/12/13/15 expected-FAIL (context-free / alternation falsifiers, excluded from the bar) | "
-        f"S-P16 merge-validation (outside /8): "
-        f"{(_s_p16_result.match_count if _s_p16_result else 'N/A')}/"
-        f"{(args.repeat if _s_p16_result else 'N/A')} "
-        f"({'PASS' if _s_p16_result and _s_p16_result.row_pass else ('FAIL' if _s_p16_result else 'not measured this run')})"),
+        (
+            f"**Summary:** P {canonical_pass}/{canonical_n} ({canonical_n}-technique canonical bar: "
+            f"S-P01–06 + S-P10 estimate, S-P14 theoretical-limit) | "
+            f"S-N {n_pass}/{len(n_rows)} | "
+            f"S-P07/08/11/12/13/15 expected-FAIL (context-free / alternation falsifiers, excluded from the bar) | "
+            f"S-P16 merge-validation (outside /8): "
+            f"{(_s_p16_result.match_count if _s_p16_result else 'N/A')}/"
+            f"{(args.repeat if _s_p16_result else 'N/A')} "
+            f"({'PASS' if _s_p16_result and _s_p16_result.row_pass else ('FAIL' if _s_p16_result else 'not measured this run')})"
+        ),
         "",
         "---",
         "",
@@ -1515,15 +1591,18 @@ def _write_baseline(
             # Summary line (see header block above). Never appended to
             # residual_risk_rows and never written as expected-FAIL (CR-01/D-01a).
             verdict_str = (
-                "PASS" if r.row_pass else
-                "FAIL (merge-validation signal — outside /8 canonical bar; "
+                "PASS"
+                if r.row_pass
+                else "FAIL (merge-validation signal — outside /8 canonical bar; "
                 "tracked via _s_p16_result line, not a residual-risk row)"
             )
         else:
             verdict_str = "PASS" if r.row_pass else "FAIL"
             if not r.row_pass:
                 residual_risk_rows.append(r)
-        lines.append(f"| {r.prompt.id} | {r.prompt.expected} | {kn_str} | {verdict_str} |")
+        lines.append(
+            f"| {r.prompt.id} | {r.prompt.expected} | {kn_str} | {verdict_str} |"
+        )
 
     lines += [
         "",
@@ -1541,12 +1620,12 @@ def _write_baseline(
         "```bash",
         "REPO=/path/to/first-principles-skills",
         f"OUT_DIR=/tmp/step0-live-{_BASELINE_VERSION}-$(date -u +%Y%m%dT%H%M%SZ)",
-        "cd /tmp && python3 \"$REPO/scripts/check-step0-live.py\" \\",
-        "  --catalog \"$REPO/tests/step0-fixture-catalog.md\" \\",
-        "  --plugin-dir \"$REPO/first-principles\" \\",
+        'cd /tmp && python3 "$REPO/scripts/check-step0-live.py" \\',
+        '  --catalog "$REPO/tests/step0-fixture-catalog.md" \\',
+        '  --plugin-dir "$REPO/first-principles" \\',
         f"  --repeat {repeat} --min-pass {min_pass} \\",
-        "  --out \"$OUT_DIR\" \\",
-        f"  --baseline \"$REPO/tests/step0-baseline-{_BASELINE_VERSION}.md\"",
+        '  --out "$OUT_DIR" \\',
+        f'  --baseline "$REPO/tests/step0-baseline-{_BASELINE_VERSION}.md"',
         "```",
         "",
         f"**Run date:** {recorded_ts}",
@@ -1566,7 +1645,7 @@ def _write_baseline(
         "",
         "**Why `_classify_mode` infers `full-composer` from `none` + dispatch evidence.**",
         "When `detect_output_structure_from_file` returns `none` but the capture shows",
-        "`Agent(subagent_type=\"first-principles:first-principles\")` was dispatched, the",
+        '`Agent(subagent_type="first-principles:first-principles")` was dispatched, the',
         "sub-agent ran the full-composer path but produced a non-structured response",
         "(e.g., a clarification request when `AskUserQuestion` is unavailable). The",
         "dispatch itself proves Step 0 chose the full-composer path. This inference is",
@@ -1606,7 +1685,9 @@ def _write_baseline(
     for r in results:
         for run_idx, mode in enumerate(r.modes, 1):
             match = 1 if mode == r.prompt.expected else 0
-            lines.append(f"{r.prompt.id}\t{run_idx}\t{r.prompt.expected}\t{mode}\t{match}")
+            lines.append(
+                f"{r.prompt.id}\t{run_idx}\t{r.prompt.expected}\t{mode}\t{match}"
+            )
     lines += [
         "```",
         "",
@@ -1810,7 +1891,8 @@ def main(argv: list[str] | None = None) -> int:
     # (4) sync-content.py --check pre-flight (71/D-09 constraint #3, Pitfall 4, T-72-05)
     sync_check = subprocess.run(
         [sys.executable, str(REPO_ROOT / "scripts" / "sync-content.py"), "--check"],
-        capture_output=True, check=False,
+        capture_output=True,
+        check=False,
     )
     if sync_check.returncode != 0:
         print(
@@ -1863,8 +1945,10 @@ def main(argv: list[str] | None = None) -> int:
     plugin_dir = args.plugin_dir
     out_dir = args.out_dir
 
-    print(f"Step 0 live harness — {len(catalog)} rows × {repeat} repeats "
-          f"(S-A* excluded from live run; {len(parsed_catalog)} parsed)")
+    print(
+        f"Step 0 live harness — {len(catalog)} rows × {repeat} repeats "
+        f"(S-A* excluded from live run; {len(parsed_catalog)} parsed)"
+    )
     print(f"  min-pass: {min_pass}/{repeat}")
     print(f"  plugin-dir: {plugin_dir}")
     print(f"  out-dir: {out_dir}")
@@ -1878,12 +1962,14 @@ def main(argv: list[str] | None = None) -> int:
         modes = [_classify_mode(p) for p in paths]
         match_count = sum(1 for m in modes if m == prompt.expected)
         row_pass = match_count >= min_pass
-        results.append(PromptResult(
-            prompt=prompt,
-            modes=modes,
-            match_count=match_count,
-            row_pass=row_pass,
-        ))
+        results.append(
+            PromptResult(
+                prompt=prompt,
+                modes=modes,
+                match_count=match_count,
+                row_pass=row_pass,
+            )
+        )
         if not args.quiet:
             print(
                 f"[{prompt.id}] {match_count}/{repeat} "
@@ -1909,7 +1995,9 @@ def main(argv: list[str] | None = None) -> int:
         for r in results:
             for run_idx, mode in enumerate(r.modes, 1):
                 match = 1 if mode == r.prompt.expected else 0
-                sf.write(f"{r.prompt.id}\t{run_idx}\t{r.prompt.expected}\t{mode}\t{match}\n")
+                sf.write(
+                    f"{r.prompt.id}\t{run_idx}\t{r.prompt.expected}\t{mode}\t{match}\n"
+                )
 
     # (10) Battery verdict
     p_rows = [r for r in results if r.prompt.id.startswith("S-P")]

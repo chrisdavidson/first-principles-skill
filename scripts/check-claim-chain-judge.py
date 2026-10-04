@@ -191,7 +191,9 @@ def _load_harness():
     `_chain_block_well_formed` via its digest pin) are frozen under
     CONTRACT-06.
     """
-    spec = importlib.util.spec_from_file_location("_qh_for_claim_chain_judge", _HARNESS_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "_qh_for_claim_chain_judge", _HARNESS_PATH
+    )
     if spec is None or spec.loader is None:
         raise SystemExit(f"error: cannot load {_HARNESS_PATH}")
     module = importlib.util.module_from_spec(spec)
@@ -206,7 +208,9 @@ QH = _load_harness()
 _MAX_COMPOSITION_DEPTH = 3
 
 # A section-3 ground-truth entry: a list item whose first bold span is a GT id.
-_GT_ENTRY_RE = re.compile(r"^[ \t]*[-*][ \t]*\*\*(GT-[A-Za-z0-9]+\??)\*\*", re.MULTILINE)
+_GT_ENTRY_RE = re.compile(
+    r"^[ \t]*[-*][ \t]*\*\*(GT-[A-Za-z0-9]+\??)\*\*", re.MULTILINE
+)
 
 # A chain-shaped reference in claim prose, after GT tokens are masked out so
 # `GT-C1` can never read as a reference to chain `C1` (the same hazard
@@ -437,7 +441,9 @@ def extract_packets(analysis_text: str) -> list[ClaimPacket]:
         for parent in [c.chain_id for c in chains]:
             body = by_id.get(parent, "")
             masked = _GT_TOKEN_MASK_RE.sub(" ", body)
-            for ref in sorted({r.upper() for r in _CHAIN_SHAPED_REF_RE.findall(masked)}):
+            for ref in sorted(
+                {r.upper() for r in _CHAIN_SHAPED_REF_RE.findall(masked)}
+            ):
                 target = norm_to_id.get(QH._normalize_chain_id(ref))
                 if target is None or target in seen:
                     continue
@@ -547,16 +553,15 @@ def render_packet(packet: ClaimPacket) -> str:
                     f"{c.via.split(':', 1)[1]}'s first line builds on it"
                 )
             else:
-                how = (
-                    "included because "
-                    f"{c.via.split(':', 1)[1]} refers to it"
-                )
+                how = f"included because {c.via.split(':', 1)[1]} refers to it"
             parts.append(f"{c.chain_id} ({how}):")
             parts.append("")
             parts.append(c.text)
             parts.append("")
     else:
-        parts.append("Derivations the claim names: none of the document's derivations is named.")
+        parts.append(
+            "Derivations the claim names: none of the document's derivations is named."
+        )
         parts.append("")
     if packet.unresolved_refs:
         defined = ", ".join(packet.all_chain_ids) if packet.all_chain_ids else "none"
@@ -574,7 +579,9 @@ def render_packet(packet: ClaimPacket) -> str:
             parts.append(body)
             parts.append("")
     else:
-        parts.append("Stated facts those derivations rest on: none is named by their first lines.")
+        parts.append(
+            "Stated facts those derivations rest on: none is named by their first lines."
+        )
         parts.append("")
     return "\n".join(parts).rstrip() + "\n"
 
@@ -718,7 +725,9 @@ class PromptNotBlindError(ValueError):
     """Raised when an assembled prompt carries a forbidden term."""
 
 
-def assert_blinded(prompt: str, *, checker: Callable[[str], list[str]] | None = None) -> None:
+def assert_blinded(
+    prompt: str, *, checker: Callable[[str], list[str]] | None = None
+) -> None:
     """Raise `PromptNotBlindError` if the assembled prompt is not blind.
 
     `checker` is injectable so the self-test can prove a weakened check is
@@ -915,7 +924,9 @@ def render_report(docs: list[DocResult]) -> str:
         lines.append("|---|---|---|---|---|")
         for r in d.results:
             totals[r.verdict] = totals.get(r.verdict, 0) + 1
-            cited = ", ".join(QH._normalize_chain_id(c).upper() for c in r.cited) or "--"
+            cited = (
+                ", ".join(QH._normalize_chain_id(c).upper() for c in r.cited) or "--"
+            )
             unres = ", ".join(r.unresolved) or "--"
             lines.append(
                 f"| {_excerpt(r.claim_text, 60)} | {cited} | {unres} | "
@@ -1351,8 +1362,12 @@ FIXTURES: tuple[Fixture, ...] = (
         claims_total=2,
         excluded=0,
         expectations=(
-            ClaimExpectation("Add a second checkout worker", ("Conclusion C1",), (), SUPPORTS),
-            ClaimExpectation("Queue depth, not worker CPU", ("Conclusion C2",), (), SUPPORTS),
+            ClaimExpectation(
+                "Add a second checkout worker", ("Conclusion C1",), (), SUPPORTS
+            ),
+            ClaimExpectation(
+                "Queue depth, not worker CPU", ("Conclusion C2",), (), SUPPORTS
+            ),
         ),
         note="each claim names the chain that reaches it; a correct reading is all SUPPORTS",
     ),
@@ -1380,7 +1395,9 @@ FIXTURES: tuple[Fixture, ...] = (
         claims_total=3,
         excluded=1,
         expectations=(
-            ClaimExpectation("Add a second checkout worker", ("Conclusion C1",), (), SUPPORTS),
+            ClaimExpectation(
+                "Add a second checkout worker", ("Conclusion C1",), (), SUPPORTS
+            ),
             ClaimExpectation(
                 "The cost comparison remains favourable", (), ("C7",), DOES_NOT_SUPPORT
             ),
@@ -1608,7 +1625,9 @@ def fixture_problems(
     return problems
 
 
-def blinding_control_problems(checker: Callable[[str], list[str]] | None = None) -> list[str]:
+def blinding_control_problems(
+    checker: Callable[[str], list[str]] | None = None,
+) -> list[str]:
     """Prove the blinding assertion FIRES on a leaky prompt and not on clean ones.
 
     Three legs:
@@ -1694,9 +1713,7 @@ def structure_problems() -> list[str]:
     """
     problems: list[str] = []
 
-    expected_values = {
-        e.verdict for fx in FIXTURES for e in fx.expectations
-    }
+    expected_values = {e.verdict for fx in FIXTURES for e in fx.expectations}
     for required in (SUPPORTS, DOES_NOT_SUPPORT):
         if required not in expected_values:
             problems.append(
@@ -1745,9 +1762,11 @@ def structure_problems() -> list[str]:
             "different chain sets: the mock is keyed on the claim alone and the "
             "suite cannot detect a wrong chain being handed to the judge"
         )
-    for (phrase, _chains) in _SCRIPTED:
+    for phrase, _chains in _SCRIPTED:
         if phrase not in _SCRIPTED_PHRASES:
-            problems.append(f"_SCRIPTED phrase {phrase!r} missing from _SCRIPTED_PHRASES")
+            problems.append(
+                f"_SCRIPTED phrase {phrase!r} missing from _SCRIPTED_PHRASES"
+            )
 
     labels = [t.label for t in FORBIDDEN_TERMS]
     if len(set(labels)) != len(labels):
@@ -1790,8 +1809,10 @@ def structure_problems() -> list[str]:
 _PARSE_CASES: tuple[tuple[str, str, int, tuple[str, ...]], ...] = (
     (
         "well-formed",
-        (f"prose\n{_VERDICT_START}\nITEM-1: {SUPPORTS} -- fine\n"
-        f"ITEM-2: {DOES_NOT_SUPPORT} -- wrong chain\n{_VERDICT_END}\n"),
+        (
+            f"prose\n{_VERDICT_START}\nITEM-1: {SUPPORTS} -- fine\n"
+            f"ITEM-2: {DOES_NOT_SUPPORT} -- wrong chain\n{_VERDICT_END}\n"
+        ),
         2,
         (SUPPORTS, DOES_NOT_SUPPORT),
     ),
@@ -1827,8 +1848,10 @@ _PARSE_CASES: tuple[tuple[str, str, int, tuple[str, ...]], ...] = (
     ),
     (
         "duplicate item number",
-        (f"{_VERDICT_START}\nITEM-1: {SUPPORTS} -- fine\n"
-        f"ITEM-1: {DOES_NOT_SUPPORT} -- no\n{_VERDICT_END}"),
+        (
+            f"{_VERDICT_START}\nITEM-1: {SUPPORTS} -- fine\n"
+            f"ITEM-1: {DOES_NOT_SUPPORT} -- no\n{_VERDICT_END}"
+        ),
         1,
         (UNPARSEABLE,),
     ),
@@ -1880,14 +1903,18 @@ def packet_problems() -> list[str]:
         problems.append(f"sound/claim-1: expected only Conclusion C1, got {ids}")
     gt_ids = [g[0] for g in first.ground_truths]
     if gt_ids != ["GT-1", "GT-2"]:
-        problems.append(f"sound/claim-1: expected GT-1 and GT-2 in packet, got {gt_ids}")
+        problems.append(
+            f"sound/claim-1: expected GT-1 and GT-2 in packet, got {gt_ids}"
+        )
     rendered = render_packet(first)
     if "halving the worst-case drain" not in rendered:
         problems.append("sound/claim-1: the cited chain's body is not in the packet")
     if "only signal that leads the incident" in rendered:
         problems.append("sound/claim-1: an UNCITED chain's body leaked into the packet")
     if "12 jobs per minute at steady state" not in rendered:
-        problems.append("sound/claim-1: a head-named ground truth is missing from the packet")
+        problems.append(
+            "sound/claim-1: a head-named ground truth is missing from the packet"
+        )
     if "Assumptions Table" in rendered or "Dead End" in rendered:
         problems.append("sound/claim-1: material beyond claim/chains/facts leaked in")
 
@@ -1913,7 +1940,10 @@ def packet_problems() -> list[str]:
 
     cyc = extract_packets(_FIX_CYCLE)
     got_ids = [tuple(c.chain_id for c in p.chains) for p in cyc]
-    if got_ids != [("Conclusion C1", "Conclusion C2"), ("Conclusion C2", "Conclusion C1")]:
+    if got_ids != [
+        ("Conclusion C1", "Conclusion C2"),
+        ("Conclusion C2", "Conclusion C1"),
+    ]:
         problems.append(
             f"cycle fixture: expected each packet to carry both blocks, got {got_ids}"
         )
@@ -2020,7 +2050,9 @@ def packet_problems() -> list[str]:
     if [e[0] for e in entries] != ["GT-1", "GT-2?"]:
         problems.append(f"ground_truth_entries: got {[e[0] for e in entries]}")
     if entries and entries[-1][1].endswith("-"):
-        problems.append("ground_truth_entries: a trailing horizontal rule leaked into an entry")
+        problems.append(
+            "ground_truth_entries: a trailing horizontal rule leaked into an entry"
+        )
 
     # A claim naming `GT-C1` must not read as naming chain C1 (the masking rule).
     masked = _GT_TOKEN_MASK_RE.sub(" ", "grounded in GT-C1 alone")
@@ -2194,7 +2226,13 @@ def _collect_inputs(args: argparse.Namespace) -> list[Path]:
 
 
 _CONTROL_GROUPS: tuple[str, ...] = (
-    "structure", "harness", "packet", "parse", "blinding", "fixture", "emission",
+    "structure",
+    "harness",
+    "packet",
+    "parse",
+    "blinding",
+    "fixture",
+    "emission",
 )
 
 
@@ -2243,8 +2281,12 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         help="keep the live judge captures here (default: a temporary directory)",
     )
-    ap.add_argument("--self-test", action="store_true", help="run the offline control suite")
-    ap.add_argument("--describe", action="store_true", help="emit this gate's self-description")
+    ap.add_argument(
+        "--self-test", action="store_true", help="run the offline control suite"
+    )
+    ap.add_argument(
+        "--describe", action="store_true", help="emit this gate's self-description"
+    )
     ap.add_argument(
         "--inject",
         choices=INJECTIONS,

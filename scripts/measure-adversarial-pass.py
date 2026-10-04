@@ -99,7 +99,9 @@ def _anchor_line_numbers(lines: list[str]) -> list[int]:
     return [i + 1 for i, line in enumerate(lines) if _ANCHOR_RE.search(line)]
 
 
-def _window_lines(lines: list[str], anchor_line: int, span: int = WINDOW_LINES) -> list[str]:
+def _window_lines(
+    lines: list[str], anchor_line: int, span: int = WINDOW_LINES
+) -> list[str]:
     """The record's own section: anchor line to the next top-level heading.
 
     `span` bounds the scan so a document with no subsequent heading cannot
@@ -213,7 +215,9 @@ def _validate_input_path(raw: str) -> Path:
     try:
         resolved = candidate.resolve()
     except OSError as exc:
-        raise SystemExit(f"measure-adversarial-pass: cannot resolve path {raw!r}: {exc}")
+        raise SystemExit(
+            f"measure-adversarial-pass: cannot resolve path {raw!r}: {exc}"
+        )
     if resolved != REPO_ROOT and REPO_ROOT not in resolved.parents:
         raise SystemExit(
             f"measure-adversarial-pass: refusing {raw!r} -- it resolves outside "
@@ -234,7 +238,9 @@ def _validate_input_path(raw: str) -> Path:
             f"measure-adversarial-pass: refusing {raw!r} -- only '.md' paths are accepted"
         )
     if not resolved.is_file():
-        raise SystemExit(f"measure-adversarial-pass: {raw!r} does not exist or is not a file")
+        raise SystemExit(
+            f"measure-adversarial-pass: {raw!r} does not exist or is not a file"
+        )
     return resolved
 
 
@@ -248,7 +254,9 @@ def _cell(value: object) -> str:
 
 def cmd_score(paths: list[Path]) -> int:
     if not paths:
-        print("ANTI-VACUITY: --score received an empty file set -- this is a finding, not a silent pass")
+        print(
+            "ANTI-VACUITY: --score received an empty file set -- this is a finding, not a silent pass"
+        )
         return 1
     rows = [(p, score_file(p)) for p in paths]
     print("| file | present | premise | causes | clusters | disposition |")
@@ -276,7 +284,9 @@ def _load_battery_core():
 
 def cmd_classify(paths: list[Path]) -> int:
     if not paths:
-        print("ANTI-VACUITY: --classify received an empty file set -- this is a finding, not a silent pass")
+        print(
+            "ANTI-VACUITY: --classify received an empty file set -- this is a finding, not a silent pass"
+        )
         return 1
     bc = _load_battery_core()
     for path in paths:
@@ -305,12 +315,12 @@ def run_self_test() -> int:
     # section sits far enough below that a first-match-only anchor would
     # miss it entirely. Fixes the failure that scored both root demos "no"
     # on every column.
-    padding = "\n".join(f"Filler paragraph {i} of unrelated prose." for i in range(1, 40))
+    padding = "\n".join(
+        f"Filler paragraph {i} of unrelated prose." for i in range(1, 40)
+    )
     first_match_text = (
         "This document mentions pre-mortem only as a technique name in passing, "
-        "with no analysis attached.\n"
-        + padding
-        + "\n\n"
+        "with no analysis attached.\n" + padding + "\n\n"
         "## Pre-mortem (Phase 5 process output)\n"
         "Premise restated: it is twelve months later and the launch already failed.\n"
         "Causes written before filtering:\n"
@@ -380,9 +390,18 @@ def build_parser() -> argparse.ArgumentParser:
         "or feed capture text through the frozen output-structure classifier."
     )
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--score", nargs="+", metavar="FILE.md", help="score files for pre-mortem shape")
-    group.add_argument("--classify", nargs="+", metavar="FILE.md", help="feed files through _battery_core.classify()")
-    group.add_argument("--self-test", action="store_true", help="run the offline control battery")
+    group.add_argument(
+        "--score", nargs="+", metavar="FILE.md", help="score files for pre-mortem shape"
+    )
+    group.add_argument(
+        "--classify",
+        nargs="+",
+        metavar="FILE.md",
+        help="feed files through _battery_core.classify()",
+    )
+    group.add_argument(
+        "--self-test", action="store_true", help="run the offline control battery"
+    )
     return parser
 
 

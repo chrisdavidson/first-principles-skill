@@ -42,6 +42,7 @@ Usage:
     python3 scripts/check-persona-view.py --self-test
     python3 scripts/check-persona-view.py --describe
 """
+
 from __future__ import annotations
 
 import argparse
@@ -149,16 +150,32 @@ FINDING_CODES: tuple[str, ...] = (
 # 2026-10-02 review found in the live CSA views the user objected to
 # (Decide, Move, Read, Risk-classify, Confirm, Keep, Classify, Switch,
 # Finish).
-DIRECTIVE_OPENERS: frozenset[str] = frozenset({
-    "build", "classify", "confirm", "consider", "decide", "finish", "keep",
-    "move", "read", "reject", "risk-classify", "switch", "take", "treat",
-})
+DIRECTIVE_OPENERS: frozenset[str] = frozenset(
+    {
+        "build",
+        "classify",
+        "confirm",
+        "consider",
+        "decide",
+        "finish",
+        "keep",
+        "move",
+        "read",
+        "reject",
+        "risk-classify",
+        "switch",
+        "take",
+        "treat",
+    }
+)
 # The contract's two-word "Do not" opener, plus its contraction -- neither
 # is a single DIRECTIVE_OPENERS token, so each is matched as a short
 # sentence-initial phrase instead.
 DIRECTIVE_PHRASE_OPENERS: tuple[tuple[str, ...], ...] = (("do", "not"), ("don't",))
 _SECOND_PERSON_RE = re.compile(r"\b(?:you|your|yours|yourself|you're)\b", re.IGNORECASE)
-_READER_VERDICT_RE = re.compile(r"\b(?:objection|reader)\s+is\s+(?:right|wrong)\b", re.IGNORECASE)
+_READER_VERDICT_RE = re.compile(
+    r"\b(?:objection|reader)\s+is\s+(?:right|wrong)\b", re.IGNORECASE
+)
 # Measured 2026-10-02 (planner): the frozen pre-87 fixture shares a 16-word
 # run with its source's §6 Recommended approach paragraph; a constructed
 # single-sentence restatement (M-D-RUN) shares 9; the D-01 approved sample
@@ -201,7 +218,8 @@ def sb():
     global _SB
     if _SB is None:
         spec = importlib.util.spec_from_file_location(
-            "_sb_for_persona_view", REPO_ROOT / "scripts" / "check-summary-block.py")
+            "_sb_for_persona_view", REPO_ROOT / "scripts" / "check-summary-block.py"
+        )
         mod = importlib.util.module_from_spec(spec)
         sys.modules["_sb_for_persona_view"] = mod
         spec.loader.exec_module(mod)
@@ -220,7 +238,9 @@ def qh():
 # Roster (contract parsing)
 # ---------------------------------------------------------------------------
 
-_ROSTER_SECTION_RE = re.compile(r"^## Persona roster\n(.*?)(?=^## |\Z)", re.MULTILINE | re.DOTALL)
+_ROSTER_SECTION_RE = re.compile(
+    r"^## Persona roster\n(.*?)(?=^## |\Z)", re.MULTILINE | re.DOTALL
+)
 _BAND_SPLIT_RE = re.compile(r"[–-]")
 
 
@@ -241,13 +261,18 @@ def load_roster(contract_text: str) -> dict[str, tuple[str, int, int]]:
     return roster
 
 
-_ROLE_SECTION_RE = re.compile(r"^## (?P<title>[A-Za-z ]+)\n(?P<body>.*?)(?=^## |\Z)", re.MULTILINE | re.DOTALL)
-_QUESTIONS_BLOCK_RE = re.compile(r"\*\*Questions \(in order\):\*\*\n\n(?P<list>(?:\d+\.\s+.+\n)+)")
+_ROLE_SECTION_RE = re.compile(
+    r"^## (?P<title>[A-Za-z ]+)\n(?P<body>.*?)(?=^## |\Z)", re.MULTILINE | re.DOTALL
+)
+_QUESTIONS_BLOCK_RE = re.compile(
+    r"\*\*Questions \(in order\):\*\*\n\n(?P<list>(?:\d+\.\s+.+\n)+)"
+)
 _QUESTION_LINE_RE = re.compile(r"^\d+\.\s+(?P<q>.+?)\s*$", re.MULTILINE)
 
 
 def load_questions(
-    contract_text: str, roster: dict[str, tuple[str, int, int]],
+    contract_text: str,
+    roster: dict[str, tuple[str, int, int]],
 ) -> dict[str, tuple[str, ...]]:
     """Parse each roster role's `## <Title>` section's `**Questions (in
     order):**` numbered list into slug -> ordered question tuple. A role
@@ -268,6 +293,7 @@ def load_questions(
 # ---------------------------------------------------------------------------
 # Source facts
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class SourceFacts:
@@ -303,10 +329,14 @@ def source_facts(analysis_text: str) -> SourceFacts:
     try:
         sections = qhmod._slice_sections(analysis_text)
     except qhmod.SectionResolutionError as exc:
-        raise SourceError(f"analysis text does not resolve into sections 1-6: {exc}") from exc
+        raise SourceError(
+            f"analysis text does not resolve into sections 1-6: {exc}"
+        ) from exc
     chain_ids = frozenset(sbmod._doc_chain_index(sections.get(4, ""))[0])
     gt_declared = dict(sbmod._gt_declarations(sections.get(3, "")))
-    assumption_row_count = len(sbmod._table_columns(sections.get(2, ""), ("Assumption",)))
+    assumption_row_count = len(
+        sbmod._table_columns(sections.get(2, ""), ("Assumption",))
+    )
     dead_end_titles = frozenset(
         re.sub(r"\s+", " ", m.group("name")).strip()
         for m in sbmod._DEAD_END_HEADING_RE.finditer(sections.get(5, ""))
@@ -317,12 +347,20 @@ def source_facts(analysis_text: str) -> SourceFacts:
     numbers = frozenset(numbers_in(analysis_text))
     recommended_approach = _recommended_approach(sections.get(6, ""))
     return SourceFacts(
-        chain_ids, gt_declared, assumption_row_count, dead_end_titles, band, numbers,
-        recommended_approach)
+        chain_ids,
+        gt_declared,
+        assumption_row_count,
+        dead_end_titles,
+        band,
+        numbers,
+        recommended_approach,
+    )
 
 
 _RECOMMENDED_APPROACH_RE = re.compile(
-    r"^\*\*Recommended approach:\*\*(?P<rest>.*?)(?=\n[ \t]*\n|\Z)", re.MULTILINE | re.DOTALL)
+    r"^\*\*Recommended approach:\*\*(?P<rest>.*?)(?=\n[ \t]*\n|\Z)",
+    re.MULTILINE | re.DOTALL,
+)
 
 
 def _recommended_approach(section6_text: str) -> str:
@@ -371,7 +409,9 @@ _TITLE_LINE_RE = re.compile(r"^# (?P<title>.+?) memo — (?P<atitle>\S.*)$")
 _MEMO_TO_RE = re.compile(r"^> \*\*To:\*\* (?P<v>.+?)\\$")
 _MEMO_RE_RE = re.compile(r"^> \*\*Re:\*\* (?P<v>.+?)\\$")
 _MEMO_BASIS_RE = re.compile(r"^> \*\*Basis:\*\* (?P<v>.+?)\\$")
-_MEMO_BAND_RE = re.compile(r"^> \*\*Band \(from §6\):\*\* (?P<band>HIGH|MEDIUM|LOW)\s*$")
+_MEMO_BAND_RE = re.compile(
+    r"^> \*\*Band \(from §6\):\*\* (?P<band>HIGH|MEDIUM|LOW)\s*$"
+)
 _MEMO_FIELDS: tuple[tuple[str, re.Pattern, str], ...] = (
     ("To", _MEMO_TO_RE, "v"),
     ("Re", _MEMO_RE_RE, "v"),
@@ -398,7 +438,9 @@ class HeaderResult:
     findings: list[Finding] = field(default_factory=list)
 
 
-def split_header(persona_text: str, analysis_name: str, roster: dict[str, tuple[str, int, int]]) -> HeaderResult:
+def split_header(
+    persona_text: str, analysis_name: str, roster: dict[str, tuple[str, int, int]]
+) -> HeaderResult:
     """D-11: parse the nine-line memo header -- a title line, a blank, the
     To/Re/Basis/Band blockquote block (lines 3-6), a blank, the provenance
     sentence (line 8), a blank, then the body. Each memo-field miss (missing,
@@ -419,7 +461,11 @@ def split_header(persona_text: str, analysis_name: str, roster: dict[str, tuple[
             title = m.group("title")
             atitle = m.group("atitle")
         else:
-            findings.append(Finding("PV-HEADER", f"line 1 does not match a roster title: {lines[0]!r}"))
+            findings.append(
+                Finding(
+                    "PV-HEADER", f"line 1 does not match a roster title: {lines[0]!r}"
+                )
+            )
     else:
         findings.append(Finding("PV-HEADER", "persona file is empty"))
 
@@ -435,7 +481,9 @@ def split_header(persona_text: str, analysis_name: str, roster: dict[str, tuple[
 
     band: str | None = None
     if not memo_lines:
-        findings.append(Finding("PV-HEADER", "memo block missing (lines 3-6 do not start with '>')"))
+        findings.append(
+            Finding("PV-HEADER", "memo block missing (lines 3-6 do not start with '>')")
+        )
         search_start = 1
     else:
         values: dict[str, str] = {}
@@ -446,18 +494,32 @@ def split_header(persona_text: str, analysis_name: str, roster: dict[str, tuple[
             line = memo_lines[idx]
             m = pattern.match(line)
             if not m:
-                findings.append(Finding("PV-HEADER", f"memo field {name} malformed: {line!r}"))
+                findings.append(
+                    Finding("PV-HEADER", f"memo field {name} malformed: {line!r}")
+                )
                 continue
             values[name] = m.group(group)
         if "To" in values and title is not None and values["To"] != title:
-            findings.append(Finding(
-                "PV-HEADER", f"To field {values['To']!r} disagrees with line 1's title {title!r}"))
+            findings.append(
+                Finding(
+                    "PV-HEADER",
+                    f"To field {values['To']!r} disagrees with line 1's title {title!r}",
+                )
+            )
         if "Re" in values and atitle is not None and values["Re"] != atitle:
-            findings.append(Finding(
-                "PV-HEADER", f"Re field {values['Re']!r} disagrees with line 1's analysis title {atitle!r}"))
+            findings.append(
+                Finding(
+                    "PV-HEADER",
+                    f"Re field {values['Re']!r} disagrees with line 1's analysis title {atitle!r}",
+                )
+            )
         if "Basis" in values and values["Basis"] != basis_value(analysis_name):
-            findings.append(Finding(
-                "PV-HEADER", f"Basis field {values['Basis']!r} is not the linked form for {analysis_name!r}"))
+            findings.append(
+                Finding(
+                    "PV-HEADER",
+                    f"Basis field {values['Basis']!r} is not the linked form for {analysis_name!r}",
+                )
+            )
         band = values.get("Band")
         search_start = 2 + len(memo_lines)
 
@@ -471,12 +533,18 @@ def split_header(persona_text: str, analysis_name: str, roster: dict[str, tuple[
     while j < len(lines) and lines[j].strip() == "":
         j += 1
     if j >= len(lines):
-        findings.append(Finding("PV-HEADER", "no provenance line found after the memo block"))
+        findings.append(
+            Finding("PV-HEADER", "no provenance line found after the memo block")
+        )
         body_start = j
     elif lines[j].strip().startswith("*Derived from"):
         if lines[j].strip() != expected_provenance:
-            findings.append(Finding(
-                "PV-HEADER", f"provenance line does not match the expected sentence: {lines[j]!r}"))
+            findings.append(
+                Finding(
+                    "PV-HEADER",
+                    f"provenance line does not match the expected sentence: {lines[j]!r}",
+                )
+            )
         body_start = j + 1
     else:
         findings.append(Finding("PV-HEADER", "provenance line missing"))
@@ -492,6 +560,7 @@ def split_header(persona_text: str, analysis_name: str, roster: dict[str, tuple[
 # ---------------------------------------------------------------------------
 # Body shape
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class BodyUnit:
@@ -520,9 +589,13 @@ def body_units(body: str) -> list[BodyUnit]:
         if raw_line.strip() == "":
             flush()
             continue
-        if (_HEADING_RE.match(raw_line) or _TABLE_ROW_RE.match(raw_line)
-                or _CODE_FENCE_RE.match(raw_line) or _NUMBERED_RE.match(raw_line)
-                or _BLOCKQUOTE_RE.match(raw_line)):
+        if (
+            _HEADING_RE.match(raw_line)
+            or _TABLE_ROW_RE.match(raw_line)
+            or _CODE_FENCE_RE.match(raw_line)
+            or _NUMBERED_RE.match(raw_line)
+            or _BLOCKQUOTE_RE.match(raw_line)
+        ):
             flush()
             units.append(BodyUnit("violation", raw_line.strip()))
             continue
@@ -601,21 +674,30 @@ def resolve_ids(body_text: str, facts: SourceFacts) -> list[Finding]:
     for m in _QUOTED_DEADEND_RE.finditer(body_text):
         title = m.group(1)
         if title not in facts.dead_end_titles:
-            findings.append(Finding("PV-DEADEND", f'quoted §5 title not found in §5: "{title}"'))
+            findings.append(
+                Finding("PV-DEADEND", f'quoted §5 title not found in §5: "{title}"')
+            )
 
-    masked = _QUOTED_DEADEND_RE.sub(lambda m: "§Q" + " " * (len(m.group(0)) - 2), body_text)
+    masked = _QUOTED_DEADEND_RE.sub(
+        lambda m: "§Q" + " " * (len(m.group(0)) - 2), body_text
+    )
 
     for m in _RESOLVE_GT_RE.finditer(masked):
         gid = f"GT-{m.group(1)}"
         has_q = m.group(2) == "?"
         if gid not in facts.gt_declared:
-            findings.append(Finding("PV-ID", f"{gid}{'?' if has_q else ''} not declared in §3"))
+            findings.append(
+                Finding("PV-ID", f"{gid}{'?' if has_q else ''} not declared in §3")
+            )
             continue
         expected_q = not facts.gt_declared[gid]
         if has_q != expected_q:
-            findings.append(Finding(
-                "PV-ID",
-                f"{gid}{'?' if has_q else ''} marking disagrees with §3's declaration"))
+            findings.append(
+                Finding(
+                    "PV-ID",
+                    f"{gid}{'?' if has_q else ''} marking disagrees with §3's declaration",
+                )
+            )
 
     for m in _RESOLVE_CHAIN_RE.finditer(masked):
         cid = f"C{m.group(1)}"
@@ -625,9 +707,12 @@ def resolve_ids(body_text: str, facts: SourceFacts) -> list[Finding]:
     for m in _RESOLVE_A_RE.finditer(masked):
         n = int(m.group(1))
         if not (1 <= n <= facts.assumption_row_count):
-            findings.append(Finding(
-                "PV-ID",
-                f"A-{n} outside the Assumptions Table's row range (1..{facts.assumption_row_count})"))
+            findings.append(
+                Finding(
+                    "PV-ID",
+                    f"A-{n} outside the Assumptions Table's row range (1..{facts.assumption_row_count})",
+                )
+            )
 
     return findings
 
@@ -650,15 +735,23 @@ def check_guide(guide_text: str, template_text: str) -> list[Finding]:
     body_text = "\n".join(lines[1:]) if len(lines) > 1 else ""
     word_count = len(body_text.split())
     if word_count > GUIDE_MAX_WORDS:
-        findings.append(Finding(
-            "PV-GUIDE-WORDS", f"guide body is {word_count} words, exceeds {GUIDE_MAX_WORDS}"))
+        findings.append(
+            Finding(
+                "PV-GUIDE-WORDS",
+                f"guide body is {word_count} words, exceeds {GUIDE_MAX_WORDS}",
+            )
+        )
     g = _normalize_ws(guide_text)
     t = _normalize_ws(template_text)
     names = _GUIDE_BACKTICK_RE.findall(g) + _GUIDE_QUOTE_RE.findall(g)
     for name in names:
         if name not in t:
-            findings.append(Finding(
-                "PV-GUIDE-NAME", f"name not found verbatim in output-template.md: {name!r}"))
+            findings.append(
+                Finding(
+                    "PV-GUIDE-NAME",
+                    f"name not found verbatim in output-template.md: {name!r}",
+                )
+            )
     return findings
 
 
@@ -674,7 +767,8 @@ _BOLD_LEAD_RE = re.compile(r"^\*\*[^*]+\*\*")
 
 
 def check_questions(
-    units: list[BodyUnit], expected: tuple[str, ...],
+    units: list[BodyUnit],
+    expected: tuple[str, ...],
 ) -> tuple[list[Finding], list[str]]:
     """Walk the body's paragraph/bullet units against the memo structure.
 
@@ -689,27 +783,36 @@ def check_questions(
 
     for i, u in enumerate(units, start=1):
         if u.kind == "bullet":
-            findings.append(Finding(
-                "PV-QUESTIONS", f"bullet line in a memo body (paragraph {i})"))
+            findings.append(
+                Finding("PV-QUESTIONS", f"bullet line in a memo body (paragraph {i})")
+            )
             continue
         if _BOLD_LEAD_RE.match(u.text):
-            findings.append(Finding("PV-QUESTIONS", f"paragraph {i} opens with a bold label"))
+            findings.append(
+                Finding("PV-QUESTIONS", f"paragraph {i} opens with a bold label")
+            )
 
     if not units or not units[0].text.startswith(IN_BRIEF_PREFIX + " "):
-        findings.append(Finding("PV-QUESTIONS", "first paragraph does not open with 'In brief:'"))
+        findings.append(
+            Finding("PV-QUESTIONS", "first paragraph does not open with 'In brief:'")
+        )
 
     expected_count = 1 + len(expected)
     if len(units) != expected_count:
-        findings.append(Finding(
-            "PV-QUESTIONS",
-            f"expected {expected_count} paragraphs (In brief plus one per question), "
-            f"found {len(units)}"))
+        findings.append(
+            Finding(
+                "PV-QUESTIONS",
+                f"expected {expected_count} paragraphs (In brief plus one per question), "
+                f"found {len(units)}",
+            )
+        )
 
     combined = " ".join(u.text for u in units)
     for q in expected:
         if q in combined:
-            findings.append(Finding(
-                "PV-QUESTIONS", f"fixed question printed in the body: {q!r}"))
+            findings.append(
+                Finding("PV-QUESTIONS", f"fixed question printed in the body: {q!r}")
+            )
 
     return findings, citations
 
@@ -770,7 +873,9 @@ def check_voice(answer_texts: list[str], facts: SourceFacts) -> list[Finding]:
     The question text itself is never passed here -- only the answer that
     follows it."""
     findings: list[Finding] = []
-    source_tokens = _voice_tokens(facts.recommended_approach) if facts.recommended_approach else []
+    source_tokens = (
+        _voice_tokens(facts.recommended_approach) if facts.recommended_approach else []
+    )
     for answer in answer_texts:
         for s in sentences(answer):
             if not s.strip():
@@ -780,15 +885,18 @@ def check_voice(answer_texts: list[str], facts: SourceFacts) -> list[Finding]:
                 continue
             first = words[0]
             if first in DIRECTIVE_OPENERS:
-                findings.append(Finding(
-                    "PV-DIRECTIVE",
-                    f"answer sentence opens with a denylisted imperative: {first.capitalize()}"))
+                findings.append(
+                    Finding(
+                        "PV-DIRECTIVE",
+                        f"answer sentence opens with a denylisted imperative: {first.capitalize()}",
+                    )
+                )
                 continue
             for phrase in DIRECTIVE_PHRASE_OPENERS:
                 if tuple(words[: len(phrase)]) == phrase:
-                    findings.append(Finding(
-                        "PV-DIRECTIVE",
-                        "answer sentence opens with 'Do not'"))
+                    findings.append(
+                        Finding("PV-DIRECTIVE", "answer sentence opens with 'Do not'")
+                    )
                     break
         if _SECOND_PERSON_RE.search(answer):
             findings.append(Finding("PV-DIRECTIVE", "second-person address"))
@@ -797,9 +905,12 @@ def check_voice(answer_texts: list[str], facts: SourceFacts) -> list[Finding]:
         if source_tokens:
             run = _longest_shared_run(_voice_tokens(answer), source_tokens)
             if run >= VERBATIM_RUN_WORDS:
-                findings.append(Finding(
-                    "PV-DIRECTIVE",
-                    f"shares {run}+ consecutive words with §6's recommended approach"))
+                findings.append(
+                    Finding(
+                        "PV-DIRECTIVE",
+                        f"shares {run}+ consecutive words with §6's recommended approach",
+                    )
+                )
     return findings
 
 
@@ -807,9 +918,14 @@ def check_voice(answer_texts: list[str], facts: SourceFacts) -> list[Finding]:
 # check_view
 # ---------------------------------------------------------------------------
 
+
 def check_view(
-    persona_text: str, analysis_text: str, analysis_name: str, roster: dict[str, tuple[str, int, int]],
-    *, questions: dict[str, tuple[str, ...]] | None = None,
+    persona_text: str,
+    analysis_text: str,
+    analysis_name: str,
+    roster: dict[str, tuple[str, int, int]],
+    *,
+    questions: dict[str, tuple[str, ...]] | None = None,
 ) -> list[Finding]:
     try:
         facts = source_facts(analysis_text)
@@ -825,7 +941,9 @@ def check_view(
     units = body_units(header.body)
     for u in units:
         if u.kind == "violation":
-            findings.append(Finding("PV-SHAPE", f"non-paragraph/bullet content in body: {u.text!r}"))
+            findings.append(
+                Finding("PV-SHAPE", f"non-paragraph/bullet content in body: {u.text!r}")
+            )
     valid_units = [u for u in units if u.kind != "violation"]
     combined_text = "\n".join(u.text for u in valid_units)
 
@@ -833,12 +951,17 @@ def check_view(
         _title, lo, hi = roster[header.role]
         word_count = sum(len(u.text.split()) for u in valid_units)
         if not (lo <= word_count <= hi):
-            findings.append(Finding(
-                "PV-WORDS",
-                f"body is {word_count} words, outside the {header.role} band [{lo}, {hi}]"))
+            findings.append(
+                Finding(
+                    "PV-WORDS",
+                    f"body is {word_count} words, outside the {header.role} band [{lo}, {hi}]",
+                )
+            )
 
     if header.role is not None:
-        q_findings, citation_texts = check_questions(valid_units, questions.get(header.role, ()))
+        q_findings, citation_texts = check_questions(
+            valid_units, questions.get(header.role, ())
+        )
         findings.extend(q_findings)
     else:
         citation_texts = [u.text for u in valid_units]
@@ -848,19 +971,29 @@ def check_view(
     for text in citation_texts:
         for s in sentences(text):
             if s.strip() and not _CITATION_PRESENT_RE.search(s):
-                findings.append(Finding("PV-UNCITED", f"no citation token: {s.strip()!r}"))
+                findings.append(
+                    Finding("PV-UNCITED", f"no citation token: {s.strip()!r}")
+                )
 
     findings.extend(resolve_ids(combined_text, facts))
 
     body_numbers = numbers_in(combined_text)
     missing_numbers = body_numbers - facts.numbers
     if missing_numbers:
-        findings.append(Finding(
-            "PV-NUMBER", f"number(s) not present in the source analysis: {sorted(missing_numbers)}"))
+        findings.append(
+            Finding(
+                "PV-NUMBER",
+                f"number(s) not present in the source analysis: {sorted(missing_numbers)}",
+            )
+        )
 
     if header.band is not None and header.band != facts.band:
-        findings.append(Finding(
-            "PV-BAND", f"Band line {header.band} disagrees with the source's §6 band {facts.band}"))
+        findings.append(
+            Finding(
+                "PV-BAND",
+                f"Band line {header.band} disagrees with the source's §6 band {facts.band}",
+            )
+        )
 
     return findings
 
@@ -868,6 +1001,7 @@ def check_view(
 # ---------------------------------------------------------------------------
 # --self-test
 # ---------------------------------------------------------------------------
+
 
 def _load_roster_from_contract() -> dict[str, tuple[str, int, int]]:
     return load_roster(CONTRACT.read_text())
@@ -909,7 +1043,9 @@ def _p04_questions_parity() -> str | None:
     roster = load_roster(contract_text)
     questions = load_questions(contract_text, roster)
     if questions != LOCKED_QUESTIONS:
-        return f"questions {questions} does not equal LOCKED_QUESTIONS {LOCKED_QUESTIONS}"
+        return (
+            f"questions {questions} does not equal LOCKED_QUESTIONS {LOCKED_QUESTIONS}"
+        )
     for slug, qs in questions.items():
         for q in qs:
             if not q.endswith("?"):
@@ -925,7 +1061,8 @@ def _p04_questions_parity() -> str | None:
 
 _DENYLIST_LINE_RE = re.compile(
     r'^\*\*Denylisted openers:\*\* (?P<list>.+?); and the two-word opener "Do not"\.$',
-    re.MULTILINE)
+    re.MULTILINE,
+)
 
 
 def _p05_denylist_parity(contract_path: Path = CONTRACT) -> str | None:
@@ -936,7 +1073,9 @@ def _p05_denylist_parity(contract_path: Path = CONTRACT) -> str | None:
     m = _DENYLIST_LINE_RE.search(contract_text)
     if m is None:
         return "Denylisted openers line not found, or does not match the expected shape"
-    openers = frozenset(w.strip().lower() for w in m.group("list").split(", ") if w.strip())
+    openers = frozenset(
+        w.strip().lower() for w in m.group("list").split(", ") if w.strip()
+    )
     if openers != DIRECTIVE_OPENERS:
         return f"contract openers {sorted(openers)} != DIRECTIVE_OPENERS {sorted(DIRECTIVE_OPENERS)}"
     return None
@@ -976,7 +1115,9 @@ def _m_pad_over(text: str) -> str:
     # the end of the last paragraph's own physical line (never as a new
     # paragraph) so the memo's exact paragraph-count shape survives the
     # mutation and only PV-WORDS fires, not PV-QUESTIONS.
-    padding = " The engineering team has 3.2 engineer-quarters of capacity this quarter (C1)."
+    padding = (
+        " The engineering team has 3.2 engineer-quarters of capacity this quarter (C1)."
+    )
     return text.rstrip("\n") + padding * 10 + "\n"
 
 
@@ -1030,13 +1171,17 @@ def _m_q_few(text: str) -> str:
 
 
 def _m_q_many(text: str) -> str:
-    return text.replace(" If that evidence improves", "\n\nIf that evidence improves", 1)
+    return text.replace(
+        " If that evidence improves", "\n\nIf that evidence improves", 1
+    )
 
 
 def _m_q_print(text: str) -> str:
     return text.replace(
         _M_Q_P3_ANCHOR,
-        "**What has it settled that I can rely on?** " + _M_Q_P3_ANCHOR, 1)
+        "**What has it settled that I can rely on?** " + _M_Q_P3_ANCHOR,
+        1,
+    )
 
 
 def _m_h_to(text: str) -> str:
@@ -1047,7 +1192,8 @@ def _m_h_to(text: str) -> str:
 # whose report target names a different analysis than the view's own.
 _M_H_BASIS_LINKED = (
     "> **Basis:** [product-business-2.md](product-business-2.md) · "
-    "[Report](report-product-business-2.md) · [All files](INDEX.md)\\")
+    "[Report](report-product-business-2.md) · [All files](INDEX.md)\\"
+)
 
 
 def _m_h_basis(text: str) -> str:
@@ -1057,7 +1203,11 @@ def _m_h_basis(text: str) -> str:
 def _m_h_link(text: str) -> str:
     return text.replace(
         _M_H_BASIS_LINKED,
-        _M_H_BASIS_LINKED.replace("(report-product-business-2.md)", "(report-personal-general.md)"), 1)
+        _M_H_BASIS_LINKED.replace(
+            "(report-product-business-2.md)", "(report-personal-general.md)"
+        ),
+        1,
+    )
 
 
 def _m_h_break(text: str) -> str:
@@ -1077,72 +1227,198 @@ def _m_d_open(text: str) -> str:
 
 def _m_d_you(text: str) -> str:
     return text.replace(
-        _M_D_ANCHOR, "If that evidence improves, you should reconsider the recommendation (C3).", 1)
+        _M_D_ANCHOR,
+        "If that evidence improves, you should reconsider the recommendation (C3).",
+        1,
+    )
 
 
 def _m_d_run(text: str) -> str:
     # Shares "defer the slack integration to the next planning cycle" (9
     # words) with product-business-2.md's §6 Recommended approach paragraph.
     return text.replace(
-        _M_D_ANCHOR, "Under that evidence, defer the Slack integration to the next planning cycle (C3).", 1)
+        _M_D_ANCHOR,
+        "Under that evidence, defer the Slack integration to the next planning cycle (C3).",
+        1,
+    )
 
 
 _MUTATIONS: tuple[tuple[str, str, str, Callable[[str], str], frozenset[str]], ...] = (
-    ("M-ID", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     lambda t: t.replace("GT-5?", "GT-6"), frozenset({"PV-ID"})),
-    ("M-AGREE", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     lambda t: t.replace("GT-5?", "GT-5"), frozenset({"PV-ID"})),
-    ("M-NUMBER", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     lambda t: t.replace("$180,000", "$190,000"), frozenset({"PV-NUMBER"})),
-    ("M-UNCITED", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_uncited, frozenset({"PV-UNCITED"})),
+    (
+        "M-ID",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        lambda t: t.replace("GT-5?", "GT-6"),
+        frozenset({"PV-ID"}),
+    ),
+    (
+        "M-AGREE",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        lambda t: t.replace("GT-5?", "GT-5"),
+        frozenset({"PV-ID"}),
+    ),
+    (
+        "M-NUMBER",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        lambda t: t.replace("$180,000", "$190,000"),
+        frozenset({"PV-NUMBER"}),
+    ),
+    (
+        "M-UNCITED",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        _m_uncited,
+        frozenset({"PV-UNCITED"}),
+    ),
     # 84-REVIEW CR-01: a token that merely ENDS in C<digits> (SPEC1) is not a
     # citation; the stripped sentence must still read as uncited.
-    ("M-PSEUDO", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     lambda t: _m_uncited(t).replace(
-         "the recommendation is reconsidered.", "the recommendation is reconsidered per SPEC1.", 1),
-     frozenset({"PV-UNCITED"})),
-    ("M-BAND", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     lambda t: t.replace("**Band (from §6):** MEDIUM", "**Band (from §6):** HIGH"), frozenset({"PV-BAND"})),
-    ("M-HEADER", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_remove_provenance, frozenset({"PV-HEADER"})),
-    ("M-OVER", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_pad_over, frozenset({"PV-WORDS"})),
-    ("M-UNDER", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_cut_under, frozenset({"PV-WORDS"})),
-    ("M-SHAPE", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_insert_shape, frozenset({"PV-SHAPE"})),
-    ("M-DEADEND", "product-business-2-skeptic.md", "shared/examples/product-business-2.md",
-     _m_deadend, frozenset({"PV-DEADEND"})),
-    ("M-Q-BULLET", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_q_bullet, frozenset({"PV-QUESTIONS"})),
-    ("M-Q-BRIEF", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_q_brief, frozenset({"PV-QUESTIONS"})),
-    ("M-Q-FEW", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_q_few, frozenset({"PV-QUESTIONS"})),
-    ("M-Q-MANY", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_q_many, frozenset({"PV-QUESTIONS"})),
-    ("M-Q-PRINT", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_q_print, frozenset({"PV-QUESTIONS"})),
-    ("M-H-TO", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_h_to, frozenset({"PV-HEADER"})),
-    ("M-H-BREAK", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_h_break, frozenset({"PV-HEADER"})),
-    ("M-H-BASIS", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_h_basis, frozenset({"PV-HEADER"})),
-    ("M-H-LINK", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_h_link, frozenset({"PV-HEADER"})),
-    ("M-D-OPEN", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_d_open, frozenset({"PV-DIRECTIVE"})),
-    ("M-D-YOU", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_d_you, frozenset({"PV-DIRECTIVE"})),
-    ("M-D-RUN", "product-business-2-decision-owner.md", "shared/examples/product-business-2.md",
-     _m_d_run, frozenset({"PV-DIRECTIVE"})),
+    (
+        "M-PSEUDO",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        lambda t: _m_uncited(t).replace(
+            "the recommendation is reconsidered.",
+            "the recommendation is reconsidered per SPEC1.",
+            1,
+        ),
+        frozenset({"PV-UNCITED"}),
+    ),
+    (
+        "M-BAND",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        lambda t: t.replace("**Band (from §6):** MEDIUM", "**Band (from §6):** HIGH"),
+        frozenset({"PV-BAND"}),
+    ),
+    (
+        "M-HEADER",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        _m_remove_provenance,
+        frozenset({"PV-HEADER"}),
+    ),
+    (
+        "M-OVER",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        _m_pad_over,
+        frozenset({"PV-WORDS"}),
+    ),
+    (
+        "M-UNDER",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        _m_cut_under,
+        frozenset({"PV-WORDS"}),
+    ),
+    (
+        "M-SHAPE",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        _m_insert_shape,
+        frozenset({"PV-SHAPE"}),
+    ),
+    (
+        "M-DEADEND",
+        "product-business-2-skeptic.md",
+        "shared/examples/product-business-2.md",
+        _m_deadend,
+        frozenset({"PV-DEADEND"}),
+    ),
+    (
+        "M-Q-BULLET",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        _m_q_bullet,
+        frozenset({"PV-QUESTIONS"}),
+    ),
+    (
+        "M-Q-BRIEF",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        _m_q_brief,
+        frozenset({"PV-QUESTIONS"}),
+    ),
+    (
+        "M-Q-FEW",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        _m_q_few,
+        frozenset({"PV-QUESTIONS"}),
+    ),
+    (
+        "M-Q-MANY",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        _m_q_many,
+        frozenset({"PV-QUESTIONS"}),
+    ),
+    (
+        "M-Q-PRINT",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        _m_q_print,
+        frozenset({"PV-QUESTIONS"}),
+    ),
+    (
+        "M-H-TO",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        _m_h_to,
+        frozenset({"PV-HEADER"}),
+    ),
+    (
+        "M-H-BREAK",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        _m_h_break,
+        frozenset({"PV-HEADER"}),
+    ),
+    (
+        "M-H-BASIS",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        _m_h_basis,
+        frozenset({"PV-HEADER"}),
+    ),
+    (
+        "M-H-LINK",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        _m_h_link,
+        frozenset({"PV-HEADER"}),
+    ),
+    (
+        "M-D-OPEN",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        _m_d_open,
+        frozenset({"PV-DIRECTIVE"}),
+    ),
+    (
+        "M-D-YOU",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        _m_d_you,
+        frozenset({"PV-DIRECTIVE"}),
+    ),
+    (
+        "M-D-RUN",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        _m_d_run,
+        frozenset({"PV-DIRECTIVE"}),
+    ),
 )
 
 
 def _make_mutation_control(
-    fixture_name: str, src_relpath: str, build: Callable[[str], str], expected_codes: frozenset[str],
+    fixture_name: str,
+    src_relpath: str,
+    build: Callable[[str], str],
+    expected_codes: frozenset[str],
 ) -> Callable[[], str | None]:
     def _control() -> str | None:
         persona_text = (FIXTURE_DIR / fixture_name).read_text()
@@ -1154,8 +1430,11 @@ def _make_mutation_control(
         findings = check_view(mutated, analysis_text, Path(src_relpath).name, roster)
         codes = {f.code for f in findings}
         if codes != expected_codes:
-            return f"expected {sorted(expected_codes)}, got {sorted(codes)} ({findings})"
+            return (
+                f"expected {sorted(expected_codes)}, got {sorted(codes)} ({findings})"
+            )
         return None
+
     return _control
 
 
@@ -1176,7 +1455,8 @@ _GUIDE_MUTATIONS: tuple[tuple[str, Callable[[str], str], frozenset[str]], ...] =
 
 
 def _make_guide_control(
-    build: Callable[[str], str], expected_codes: frozenset[str],
+    build: Callable[[str], str],
+    expected_codes: frozenset[str],
 ) -> Callable[[], str | None]:
     def _control() -> str | None:
         guide_text = GUIDE.read_text()
@@ -1186,13 +1466,16 @@ def _make_guide_control(
         findings = check_guide(mutated, TEMPLATE.read_text())
         codes = {f.code for f in findings}
         if codes != expected_codes:
-            return f"expected {sorted(expected_codes)}, got {sorted(codes)} ({findings})"
+            return (
+                f"expected {sorted(expected_codes)}, got {sorted(codes)} ({findings})"
+            )
         return None
+
     return _control
 
 
 def _u01_numbers() -> str | None:
-    got = numbers_in('$180,000/year, 3.2, 17%, 3–5, GT-5? C1 A-3 §6')
+    got = numbers_in("$180,000/year, 3.2, 17%, 3–5, GT-5? C1 A-3 §6")
     want = {"180000", "3.2", "17", "3", "5"}
     if got != want:
         return f"expected {want}, got {got}"
@@ -1201,15 +1484,17 @@ def _u01_numbers() -> str | None:
 
 def _u02_sentence_boundaries() -> str | None:
     text = (
-        'The chain cites GT-5? and 3.2 percent of the volume (C1), ruled out by '
+        "The chain cites GT-5? and 3.2 percent of the volume (C1), ruled out by "
         '§5 "Sixty percent of polled customers said they want Slack, therefore build Slack." '
-        'as a dead end.'
+        "as a dead end."
     )
     sents = sentences(text)
     if len(sents) != 1:
         return f"expected exactly 1 sentence, got {len(sents)}: {sents}"
     if sents[0] != text:
-        return f"sentence text was altered by masking/unmasking: {sents[0]!r} != {text!r}"
+        return (
+            f"sentence text was altered by masking/unmasking: {sents[0]!r} != {text!r}"
+        )
     return None
 
 
@@ -1256,8 +1541,20 @@ def _u04_code_registry_complete() -> str | None:
 _U05_POSITIVE_SENTENCES: tuple[str, ...] = tuple(
     f"{w} the remaining work under the procedure (C1)."
     for w in (
-        "Build", "Classify", "Confirm", "Consider", "Decide", "Finish", "Keep",
-        "Move", "Read", "Reject", "Risk-classify", "Switch", "Take", "Treat",
+        "Build",
+        "Classify",
+        "Confirm",
+        "Consider",
+        "Decide",
+        "Finish",
+        "Keep",
+        "Move",
+        "Read",
+        "Reject",
+        "Risk-classify",
+        "Switch",
+        "Take",
+        "Treat",
     )
 ) + (
     "Do not change the method now (C1).",
@@ -1318,7 +1615,9 @@ def _d_pre87_directive() -> str | None:
     roster = _load_roster_from_contract()
     analysis_name = _provenance_name(persona_text)
     if analysis_name is None:
-        return "could not parse the pre-87 fixture's provenance analysis name from line 3"
+        return (
+            "could not parse the pre-87 fixture's provenance analysis name from line 3"
+        )
 
     facts = source_facts(analysis_text)
     header = split_header(persona_text, analysis_name, roster)
@@ -1333,7 +1632,9 @@ def _d_pre87_directive() -> str | None:
     if not any("consecutive words" in f.detail for f in voice_findings):
         return f"expected at least one verbatim-run finding, got {voice_findings}"
 
-    full_codes = {f.code for f in check_view(persona_text, analysis_text, analysis_name, roster)}
+    full_codes = {
+        f.code for f in check_view(persona_text, analysis_text, analysis_name, roster)
+    }
     if full_codes != {"PV-DIRECTIVE", "PV-HEADER"}:
         return f"expected exactly {{'PV-DIRECTIVE', 'PV-HEADER'}} from check_view, got {sorted(full_codes)}"
     return None
@@ -1447,7 +1748,9 @@ def _ex_reach(
         analysis_name = _provenance_name(persona_text)
         if analysis_name is None:
             return f"{stem}: could not parse the provenance analysis name from line 3"
-        findings = check_view(persona_text, source_path.read_text(), analysis_name, roster)
+        findings = check_view(
+            persona_text, source_path.read_text(), analysis_name, roster
+        )
         if findings:
             return f"{stem}: expected zero findings against {source_path.name}, got {findings}"
     return None
@@ -1502,7 +1805,7 @@ def _ex_reach_id_mutation() -> str | None:
     else:
         highest = max((int(g[3:]) for g in facts.gt_declared), default=0)
         bad_token = f"GT-{highest + 1}"
-    mutated = persona_text[: m.start()] + bad_token + persona_text[m.end():]
+    mutated = persona_text[: m.start()] + bad_token + persona_text[m.end() :]
     if mutated == persona_text:
         return "mutation was a no-op"
 
@@ -1514,28 +1817,33 @@ def _ex_reach_id_mutation() -> str | None:
 
 
 _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
-    ("P01", _p01_fixtures_clean),
-    ("P02", _p02_contract_parity),
-    ("P03", _p03_guide_passes),
-    ("P04", _p04_questions_parity),
-    ("P05", _p05_denylist_parity),
-) + tuple(
-    (cid, _make_mutation_control(fixture, src, build, expected))
-    for cid, fixture, src, build, expected in _MUTATIONS
-) + tuple(
-    (cid, _make_guide_control(build, expected))
-    for cid, build, expected in _GUIDE_MUTATIONS
-) + (
-    ("U01", _u01_numbers),
-    ("U02", _u02_sentence_boundaries),
-    ("U03", _u03_band_reader),
-    ("U04", _u04_code_registry_complete),
-    ("U05", _u05_directive_lexicon),
-    ("D-PRE87", _d_pre87_directive),
-    ("EX-REACH", _ex_reach),
-    ("EX-REACH-ID", _ex_reach_id_mutation),
-    ("EX-REACH-EMPTY", _ex_reach_empty),
-    ("EX-REACH-ROSTER", _ex_reach_roster_mismatch),
+    (
+        ("P01", _p01_fixtures_clean),
+        ("P02", _p02_contract_parity),
+        ("P03", _p03_guide_passes),
+        ("P04", _p04_questions_parity),
+        ("P05", _p05_denylist_parity),
+    )
+    + tuple(
+        (cid, _make_mutation_control(fixture, src, build, expected))
+        for cid, fixture, src, build, expected in _MUTATIONS
+    )
+    + tuple(
+        (cid, _make_guide_control(build, expected))
+        for cid, build, expected in _GUIDE_MUTATIONS
+    )
+    + (
+        ("U01", _u01_numbers),
+        ("U02", _u02_sentence_boundaries),
+        ("U03", _u03_band_reader),
+        ("U04", _u04_code_registry_complete),
+        ("U05", _u05_directive_lexicon),
+        ("D-PRE87", _d_pre87_directive),
+        ("EX-REACH", _ex_reach),
+        ("EX-REACH-ID", _ex_reach_id_mutation),
+        ("EX-REACH-EMPTY", _ex_reach_empty),
+        ("EX-REACH-ROSTER", _ex_reach_roster_mismatch),
+    )
 )
 
 
@@ -1552,7 +1860,9 @@ def self_test() -> int:
         else:
             print(f"[PASS] {cid}")
     if failures:
-        print(f"PERSONA-GATE: FAIL ({len(failures)}/{len(_CONTROLS)} failed: {failures})")
+        print(
+            f"PERSONA-GATE: FAIL ({len(failures)}/{len(_CONTROLS)} failed: {failures})"
+        )
         return 1
     print(f"PERSONA-GATE: PASS ({len(_CONTROLS)}/{len(_CONTROLS)} controls)")
     return 0
@@ -1562,6 +1872,7 @@ def self_test() -> int:
 # --describe
 # ---------------------------------------------------------------------------
 
+
 def describe() -> dict:
     """Pure self-description. Every value is derived from this module's own data."""
     roster = _load_roster_from_contract()
@@ -1570,9 +1881,12 @@ def describe() -> dict:
     for p in persona_example_files:
         split = _ex_reach_split_role(p.stem, roster)
         if split is not None:
-            persona_example_sources.add(_relpath(REPO_ROOT / "shared" / "examples" / f"{split[0]}.md"))
+            persona_example_sources.add(
+                _relpath(REPO_ROOT / "shared" / "examples" / f"{split[0]}.md")
+            )
     checked_files = sorted(
-        {_relpath(FIXTURE_DIR / name) for name, _src in FIXTURES} | {src for _name, src in FIXTURES}
+        {_relpath(FIXTURE_DIR / name) for name, _src in FIXTURES}
+        | {src for _name, src in FIXTURES}
         | {_relpath(p) for p in persona_example_files}
         | persona_example_sources
         | {_relpath(PRE87_FIXTURE)}
@@ -1580,10 +1894,14 @@ def describe() -> dict:
     return {
         "control_ids": [cid for cid, _fn in _CONTROLS],
         "control_count": len(_CONTROLS),
-        "registered_surfaces": sorted([_relpath(CONTRACT), _relpath(GUIDE), _relpath(TEMPLATE)]),
+        "registered_surfaces": sorted(
+            [_relpath(CONTRACT), _relpath(GUIDE), _relpath(TEMPLATE)]
+        ),
         "checked_files": checked_files,
         "locked_constants": {
-            "roster": {slug: [title, lo, hi] for slug, (title, lo, hi) in LOCKED_ROSTER.items()},
+            "roster": {
+                slug: [title, lo, hi] for slug, (title, lo, hi) in LOCKED_ROSTER.items()
+            },
             "questions": {slug: list(qs) for slug, qs in LOCKED_QUESTIONS.items()},
             "guide_max_words": GUIDE_MAX_WORDS,
             "provenance_template": PROVENANCE_TEMPLATE,
@@ -1599,17 +1917,19 @@ def describe() -> dict:
             "personas": len(LOCKED_ROSTER),
             "persona_examples": len(persona_example_files),
         },
-        "disclosed_bounds_anchors": sorted([
-            "citation-presence-not-semantic-support",
-            "numbers-matched-by-value-not-by-context",
-            "absent-input-sentences-not-checked-for-truth",
-            "guide-names-checked-against-output-template-only",
-            "fixtures-are-worked-examples-not-live-analyses",
-            "directive-check-is-lexical-not-semantic",
-            "imperative-check-is-sentence-initial-only",
-            "verbatim-run-checked-against-section6-recommended-approach-only",
-            "memo-structure-counts-paragraphs-not-answers",
-        ]),
+        "disclosed_bounds_anchors": sorted(
+            [
+                "citation-presence-not-semantic-support",
+                "numbers-matched-by-value-not-by-context",
+                "absent-input-sentences-not-checked-for-truth",
+                "guide-names-checked-against-output-template-only",
+                "fixtures-are-worked-examples-not-live-analyses",
+                "directive-check-is-lexical-not-semantic",
+                "imperative-check-is-sentence-initial-only",
+                "verbatim-run-checked-against-section6-recommended-approach-only",
+                "memo-structure-counts-paragraphs-not-answers",
+            ]
+        ),
     }
 
 
@@ -1617,10 +1937,15 @@ def describe() -> dict:
 # CLI
 # ---------------------------------------------------------------------------
 
+
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     ap.add_argument("persona", nargs="?", help="path to the persona-view Markdown file")
-    ap.add_argument("analysis", nargs="?", help="path to the source analysis Markdown file")
+    ap.add_argument(
+        "analysis", nargs="?", help="path to the source analysis Markdown file"
+    )
     ap.add_argument("--self-test", action="store_true")
     ap.add_argument("--describe", action="store_true")
     args = ap.parse_args(argv)

@@ -107,8 +107,18 @@ def _decorate_for_emission(meta: dict, surface: str, kind: str) -> dict:
         out["metadata"] = new_md
     return out
 
+
 # Canonical companion-tool list (slug = plugin sibling skill directory name).
-TOOLS = ("five-whys", "fishbone", "inversion", "pre-mortem", "trade-off", "second-order", "estimate", "theoretical-limit")
+TOOLS = (
+    "five-whys",
+    "fishbone",
+    "inversion",
+    "pre-mortem",
+    "trade-off",
+    "second-order",
+    "estimate",
+    "theoretical-limit",
+)
 
 # Canonical slash-invocable focused-mode stub list (Phase 46-02, DEC-46-B).
 # Each entry maps to a `shared/skills/<slug>/SKILL.md` source and a generated
@@ -121,9 +131,19 @@ TOOLS = ("five-whys", "fishbone", "inversion", "pre-mortem", "trade-off", "secon
 # slugs are Phase 53 deliverables; running --write before they exist raises
 # FileNotFoundError from _read_required().
 SKILLS = (
-    "pre-mortem", "inversion", "fishbone", "five-whys", "trade-off", "second-order",
-    "identify-essence", "challenge-assumptions", "ground-truths", "reason-upward", "validate",
-    "estimate", "theoretical-limit",
+    "pre-mortem",
+    "inversion",
+    "fishbone",
+    "five-whys",
+    "trade-off",
+    "second-order",
+    "identify-essence",
+    "challenge-assumptions",
+    "ground-truths",
+    "reason-upward",
+    "validate",
+    "estimate",
+    "theoretical-limit",
     "first-principles-analysis",
     "persona",
 )
@@ -304,7 +324,9 @@ SPINE_JSON_REFERENCES = ("summary-schema",)
 # never be widened without a governing byte-freeze record like
 # docs/v8.5-byte-freeze-relaxation.md: `pre-mortem` and `trade-off` also carry
 # an appendix-style `## Example` heading and are deliberately excluded.
-SLUGS_WITH_DETAIL = frozenset({"five-whys", "theoretical-limit", "estimate", "fishbone"})
+SLUGS_WITH_DETAIL = frozenset(
+    {"five-whys", "theoretical-limit", "estimate", "fishbone"}
+)
 
 # Plugin-root-anchored prefix for every reference link emitted into the agent
 # body (first-principles/agents/first-principles.md).
@@ -410,7 +432,20 @@ _GATE02_DISPATCH_REENTRANT = False
 # `set(executed) == set(_SELF_TEST_CONTROL_IDS)` in both directions. Control
 # (m) proves that floor actually fires.
 _SELF_TEST_CONTROL_IDS: tuple[str, ...] = (
-    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n",
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+    "g",
+    "h",
+    "i",
+    "j",
+    "k",
+    "l",
+    "m",
+    "n",
 )
 
 
@@ -433,8 +468,10 @@ def _control_roster_problems(
     extra = executed_set - registered_set
     if missing or extra:
         return [
-            (f"control roster/executed mismatch: missing={sorted(missing)} "
-            f"extra={sorted(extra)}")
+            (
+                f"control roster/executed mismatch: missing={sorted(missing)} "
+                f"extra={sorted(extra)}"
+            )
         ]
     return []
 
@@ -496,6 +533,7 @@ def _stitch(meta: dict, body: str) -> str:
     Letting the body own the leading whitespace keeps stitch shape-agnostic.
     """
     import yaml
+
     Dumper = _build_dumper()
     fm = yaml.dump(meta, Dumper=Dumper, **YAML_DUMP_KWARGS).rstrip("\n")
     out = f"---\n{fm}\n---\n{body}"
@@ -510,6 +548,7 @@ def _expand(body: str, tool_map: dict, surface: str) -> str:
     Distinguishes 'slug not in tool-map' from 'surface key missing on a known
     slug' (WR-06) so a contributor sees which mistake they made.
     """
+
     def sub(m: re.Match) -> str:
         slug = m.group(1)
         entry = tool_map.get(slug)
@@ -525,6 +564,7 @@ def _expand(body: str, tool_map: dict, surface: str) -> str:
                 f"missing the '{surface}' key)"
             )
         return entry[surface]
+
     return TOKEN_RE.sub(sub, body)
 
 
@@ -598,9 +638,7 @@ def _extract_procedure(slug: str) -> str:
     )
     m = PROCEDURE_RE.search(body)
     if not m:
-        raise ValueError(
-            f"shared/references/{slug}.md has no '## Procedure' heading"
-        )
+        raise ValueError(f"shared/references/{slug}.md has no '## Procedure' heading")
     slice_text = m.group(1)
     # Guard: raise if any intra-document anchor in the slice points at a heading
     # outside the slice (would become a dead link in the generated agent body).
@@ -627,7 +665,9 @@ def _extract_procedure(slug: str) -> str:
 # directory component, no scheme, no anchor, no `${...}` token. Deliberately
 # narrow: `_absolutise_agent_ref_links()` must never touch a target that is
 # already anchored, already relative-with-a-path, or a URL.
-_BARE_MD_TARGET_RE = re.compile(r"\]\((?!https?:|mailto:|#|\$\{)([A-Za-z0-9._-]+\.md)\)")
+_BARE_MD_TARGET_RE = re.compile(
+    r"\]\((?!https?:|mailto:|#|\$\{)([A-Za-z0-9._-]+\.md)\)"
+)
 
 
 def _agent_ref_allowed_targets() -> frozenset[str]:
@@ -748,7 +788,9 @@ def _absolutise_skill_peer_links(text: str, source_rel: str) -> str:
     return rewritten
 
 
-def _rewrite_detail_link(slice_text: str, slug: str, prefix: str = "references/") -> str:
+def _rewrite_detail_link(
+    slice_text: str, slug: str, prefix: str = "references/"
+) -> str:
     """Rewrite a bare '<slug>-detail.md' pointer target to '<prefix><slug>-detail.md'.
 
     Exists because the assembled agent body (first-principles/agents/first-
@@ -827,8 +869,7 @@ def _check_detail_pointer(text: str, slug: str) -> list[str]:
         )
     elif count > 1:
         problems.append(
-            f"{slug}: pointer target {target!r} found {count} times, "
-            f"expected exactly 1"
+            f"{slug}: pointer target {target!r} found {count} times, expected exactly 1"
         )
     else:
         # `target` already begins with the closing ']' of the label bracket
@@ -1088,15 +1129,13 @@ def generate_skill_stub(slug: str) -> tuple[Path, str]:
     lines = source.split("\n")
     if not lines or lines[0] != "---":
         raise ValueError(
-            f"shared/skills/{slug}/SKILL.md missing opening '---' frontmatter "
-            f"delimiter"
+            f"shared/skills/{slug}/SKILL.md missing opening '---' frontmatter delimiter"
         )
     try:
         close_idx = lines.index("---", 1)
     except ValueError as exc:
         raise ValueError(
-            f"shared/skills/{slug}/SKILL.md missing closing '---' frontmatter "
-            f"delimiter"
+            f"shared/skills/{slug}/SKILL.md missing closing '---' frontmatter delimiter"
         ) from exc
 
     frontmatter_block = "\n".join(lines[: close_idx + 1]) + "\n"
@@ -1274,8 +1313,8 @@ def generate_agent_references() -> dict[Path, str]:
         )
         body = _absolutise_agent_ref_links(body, f"shared/references/{slug}.md")
         marker = GENERATED_MARKER.format(source_rel=f"references/{slug}.md")
-        targets[REFERENCES_DIR / f"{slug}.md"] = (
-            _normalise_trailing_newline(marker + "\n" + body)
+        targets[REFERENCES_DIR / f"{slug}.md"] = _normalise_trailing_newline(
+            marker + "\n" + body
         )
     return targets
 
@@ -1314,14 +1353,10 @@ def generate_agent_detail_references() -> dict[Path, str]:
                 f"first-principles/references/{slug}-detail.md"
             ),
         )
-        body = _absolutise_agent_ref_links(
-            body, f"shared/references/{slug}-detail.md"
-        )
+        body = _absolutise_agent_ref_links(body, f"shared/references/{slug}-detail.md")
         marker = GENERATED_MARKER.format(source_rel=f"references/{slug}-detail.md")
-        targets[REFERENCES_DIR / f"{slug}-detail.md"] = (
-            _normalise_trailing_newline(
-                marker + "\n" + DETAIL_SIBLING_LINT_EXEMPT + "\n" + body
-            )
+        targets[REFERENCES_DIR / f"{slug}-detail.md"] = _normalise_trailing_newline(
+            marker + "\n" + DETAIL_SIBLING_LINT_EXEMPT + "\n" + body
         )
     return targets
 
@@ -1391,8 +1426,8 @@ def generate_agent_spine_references() -> dict[Path, str]:
             ),
         )
         marker = GENERATED_MARKER.format(source_rel=f"spine/references/{slug}.md")
-        targets[REFERENCES_DIR / f"{slug}.md"] = (
-            _normalise_trailing_newline(marker + "\n" + body)
+        targets[REFERENCES_DIR / f"{slug}.md"] = _normalise_trailing_newline(
+            marker + "\n" + body
         )
     return targets
 
@@ -1549,18 +1584,22 @@ def generate_all() -> dict[Path, str]:
     # --- Spine + tool-map: still required for agent body assembly ---
     tool_map_path = SHARED / "spine" / "tool-map.yml"
     tool_map = _require_mapping(
-        yaml.safe_load(_read_required(
-            tool_map_path,
-            hint="canonical tool-map drives {{TOOL:<slug>}} marker expansion",
-        )),
+        yaml.safe_load(
+            _read_required(
+                tool_map_path,
+                hint="canonical tool-map drives {{TOOL:<slug>}} marker expansion",
+            )
+        ),
         tool_map_path,
     )
     spine_meta_path = SHARED / "spine" / "SKILL.meta.yml"
     spine_meta = _require_mapping(
-        yaml.safe_load(_read_required(
-            spine_meta_path,
-            hint="canonical spine frontmatter is required for the agent surface",
-        )),
+        yaml.safe_load(
+            _read_required(
+                spine_meta_path,
+                hint="canonical spine frontmatter is required for the agent surface",
+            )
+        ),
         spine_meta_path,
     )
 
@@ -1650,9 +1689,7 @@ def cmd_check() -> int:
     if drifted:
         # Remediation must be the first line a CI / hook caller sees in stderr
         # after the DRIFT summary lines.
-        sys.stderr.write(
-            "Run: python3 scripts/sync-content.py --write && git add -u\n"
-        )
+        sys.stderr.write("Run: python3 scripts/sync-content.py --write && git add -u\n")
 
     # Stale-directory guard: Claude Code registers every Markdown file found
     # in a subdirectory of a plugin's agents/ tree as its own agent type
@@ -1667,9 +1704,7 @@ def cmd_check() -> int:
     # new agent. `cmd_write()` deliberately does not delete such a file
     # (staying non-destructive) — this guard is what makes its presence a
     # visible, blocking failure instead.
-    stray = sorted(
-        p for p in AGENT_DIR.rglob("*") if p.is_file() and p != AGENT_PATH
-    )
+    stray = sorted(p for p in AGENT_DIR.rglob("*") if p.is_file() and p != AGENT_PATH)
     if stray:
         for p in stray:
             sys.stderr.write(f"STRAY: {p.relative_to(REPO_ROOT)}\n")
@@ -1761,7 +1796,9 @@ def cmd_self_test() -> int:
             generate_all()
             failures.append("FAIL (b): generate_all() did NOT raise on wrong count")
         except ValueError:
-            print("(b) count negative control: PASS — generate_all() raised ValueError on drift")
+            print(
+                "(b) count negative control: PASS — generate_all() raised ValueError on drift"
+            )
         except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
             failures.append(f"FAIL (b): unexpected exception type: {exc!r}")
     finally:
@@ -1782,11 +1819,15 @@ def cmd_self_test() -> int:
             if "orphan" not in names:
                 failures.append("FAIL (c): 'orphan' not in returned orphan list")
             elif "good" in names:
-                failures.append("FAIL (c): 'good' (has SKILL.md) wrongly flagged as orphan")
+                failures.append(
+                    "FAIL (c): 'good' (has SKILL.md) wrongly flagged as orphan"
+                )
             elif "orphan" not in err_buf.getvalue():
                 failures.append("FAIL (c): guard did not write 'orphan' to stderr")
             else:
-                print("(c) orphan-guard teeth: PASS — flags SKILL.md-less, skips SKILL.md-present")
+                print(
+                    "(c) orphan-guard teeth: PASS — flags SKILL.md-less, skips SKILL.md-present"
+                )
     except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
         failures.append(f"FAIL (c): unexpected exception: {exc!r}")
 
@@ -1926,9 +1967,7 @@ def cmd_self_test() -> int:
             # (references/five-whys.md -> five-whys-detail.md) broke exactly
             # as the first hop did before v8.17.3. The assertion is inverted:
             # anchored exactly once, bare zero times.
-            ref_content = all_targets.get(
-                REFERENCES_DIR / f"{slug}.md", ""
-            )
+            ref_content = all_targets.get(REFERENCES_DIR / f"{slug}.md", "")
             ref_anchored_count = ref_content.count(agent_rewritten)
             if ref_anchored_count != 1:
                 wrong.append(
@@ -2030,8 +2069,9 @@ def cmd_self_test() -> int:
         try:
             try:
                 dispatch_out, dispatch_err = io.StringIO(), io.StringIO()
-                with contextlib.redirect_stdout(dispatch_out), contextlib.redirect_stderr(
-                    dispatch_err
+                with (
+                    contextlib.redirect_stdout(dispatch_out),
+                    contextlib.redirect_stderr(dispatch_err),
                 ):
                     dispatch_rc = main(["--self-test"])
                 dispatch_text = dispatch_out.getvalue()
@@ -2075,9 +2115,7 @@ def cmd_self_test() -> int:
                     "missing token"
                 )
             else:
-                failures.append(
-                    f"FAIL (i): raised for the wrong reason: {exc}"
-                )
+                failures.append(f"FAIL (i): raised for the wrong reason: {exc}")
         except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
             failures.append(f"FAIL (i): unexpected exception type: {exc!r}")
     except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
@@ -2102,9 +2140,7 @@ def cmd_self_test() -> int:
                     "LAUNCHER_SKILLS"
                 )
             else:
-                failures.append(
-                    f"FAIL (j): raised for the wrong reason: {exc}"
-                )
+                failures.append(f"FAIL (j): raised for the wrong reason: {exc}")
         except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
             failures.append(f"FAIL (j): unexpected exception type: {exc!r}")
     except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
@@ -2132,9 +2168,7 @@ def cmd_self_test() -> int:
                     _expand_focused_validation_token(
                         "{{FOCUSED_VALIDATION}}", "five-whys"
                     )
-                    failures.append(
-                        "FAIL (k): bare-link control did NOT raise"
-                    )
+                    failures.append("FAIL (k): bare-link control did NOT raise")
                 except ValueError as exc:
                     if "bad-target.md" in str(exc):
                         print(
@@ -2143,13 +2177,9 @@ def cmd_self_test() -> int:
                             "raises, naming the offending target"
                         )
                     else:
-                        failures.append(
-                            f"FAIL (k): raised for the wrong reason: {exc}"
-                        )
+                        failures.append(f"FAIL (k): raised for the wrong reason: {exc}")
                 except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
-                    failures.append(
-                        f"FAIL (k): unexpected exception type: {exc!r}"
-                    )
+                    failures.append(f"FAIL (k): unexpected exception type: {exc!r}")
             finally:
                 _this_module.FOCUSED_VALIDATION_SOURCE = original_source
     except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
@@ -2233,8 +2263,7 @@ def cmd_self_test() -> int:
         except ValueError as exc:
             if "NON_TECHNIQUE_SKILLS" not in str(exc):
                 failures.append(
-                    f"FAIL (n): _expand_skill_token raised for the wrong "
-                    f"reason: {exc}"
+                    f"FAIL (n): _expand_skill_token raised for the wrong reason: {exc}"
                 )
         except Exception as exc:  # noqa: BLE001  self-test control reports any raise as a failed control instead of crashing
             failures.append(

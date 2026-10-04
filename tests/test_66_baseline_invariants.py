@@ -34,6 +34,7 @@ FOCUSED_BASELINE_V42 = TESTS / "focused-output-baseline-v4.2.md"
 # BASE-01: sub-skill-routing-baseline-v4.2.md
 # ---------------------------------------------------------------------------
 
+
 def test_sub_skill_baseline_v42_exists() -> None:
     """tests/sub-skill-routing-baseline-v4.2.md must exist."""
     assert SUB_SKILL_BASELINE_V42.exists(), (
@@ -68,9 +69,7 @@ def _check_baseline_row(text: str, row_id: str, kn_value: str, verdict: str) -> 
                 f"Row {row_id}: expected Verdict '{verdict}' not found in: {line!r}"
             )
             return
-    raise AssertionError(
-        f"Row '{row_id}' not found in baseline"
-    )
+    raise AssertionError(f"Row '{row_id}' not found in baseline")
 
 
 def test_sub_skill_baseline_v42_row_p12_5of5_pass() -> None:
@@ -125,6 +124,7 @@ def test_sub_skill_baseline_v42_lineage_mentions_fu21_diagnosis() -> None:
 # ---------------------------------------------------------------------------
 # BASE-02: focused-output-baseline-v4.2.md
 # ---------------------------------------------------------------------------
+
 
 def test_focused_baseline_v42_exists() -> None:
     """tests/focused-output-baseline-v4.2.md must exist."""
@@ -230,4 +230,5 @@ def test_focused_baseline_v42_lineage_mentions_commit_151b197() -> None:
 
 if __name__ == "__main__":
     import pytest
+
     sys.exit(pytest.main([__file__, "-v"]))

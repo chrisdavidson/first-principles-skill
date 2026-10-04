@@ -235,7 +235,9 @@ def _load_harness():
 
     Nothing in the loaded module is ever written to.
     """
-    spec = importlib.util.spec_from_file_location("_qh_for_provenance_rollup", _HARNESS_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "_qh_for_provenance_rollup", _HARNESS_PATH
+    )
     if spec is None or spec.loader is None:
         raise SystemExit(f"error: cannot load {_HARNESS_PATH}")
     module = importlib.util.module_from_spec(spec)
@@ -359,7 +361,9 @@ def duplicate_gt_ids(section3: str) -> list[str]:
 # `**Pre-check:**` line -- which also carries a `?-marked:` fragment, mid-line,
 # and is body-prescribed -- can never match (disclosed bound (c)). The same
 # anchor excludes a `?-marked:` fragment quoted inside prose.
-_ROLLUP_MARKED_RE = re.compile(r"^ {0,3}`?[ \t]*\?-marked:[ \t]*(?P<body>.*?)[ \t]*`?[ \t]*$")
+_ROLLUP_MARKED_RE = re.compile(
+    r"^ {0,3}`?[ \t]*\?-marked:[ \t]*(?P<body>.*?)[ \t]*`?[ \t]*$"
+)
 
 # The roll-up's `(N of M)` tail.
 _ROLLUP_COUNT_RE = re.compile(r"\((?P<n>\d+)[ \t]+of[ \t]+(?P<m>\d+)\)[ \t]*$")
@@ -368,7 +372,9 @@ _ROLLUP_COUNT_RE = re.compile(r"\((?P<n>\d+)[ \t]+of[ \t]+(?P<m>\d+)\)[ \t]*$")
 # `Read-at-source:` fragment inside an individual ground-truth ENTRY (observed
 # in `tests/baseline-reading-v9.6/Q-P1.md`, indented under its bullet) is part
 # of that entry, not part of the roll-up.
-_ROLLUP_READ_RE = re.compile(r"^ {0,3}`?[ \t]*Read-at-source:[ \t]*(?P<body>.*?)[ \t]*`?[ \t]*$")
+_ROLLUP_READ_RE = re.compile(
+    r"^ {0,3}`?[ \t]*Read-at-source:[ \t]*(?P<body>.*?)[ \t]*`?[ \t]*$"
+)
 
 # A fenced-code delimiter, so the scan for the roll-up's Read-at-source lines
 # can step over a closing fence without ending.
@@ -593,8 +599,10 @@ def coverage_observations(
     """
     if not population:
         return [
-            ("not evaluated: section 3 yields no ground truths, so no input's "
-            "provenance label can be resolved")
+            (
+                "not evaluated: section 3 yields no ground truths, so no input's "
+                "provenance label can be resolved"
+            )
         ]
 
     by_key = {g.key: g for g in population}
@@ -711,9 +719,7 @@ def render_report(readings: list[DocReading]) -> str:
             out.append(f"- unreadable: {r.unreadable}")
             out.append("")
             continue
-        out.append(
-            f"- presence: {'PRESENT' if r.present else 'ABSENT'} (report-only)"
-        )
+        out.append(f"- presence: {'PRESENT' if r.present else 'ABSENT'} (report-only)")
         out.append(
             f"- section 3: {r.population} ground truth(s), {r.marked} `?`-marked"
         )
@@ -729,14 +735,11 @@ def render_report(readings: list[DocReading]) -> str:
         assert r.rollup is not None
         out.append(f"- roll-up: `{r.rollup.marked_line}`")
         out.append(
-            f"- check 2: {'FAIL' if r.check2 else 'PASS'} "
-            f"({len(r.check2)} finding(s))"
+            f"- check 2: {'FAIL' if r.check2 else 'PASS'} ({len(r.check2)} finding(s))"
         )
         for p in r.check2:
             out.append(f"  - FAIL {p}")
-        out.append(
-            f"- check 3: {len(r.check3)} observation(s) (report-only)"
-        )
+        out.append(f"- check 3: {len(r.check3)} observation(s) (report-only)")
         for p in r.check3:
             out.append(f"  - note {p}")
         out.append("")
@@ -1115,7 +1118,11 @@ def fixture_problems() -> list[str]:
                 f"{f.expect_population}"
             )
         marked = tuple(
-            sorted(g.key for g in _SECTION3_PARSER(QH._slice_sections(f.text)[3]) if g.marked)
+            sorted(
+                g.key
+                for g in _SECTION3_PARSER(QH._slice_sections(f.text)[3])
+                if g.marked
+            )
         )
         if marked != tuple(sorted(f.expect_marked)):
             problems.append(
@@ -1160,9 +1167,7 @@ def report_only_problems() -> list[str]:
         if not r.present and r.failing:
             problems.append(f"{f.fid}: an absent roll-up made the document fail")
         if r.check3 and not r.check2 and r.failing:
-            problems.append(
-                f"{f.fid}: a check-3-only finding made the document fail"
-            )
+            problems.append(f"{f.fid}: a check-3-only finding made the document fail")
     # At least one fixture must actually exercise each report-only surface, or
     # the assertions above are vacuous.
     if not any(not read_document(f.fid, f.text).present for f in FIXTURES):
@@ -1195,9 +1200,7 @@ def roll_up_locator_problems() -> list[str]:
     for name, text, expect in cases:
         found = find_rollup(text) is not None
         if found != expect:
-            problems.append(
-                f"locator/{name}: found={found}, expected={expect}"
-            )
+            problems.append(f"locator/{name}: found={found}, expected={expect}")
 
     # The `(N of M)` tail parses, and the enumeration excludes it.
     r = find_rollup("?-marked: GT-2, GT-5, GT-9, GT-14 (4 of 22)\n")
@@ -1237,10 +1240,13 @@ def roll_up_locator_problems() -> list[str]:
     # A per-entry `Read-at-source:` inside a ground-truth bullet is part of the
     # entry, not the roll-up: it must not be picked up as a roll-up line, and
     # its bullet must not be read as a roll-up.
-    if find_rollup(
-        "- **GT-8** An identity.\n"
-        "  Source: arithmetic. Read-at-source: definitional, stated in this entry.\n"
-    ) is not None:
+    if (
+        find_rollup(
+            "- **GT-8** An identity.\n"
+            "  Source: arithmetic. Read-at-source: definitional, stated in this entry.\n"
+        )
+        is not None
+    ):
         problems.append("locator: a ground-truth entry was read as a roll-up")
 
     return problems
@@ -1698,8 +1704,7 @@ def describe() -> dict:
             if "*" in relpath
         ),
         "locked_constants": {
-            relpath: expected
-            for _label, relpath, expected in _TEMPLATE_ONLY_SURFACES
+            relpath: expected for _label, relpath, expected in _TEMPLATE_ONLY_SURFACES
         },
         "derived_counts": {
             "fixtures": len(FIXTURES),
@@ -1745,13 +1750,17 @@ def main(argv: list[str] | None = None) -> int:
         "--dir", action="append", help="a directory of analysis .md files (repeatable)"
     )
     ap.add_argument("--out", type=Path, help="write the report here instead of stdout")
-    ap.add_argument("--self-test", action="store_true", help="run the offline control suite")
+    ap.add_argument(
+        "--self-test", action="store_true", help="run the offline control suite"
+    )
     ap.add_argument(
         "--inject",
         choices=INJECTIONS,
         help="run the control suite with one component degraded; must exit non-zero",
     )
-    ap.add_argument("--describe", action="store_true", help="emit self-description JSON")
+    ap.add_argument(
+        "--describe", action="store_true", help="emit self-description JSON"
+    )
     args = ap.parse_args(argv)
 
     if args.describe:

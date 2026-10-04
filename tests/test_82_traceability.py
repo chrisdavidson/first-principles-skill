@@ -59,10 +59,12 @@ def test_script_has_inline_script_header() -> None:
 def test_script_has_no_external_imports() -> None:
     """check-traceability.py must be stdlib-only — no yaml, requests, or similar."""
     import re
+
     text = SCRIPT.read_text(encoding="utf-8")
     # Filter comment lines first (grep-gate hygiene)
     non_comment_lines = [
-        line for line in text.splitlines()
+        line
+        for line in text.splitlines()
         if line.strip() and not line.strip().startswith("#")
     ]
     non_comment_text = "\n".join(non_comment_lines)
@@ -97,7 +99,8 @@ def test_self_test_exits_zero() -> None:
     result = subprocess.run(
         [sys.executable, str(SCRIPT), "--self-test"],
         capture_output=True,
-        text=True, check=False,
+        text=True,
+        check=False,
     )
     assert result.returncode == 0, (
         f"check-traceability.py --self-test exited {result.returncode} "
@@ -168,8 +171,7 @@ def test_missing_rubric_section_detected() -> None:
         deliverable_path="shared/spine/references/validation-rubric.md",
         coverage_tier="reproducible",
         artifact_link=(
-            "shared/spine/references/validation-rubric.md"
-            "#criterion-99-nonexistent"
+            "shared/spine/references/validation-rubric.md#criterion-99-nonexistent"
         ),
         gap_rationale="",
         surfaces=("apparatus",),
@@ -276,9 +278,7 @@ def test_gap_row_is_valid() -> None:
         rerun_by="none",
     )
     issues = mod.check_consistency([row])
-    assert not issues, (
-        f"Unexpected issues for gap row (should be valid): {issues!r}"
-    )
+    assert not issues, f"Unexpected issues for gap row (should be valid): {issues!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -292,21 +292,23 @@ def test_emit_writes_both_files() -> None:
     # (tmp_path is outside .planning/ and would fail the confinement guard —
     # PATTERNS.md note + T-82-01)
     phase_dir = (
-        REPO
-        / ".planning"
-        / "phases"
-        / "82-traceability-matrix-and-gap-findings"
+        REPO / ".planning" / "phases" / "82-traceability-matrix-and-gap-findings"
     )
     md_out = phase_dir / "MATRIX.md"
     json_out = phase_dir / "matrix.json"
     result = subprocess.run(
         [
-            sys.executable, str(SCRIPT), "emit",
-            "--md-output", str(md_out),
-            "--json-output", str(json_out),
+            sys.executable,
+            str(SCRIPT),
+            "emit",
+            "--md-output",
+            str(md_out),
+            "--json-output",
+            str(json_out),
         ],
         capture_output=True,
-        text=True, check=False,
+        text=True,
+        check=False,
     )
     assert result.returncode == 0, (
         f"emit failed (expected 0): returncode={result.returncode}\n"
@@ -367,21 +369,23 @@ def test_load_rows_retuples_surfaces() -> None:
     @dataclass(frozen=True) hashability the first time anything hashes a row)."""
     mod = _load_check_traceability()
     phase_dir = (
-        REPO
-        / ".planning"
-        / "phases"
-        / "82-traceability-matrix-and-gap-findings"
+        REPO / ".planning" / "phases" / "82-traceability-matrix-and-gap-findings"
     )
     md_out = phase_dir / "MATRIX.md"
     json_out = phase_dir / "matrix.json"
     result = subprocess.run(
         [
-            sys.executable, str(SCRIPT), "emit",
-            "--md-output", str(md_out),
-            "--json-output", str(json_out),
+            sys.executable,
+            str(SCRIPT),
+            "emit",
+            "--md-output",
+            str(md_out),
+            "--json-output",
+            str(json_out),
         ],
         capture_output=True,
-        text=True, check=False,
+        text=True,
+        check=False,
     )
     assert result.returncode == 0, (
         f"emit failed (expected 0): returncode={result.returncode}\n"
@@ -389,8 +393,7 @@ def test_load_rows_retuples_surfaces() -> None:
     )
     loaded_rows = mod.load_rows(json_out)
     assert all(isinstance(r.surfaces, tuple) for r in loaded_rows), (
-        "Expected every loaded row's surfaces to be a tuple after the JSON "
-        "round-trip"
+        "Expected every loaded row's surfaces to be a tuple after the JSON round-trip"
     )
     assert len(set(loaded_rows)) == len(loaded_rows), (
         "Expected loaded rows to be hashable and unique (a list-valued surfaces "
@@ -492,6 +495,7 @@ def test_statement_pipe_escaped_in_markdown() -> None:
 def test_output_path_confinement() -> None:
     """emit with an /tmp/... --md-output exits 2 and writes nothing (T-81-01)."""
     import os
+
     escape_md = "/tmp/escape-traceability-test-82.md"
     escape_json = "/tmp/escape-traceability-test-82.json"
     # Clean up from any prior failed run
@@ -500,12 +504,17 @@ def test_output_path_confinement() -> None:
             os.unlink(p)
     result = subprocess.run(
         [
-            sys.executable, str(SCRIPT), "emit",
-            "--md-output", escape_md,
-            "--json-output", escape_json,
+            sys.executable,
+            str(SCRIPT),
+            "emit",
+            "--md-output",
+            escape_md,
+            "--json-output",
+            escape_json,
         ],
         capture_output=True,
-        text=True, check=False,
+        text=True,
+        check=False,
     )
     assert result.returncode == 2, (
         f"Expected exit 2 for escaping --md-output path, "
@@ -560,9 +569,15 @@ def test_active_tail_items_present() -> None:
     rows = mod.build_matrix_rows()
 
     required_bare_ids = {
-        "GEN-01", "GEN-02", "RR-80-01",
-        "RR-79-01", "RR-114-01", "RR-108-02", "RR-77-08",
-        "RR-108-04", "RR-108-05",
+        "GEN-01",
+        "GEN-02",
+        "RR-80-01",
+        "RR-79-01",
+        "RR-114-01",
+        "RR-108-02",
+        "RR-77-08",
+        "RR-108-04",
+        "RR-108-05",
     }
 
     found_ids = {r.bare_id for r in rows}
@@ -588,9 +603,7 @@ def test_active_tail_items_present() -> None:
                 f"{row.bare_id}: expected deliverable_path='active-tail', "
                 f"got {row.deliverable_path!r}"
             )
-    assert not errors, (
-        "Active-tail row tagging errors:\n" + "\n".join(errors)
-    )
+    assert not errors, "Active-tail row tagging errors:\n" + "\n".join(errors)
 
     # RESID-01: RR-108-04 and RR-108-05 specifically must be reproducible, tagged
     # residual/ keys, and carry the _battery_core.py#self_test_boundary sentinel link.
@@ -617,9 +630,7 @@ def test_active_tail_items_present() -> None:
                 f"'scripts/_battery_core.py#self_test_boundary', "
                 f"got {row.artifact_link!r}"
             )
-    assert not resid_errors, (
-        "RESID-01 row field errors:\n" + "\n".join(resid_errors)
-    )
+    assert not resid_errors, "RESID-01 row field errors:\n" + "\n".join(resid_errors)
 
 
 # ---------------------------------------------------------------------------
@@ -640,14 +651,30 @@ def test_v819_v820_v821_milestone_rows_present() -> None:
     rows = mod.build_matrix_rows()
 
     expected_keys = {
-        "v8.19/HC-01", "v8.19/HC-02", "v8.19/HC-03", "v8.19/HC-04",
-        "v8.20/HARN-01-01", "v8.20/HARN-01-02", "v8.20/HARN-01-03",
-        "v8.20/HARN-01-04", "v8.20/HARN-01-05",
-        "v8.21/REG-01", "v8.21/REG-02", "v8.21/REG-03",
-        "v8.21/REG-04", "v8.21/REG-05", "v8.21/REG-06",
-        "v8.21/GATE-01", "v8.21/GATE-02", "v8.21/GATE-03",
-        "v8.21/GATE-04", "v8.21/GATE-05", "v8.21/GATE-06",
-        "v8.21/VAL-01", "v8.21/VAL-02", "v8.21/VAL-03",
+        "v8.19/HC-01",
+        "v8.19/HC-02",
+        "v8.19/HC-03",
+        "v8.19/HC-04",
+        "v8.20/HARN-01-01",
+        "v8.20/HARN-01-02",
+        "v8.20/HARN-01-03",
+        "v8.20/HARN-01-04",
+        "v8.20/HARN-01-05",
+        "v8.21/REG-01",
+        "v8.21/REG-02",
+        "v8.21/REG-03",
+        "v8.21/REG-04",
+        "v8.21/REG-05",
+        "v8.21/REG-06",
+        "v8.21/GATE-01",
+        "v8.21/GATE-02",
+        "v8.21/GATE-03",
+        "v8.21/GATE-04",
+        "v8.21/GATE-05",
+        "v8.21/GATE-06",
+        "v8.21/VAL-01",
+        "v8.21/VAL-02",
+        "v8.21/VAL-03",
     }
     assert len(expected_keys) == 24, "expected-key roster itself must be 24 entries"
 
@@ -659,10 +686,7 @@ def test_v819_v820_v821_milestone_rows_present() -> None:
     )
 
     # Each expected key must appear exactly once (no accidental duplication).
-    dup_errors = [
-        k for k in expected_keys
-        if all_keys.count(k) != 1
-    ]
+    dup_errors = [k for k in expected_keys if all_keys.count(k) != 1]
     assert not dup_errors, (
         f"ROWS-01 keys not appearing exactly once: {sorted(dup_errors)!r} "
         f"(counts: {[(k, all_keys.count(k)) for k in dup_errors]!r})"
@@ -672,8 +696,12 @@ def test_v819_v820_v821_milestone_rows_present() -> None:
     # last v8.18 row's index and the first v8.24 row's index.
     v818_indices = [i for i, r in enumerate(rows) if r.milestone == "v8.18"]
     v824_indices = [i for i, r in enumerate(rows) if r.milestone == "v8.24"]
-    assert v818_indices, "No v8.18 rows found in build_matrix_rows() — cannot bound order"
-    assert v824_indices, "No v8.24 rows found in build_matrix_rows() — cannot bound order"
+    assert v818_indices, (
+        "No v8.18 rows found in build_matrix_rows() — cannot bound order"
+    )
+    assert v824_indices, (
+        "No v8.24 rows found in build_matrix_rows() — cannot bound order"
+    )
     last_v818 = max(v818_indices)
     first_v824 = min(v824_indices)
 
@@ -684,9 +712,7 @@ def test_v819_v820_v821_milestone_rows_present() -> None:
                 f"{r.key} at index {i} is not strictly between last v8.18 row "
                 f"(index {last_v818}) and first v8.24 row (index {first_v824})"
             )
-    assert not order_errors, (
-        "ROWS-01 build-order errors:\n" + "\n".join(order_errors)
-    )
+    assert not order_errors, "ROWS-01 build-order errors:\n" + "\n".join(order_errors)
 
     # Every row must carry a non-empty, non-sentinel statement.
     stmt_errors: list[str] = []
@@ -700,9 +726,7 @@ def test_v819_v820_v821_milestone_rows_present() -> None:
                     f"{r.key}: statement is the _STATEMENT_UNRECOVERABLE sentinel, "
                     f"expected a sourced statement"
                 )
-    assert not stmt_errors, (
-        "ROWS-01 statement errors:\n" + "\n".join(stmt_errors)
-    )
+    assert not stmt_errors, "ROWS-01 statement errors:\n" + "\n".join(stmt_errors)
 
 
 # ---------------------------------------------------------------------------
@@ -753,4 +777,5 @@ def test_rows03_reproducible_rows_cite_new_scripts() -> None:
 
 if __name__ == "__main__":
     import pytest
+
     sys.exit(pytest.main([__file__, "-v"]))

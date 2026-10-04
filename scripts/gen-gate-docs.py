@@ -69,7 +69,9 @@ BATTERY_PATH: Path = REPO_ROOT / "scripts" / "check-firewall-battery.sh"
 # ---------------------------------------------------------------------------
 
 _REGISTRY_PATH: Path = Path(__file__).resolve().parent / "_gate_registry.py"
-_registry_spec = importlib.util.spec_from_file_location("_gate_registry", _REGISTRY_PATH)
+_registry_spec = importlib.util.spec_from_file_location(
+    "_gate_registry", _REGISTRY_PATH
+)
 _gate_registry = importlib.util.module_from_spec(_registry_spec)  # type: ignore[arg-type]
 sys.modules["_gate_registry"] = _gate_registry  # MUST precede exec_module
 _registry_spec.loader.exec_module(_gate_registry)  # type: ignore[union-attr]
@@ -129,7 +131,8 @@ def harvest(entries) -> tuple[dict[str, dict], list[str]]:
                 [sys.executable, str(script_path), "--describe"],
                 capture_output=True,
                 text=True,
-                timeout=120, check=False,
+                timeout=120,
+                check=False,
             )
         except OSError as exc:
             problems.append(f"harvest: {script} could not be invoked: {exc!r}")
@@ -367,8 +370,10 @@ def roster_arm_shape_census_problems(
 
     if not sources:
         return [
-            ("roster-arm-shape-census: population is empty — the census "
-            "cannot scan nothing")
+            (
+                "roster-arm-shape-census: population is empty — the census "
+                "cannot scan nothing"
+            )
         ]
 
     problems: list[str] = []
@@ -377,7 +382,9 @@ def roster_arm_shape_census_problems(
         for lineno, line in enumerate(lines, start=1):
             for shape in _ROSTER_ARM_SHAPES:
                 for match in shape.pattern.finditer(line):
-                    if shape.clause_identifier_exempt and match.group(1).endswith("_clause"):
+                    if shape.clause_identifier_exempt and match.group(1).endswith(
+                        "_clause"
+                    ):
                         continue
                     problems.append(
                         f"{relpath}:{lineno}: {shape.finding_text} "
@@ -424,7 +431,9 @@ def _roster_arm_payload_assert_site_count(sources: dict[str, str] | None = None)
 # `_BATTERY_GATE_RE` documents for its analogous D-01 extraction.
 # ---------------------------------------------------------------------------
 
-_FROZEN_PATHS_ARRAY_RE = re.compile(r"^_FROZEN_PATHS=\(\n(.*?)^\)$", re.MULTILINE | re.DOTALL)
+_FROZEN_PATHS_ARRAY_RE = re.compile(
+    r"^_FROZEN_PATHS=\(\n(.*?)^\)$", re.MULTILINE | re.DOTALL
+)
 _FROZEN_PATHS_ENTRY_RE = re.compile(r"^[ \t]*'([^']+)'[ \t]*$", re.MULTILINE)
 
 
@@ -487,7 +496,9 @@ def all_floor_problems(
     frozen_specs,
 ) -> list[str]:
     problems: list[str] = []
-    problems += _gate_registry.registry_id_problems(registry_ids, battery_ids, precommit_ids)
+    problems += _gate_registry.registry_id_problems(
+        registry_ids, battery_ids, precommit_ids
+    )
     problems += _gate_registry.field_resolution_problems(requested, emitted)
     problems += _gate_registry.vocabulary_problems(emitted)
     problems += frozen_path_write_problems(write_paths, frozen_specs)
@@ -522,13 +533,24 @@ MEASUREMENT_MAP_MD: Path = REPO_ROOT / "docs" / "MEASUREMENT-MAP.md"
 # real narrative before this migration; the other 11 gained one.
 NARRATIVE_ENTRIES: frozenset[str] = frozenset(
     {
-        "QUAL-01", "SCAN-GUARD", "TRACE-03", "CONF-GATE", "CONF-SURFACE",
+        "QUAL-01",
+        "SCAN-GUARD",
+        "TRACE-03",
+        "CONF-GATE",
+        "CONF-SURFACE",
         # HARN-03 joined in v9.2.0 Phase 28 commit B to host its GUARD-03
         # REACH-or-LEVEL determination, because a thin page is regenerated
         # end to end (D-08) and would erase it.
         "HARN-03",
-        "VAL-01", "VAL-02", "VAL-03", "VERSION-01",
-        "DUAL-04", "GATE-01", "BATT-06", "STEP0-08", "STEP0-06",
+        "VAL-01",
+        "VAL-02",
+        "VAL-03",
+        "VERSION-01",
+        "DUAL-04",
+        "GATE-01",
+        "BATT-06",
+        "STEP0-08",
+        "STEP0-06",
         # HARN-02 joined in v9.2.0 Phase 28 commit A to host its GUARD-03
         # REACH-or-LEVEL determination, because a thin page is regenerated
         # end to end (D-08) and would erase it.
@@ -560,13 +582,9 @@ TESTING_REGION_MARKERS: tuple[str, str] = (
 # regeneration, so re-using them as anchors on every call (not just the
 # first) is safe: they never move.
 _CLAUDE_BOOTSTRAP_AFTER = "### CI gates"
-_CLAUDE_BOOTSTRAP_BEFORE = (
-    "HARN-01, HARN-02 and HARN-03 were registered under HARN-04 at v8.18.0 — each is a CI job plus a"
-)
+_CLAUDE_BOOTSTRAP_BEFORE = "HARN-01, HARN-02 and HARN-03 were registered under HARN-04 at v8.18.0 — each is a CI job plus a"
 _ARCHITECTURE_BOOTSTRAP_AFTER = "## CI and pre-commit gate inventory"
-_ARCHITECTURE_BOOTSTRAP_BEFORE = (
-    "HARN-01, HARN-02 and HARN-03 were registered under HARN-04 at v8.18.0 — each has a CI job plus a"
-)
+_ARCHITECTURE_BOOTSTRAP_BEFORE = "HARN-01, HARN-02 and HARN-03 were registered under HARN-04 at v8.18.0 — each has a CI job plus a"
 # docs/TESTING.md (D-21-F): the generated index replaces the 13 `###`-level
 # per-gate sections between "## CI gates — operational run-detail" and the
 # next H2 heading, "## Routing battery (developer tools — not in CI)" — both
@@ -600,9 +618,7 @@ _TESTING_BOOTSTRAP_BEFORE = "## Routing battery (developer tools — not in CI)"
 _README_BOOTSTRAP_AFTER = (
     "> the standing governing records, and all current-state developer docs were kept."
 )
-_README_BOOTSTRAP_BEFORE = (
-    "> **Historical terminal record:** [`v8.0-final-closure.md`](v8.0-final-closure.md) — accepted"
-)
+_README_BOOTSTRAP_BEFORE = "> **Historical terminal record:** [`v8.0-final-closure.md`](v8.0-final-closure.md) — accepted"
 
 # docs/MEASUREMENT-MAP.md's coverage-headline sentence is a plain paragraph
 # (no blockquote). The region (see _NARRATIVE_REGIONS' MEASUREMENT-MAP
@@ -622,7 +638,7 @@ _MEASUREMENT_MAP_BOOTSTRAP_AFTER = (
     "emulator-layer assertion — the S-N04 prompt fires no trigger phrase and is classified "
     "`full-composer` (catalog-independent inline literal). BATT-06 (`_battery_core.self_test_boundary()`) "
     "owns the marker-counting assertion — a single bare pre-mortem hit (count=1) is below "
-    "`MIN_HEADER_HITS` (2), so `classify()` returns `\"none\"`, not `\"focused-pre-mortem\"`."
+    '`MIN_HEADER_HITS` (2), so `classify()` returns `"none"`, not `"focused-pre-mortem"`.'
 )
 _MEASUREMENT_MAP_BOOTSTRAP_BEFORE = "## Live thresholds and constants"
 
@@ -745,7 +761,7 @@ def _script_cell(entry) -> str:
         first_cmd = entry.run_command.split(" && ")[0].strip()
         prefixed = f"python3 {entry.script}"
         if first_cmd.startswith(prefixed):
-            return f"`{first_cmd[len('python3 '):]}`"
+            return f"`{first_cmd[len('python3 ') :]}`"
         return f"`{entry.script}`"
     tool = entry.static_facts.get("tool")
     if tool:
@@ -811,7 +827,9 @@ def _gate_table_rows(
             ids = ((entry.gate_id,) if entry.gate_id else ()) + entry.extra_ids
             gate_col = " / ".join(ids)
         blob = harvested.get(entry.script) if entry.script else None
-        rows.append((gate_col, entry.mechanism, _script_cell(entry), _checks_cell(entry, blob)))
+        rows.append(
+            (gate_col, entry.mechanism, _script_cell(entry), _checks_cell(entry, blob))
+        )
     return rows
 
 
@@ -849,7 +867,9 @@ def _population_counts(entries) -> dict[str, int]:
     inline_count = sum(
         1
         for e in documented
-        if e.script is None and e.gate_id is not None and e.ci_job is None
+        if e.script is None
+        and e.gate_id is not None
+        and e.ci_job is None
         and not e.key.startswith("PRECOMMIT:")
     )
     tallied_count = sum(1 for e in documented if e.gate_id is not None)
@@ -874,7 +894,9 @@ def _pluralize_count(count: int, singular: str, plural: str | None = None) -> st
     `plural` defaults to `singular + "s"`; pass it explicitly for irregular
     forms (none needed today, but the parameter exists so a future noun
     doesn't have to relearn this)."""
-    word = singular if count == 1 else (plural if plural is not None else f"{singular}s")
+    word = (
+        singular if count == 1 else (plural if plural is not None else f"{singular}s")
+    )
     return f"{count} {word}"
 
 
@@ -883,7 +905,9 @@ def _population_arithmetic_sentence(entries) -> str:
     battery_only_phrase = _pluralize_count(c["battery_only_count"], "battery-only gate")
     inline_phrase = _pluralize_count(c["inline_count"], "inline check")
     precommit_gates_phrase = _pluralize_count(c["precommit_count"], "pre-commit gate")
-    hook_mechanism_phrase = _pluralize_count(c["hook_mechanism_count"], "hook mechanism")
+    hook_mechanism_phrase = _pluralize_count(
+        c["hook_mechanism_count"], "hook mechanism"
+    )
     return (
         f"Gates run on three surfaces: **{c['ci_count']} in CI** "
         "(`.github/workflows/validation.yml`, on push/PR to master), "
@@ -1018,7 +1042,9 @@ def _replace_or_bootstrap_region(
     bare_lines = [ln.splitlines()[0] if ln.splitlines() else ln for ln in lines]
     fenced = _fenced_line_flags(bare_lines)
     start_count = sum(
-        1 for bare, is_fenced in zip(bare_lines, fenced) if not is_fenced and bare == start_marker
+        1
+        for bare, is_fenced in zip(bare_lines, fenced)
+        if not is_fenced and bare == start_marker
     )
     if start_count >= 1:
         return _replace_region(text, start_marker, end_marker, new_content)
@@ -1084,7 +1110,9 @@ _DISCLOSED_BOUNDS_HAND_WRITTEN_COMMENT = (
 def _facts_block(entry, blob: dict | None) -> str:
     lines = ["## Facts", ""]
     if not entry.consumes or blob is None:
-        reason = "no script backs it" if entry.script is None else "nothing consumed yet"
+        reason = (
+            "no script backs it" if entry.script is None else "nothing consumed yet"
+        )
         lines.append(f"This gate carries no `--describe`-derived facts ({reason}).")
     else:
         for field_name in entry.consumes:
@@ -1096,7 +1124,9 @@ def _facts_block(entry, blob: dict | None) -> str:
             elif isinstance(value, list):
                 rendered = ", ".join(f"`{v}`" for v in value)
                 lines.append(f"- `{field_name}` ({len(value)}): {rendered}")
-            elif isinstance(value, dict) and all(isinstance(v, dict) for v in value.values()):
+            elif isinstance(value, dict) and all(
+                isinstance(v, dict) for v in value.values()
+            ):
                 # Nested dict-of-dicts (e.g. `contract_pins`, each keyed by
                 # function name with its own {digest, line_count}): render
                 # the sub-fields too, not just the outer keys, so a narrative
@@ -1107,7 +1137,9 @@ def _facts_block(entry, blob: dict | None) -> str:
                     sub = value[k]
                     sub_bits = ", ".join(f"{sk}={sv}" for sk, sv in sorted(sub.items()))
                     parts.append(f"`{k}` ({sub_bits})")
-                lines.append(f"- `{field_name}` ({len(value)} entries): {'; '.join(parts)}")
+                lines.append(
+                    f"- `{field_name}` ({len(value)} entries): {'; '.join(parts)}"
+                )
             elif isinstance(value, dict) and all(
                 isinstance(v, (str, int, float, bool)) for v in value.values()
             ):
@@ -1157,7 +1189,10 @@ def render_detail_page(entry, blob: dict | None, existing_text: str | None) -> s
             text, DETAIL_FACTS_MARKERS[0], DETAIL_FACTS_MARKERS[1], facts_content
         )
         text = _replace_region(
-            text, DETAIL_HOWTORUN_MARKERS[0], DETAIL_HOWTORUN_MARKERS[1], howtorun_content
+            text,
+            DETAIL_HOWTORUN_MARKERS[0],
+            DETAIL_HOWTORUN_MARKERS[1],
+            howtorun_content,
         )
         return text
 
@@ -1356,14 +1391,35 @@ def _strip_citation_shaped_numbers(text: str) -> str:
 
 
 _SPELLED_OUT_ONES: dict[str, int] = {
-    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7,
-    "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12, "thirteen": 13,
-    "fourteen": 14, "fifteen": 15, "sixteen": 16, "seventeen": 17, "eighteen": 18,
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+    "eleven": 11,
+    "twelve": 12,
+    "thirteen": 13,
+    "fourteen": 14,
+    "fifteen": 15,
+    "sixteen": 16,
+    "seventeen": 17,
+    "eighteen": 18,
     "nineteen": 19,
 }
 _SPELLED_OUT_TENS: dict[str, int] = {
-    "twenty": 20, "thirty": 30, "forty": 40, "fifty": 50, "sixty": 60,
-    "seventy": 70, "eighty": 80, "ninety": 90,
+    "twenty": 20,
+    "thirty": 30,
+    "forty": 40,
+    "fifty": 50,
+    "sixty": 60,
+    "seventy": 70,
+    "eighty": 80,
+    "ninety": 90,
 }
 _WORD_RE = re.compile(r"[A-Za-z][A-Za-z-]*")
 
@@ -1540,9 +1596,11 @@ def containment_surface_roster_problems(
     extra = sorted(reached_keys - lock)
     if missing or extra:
         return [
-            (f"containment-surface-roster: missing={missing} extra={extra} "
-            "(CONTAIN-01, D-05 proviso 3 -- the reached-surface set must "
-            "equal the locked four, never a subset)")
+            (
+                f"containment-surface-roster: missing={missing} extra={extra} "
+                "(CONTAIN-01, D-05 proviso 3 -- the reached-surface set must "
+                "equal the locked four, never a subset)"
+            )
         ]
     return []
 
@@ -1786,9 +1844,11 @@ def narrative_region_surface_roster_problems(
     extra = sorted(reached_keys - lock)
     if missing or extra:
         return [
-            (f"narrative-region-surface-roster: missing={missing} extra={extra} "
-            "(NARR-02 -- the reached-surface set must equal the locked two, "
-            "never a subset)")
+            (
+                f"narrative-region-surface-roster: missing={missing} extra={extra} "
+                "(NARR-02 -- the reached-surface set must equal the locked two, "
+                "never a subset)"
+            )
         ]
     return []
 
@@ -1937,9 +1997,15 @@ def narrative_region_marker_context_problems(
         fenced = _fenced_line_flags(lines)
         start_marker, end_marker = region.markers
         start_idxs = [
-            i for i, (b, f) in enumerate(zip(lines, fenced)) if not f and b == start_marker
+            i
+            for i, (b, f) in enumerate(zip(lines, fenced))
+            if not f and b == start_marker
         ]
-        end_idxs = [i for i, (b, f) in enumerate(zip(lines, fenced)) if not f and b == end_marker]
+        end_idxs = [
+            i
+            for i, (b, f) in enumerate(zip(lines, fenced))
+            if not f and b == end_marker
+        ]
         if len(start_idxs) != 1 or len(end_idxs) != 1:
             continue
         start_idx, end_idx = start_idxs[0], end_idxs[0]
@@ -1986,7 +2052,9 @@ def _narrative_restatement_findings(
     (FROZEN-EVIDENCE discipline -- fixtures stay in-memory or tempdir-only,
     never written into the real tree); the real files are read only when
     the caller passes nothing."""
-    resolved_texts: dict[str, str] = dict(surface_texts) if surface_texts is not None else {}
+    resolved_texts: dict[str, str] = (
+        dict(surface_texts) if surface_texts is not None else {}
+    )
 
     def _text_for(surface: str) -> str | None:
         if surface in resolved_texts:
@@ -2060,7 +2128,9 @@ def narrative_restatement_problems(
     message per occurrence, each naming the file, the line, and the region
     whose value was restated outside its own generated fence."""
     problems: list[str] = []
-    for kind, region, surface, lineno in _narrative_restatement_findings(regions, surface_texts):
+    for kind, region, surface, lineno in _narrative_restatement_findings(
+        regions, surface_texts
+    ):
         if kind != "finding":
             continue
         problems.append(
@@ -2084,13 +2154,19 @@ def _containment_missing_numbers(
     scores, rather than a second, independently-drifting extraction."""
     lines = text.splitlines()
     inside = _generated_line_flags(lines, marker_pairs)
-    outside_lines = [line for idx, (line, is_in) in enumerate(zip(lines, inside)) if not is_in and idx != 0]
+    outside_lines = [
+        line
+        for idx, (line, is_in) in enumerate(zip(lines, inside))
+        if not is_in and idx != 0
+    ]
     inside_lines = [line for line, is_in in zip(lines, inside) if is_in]
     outside_numbers = _normalise_numbers(
-        _strip_citation_shaped_numbers("\n".join(outside_lines)), include_spelled_out=check_spelled_out
+        _strip_citation_shaped_numbers("\n".join(outside_lines)),
+        include_spelled_out=check_spelled_out,
     )
     inside_numbers = _normalise_numbers(
-        _strip_citation_shaped_numbers("\n".join(inside_lines)), include_spelled_out=check_spelled_out
+        _strip_citation_shaped_numbers("\n".join(inside_lines)),
+        include_spelled_out=check_spelled_out,
     )
     return sorted(outside_numbers - inside_numbers, key=lambda s: (len(s), s))
 
@@ -2109,9 +2185,15 @@ def _containment_missing_number_counts(
     bare set membership test cannot see."""
     lines = text.splitlines()
     inside = _generated_line_flags(lines, marker_pairs)
-    outside_lines = [line for idx, (line, is_in) in enumerate(zip(lines, inside)) if not is_in and idx != 0]
+    outside_lines = [
+        line
+        for idx, (line, is_in) in enumerate(zip(lines, inside))
+        if not is_in and idx != 0
+    ]
     stripped_outside = _strip_citation_shaped_numbers("\n".join(outside_lines))
-    counts: Counter[str] = Counter(m.group(0).replace(",", "") for m in _NUMBER_RE.finditer(stripped_outside))
+    counts: Counter[str] = Counter(
+        m.group(0).replace(",", "") for m in _NUMBER_RE.finditer(stripped_outside)
+    )
     if not check_spelled_out:
         return counts
     words = _WORD_RE.findall(stripped_outside)
@@ -2284,7 +2366,9 @@ def _operand_group_tuple(raw: str) -> tuple[str, ...] | None:
     return tuple(values) if values else None
 
 
-def _select_delta_chain_patterns() -> tuple[re.Pattern[str], re.Pattern[str], re.Pattern[str]]:
+def _select_delta_chain_patterns() -> tuple[
+    re.Pattern[str], re.Pattern[str], re.Pattern[str]
+]:
     """The live slash/arrow/English-prose delta-vector `re.Pattern` objects,
     selected out of `_CITATION_SHAPE_RES` by exact `.pattern` string match
     against the same named constants the tuple's own entries are compiled
@@ -2427,7 +2511,9 @@ def _split_inside_outside_lines(text: str, marker_pairs) -> tuple[list[str], lis
     lines = text.splitlines()
     inside = _generated_line_flags(lines, marker_pairs)
     outside_lines = [
-        line for idx, (line, is_in) in enumerate(zip(lines, inside)) if not is_in and idx != 0
+        line
+        for idx, (line, is_in) in enumerate(zip(lines, inside))
+        if not is_in and idx != 0
     ]
     inside_lines = [line for line, is_in in zip(lines, inside) if is_in]
     return outside_lines, inside_lines
@@ -2463,7 +2549,8 @@ def _chain_terminus_surface_verdicts(
     shape-stripped exactly as `_containment_missing_numbers` already does."""
     outside_lines, inside_lines = _split_inside_outside_lines(text, marker_pairs)
     inside_numbers = _normalise_numbers(
-        _strip_citation_shaped_numbers("\n".join(inside_lines)), include_spelled_out=True
+        _strip_citation_shaped_numbers("\n".join(inside_lines)),
+        include_spelled_out=True,
     )
     outside_text = "\n".join(outside_lines)
     chains = _link_delta_chains(_delta_chain_hops(outside_text))
@@ -2589,7 +2676,11 @@ def _chain_terminus_live_tallies() -> tuple[int, int, int]:
 # ---------------------------------------------------------------------------
 
 _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
-    ('CLAUDE.md', '1024'): ('999.69', 1, 'CANNOT-REACH (no harvest field IN THIS FILE\'S OWN generated fence): "Skill `description` fields must be third-person, ≤ 1,024 chars" (Key invariants) -- the agent-side ceiling GATE-01 (`scripts/check-agent.py`) enforces via `_MAX_DESCRIPTION_LEN = 1024`, re-used in the same sentence as a skill-side convention. VAL-05, which once carried this residue, is retired (docs/v9.4-gate-retirement.md §2.3); GATE-01 asserts the agent-side bound directly. For skill descriptions the figure has no source on the platform\'s skills page and no gate behind it (M3(b), 40-EVIDENCE.md: a 1,100-character skill description left both `claude plugin validate` and `check-agent.py` green) -- it stays a documented convention, matching docs/CONFIGURATION.md\'s row. Re-verified live this plan: `python3 scripts/check-agent.py --describe` DOES emit `locked_constants: {"max_description_len": 1024}`, and `docs/gates/GATE-01.md` -- a DIFFERENT file -- renders it verbatim; but CLAUDE.md\'s own generated GATE-01 table row only ever states `locked_constants=N entries` (a count, never the raw values), so this file\'s own inside-fence text still carries no `1024` for the outside occurrence to corroborate against -- containment is scored per file (`_containment_missing_numbers`), not tree-wide. CONTAIN-04 reconciles this residue if CLAUDE.md\'s own table row is ever widened to inline raw constant values; deferred as cannot-reach residue (D-06 proviso 2) until then.'),
+    ("CLAUDE.md", "1024"): (
+        "999.69",
+        1,
+        "CANNOT-REACH (no harvest field IN THIS FILE'S OWN generated fence): \"Skill `description` fields must be third-person, ≤ 1,024 chars\" (Key invariants) -- the agent-side ceiling GATE-01 (`scripts/check-agent.py`) enforces via `_MAX_DESCRIPTION_LEN = 1024`, re-used in the same sentence as a skill-side convention. VAL-05, which once carried this residue, is retired (docs/v9.4-gate-retirement.md §2.3); GATE-01 asserts the agent-side bound directly. For skill descriptions the figure has no source on the platform's skills page and no gate behind it (M3(b), 40-EVIDENCE.md: a 1,100-character skill description left both `claude plugin validate` and `check-agent.py` green) -- it stays a documented convention, matching docs/CONFIGURATION.md's row. Re-verified live this plan: `python3 scripts/check-agent.py --describe` DOES emit `locked_constants: {\"max_description_len\": 1024}`, and `docs/gates/GATE-01.md` -- a DIFFERENT file -- renders it verbatim; but CLAUDE.md's own generated GATE-01 table row only ever states `locked_constants=N entries` (a count, never the raw values), so this file's own inside-fence text still carries no `1024` for the outside occurrence to corroborate against -- containment is scored per file (`_containment_missing_numbers`), not tree-wide. CONTAIN-04 reconciles this residue if CLAUDE.md's own table row is ever widened to inline raw constant values; deferred as cannot-reach residue (D-06 proviso 2) until then.",
+    ),
     # ('CLAUDE.md', '17') REMOVED 2026-09-23, and the reason matters more than
     # the removal. Its underlying claim was NOT fixed: "all 17 version stamps
     # move in lockstep" is still hand-maintained with no harvest field behind
@@ -2631,9 +2722,21 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     # a fresh reason (see git history for the retained prior text) if this
     # page's `containment_ledger_frozen_historical` field ever drops below 5
     # again.
-    ('CLAUDE.md', '22'): ('999.104', 2, 'NOT A COUNT CLAIM: "this phase\'s own `/bm:code-review 22`" -- a phase-number citation, the same shape as `CLAUDE.md`\'s own \'03\' half-strip entry above, not a population total. Occurrence count lowered from 2 to 1 when VAL-05\'s retirement (Phase 40, docs/v9.4-gate-retirement.md §2.3) reworded the tally sentence off \'22\' entirely, onto \'21\' (see that key\'s own entry).'),
-    ('CLAUDE.md', '60'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "60 live claude invocations (manual only, not run in CI)" and "(60 invocations) / offline `--self-test`" -- the Step 0 live-harness manual run count. Re-verified live this plan: `python3 scripts/check-step0-live.py --describe` emits `control_count: 25` and fixture/control ids only -- no field for "60 manual invocations" exists today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
-    ('docs/gates/CONF-SURFACE.md', '5'): ('999.75', 4, 'FROZEN HISTORICAL COUNT: "pre-commit gate 5" ordinal references (5 instances of the number 5 referring to the 5th pre-commit gate in enum and prose) plus "§5a" section citations. Ordinal/section structural invariant, never auto-derived.'),
+    ("CLAUDE.md", "22"): (
+        "999.104",
+        2,
+        "NOT A COUNT CLAIM: \"this phase's own `/bm:code-review 22`\" -- a phase-number citation, the same shape as `CLAUDE.md`'s own '03' half-strip entry above, not a population total. Occurrence count lowered from 2 to 1 when VAL-05's retirement (Phase 40, docs/v9.4-gate-retirement.md §2.3) reworded the tally sentence off '22' entirely, onto '21' (see that key's own entry).",
+    ),
+    ("CLAUDE.md", "60"): (
+        "999.69",
+        2,
+        'CANNOT-REACH (no harvest field): "60 live claude invocations (manual only, not run in CI)" and "(60 invocations) / offline `--self-test`" -- the Step 0 live-harness manual run count. Re-verified live this plan: `python3 scripts/check-step0-live.py --describe` emits `control_count: 25` and fixture/control ids only -- no field for "60 manual invocations" exists today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.',
+    ),
+    ("docs/gates/CONF-SURFACE.md", "5"): (
+        "999.75",
+        4,
+        'FROZEN HISTORICAL COUNT: "pre-commit gate 5" ordinal references (5 instances of the number 5 referring to the 5th pre-commit gate in enum and prose) plus "§5a" section citations. Ordinal/section structural invariant, never auto-derived.',
+    ),
     # ('docs/gates/CONF-SURFACE.md', '5') REMOVED at Phase 86 plan 03: re-adding
     # the ('CLAUDE.md', '20') key above (PERSONA-GATE's control_count 20 -> 24
     # un-covered it) raised this page's own derived
@@ -2644,14 +2747,46 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     # The underlying prose was NOT fixed. Re-add with a fresh reason (see git
     # history for the retained prior text) if this page's
     # `containment_ledger_frozen_historical` field ever drops below 5 again.
-    ('docs/ARCHITECTURE.md', '03'): ('999.73', 1, 'NOT A COUNT CLAIM: the same half-stripped slash-compound gate-id shape as `CLAUDE.md`\'s \'03\' entry -- "matching PROV-GUARD\'s and REG-GUARD\'s shape rather than HARN-01/02/03\'s and HC-BOUND\'s" leaves "02"/"03" stranded once "HARN-01" is consumed whole. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper is widened. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
-    ('docs/TESTING.md', '1'):('999.73', 1, 'NOT A COUNT CLAIM: the arithmetic expression `_COMPOSER_FOCUS_CEILING - 1` (RR-77-08\'s surviving-conjuncts paragraph) -- an offset in a formula, not a count-noun-adjacent claim. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises arithmetic-expression shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
-    ('docs/TESTING.md', '2'): ('999.69', 2, 'CANNOT-REACH (no harvest field): `MIN_HEADER_HITS: int = 2` and the bolded "`MIN_HEADER_HITS=2`" heading -- `scripts/_battery_core.py`\'s own constant. Re-verified live this plan: `python3 scripts/check-routing-battery.py --describe`\'s `locked_constants` exposes only the four routing thresholds (`boundary_n_threshold`, `boundary_p_threshold`, `focused_n_threshold`, `focused_p_threshold`) -- no field for `MIN_HEADER_HITS` exists today. Deferred as cannot-reach residue (D-06 proviso 2).'),
-    ('docs/TESTING.md', '2156'): ('999.73', 1, 'NOT A COUNT CLAIM: "# scripts/_battery_core.py, line 2156" -- a source-location citation, not a count claim, one of the two line-number citations this class of number covers on this page. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises line-number-citation shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
-    ('docs/TESTING.md', '2178'): ('999.73', 1, 'NOT A COUNT CLAIM: "# scripts/_battery_core.py, line 2178" -- the sibling citation to \'2156\' immediately above it in the same fixture-comment pair. Out of Phase 26\'s D-E quantity-shaped scope, same disposition as \'2156\'. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
-    ('docs/TESTING.md', '3'): ('999.73', 1, 'NOT A COUNT CLAIM: "--repeat 5 --min-pass 3" (the routing-battery run command) -- a CLI flag value in a reproduced shell command, not a count-noun-adjacent claim (the code-literal comparison `_rr7708_composer == 3` elsewhere on this page is already stripped structurally by the `==\\s*\\d` citation shape). Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises CLI-flag-value shapes in reproduced commands. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
-    ('docs/TESTING.md', '4'): ('999.69', 3, 'CANNOT-REACH (no harvest field): `_COMPOSER_FOCUS_CEILING: int = 4`, the bolded "`_COMPOSER_FOCUS_CEILING=4`" heading, and "the value itself stays 4" -- `scripts/_battery_core.py`\'s own constant (its `== 4` comparison elsewhere on this page is already stripped structurally). Re-verified live this plan: `python3 scripts/check-routing-battery.py --describe`\'s `locked_constants` exposes only the four routing thresholds -- no field for `_COMPOSER_FOCUS_CEILING` exists today. Deferred as cannot-reach residue (D-06 proviso 2).'),
-    ('docs/TESTING.md', '5'): ('999.73', 1, 'NOT A COUNT CLAIM: "--repeat 5 --min-pass 3" (the routing-battery run command) -- the sibling CLI flag value to \'3\' immediately above, in the same reproduced shell command. Out of Phase 26\'s D-E quantity-shaped scope, same disposition as \'3\'. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
+    ("docs/ARCHITECTURE.md", "03"): (
+        "999.73",
+        1,
+        "NOT A COUNT CLAIM: the same half-stripped slash-compound gate-id shape as `CLAUDE.md`'s '03' entry -- \"matching PROV-GUARD's and REG-GUARD's shape rather than HARN-01/02/03's and HC-BOUND's\" leaves \"02\"/\"03\" stranded once \"HARN-01\" is consumed whole. Out of Phase 26's D-E quantity-shaped scope: closes only when containment's own citation-shape stripper is widened. Split out of 999.69 into 999.73 at Phase 26 plan 05.",
+    ),
+    ("docs/TESTING.md", "1"): (
+        "999.73",
+        1,
+        "NOT A COUNT CLAIM: the arithmetic expression `_COMPOSER_FOCUS_CEILING - 1` (RR-77-08's surviving-conjuncts paragraph) -- an offset in a formula, not a count-noun-adjacent claim. Out of Phase 26's D-E quantity-shaped scope: closes only when containment's own citation-shape stripper recognises arithmetic-expression shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.",
+    ),
+    ("docs/TESTING.md", "2"): (
+        "999.69",
+        2,
+        "CANNOT-REACH (no harvest field): `MIN_HEADER_HITS: int = 2` and the bolded \"`MIN_HEADER_HITS=2`\" heading -- `scripts/_battery_core.py`'s own constant. Re-verified live this plan: `python3 scripts/check-routing-battery.py --describe`'s `locked_constants` exposes only the four routing thresholds (`boundary_n_threshold`, `boundary_p_threshold`, `focused_n_threshold`, `focused_p_threshold`) -- no field for `MIN_HEADER_HITS` exists today. Deferred as cannot-reach residue (D-06 proviso 2).",
+    ),
+    ("docs/TESTING.md", "2156"): (
+        "999.73",
+        1,
+        "NOT A COUNT CLAIM: \"# scripts/_battery_core.py, line 2156\" -- a source-location citation, not a count claim, one of the two line-number citations this class of number covers on this page. Out of Phase 26's D-E quantity-shaped scope: closes only when containment's own citation-shape stripper recognises line-number-citation shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.",
+    ),
+    ("docs/TESTING.md", "2178"): (
+        "999.73",
+        1,
+        "NOT A COUNT CLAIM: \"# scripts/_battery_core.py, line 2178\" -- the sibling citation to '2156' immediately above it in the same fixture-comment pair. Out of Phase 26's D-E quantity-shaped scope, same disposition as '2156'. Split out of 999.69 into 999.73 at Phase 26 plan 05.",
+    ),
+    ("docs/TESTING.md", "3"): (
+        "999.73",
+        1,
+        "NOT A COUNT CLAIM: \"--repeat 5 --min-pass 3\" (the routing-battery run command) -- a CLI flag value in a reproduced shell command, not a count-noun-adjacent claim (the code-literal comparison `_rr7708_composer == 3` elsewhere on this page is already stripped structurally by the `==\\s*\\d` citation shape). Out of Phase 26's D-E quantity-shaped scope: closes only when containment's own citation-shape stripper recognises CLI-flag-value shapes in reproduced commands. Split out of 999.69 into 999.73 at Phase 26 plan 05.",
+    ),
+    ("docs/TESTING.md", "4"): (
+        "999.69",
+        3,
+        'CANNOT-REACH (no harvest field): `_COMPOSER_FOCUS_CEILING: int = 4`, the bolded "`_COMPOSER_FOCUS_CEILING=4`" heading, and "the value itself stays 4" -- `scripts/_battery_core.py`\'s own constant (its `== 4` comparison elsewhere on this page is already stripped structurally). Re-verified live this plan: `python3 scripts/check-routing-battery.py --describe`\'s `locked_constants` exposes only the four routing thresholds -- no field for `_COMPOSER_FOCUS_CEILING` exists today. Deferred as cannot-reach residue (D-06 proviso 2).',
+    ),
+    ("docs/TESTING.md", "5"): (
+        "999.73",
+        1,
+        "NOT A COUNT CLAIM: \"--repeat 5 --min-pass 3\" (the routing-battery run command) -- the sibling CLI flag value to '3' immediately above, in the same reproduced shell command. Out of Phase 26's D-E quantity-shaped scope, same disposition as '3'. Split out of 999.69 into 999.73 at Phase 26 plan 05.",
+    ),
     # ('CLAUDE.md', '23') REMOVED at the EVIDENCE-01/TRACKB-01 registration,
     # and as with ('CLAUDE.md', '17') above, the reason matters more than the
     # removal. Its underlying claims were NOT fixed: "the 23 v8.18 milestone
@@ -3114,12 +3249,16 @@ def _containment_live_finding_counts() -> dict[tuple[str, str], int]:
                 check_spelled_out = path.stem not in NARRATIVE_ENTRIES
                 marker_pairs = _generated_marker_pairs_for(rel)
                 missing = _containment_missing_numbers(
-                    generated, marker_pairs=marker_pairs, check_spelled_out=check_spelled_out
+                    generated,
+                    marker_pairs=marker_pairs,
+                    check_spelled_out=check_spelled_out,
                 )
                 if not missing:
                     continue
                 occ = _containment_missing_number_counts(
-                    generated, marker_pairs=marker_pairs, check_spelled_out=check_spelled_out
+                    generated,
+                    marker_pairs=marker_pairs,
+                    check_spelled_out=check_spelled_out,
                 )
                 for number in missing:
                     counts[(rel, number)] = occ[number]
@@ -3128,12 +3267,16 @@ def _containment_live_finding_counts() -> dict[tuple[str, str], int]:
         generated = pass1[path]
         marker_pairs = _generated_marker_pairs_for(surface.key)
         missing = _containment_missing_numbers(
-            generated, marker_pairs=marker_pairs, check_spelled_out=surface.check_spelled_out
+            generated,
+            marker_pairs=marker_pairs,
+            check_spelled_out=surface.check_spelled_out,
         )
         if not missing:
             continue
         occ = _containment_missing_number_counts(
-            generated, marker_pairs=marker_pairs, check_spelled_out=surface.check_spelled_out
+            generated,
+            marker_pairs=marker_pairs,
+            check_spelled_out=surface.check_spelled_out,
         )
         for number in missing:
             counts[(surface.key, number)] = occ[number]
@@ -3225,9 +3368,14 @@ def emit_containment_ledger() -> str:
     in. Writes NOTHING to disk -- this function's job is population, not
     adjudication, mirroring `emit_deferred_ledger()`'s own discipline."""
     counts = _containment_live_finding_counts()
-    lines = ["_DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {"]
+    lines = [
+        "_DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {"
+    ]
     for (relpath, number), occ in sorted(counts.items()):
-        lines.append(f"    ({relpath!r}, {number!r}): ('999.69', {occ}, " '"TODO: written reason"),')
+        lines.append(
+            f"    ({relpath!r}, {number!r}): ('999.69', {occ}, "
+            '"TODO: written reason"),'
+        )
     lines.append("}")
     return "\n".join(lines)
 
@@ -3288,7 +3436,9 @@ def version01_narrative_problems(
     if page_text is None:
         page_text = (REPO_ROOT / "docs/gates/VERSION-01.md").read_text(encoding="utf-8")
     if script_text is None:
-        script_text = (REPO_ROOT / "scripts/check-version-stamps.py").read_text(encoding="utf-8")
+        script_text = (REPO_ROOT / "scripts/check-version-stamps.py").read_text(
+            encoding="utf-8"
+        )
 
     lines = page_text.splitlines()
     inside = _generated_line_flags(lines, _ALL_DETAIL_MARKER_PAIRS)
@@ -3297,8 +3447,10 @@ def version01_narrative_problems(
 
     if not tokens:
         return [
-            ("version01-narrative-control-ids-live: no backticked control-id-shaped "
-            "token found in docs/gates/VERSION-01.md's narrative")
+            (
+                "version01-narrative-control-ids-live: no backticked control-id-shaped "
+                "token found in docs/gates/VERSION-01.md's narrative"
+            )
         ]
 
     return [
@@ -3330,9 +3482,11 @@ _BACKTICK_ROSTER_ARM_ID_RE = re.compile(r"`(roster-arm-[a-z0-9-]+)`")
 # pin seeded only from the page's wording would never fire on a docstring
 # regression — the hole this four-entry roster closes.
 _CENSUS_OVERCLAIM_PHRASES: tuple[str, ...] = (
-    ("proves that every `.py` file directly under `scripts/` asserts a "
-    "roster-mismatch finding against an extracted clause, never against a "
-    "whole message"),
+    (
+        "proves that every `.py` file directly under `scripts/` asserts a "
+        "roster-mismatch finding against an extracted clause, never against a "
+        "whole message"
+    ),
     "never against a whole message",
     "carries none of the defective roster-arm shapes",
     "the two defective roster-arm shapes",
@@ -3372,7 +3526,9 @@ def confsurface_census_narrative_problems(
     that in isolation) would not re-evaluate this join.
     """
     if page_text is None:
-        page_text = (REPO_ROOT / "docs/gates/CONF-SURFACE.md").read_text(encoding="utf-8")
+        page_text = (REPO_ROOT / "docs/gates/CONF-SURFACE.md").read_text(
+            encoding="utf-8"
+        )
     if shape_ids is None:
         shape_ids = frozenset(shape.shape_id for shape in _ROSTER_ARM_SHAPES)
     if route_ids is None:
@@ -3466,9 +3622,26 @@ class LiteralExemptionClass(NamedTuple):
 # --- vocabulary (verbatim from 21-CONF13-BASELINE.md's conf13_sweep.py) ----
 
 _LITERAL_ONES_1_20 = [
-    "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
-    "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen",
-    "eighteen", "nineteen", "twenty",
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten",
+    "eleven",
+    "twelve",
+    "thirteen",
+    "fourteen",
+    "fifteen",
+    "sixteen",
+    "seventeen",
+    "eighteen",
+    "nineteen",
+    "twenty",
 ]
 _LITERAL_ONES_1_9 = _LITERAL_ONES_1_20[:9]
 _LITERAL_TENS = ["thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
@@ -3476,24 +3649,76 @@ _LITERAL_TENS = ["thirty", "forty", "fifty", "sixty", "seventy", "eighty", "nine
 # Count nouns (singular/plural) — the D-21-E vocabulary harvested from
 # CLAUDE.md's own QUAL-01/SCAN-GUARD/TRACE-03/CONF-GATE rows, not guessed.
 # "call site"/"call sites" is handled as a bigram, separately from this set.
-_LITERAL_NOUNS: frozenset[str] = frozenset({
-    "branch", "branches", "control", "controls", "arm", "arms", "gate", "gates",
-    "row", "rows", "entry", "entries", "fixture", "fixtures", "surface", "surfaces",
-    "assertion", "assertions", "check", "checks", "id", "ids", "literal", "literals",
-    "stamp", "stamps", "pin", "pins", "job", "jobs", "plan", "plans", "mutation",
-    "mutations", "leg", "legs", "criterion", "criteria", "column", "columns",
-    "case", "cases", "probe", "probes", "item", "items",
-})
+_LITERAL_NOUNS: frozenset[str] = frozenset(
+    {
+        "branch",
+        "branches",
+        "control",
+        "controls",
+        "arm",
+        "arms",
+        "gate",
+        "gates",
+        "row",
+        "rows",
+        "entry",
+        "entries",
+        "fixture",
+        "fixtures",
+        "surface",
+        "surfaces",
+        "assertion",
+        "assertions",
+        "check",
+        "checks",
+        "id",
+        "ids",
+        "literal",
+        "literals",
+        "stamp",
+        "stamps",
+        "pin",
+        "pins",
+        "job",
+        "jobs",
+        "plan",
+        "plans",
+        "mutation",
+        "mutations",
+        "leg",
+        "legs",
+        "criterion",
+        "criteria",
+        "column",
+        "columns",
+        "case",
+        "cases",
+        "probe",
+        "probes",
+        "item",
+        "items",
+    }
+)
 _LITERAL_BIGRAM_NOUN_HEAD = "call"
 _LITERAL_BIGRAM_NOUN_TAILS = frozenset({"site", "sites"})
 
 _LITERAL_NUM_ATOM_RE = re.compile(
     r"(?:\d{1,4}"
-    r"|(?:" + "|".join(sorted([re.escape(w) for w in _LITERAL_TENS], key=len, reverse=True)) + r")"
-    r"(?:-(?:" + "|".join(sorted([re.escape(w) for w in _LITERAL_ONES_1_9], key=len, reverse=True)) + r"))?"
-    r"|" + "|".join(
-        sorted([re.escape(w) for w in (_LITERAL_TENS + _LITERAL_ONES_1_20)], key=len, reverse=True)
-    ) + r"|(?:one\s+)?hundred)",
+    r"|(?:"
+    + "|".join(sorted([re.escape(w) for w in _LITERAL_TENS], key=len, reverse=True))
+    + r")"
+    r"(?:-(?:"
+    + "|".join(sorted([re.escape(w) for w in _LITERAL_ONES_1_9], key=len, reverse=True))
+    + r"))?"
+    r"|"
+    + "|".join(
+        sorted(
+            [re.escape(w) for w in (_LITERAL_TENS + _LITERAL_ONES_1_20)],
+            key=len,
+            reverse=True,
+        )
+    )
+    + r"|(?:one\s+)?hundred)",
     re.IGNORECASE,
 )
 _LITERAL_RANGE_SEP = {"to", "→", "->"}
@@ -3507,10 +3732,23 @@ _LITERAL_RANGE_SEP = {"to", "→", "->"}
 # cover in this same set — measured as a false positive on docs/DATA-FLOW.md
 # rather than routed through the deferred-remediation class, since it is a
 # genuine detection-time gap, not a budget-driven deferral.
-_LITERAL_ORDINAL_ADJACENT_NOUNS = frozenset({
-    "criterion", "criteria", "phase", "check", "item", "arm", "row",
-    "plan", "leg", "id", "gate", "step", "stage",
-})
+_LITERAL_ORDINAL_ADJACENT_NOUNS = frozenset(
+    {
+        "criterion",
+        "criteria",
+        "phase",
+        "check",
+        "item",
+        "arm",
+        "row",
+        "plan",
+        "leg",
+        "id",
+        "gate",
+        "step",
+        "stage",
+    }
+)
 _LITERAL_EXIT_CODE_PROSE_WORDS = frozenset({"exits", "exit"})
 # "Exit codes:" docstring blocks render as "    0  description" — a lone
 # leading digit 0/1/2 followed by 2+ spaces then prose; never a count.
@@ -3582,20 +3820,25 @@ def _scan_text_for_literal_hits(relpath: str, text: str) -> list[LiteralHit]:
             slash_m = re.fullmatch(r"(\d{1,4})/(\d{1,4})", cleaned[i])
             if slash_m:
                 span_end_idx = i
-            elif i + 2 < n and cleaned[i + 1] in _LITERAL_RANGE_SEP and _literal_is_num_atom(cleaned[i + 2]):
+            elif (
+                i + 2 < n
+                and cleaned[i + 1] in _LITERAL_RANGE_SEP
+                and _literal_is_num_atom(cleaned[i + 2])
+            ):
                 span_end_idx = i + 2
-            elif cleaned[i].lower() == "one" and i + 1 < n and cleaned[i + 1].lower() == "hundred":
+            elif (
+                cleaned[i].lower() == "one"
+                and i + 1 < n
+                and cleaned[i + 1].lower() == "hundred"
+            ):
                 span_end_idx = i + 1
 
             window_lo = max(0, span_start_idx - 3)
             window_hi = min(n - 1, span_end_idx + 3)
 
-            if (
-                span_start_idx - 1 >= 0
-                and (
-                    cleaned[span_start_idx - 1].lower() in _LITERAL_ORDINAL_ADJACENT_NOUNS
-                    or cleaned[span_start_idx - 1].lower() in _LITERAL_EXIT_CODE_PROSE_WORDS
-                )
+            if span_start_idx - 1 >= 0 and (
+                cleaned[span_start_idx - 1].lower() in _LITERAL_ORDINAL_ADJACENT_NOUNS
+                or cleaned[span_start_idx - 1].lower() in _LITERAL_EXIT_CODE_PROSE_WORDS
             ):
                 i = span_end_idx + 1
                 continue
@@ -3659,7 +3902,9 @@ def _literal_hits_outside_generated(relpath: str, text: str) -> list[LiteralHit]
         return all_hits
     lines = text.splitlines()
     inside = _generated_line_flags(lines, marker_pairs)
-    return [h for h in all_hits if not (1 <= h.line <= len(inside) and inside[h.line - 1])]
+    return [
+        h for h in all_hits if not (1 <= h.line <= len(inside) and inside[h.line - 1])
+    ]
 
 
 # --- exemption taxonomy (21-CONF13-BASELINE.md § Exemption taxonomy) -------
@@ -3757,171 +4002,837 @@ def _match_commonmark_heading_depth(hit: LiteralHit) -> bool:
 # transcription of exactly this shape is the defect this plan exists to
 # end.
 _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
-    ('CLAUDE.md', 'Five gates'): ('999.42', 1, 'Correct: 5 pre-commit gates fire on git commit (sync-drift, conformance generator self-test, conformance-baseline drift, claim-surface generator self-test, claim-surface drift) -- verified against both hook scripts in plan 21-13.'),
-    ('CONTRIBUTING.md', 'Five gates'): ('999.44', 1, "Correct: the same fixed five-gate pre-commit pipeline (sync-drift, conformance generator self-test, conformance-baseline drift, claim-surface generator self-test, claim-surface drift) already ledgered for CLAUDE.md's and docs/TESTING.md's own 'Five gates' hits (999.42) -- verified again here against both hook scripts, 2026-09-08, on this newly-registered surface (plan 22-07)."),
-    ('CONTRIBUTING.md', 'one shot and check'): ('999.44', 1, "NOT-A-COUNT: 'run the whole offline set in one shot and check for a GREEN verdict' uses 'one shot' as an idiom for a single invocation of the battery script, not a count of any external population."),
-    ('docs/ARCHITECTURE.md', '(five gates'): ('999.42', 1, "Correct: both pre-commit hooks now run 5 gates each -- same fact as 'up from three)' above, second number on the same line."),
-    ('docs/ARCHITECTURE.md', 'one entry'): ('999.42', 1, "NOT-A-COUNT: 'holds one entry per companion-tool slug' states a per-slug cardinality invariant (a ratio), not a population total -- the adjacency heuristic attaches it to the 'entry' noun as though it counted the whole file."),
-    ('docs/ARCHITECTURE.md', 'up from three)'): ('999.42', 1, 'Correct: both pre-commit hooks moved from 3 to 5 gates each when CONF-SURFACE landed -- verified against both hook scripts in plan 21-13.'),
-    ('docs/PROCESS.md', "'gate and the five')`,"): ('999.44', 1, "NOT-A-COUNT: verbatim citation of the ('docs/README.md', 'gate and the five') ledger key this same plan (22-09) adds to §1.2 -- the adjacency heuristic fires on the word 'five' inside the quoted key string, but the key names a lookup fragment, not a measured quantity; the count and its adjudication live in that cited entry itself, not here."),
-    ('docs/PROCESS.md', '"13 plans,"'): ('999.44', 1, "Correct: the first of four quoted exemplars ('13 plans,' '4 rounds,' '41%,' '17 figures') naming the CLASS of frozen historical counts this file's own section-2 standing constraint distinguishes from the moving battery total -- itself the closed Phase 21 measured figure (13 gap-closure plans), restated here as a citation, not a fresh count."),
-    ('docs/PROCESS.md', '(32 falsification arms,'): ('999.44', 1, "Correct: the plan-checker's independent confirmation that Phase 21 round 1's four plans carried 32 falsification arms between them -- a closed count of that specific 2026-09-07 plan-check that cannot change after the fact."),
-    ('docs/PROCESS.md', '(4 plans,'): ('999.44', 1, "Correct: round 1's actual composition (4 plans: 21-13..21-16) restated in the retroactive-application sentence -- a closed historical count of Phase 21 round 1, a distinct occurrence from the ledger-table cell restoring the same figure."),
-    ('docs/PROCESS.md', '**13 gap-closure plans'): ('999.44', 1, "Correct: the headline figure of Phase 21's own measured evidence -- 13 gap-closure plans across 4 rounds against a stated cap of 2 -- a closed, dated (2026-09-07/08) measurement of a phase that has already ended."),
-    ('docs/PROCESS.md', '1 (4 plans,'): ('999.44', 1, "Correct: overlapping heuristic window over 'round 1 (4 plans, 3 distinct independently-verified gaps)' -- the same closed round-1 composition as the '(4 plans,' entry above, captured with the leading round number."),
-    ('docs/PROCESS.md', '13 gap-closure plans'): ('999.44', 1, "Correct: restates the Phase 21 headline figure (13 gap-closure plans across 4 rounds) inside the ledger's own Round-1 narrative paragraph -- same closed measurement as '**13 gap-closure plans' above, a different sentence."),
-    ('docs/PROCESS.md', '13 plans,'): ('999.44', 1, "Correct: 'The actual outcome was 4 rounds and 13 plans, with the class still recurring at close' -- the same closed Phase 21 total restated a third time, in the paragraph summarising what actually happened rather than what the cap would have allowed."),
-    ('docs/PROCESS.md', '16 gates'): ('999.44', 1, "Correct: quotes the same restored docs/README.md sentence already ledgered under ('docs/README.md', '16 gates') -- v8.13's launcher sat undeliverable while 16 gates stayed green, a closed count of the battery size at that 2026-07-29 milestone-open moment; this file cites it a second time as CR-05's worked example, same frozen figure, new surface."),
-    ('docs/PROCESS.md', '16 rows'): ('999.44', 1, "Correct: 'One of the review's 16 rows' -- the closed size of 21-REVIEW.md's own CR-05 origin table (16 data rows), dated 2026-09-07, re-derived by plan 22-09 by counting that table directly and confirmed unchanged; distinct from the corrected 17 this paragraph derives, and cited as the review's own uncorrected starting count."),
-    ('docs/PROCESS.md', '17 rows'): ('999.44', 1, "Correct: 'Plan 22-04 restores 16 of the 17 rows verbatim' -- the closed count of historical figures plan 22-04 restored to docs/README.md under CR-05's fix, dated 2026-09-08, independently corrected here from the origin review's undercounted 16 (see the preceding paragraph's own three-adjustment reconciliation); row 17 itself is a deliberate NOT-A-RESTORE, ledgered separately under ('docs/README.md', 'gate and the five')."),
-    ('docs/PROCESS.md', '2 gap-closure plans'): ('999.44', 1, "NOT-A-COUNT: this is a verbatim quotation of REQUIREMENTS.md CONF-15 / ROADMAP criterion 4's superseded wording ('more than 2 gap-closure plans halts the phase'), cited only to explain D-06's unit change from plans to rounds -- not a live rule this file states, so it cannot go stale independent of the quoted source."),
-    ('docs/PROCESS.md', '2 plans'): ('999.44', 1, "Correct: 'the planner judged the set uncompressible to 2 plans without dropping scope' -- a closed record of the Phase 21 round-1 planner's own compression judgement, dated 2026-09-07, distinct from this file's own rework-cap rule (stated elsewhere as 2 rounds, not 2 plans)."),
-    ('docs/PROCESS.md', '2 was plans'): ('999.44', 1, "NOT-A-COUNT: adjacency-heuristic window over 'Round 2 was plans 21-17..21-20' -- the '2' identifies which round (round 2), not a count of anything; the plan range it introduces is covered by the neighbouring 'plans 21-17..21-20, four' entry."),
-    ('docs/PROCESS.md', '3 was plans'): ('999.44', 1, "NOT-A-COUNT: adjacency-heuristic window over 'Round 3 was plans 21-21,' -- the '3' identifies which round (round 3), the same round-number-identifier shape as the '2 was plans' entry above, a different round."),
-    ('docs/PROCESS.md', '4 was plans'): ('999.44', 1, "NOT-A-COUNT: adjacency-heuristic window over 'Round 4 was plans 21-24 and 21-25' -- the '4' identifies which round (round 4), the same round-number-identifier shape as '2 was plans' and '3 was plans' above."),
-    ('docs/PROCESS.md', 'Two plans,'): ('999.44', 1, "Correct: round 4's actual composition (plans 21-24 and 21-25, two plans) stated in the ledger table's own Reason cell -- a closed historical count of that specific round, dated 2026-09-08."),
-    ('docs/PROCESS.md', 'four literals'): ('999.44', 1, "Correct: describes the 999.28 defect's own historical shape -- SCAN-GUARD's _BAND_BULLETS was narrowable from four literals to one with --self-test still reporting full coverage -- a closed measurement of an already-fixed, past code state (closed by plans 15-12/15-13), verified against the live 999.28 backlog entry."),
-    ('docs/PROCESS.md', 'four plans'): ('999.44', 3, "Correct: 'four plans' occurs three times -- two describing round 2's own closed composition (the ledger-table Reason cell's Phase 21 row, and the Rounds-2-and-3 narrative's closing summary, both restating round 2 = plans 21-17..21-20), and one describing round 1's separately-closed composition (the plan-checker's confirmation that 'the four plans execute as written', i.e. round 1 = plans 21-13..21-16) -- three distinct sentences, two closed counts (4 for round 1, 4 for round 2) that coincide only by digit."),
-    ('docs/PROCESS.md', 'item — one'): ('999.44', 1, "NOT-A-COUNT: 'findings split per item — one backlog entry may carry two tiers' uses 'one' as a singular determiner (any single entry), not a count of how many entries exist or how many tiers there are -- a generic statement of the D-01 corollary, not a measurement that could go stale."),
-    ('docs/PROCESS.md', 'literals to one'): ('999.44', 1, "Correct: overlapping heuristic window over the same 999.28 sentence as 'four literals' above ('four literals to one') -- identical closed historical event, captured at the trailing half of the phrase rather than the leading half."),
-    ('docs/PROCESS.md', 'literals — at two'): ('999.44', 1, "Correct: 'CONF-13, which already scans Markdown surfaces for unattributed literals — at two product surfaces it did not previously reach' names this phase's own REACH widening -- a closed count of exactly how many surfaces plan 22-07 registers (docs/PROCESS.md, CONTRIBUTING.md), fixed the moment this commit lands and never open to drift afterward."),
-    ('docs/PROCESS.md', 'one verification → plan'): ('999.44', 1, "NOT-A-COUNT: 'A round is one verification → plan → execute cycle' uses 'one' as an identity/definition (a round IS a single such cycle), not a count of external, mutable things that could go stale."),
-    ('docs/PROCESS.md', 'plans 21-17..21-20, four'): ('999.44', 1, "Correct: names the exact plan-id range Phase 21 round 2 comprised (21-17 through 21-20) and confirms its size -- a closed historical fact combining a plan-number identifier with the frozen count of how many plans that specific range spans (four), dated 2026-09-07."),
-    ('docs/PROCESS.md', 'plans across 4'): ('999.44', 1, "Correct: 'The measured evidence, from Phase 21: 13 gap-closure plans across 4 rounds against a stated cap of 2' -- the same closed Phase 21 headline figure as '**13 gap-closure plans' above, captured at the round-count half of the same sentence."),
-    ('docs/PROCESS.md', 'plans closed three'): ('999.44', 2, "Correct: 'round 2's four plans closed three independently-verified blocking gaps' is stated twice -- once in the ledger table's Phase-21-rounds-2-and-3 Reason cell, once in the 'Rounds 2 and 3, in full' narrative paragraph restating the same closed count -- both describing the identical, closed Phase 21 round 2 outcome, hence occurrence count 2."),
-    ('docs/PROCESS.md', 'plans to three'): ('999.44', 1, "Correct: 'Round 3 grew from two plans to three when plan-checking found a live twin of the same defect one requirement over' -- a closed historical count of round 3's own scope growth, dated 2026-09-07, the post-growth half of that sentence."),
-    ('docs/PROCESS.md', 'plans," "4'): ('999.44', 1, "Correct: overlapping heuristic window continuing the same quoted-exemplar list as '\"13 plans,\"' above ('\"13 plans,\" \"4 rounds,\"') -- same citation of the frozen-count class, captured at the second exemplar's boundary."),
-    ('docs/PROCESS.md', 'plans," "4 rounds," "41%,"'): ('999.44', 1, "Correct: the fuller heuristic window over the same quoted-exemplar list, spanning the second and third named exemplars ('4 rounds,' '41%,') of the class this file's own section-2 standing constraint names -- same citation, a third overlapping capture of one sentence."),
-    ('docs/PROCESS.md', 'two plans'): ('999.44', 1, "Correct: 'Round 3 grew from two plans to three' -- round 3's original, pre-growth scope, a closed historical count distinct from the 'plans to three' entry above, which captures the post-growth half of the same sentence."),
-    ('docs/README.md', '**0 items'): ('999.44', 1, "Correct: main.py's three dedicated test files collected 0 items each for two years (260728-pa2) -- a closed historical measurement; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'no items run after run'."),
-    ('docs/README.md', '**one** entry'): ('999.44', 1, "Correct: as of the 2026-07-29 disposition, the use-journal limb held exactly one entry -- a closed historical count of a past state; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'only a single'."),
-    ('docs/README.md', '16 gates'): ('999.44', 1, "Correct: v8.13's launcher sat undeliverable while 16 gates stayed green -- a closed historical count of the battery size at that specific 2026-07-29 milestone-open moment, before CONF-SURFACE and other later gates were added; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'the whole battery'."),
-    ('docs/README.md', '19 not-approved items),'): ('999.44', 1, "Correct: v8.2's re-investigation covered the 19 not-approved items -- a closed historical count from a milestone that ended in 2026 and cannot go stale; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had dropped the number entirely."),
-    ('docs/README.md', '6 live rows'): ('999.44', 1, "Correct: v8.14's own milestone audit compared 6 live rows to 0 baseline rows and printed a pass -- a closed historical measurement of that specific audit run; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'live rows against a stale, empty baseline'."),
-    ('docs/README.md', '612 to 590 lines, the surface'): ('999.44', 1, "Correct: v8.6 cut the agent body from 612 to 590 lines -- a closed historical measurement from a milestone that ended in 2026 and cannot go stale; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with the unfalsifiable 'shrinking the agent body's line count'."),
-    ('docs/README.md', '7 docs/metadata items),'): ('999.44', 1, "Correct: v8.1 selectively implemented 7 docs/metadata items -- a closed historical count from a milestone that ended in 2026 and cannot go stale; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with the hedge 'several'."),
-    ('docs/README.md', 'five entries'): ('999.44', 1, "Correct: use-journal.md needed about five entries of real, non-harness use, per the Post-v8.11 gate's original 2026-07-24 statement -- a closed historical figure describing a past state of that gate; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'a handful of'."),
-    ('docs/README.md', 'five live entries'): ('999.44', 2, "Correct: both the 2026-07-25 and 2026-07-26 dispositions of the Post-v8.11 gate state use-journal.md needed 'about five live entries' -- the gating criterion CR-05 names as a decision threshold, not narrative color; two occurrences, both restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced both with 'several more'."),
-    ('docs/README.md', 'fixture (9)'): ('999.44', 1, "Correct: gen-01-rearch-milestone.md is deep-resolved by TRACE-03's own fixture, which carries a population of 9 -- a closed structural fact about the fixture at the time this doc-index entry was written; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had dropped the (9) count entirely."),
-    ('docs/README.md', 'gate and the five'): ('999.44', 1, "NOT-A-RESTORE: plan 22-04 Task 1's judgement-call replacement for the row-17 hedge ('the pre-commit gates'). The pre-3c17833 text read 'the two pre-commit gates', now FALSE (five pre-commit gates fire as of CONF-SURFACE, plan 21-11) -- so 'two' was deliberately not restored. 'five' is the live, currently-true count, verified against docs/TESTING.md:67 ('Five gates fire on every git commit...') and CLAUDE.md's Pre-commit gates section -- a true present-tense fact, not a frozen historical measurement, whose falsifiability this entry restores."),
-    ('docs/README.md', 'items each** for two'): ('999.44', 1, "Correct: same restored sentence as the '**0 items' key above -- main.py's three dedicated test files collected 0 items each for two years (260728-pa2); the scanner splits the one restored figure into two matched windows. Restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06)."),
-    ('docs/README.md', 'rows to 0'): ('999.44', 1, "Correct: same restored sentence as the '6 live rows' key above -- v8.14's own milestone audit compared 6 live rows to 0 baseline rows; the scanner splits the one restored figure into two matched windows. Restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06)."),
-    ('docs/README.md', 'sixteen green gates'): ('999.44', 1, "Correct: as of the 2026-07-29 GREENMEAN-01 finding, sixteen green gates sat over a version stamp that left the update path inert (v8.14 / DELIV-01) -- a closed historical count at that specific milestone-open moment; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'a fully green battery'."),
-    ('docs/README.md', 'three new offline gates'): ('999.44', 1, "Correct: the 2026-08-27 Perceive/Reason/Act/Observe/Report review's four gaps were closed and gated by three new offline gates (HARN-01, HARN-02, HARN-03) -- a closed historical count naming exactly which gates; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had dropped the number entirely."),
-    ('docs/TESTING.md', 'Five gates'): ('999.42', 1, "Correct: 5 pre-commit gates fire on every git commit -- same verified fact as CLAUDE.md's 'Five gates' entry above."),
-    ('docs/TESTING.md', 'five labelled surfaces:'): ('999.42', 1, "Correct: docs/conformance-baseline.md publishes five labelled surfaces (shared-examples, generated-twin, contract-surface, adversarial-corpus, live-conformance) -- verified by reading that file's own ## headers."),
-    ('docs/TESTING.md', 'literal `== 4`'): ('999.42', 1, "NOT-A-COUNT: 'literal' here means the constant's literal value as written in code (_COMPOSER_FOCUS_CEILING == 4), not a count of literals -- an adjacency-mistrack false positive on the noun 'literal'."),
-    ('docs/gates/CONF-GATE.md', 'four internal predicates (plan'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/CONF-GATE.md', 'seven enforcement call sites'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/CONF-GATE.md', 'three mutations'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/GATE-01.md', 'checks — 8'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/HC-BOUND.md', 'surfaces, and all three'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', '(2) cross-surface literal'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', '(5 call sites:'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', '(5) **worked-example conformance** (plan'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', '(6 call sites:'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', '6 absorbed the Gate'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'Eleven mutations'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'arms, plus two'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'check requires only two'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'four canonical surfaces'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'four lettered controls'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'gate count from 15'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'legs: (1)'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'literal reconciliation — twelve'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'literals on all three'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'nine `R-CLAIM-*` fixtures'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'one arm.'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'one row'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'pins — three,'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'sites: 1'): ('999.40', 3, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'six legs.'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'six separate legs:'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'surface (three'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'surface among all four'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'surfaces declare all twelve);'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'three independently-neutralization-tested anti-vacuity arms,'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'two contract surfaces'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/QUAL-01.md', 'two new pins'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/REG-GUARD.md', 'two surfaces:'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', '"Criteria 4 and 6'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', '(plan 15-06 split thirty-one'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', 'Criteria 4 and 6'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', 'Criterion 4 or 6'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', 'branches to fifty-eight'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', 'four branches),'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', 'four legs'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', 'ids with eight'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', 'one arm'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', 'one hundred clause-level named branches'): ('999.40', 2, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', 'one literal'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', 'plan 15-07 added fourteen'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', 'plan 15-08 added fourteen'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', 'plan 15-09 added one'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', 'plan 15-12 added six'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', 'row claimed, "one'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', 'surface in one'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', 'two branches),'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', 'two branches);'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/STEP0-08.md', 'two fixture'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/TRACE-03.md', 'arms, one'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/TRACE-03.md', 'eight named arms,'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/TRACE-03.md', 'five named current-fact surfaces'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/TRACE-03.md', 'four cases'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/TRACE-03.md', 'literal itself: one'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/TRACE-03.md', "site (`(m)`'s three"): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/TRACE-03.md', 'two ARROW arms,'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/TRACE-03.md', 'two whole-file cases'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/VAL-02.md', 'two gates'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/VERSION-01.md', '4 hand-maintained stamp'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/VERSION-01.md', "surfaces `collect_stamps()`'s own four"): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-act-limb.py#__doc__', '2 item'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-agent.py#__doc__', 'three inline malformed fixtures'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-conf-gate.py#__doc__', 'gate over the fourteen'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-conf-gate.py#__doc__', 'surface for the two'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-conf-gate.py#__doc__', 'two arms'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-focused-parity.py#__doc__', '2 item'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-focused-parity.py#__doc__', 'check between the two'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-links.py#__doc__', 'two newly-extended scan surfaces'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-loop-closure.py#__doc__', 'gate reads three'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies. Rewritten from "gate reads four" to "gate reads three" by quick 260929-r9g, which retired the SKILL.meta.yml-reading fourth source file (HARN-02/N34) alongside the AskUserQuestion frontmatter key removal.'),
-    ('scripts/check-provenance.py#__doc__', '2. The literal'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-provenance.py#__doc__', "4. PROV-04's no-network control"): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-quality-harness.py#__doc__', '[ID] Dispatch exactly one'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-quality-harness.py#__doc__', 'one tabulated row.'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-quality-harness.py#__doc__', 'row. Dispatches exactly one'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-registration.py#__doc__', '32 named, decision-traceable controls'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', '(11) **What plan'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', '(12) **What plan'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', '(9) **What plan'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', '(eight ids'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', '0 ("All 94 branches'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', '17 stamps'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', '17 table data rows**'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', '2 item'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', '94 branches'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'Criteria 4 and 6'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'Criteria 4 and 6,'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'Criterion 4 or 6'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'fixture actually contains, 7'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'four assertions'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'literal via the `-1`'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'literals themselves — two'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'nineteen not-found reporting arms'): ('999.41', 1, "Re-derived by per-site neutralization on disposable rsync --exclude .git scratch copies, 2026-09-08 (22-06-SUMMARY.md), closing 999.31 item 4 -- CONTROLLED=3 (one via R-02-placement-anchor's own branch id, two -- Body-1's and Rubric-3..8's slice guards -- via an uncaught crash rather than a named check), SIBLING-ONLY=0, UNCONTROLLED=16, of nineteen total candidate not-found reporting arms; the docstring states all three bucket counts and the roster size, not this figure alone."),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'one arm'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'one hand-written arm'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'one row'): ('999.41', 2, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'rows (17'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'rows (17 / 44)'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'six now-uncovered ids.'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'surfaces run TWO'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'two surfaces'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'two tables. This gate'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-step0-emulator.py#__doc__', '1. Fault-injection fixtures'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-step0-emulator.py#__doc__', '2. Classification fixtures'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-step0-emulator.py#__doc__', 'TWO fixture'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-step0-emulator.py#__doc__', 'fixtures (D-05) — four'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-step0-live.py#__doc__', 'fixture (default: 5)'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-step0-live.py#__doc__', 'row PASS (default: 3)'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ("CLAUDE.md", "Five gates"): (
+        "999.42",
+        1,
+        "Correct: 5 pre-commit gates fire on git commit (sync-drift, conformance generator self-test, conformance-baseline drift, claim-surface generator self-test, claim-surface drift) -- verified against both hook scripts in plan 21-13.",
+    ),
+    ("CONTRIBUTING.md", "Five gates"): (
+        "999.44",
+        1,
+        "Correct: the same fixed five-gate pre-commit pipeline (sync-drift, conformance generator self-test, conformance-baseline drift, claim-surface generator self-test, claim-surface drift) already ledgered for CLAUDE.md's and docs/TESTING.md's own 'Five gates' hits (999.42) -- verified again here against both hook scripts, 2026-09-08, on this newly-registered surface (plan 22-07).",
+    ),
+    ("CONTRIBUTING.md", "one shot and check"): (
+        "999.44",
+        1,
+        "NOT-A-COUNT: 'run the whole offline set in one shot and check for a GREEN verdict' uses 'one shot' as an idiom for a single invocation of the battery script, not a count of any external population.",
+    ),
+    ("docs/ARCHITECTURE.md", "(five gates"): (
+        "999.42",
+        1,
+        "Correct: both pre-commit hooks now run 5 gates each -- same fact as 'up from three)' above, second number on the same line.",
+    ),
+    ("docs/ARCHITECTURE.md", "one entry"): (
+        "999.42",
+        1,
+        "NOT-A-COUNT: 'holds one entry per companion-tool slug' states a per-slug cardinality invariant (a ratio), not a population total -- the adjacency heuristic attaches it to the 'entry' noun as though it counted the whole file.",
+    ),
+    ("docs/ARCHITECTURE.md", "up from three)"): (
+        "999.42",
+        1,
+        "Correct: both pre-commit hooks moved from 3 to 5 gates each when CONF-SURFACE landed -- verified against both hook scripts in plan 21-13.",
+    ),
+    ("docs/PROCESS.md", "'gate and the five')`,"): (
+        "999.44",
+        1,
+        "NOT-A-COUNT: verbatim citation of the ('docs/README.md', 'gate and the five') ledger key this same plan (22-09) adds to §1.2 -- the adjacency heuristic fires on the word 'five' inside the quoted key string, but the key names a lookup fragment, not a measured quantity; the count and its adjudication live in that cited entry itself, not here.",
+    ),
+    ("docs/PROCESS.md", '"13 plans,"'): (
+        "999.44",
+        1,
+        "Correct: the first of four quoted exemplars ('13 plans,' '4 rounds,' '41%,' '17 figures') naming the CLASS of frozen historical counts this file's own section-2 standing constraint distinguishes from the moving battery total -- itself the closed Phase 21 measured figure (13 gap-closure plans), restated here as a citation, not a fresh count.",
+    ),
+    ("docs/PROCESS.md", "(32 falsification arms,"): (
+        "999.44",
+        1,
+        "Correct: the plan-checker's independent confirmation that Phase 21 round 1's four plans carried 32 falsification arms between them -- a closed count of that specific 2026-09-07 plan-check that cannot change after the fact.",
+    ),
+    ("docs/PROCESS.md", "(4 plans,"): (
+        "999.44",
+        1,
+        "Correct: round 1's actual composition (4 plans: 21-13..21-16) restated in the retroactive-application sentence -- a closed historical count of Phase 21 round 1, a distinct occurrence from the ledger-table cell restoring the same figure.",
+    ),
+    ("docs/PROCESS.md", "**13 gap-closure plans"): (
+        "999.44",
+        1,
+        "Correct: the headline figure of Phase 21's own measured evidence -- 13 gap-closure plans across 4 rounds against a stated cap of 2 -- a closed, dated (2026-09-07/08) measurement of a phase that has already ended.",
+    ),
+    ("docs/PROCESS.md", "1 (4 plans,"): (
+        "999.44",
+        1,
+        "Correct: overlapping heuristic window over 'round 1 (4 plans, 3 distinct independently-verified gaps)' -- the same closed round-1 composition as the '(4 plans,' entry above, captured with the leading round number.",
+    ),
+    ("docs/PROCESS.md", "13 gap-closure plans"): (
+        "999.44",
+        1,
+        "Correct: restates the Phase 21 headline figure (13 gap-closure plans across 4 rounds) inside the ledger's own Round-1 narrative paragraph -- same closed measurement as '**13 gap-closure plans' above, a different sentence.",
+    ),
+    ("docs/PROCESS.md", "13 plans,"): (
+        "999.44",
+        1,
+        "Correct: 'The actual outcome was 4 rounds and 13 plans, with the class still recurring at close' -- the same closed Phase 21 total restated a third time, in the paragraph summarising what actually happened rather than what the cap would have allowed.",
+    ),
+    ("docs/PROCESS.md", "16 gates"): (
+        "999.44",
+        1,
+        "Correct: quotes the same restored docs/README.md sentence already ledgered under ('docs/README.md', '16 gates') -- v8.13's launcher sat undeliverable while 16 gates stayed green, a closed count of the battery size at that 2026-07-29 milestone-open moment; this file cites it a second time as CR-05's worked example, same frozen figure, new surface.",
+    ),
+    ("docs/PROCESS.md", "16 rows"): (
+        "999.44",
+        1,
+        "Correct: 'One of the review's 16 rows' -- the closed size of 21-REVIEW.md's own CR-05 origin table (16 data rows), dated 2026-09-07, re-derived by plan 22-09 by counting that table directly and confirmed unchanged; distinct from the corrected 17 this paragraph derives, and cited as the review's own uncorrected starting count.",
+    ),
+    ("docs/PROCESS.md", "17 rows"): (
+        "999.44",
+        1,
+        "Correct: 'Plan 22-04 restores 16 of the 17 rows verbatim' -- the closed count of historical figures plan 22-04 restored to docs/README.md under CR-05's fix, dated 2026-09-08, independently corrected here from the origin review's undercounted 16 (see the preceding paragraph's own three-adjustment reconciliation); row 17 itself is a deliberate NOT-A-RESTORE, ledgered separately under ('docs/README.md', 'gate and the five').",
+    ),
+    ("docs/PROCESS.md", "2 gap-closure plans"): (
+        "999.44",
+        1,
+        "NOT-A-COUNT: this is a verbatim quotation of REQUIREMENTS.md CONF-15 / ROADMAP criterion 4's superseded wording ('more than 2 gap-closure plans halts the phase'), cited only to explain D-06's unit change from plans to rounds -- not a live rule this file states, so it cannot go stale independent of the quoted source.",
+    ),
+    ("docs/PROCESS.md", "2 plans"): (
+        "999.44",
+        1,
+        "Correct: 'the planner judged the set uncompressible to 2 plans without dropping scope' -- a closed record of the Phase 21 round-1 planner's own compression judgement, dated 2026-09-07, distinct from this file's own rework-cap rule (stated elsewhere as 2 rounds, not 2 plans).",
+    ),
+    ("docs/PROCESS.md", "2 was plans"): (
+        "999.44",
+        1,
+        "NOT-A-COUNT: adjacency-heuristic window over 'Round 2 was plans 21-17..21-20' -- the '2' identifies which round (round 2), not a count of anything; the plan range it introduces is covered by the neighbouring 'plans 21-17..21-20, four' entry.",
+    ),
+    ("docs/PROCESS.md", "3 was plans"): (
+        "999.44",
+        1,
+        "NOT-A-COUNT: adjacency-heuristic window over 'Round 3 was plans 21-21,' -- the '3' identifies which round (round 3), the same round-number-identifier shape as the '2 was plans' entry above, a different round.",
+    ),
+    ("docs/PROCESS.md", "4 was plans"): (
+        "999.44",
+        1,
+        "NOT-A-COUNT: adjacency-heuristic window over 'Round 4 was plans 21-24 and 21-25' -- the '4' identifies which round (round 4), the same round-number-identifier shape as '2 was plans' and '3 was plans' above.",
+    ),
+    ("docs/PROCESS.md", "Two plans,"): (
+        "999.44",
+        1,
+        "Correct: round 4's actual composition (plans 21-24 and 21-25, two plans) stated in the ledger table's own Reason cell -- a closed historical count of that specific round, dated 2026-09-08.",
+    ),
+    ("docs/PROCESS.md", "four literals"): (
+        "999.44",
+        1,
+        "Correct: describes the 999.28 defect's own historical shape -- SCAN-GUARD's _BAND_BULLETS was narrowable from four literals to one with --self-test still reporting full coverage -- a closed measurement of an already-fixed, past code state (closed by plans 15-12/15-13), verified against the live 999.28 backlog entry.",
+    ),
+    ("docs/PROCESS.md", "four plans"): (
+        "999.44",
+        3,
+        "Correct: 'four plans' occurs three times -- two describing round 2's own closed composition (the ledger-table Reason cell's Phase 21 row, and the Rounds-2-and-3 narrative's closing summary, both restating round 2 = plans 21-17..21-20), and one describing round 1's separately-closed composition (the plan-checker's confirmation that 'the four plans execute as written', i.e. round 1 = plans 21-13..21-16) -- three distinct sentences, two closed counts (4 for round 1, 4 for round 2) that coincide only by digit.",
+    ),
+    ("docs/PROCESS.md", "item — one"): (
+        "999.44",
+        1,
+        "NOT-A-COUNT: 'findings split per item — one backlog entry may carry two tiers' uses 'one' as a singular determiner (any single entry), not a count of how many entries exist or how many tiers there are -- a generic statement of the D-01 corollary, not a measurement that could go stale.",
+    ),
+    ("docs/PROCESS.md", "literals to one"): (
+        "999.44",
+        1,
+        "Correct: overlapping heuristic window over the same 999.28 sentence as 'four literals' above ('four literals to one') -- identical closed historical event, captured at the trailing half of the phrase rather than the leading half.",
+    ),
+    ("docs/PROCESS.md", "literals — at two"): (
+        "999.44",
+        1,
+        "Correct: 'CONF-13, which already scans Markdown surfaces for unattributed literals — at two product surfaces it did not previously reach' names this phase's own REACH widening -- a closed count of exactly how many surfaces plan 22-07 registers (docs/PROCESS.md, CONTRIBUTING.md), fixed the moment this commit lands and never open to drift afterward.",
+    ),
+    ("docs/PROCESS.md", "one verification → plan"): (
+        "999.44",
+        1,
+        "NOT-A-COUNT: 'A round is one verification → plan → execute cycle' uses 'one' as an identity/definition (a round IS a single such cycle), not a count of external, mutable things that could go stale.",
+    ),
+    ("docs/PROCESS.md", "plans 21-17..21-20, four"): (
+        "999.44",
+        1,
+        "Correct: names the exact plan-id range Phase 21 round 2 comprised (21-17 through 21-20) and confirms its size -- a closed historical fact combining a plan-number identifier with the frozen count of how many plans that specific range spans (four), dated 2026-09-07.",
+    ),
+    ("docs/PROCESS.md", "plans across 4"): (
+        "999.44",
+        1,
+        "Correct: 'The measured evidence, from Phase 21: 13 gap-closure plans across 4 rounds against a stated cap of 2' -- the same closed Phase 21 headline figure as '**13 gap-closure plans' above, captured at the round-count half of the same sentence.",
+    ),
+    ("docs/PROCESS.md", "plans closed three"): (
+        "999.44",
+        2,
+        "Correct: 'round 2's four plans closed three independently-verified blocking gaps' is stated twice -- once in the ledger table's Phase-21-rounds-2-and-3 Reason cell, once in the 'Rounds 2 and 3, in full' narrative paragraph restating the same closed count -- both describing the identical, closed Phase 21 round 2 outcome, hence occurrence count 2.",
+    ),
+    ("docs/PROCESS.md", "plans to three"): (
+        "999.44",
+        1,
+        "Correct: 'Round 3 grew from two plans to three when plan-checking found a live twin of the same defect one requirement over' -- a closed historical count of round 3's own scope growth, dated 2026-09-07, the post-growth half of that sentence.",
+    ),
+    ("docs/PROCESS.md", 'plans," "4'): (
+        "999.44",
+        1,
+        'Correct: overlapping heuristic window continuing the same quoted-exemplar list as \'"13 plans,"\' above (\'"13 plans," "4 rounds,"\') -- same citation of the frozen-count class, captured at the second exemplar\'s boundary.',
+    ),
+    ("docs/PROCESS.md", 'plans," "4 rounds," "41%,"'): (
+        "999.44",
+        1,
+        "Correct: the fuller heuristic window over the same quoted-exemplar list, spanning the second and third named exemplars ('4 rounds,' '41%,') of the class this file's own section-2 standing constraint names -- same citation, a third overlapping capture of one sentence.",
+    ),
+    ("docs/PROCESS.md", "two plans"): (
+        "999.44",
+        1,
+        "Correct: 'Round 3 grew from two plans to three' -- round 3's original, pre-growth scope, a closed historical count distinct from the 'plans to three' entry above, which captures the post-growth half of the same sentence.",
+    ),
+    ("docs/README.md", "**0 items"): (
+        "999.44",
+        1,
+        "Correct: main.py's three dedicated test files collected 0 items each for two years (260728-pa2) -- a closed historical measurement; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'no items run after run'.",
+    ),
+    ("docs/README.md", "**one** entry"): (
+        "999.44",
+        1,
+        "Correct: as of the 2026-07-29 disposition, the use-journal limb held exactly one entry -- a closed historical count of a past state; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'only a single'.",
+    ),
+    ("docs/README.md", "16 gates"): (
+        "999.44",
+        1,
+        "Correct: v8.13's launcher sat undeliverable while 16 gates stayed green -- a closed historical count of the battery size at that specific 2026-07-29 milestone-open moment, before CONF-SURFACE and other later gates were added; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'the whole battery'.",
+    ),
+    ("docs/README.md", "19 not-approved items),"): (
+        "999.44",
+        1,
+        "Correct: v8.2's re-investigation covered the 19 not-approved items -- a closed historical count from a milestone that ended in 2026 and cannot go stale; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had dropped the number entirely.",
+    ),
+    ("docs/README.md", "6 live rows"): (
+        "999.44",
+        1,
+        "Correct: v8.14's own milestone audit compared 6 live rows to 0 baseline rows and printed a pass -- a closed historical measurement of that specific audit run; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'live rows against a stale, empty baseline'.",
+    ),
+    ("docs/README.md", "612 to 590 lines, the surface"): (
+        "999.44",
+        1,
+        "Correct: v8.6 cut the agent body from 612 to 590 lines -- a closed historical measurement from a milestone that ended in 2026 and cannot go stale; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with the unfalsifiable 'shrinking the agent body's line count'.",
+    ),
+    ("docs/README.md", "7 docs/metadata items),"): (
+        "999.44",
+        1,
+        "Correct: v8.1 selectively implemented 7 docs/metadata items -- a closed historical count from a milestone that ended in 2026 and cannot go stale; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with the hedge 'several'.",
+    ),
+    ("docs/README.md", "five entries"): (
+        "999.44",
+        1,
+        "Correct: use-journal.md needed about five entries of real, non-harness use, per the Post-v8.11 gate's original 2026-07-24 statement -- a closed historical figure describing a past state of that gate; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'a handful of'.",
+    ),
+    ("docs/README.md", "five live entries"): (
+        "999.44",
+        2,
+        "Correct: both the 2026-07-25 and 2026-07-26 dispositions of the Post-v8.11 gate state use-journal.md needed 'about five live entries' -- the gating criterion CR-05 names as a decision threshold, not narrative color; two occurrences, both restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced both with 'several more'.",
+    ),
+    ("docs/README.md", "fixture (9)"): (
+        "999.44",
+        1,
+        "Correct: gen-01-rearch-milestone.md is deep-resolved by TRACE-03's own fixture, which carries a population of 9 -- a closed structural fact about the fixture at the time this doc-index entry was written; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had dropped the (9) count entirely.",
+    ),
+    ("docs/README.md", "gate and the five"): (
+        "999.44",
+        1,
+        "NOT-A-RESTORE: plan 22-04 Task 1's judgement-call replacement for the row-17 hedge ('the pre-commit gates'). The pre-3c17833 text read 'the two pre-commit gates', now FALSE (five pre-commit gates fire as of CONF-SURFACE, plan 21-11) -- so 'two' was deliberately not restored. 'five' is the live, currently-true count, verified against docs/TESTING.md:67 ('Five gates fire on every git commit...') and CLAUDE.md's Pre-commit gates section -- a true present-tense fact, not a frozen historical measurement, whose falsifiability this entry restores.",
+    ),
+    ("docs/README.md", "items each** for two"): (
+        "999.44",
+        1,
+        "Correct: same restored sentence as the '**0 items' key above -- main.py's three dedicated test files collected 0 items each for two years (260728-pa2); the scanner splits the one restored figure into two matched windows. Restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06).",
+    ),
+    ("docs/README.md", "rows to 0"): (
+        "999.44",
+        1,
+        "Correct: same restored sentence as the '6 live rows' key above -- v8.14's own milestone audit compared 6 live rows to 0 baseline rows; the scanner splits the one restored figure into two matched windows. Restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06).",
+    ),
+    ("docs/README.md", "sixteen green gates"): (
+        "999.44",
+        1,
+        "Correct: as of the 2026-07-29 GREENMEAN-01 finding, sixteen green gates sat over a version stamp that left the update path inert (v8.14 / DELIV-01) -- a closed historical count at that specific milestone-open moment; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'a fully green battery'.",
+    ),
+    ("docs/README.md", "three new offline gates"): (
+        "999.44",
+        1,
+        "Correct: the 2026-08-27 Perceive/Reason/Act/Observe/Report review's four gaps were closed and gated by three new offline gates (HARN-01, HARN-02, HARN-03) -- a closed historical count naming exactly which gates; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had dropped the number entirely.",
+    ),
+    ("docs/TESTING.md", "Five gates"): (
+        "999.42",
+        1,
+        "Correct: 5 pre-commit gates fire on every git commit -- same verified fact as CLAUDE.md's 'Five gates' entry above.",
+    ),
+    ("docs/TESTING.md", "five labelled surfaces:"): (
+        "999.42",
+        1,
+        "Correct: docs/conformance-baseline.md publishes five labelled surfaces (shared-examples, generated-twin, contract-surface, adversarial-corpus, live-conformance) -- verified by reading that file's own ## headers.",
+    ),
+    ("docs/TESTING.md", "literal `== 4`"): (
+        "999.42",
+        1,
+        "NOT-A-COUNT: 'literal' here means the constant's literal value as written in code (_COMPOSER_FOCUS_CEILING == 4), not a count of literals -- an adjacency-mistrack false positive on the noun 'literal'.",
+    ),
+    ("docs/gates/CONF-GATE.md", "four internal predicates (plan"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/CONF-GATE.md", "seven enforcement call sites"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/CONF-GATE.md", "three mutations"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/GATE-01.md", "checks — 8"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/HC-BOUND.md", "surfaces, and all three"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "(2) cross-surface literal"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "(5 call sites:"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "(5) **worked-example conformance** (plan"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "(6 call sites:"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "6 absorbed the Gate"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "Eleven mutations"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "arms, plus two"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "check requires only two"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "four canonical surfaces"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "four lettered controls"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "gate count from 15"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "legs: (1)"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "literal reconciliation — twelve"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "literals on all three"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "nine `R-CLAIM-*` fixtures"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "one arm."): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "one row"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "pins — three,"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "sites: 1"): (
+        "999.40",
+        3,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "six legs."): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "six separate legs:"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "surface (three"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "surface among all four"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "surfaces declare all twelve);"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    (
+        "docs/gates/QUAL-01.md",
+        "three independently-neutralization-tested anti-vacuity arms,",
+    ): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "two contract surfaces"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/QUAL-01.md", "two new pins"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/REG-GUARD.md", "two surfaces:"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", '"Criteria 4 and 6'): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", "(plan 15-06 split thirty-one"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", "Criteria 4 and 6"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", "Criterion 4 or 6"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", "branches to fifty-eight"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", "four branches),"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", "four legs"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", "ids with eight"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", "one arm"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", "one hundred clause-level named branches"): (
+        "999.40",
+        2,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", "one literal"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", "plan 15-07 added fourteen"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", "plan 15-08 added fourteen"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", "plan 15-09 added one"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", "plan 15-12 added six"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", 'row claimed, "one'): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", "surface in one"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", "two branches),"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/SCAN-GUARD.md", "two branches);"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/STEP0-08.md", "two fixture"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/TRACE-03.md", "arms, one"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/TRACE-03.md", "eight named arms,"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/TRACE-03.md", "five named current-fact surfaces"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/TRACE-03.md", "four cases"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/TRACE-03.md", "literal itself: one"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/TRACE-03.md", "site (`(m)`'s three"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/TRACE-03.md", "two ARROW arms,"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/TRACE-03.md", "two whole-file cases"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/VAL-02.md", "two gates"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/VERSION-01.md", "4 hand-maintained stamp"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("docs/gates/VERSION-01.md", "surfaces `collect_stamps()`'s own four"): (
+        "999.40",
+        1,
+        "Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-act-limb.py#__doc__", "2 item"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-agent.py#__doc__", "three inline malformed fixtures"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-conf-gate.py#__doc__", "gate over the fourteen"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-conf-gate.py#__doc__", "surface for the two"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-conf-gate.py#__doc__", "two arms"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-focused-parity.py#__doc__", "2 item"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-focused-parity.py#__doc__", "check between the two"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-links.py#__doc__", "two newly-extended scan surfaces"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-loop-closure.py#__doc__", "gate reads three"): (
+        "999.41",
+        1,
+        'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies. Rewritten from "gate reads four" to "gate reads three" by quick 260929-r9g, which retired the SKILL.meta.yml-reading fourth source file (HARN-02/N34) alongside the AskUserQuestion frontmatter key removal.',
+    ),
+    ("scripts/check-provenance.py#__doc__", "2. The literal"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-provenance.py#__doc__", "4. PROV-04's no-network control"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-quality-harness.py#__doc__", "[ID] Dispatch exactly one"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-quality-harness.py#__doc__", "one tabulated row."): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-quality-harness.py#__doc__", "row. Dispatches exactly one"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    (
+        "scripts/check-registration.py#__doc__",
+        "32 named, decision-traceable controls",
+    ): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "(11) **What plan"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "(12) **What plan"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "(9) **What plan"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "(eight ids"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", '0 ("All 94 branches'): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "17 stamps"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "17 table data rows**"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "2 item"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "94 branches"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "Criteria 4 and 6"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "Criteria 4 and 6,"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "Criterion 4 or 6"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "fixture actually contains, 7"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "four assertions"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "literal via the `-1`"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "literals themselves — two"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "nineteen not-found reporting arms"): (
+        "999.41",
+        1,
+        "Re-derived by per-site neutralization on disposable rsync --exclude .git scratch copies, 2026-09-08 (22-06-SUMMARY.md), closing 999.31 item 4 -- CONTROLLED=3 (one via R-02-placement-anchor's own branch id, two -- Body-1's and Rubric-3..8's slice guards -- via an uncaught crash rather than a named check), SIBLING-ONLY=0, UNCONTROLLED=16, of nineteen total candidate not-found reporting arms; the docstring states all three bucket counts and the roster size, not this figure alone.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "one arm"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "one hand-written arm"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "one row"): (
+        "999.41",
+        2,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "rows (17"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "rows (17 / 44)"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "six now-uncovered ids."): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "surfaces run TWO"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "two surfaces"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-selfaudit-scan.py#__doc__", "two tables. This gate"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-step0-emulator.py#__doc__", "1. Fault-injection fixtures"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-step0-emulator.py#__doc__", "2. Classification fixtures"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-step0-emulator.py#__doc__", "TWO fixture"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-step0-emulator.py#__doc__", "fixtures (D-05) — four"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-step0-live.py#__doc__", "fixture (default: 5)"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
+    ("scripts/check-step0-live.py#__doc__", "row PASS (default: 3)"): (
+        "999.41",
+        1,
+        "Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.",
+    ),
 }
 
 
@@ -4231,8 +5142,7 @@ LITERAL_EXEMPTION_CLASSES: tuple[LiteralExemptionClass, ...] = (
     ),
     LiteralExemptionClass(
         "sha256-digest",
-        "A CONTRACT-06 sha256 digest names a pinned function body's hash, "
-        "not a count.",
+        "A CONTRACT-06 sha256 digest names a pinned function body's hash, not a count.",
         _match_sha256_digest,
     ),
     LiteralExemptionClass(
@@ -4313,29 +5223,29 @@ def _py_docstring_scan_scripts() -> tuple[str, ...]:
 
 
 LITERAL_SCAN_MD_GLOBS: tuple[str, ...] = (
-    "CLAUDE.md",                  # the densest single hand-maintained surface (D-21-E)
-    "docs/ARCHITECTURE.md",       # the CI-gate-table twin surface (D-02)
-    "docs/TESTING.md",            # per-gate narrative, largely folded under D-21-F
-    "docs/MEASUREMENT-MAP.md",    # layer-map prose citing gate/branch counts
+    "CLAUDE.md",  # the densest single hand-maintained surface (D-21-E)
+    "docs/ARCHITECTURE.md",  # the CI-gate-table twin surface (D-02)
+    "docs/TESTING.md",  # per-gate narrative, largely folded under D-21-F
+    "docs/MEASUREMENT-MAP.md",  # layer-map prose citing gate/branch counts
     "docs/COMPONENT-DIAGRAM.md",  # architecture-diagram prose citing gate counts
-    "docs/DATA-FLOW.md",          # data-flow prose citing gate counts
-    "docs/README.md",             # changelog-style narrative, historically the noisiest doc
-    "docs/gates/*.md",            # every generated detail page (thin + narrative), one
-                                   # per _gate_registry.ENTRIES row -- see
-                                   # literal_scan_read_files for the live count, never
-                                   # re-typed here (a stale "28" sat here until
-                                   # 21-VERIFICATION.md round 3 found it against a live
-                                   # 31; this comment is a `#` comment, invisible to
-                                   # CONF-13's own ast-based docstring scanner by
-                                   # construction, the same disclosed py-docstrings-only
-                                   # blind spot demonstrated a second time)
-    "docs/PROCESS.md",            # the canonical process contract; states the depth rule
-                                   # and carries the exception ledger's frozen historical
-                                   # counts (D-05, plan 22-07)
-    "CONTRIBUTING.md",            # contributor-facing product surface that carried a
-                                   # false published gate count while outside every
-                                   # scanner's reach -- the finding this widening closes
-                                   # (D-05, plan 22-07)
+    "docs/DATA-FLOW.md",  # data-flow prose citing gate counts
+    "docs/README.md",  # changelog-style narrative, historically the noisiest doc
+    "docs/gates/*.md",  # every generated detail page (thin + narrative), one
+    # per _gate_registry.ENTRIES row -- see
+    # literal_scan_read_files for the live count, never
+    # re-typed here (a stale "28" sat here until
+    # 21-VERIFICATION.md round 3 found it against a live
+    # 31; this comment is a `#` comment, invisible to
+    # CONF-13's own ast-based docstring scanner by
+    # construction, the same disclosed py-docstrings-only
+    # blind spot demonstrated a second time)
+    "docs/PROCESS.md",  # the canonical process contract; states the depth rule
+    # and carries the exception ledger's frozen historical
+    # counts (D-05, plan 22-07)
+    "CONTRIBUTING.md",  # contributor-facing product surface that carried a
+    # false published gate count while outside every
+    # scanner's reach -- the finding this widening closes
+    # (D-05, plan 22-07)
 )
 
 # The full D-21-E scanned surface set: the Markdown globs above, plus every
@@ -4346,7 +5256,9 @@ LITERAL_SCAN_MD_GLOBS: tuple[str, ...] = (
 # narrower set made `scripts/_gate_registry.py` -- the module that DEFINES
 # those entries -- structurally unable to ever be one of its own scanned
 # surfaces.
-LITERAL_SCAN_SURFACES: tuple[str, ...] = LITERAL_SCAN_MD_GLOBS + _py_docstring_scan_scripts()
+LITERAL_SCAN_SURFACES: tuple[str, ...] = (
+    LITERAL_SCAN_MD_GLOBS + _py_docstring_scan_scripts()
+)
 
 
 class LiteralScanRead(NamedTuple):
@@ -4361,7 +5273,9 @@ class LiteralScanRead(NamedTuple):
     declined: tuple[str, ...]
 
 
-def run_literal_scan(surfaces: tuple[str, ...] = LITERAL_SCAN_SURFACES) -> LiteralScanRead:
+def run_literal_scan(
+    surfaces: tuple[str, ...] = LITERAL_SCAN_SURFACES,
+) -> LiteralScanRead:
     """The read loop: open every surface in `surfaces`, scan it for
     candidate literal hits (outside any generated fence), and record which
     relpaths were actually opened. Every candidate the loop declines to
@@ -4375,13 +5289,17 @@ def run_literal_scan(surfaces: tuple[str, ...] = LITERAL_SCAN_SURFACES) -> Liter
         if surface.endswith(".py"):
             p = REPO_ROOT / surface
             if not p.is_file():
-                declined.append(f"INFO: literal-scan declined to open {surface!r} (script not found)")
+                declined.append(
+                    f"INFO: literal-scan declined to open {surface!r} (script not found)"
+                )
                 continue
             try:
                 src = p.read_text(encoding="utf-8")
                 doc = ast.get_docstring(ast.parse(src, filename=str(p)))
             except (OSError, SyntaxError) as exc:
-                declined.append(f"INFO: literal-scan declined to open {surface!r} ({exc!r})")
+                declined.append(
+                    f"INFO: literal-scan declined to open {surface!r} ({exc!r})"
+                )
                 continue
             read_relpaths.add(surface)
             if doc:
@@ -4390,7 +5308,9 @@ def run_literal_scan(surfaces: tuple[str, ...] = LITERAL_SCAN_SURFACES) -> Liter
         if "*" in surface:
             matched = sorted(REPO_ROOT.glob(surface))
             if not matched:
-                declined.append(f"INFO: literal-scan glob {surface!r} matched zero files")
+                declined.append(
+                    f"INFO: literal-scan glob {surface!r} matched zero files"
+                )
             for p in matched:
                 if not p.is_file():
                     continue
@@ -4401,13 +5321,17 @@ def run_literal_scan(surfaces: tuple[str, ...] = LITERAL_SCAN_SURFACES) -> Liter
             continue
         p = REPO_ROOT / surface
         if not p.is_file():
-            declined.append(f"INFO: literal-scan declined to open {surface!r} (not found)")
+            declined.append(
+                f"INFO: literal-scan declined to open {surface!r} (not found)"
+            )
             continue
         text = p.read_text(encoding="utf-8")
         read_relpaths.add(surface)
         hits.extend(_literal_hits_outside_generated(surface, text))
     return LiteralScanRead(
-        read_relpaths=frozenset(read_relpaths), hits=tuple(hits), declined=tuple(declined)
+        read_relpaths=frozenset(read_relpaths),
+        hits=tuple(hits),
+        declined=tuple(declined),
     )
 
 
@@ -4538,7 +5462,9 @@ def _nonmodule_docstring_hits(
                 qualname = f"{prefix}{child.name}"
                 doc = ast.get_docstring(child)
                 if doc:
-                    hits.extend(_literal_hits_outside_generated(f"{surface}#{qualname}", doc))
+                    hits.extend(
+                        _literal_hits_outside_generated(f"{surface}#{qualname}", doc)
+                    )
                 _walk(child, surface, prefix=f"{qualname}.")
             else:
                 _walk(child, surface, prefix)
@@ -4588,7 +5514,11 @@ def nonmodule_docstring_selffile_ratchet_problems(
     against synthetic counts without touching the module-level constant."""
     if live_count is None:
         live_count = len(
-            [h for h in _nonmodule_docstring_hits() if h.relpath.startswith("scripts/gen-gate-docs.py#")]
+            [
+                h
+                for h in _nonmodule_docstring_hits()
+                if h.relpath.startswith("scripts/gen-gate-docs.py#")
+            ]
         )
     if pinned_count is None:
         pinned_count = _SELF_FILE_NONMODULE_DOCSTRING_HITS
@@ -4757,7 +5687,9 @@ def generate_all() -> dict[Path, str]:
     )
 
     measurement_map_text = MEASUREMENT_MAP_MD.read_text(encoding="utf-8")
-    measurement_map_region = _render_narrative_sentence(_NARRATIVE_REGIONS[1], traceability_blob)
+    measurement_map_region = _render_narrative_sentence(
+        _NARRATIVE_REGIONS[1], traceability_blob
+    )
     targets[MEASUREMENT_MAP_MD] = _replace_or_bootstrap_region(
         measurement_map_text,
         MEASUREMENT_MAP_HEADLINE_MARKERS[0],
@@ -4774,7 +5706,9 @@ def generate_all() -> dict[Path, str]:
     # produced -- rather than re-reading `claude_text` a second time
     # independently, or the CI-gate-table write above would be lost the
     # moment this second write lands.
-    claude_headline_region = _render_narrative_sentence(_NARRATIVE_REGIONS[2], traceability_blob)
+    claude_headline_region = _render_narrative_sentence(
+        _NARRATIVE_REGIONS[2], traceability_blob
+    )
     targets[CLAUDE_MD] = _replace_or_bootstrap_region(
         targets[CLAUDE_MD],
         CLAUDE_HEADLINE_MARKERS[0],
@@ -4788,7 +5722,9 @@ def generate_all() -> dict[Path, str]:
     # docs/gates/<GATE-ID>.md page.
     for entry in _gate_registry.ENTRIES:
         page_path = DETAIL_PAGE_DIR / f"{_page_slug(entry)}.md"
-        existing_text = page_path.read_text(encoding="utf-8") if page_path.exists() else None
+        existing_text = (
+            page_path.read_text(encoding="utf-8") if page_path.exists() else None
+        )
         blob = by_script.get(entry.script) if entry.script else None
         targets[page_path] = render_detail_page(entry, blob, existing_text)
 
@@ -4962,7 +5898,9 @@ def cmd_check() -> int:
     battery_ids = frozenset(_gate_registry.battery_gate_ids(battery_text))
     precommit_ids = _gate_registry._registry_precommit_ids()
     requested = _gate_registry._requested_fields_by_script()
-    emitted_fields = {script: frozenset(blob.keys()) for script, blob in by_script.items()}
+    emitted_fields = {
+        script: frozenset(blob.keys()) for script, blob in by_script.items()
+    }
     specs = frozen_pathspecs(battery_text)
 
     problems: list[str] = list(harvest_problems)
@@ -5047,7 +5985,10 @@ def cmd_check() -> int:
         reached.add(surface_key)
         marker_pairs = _generated_marker_pairs_for(rel)
         problems += detail_page_containment_problems(
-            rel, generated, marker_pairs=marker_pairs, check_spelled_out=check_spelled_out
+            rel,
+            generated,
+            marker_pairs=marker_pairs,
+            check_spelled_out=check_spelled_out,
         )
         # CONTAIN-02, D-01/D-02/D-03: the chain-terminus arm, run over the
         # same surface loop and the same per-surface `terminus_policy`
@@ -5065,7 +6006,9 @@ def cmd_check() -> int:
         )
         if missing:
             occ = _containment_missing_number_counts(
-                generated, marker_pairs=marker_pairs, check_spelled_out=check_spelled_out
+                generated,
+                marker_pairs=marker_pairs,
+                check_spelled_out=check_spelled_out,
             )
             for number in missing:
                 live_containment_findings[(rel, number)] = occ[number]
@@ -5150,7 +6093,9 @@ def cmd_check() -> int:
             )
             sys.stderr.write("\n")
     if drifted:
-        sys.stderr.write("Run: python3 scripts/gen-gate-docs.py --write && git add -u\n")
+        sys.stderr.write(
+            "Run: python3 scripts/gen-gate-docs.py --write && git add -u\n"
+        )
         return 1
     return 0
 
@@ -5237,8 +6182,12 @@ def describe() -> dict:
         "containment_ledger_max": _CONTAINMENT_LEDGER_MAX,
         "containment_surfaces": len(_CONTAINMENT_SURFACES),
         "containment_ledger_cannot_reach": containment_class_counts["cannot_reach"],
-        "containment_ledger_frozen_historical": containment_class_counts["frozen_historical"],
-        "containment_ledger_not_a_count_claim": containment_class_counts["not_a_count_claim"],
+        "containment_ledger_frozen_historical": containment_class_counts[
+            "frozen_historical"
+        ],
+        "containment_ledger_not_a_count_claim": containment_class_counts[
+            "not_a_count_claim"
+        ],
         "chain_termini_stale": chain_stale,
         "chain_termini_current": chain_current,
         "chain_termini_uncorroborable": chain_uncorroborable,
@@ -5337,13 +6286,17 @@ def _control_frozen_paths_derived_not_typed() -> None:
     battery_text = BATTERY_PATH.read_text(encoding="utf-8")
     derived = frozen_pathspecs(battery_text)
     match = _FROZEN_PATHS_ARRAY_RE.search(battery_text)
-    assert match is not None, "could not locate _FROZEN_PATHS in the live battery script"
+    assert match is not None, (
+        "could not locate _FROZEN_PATHS in the live battery script"
+    )
     body_lines = [ln.strip() for ln in match.group(1).splitlines() if ln.strip()]
     independent = tuple(
         ln[1:-1] for ln in body_lines if ln.startswith("'") and ln.endswith("'")
     )
     assert derived == independent, (derived, independent)
-    assert len(derived) > 0, "frozen_pathspecs derived zero entries from the live battery script"
+    assert len(derived) > 0, (
+        "frozen_pathspecs derived zero entries from the live battery script"
+    )
 
 
 def _control_check_dispatch_wired() -> None:
@@ -5372,7 +6325,9 @@ def _control_check_dispatch_wired() -> None:
         rc = main(["--check"])
     stdout_text, stderr_text = stdout_buf.getvalue(), stderr_buf.getvalue()
     assert "DRIFT:" not in stderr_text, stderr_text
-    assert rc in (0, 1), f"main(['--check']) returned {rc}, expected 0 or 1 against the live tree"
+    assert rc in (0, 1), (
+        f"main(['--check']) returned {rc}, expected 0 or 1 against the live tree"
+    )
     if rc == 1:
         assert "literal-scan:" in stdout_text, (
             "expected the exit-1 to be the CONF-13 residual, not drift/floor "
@@ -5398,9 +6353,14 @@ def _control_nondeterminism_exit_2() -> None:
     stdout_buf, stderr_buf = io.StringIO(), io.StringIO()
     try:
         _this_module.generate_all = _flaky
-        with contextlib.redirect_stdout(stdout_buf), contextlib.redirect_stderr(stderr_buf):
+        with (
+            contextlib.redirect_stdout(stdout_buf),
+            contextlib.redirect_stderr(stderr_buf),
+        ):
             rc = cmd_check()
-        assert rc == 2, f"cmd_check() returned {rc}, expected 2 for a non-deterministic generator"
+        assert rc == 2, (
+            f"cmd_check() returned {rc}, expected 2 for a non-deterministic generator"
+        )
         stderr_text = stderr_buf.getvalue()
         assert "NON-DETERMINISTIC" in stderr_text, (
             "cmd_check() returned 2 without writing the NON-DETERMINISTIC "
@@ -5536,7 +6496,9 @@ def _control_real_file_claude_md_region() -> None:
     result = _replace_region(synthetic_text, start_marker, end_marker, "NEW CONTENT\n")
     prefix_original = "".join(lines[:heading_idx])
     suffix_original = "".join(lines[end_idx:])
-    assert result.startswith(prefix_original), "prefix diverged from live CLAUDE.md bytes"
+    assert result.startswith(prefix_original), (
+        "prefix diverged from live CLAUDE.md bytes"
+    )
     assert result.endswith(suffix_original), "suffix diverged from live CLAUDE.md bytes"
 
 
@@ -5553,11 +6515,17 @@ def _control_describe_emits_parseable_json() -> None:
 
 
 def _control_one_renderer_two_surfaces() -> None:
-    entries = [e for e in _gate_registry.ENTRIES if e.key not in _gate_registry._ANTICIPATORY_KEYS][:5]
+    entries = [
+        e
+        for e in _gate_registry.ENTRIES
+        if e.key not in _gate_registry._ANTICIPATORY_KEYS
+    ][:5]
     rows = _gate_table_rows(entries, {})
     claude_table = render_gate_table(rows)
     architecture_table = render_gate_table(rows)
-    assert claude_table == architecture_table, "the same rows must render byte-identically"
+    assert claude_table == architecture_table, (
+        "the same rows must render byte-identically"
+    )
 
 
 def _control_gates_link_resolves_per_surface() -> None:
@@ -5571,7 +6539,11 @@ def _control_gates_link_resolves_per_surface() -> None:
     base — exactly the defect a raw byte-identity check on the FULL rendered
     region cannot see, since it would incorrectly demand the same string in
     both places."""
-    entries = [e for e in _gate_registry.ENTRIES if e.key not in _gate_registry._ANTICIPATORY_KEYS][:3]
+    entries = [
+        e
+        for e in _gate_registry.ENTRIES
+        if e.key not in _gate_registry._ANTICIPATORY_KEYS
+    ][:3]
     rows = _gate_table_rows(entries, {})
     claude_region = render_table_region(rows, "CLAUDE_MD")
     architecture_region = render_table_region(rows, "ARCHITECTURE_MD")
@@ -5584,7 +6556,9 @@ def _control_gates_link_resolves_per_surface() -> None:
         assert target.startswith("docs/gates/"), target
         # Simulated resolution base: CLAUDE.md sits at the repo root, so a
         # relative target is resolved directly against REPO_ROOT.
-        assert (REPO_ROOT / target).exists(), f"CLAUDE_MD target does not resolve: {target}"
+        assert (REPO_ROOT / target).exists(), (
+            f"CLAUDE_MD target does not resolve: {target}"
+        )
     for target in architecture_targets:
         assert target.startswith("gates/"), target
         assert not target.startswith("docs/gates/"), target
@@ -5605,7 +6579,9 @@ def _control_row_count_equals_entries() -> None:
     lines = table.splitlines()
     data_rows = [ln for ln in lines[2:] if ln.strip()]
     documented = [
-        e for e in _gate_registry.ENTRIES if e.key not in _gate_registry._ANTICIPATORY_KEYS
+        e
+        for e in _gate_registry.ENTRIES
+        if e.key not in _gate_registry._ANTICIPATORY_KEYS
     ]
     assert len(data_rows) == len(documented), (len(data_rows), len(documented))
 
@@ -5616,7 +6592,9 @@ def _control_no_row_wrapped() -> None:
     for line in table.splitlines():
         assert line.startswith("|") and line.endswith("|"), line
     documented = [
-        e for e in _gate_registry.ENTRIES if e.key not in _gate_registry._ANTICIPATORY_KEYS
+        e
+        for e in _gate_registry.ENTRIES
+        if e.key not in _gate_registry._ANTICIPATORY_KEYS
     ]
     assert len(table.splitlines()) == 2 + len(documented)
 
@@ -5630,7 +6608,8 @@ def _control_testing_index_row_count_equals_entries() -> None:
     table_lines = [ln for ln in region.splitlines() if ln.startswith("|")]
     data_rows = table_lines[2:]
     assert len(data_rows) == len(_gate_registry.ENTRIES), (
-        len(data_rows), len(_gate_registry.ENTRIES)
+        len(data_rows),
+        len(_gate_registry.ENTRIES),
     )
 
 
@@ -5644,11 +6623,16 @@ def _control_testing_index_links_resolve() -> None:
     region = render_testing_index_region(_gate_registry.ENTRIES)
     link_re = re.compile(r"\]\(([^)]+\.md)\)")
     targets = link_re.findall(region)
-    assert len(targets) == len(_gate_registry.ENTRIES), (len(targets), len(_gate_registry.ENTRIES))
+    assert len(targets) == len(_gate_registry.ENTRIES), (
+        len(targets),
+        len(_gate_registry.ENTRIES),
+    )
     for target in targets:
         assert target.startswith("gates/"), target
         assert not target.startswith("docs/gates/"), target
-        assert (REPO_ROOT / "docs" / target).exists(), f"TESTING_MD target does not resolve: {target}"
+        assert (REPO_ROOT / "docs" / target).exists(), (
+            f"TESTING_MD target does not resolve: {target}"
+        )
 
 
 def _control_testing_real_file_region() -> None:
@@ -5662,27 +6646,32 @@ def _control_testing_real_file_region() -> None:
     lines = text.splitlines(keepends=True)
     bare = [ln.splitlines()[0] if ln.splitlines() else ln for ln in lines]
     heading_idx = next(
-        i for i, b in enumerate(bare) if b.strip() == "## CI gates — operational run-detail"
+        i
+        for i, b in enumerate(bare)
+        if b.strip() == "## CI gates — operational run-detail"
     )
     end_idx = next(
-        i for i in range(heading_idx + 1, len(bare))
-        if bare[i].startswith("## ")
+        i for i in range(heading_idx + 1, len(bare)) if bare[i].startswith("## ")
     )
     start_marker = "<!-- TEST-REGION-START -->"
     end_marker = "<!-- TEST-REGION-END -->"
     synthetic_lines = (
-        lines[:heading_idx + 1]
+        lines[: heading_idx + 1]
         + [start_marker + "\n"]
-        + lines[heading_idx + 1:end_idx]
+        + lines[heading_idx + 1 : end_idx]
         + [end_marker + "\n"]
         + lines[end_idx:]
     )
     synthetic_text = "".join(synthetic_lines)
     result = _replace_region(synthetic_text, start_marker, end_marker, "NEW CONTENT\n")
-    prefix_original = "".join(lines[:heading_idx + 1])
+    prefix_original = "".join(lines[: heading_idx + 1])
     suffix_original = "".join(lines[end_idx:])
-    assert result.startswith(prefix_original), "prefix diverged from live docs/TESTING.md bytes"
-    assert result.endswith(suffix_original), "suffix diverged from live docs/TESTING.md bytes"
+    assert result.startswith(prefix_original), (
+        "prefix diverged from live docs/TESTING.md bytes"
+    )
+    assert result.endswith(suffix_original), (
+        "suffix diverged from live docs/TESTING.md bytes"
+    )
 
 
 def _control_trace03_glob_substring_derived() -> None:
@@ -5722,7 +6711,9 @@ def _control_population_arithmetic_derived() -> None:
     assert after["inline_count"] == before["inline_count"], (before, after)
     sentence_before = _population_arithmetic_sentence(base)
     sentence_after = _population_arithmetic_sentence(base + [synthetic])
-    assert sentence_before != sentence_after, "adding a synthetic entry did not move the sentence"
+    assert sentence_before != sentence_after, (
+        "adding a synthetic entry did not move the sentence"
+    )
     assert str(before["ci_count"]) in sentence_before, sentence_before
     assert str(after["ci_count"]) in sentence_after, sentence_after
     assert str(before["tallied_count"]) in sentence_before, sentence_before
@@ -5757,7 +6748,9 @@ def _control_population_arithmetic_derived() -> None:
         before,
         after_precommit,
     )
-    sentence_precommit_after = _population_arithmetic_sentence(base + [synthetic_precommit])
+    sentence_precommit_after = _population_arithmetic_sentence(
+        base + [synthetic_precommit]
+    )
     assert str(after_precommit["precommit_count"]) in sentence_precommit_after, (
         sentence_precommit_after
     )
@@ -5794,7 +6787,10 @@ def _control_hook_mechanism_count_independent_of_precommit_count() -> None:
     )
     after = _population_counts(base + [synthetic_precommit])
     assert after["precommit_count"] != before["precommit_count"], (before, after)
-    assert after["hook_mechanism_count"] == before["hook_mechanism_count"], (before, after)
+    assert after["hook_mechanism_count"] == before["hook_mechanism_count"], (
+        before,
+        after,
+    )
 
 
 def _control_arithmetic_sentence_pluralizes_correctly() -> None:
@@ -5815,7 +6811,9 @@ def _control_arithmetic_sentence_pluralizes_correctly() -> None:
     assert "gate(s)" not in sentence, sentence
     assert "check(s)" not in sentence, sentence
     c = _population_counts(_gate_registry.ENTRIES)
-    assert _pluralize_count(c["battery_only_count"], "battery-only gate") in sentence, sentence
+    assert _pluralize_count(c["battery_only_count"], "battery-only gate") in sentence, (
+        sentence
+    )
     assert _pluralize_count(c["inline_count"], "inline check") in sentence, sentence
 
 
@@ -5823,8 +6821,13 @@ def _control_framing_sentences_replaced() -> None:
     rows = _gate_table_rows(_gate_registry.ENTRIES, {})
     for surface in ("CLAUDE_MD", "ARCHITECTURE_MD"):
         region = render_table_region(rows, surface)
-        assert "keeps its own operational copy by design" not in region, (surface, region)
-        assert "Every other document links here rather than restating it" not in region, (
+        assert "keeps its own operational copy by design" not in region, (
+            surface,
+            region,
+        )
+        assert (
+            "Every other document links here rather than restating it" not in region
+        ), (
             surface,
             region,
         )
@@ -5837,7 +6840,9 @@ def _control_region_preserves_surrounding_prose() -> None:
     heading_line = "### CI gates\n"
     idx = original.index(heading_line) + len(heading_line)
     prefix_original = original[:idx]
-    assert generated.startswith(prefix_original), "CLAUDE.md prefix (through heading) diverged"
+    assert generated.startswith(prefix_original), (
+        "CLAUDE.md prefix (through heading) diverged"
+    )
     idx2 = original.index(_CLAUDE_BOOTSTRAP_BEFORE)
     suffix_original = original[idx2:]
     # Plan 26-05 added a SECOND, independent region (CLAUDE_HEADLINE_MARKERS)
@@ -5848,7 +6853,9 @@ def _control_region_preserves_surrounding_prose() -> None:
     # necessarily breaks.
     by_script, _harvest_problems = harvest(_gate_registry.ENTRIES)
     traceability_blob = by_script.get("scripts/check-traceability.py")
-    headline_region = _render_narrative_sentence(_NARRATIVE_REGIONS[2], traceability_blob)
+    headline_region = _render_narrative_sentence(
+        _NARRATIVE_REGIONS[2], traceability_blob
+    )
     suffix_expected = _replace_or_bootstrap_region(
         suffix_original,
         CLAUDE_HEADLINE_MARKERS[0],
@@ -5857,7 +6864,9 @@ def _control_region_preserves_surrounding_prose() -> None:
         _CLAUDE_HEADLINE_BOOTSTRAP_AFTER,
         _CLAUDE_HEADLINE_BOOTSTRAP_BEFORE,
     )
-    assert generated.endswith(suffix_expected), "CLAUDE.md suffix (registration history onward) diverged"
+    assert generated.endswith(suffix_expected), (
+        "CLAUDE.md suffix (registration history onward) diverged"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -5876,7 +6885,7 @@ def _control_page_per_entry() -> None:
         and TESTING_MD in targets
         and README_MD in targets
         and MEASUREMENT_MAP_MD in targets
-    ), (targets.keys())
+    ), targets.keys()
     # +5: CLAUDE_MD, ARCHITECTURE_MD, TESTING_MD (D-21 tables) plus the two
     # NARR-02 narrative-region hosts this plan (26-04) wired.
     assert len(targets) == len(expected) + 5, (len(targets), len(expected))
@@ -5894,33 +6903,36 @@ def _control_narrative_preserved_across_regeneration() -> None:
         summary="Fake gate for testing.",
         consumes=("control_count",),
     )
-    existing = "\n".join(
-        [
-            f"# {entry.key}: test gate",
-            "",
-            DETAIL_FACTS_MARKERS[0],
-            "## Facts",
-            "",
-            "- `control_count`: `10`",
-            DETAIL_FACTS_MARKERS[1],
-            "",
-            DETAIL_HOWTORUN_MARKERS[0],
-            "## How to run",
-            "",
-            "```sh",
-            "python3 scripts/fake.py --self-test",
-            "```",
-            "",
-            "CI job: — (not a CI job)",
-            DETAIL_HOWTORUN_MARKERS[1],
-            "",
-            "## Disclosed bounds",
-            "",
-            _DISCLOSED_BOUNDS_HAND_WRITTEN_COMMENT,
-            "",
-            "HAND-WRITTEN NARRATIVE PARAGRAPH — do not touch.",
-        ]
-    ) + "\n"
+    existing = (
+        "\n".join(
+            [
+                f"# {entry.key}: test gate",
+                "",
+                DETAIL_FACTS_MARKERS[0],
+                "## Facts",
+                "",
+                "- `control_count`: `10`",
+                DETAIL_FACTS_MARKERS[1],
+                "",
+                DETAIL_HOWTORUN_MARKERS[0],
+                "## How to run",
+                "",
+                "```sh",
+                "python3 scripts/fake.py --self-test",
+                "```",
+                "",
+                "CI job: — (not a CI job)",
+                DETAIL_HOWTORUN_MARKERS[1],
+                "",
+                "## Disclosed bounds",
+                "",
+                _DISCLOSED_BOUNDS_HAND_WRITTEN_COMMENT,
+                "",
+                "HAND-WRITTEN NARRATIVE PARAGRAPH — do not touch.",
+            ]
+        )
+        + "\n"
+    )
     blob_v2 = {"control_count": 99}
     page_v2 = render_detail_page(entry, blob_v2, existing)
     assert "HAND-WRITTEN NARRATIVE PARAGRAPH" in page_v2, page_v2
@@ -5987,7 +6999,9 @@ def _control_containment_surface_roster_lock_non_empty() -> None:
 
 def _control_containment_surface_roster_satisfied_passes() -> None:
     """Handed exactly the four locked keys, the floor returns []."""
-    problems = containment_surface_roster_problems(frozenset(_CONTAINMENT_SURFACES_LOCK))
+    problems = containment_surface_roster_problems(
+        frozenset(_CONTAINMENT_SURFACES_LOCK)
+    )
     assert problems == [], problems
 
 
@@ -6061,7 +7075,9 @@ def _control_delta_chain_hops_confsurface_corrected() -> None:
     lines = text.splitlines()
     inside = _generated_line_flags(lines, _ALL_DETAIL_MARKER_PAIRS)
     outside_lines = [
-        line for idx, (line, is_in) in enumerate(zip(lines, inside)) if not is_in and idx != 0
+        line
+        for idx, (line, is_in) in enumerate(zip(lines, inside))
+        if not is_in and idx != 0
     ]
     chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
     assert len(chains) == 1, chains
@@ -6088,7 +7104,9 @@ def _control_delta_chain_hops_qual01_out_of_grammar() -> None:
     lines = text.splitlines()
     inside = _generated_line_flags(lines, _ALL_DETAIL_MARKER_PAIRS)
     outside_lines = [
-        line for idx, (line, is_in) in enumerate(zip(lines, inside)) if not is_in and idx != 0
+        line
+        for idx, (line, is_in) in enumerate(zip(lines, inside))
+        if not is_in and idx != 0
     ]
     chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
     assert chains == [], chains
@@ -6108,7 +7126,9 @@ def _control_delta_chain_hops_scanguard_spelled_out() -> None:
     lines = text.splitlines()
     inside = _generated_line_flags(lines, _ALL_DETAIL_MARKER_PAIRS)
     outside_lines = [
-        line for idx, (line, is_in) in enumerate(zip(lines, inside)) if not is_in and idx != 0
+        line
+        for idx, (line, is_in) in enumerate(zip(lines, inside))
+        if not is_in and idx != 0
     ]
     chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
     assert len(chains) == 1, chains
@@ -6127,7 +7147,9 @@ def _control_delta_chain_hops_claude_row_count_recovered() -> None:
     lines = text.splitlines()
     inside = _generated_line_flags(lines, marker_pairs)
     outside_lines = [
-        line for idx, (line, is_in) in enumerate(zip(lines, inside)) if not is_in and idx != 0
+        line
+        for idx, (line, is_in) in enumerate(zip(lines, inside))
+        if not is_in and idx != 0
     ]
     chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
     assert chains == [], chains
@@ -6141,11 +7163,13 @@ def _control_citation_shape_slash_before_arrow() -> None:
     single-operand pattern consuming only the arrow-adjacent operands of a
     slash-paired vector and stranding its siblings as bare numbers)."""
     slash_idx = next(
-        i for i, p in enumerate(_CITATION_SHAPE_RES)
+        i
+        for i, p in enumerate(_CITATION_SHAPE_RES)
         if p.pattern == _SLASH_PAIRED_TRANSITION_PATTERN
     )
     arrow_idx = next(
-        i for i, p in enumerate(_CITATION_SHAPE_RES)
+        i
+        for i, p in enumerate(_CITATION_SHAPE_RES)
         if p.pattern == r"\d[\d,]*\s*(?:→|-->|->)\s*\d[\d,]*"
     )
     assert slash_idx < arrow_idx, (slash_idx, arrow_idx)
@@ -6192,7 +7216,9 @@ def _control_confsurface_census_narrative_joined() -> None:
     page text with no `roster-arm-` token at all produces the vacuity
     finding."""
     # (a)
-    assert confsurface_census_narrative_problems() == [], confsurface_census_narrative_problems()
+    assert confsurface_census_narrative_problems() == [], (
+        confsurface_census_narrative_problems()
+    )
 
     live_ids = sorted(shape.shape_id for shape in _ROSTER_ARM_SHAPES) + sorted(
         route.route_id for route in _ROSTER_ARM_UNREACHED
@@ -6211,8 +7237,12 @@ def _control_confsurface_census_narrative_joined() -> None:
         "extracted clause, never against a whole message. The\n"
         "`roster_arm_census_population` field in the Facts fence above is the live,\n"
     )
-    wrapped_problems = confsurface_census_narrative_problems(page_text=wrapped_overclaim_page)
-    assert any("never against a whole message" in p for p in wrapped_problems), wrapped_problems
+    wrapped_problems = confsurface_census_narrative_problems(
+        page_text=wrapped_overclaim_page
+    )
+    assert any("never against a whole message" in p for p in wrapped_problems), (
+        wrapped_problems
+    )
 
     oneline_overclaim_page = (
         "## Disclosed bounds\n\n"
@@ -6221,17 +7251,29 @@ def _control_confsurface_census_narrative_joined() -> None:
         "directly under `scripts/` asserts a roster-mismatch finding against an "
         "extracted clause, never against a whole message.\n"
     )
-    oneline_problems = confsurface_census_narrative_problems(page_text=oneline_overclaim_page)
-    assert any("never against a whole message" in p for p in oneline_problems), oneline_problems
+    oneline_problems = confsurface_census_narrative_problems(
+        page_text=oneline_overclaim_page
+    )
+    assert any("never against a whole message" in p for p in oneline_problems), (
+        oneline_problems
+    )
 
     # (c) equality floor, both directions
-    missing_one_page = "## Disclosed bounds\n\n" + " ".join(f"`{i}`" for i in live_ids[1:]) + "\n"
+    missing_one_page = (
+        "## Disclosed bounds\n\n" + " ".join(f"`{i}`" for i in live_ids[1:]) + "\n"
+    )
     missing_problems = confsurface_census_narrative_problems(page_text=missing_one_page)
     assert any(live_ids[0] in p for p in missing_problems), missing_problems
 
-    fabricated_page = f"## Disclosed bounds\n\n{ids_line} `roster-arm-something-invented`\n"
-    fabricated_problems = confsurface_census_narrative_problems(page_text=fabricated_page)
-    assert any("roster-arm-something-invented" in p for p in fabricated_problems), fabricated_problems
+    fabricated_page = (
+        f"## Disclosed bounds\n\n{ids_line} `roster-arm-something-invented`\n"
+    )
+    fabricated_problems = confsurface_census_narrative_problems(
+        page_text=fabricated_page
+    )
+    assert any("roster-arm-something-invented" in p for p in fabricated_problems), (
+        fabricated_problems
+    )
 
     # (d) vacuity
     vacuity_problems = confsurface_census_narrative_problems(
@@ -6292,7 +7334,9 @@ def _control_page_check_dispatch_wired() -> None:
 def _control_scan_hit_outside_fence_fires() -> None:
     text = "There are 47 controls in this fixture.\n"
     hits = tuple(_literal_hits_outside_generated("fixture.md", text))
-    read = LiteralScanRead(read_relpaths=frozenset({"fixture.md"}), hits=hits, declined=())
+    read = LiteralScanRead(
+        read_relpaths=frozenset({"fixture.md"}), hits=hits, declined=()
+    )
     problems = literal_scan_problems(read)
     assert len(problems) == 1, problems
     assert "fixture.md:1" in problems[0], problems
@@ -6313,7 +7357,9 @@ def _control_scan_exempt_class_attributed() -> None:
     text = "There are 17 version stamps tracked here.\n"
     hits = _literal_hits_outside_generated("fixture.md", text)
     assert len(hits) == 1, hits
-    read = LiteralScanRead(read_relpaths=frozenset({"fixture.md"}), hits=tuple(hits), declined=())
+    read = LiteralScanRead(
+        read_relpaths=frozenset({"fixture.md"}), hits=tuple(hits), declined=()
+    )
     assert literal_scan_problems(read) == [], literal_scan_problems(read)
     attrs = literal_scan_attributions(read)
     assert len(attrs) == 1, attrs
@@ -6328,7 +7374,9 @@ def _control_scan_unattributable_permit_fires() -> None:
     assert len(hits) == 1, hits
     for h in hits:
         assert _literal_hit_exemption(h) is None, h
-    read = LiteralScanRead(read_relpaths=frozenset({"fixture.md"}), hits=tuple(hits), declined=())
+    read = LiteralScanRead(
+        read_relpaths=frozenset({"fixture.md"}), hits=tuple(hits), declined=()
+    )
     problems = literal_scan_problems(read)
     assert len(problems) == 1, problems
 
@@ -6364,7 +7412,9 @@ def _control_scan_coverage_floor_fires() -> None:
         read = run_literal_scan(surfaces=(missing_script,))
         assert read.declined, "expected a declined INFO line for a missing script"
         assert any(missing_script in line for line in read.declined), read.declined
-        problems = literal_scan_coverage_floor_problems(read, surfaces=(missing_script,))
+        problems = literal_scan_coverage_floor_problems(
+            read, surfaces=(missing_script,)
+        )
         assert len(problems) == 1, problems
         assert missing_script in problems[0], problems
 
@@ -6377,7 +7427,9 @@ def _control_scan_glob_narrowing_fires() -> None:
     narrowed = tuple(s for s in LITERAL_SCAN_SURFACES if s != "CLAUDE.md")
     read = run_literal_scan(surfaces=narrowed)
     assert "CLAUDE.md" not in read.read_relpaths, read.read_relpaths
-    problems = literal_scan_coverage_floor_problems(read, surfaces=LITERAL_SCAN_SURFACES)
+    problems = literal_scan_coverage_floor_problems(
+        read, surfaces=LITERAL_SCAN_SURFACES
+    )
     assert any("CLAUDE.md" in p for p in problems), problems
 
 
@@ -6431,25 +7483,31 @@ def _control_literal_scan_covers_registry_module() -> None:
     `literal_scan_problems` the real `--check` leg calls, not a
     hand-simulated equivalent."""
     real_text = (REPO_ROOT / "scripts/_gate_registry.py").read_text(encoding="utf-8")
-    real_doc = ast.get_docstring(ast.parse(real_text, filename="scripts/_gate_registry.py")) or ""
+    real_doc = (
+        ast.get_docstring(ast.parse(real_text, filename="scripts/_gate_registry.py"))
+        or ""
+    )
     positive_hits = tuple(
         _literal_hits_outside_generated("scripts/_gate_registry.py#__doc__", real_doc)
     )
-    positive_read = LiteralScanRead(read_relpaths=frozenset(), hits=positive_hits, declined=())
+    positive_read = LiteralScanRead(
+        read_relpaths=frozenset(), hits=positive_hits, declined=()
+    )
     assert literal_scan_problems(positive_read) == [], positive_hits
 
     # Assembled across more than one physical source line: this file is
     # itself a population member the live scan reads, so a contiguous
     # literal on one on-disk line here would self-match — the same defence
     # `_control_roster_arm_shape_census_vacuity` already documents.
-    defective_doc = (
-        "This fixture module docstring carries seven"
-        " items for the test."
-    )
+    defective_doc = "This fixture module docstring carries seven items for the test."
     negative_hits = tuple(
-        _literal_hits_outside_generated("scripts/_gate_registry.py#__doc__", defective_doc)
+        _literal_hits_outside_generated(
+            "scripts/_gate_registry.py#__doc__", defective_doc
+        )
     )
-    negative_read = LiteralScanRead(read_relpaths=frozenset(), hits=negative_hits, declined=())
+    negative_read = LiteralScanRead(
+        read_relpaths=frozenset(), hits=negative_hits, declined=()
+    )
     negative = literal_scan_problems(negative_read)
     assert len(negative) == 1, negative
     assert "scripts/_gate_registry.py" in negative[0], negative
@@ -6470,15 +7528,17 @@ def _control_scan_neutralization_arms() -> None:
             _control_scan_hit_inside_fence_passes()
         except AssertionError:
             failed = True
-        assert failed, "neutralizing the fence discriminator did not break scan-hit-inside-fence-passes"
+        assert failed, (
+            "neutralizing the fence discriminator did not break scan-hit-inside-fence-passes"
+        )
     finally:
         _this_module._generated_marker_pairs_for = original_fence
 
     # Arm 2: disable spelled-out normalisation (digit atoms only).
     original_num_atom = _this_module._literal_is_num_atom
     _digit_only_re = re.compile(r"\d{1,4}")
-    _this_module._literal_is_num_atom = (
-        lambda clean: bool(clean) and bool(re.fullmatch(_digit_only_re, clean))
+    _this_module._literal_is_num_atom = lambda clean: (
+        bool(clean) and bool(re.fullmatch(_digit_only_re, clean))
     )
     try:
         failed = False
@@ -6486,7 +7546,9 @@ def _control_scan_neutralization_arms() -> None:
             _control_scan_spelled_out_detected()
         except AssertionError:
             failed = True
-        assert failed, "neutralizing spelled-out matching did not break scan-spelled-out-detected"
+        assert failed, (
+            "neutralizing spelled-out matching did not break scan-spelled-out-detected"
+        )
     finally:
         _this_module._literal_is_num_atom = original_num_atom
 
@@ -6499,7 +7561,9 @@ def _control_scan_neutralization_arms() -> None:
             _control_scan_unattributable_permit_fires()
         except AssertionError:
             failed = True
-        assert failed, "an unconditional permit did not break scan-unattributable-permit-fires"
+        assert failed, (
+            "an unconditional permit did not break scan-unattributable-permit-fires"
+        )
     finally:
         _this_module._literal_hit_exemption = original_exemption
 
@@ -6541,6 +7605,9 @@ def _control_roster_arm_shape_census() -> None:
     assert sources and roster_arm_shape_census_problems(sources=sources) == [], sources
 
 
+# The roster-arm census reads this source text; the fixture literals below are
+# deliberately split across lines, so the formatter must not rejoin them.
+# fmt: off
 def _control_roster_arm_shape_census_vacuity() -> None:
     """Anti-vacuity by construction: drives
     `roster_arm_shape_census_problems` against synthetic sources covering
@@ -6586,11 +7653,15 @@ def _control_roster_arm_shape_census_vacuity() -> None:
     assert any("scripts/fixture-wave15.py" in p for p in problems), problems
     assert any("scripts/fixture-version-stamps.py" in p for p in problems), problems
     assert any(
-        "scripts/fixture-value-bearing.py" in p and "roster-arm-value-bearing-clause-marker" in p
+        "scripts/fixture-value-bearing.py" in p
+        and "roster-arm-value-bearing-clause-marker" in p
         for p in problems
     ), problems
     assert not any("scripts/fixture-fixed.py" in p for p in problems), problems
-    assert not any("scripts/fixture-value-bearing-fixed.py" in p for p in problems), problems
+    assert not any("scripts/fixture-value-bearing-fixed.py" in p for p in problems), (
+        problems
+    )
+# fmt: on
 
 
 def _control_roster_arm_shape_census_population_complete() -> None:
@@ -6620,6 +7691,9 @@ def _control_roster_arm_shape_census_population_complete() -> None:
     assert sources, "population is empty"
 
 
+# The roster-arm census reads this source text; the fixture literals below are
+# deliberately split across lines, so the formatter must not rejoin them.
+# fmt: off
 def _control_roster_arm_shape_census_registry_covered() -> None:
     """Permanent, standalone reproduction of the verifier's CR-01 finding
     (T-21-22-02): `scripts/_gate_registry.py` — the module that DEFINES
@@ -6647,6 +7721,7 @@ def _control_roster_arm_shape_census_registry_covered() -> None:
     )
     assert len(negative) == 1, negative
     assert "scripts/_gate_registry.py" in negative[0], negative
+# fmt: on
 
 
 # ---------------------------------------------------------------------------
@@ -6661,9 +7736,14 @@ def _control_ledger_ratchet_fires() -> None:
     naming both the pinned figure and the live figure. Drives the digest
     parameter with this ledger's own live digest so the growth predicate
     is isolated from the (unrelated) key-set-drift predicate."""
-    ledger = {("fixture.md", "one"): ("999.99", 1, "fixture"), ("fixture.md", "two"): ("999.99", 1, "fixture")}
+    ledger = {
+        ("fixture.md", "one"): ("999.99", 1, "fixture"),
+        ("fixture.md", "two"): ("999.99", 1, "fixture"),
+    }
     digest = _deferred_ledger_keys_digest(ledger)
-    problems = literal_ledger_ratchet_problems(ledger=ledger, max_size=1, keys_digest=digest)
+    problems = literal_ledger_ratchet_problems(
+        ledger=ledger, max_size=1, keys_digest=digest
+    )
     assert len(problems) == 1, problems
     assert "1" in problems[0] and "2" in problems[0], problems[0]
 
@@ -6678,7 +7758,9 @@ def _control_ledger_ratchet_requires_repin_on_shrink() -> None:
     digest so the shrink predicate is isolated from key-set drift."""
     ledger = {("fixture.md", "one"): ("999.99", 1, "fixture")}
     digest = _deferred_ledger_keys_digest(ledger)
-    problems = literal_ledger_ratchet_problems(ledger=ledger, max_size=2, keys_digest=digest)
+    problems = literal_ledger_ratchet_problems(
+        ledger=ledger, max_size=2, keys_digest=digest
+    )
     assert len(problems) == 1, problems
     assert "1" in problems[0] and "2" in problems[0], problems[0]
 
@@ -6690,11 +7772,18 @@ def _control_ledger_key_digest_fires() -> None:
     confirm a finding naming the digest mismatch. Neither the growth nor
     the shrink predicate can see this -- `live_size` never moves -- so
     this is the one arm that proves predicate 3 is load-bearing."""
-    ledger = {("fixture.md", "one"): ("999.99", 1, "fixture"), ("fixture.md", "two"): ("999.99", 1, "fixture")}
+    ledger = {
+        ("fixture.md", "one"): ("999.99", 1, "fixture"),
+        ("fixture.md", "two"): ("999.99", 1, "fixture"),
+    }
     pinned_digest = _deferred_ledger_keys_digest(ledger)
     substituted = dict(ledger)
     substituted.pop(("fixture.md", "one"))
-    substituted[("fixture.md", "three (a never-adjudicated permit)")] = ("999.99", 1, "fixture")
+    substituted[("fixture.md", "three (a never-adjudicated permit)")] = (
+        "999.99",
+        1,
+        "fixture",
+    )
     assert len(substituted) == len(ledger), "fixture is not a same-size substitution"
     problems = literal_ledger_ratchet_problems(
         ledger=substituted, max_size=len(ledger), keys_digest=pinned_digest
@@ -6708,8 +7797,14 @@ def _control_ledger_key_digest_derived() -> None:
     for one: two synthetic ledgers differing in exactly one key produce
     different digests, and the same ledger built in a different insertion
     order produces the SAME digest (the sort-before-hash discipline)."""
-    ledger_a = {("fixture.md", "one"): ("999.99", 1, "fixture"), ("fixture.md", "two"): ("999.99", 1, "fixture")}
-    ledger_b = {("fixture.md", "one"): ("999.99", 1, "fixture"), ("fixture.md", "three"): ("999.99", 1, "fixture")}
+    ledger_a = {
+        ("fixture.md", "one"): ("999.99", 1, "fixture"),
+        ("fixture.md", "two"): ("999.99", 1, "fixture"),
+    }
+    ledger_b = {
+        ("fixture.md", "one"): ("999.99", 1, "fixture"),
+        ("fixture.md", "three"): ("999.99", 1, "fixture"),
+    }
     digest_a = _deferred_ledger_keys_digest(ledger_a)
     digest_b = _deferred_ledger_keys_digest(ledger_b)
     assert digest_a != digest_b, "differing key sets produced the same digest"
@@ -6721,7 +7816,13 @@ def _control_ledger_key_digest_derived() -> None:
 def _control_ledger_staleness_fires() -> None:
     """A fabricated ledger key matching no live hit must fail, naming that
     key -- the ledger cannot silently outlive its own findings."""
-    ledger = {("fixture.md", "this text never appears anywhere in the tree"): ("999.99", 1, "fixture")}
+    ledger = {
+        ("fixture.md", "this text never appears anywhere in the tree"): (
+            "999.99",
+            1,
+            "fixture",
+        )
+    }
     read = LiteralScanRead(read_relpaths=frozenset(), hits=(), declined=())
     problems = literal_ledger_staleness_problems(read, ledger=ledger)
     assert len(problems) == 1, problems
@@ -6740,7 +7841,9 @@ def _control_ledger_occurrence_surplus_fires() -> None:
         text = "There are 9 branches here.\nThere are 9 branches here too.\n"
         hits = _literal_hits_outside_generated("fixture.md", text)
         assert len(hits) == 2, hits
-        read = LiteralScanRead(read_relpaths=frozenset({"fixture.md"}), hits=tuple(hits), declined=())
+        read = LiteralScanRead(
+            read_relpaths=frozenset({"fixture.md"}), hits=tuple(hits), declined=()
+        )
         problems = literal_scan_problems(read)
         surplus = [p for p in problems if "occurrence surplus" in p]
         assert len(surplus) == 1, problems
@@ -6805,7 +7908,9 @@ def _control_ledger_injection_claude_md_fires() -> None:
     text = (REPO_ROOT / "CLAUDE.md").read_text(encoding="utf-8")
     mutated = text + "\nSCAN-GUARD carries 999 clause-level named branches\n"
     hits = _literal_hits_outside_generated("CLAUDE.md", mutated)
-    read = LiteralScanRead(read_relpaths=frozenset({"CLAUDE.md"}), hits=tuple(hits), declined=())
+    read = LiteralScanRead(
+        read_relpaths=frozenset({"CLAUDE.md"}), hits=tuple(hits), declined=()
+    )
     problems = literal_scan_problems(read)
     injected = [p for p in problems if "999" in p]
     assert len(injected) == 1, problems
@@ -6850,7 +7955,9 @@ def _control_containment_ledger_ratchet_fires() -> None:
         ("fixture.md", "2"): ("999.99", 1, "fixture"),
     }
     digest = _deferred_ledger_keys_digest(ledger)
-    problems = containment_ledger_ratchet_problems(ledger=ledger, max_size=1, keys_digest=digest)
+    problems = containment_ledger_ratchet_problems(
+        ledger=ledger, max_size=1, keys_digest=digest
+    )
     assert len(problems) == 1, problems
     assert "1" in problems[0] and "2" in problems[0], problems[0]
 
@@ -6862,7 +7969,9 @@ def _control_containment_ledger_ratchet_requires_repin_on_shrink() -> None:
     literal-scan ledger."""
     ledger = {("fixture.md", "1"): ("999.99", 1, "fixture")}
     digest = _deferred_ledger_keys_digest(ledger)
-    problems = containment_ledger_ratchet_problems(ledger=ledger, max_size=2, keys_digest=digest)
+    problems = containment_ledger_ratchet_problems(
+        ledger=ledger, max_size=2, keys_digest=digest
+    )
     assert len(problems) == 1, problems
     assert "1" in problems[0] and "2" in problems[0], problems[0]
 
@@ -6879,7 +7988,11 @@ def _control_containment_ledger_key_digest_fires() -> None:
     pinned_digest = _deferred_ledger_keys_digest(ledger)
     substituted = dict(ledger)
     substituted.pop(("fixture.md", "1"))
-    substituted[("fixture.md", "3 (a never-adjudicated permit)")] = ("999.99", 1, "fixture")
+    substituted[("fixture.md", "3 (a never-adjudicated permit)")] = (
+        "999.99",
+        1,
+        "fixture",
+    )
     assert len(substituted) == len(ledger), "fixture is not a same-size substitution"
     problems = containment_ledger_ratchet_problems(
         ledger=substituted, max_size=len(ledger), keys_digest=pinned_digest
@@ -6903,7 +8016,13 @@ def _control_containment_ledger_class_counts_cover_ledger() -> None:
         counts,
         len(_DEFERRED_CONTAINMENT_HITS),
     )
-    fixture = {("fixture.md", "1"): ("999.99", 1, "an unclassified reason with no recognised tag")}
+    fixture = {
+        ("fixture.md", "1"): (
+            "999.99",
+            1,
+            "an unclassified reason with no recognised tag",
+        )
+    }
     try:
         _containment_ledger_class_counts(fixture)
         raise AssertionError("expected ValueError for an unclassified reason")
@@ -7035,7 +8154,9 @@ def _control_chain_terminus_fence_silent_uncorroborable() -> None:
         terminus_policy="fence-silent",
     )
     assert problems == [], problems
-    verdicts = _chain_terminus_surface_verdicts(text, (CLAUDE_REGION_MARKERS,), "fence-silent")
+    verdicts = _chain_terminus_surface_verdicts(
+        text, (CLAUDE_REGION_MARKERS,), "fence-silent"
+    )
     assert len(verdicts) == 1, verdicts
     assert verdicts[0][0] == "uncorroborable", verdicts[0]
     assert verdicts[0][1] == ("237",), verdicts[0]
@@ -7054,11 +8175,11 @@ def _control_registry_self_test_passes() -> None:
         [sys.executable, str(_REGISTRY_PATH), "--self-test"],
         capture_output=True,
         text=True,
-        timeout=60, check=False,
+        timeout=60,
+        check=False,
     )
     assert proc.returncode == 0, (
-        f"scripts/_gate_registry.py --self-test exited {proc.returncode}: "
-        f"{proc.stderr}"
+        f"scripts/_gate_registry.py --self-test exited {proc.returncode}: {proc.stderr}"
     )
 
 
@@ -7084,7 +8205,9 @@ def _control_selffile_docstring_ratchet_fires() -> None:
     both figures -- the growth direction of this file's own
     py-docstrings-only-blind-spot ratchet (a second WR-08 landing in the
     file the first one landed in)."""
-    problems = nonmodule_docstring_selffile_ratchet_problems(live_count=5, pinned_count=4)
+    problems = nonmodule_docstring_selffile_ratchet_problems(
+        live_count=5, pinned_count=4
+    )
     assert len(problems) == 1, problems
     assert "5" in problems[0] and "4" in problems[0], problems[0]
 
@@ -7094,7 +8217,9 @@ def _control_selffile_docstring_ratchet_requires_repin_on_shrink() -> None:
     naming both figures -- the shrink direction, demanding the pin be
     lowered to the live count in the same commit rather than granting
     free headroom for a later, unnoticed regrowth."""
-    problems = nonmodule_docstring_selffile_ratchet_problems(live_count=3, pinned_count=4)
+    problems = nonmodule_docstring_selffile_ratchet_problems(
+        live_count=3, pinned_count=4
+    )
     assert len(problems) == 1, problems
     assert "3" in problems[0] and "4" in problems[0], problems[0]
 
@@ -7143,7 +8268,10 @@ def _control_narrative_region_roster_equals_lock() -> None:
     `_NARRATIVE_REGION_SURFACES_LOCK` by EQUALITY, and handing that exact
     set to the comparator returns `[]`."""
     reached = {r.surface for r in _NARRATIVE_REGIONS}
-    assert reached == _NARRATIVE_REGION_SURFACES_LOCK, (reached, _NARRATIVE_REGION_SURFACES_LOCK)
+    assert reached == _NARRATIVE_REGION_SURFACES_LOCK, (
+        reached,
+        _NARRATIVE_REGION_SURFACES_LOCK,
+    )
     assert narrative_region_surface_roster_problems(frozenset(reached)) == []
 
 
@@ -7259,9 +8387,15 @@ def _control_narrative_render_round_trips_through_disk_value() -> None:
         field_path="coverage_headline.prose",
         template="Coverage stands at {value} today.",
     )
-    blob = {"coverage_headline": {"prose": "1 reproducible / 2 audit-only / 0 gap / 3 total"}}
+    blob = {
+        "coverage_headline": {
+            "prose": "1 reproducible / 2 audit-only / 0 gap / 3 total"
+        }
+    }
     rendered = _render_narrative_sentence(region, blob)
-    fixture_text = f"# Fixture\n\n{region.markers[0]}\n{rendered}\n{region.markers[1]}\n"
+    fixture_text = (
+        f"# Fixture\n\n{region.markers[0]}\n{rendered}\n{region.markers[1]}\n"
+    )
     recovered = _narrative_region_value_on_disk(region, fixture_text)
     assert recovered == blob["coverage_headline"]["prose"], (recovered, rendered)
 
@@ -7275,7 +8409,9 @@ def _control_narrative_exemption_matcher_never_suppresses() -> None:
     future "fix" that makes this matcher start returning `True` to
     compensate for a missing fence registration fails THIS control by
     name."""
-    cls = next(c for c in LITERAL_EXEMPTION_CLASSES if c.name == "generated-narrative-region")
+    cls = next(
+        c for c in LITERAL_EXEMPTION_CLASSES if c.name == "generated-narrative-region"
+    )
     hit = LiteralHit(
         "docs/README.md", 20, "208 reproducible / 97 audit-only / 0 gap / 305 total"
     )
@@ -7290,7 +8426,10 @@ def _control_narrative_restatement_four_legs() -> None:
     nothing -- covering every classified outcome."""
     region = _NarrativeRegion(
         surface="fixtures/narrative-restatement-host.md",
-        markers=("<!-- GENERATED:NARR-CENSUS -->", "<!-- END GENERATED:NARR-CENSUS -->"),
+        markers=(
+            "<!-- GENERATED:NARR-CENSUS -->",
+            "<!-- END GENERATED:NARR-CENSUS -->",
+        ),
         source_script="scripts/check-traceability.py",
         field_path="coverage_headline.prose",
         template="The pinned count is {value} today.",
@@ -7348,10 +8487,15 @@ def _control_narrative_roster_accumulated_not_table_derived() -> None:
     stdout_buf, stderr_buf = io.StringIO(), io.StringIO()
     try:
         _this_module.generate_all = _fixture
-        with contextlib.redirect_stdout(stdout_buf), contextlib.redirect_stderr(stderr_buf):
+        with (
+            contextlib.redirect_stdout(stdout_buf),
+            contextlib.redirect_stderr(stderr_buf),
+        ):
             rc = cmd_check()
         stderr_text = stderr_buf.getvalue()
-        assert rc == 1, f"cmd_check() returned {rc}, expected 1 with docs/README.md missing from pass1"
+        assert rc == 1, (
+            f"cmd_check() returned {rc}, expected 1 with docs/README.md missing from pass1"
+        )
         assert "narrative-region-surface-roster" in stderr_text, stderr_text
         assert "docs/README.md" in stderr_text, stderr_text
     finally:
@@ -7380,17 +8524,25 @@ def _control_narrative_restatement_wired_into_cmd_check() -> None:
     try:
         _this_module.narrative_restatement_problems = _stub_finding
         stdout_buf, stderr_buf = io.StringIO(), io.StringIO()
-        with contextlib.redirect_stdout(stdout_buf), contextlib.redirect_stderr(stderr_buf):
+        with (
+            contextlib.redirect_stdout(stdout_buf),
+            contextlib.redirect_stderr(stderr_buf),
+        ):
             rc_finding = cmd_check()
         stderr_finding = stderr_buf.getvalue()
         assert rc_finding == 1, (
             f"cmd_check() returned {rc_finding}, expected 1 with a stubbed restatement finding"
         )
-        assert "narrative-restatement: fixtures/synthetic.md:1" in stderr_finding, stderr_finding
+        assert "narrative-restatement: fixtures/synthetic.md:1" in stderr_finding, (
+            stderr_finding
+        )
 
         _this_module.narrative_restatement_problems = _stub_none
         stdout_buf2, stderr_buf2 = io.StringIO(), io.StringIO()
-        with contextlib.redirect_stdout(stdout_buf2), contextlib.redirect_stderr(stderr_buf2):
+        with (
+            contextlib.redirect_stdout(stdout_buf2),
+            contextlib.redirect_stderr(stderr_buf2),
+        ):
             rc_none = cmd_check()
         assert rc_none == 0, (
             f"cmd_check() returned {rc_none} with narrative_restatement_problems stubbed to "
@@ -7426,7 +8578,10 @@ def _control_narrative_marker_context_legs() -> None:
         "> X 42 Y\n"
         "> <!-- END GENERATED:CTX-TEST -->\n"
     )
-    assert narrative_region_marker_context_problems((region,), {region.surface: bq_match}) == []
+    assert (
+        narrative_region_marker_context_problems((region,), {region.surface: bq_match})
+        == []
+    )
 
     # Leg 2: blockquote MISMATCH (T-26-13's own regression shape) -- bare,
     # unprefixed markers bracketing a blockquote-prefixed body -- fails,
@@ -7437,7 +8592,9 @@ def _control_narrative_marker_context_legs() -> None:
         "> X 42 Y\n"
         "<!-- END GENERATED:CTX-TEST -->\n"
     )
-    problems = narrative_region_marker_context_problems((region,), {region.surface: bq_mismatch})
+    problems = narrative_region_marker_context_problems(
+        (region,), {region.surface: bq_mismatch}
+    )
     assert len(problems) == 2, problems
     assert all("fixtures/marker-context.md" in p for p in problems), problems
     assert "start marker" in problems[0] and "'>'" in problems[0], problems
@@ -7446,12 +8603,22 @@ def _control_narrative_marker_context_legs() -> None:
     # Leg 3: list-indent match (two-space-indented markers matching their
     # own two-space-indented body) -- passes.
     list_match = "# Fixture\n\n  <!-- GENERATED:CTX-TEST -->\n  X 42 Y\n  <!-- END GENERATED:CTX-TEST -->\n"
-    assert narrative_region_marker_context_problems((region,), {region.surface: list_match}) == []
+    assert (
+        narrative_region_marker_context_problems(
+            (region,), {region.surface: list_match}
+        )
+        == []
+    )
 
     # Leg 4: plain paragraph, no container at all (both prefixes empty) --
     # passes.
     plain_match = "# Fixture\n\n<!-- GENERATED:CTX-TEST -->\nX 42 Y\n<!-- END GENERATED:CTX-TEST -->\n"
-    assert narrative_region_marker_context_problems((region,), {region.surface: plain_match}) == []
+    assert (
+        narrative_region_marker_context_problems(
+            (region,), {region.surface: plain_match}
+        )
+        == []
+    )
 
     # A bare ">" continuation line (no trailing space) is the SAME container
     # as a "> "-prefixed marker -- must NOT be reported as a mismatch. This
@@ -7459,7 +8626,10 @@ def _control_narrative_marker_context_legs() -> None:
     # end marker is a bare ">" continuation, not a "> "-prefixed one.
     region2 = _NarrativeRegion(
         surface="fixtures/marker-context-2.md",
-        markers=("> <!-- GENERATED:CTX-TEST-2 -->", "> <!-- END GENERATED:CTX-TEST-2 -->"),
+        markers=(
+            "> <!-- GENERATED:CTX-TEST-2 -->",
+            "> <!-- END GENERATED:CTX-TEST-2 -->",
+        ),
         source_script="scripts/check-traceability.py",
         field_path="coverage_headline.prose",
         template="X {value} Y",
@@ -7472,8 +8642,13 @@ def _control_narrative_marker_context_legs() -> None:
         "> <!-- END GENERATED:CTX-TEST-2 -->\n"
     )
     assert (
-        narrative_region_marker_context_problems((region2,), {region2.surface: real_shape}) == []
-    ), narrative_region_marker_context_problems((region2,), {region2.surface: real_shape})
+        narrative_region_marker_context_problems(
+            (region2,), {region2.surface: real_shape}
+        )
+        == []
+    ), narrative_region_marker_context_problems(
+        (region2,), {region2.surface: real_shape}
+    )
 
 
 def _control_narrative_marker_context_live_tree_clean() -> None:
@@ -7502,17 +8677,25 @@ def _control_narrative_marker_context_wired_into_cmd_check() -> None:
     try:
         _this_module.narrative_region_marker_context_problems = _stub_finding
         stdout_buf, stderr_buf = io.StringIO(), io.StringIO()
-        with contextlib.redirect_stdout(stdout_buf), contextlib.redirect_stderr(stderr_buf):
+        with (
+            contextlib.redirect_stdout(stdout_buf),
+            contextlib.redirect_stderr(stderr_buf),
+        ):
             rc_finding = cmd_check()
         stderr_finding = stderr_buf.getvalue()
         assert rc_finding == 1, (
             f"cmd_check() returned {rc_finding}, expected 1 with a stubbed marker-context finding"
         )
-        assert "narrative-marker-context: fixtures/synthetic.md" in stderr_finding, stderr_finding
+        assert "narrative-marker-context: fixtures/synthetic.md" in stderr_finding, (
+            stderr_finding
+        )
 
         _this_module.narrative_region_marker_context_problems = _stub_none
         stdout_buf2, stderr_buf2 = io.StringIO(), io.StringIO()
-        with contextlib.redirect_stdout(stdout_buf2), contextlib.redirect_stderr(stderr_buf2):
+        with (
+            contextlib.redirect_stdout(stdout_buf2),
+            contextlib.redirect_stderr(stderr_buf2),
+        ):
             rc_none = cmd_check()
         assert rc_none == 0, (
             f"cmd_check() returned {rc_none} with narrative_region_marker_context_problems "
@@ -7551,13 +8734,22 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("gates-link-resolves-per-surface", _control_gates_link_resolves_per_surface),
     ("row-count-equals-entries", _control_row_count_equals_entries),
     ("no-row-wrapped", _control_no_row_wrapped),
-    ("testing-index-row-count-equals-entries", _control_testing_index_row_count_equals_entries),
+    (
+        "testing-index-row-count-equals-entries",
+        _control_testing_index_row_count_equals_entries,
+    ),
     ("testing-index-links-resolve", _control_testing_index_links_resolve),
     ("testing-real-file-region", _control_testing_real_file_region),
     ("trace03-glob-substring-derived", _control_trace03_glob_substring_derived),
     ("population-arithmetic-derived", _control_population_arithmetic_derived),
-    ("arithmetic-sentence-pluralizes-correctly", _control_arithmetic_sentence_pluralizes_correctly),
-    ("arithmetic-sentence-names-gates-not-hooks", _control_arithmetic_sentence_names_gates_not_hooks),
+    (
+        "arithmetic-sentence-pluralizes-correctly",
+        _control_arithmetic_sentence_pluralizes_correctly,
+    ),
+    (
+        "arithmetic-sentence-names-gates-not-hooks",
+        _control_arithmetic_sentence_names_gates_not_hooks,
+    ),
     (
         "hook-mechanism-count-independent-of-precommit-count",
         _control_hook_mechanism_count_independent_of_precommit_count,
@@ -7565,7 +8757,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("framing-sentences-replaced", _control_framing_sentences_replaced),
     ("region-preserves-surrounding-prose", _control_region_preserves_surrounding_prose),
     ("page-per-entry", _control_page_per_entry),
-    ("narrative-preserved-across-regeneration", _control_narrative_preserved_across_regeneration),
+    (
+        "narrative-preserved-across-regeneration",
+        _control_narrative_preserved_across_regeneration,
+    ),
     ("thin-page-fully-generated", _control_thin_page_fully_generated),
     ("containment-violation-fires", _control_containment_violation_fires),
     ("containment-satisfied-passes", _control_containment_satisfied_passes),
@@ -7611,8 +8806,14 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_delta_chain_hops_claude_row_count_recovered,
     ),
     ("citation-shape-slash-before-arrow", _control_citation_shape_slash_before_arrow),
-    ("version01-narrative-control-ids-live", _control_version01_narrative_control_ids_live),
-    ("confsurface-census-narrative-joined", _control_confsurface_census_narrative_joined),
+    (
+        "version01-narrative-control-ids-live",
+        _control_version01_narrative_control_ids_live,
+    ),
+    (
+        "confsurface-census-narrative-joined",
+        _control_confsurface_census_narrative_joined,
+    ),
     ("check-reports-full-drift-count", _control_page_check_dispatch_wired),
     ("scan-hit-outside-fence-fires", _control_scan_hit_outside_fence_fires),
     ("scan-hit-inside-fence-passes", _control_scan_hit_inside_fence_passes),
@@ -7622,7 +8823,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("scan-docstring-only", _control_scan_docstring_only),
     ("scan-coverage-floor-fires", _control_scan_coverage_floor_fires),
     ("scan-glob-narrowing-fires", _control_scan_glob_narrowing_fires),
-    ("scan-coverage-floor-signature-locked", _control_scan_coverage_floor_signature_locked),
+    (
+        "scan-coverage-floor-signature-locked",
+        _control_scan_coverage_floor_signature_locked,
+    ),
     (
         "literal-scan-py-population-complete",
         _control_literal_scan_py_population_complete,
@@ -7643,21 +8847,30 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_roster_arm_shape_census_registry_covered,
     ),
     ("ledger-ratchet-fires", _control_ledger_ratchet_fires),
-    ("ledger-ratchet-requires-repin-on-shrink", _control_ledger_ratchet_requires_repin_on_shrink),
+    (
+        "ledger-ratchet-requires-repin-on-shrink",
+        _control_ledger_ratchet_requires_repin_on_shrink,
+    ),
     ("ledger-key-digest-fires", _control_ledger_key_digest_fires),
     ("ledger-key-digest-derived", _control_ledger_key_digest_derived),
     ("ledger-staleness-fires", _control_ledger_staleness_fires),
     ("ledger-occurrence-surplus-fires", _control_ledger_occurrence_surplus_fires),
     ("ledger-not-an-unconditional-permit", _control_ledger_not_an_unconditional_permit),
     ("ledger-injection-claude-md-fires", _control_ledger_injection_claude_md_fires),
-    ("ledger-injection-architecture-fires", _control_ledger_injection_architecture_fires),
+    (
+        "ledger-injection-architecture-fires",
+        _control_ledger_injection_architecture_fires,
+    ),
     ("ledger-injection-testing-fires", _control_ledger_injection_testing_fires),
     ("containment-ledger-ratchet-fires", _control_containment_ledger_ratchet_fires),
     (
         "containment-ledger-ratchet-requires-repin-on-shrink",
         _control_containment_ledger_ratchet_requires_repin_on_shrink,
     ),
-    ("containment-ledger-key-digest-fires", _control_containment_ledger_key_digest_fires),
+    (
+        "containment-ledger-key-digest-fires",
+        _control_containment_ledger_key_digest_fires,
+    ),
     ("containment-ledger-staleness-fires", _control_containment_ledger_staleness_fires),
     (
         "containment-ledger-not-an-unconditional-permit",
@@ -7688,7 +8901,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_chain_terminus_fence_silent_uncorroborable,
     ),
     ("registry-self-test", _control_registry_self_test_passes),
-    ("own-registry-docstring-has-no-count", _control_own_registry_docstring_has_no_count),
+    (
+        "own-registry-docstring-has-no-count",
+        _control_own_registry_docstring_has_no_count,
+    ),
     ("selffile-docstring-ratchet-fires", _control_selffile_docstring_ratchet_fires),
     (
         "selffile-docstring-ratchet-requires-repin-on-shrink",
@@ -7744,7 +8960,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_narrative_restatement_wired_into_cmd_check,
     ),
     ("narrative-marker-context-legs", _control_narrative_marker_context_legs),
-    ("narrative-marker-context-live-tree-clean", _control_narrative_marker_context_live_tree_clean),
+    (
+        "narrative-marker-context-live-tree-clean",
+        _control_narrative_marker_context_live_tree_clean,
+    ),
     (
         "narrative-marker-context-wired-into-cmd-check",
         _control_narrative_marker_context_wired_into_cmd_check,
@@ -7893,14 +9112,18 @@ def self_test() -> int:
         failures.append(
             (
                 "coverage-floor",
-                (f"registered/executed control-id mismatch: missing={sorted(missing)} "
-                f"extra={sorted(extra)}"),
+                (
+                    f"registered/executed control-id mismatch: missing={sorted(missing)} "
+                    f"extra={sorted(extra)}"
+                ),
             )
         )
 
     if failures:
         for control_id, message in failures:
-            sys.stderr.write(f"gen-gate-docs: SELF-TEST FAIL [{control_id}] — {message}\n")
+            sys.stderr.write(
+                f"gen-gate-docs: SELF-TEST FAIL [{control_id}] — {message}\n"
+            )
         return 1
     print(f"gen-gate-docs: SELF-TEST PASS — {len(executed)} controls run")
     return 0
@@ -7922,7 +9145,9 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Compare; exit 1 on drift or a harvest/floor problem, exit 2 on non-determinism.",
     )
-    g.add_argument("--self-test", action="store_true", help="Run the offline control battery.")
+    g.add_argument(
+        "--self-test", action="store_true", help="Run the offline control battery."
+    )
     g.add_argument(
         "--describe",
         action="store_true",

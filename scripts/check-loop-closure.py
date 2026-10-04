@@ -58,7 +58,9 @@ from pathlib import Path
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 BODY_PATH: Path = REPO_ROOT / "shared" / "spine" / "SKILL-body.md"
 CONTRACT_PATH: Path = REPO_ROOT / "shared" / "agent" / "input-contract.md"
-RUBRIC_PATH: Path = REPO_ROOT / "shared" / "spine" / "references" / "validation-rubric.md"
+RUBRIC_PATH: Path = (
+    REPO_ROOT / "shared" / "spine" / "references" / "validation-rubric.md"
+)
 
 _BODY_NAME = "SKILL-body.md"
 _CONTRACT_NAME = "input-contract.md"
@@ -74,24 +76,49 @@ _RUBRIC_NAME = "validation-rubric.md"
 # self-test docstring's own deliberately-unasserted "never a magic number"
 # count.
 _CONTROL_ROSTER: tuple[tuple[str, str], ...] = (
-    ("N1", _BODY_NAME), ("N2", _BODY_NAME), ("N3", _BODY_NAME), ("N4", _BODY_NAME),
-    ("N5", _BODY_NAME), ("N6", _BODY_NAME), ("N7", _BODY_NAME), ("N8", _BODY_NAME),
-    ("N9", _CONTRACT_NAME), ("N10", _CONTRACT_NAME),
-    ("N11", _RUBRIC_NAME), ("N12", _RUBRIC_NAME), ("N13", _BODY_NAME),
-    ("N14", _BODY_NAME), ("N15", _RUBRIC_NAME), ("N16", _RUBRIC_NAME),
-    ("N17", _RUBRIC_NAME), ("N18", _RUBRIC_NAME), ("N19", _CONTRACT_NAME),
-    ("N20", _BODY_NAME), ("N21", _BODY_NAME), ("N22", _CONTRACT_NAME),
-    ("N23", _CONTRACT_NAME), ("N24", _RUBRIC_NAME), ("N25", _BODY_NAME),
-    ("N26", _BODY_NAME), ("N27", _BODY_NAME), ("N28", _RUBRIC_NAME),
-    ("N29", _BODY_NAME), ("N30", _BODY_NAME), ("N31", _BODY_NAME),
-    ("N32", _BODY_NAME), ("N33", _BODY_NAME),
+    ("N1", _BODY_NAME),
+    ("N2", _BODY_NAME),
+    ("N3", _BODY_NAME),
+    ("N4", _BODY_NAME),
+    ("N5", _BODY_NAME),
+    ("N6", _BODY_NAME),
+    ("N7", _BODY_NAME),
+    ("N8", _BODY_NAME),
+    ("N9", _CONTRACT_NAME),
+    ("N10", _CONTRACT_NAME),
+    ("N11", _RUBRIC_NAME),
+    ("N12", _RUBRIC_NAME),
+    ("N13", _BODY_NAME),
+    ("N14", _BODY_NAME),
+    ("N15", _RUBRIC_NAME),
+    ("N16", _RUBRIC_NAME),
+    ("N17", _RUBRIC_NAME),
+    ("N18", _RUBRIC_NAME),
+    ("N19", _CONTRACT_NAME),
+    ("N20", _BODY_NAME),
+    ("N21", _BODY_NAME),
+    ("N22", _CONTRACT_NAME),
+    ("N23", _CONTRACT_NAME),
+    ("N24", _RUBRIC_NAME),
+    ("N25", _BODY_NAME),
+    ("N26", _BODY_NAME),
+    ("N27", _BODY_NAME),
+    ("N28", _RUBRIC_NAME),
+    ("N29", _BODY_NAME),
+    ("N30", _BODY_NAME),
+    ("N31", _BODY_NAME),
+    ("N32", _BODY_NAME),
+    ("N33", _BODY_NAME),
     # N34 retired (quick 260929-r9g): its premise — that the `AskUserQuestion`
     # frontmatter permission key made the mid-run re-open edge firable — was
     # false. The key is an undocumented field Claude Code ignores, and Claude
     # Code strips `AskUserQuestion` from every dispatched subagent regardless
     # of frontmatter. Not renumbered.
-    ("N35", _CONTRACT_NAME), ("N36", _BODY_NAME), ("N37", _BODY_NAME),
-    ("N38", _CONTRACT_NAME), ("N39", _CONTRACT_NAME),
+    ("N35", _CONTRACT_NAME),
+    ("N36", _BODY_NAME),
+    ("N37", _BODY_NAME),
+    ("N38", _CONTRACT_NAME),
+    ("N39", _CONTRACT_NAME),
 )
 
 # ---------------------------------------------------------------------------
@@ -178,11 +205,15 @@ _ASK_FALLBACK_MIDRUN = (
 # entry condition the verdict itself falsified, and skipped the only phase that
 # produces the missing artifact. The landing point now tracks the artifact, so
 # pin the artifact-tracking clause rather than a bare phase number.
-_MIDRUN_LANDING = "re-enters at the phase that owns the artifact the Absent verdict named"  # L12
+_MIDRUN_LANDING = (
+    "re-enters at the phase that owns the artifact the Absent verdict named"  # L12
+)
 _MIDRUN_LANDING_BODY = "re-enters at the phase that owns the missing artifact"  # L13
 
 _TURN_DISCIPLINE = "Turn discipline"  # L9
-_UNBOUNDED_RESCORE = "revise the analysis and re-score from the beginning"  # X2 (must be ABSENT)
+_UNBOUNDED_RESCORE = (
+    "revise the analysis and re-score from the beginning"  # X2 (must be ABSENT)
+)
 
 # X3: the phrase-shape the unbounded instruction keeps returning as. The rubric's
 # Usage Note shipped it in wording X2 does not match ("the relevant sections"
@@ -207,7 +238,9 @@ _COMPLETENESS_CLAIM = "complete enough that Phase 4 can reason upward"  # L10a
 # one that removes the exception ("this exit criterion admits no re-entry"). The
 # pin could not distinguish the clause from its negation, and did not check that
 # the clause names the edges or defers to the bound.
-_REENTRY_EXCEPTION = "except through the bounded re-entry edges named under Turn discipline"
+_REENTRY_EXCEPTION = (
+    "except through the bounded re-entry edges named under Turn discipline"
+)
 _SECOND_ORDER = "second-order"  # scoped to the Turn discipline bound paragraph (S3)
 
 # L17 / L18 / X6: the edge enumeration.
@@ -307,7 +340,11 @@ def _block_end(lines: list[str], idx: int) -> int:
         stripped = lines[end].strip()
         if not stripped:
             break
-        if _LIST_ITEM_RE.match(lines[end]) or stripped.startswith("#") or set(stripped) == {"-"}:
+        if (
+            _LIST_ITEM_RE.match(lines[end])
+            or stripped.startswith("#")
+            or set(stripped) == {"-"}
+        ):
             break
         end += 1
     return end
@@ -336,7 +373,7 @@ def _find_unique_block(text: str, anchor: str) -> tuple[str | None, int]:
     if len(starts) != 1:
         return None, len(starts)
     idx = starts[0]
-    return "\n".join(lines[idx:_block_end(lines, idx)]), 1
+    return "\n".join(lines[idx : _block_end(lines, idx)]), 1
 
 
 def _extract_turn_discipline_section(text: str) -> tuple[str | None, int]:
@@ -391,31 +428,31 @@ def _check_body_text(text: str) -> list[str]:
         )
     if _contains(text, _SUPERSEDED_EDGE_COUNT):
         failures.append(
-            f'{src}: the edge enumeration double-counts the Fix/Repeat loop, granting it '
+            f"{src}: the edge enumeration double-counts the Fix/Repeat loop, granting it "
             f'two passes under a per-edge bound ("{_SUPERSEDED_EDGE_COUNT}")'
         )
     if not _contains(text, _ONE_EDGE_TWO_STATEMENTS):
         failures.append(
-            f'{src}: the enumeration no longer says the Fix/Repeat loop and the rubric\'s '
-            f're-score instruction are one edge stated twice '
+            f"{src}: the enumeration no longer says the Fix/Repeat loop and the rubric's "
+            f"re-score instruction are one edge stated twice "
             f'("{_ONE_EDGE_TWO_STATEMENTS}")'
         )
     if not _contains(text, _BOUND_BODY):
         failures.append(
-            f'{src}: the bound has lost its polarity carrier — a bare noun phrase '
+            f"{src}: the bound has lost its polarity carrier — a bare noun phrase "
             f'cannot distinguish the rule from its negation ("{_BOUND_BODY}")'
         )
     if _contains(text, _INVERTED_BOUND_BODY):
         failures.append(
-            f'{src}: the bound has been inverted by a hedging qualifier '
+            f"{src}: the bound has been inverted by a hedging qualifier "
             f'("{_INVERTED_BOUND_BODY}")'
         )
     if not _contains(text, _DEGRADE):
         failures.append(f'{src}: missing the degradation path ("{_DEGRADE}")')
     if not _contains(text, _BOUND_SUBORDINATION):
         failures.append(
-            f'{src}: the degradation sentence is not subordinated to the edge-scoped '
-            f'bound — a criterion-scoped carve-out leaves the loop reopenable by '
+            f"{src}: the degradation sentence is not subordinated to the edge-scoped "
+            f"bound — a criterion-scoped carve-out leaves the loop reopenable by "
             f'alternating which criterion fails ("{_BOUND_SUBORDINATION}")'
         )
     # S4: L3 is scoped to the paragraph that owns it, not checked whole-text.
@@ -426,21 +463,25 @@ def _check_body_text(text: str) -> list[str]:
             f"found {s4_count}"
         )
         if not _contains(text, _PHASE1_ROUTE):
-            failures.append(f'{src}: missing the Phase-1 re-entry route ("{_PHASE1_ROUTE}")')
+            failures.append(
+                f'{src}: missing the Phase-1 re-entry route ("{_PHASE1_ROUTE}")'
+            )
     elif not _contains(s4_block, _PHASE1_ROUTE):
         failures.append(
-            f'{src}: missing the Phase-1 re-entry route from the paragraph that owns it '
+            f"{src}: missing the Phase-1 re-entry route from the paragraph that owns it "
             f'("{_PHASE1_ROUTE}")'
         )
     if not _contains(text, _FIRING_RECORD):
-        failures.append(f'{src}: missing the re-entry firing record ("{_FIRING_RECORD}")')
+        failures.append(
+            f'{src}: missing the re-entry firing record ("{_FIRING_RECORD}")'
+        )
     if _contains(text, _UNBOUNDED_REPEAT):
         failures.append(
             f'{src}: unbounded Repeat instruction still present ("{_UNBOUNDED_REPEAT}")'
         )
     if not _contains(text, _MIDRUN_LANDING_BODY):
         failures.append(
-            f'{src}: the mid-run re-open route is not widened past Criterion 1 with an '
+            f"{src}: the mid-run re-open route is not widened past Criterion 1 with an "
             f'artifact-tracking landing point ("{_MIDRUN_LANDING_BODY}")'
         )
 
@@ -465,12 +506,12 @@ def _check_body_text(text: str) -> list[str]:
     else:
         if not _contains(s2_line, _COMPLETENESS_CLAIM):
             failures.append(
-                f'{src}: the Phase 3 exit-criterion line lost the completeness claim '
+                f"{src}: the Phase 3 exit-criterion line lost the completeness claim "
                 f'("{_COMPLETENESS_CLAIM}")'
             )
         if not _contains(s2_line, _REENTRY_EXCEPTION):
             failures.append(
-                f'{src}: the Phase 3 exit-criterion line lost the re-entry exception clause '
+                f"{src}: the Phase 3 exit-criterion line lost the re-entry exception clause "
                 f'("{_REENTRY_EXCEPTION}")'
             )
 
@@ -481,7 +522,9 @@ def _check_body_text(text: str) -> list[str]:
     # assertion protecting that edge.
     section, heading_count = _extract_turn_discipline_section(text)
     if section is None and heading_count == 0:
-        failures.append(f'{src}: could not locate the "{_TURN_DISCIPLINE_HEADING}" section')
+        failures.append(
+            f'{src}: could not locate the "{_TURN_DISCIPLINE_HEADING}" section'
+        )
     elif section is None:
         failures.append(
             f'{src}: expected exactly one "{_TURN_DISCIPLINE_HEADING}" heading, '
@@ -497,7 +540,7 @@ def _check_body_text(text: str) -> list[str]:
             )
         elif not _contains(bound_paragraphs[0], _SECOND_ORDER):
             failures.append(
-                f'{src}: the bound paragraph in Turn discipline does not name the '
+                f"{src}: the bound paragraph in Turn discipline does not name the "
                 f'second-order edge ("{_SECOND_ORDER}")'
             )
 
@@ -515,30 +558,30 @@ def _check_input_contract_text(text: str) -> list[str]:
             f'{src}: missing the per-delegation prohibition ("{_NO_PER_DELEGATION}")'
         )
     if not _contains(text, _ASK_TOOL):
-        failures.append(f'{src}: missing the AskUserQuestion tool reference')
+        failures.append(f"{src}: missing the AskUserQuestion tool reference")
     if not _contains(text, _ASK_FALLBACK):
         failures.append(
             f'{src}: missing the AskUserQuestion-unavailable fallback clause ("{_ASK_FALLBACK}")'
         )
     if not _contains(text, _ASK_FALLBACK_MIDRUN):
         failures.append(
-            f'{src}: the AskUserQuestion-unavailable fallback has no mid-run branch — as '
-            f'written it licenses proceeding best-effort past an Absent verdict '
+            f"{src}: the AskUserQuestion-unavailable fallback has no mid-run branch — as "
+            f"written it licenses proceeding best-effort past an Absent verdict "
             f'("{_ASK_FALLBACK_MIDRUN}")'
         )
     if not _contains(text, _MIDRUN_LANDING):
         failures.append(
-            f'{src}: the mid-run re-open does not route its answer by which artifact is '
+            f"{src}: the mid-run re-open does not route its answer by which artifact is "
             f'missing ("{_MIDRUN_LANDING}")'
         )
     if not _contains(text, _CANDIDATE_ENTRY):
         failures.append(
-            f'{src}: the Known ground truths bullet no longer routes a supplied fact into '
+            f"{src}: the Known ground truths bullet no longer routes a supplied fact into "
             f'Phase 2 as a candidate ("{_CANDIDATE_ENTRY}")'
         )
     if _contains(text, _SUPERSEDED_EXEMPTION):
         failures.append(
-            f'{src}: an Input Contract bullet exempts supplied facts from challenge again '
+            f"{src}: an Input Contract bullet exempts supplied facts from challenge again "
             f'("{_SUPERSEDED_EXEMPTION}")'
         )
 
@@ -554,12 +597,12 @@ def _check_rubric_text(text: str) -> list[str]:
         failures.append(f'{src}: missing the re-entry bound ("{_BOUND}")')
     if not _contains(text, _BOUND_RUBRIC):
         failures.append(
-            f'{src}: the bound has lost its polarity carrier — a bare noun phrase '
+            f"{src}: the bound has lost its polarity carrier — a bare noun phrase "
             f'cannot distinguish the rule from its negation ("{_BOUND_RUBRIC}")'
         )
     if _contains(text, _INVERTED_BOUND_RUBRIC):
         failures.append(
-            f'{src}: the bound has been inverted by a hedging qualifier '
+            f"{src}: the bound has been inverted by a hedging qualifier "
             f'("{_INVERTED_BOUND_RUBRIC}")'
         )
     if not _contains(text, _TURN_DISCIPLINE):
@@ -572,12 +615,12 @@ def _check_rubric_text(text: str) -> list[str]:
         )
     if _contains(text, _UNBOUNDED_RESCORE_ALT):
         failures.append(
-            f'{src}: unbounded re-score instruction still present in its reworded form '
+            f"{src}: unbounded re-score instruction still present in its reworded form "
             f'("{_UNBOUNDED_RESCORE_ALT}")'
         )
     if not _contains(text, _USAGE_NOTE_BOUND):
         failures.append(
-            f'{src}: the Usage Note no longer brings its closing re-score instruction '
+            f"{src}: the Usage Note no longer brings its closing re-score instruction "
             f'under the bound ("{_USAGE_NOTE_BOUND}")'
         )
 
@@ -596,9 +639,7 @@ def _check_loop_closure(body: str, contract: str, rubric: str) -> list[str]:
 
 def _read_source_files() -> tuple[str, str, str]:
     missing = [
-        str(p)
-        for p in (BODY_PATH, CONTRACT_PATH, RUBRIC_PATH)
-        if not p.exists()
+        str(p) for p in (BODY_PATH, CONTRACT_PATH, RUBRIC_PATH) if not p.exists()
     ]
     if missing:
         sys.stderr.write(
@@ -635,7 +676,9 @@ def _flex_pattern(target: str) -> re.Pattern[str]:
     real file reflows that literal across a line boundary: the raw
     `str.replace` finds nothing, the precondition guard trips, and the control
     stops being a control."""
-    return re.compile(r"\s+".join(re.escape(w) for w in _flat(target).strip().split(" ")))
+    return re.compile(
+        r"\s+".join(re.escape(w) for w in _flat(target).strip().split(" "))
+    )
 
 
 def _replace_once(text: str, target: str, replacement: str = "REMOVED") -> str:
@@ -679,7 +722,9 @@ def _mutate_block(text: str, anchor: str, transform) -> str:
     control stops being a control."""
     lines = text.splitlines(keepends=True)
     matches = [i for i, ln in enumerate(lines) if ln.startswith(anchor)]
-    assert len(matches) == 1, f"expected exactly one line starting with {anchor!r}, found {len(matches)}"
+    assert len(matches) == 1, (
+        f"expected exactly one line starting with {anchor!r}, found {len(matches)}"
+    )
     idx = matches[0]
     end = _block_end(lines, idx)
     block = "".join(lines[idx:end])
@@ -692,7 +737,9 @@ def _duplicate_line(text: str, anchor: str) -> str:
     pick the first of several matches."""
     lines = text.splitlines(keepends=True)
     matches = [i for i, ln in enumerate(lines) if ln.startswith(anchor)]
-    assert len(matches) == 1, f"expected exactly one line starting with {anchor!r}, found {len(matches)}"
+    assert len(matches) == 1, (
+        f"expected exactly one line starting with {anchor!r}, found {len(matches)}"
+    )
     idx = matches[0]
     lines.insert(idx, lines[idx])
     return "".join(lines)
@@ -725,7 +772,7 @@ def _break_literal_across_lines(text: str, literal: str) -> str:
     # mask a fixture that broke nothing.
     if literal in broken:
         raise ValueError(f"fixture did not break the literal across lines: {literal!r}")
-    return text[: match.start()] + broken + text[match.end():]
+    return text[: match.start()] + broken + text[match.end() :]
 
 
 def _duplicate_bound_paragraph(body: str) -> str:
@@ -787,10 +834,14 @@ def _mutate_bound_paragraph_strip_second_order(body: str) -> str:
     assert section is not None, "could not locate Turn discipline section"
     paragraphs = section.split("\n\n")
     bound_indices = [i for i, p in enumerate(paragraphs) if _contains(p, _BOUND)]
-    assert len(bound_indices) == 1, f"expected exactly one bound paragraph, found {len(bound_indices)}"
+    assert len(bound_indices) == 1, (
+        f"expected exactly one bound paragraph, found {len(bound_indices)}"
+    )
     idx = bound_indices[0]
     original_paragraph = paragraphs[idx]
-    assert _contains(original_paragraph, _SECOND_ORDER), "bound paragraph does not contain second-order"
+    assert _contains(original_paragraph, _SECOND_ORDER), (
+        "bound paragraph does not contain second-order"
+    )
     mutated_paragraph = _replace_once(original_paragraph, _SECOND_ORDER)
     mutated_section = section.replace(original_paragraph, mutated_paragraph, 1)
     mutated_body = body.replace(section, mutated_section, 1)
@@ -843,36 +894,40 @@ def _self_test_loop01_phase1_route(body, check_body, guarded, report, holder) ->
             "N2 (body: strip L3 Phase-1 route)",
             lambda: _strip_everywhere(body, _PHASE1_ROUTE),
             check_body,
-            f'{_BODY_NAME}: missing the Phase-1 re-entry route',
+            f"{_BODY_NAME}: missing the Phase-1 re-entry route",
         ),
     ]
     _run_negative_controls(rows, guarded, report, holder)
 
 
-def _self_test_loop02_askuserquestion(contract, check_contract, guarded, report, holder) -> None:
+def _self_test_loop02_askuserquestion(
+    contract, check_contract, guarded, report, holder
+) -> None:
     """v8.18/LOOP-02: the agent may re-open input via AskUserQuestion where
     that tool is available, and otherwise the contract's disclosure fallback
     covers the tool's absence — N22, N23."""
-        # N22-N26 cover the five check branches that had no negative control
-        # at all. An unexercised assertion is one nobody has shown can fire.
+    # N22-N26 cover the five check branches that had no negative control
+    # at all. An unexercised assertion is one nobody has shown can fire.
     rows = [
         (
             "N22 (input-contract: strip L7, the AskUserQuestion tool reference)",
             lambda: _strip_everywhere(contract, _ASK_TOOL),
             check_contract,
-            f'{_CONTRACT_NAME}: missing the AskUserQuestion tool reference',
+            f"{_CONTRACT_NAME}: missing the AskUserQuestion tool reference",
         ),
         (
             "N23 (input-contract: strip L7b, the unavailable-fallback clause)",
             lambda: _strip_everywhere(contract, _ASK_FALLBACK),
             check_contract,
-            f'{_CONTRACT_NAME}: missing the AskUserQuestion-unavailable fallback clause',
+            f"{_CONTRACT_NAME}: missing the AskUserQuestion-unavailable fallback clause",
         ),
     ]
     _run_negative_controls(rows, guarded, report, holder)
 
 
-def _self_test_loop03_bounded_reentry(body, rubric, check_body, check_rubric, guarded, report, holder) -> None:
+def _self_test_loop03_bounded_reentry(
+    body, rubric, check_body, check_rubric, guarded, report, holder
+) -> None:
     """v8.18/LOOP-03: every re-entry edge is bounded to at most one
     re-perception pass, the bound survives reinstatement and rewording, and
     its polarity carrier cannot be substring-matched away — N5, N6, N11, N12,
@@ -882,13 +937,17 @@ def _self_test_loop03_bounded_reentry(body, rubric, check_body, check_rubric, gu
     rows = [
         (
             "N5 (body: reinstate X1 on the Repeat line)",
-            lambda: _mutate_block(body, _S1_ANCHOR, lambda b: _append_to_block(b, _UNBOUNDED_REPEAT)),
+            lambda: _mutate_block(
+                body, _S1_ANCHOR, lambda b: _append_to_block(b, _UNBOUNDED_REPEAT)
+            ),
             check_body,
-            f'{_BODY_NAME}: unbounded Repeat instruction still present',
+            f"{_BODY_NAME}: unbounded Repeat instruction still present",
         ),
         (
             "N6 (body: strip re-perception pass from the Repeat line only)",
-            lambda: _mutate_block(body, _S1_ANCHOR, lambda b: _strip_from_block(b, _RE_PERCEPTION_PASS)),
+            lambda: _mutate_block(
+                body, _S1_ANCHOR, lambda b: _strip_from_block(b, _RE_PERCEPTION_PASS)
+            ),
             check_body,
             f'{_BODY_NAME}: the "{_S1_ANCHOR}" line is missing "{_RE_PERCEPTION_PASS}"',
         ),
@@ -896,50 +955,58 @@ def _self_test_loop03_bounded_reentry(body, rubric, check_body, check_rubric, gu
             "N11 (rubric: strip L8 bound)",
             lambda: _strip_everywhere(rubric, _BOUND),
             check_rubric,
-            f'{_RUBRIC_NAME}: missing the re-entry bound',
+            f"{_RUBRIC_NAME}: missing the re-entry bound",
         ),
         (
             "N12 (rubric: reinstate X2 unbounded re-score)",
             lambda: rubric + "\n" + _UNBOUNDED_RESCORE + "\n",
             check_rubric,
-            f'{_RUBRIC_NAME}: unbounded re-score instruction still present',
+            f"{_RUBRIC_NAME}: unbounded re-score instruction still present",
         ),
         (
-            ("N14 (body: reinstate X1 hard-wrapped at the file's own width — the "
-            "shape a real regression takes; this is the control whose absence "
-            "let a whitespace-sensitive removal check ship)"),
+            (
+                "N14 (body: reinstate X1 hard-wrapped at the file's own width — the "
+                "shape a real regression takes; this is the control whose absence "
+                "let a whitespace-sensitive removal check ship)"
+            ),
             lambda: _reinstate_hard_wrapped(body, _UNBOUNDED_REPEAT),
             check_body,
-            f'{_BODY_NAME}: unbounded Repeat instruction still present',
+            f"{_BODY_NAME}: unbounded Repeat instruction still present",
         ),
         (
             "N15 (rubric: reinstate X2 hard-wrapped at the file's own width)",
             lambda: _reinstate_hard_wrapped(rubric, _UNBOUNDED_RESCORE),
             check_rubric,
-            f'{_RUBRIC_NAME}: unbounded re-score instruction still present',
+            f"{_RUBRIC_NAME}: unbounded re-score instruction still present",
         ),
         (
-            ("N26 (body: duplicate the bound paragraph — exercises S3's arity "
-            "guard, the untested half of the sole assertion protecting the "
-            "second-order edge)"),
+            (
+                "N26 (body: duplicate the bound paragraph — exercises S3's arity "
+                "guard, the untested half of the sole assertion protecting the "
+                "second-order edge)"
+            ),
             lambda: _duplicate_bound_paragraph(body),
             check_body,
             f"{_BODY_NAME}: expected exactly one paragraph in Turn discipline containing",
         ),
         (
-            ("N27 (body: invert the bound with 'more than' — the bare noun phrase "
-            "survives, the rule does not)"),
+            (
+                "N27 (body: invert the bound with 'more than' — the bare noun phrase "
+                "survives, the rule does not)"
+            ),
             lambda: _strip_everywhere(
                 body,
                 _BOUND_BODY,
                 "Each edge fires more than **at most one re-perception pass** per analysis.",
             ),
             check_body,
-            f'{_BODY_NAME}: the bound has lost its polarity carrier',
+            f"{_BODY_NAME}: the bound has lost its polarity carrier",
         ),
         (
-            ("N28 (rubric: invert the bound with 'not' — a plain substring test "
-            "swallows the negation whole)"),
+            (
+                "N28 (rubric: invert the bound with 'not' — a plain substring test "
+                "swallows the negation whole)"
+            ),
             lambda: _strip_everywhere(
                 rubric,
                 _BOUND_RUBRIC,
@@ -947,7 +1014,7 @@ def _self_test_loop03_bounded_reentry(body, rubric, check_body, check_rubric, gu
                 "**at most one re-perception pass** per analysis",
             ),
             check_rubric,
-            f'{_RUBRIC_NAME}: the bound has lost its polarity carrier',
+            f"{_RUBRIC_NAME}: the bound has lost its polarity carrier",
         ),
         (
             "N33 (body: duplicate the Criterion-1 paragraph anchor)",
@@ -967,44 +1034,56 @@ def _self_test_loop04_exit_criterion(body, check_body, guarded, report, holder) 
     rows = [
         (
             "N7 (body: strip re-entry from the Phase 3 exit line only)",
-            lambda: _mutate_block(body, _S2_ANCHOR, lambda b: _strip_from_block(b, _REENTRY_EXCEPTION)),
+            lambda: _mutate_block(
+                body, _S2_ANCHOR, lambda b: _strip_from_block(b, _REENTRY_EXCEPTION)
+            ),
             check_body,
-            f'{_BODY_NAME}: the Phase 3 exit-criterion line lost the re-entry exception clause',
+            f"{_BODY_NAME}: the Phase 3 exit-criterion line lost the re-entry exception clause",
         ),
         (
             "N8 (body: strip the completeness claim from the Phase 3 exit line)",
-            lambda: _mutate_block(body, _S2_ANCHOR, lambda b: _strip_from_block(b, _COMPLETENESS_CLAIM)),
+            lambda: _mutate_block(
+                body, _S2_ANCHOR, lambda b: _strip_from_block(b, _COMPLETENESS_CLAIM)
+            ),
             check_body,
-            f'{_BODY_NAME}: the Phase 3 exit-criterion line lost the completeness claim',
+            f"{_BODY_NAME}: the Phase 3 exit-criterion line lost the completeness claim",
         ),
         (
             "N20 (body: strip L13, the widened mid-run route)",
             lambda: _strip_everywhere(body, _MIDRUN_LANDING_BODY),
             check_body,
-            f'{_BODY_NAME}: the mid-run re-open route is not widened past Criterion 1',
+            f"{_BODY_NAME}: the mid-run re-open route is not widened past Criterion 1",
         ),
         (
-            ("N21 (body: strip L14, the clause subordinating the degradation "
-            "sentence to the edge-scoped bound)"),
+            (
+                "N21 (body: strip L14, the clause subordinating the degradation "
+                "sentence to the edge-scoped bound)"
+            ),
             lambda: _strip_everywhere(body, _BOUND_SUBORDINATION),
             check_body,
-            f'{_BODY_NAME}: the degradation sentence is not subordinated to the edge-scoped bound',
+            f"{_BODY_NAME}: the degradation sentence is not subordinated to the edge-scoped bound",
         ),
         (
-            ("N31 (body: relocate L3 out of its owning paragraph — whole-text "
-            "presence still holds, the scoped assertion must not)"),
-            lambda: _mutate_block(
-                body, _S4_ANCHOR, lambda b: _strip_from_block(b, _PHASE1_ROUTE)
-            )
-            + "\n\n"
-            + _PHASE1_ROUTE
-            + "\n",
+            (
+                "N31 (body: relocate L3 out of its owning paragraph — whole-text "
+                "presence still holds, the scoped assertion must not)"
+            ),
+            lambda: (
+                _mutate_block(
+                    body, _S4_ANCHOR, lambda b: _strip_from_block(b, _PHASE1_ROUTE)
+                )
+                + "\n\n"
+                + _PHASE1_ROUTE
+                + "\n"
+            ),
             check_body,
-            f'{_BODY_NAME}: missing the Phase-1 re-entry route from the paragraph that owns it',
+            f"{_BODY_NAME}: missing the Phase-1 re-entry route from the paragraph that owns it",
         ),
         (
-            ("N32 (body: replace the Phase 3 exception clause with its negation — "
-            "the old seven-character 're-entry' token survived this)"),
+            (
+                "N32 (body: replace the Phase 3 exception clause with its negation — "
+                "the old seven-character 're-entry' token survived this)"
+            ),
             lambda: _mutate_block(
                 body,
                 _S2_ANCHOR,
@@ -1013,7 +1092,7 @@ def _self_test_loop04_exit_criterion(body, check_body, guarded, report, holder) 
                 ),
             ),
             check_body,
-            f'{_BODY_NAME}: the Phase 3 exit-criterion line lost the re-entry exception clause',
+            f"{_BODY_NAME}: the Phase 3 exit-criterion line lost the re-entry exception clause",
         ),
     ]
     _run_negative_controls(rows, guarded, report, holder)
@@ -1027,7 +1106,7 @@ def _self_test_loop05_firing_record(body, check_body, guarded, report, holder) -
             "N3 (body: strip L4 firing record)",
             lambda: _strip_everywhere(body, _FIRING_RECORD),
             check_body,
-            f'{_BODY_NAME}: missing the re-entry firing record',
+            f"{_BODY_NAME}: missing the re-entry firing record",
         ),
     ]
     _run_negative_controls(rows, guarded, report, holder)
@@ -1046,11 +1125,13 @@ def _n38_candidate_entry_row(contract, check_contract):
         "N38 (input-contract: strip L19, the candidate-entry clause)",
         lambda: _strip_everywhere(contract, _CANDIDATE_ENTRY),
         check_contract,
-        f'{_CONTRACT_NAME}: the Known ground truths bullet no longer routes',
+        f"{_CONTRACT_NAME}: the Known ground truths bullet no longer routes",
     )
 
 
-def _self_test_sup01_candidate_entry(contract, check_contract, guarded, report, holder) -> None:
+def _self_test_sup01_candidate_entry(
+    contract, check_contract, guarded, report, holder
+) -> None:
     """v9.2/SUP-01: a supplied fact enters Phase 2 as a candidate, and no
     Input Contract bullet exempts it from challenge — N38, N39.
 
@@ -1066,13 +1147,15 @@ def _self_test_sup01_candidate_entry(contract, check_contract, guarded, report, 
             "N39 (input-contract: reinstate X7 hard-wrapped beside the live bullet — the coexistence shape a presence literal cannot see)",
             lambda: _reinstate_hard_wrapped(contract, _SUPERSEDED_EXEMPTION),
             check_contract,
-            f'{_CONTRACT_NAME}: an Input Contract bullet exempts supplied facts from challenge again',
+            f"{_CONTRACT_NAME}: an Input Contract bullet exempts supplied facts from challenge again",
         ),
     ]
     _run_negative_controls(rows, guarded, report, holder)
 
 
-def _self_test_guard01_bullet4_anchor(contract, check_contract, guarded, report, holder) -> None:
+def _self_test_guard01_bullet4_anchor(
+    contract, check_contract, guarded, report, holder
+) -> None:
     """v9.2/GUARD-01: this gate's own N38 negative control is load-bearing —
     stripping the candidate-entry clause must turn it red. Deliberately runs
     N38 itself rather than sharing SUP-01's block (D-12, 34-ANCH-WORKLIST.md):
@@ -1094,7 +1177,7 @@ def _self_test_hand05_no_new_edge(body, check_body, guarded, report, holder) -> 
             "N36 (body: restore the superseded five-edge enumeration)",
             lambda: _strip_everywhere(body, _EDGE_COUNT, _SUPERSEDED_EDGE_COUNT),
             check_body,
-            f'{_BODY_NAME}: the edge enumeration double-counts the Fix/Repeat loop',
+            f"{_BODY_NAME}: the edge enumeration double-counts the Fix/Repeat loop",
         ),
     ]
     _run_negative_controls(rows, guarded, report, holder)
@@ -1134,8 +1217,7 @@ def _run_self_test() -> int:
         sys.stderr.write(
             "check-loop-closure --self-test: cannot run the negative controls — the "
             "live tree is not clean, and every fixture is derived from it. Fix the "
-            "live tree first:\n"
-            + "".join(f"  {msg}\n" for msg in live_failures)
+            "live tree first:\n" + "".join(f"  {msg}\n" for msg in live_failures)
         )
         return 1
 
@@ -1170,77 +1252,87 @@ def _run_self_test() -> int:
             "N1 (body: strip L1 bound)",
             lambda: _strip_everywhere(body, _BOUND),
             check_body,
-            f'{_BODY_NAME}: missing the re-entry bound',
+            f"{_BODY_NAME}: missing the re-entry bound",
         ),
         (
-            ("N4 (body: strip L2 degradation path — occurs twice in the real "
-            "text, so every occurrence must be stripped for the control to "
-            "be load-bearing)"),
+            (
+                "N4 (body: strip L2 degradation path — occurs twice in the real "
+                "text, so every occurrence must be stripped for the control to "
+                "be load-bearing)"
+            ),
             lambda: _strip_everywhere(body, _DEGRADE),
             check_body,
-            f'{_BODY_NAME}: missing the degradation path',
+            f"{_BODY_NAME}: missing the degradation path",
         ),
         (
             "N9 (input-contract: strip L5 mid-run scope)",
             lambda: _strip_everywhere(contract, _MIDRUN_SCOPE),
             check_contract,
-            f'{_CONTRACT_NAME}: missing the mid-run scope clause',
+            f"{_CONTRACT_NAME}: missing the mid-run scope clause",
         ),
         (
             "N10 (input-contract: strip L6 per-delegation prohibition)",
             lambda: _strip_everywhere(contract, _NO_PER_DELEGATION),
             check_contract,
-            f'{_CONTRACT_NAME}: missing the per-delegation prohibition',
+            f"{_CONTRACT_NAME}: missing the per-delegation prohibition",
         ),
         (
             "N16 (rubric: reinstate X3 — the reworded 'start over' instruction)",
             lambda: rubric + "\n" + _UNBOUNDED_RESCORE_ALT + "\n",
             check_rubric,
-            f'{_RUBRIC_NAME}: unbounded re-score instruction still present in its reworded form',
+            f"{_RUBRIC_NAME}: unbounded re-score instruction still present in its reworded form",
         ),
         (
-            ("N17 (rubric: reinstate X3 hard-wrapped — the exact two-blind-spot "
-            "shape that shipped the Usage Note contradiction)"),
+            (
+                "N17 (rubric: reinstate X3 hard-wrapped — the exact two-blind-spot "
+                "shape that shipped the Usage Note contradiction)"
+            ),
             lambda: _reinstate_hard_wrapped(rubric, _UNBOUNDED_RESCORE_ALT),
             check_rubric,
-            f'{_RUBRIC_NAME}: unbounded re-score instruction still present in its reworded form',
+            f"{_RUBRIC_NAME}: unbounded re-score instruction still present in its reworded form",
         ),
         (
             "N18 (rubric: strip L11, the Usage Note's bounded remedy)",
             lambda: _strip_everywhere(rubric, _USAGE_NOTE_BOUND),
             check_rubric,
-            f'{_RUBRIC_NAME}: the Usage Note no longer brings its closing re-score instruction',
+            f"{_RUBRIC_NAME}: the Usage Note no longer brings its closing re-score instruction",
         ),
         (
             "N19 (input-contract: strip L12, the artifact-tracking landing point)",
             lambda: _strip_everywhere(contract, _MIDRUN_LANDING),
             check_contract,
-            f'{_CONTRACT_NAME}: the mid-run re-open does not route its answer by which artifact',
+            f"{_CONTRACT_NAME}: the mid-run re-open does not route its answer by which artifact",
         ),
         (
             "N24 (rubric: strip L9, the Turn discipline cross-reference)",
             lambda: _strip_everywhere(rubric, _TURN_DISCIPLINE),
             check_rubric,
-            f'{_RUBRIC_NAME}: missing the Turn discipline cross-reference',
+            f"{_RUBRIC_NAME}: missing the Turn discipline cross-reference",
         ),
         (
-            ("N25 (body: rename the Turn discipline heading — the section becomes "
-            "unlocatable)"),
+            (
+                "N25 (body: rename the Turn discipline heading — the section becomes "
+                "unlocatable)"
+            ),
             lambda: body.replace(_TURN_DISCIPLINE_HEADING, "### Turn budget", 1),
             check_body,
             f'{_BODY_NAME}: could not locate the "{_TURN_DISCIPLINE_HEADING}" section',
         ),
         (
-            ("N29 (body: duplicate the Turn discipline heading — a duplicate must "
-            "report distinctly from a missing heading, not be silently accepted)"),
+            (
+                "N29 (body: duplicate the Turn discipline heading — a duplicate must "
+                "report distinctly from a missing heading, not be silently accepted)"
+            ),
             lambda: _duplicate_line(body, _TURN_DISCIPLINE_HEADING),
             check_body,
             f'{_BODY_NAME}: expected exactly one "{_TURN_DISCIPLINE_HEADING}" heading, found 2',
         ),
         (
-            ("N30 (body: demote the Turn discipline heading one level — "
-            "'#### Turn discipline' CONTAINS the anchor, so a substring search "
-            "accepted it)"),
+            (
+                "N30 (body: demote the Turn discipline heading one level — "
+                "'#### Turn discipline' CONTAINS the anchor, so a substring search "
+                "accepted it)"
+            ),
             lambda: body.replace(
                 _TURN_DISCIPLINE_HEADING, "#" + _TURN_DISCIPLINE_HEADING, 1
             ),
@@ -1251,7 +1343,7 @@ def _run_self_test() -> int:
             "N35 (input-contract: strip L16, the fallback's mid-run branch)",
             lambda: _strip_everywhere(contract, _ASK_FALLBACK_MIDRUN),
             check_contract,
-            f'{_CONTRACT_NAME}: the AskUserQuestion-unavailable fallback has no mid-run branch',
+            f"{_CONTRACT_NAME}: the AskUserQuestion-unavailable fallback has no mid-run branch",
         ),
         (
             "N37 (body: strip L18, the one-edge-two-statements clause)",
@@ -1263,7 +1355,7 @@ def _run_self_test() -> int:
             "N13 (body: strip second-order from the bound paragraph only)",
             lambda: _mutate_bound_paragraph_strip_second_order(body),
             check_body,
-            f'{_BODY_NAME}: the bound paragraph in Turn discipline does not name the second-order edge',
+            f"{_BODY_NAME}: the bound paragraph in Turn discipline does not name the second-order edge",
         ),
     ]
 
@@ -1271,12 +1363,20 @@ def _run_self_test() -> int:
 
     _run_negative_controls(negative_controls, _guarded, _report, holder)
     _self_test_loop01_phase1_route(body, check_body, _guarded, _report, holder)
-    _self_test_loop02_askuserquestion(contract, check_contract, _guarded, _report, holder)
-    _self_test_loop03_bounded_reentry(body, rubric, check_body, check_rubric, _guarded, _report, holder)
+    _self_test_loop02_askuserquestion(
+        contract, check_contract, _guarded, _report, holder
+    )
+    _self_test_loop03_bounded_reentry(
+        body, rubric, check_body, check_rubric, _guarded, _report, holder
+    )
     _self_test_loop04_exit_criterion(body, check_body, _guarded, _report, holder)
     _self_test_loop05_firing_record(body, check_body, _guarded, _report, holder)
-    _self_test_sup01_candidate_entry(contract, check_contract, _guarded, _report, holder)
-    _self_test_guard01_bullet4_anchor(contract, check_contract, _guarded, _report, holder)
+    _self_test_sup01_candidate_entry(
+        contract, check_contract, _guarded, _report, holder
+    )
+    _self_test_guard01_bullet4_anchor(
+        contract, check_contract, _guarded, _report, holder
+    )
     _self_test_hand05_no_new_edge(body, check_body, _guarded, _report, holder)
 
     # N13 scope check: prove the bound-paragraph mutation is confined to that
@@ -1305,9 +1405,7 @@ def _run_self_test() -> int:
     after = holder["n13"].count(_SECOND_ORDER)
     section_after, _ = _extract_turn_discipline_section(holder["n13"])
     bound_paras_after = [
-        para
-        for para in (section_after or "").split("\n\n")
-        if _contains(para, _BOUND)
+        para for para in (section_after or "").split("\n\n") if _contains(para, _BOUND)
     ]
     bound_para_after = bound_paras_after[0] if len(bound_paras_after) == 1 else ""
     _report(
@@ -1389,14 +1487,21 @@ def _run_self_test() -> int:
         ("Repeat line", _S1_ANCHOR),
         ("Phase 3 exit line", _S2_ANCHOR),
     ):
-        label = f"anchor-arity (duplicated {arity_label} reports 'expected exactly one')"
-        duplicated, built = _guarded(label, lambda a=arity_anchor: _duplicate_line(body, a))
+        label = (
+            f"anchor-arity (duplicated {arity_label} reports 'expected exactly one')"
+        )
+        duplicated, built = _guarded(
+            label, lambda a=arity_anchor: _duplicate_line(body, a)
+        )
         if not built:
             continue
         arity_failures = _check_body_text(duplicated)
         _report(
             label,
-            any("expected exactly one" in f and arity_anchor in f for f in arity_failures),
+            any(
+                "expected exactly one" in f and arity_anchor in f
+                for f in arity_failures
+            ),
             f"failures: {'; '.join(arity_failures)}",
         )
 

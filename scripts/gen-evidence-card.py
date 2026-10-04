@@ -91,14 +91,14 @@ class Fact:
     """
 
     fact_id: str
-    headline: str          # reader-facing, plain language
-    reading: str           # the number, as a reader should see it
-    n: str                 # sample size, stated -- never omitted
-    measured: str          # ISO date of the measurement
-    source: str            # repo-relative path
-    literal: str           # verbatim substring that must be present in source
-    bound: str             # the disclosed limit of this reading
-    section: str           # which card section it belongs to
+    headline: str  # reader-facing, plain language
+    reading: str  # the number, as a reader should see it
+    n: str  # sample size, stated -- never omitted
+    measured: str  # ISO date of the measurement
+    source: str  # repo-relative path
+    literal: str  # verbatim substring that must be present in source
+    bound: str  # the disclosed limit of this reading
+    section: str  # which card section it belongs to
 
 
 # Section keys, in render order.
@@ -352,12 +352,16 @@ def load_trackb(path: Path = TRACKB_RESULT_PATH) -> dict | None:
         if not data.get("caveat"):
             raise EvidenceError(f"{path}: trackb-2 record missing a non-empty 'caveat'")
         if "secondary_summary_gap" not in data:
-            raise EvidenceError(f"{path}: trackb-2 record missing 'secondary_summary_gap'")
+            raise EvidenceError(
+                f"{path}: trackb-2 record missing 'secondary_summary_gap'"
+            )
         # Length is the registered covariate (trackb-2 §7): a cleared claim
         # published without it would read as a pure quality difference.
         words = data.get("words_per_arm") or {}
         if not (words.get("T", {}).get("mean") and words.get("C", {}).get("mean")):
-            raise EvidenceError(f"{path}: trackb-2 record missing 'words_per_arm' means")
+            raise EvidenceError(
+                f"{path}: trackb-2 record missing 'words_per_arm' means"
+            )
     return data
 
 
@@ -383,8 +387,10 @@ def _fact_block(fact: Fact) -> list[str]:
         "",
         f"**{_sentence_case(fact.reading)}**",
         "",
-        (f"*Sample: {fact.n} · Measured: {fact.measured} · "
-        f"Source: [`{fact.source}`]({_rel_link(fact.source)})*"),
+        (
+            f"*Sample: {fact.n} · Measured: {fact.measured} · "
+            f"Source: [`{fact.source}`]({_rel_link(fact.source)})*"
+        ),
         "",
         f"What this does not say: {fact.bound}",
         "",
@@ -394,7 +400,7 @@ def _fact_block(fact: Fact) -> list[str]:
 def _rel_link(source: str) -> str:
     """Links are rendered relative to docs/, where the card lives."""
     if source.startswith("docs/"):
-        return source[len("docs/"):]
+        return source[len("docs/") :]
     return "../" + source
 
 
@@ -457,8 +463,10 @@ def render(
                 "",
                 f"**{trackb['observed_effect']}**",
                 "",
-                (f"*Sample: {trackb['n_per_arm']} per arm · Measured: {trackb['measured']} · "
-                f"Run: `{trackb['run_id']}`*"),
+                (
+                    f"*Sample: {trackb['n_per_arm']} per arm · Measured: {trackb['measured']} · "
+                    f"Run: `{trackb['run_id']}`*"
+                ),
                 "",
             ]
         )
@@ -469,9 +477,11 @@ def render(
             at_max = sum(1 for v in crit["T"].values() if v >= 3.0)
             lines.extend(
                 [
-                    (f"**Scores:** agent {t_total:.2f} / 15, unaided {c_total:.2f} / 15. The agent "
-                    f"arm is at the rubric's maximum on {at_max} of {len(crit['T'])} criteria, so "
-                    "the scale cannot show how much further apart the two would be."),
+                    (
+                        f"**Scores:** agent {t_total:.2f} / 15, unaided {c_total:.2f} / 15. The agent "
+                        f"arm is at the rubric's maximum on {at_max} of {len(crit['T'])} criteria, so "
+                        "the scale cannot show how much further apart the two would be."
+                    ),
                     "",
                 ]
             )
@@ -482,10 +492,12 @@ def render(
             t_w, c_w = words["T"]["mean"], words["C"]["mean"]
             lines.extend(
                 [
-                    (f"**Length:** the agent's documents averaged {t_w:,.0f} words against "
-                    f"{c_w:,.0f} for the unaided answers (about {t_w / c_w:.0f}×). Length is a "
-                    "registered covariate, not controlled for, so credit for thoroughness "
-                    "cannot be separated from credit for substance."),
+                    (
+                        f"**Length:** the agent's documents averaged {t_w:,.0f} words against "
+                        f"{c_w:,.0f} for the unaided answers (about {t_w / c_w:.0f}×). Length is a "
+                        "registered covariate, not controlled for, so credit for thoroughness "
+                        "cannot be separated from credit for substance."
+                    ),
                     "",
                 ]
             )
@@ -494,19 +506,23 @@ def render(
             summary_total = t_total - gap
             lines.extend(
                 [
-                    ("*Partial context, not part of the threshold: scored on the short message "
-                    "the main session hands back instead of the delivered file, the agent arm "
-                    f"averaged {summary_total:.2f} / 15 — {gap:.2f} below the delivered file and "
-                    f"{summary_total - c_total:+.2f} against the unaided answer.*"),
+                    (
+                        "*Partial context, not part of the threshold: scored on the short message "
+                        "the main session hands back instead of the delivered file, the agent arm "
+                        f"averaged {summary_total:.2f} / 15 — {gap:.2f} below the delivered file and "
+                        f"{summary_total - c_total:+.2f} against the unaided answer.*"
+                    ),
                     "",
                 ]
             )
         elif gap is not None:
             lines.extend(
                 [
-                    ("*Partial context, not part of the threshold: scored on the short message "
-                    "the main session hands back instead of the delivered file, the agent arm "
-                    f"scored {gap:.2f} points below the delivered file.*"),
+                    (
+                        "*Partial context, not part of the threshold: scored on the short message "
+                        "the main session hands back instead of the delivered file, the agent arm "
+                        f"scored {gap:.2f} points below the delivered file.*"
+                    ),
                     "",
                 ]
             )
@@ -646,7 +662,10 @@ def _c01_all_literals_located() -> str | None:
 def _c02_corrupted_literal_is_caught() -> str | None:
     """Negative control: a literal that is not in its source must fail."""
     bad = FACTS[0].__class__(
-        **{**FACTS[0].__dict__, "literal": "this string is not in any source file xyzzy"}
+        **{
+            **FACTS[0].__dict__,
+            "literal": "this string is not in any source file xyzzy",
+        }
     )
     problems = verify_facts((bad,) + FACTS[1:])
     if not any("pinned literal not found" in p for p in problems):
@@ -854,7 +873,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("C10-every-fact-states-a-bound", _c10_every_fact_states_a_bound),
     ("C11-no-composite-score", _c11_no_composite_score_rendered),
     ("C12-trackb2-links-correct-prereg", _c12_trackb2_links_correct_prereg),
-    ("C13-trackb2-requires-and-renders-caveat", _c13_trackb2_requires_and_renders_caveat),
+    (
+        "C13-trackb2-requires-and-renders-caveat",
+        _c13_trackb2_requires_and_renders_caveat,
+    ),
 )
 
 
@@ -895,8 +917,12 @@ def main(argv: list[str] | None = None) -> int:
         description="Generate the public Evidence Card from verified source literals."
     )
     parser.add_argument("--check", action="store_true", help="exit 1 on drift")
-    parser.add_argument("--self-test", action="store_true", help="offline control battery")
-    parser.add_argument("--describe", action="store_true", help="emit self-description JSON")
+    parser.add_argument(
+        "--self-test", action="store_true", help="offline control battery"
+    )
+    parser.add_argument(
+        "--describe", action="store_true", help="emit self-description JSON"
+    )
     args = parser.parse_args(argv)
 
     try:

@@ -47,3 +47,8 @@ extend-exclude = [
     "tests/structured-summary-live",
     "tests/w4-paired",
 ]
+
+[tool.ruff.format]
+# Markdown carries recorded and frozen prose; the formatter would rewrite the
+# fenced python blocks inside it. Only .py files are formatted.
+exclude = ["*.md"]

@@ -139,7 +139,9 @@ class Workstream(NamedTuple):
 # A line matching this shape for a technique is stripped before invocation
 # scanning -- otherwise the technique's own name, written there to say it did
 # NOT fire, would read as evidence that it did.
-DECLINATION_BLOCK_HEADING = Marker("Techniques not applied:", "shared/spine/SKILL-body.md:116")
+DECLINATION_BLOCK_HEADING = Marker(
+    "Techniques not applied:", "shared/spine/SKILL-body.md:116"
+)
 DECLINATION_LINE_PHRASE = Marker("not applicable", "shared/spine/SKILL-body.md:116")
 
 
@@ -164,16 +166,25 @@ WORKSTREAMS: tuple[Workstream, ...] = (
                 name="theoretical-limit ideal-bound tier",
                 slug="theoretical-limit",
                 invocation=(
-                    Marker("theoretical limit", "shared/references/theoretical-limit.md:1"),
+                    Marker(
+                        "theoretical limit", "shared/references/theoretical-limit.md:1"
+                    ),
                     Marker("theoretical-limit", "shared/spine/SKILL-body.md:103"),
-                    Marker("governing hard constraint", "shared/references/theoretical-limit.md:21"),
-                    Marker("law-permitted", "shared/references/theoretical-limit.md:47"),
+                    Marker(
+                        "governing hard constraint",
+                        "shared/references/theoretical-limit.md:21",
+                    ),
+                    Marker(
+                        "law-permitted", "shared/references/theoretical-limit.md:47"
+                    ),
                 ),
                 # theoretical-limit.md:88 "**Bracket in three tiers.**", tier 1
                 # (:90-91) named as either instantiation of the ideal bound --
                 # the 999.171 direction widening.
                 prescription=(
-                    Marker("ideal ceiling", "shared/references/theoretical-limit.md:90"),
+                    Marker(
+                        "ideal ceiling", "shared/references/theoretical-limit.md:90"
+                    ),
                     Marker("ideal floor", "shared/references/theoretical-limit.md:91"),
                 ),
                 prescription_mode="any",
@@ -182,14 +193,23 @@ WORKSTREAMS: tuple[Workstream, ...] = (
                 name="theoretical-limit best-demonstrated tier",
                 slug="theoretical-limit",
                 invocation=(
-                    Marker("theoretical limit", "shared/references/theoretical-limit.md:1"),
+                    Marker(
+                        "theoretical limit", "shared/references/theoretical-limit.md:1"
+                    ),
                     Marker("theoretical-limit", "shared/spine/SKILL-body.md:103"),
-                    Marker("governing hard constraint", "shared/references/theoretical-limit.md:21"),
-                    Marker("law-permitted", "shared/references/theoretical-limit.md:47"),
+                    Marker(
+                        "governing hard constraint",
+                        "shared/references/theoretical-limit.md:21",
+                    ),
+                    Marker(
+                        "law-permitted", "shared/references/theoretical-limit.md:47"
+                    ),
                 ),
                 # theoretical-limit.md:94, tier 2.
                 prescription=(
-                    Marker("best demonstrated", "shared/references/theoretical-limit.md:94"),
+                    Marker(
+                        "best demonstrated", "shared/references/theoretical-limit.md:94"
+                    ),
                 ),
                 prescription_mode="any",
             ),
@@ -197,10 +217,17 @@ WORKSTREAMS: tuple[Workstream, ...] = (
                 name="theoretical-limit conventional tier",
                 slug="theoretical-limit",
                 invocation=(
-                    Marker("theoretical limit", "shared/references/theoretical-limit.md:1"),
+                    Marker(
+                        "theoretical limit", "shared/references/theoretical-limit.md:1"
+                    ),
                     Marker("theoretical-limit", "shared/spine/SKILL-body.md:103"),
-                    Marker("governing hard constraint", "shared/references/theoretical-limit.md:21"),
-                    Marker("law-permitted", "shared/references/theoretical-limit.md:47"),
+                    Marker(
+                        "governing hard constraint",
+                        "shared/references/theoretical-limit.md:21",
+                    ),
+                    Marker(
+                        "law-permitted", "shared/references/theoretical-limit.md:47"
+                    ),
                 ),
                 # theoretical-limit.md:97, tier 3 -- the bare noun (matching
                 # "Conventional figure", "Conventional:" and "conventional
@@ -212,7 +239,9 @@ WORKSTREAMS: tuple[Workstream, ...] = (
                 # "r1-verbatim" for the standing control.
                 prescription=(
                     Marker("conventional", "shared/references/theoretical-limit.md:97"),
-                    Marker("current practice", "shared/references/theoretical-limit.md:97"),
+                    Marker(
+                        "current practice", "shared/references/theoretical-limit.md:97"
+                    ),
                 ),
                 prescription_mode="any",
             ),
@@ -237,7 +266,10 @@ WORKSTREAMS: tuple[Workstream, ...] = (
                 # forms are the test's own question form and its pass verdict.
                 prescription=(
                     Marker("counterfactual test", "shared/references/five-whys.md:66"),
-                    Marker("counterfactually necessary", "shared/references/five-whys.md:69"),
+                    Marker(
+                        "counterfactually necessary",
+                        "shared/references/five-whys.md:69",
+                    ),
                     Marker(
                         "would the symptom still have happened",
                         "shared/references/five-whys.md:67",
@@ -302,7 +334,9 @@ WORKSTREAMS: tuple[Workstream, ...] = (
                 invocation=(Marker("pre-mortem", "shared/references/pre-mortem.md:1"),),
                 # pre-mortem.md:83 "**Give every fatal and costly cluster a
                 # tripwire.**"
-                prescription=(Marker("tripwire", "shared/references/pre-mortem.md:83"),),
+                prescription=(
+                    Marker("tripwire", "shared/references/pre-mortem.md:83"),
+                ),
                 prescription_mode="any",
             ),
         ),
@@ -417,7 +451,9 @@ def score_text(text: str) -> dict[str, str]:
 
 
 def score_text_detail(text: str) -> dict[str, list[ComponentReading]]:
-    return {ws.id: [score_component(text, c) for c in ws.components] for ws in WORKSTREAMS}
+    return {
+        ws.id: [score_component(text, c) for c in ws.components] for ws in WORKSTREAMS
+    }
 
 
 # --- capture loading --------------------------------------------------------
@@ -508,8 +544,10 @@ def load_captures(directory: Path) -> list[tuple[str, str, tuple[str, ...]]]:
     out: list[tuple[str, str, tuple[str, ...]]] = []
     for stem in sorted(by_stem):
         path = by_stem[stem]
-        text = _jsonl_text(path) if path.suffix == ".jsonl" else path.read_text(
-            encoding="utf-8", errors="replace"
+        text = (
+            _jsonl_text(path)
+            if path.suffix == ".jsonl"
+            else path.read_text(encoding="utf-8", errors="replace")
         )
         out.append((path.name, text, _reference_reads(path)))
     return out
@@ -529,7 +567,11 @@ def render(captures: list[tuple[str, str, tuple[str, ...]]], detail: bool) -> st
     lines.append("")
     lines.append(f"N = {len(captures)} capture file(s).")
     lines.append("")
-    header = "| Capture | " + " | ".join(ws.id for ws in WORKSTREAMS) + " | Reference reads |"
+    header = (
+        "| Capture | "
+        + " | ".join(ws.id for ws in WORKSTREAMS)
+        + " | Reference reads |"
+    )
     sep = "|---|" + "---|" * (len(WORKSTREAMS) + 1)
     lines.append(header)
     lines.append(sep)
@@ -711,13 +753,23 @@ FIXTURES: tuple[Fixture, ...] = (
     Fixture(
         "present-all",
         _FIX_PRESENT_ALL,
-        {"TIGHT-02": PRESENT, "TECH-01": PRESENT, "TECH-05": PRESENT, "TRADE/PASS": PRESENT},
+        {
+            "TIGHT-02": PRESENT,
+            "TECH-01": PRESENT,
+            "TECH-05": PRESENT,
+            "TRADE/PASS": PRESENT,
+        },
         "every prescription followed in its prescribed vocabulary",
     ),
     Fixture(
         "absent-all",
         _FIX_ABSENT_ALL,
-        {"TIGHT-02": ABSENT, "TECH-01": ABSENT, "TECH-05": ABSENT, "TRADE/PASS": ABSENT},
+        {
+            "TIGHT-02": ABSENT,
+            "TECH-01": ABSENT,
+            "TECH-05": ABSENT,
+            "TRADE/PASS": ABSENT,
+        },
         "every technique invoked, no prescription followed — the state a binary "
         "scorer cannot tell from n/a",
     ),
@@ -881,7 +933,9 @@ def provenance_problems() -> list[str]:
         if path_part not in cache:
             p = REPO_ROOT / path_part
             if not p.is_file():
-                problems.append(f"marker {m.literal!r}: source file {path_part} not found")
+                problems.append(
+                    f"marker {m.literal!r}: source file {path_part} not found"
+                )
                 cache[path_part] = []
                 continue
             cache[path_part] = p.read_text(encoding="utf-8").splitlines()
@@ -908,14 +962,22 @@ def io_problems() -> list[str]:
                     "type": "assistant",
                     "message": {
                         "content": [
-                            {"type": "text", "text": "Ideal ceiling, Best demonstrated,"},
-                            {"type": "text", "text": "Conventional figure; theoretical limit."},
+                            {
+                                "type": "text",
+                                "text": "Ideal ceiling, Best demonstrated,",
+                            },
+                            {
+                                "type": "text",
+                                "text": "Conventional figure; theoretical limit.",
+                            },
                         ]
                     },
                 }
             ),
             "{ not json",
-            json.dumps({"type": "result", "result": "actor lens and time lens; second-order."}),
+            json.dumps(
+                {"type": "result", "result": "actor lens and time lens; second-order."}
+            ),
         ]
     )
     import tempfile
@@ -928,7 +990,9 @@ def io_problems() -> list[str]:
         # assert all three values reach the emission.
         (d / "gen-d.md").write_text(_FIX_ABSENT_ALL, encoding="utf-8")
         (d / "gen-c.jsonl").write_text(
-            json.dumps({"type": "assistant", "message": {"content": "references/five-whys.md"}}),
+            json.dumps(
+                {"type": "assistant", "message": {"content": "references/five-whys.md"}}
+            ),
             encoding="utf-8",
         )
         (d / "gen-c.md").write_text(_FIX_PRESENT_ALL, encoding="utf-8")
@@ -998,13 +1062,17 @@ def main(argv: list[str] | None = None) -> int:
         )
     )
     ap.add_argument("--captures", type=Path, help="directory of .jsonl / .md captures")
-    ap.add_argument("--detail", action="store_true", help="also list the matched literals")
+    ap.add_argument(
+        "--detail", action="store_true", help="also list the matched literals"
+    )
     ap.add_argument(
         "--out",
         type=Path,
         help="write the report here instead of stdout (refused under tests/)",
     )
-    ap.add_argument("--self-test", action="store_true", help="run the offline control suite")
+    ap.add_argument(
+        "--self-test", action="store_true", help="run the offline control suite"
+    )
     args = ap.parse_args(argv)
 
     if args.self_test:

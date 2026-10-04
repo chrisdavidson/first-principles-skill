@@ -31,6 +31,7 @@ BASELINE_V43 = TESTS / "routing-battery-baseline-v4.3.md"
 # File-level guards
 # ---------------------------------------------------------------------------
 
+
 def test_baseline_v43_exists() -> None:
     """tests/routing-battery-baseline-v4.3.md must exist."""
     assert BASELINE_V43.exists(), (
@@ -49,6 +50,7 @@ def test_baseline_v43_minimum_length() -> None:
 # ---------------------------------------------------------------------------
 # Anti-masking guards — BATTERY: PASS, masked-threshold audit, lineage
 # ---------------------------------------------------------------------------
+
 
 def test_baseline_v43_battery_pass_verdict() -> None:
     """routing-battery-baseline-v4.3.md must contain 'BATTERY: PASS'."""
@@ -104,6 +106,7 @@ def test_baseline_v43_lineage_mentions_commit_151b197() -> None:
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _check_baseline_row(text: str, row_id: str, kn_value: str, verdict: str) -> None:
     """Assert that a boundary table row has the expected Boundary K/N and Verdict cells.
 
@@ -137,9 +140,7 @@ def _check_baseline_row(text: str, row_id: str, kn_value: str, verdict: str) -> 
                 f"expected {verdict!r}. Full line: {line!r}"
             )
             return
-    raise AssertionError(
-        f"Row '{row_id}' not found in baseline"
-    )
+    raise AssertionError(f"Row '{row_id}' not found in baseline")
 
 
 def _check_focused_row(text: str, row_id: str) -> None:
@@ -155,12 +156,15 @@ def _check_focused_row(text: str, row_id: str) -> None:
                 f"Row {row_id}: no falsifiable '<n>/5 PASS' cell found in: {line!r}"
             )
             return
-    raise AssertionError(f"Row '{row_id}' not found in routing-battery-baseline-v4.3.md")
+    raise AssertionError(
+        f"Row '{row_id}' not found in routing-battery-baseline-v4.3.md"
+    )
 
 
 # ---------------------------------------------------------------------------
 # Boundary rows (B-P12, B-P24, B-N1, B-N2) — must be 5/5 PASS
 # ---------------------------------------------------------------------------
+
 
 def test_baseline_v43_row_b_p12_5of5_pass() -> None:
     """B-P12 boundary row must have K/N '5/5' and Verdict 'PASS'."""
@@ -189,6 +193,7 @@ def test_baseline_v43_row_b_n2_5of5_pass() -> None:
 # ---------------------------------------------------------------------------
 # Focused rows (F-P12, F-P24, F-P25, F-P26, F-N1) — must have <n>/5 PASS cell
 # ---------------------------------------------------------------------------
+
 
 def test_baseline_v43_row_f_p12_has_pass_cell() -> None:
     """F-P12 focused row must have a falsifiable '<n>/5 PASS' cell."""
@@ -224,6 +229,7 @@ def test_baseline_v43_row_f_n1_has_pass_cell() -> None:
 # Anti-falsifiability self-check — confirm _check_focused_row rejects 2/5 FAIL
 # ---------------------------------------------------------------------------
 
+
 def test_check_focused_row_is_falsifiable() -> None:
     """_check_focused_row must raise AssertionError when a focused cell reads '2/5 FAIL'.
 
@@ -249,6 +255,7 @@ def test_check_focused_row_is_falsifiable() -> None:
 # ---------------------------------------------------------------------------
 # Anti-falsifiability self-check — confirm _check_baseline_row rejects leak vectors
 # ---------------------------------------------------------------------------
+
 
 def test_check_baseline_row_is_falsifiable_kn_leak() -> None:
     """_check_baseline_row must raise when Boundary K/N cell reads '5/5 FAIL' (leak vector 1).
@@ -297,4 +304,5 @@ def test_check_baseline_row_is_falsifiable_verdict_leak() -> None:
 
 if __name__ == "__main__":
     import pytest
+
     sys.exit(pytest.main([__file__, "-v"]))

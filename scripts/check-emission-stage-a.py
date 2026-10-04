@@ -17,6 +17,7 @@ Protocol: `docs/emission-phase1-preregistration.md`.
     python3 scripts/check-emission-stage-a.py run --out-dir tests/emission-stage-a-v9.14
     python3 scripts/check-emission-stage-a.py read --out-dir tests/emission-stage-a-v9.14
 """
+
 from __future__ import annotations
 
 import argparse
@@ -76,7 +77,9 @@ _RESULT = re.compile(r"=|≈|→")
 _URL = re.compile(r"https?://")
 _GT = re.compile(r"\bGT-\d+")
 _CHAIN_HOP = re.compile(r"^\s*→")
-_UNGROUNDED = re.compile(r"\[(?:ungrounded|external[^\]]*|unverified[^\]]*)\]", re.IGNORECASE)
+_UNGROUNDED = re.compile(
+    r"\[(?:ungrounded|external[^\]]*|unverified[^\]]*)\]", re.IGNORECASE
+)
 _WEIGHT_HEADER = re.compile(r"^\|.*\b(weight|score)\b.*\|", re.IGNORECASE)
 
 
@@ -226,8 +229,11 @@ def agent_dispatches(jsonl: str) -> int:
         if obj.get("type") != "assistant":
             continue
         for block in obj.get("message", {}).get("content", []):
-            if isinstance(block, dict) and block.get("type") == "tool_use" \
-                    and block.get("name") == "Agent":
+            if (
+                isinstance(block, dict)
+                and block.get("type") == "tool_use"
+                and block.get("name") == "Agent"
+            ):
                 count += 1
     return count
 
@@ -269,7 +275,8 @@ def delivery_route(jsonl: str) -> str:
                 content = block.get("content")
                 if isinstance(content, list):
                     content = "".join(
-                        x.get("text", "") for x in content if isinstance(x, dict))
+                        x.get("text", "") for x in content if isinstance(x, dict)
+                    )
                 if _HANDBACK_MARK in str(content):
                     handback += len(str(content).split())
     if streamed >= MIN_WORDS:
@@ -298,7 +305,8 @@ def _handbacks(jsonl: str) -> list[str]:
             content = block.get("content")
             if isinstance(content, list):
                 content = "".join(
-                    x.get("text", "") for x in content if isinstance(x, dict))
+                    x.get("text", "") for x in content if isinstance(x, dict)
+                )
             content = str(content or "")
             if _HANDBACK_MARK in content:
                 found.append(_deframe_handback(content))
@@ -347,11 +355,13 @@ def extract_subagent_text(jsonl: str) -> tuple[str, str]:
         candidates.append(joined)
 
     document = ""
-    for cand in candidates:                      # last candidate that is a document
+    for cand in candidates:  # last candidate that is a document
         if len(sections_present(cand)) >= MIN_SECTIONS:
             document = cand
-    if not document and candidates:              # none qualifies: keep the fullest,
-        document = max(candidates, key=lambda c: len(c.split()))  # so `read` can say why
+    if not document and candidates:  # none qualifies: keep the fullest,
+        document = max(
+            candidates, key=lambda c: len(c.split())
+        )  # so `read` can say why
     return document, (orch[-1] if orch else "")
 
 
@@ -366,15 +376,24 @@ def parse_catalog(text: str) -> list[tuple[str, str, str]]:
 
 def run_one(prompt_text: str, raw_path: Path) -> str:
     argv = [
-        "claude", "-p", "--model", MODEL,
-        "--plugin-dir", str(PLUGIN_DIR),
-        "--output-format", "stream-json", "--verbose",
+        "claude",
+        "-p",
+        "--model",
+        MODEL,
+        "--plugin-dir",
+        str(PLUGIN_DIR),
+        "--output-format",
+        "stream-json",
+        "--verbose",
         "--no-session-persistence",
-        "--permission-mode", "bypassPermissions",
+        "--permission-mode",
+        "bypassPermissions",
         prompt_text,
     ]
     env = {**os.environ, **_PRINT_BG_WAIT_ENV}
-    proc = subprocess.run(argv, capture_output=True, text=True, timeout=5400, env=env, check=False)
+    proc = subprocess.run(
+        argv, capture_output=True, text=True, timeout=5400, env=env, check=False
+    )
     raw_path.write_text(proc.stdout, encoding="utf-8")
     return proc.stdout
 
@@ -391,7 +410,9 @@ def cmd_plan() -> int:
     print(f"  model            : {MODEL}")
     print(f"  live calls       : {len(prompts)} (generation only; no judge)")
     print("  capture          : subagent message (parent_tool_use_id), stream-json")
-    print(f"  void unless      : >= {MIN_SECTIONS} of 6 sections, >= {MIN_WORDS} words,")
+    print(
+        f"  void unless      : >= {MIN_SECTIONS} of 6 sections, >= {MIN_WORDS} words,"
+    )
     print("                     no rubric contamination, from the subagent")
     print(f"  protocol         : {PREREG.relative_to(REPO_ROOT)}")
     return 0
@@ -420,8 +441,11 @@ def cmd_run(out_dir: Path) -> int:
         sub, orch = extract_subagent_text(raw.read_text(encoding="utf-8"))
         doc.write_text(sub, encoding="utf-8")
         (doc_dir / f"{pid}.orchestrator.md").write_text(orch, encoding="utf-8")
-        print(f"[gen] {pid} subagent={len(sub.split())}w "
-              f"orchestrator={len(orch.split())}w", flush=True)
+        print(
+            f"[gen] {pid} subagent={len(sub.split())}w "
+            f"orchestrator={len(orch.split())}w",
+            flush=True,
+        )
     return cmd_read(out_dir)
 
 
@@ -459,7 +483,8 @@ def _load_qh():
     import sys as _sys
 
     spec = _ilu.spec_from_file_location(
-        "_qh_for_stage_a", REPO_ROOT / "scripts" / "check-quality-harness.py")
+        "_qh_for_stage_a", REPO_ROOT / "scripts" / "check-quality-harness.py"
+    )
     qh = _ilu.module_from_spec(spec)
     _sys.modules["_qh_for_stage_a"] = qh
     spec.loader.exec_module(qh)
@@ -529,15 +554,19 @@ def cmd_conformance(out_dir: Path) -> int:
     r = conformance_reading(out_dir / "documents")
     n = r["documents_scored"]
     print(f"\nlive-output conformance reading -- {r['corpus']}")
-    print(f"  N = {n} scored, {r['documents_unreadable']} unreadable "
-          f"{r['unreadable_ids'] or ''}")
+    print(
+        f"  N = {n} scored, {r['documents_unreadable']} unreadable "
+        f"{r['unreadable_ids'] or ''}"
+    )
     print("  (a recorded reading with its N, never a gate)\n")
     for field, v in r["rates"].items():
         pct = "n/a" if v["rate_pct"] is None else f"{v['rate_pct']:5.1f}%"
         print(f"  {field:<30}{v['numerator']:>4}/{v['denominator']:<5} = {pct}")
-    print("\n  Rates are conditional on readability: an unreadable document "
-          "contributes to\n  no denominator, so contract abandonment cannot lower any "
-          "rate above.")
+    print(
+        "\n  Rates are conditional on readability: an unreadable document "
+        "contributes to\n  no denominator, so contract abandonment cannot lower any "
+        "rate above."
+    )
     return 0
 
 
@@ -560,8 +589,11 @@ def cmd_reextract(out_dir: Path) -> int:
         sub, orch = extract_subagent_text(raw.read_text(encoding="utf-8"))
         (doc_dir / f"{raw.stem}.md").write_text(sub, encoding="utf-8")
         (doc_dir / f"{raw.stem}.orchestrator.md").write_text(orch, encoding="utf-8")
-        print(f"[re-extract] {raw.stem} subagent={len(sub.split())}w "
-              f"orchestrator={len(orch.split())}w", flush=True)
+        print(
+            f"[re-extract] {raw.stem} subagent={len(sub.split())}w "
+            f"orchestrator={len(orch.split())}w",
+            flush=True,
+        )
     return cmd_read(out_dir)
 
 
@@ -583,28 +615,39 @@ def cmd_read(out_dir: Path) -> int:
         rawtext = raw.read_text(encoding="utf-8") if raw.is_file() else None
         disp = agent_dispatches(rawtext) if rawtext is not None else None
         rows[pid]["agent_dispatches"] = disp
-        rows[pid]["delivery_route"] = delivery_route(rawtext) if rawtext is not None else None
+        rows[pid]["delivery_route"] = (
+            delivery_route(rawtext) if rawtext is not None else None
+        )
         if disp == 0:
-            probs = [("agent never dispatched (0 Agent tool calls) -- routing miss, "
-                     "not an extraction failure")] + probs
+            probs = [
+                (
+                    "agent never dispatched (0 Agent tool calls) -- routing miss, "
+                    "not an extraction failure"
+                )
+            ] + probs
         if probs:
             voids[pid] = probs
 
     print(f"\nemission-phase1 Stage A -- mechanical reading ({len(rows)} documents)\n")
-    hdr = (f"{'id':<8}{'words':>7}{'sec/6':>7}{'GT':>5}{'hops':>6}{'deriv':>7}"
-           f"{'urls':>6}{'marks':>7}{'wtbl':>6}{'disp':>6}{'route':>10}")
+    hdr = (
+        f"{'id':<8}{'words':>7}{'sec/6':>7}{'GT':>5}{'hops':>6}{'deriv':>7}"
+        f"{'urls':>6}{'marks':>7}{'wtbl':>6}{'disp':>6}{'route':>10}"
+    )
     print(hdr)
     print("-" * len(hdr))
     for pid, r in rows.items():
-        print(f"{pid:<8}{r['words']:>7}{r['section_count']:>7}{r['gt_identifiers']:>5}"
-              f"{r['chain_hops']:>6}{r['derivation_lines']:>7}{r['urls']:>6}"
-              f"{r['ungrounded_marks']:>7}{'yes' if r['weight_table'] else '-':>6}"
-              f"{('?' if r['agent_dispatches'] is None else r['agent_dispatches']):>6}"
-              f"{(r['delivery_route'] or '?'):>10}")
+        print(
+            f"{pid:<8}{r['words']:>7}{r['section_count']:>7}{r['gt_identifiers']:>5}"
+            f"{r['chain_hops']:>6}{r['derivation_lines']:>7}{r['urls']:>6}"
+            f"{r['ungrounded_marks']:>7}{'yes' if r['weight_table'] else '-':>6}"
+            f"{('?' if r['agent_dispatches'] is None else r['agent_dispatches']):>6}"
+            f"{(r['delivery_route'] or '?'):>10}"
+        )
 
     p1 = sum(1 for r in rows.values() if r["section_count"] >= MIN_SECTIONS)
     p2 = sum(1 for r in rows.values() if r["urls"] > 0)
     p3 = sum(1 for r in rows.values() if r["derivation_lines"] > 0)
+
     def score(hits: int, need: int) -> str:
         """A prediction is scored only when it is decided.
 
@@ -622,9 +665,12 @@ def cmd_read(out_dir: Path) -> int:
 
     routes = [r["delivery_route"] for r in rows.values() if r["delivery_route"]]
     if routes:
-        s = routes.count("streamed"); h = routes.count("handback")
-        print(f"\ndelivery route (recommendation 2): streamed {s}/{len(routes)}, "
-              f"hand-back only {h}/{len(routes)}")
+        s = routes.count("streamed")
+        h = routes.count("handback")
+        print(
+            f"\ndelivery route (recommendation 2): streamed {s}/{len(routes)}, "
+            f"hand-back only {h}/{len(routes)}"
+        )
         print("  transport only -- says nothing about whether a UI renders it")
 
     print("\npre-registered predictions (§4):")
@@ -647,7 +693,8 @@ def cmd_read(out_dir: Path) -> int:
         "predictions": {"P1": p1, "P2": p2, "P3": p3, "n": len(rows)},
     }
     (out_dir / "stage-a-result.json").write_text(
-        json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return 0
 
 
@@ -669,7 +716,8 @@ def _c01_summary_is_rejected_document_is_not() -> str | None:
     document = (
         "## Problem Essence\nx\n## Assumptions Table\nx\n## Ground Truths\nx\n"
         "## Derivation Chains\nx\n## Abandoned Reasoning\nx\n## Conclusion\nx\n"
-        + "word " * 200
+        + "word "
+        * 200
     )
     if capture_problems(document, from_subagent=True):
         return f"C01: a real document was voided: {capture_problems(document, True)}"
@@ -678,7 +726,10 @@ def _c01_summary_is_rejected_document_is_not() -> str | None:
 
 def _c02_orchestrator_capture_is_rejected() -> str | None:
     """A capture not carrying parent_tool_use_id is void however good it looks."""
-    good = "## Problem Essence\n## Assumptions Table\n## Ground Truths\n## Conclusion\n" + "word " * 200
+    good = (
+        "## Problem Essence\n## Assumptions Table\n## Ground Truths\n## Conclusion\n"
+        + "word " * 200
+    )
     if "not-from-subagent" not in capture_problems(good, from_subagent=False):
         return "C02: an orchestrator-sourced capture was accepted"
     return None
@@ -687,12 +738,31 @@ def _c02_orchestrator_capture_is_rejected() -> str | None:
 def _c03_subagent_extraction_picks_the_right_message() -> str | None:
     """The whole erratum in one control: orchestrator text must not be returned."""
     lines = [
-        json.dumps({"type": "assistant", "message": {"content": [
-            {"type": "text", "text": "I'll delegate this."}]}}),
-        json.dumps({"type": "assistant", "parent_tool_use_id": "toolu_1",
-                    "message": {"content": [{"type": "text", "text": "THE DOCUMENT"}]}}),
-        json.dumps({"type": "assistant", "message": {"content": [
-            {"type": "text", "text": "Here's the analysis, distilled:"}]}}),
+        json.dumps(
+            {
+                "type": "assistant",
+                "message": {
+                    "content": [{"type": "text", "text": "I'll delegate this."}]
+                },
+            }
+        ),
+        json.dumps(
+            {
+                "type": "assistant",
+                "parent_tool_use_id": "toolu_1",
+                "message": {"content": [{"type": "text", "text": "THE DOCUMENT"}]},
+            }
+        ),
+        json.dumps(
+            {
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {"type": "text", "text": "Here's the analysis, distilled:"}
+                    ]
+                },
+            }
+        ),
     ]
     sub, orch = extract_subagent_text("\n".join(lines))
     if sub != "THE DOCUMENT":
@@ -709,10 +779,20 @@ def _c11_multiblock_document_is_joined_not_truncated() -> str | None:
     b0 = "## Problem Essence\nfirst part\n| C1 | 4 | dedicated revenue"
     b1 = "| C1 | 4 | dedicated revenue gives officials a stake |\n## Conclusion\nend"
     lines = [
-        json.dumps({"type": "assistant", "parent_tool_use_id": "t",
-                    "message": {"content": [{"type": "text", "text": b0}]}}),
-        json.dumps({"type": "assistant", "parent_tool_use_id": "t",
-                    "message": {"content": [{"type": "text", "text": b1}]}}),
+        json.dumps(
+            {
+                "type": "assistant",
+                "parent_tool_use_id": "t",
+                "message": {"content": [{"type": "text", "text": b0}]},
+            }
+        ),
+        json.dumps(
+            {
+                "type": "assistant",
+                "parent_tool_use_id": "t",
+                "message": {"content": [{"type": "text", "text": b1}]},
+            }
+        ),
     ]
     sub, _ = extract_subagent_text("\n".join(lines))
     if "Problem Essence" not in sub:
@@ -720,8 +800,10 @@ def _c11_multiblock_document_is_joined_not_truncated() -> str | None:
     if "Conclusion" not in sub:
         return "C11: the last block was dropped"
     if sub.count("dedicated revenue") != 1:
-        return (f"C11: the overlapping partial row was duplicated "
-                f"({sub.count('dedicated revenue')} occurrences, expected 1)")
+        return (
+            f"C11: the overlapping partial row was duplicated "
+            f"({sub.count('dedicated revenue')} occurrences, expected 1)"
+        )
     return None
 
 
@@ -732,15 +814,22 @@ def _c12_re_emitted_document_is_not_double_counted() -> str | None:
     first = "# Analysis\n## Problem Essence\nGT-1 GT-2\nhttps://a.example\ndraft tail"
     second = "# Analysis\n## Problem Essence\nGT-1 GT-2\nhttps://a.example\nfinal tail"
     lines = [
-        json.dumps({"type": "assistant", "parent_tool_use_id": "t",
-                    "message": {"content": [{"type": "text", "text": t}]}})
+        json.dumps(
+            {
+                "type": "assistant",
+                "parent_tool_use_id": "t",
+                "message": {"content": [{"type": "text", "text": t}]},
+            }
+        )
         for t in (first, second)
     ]
     sub, _ = extract_subagent_text("\n".join(lines))
     r = read_document(sub)
     if r["gt_identifiers"] != 2:
-        return (f"C12: {r['gt_identifiers']} GT identifiers from a re-emitted "
-                f"document, expected 2 -- both emissions were counted")
+        return (
+            f"C12: {r['gt_identifiers']} GT identifiers from a re-emitted "
+            f"document, expected 2 -- both emissions were counted"
+        )
     if r["urls"] != 1:
         return f"C12: {r['urls']} URLs, expected 1 -- both emissions were counted"
     if "draft tail" in sub:
@@ -751,9 +840,17 @@ def _c12_re_emitted_document_is_not_double_counted() -> str | None:
 
 
 def _c04_extraction_survives_malformed_lines() -> str | None:
-    blob = "not json\n\n" + json.dumps(
-        {"type": "assistant", "parent_tool_use_id": "t",
-         "message": {"content": [{"type": "text", "text": "D"}]}}) + "\n{bad"
+    blob = (
+        "not json\n\n"
+        + json.dumps(
+            {
+                "type": "assistant",
+                "parent_tool_use_id": "t",
+                "message": {"content": [{"type": "text", "text": "D"}]},
+            }
+        )
+        + "\n{bad"
+    )
     sub, _ = extract_subagent_text(blob)
     if sub != "D":
         return f"C04: malformed lines broke extraction, got {sub!r}"
@@ -781,8 +878,10 @@ def _c07_detector_blindness_is_still_what_is_published() -> str | None:
     if not derivation_lines(caught):
         return "C07: the published 'caught' specimen is no longer caught"
     if derivation_lines(missed):
-        return ("C07: the published 'missed' specimen is now caught -- detector improved, "
-                "so §6's measured 1-of-2 sensitivity is stale and must be re-audited")
+        return (
+            "C07: the published 'missed' specimen is now caught -- detector improved, "
+            "so §6's measured 1-of-2 sensitivity is stale and must be re-audited"
+        )
     return None
 
 
@@ -796,8 +895,10 @@ def _c08_frozen_trackb_captures_still_fail_the_check() -> str | None:
         if not capture_problems(f.read_text(encoding="utf-8"), from_subagent=True):
             passed.append(f.name)
     if passed:
-        return (f"C08: {len(passed)} frozen arm-T captures pass the document check "
-                f"({passed[:3]}), contradicting docs/trackb-transport-erratum.md")
+        return (
+            f"C08: {len(passed)} frozen arm-T captures pass the document check "
+            f"({passed[:3]}), contradicting docs/trackb-transport-erratum.md"
+        )
     return None
 
 
@@ -836,15 +937,30 @@ def _handback_line(report: str, tool_use_id: str = "t1") -> str:
         + "\n".join("  " + l for l in report.splitlines())
         + "\n<usage>subagent_tokens: 200971\ntool_uses: 7</usage>"
     )
-    return json.dumps({
-        "type": "user",
-        "message": {"content": [
-            {"type": "tool_result", "tool_use_id": tool_use_id, "content": framed}]},
-    })
+    return json.dumps(
+        {
+            "type": "user",
+            "message": {
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": tool_use_id,
+                        "content": framed,
+                    }
+                ]
+            },
+        }
+    )
 
 
-_SIX = ("## Problem Essence", "## Assumptions Table", "## Ground Truths",
-        "## Derivation Chains", "## Abandoned Reasoning", "## Conclusion")
+_SIX = (
+    "## Problem Essence",
+    "## Assumptions Table",
+    "## Ground Truths",
+    "## Derivation Chains",
+    "## Abandoned Reasoning",
+    "## Conclusion",
+)
 
 
 def _c13_handback_is_read_when_no_text_block_streams() -> str | None:
@@ -853,17 +969,35 @@ def _c13_handback_is_read_when_no_text_block_streams() -> str | None:
     (assistant text blocks only) reported a 0-word capture for a 4,616-word report."""
     report = "# Analysis\n" + "\n".join(_SIX) + "\nGT-1 GT-2\nbody " * 40
     lines = [
-        json.dumps({"type": "assistant", "message": {"content": [
-            {"type": "tool_use", "name": "Agent", "id": "t1", "input": {}}]}}),
+        json.dumps(
+            {
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {"type": "tool_use", "name": "Agent", "id": "t1", "input": {}}
+                    ]
+                },
+            }
+        ),
         _handback_line(report),
-        json.dumps({"type": "assistant", "message": {"content": [
-            {"type": "text", "text": "Here's the analysis, distilled."}]}}),
+        json.dumps(
+            {
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {"type": "text", "text": "Here's the analysis, distilled."}
+                    ]
+                },
+            }
+        ),
     ]
     sub, orch = extract_subagent_text("\n".join(lines))
     if not sub.strip():
         return "C13: hand-back not read -- a streamed-text-only rule returns 0 words"
     if len(sections_present(sub)) != 6:
-        return f"C13: {len(sections_present(sub))} of 6 sections recovered from hand-back"
+        return (
+            f"C13: {len(sections_present(sub))} of 6 sections recovered from hand-back"
+        )
     if orch != "Here's the analysis, distilled.":
         return f"C13: orchestrator text was {orch!r}"
     return None
@@ -887,7 +1021,8 @@ def _c15_the_document_handback_wins_over_a_follow_up() -> str | None:
     document = "# Analysis\n" + "\n".join(_SIX) + "\nGT-1\nbody " * 30
     follow_up = "Band: **Rigorous**\nJustification: a short self-audit note only."
     sub, _ = extract_subagent_text(
-        _handback_line(document, "t1") + "\n" + _handback_line(follow_up, "t2"))
+        _handback_line(document, "t1") + "\n" + _handback_line(follow_up, "t2")
+    )
     if "Justification: a short self-audit note only." in sub and "GT-1" not in sub:
         return "C15: the short follow-up hand-back was captured instead of the document"
     if len(sections_present(sub)) != 6:
@@ -901,8 +1036,13 @@ def _c16_delivery_route_separates_streamed_from_handback() -> str | None:
     would answer the surfacing question wrongly in whichever direction the last
     transcript happened to fall."""
     body = "# A\n" + "word " * 200
-    streamed = json.dumps({"type": "assistant", "parent_tool_use_id": "t",
-                           "message": {"content": [{"type": "text", "text": body}]}})
+    streamed = json.dumps(
+        {
+            "type": "assistant",
+            "parent_tool_use_id": "t",
+            "message": {"content": [{"type": "text", "text": body}]},
+        }
+    )
     if delivery_route(streamed) != "streamed":
         return f"C16: streamed text read as {delivery_route(streamed)!r}"
     if delivery_route(_handback_line(body)) != "handback":
@@ -910,8 +1050,13 @@ def _c16_delivery_route_separates_streamed_from_handback() -> str | None:
     if delivery_route("") != "none":
         return "C16: an empty transcript did not read as 'none'"
     # a short courtesy line must not count as the document having been streamed
-    tiny = json.dumps({"type": "assistant", "parent_tool_use_id": "t",
-                       "message": {"content": [{"type": "text", "text": "Done."}]}})
+    tiny = json.dumps(
+        {
+            "type": "assistant",
+            "parent_tool_use_id": "t",
+            "message": {"content": [{"type": "text", "text": "Done."}]},
+        }
+    )
     if delivery_route(tiny + "\n" + _handback_line(body)) != "handback":
         return "C16: a one-line subagent aside outvoted the hand-back carrying the document"
     return None
@@ -921,17 +1066,24 @@ def _c17_conformance_reading_is_computed_not_hardcoded() -> str | None:
     """The reading must come from the corpus. A hardcoded rate is the defect this
     whole workstream exists to close -- a number that cannot move is not a reading."""
     import tempfile
-    six = ("## Problem Essence\nx\n## Assumptions Table\nx\n## Ground Truths\nx\n"
-           "## Derivation Chains\nx\n## Abandoned Reasoning\nx\n## Conclusion\nx\n")
+
+    six = (
+        "## Problem Essence\nx\n## Assumptions Table\nx\n## Ground Truths\nx\n"
+        "## Derivation Chains\nx\n## Abandoned Reasoning\nx\n## Conclusion\nx\n"
+    )
     with tempfile.TemporaryDirectory() as td:
         d = Path(td) / "documents"
         d.mkdir()
         (d / "TB-01.md").write_text(six + "word " * 200, encoding="utf-8")
         r = conformance_reading(d)
     if r["documents_scored"] + r["documents_unreadable"] != 1:
-        return (f"C17: a one-document corpus produced "
-                f"{r['documents_scored']}+{r['documents_unreadable']} documents")
-    live = conformance_reading(REPO_ROOT / "tests" / "emission-stage-a-v9.14" / "documents")
+        return (
+            f"C17: a one-document corpus produced "
+            f"{r['documents_scored']}+{r['documents_unreadable']} documents"
+        )
+    live = conformance_reading(
+        REPO_ROOT / "tests" / "emission-stage-a-v9.14" / "documents"
+    )
     if live["documents_scored"] == r["documents_scored"]:
         return "C17: the reading did not change with the corpus -- it is not computed"
     return None
@@ -944,10 +1096,14 @@ def _c18_unreadable_documents_are_counted_not_dropped() -> str | None:
     instead of lowering anything. `TB-08` is the live instance -- dispatched, reasoned,
     and carrying 2 of 6 section headings with no traceable identifiers.
     """
-    r = conformance_reading(REPO_ROOT / "tests" / "emission-stage-a-v9.14" / "documents")
+    r = conformance_reading(
+        REPO_ROOT / "tests" / "emission-stage-a-v9.14" / "documents"
+    )
     if r["documents_unreadable"] < 1:
-        return ("C18: no unreadable document reported, but TB-08 abandons the contract "
-                "-- unreadable documents are being dropped silently")
+        return (
+            "C18: no unreadable document reported, but TB-08 abandons the contract "
+            "-- unreadable documents are being dropped silently"
+        )
     if "TB-08" not in r["unreadable_ids"]:
         return f"C18: unreadable ids {r['unreadable_ids']} do not name TB-08"
     return None
@@ -957,10 +1113,14 @@ def _c19_the_reading_is_not_a_gate() -> str | None:
     """Emission rates are K-of-N live readings, barred from gating by
     `docs/v8.7-constraint-teardown.md` section 2 item 3. If this ever gates, that bar
     has been crossed silently."""
-    r = conformance_reading(REPO_ROOT / "tests" / "emission-stage-a-v9.14" / "documents")
+    r = conformance_reading(
+        REPO_ROOT / "tests" / "emission-stage-a-v9.14" / "documents"
+    )
     if r.get("is_a_gate") is not False:
         return "C19: the reading no longer declares itself a non-gate"
-    src = (REPO_ROOT / "scripts" / "check-emission-stage-a.py").read_text(encoding="utf-8")
+    src = (REPO_ROOT / "scripts" / "check-emission-stage-a.py").read_text(
+        encoding="utf-8"
+    )
     body = src.split("def cmd_conformance", 1)[1].split("\ndef ", 1)[0]
     if "return 1" in body or "SystemExit" in body:
         return "C19: cmd_conformance can now return a failing exit code -- it gates"
@@ -969,7 +1129,9 @@ def _c19_the_reading_is_not_a_gate() -> str | None:
 
 def _c20_every_reported_rate_states_its_denominator() -> str | None:
     """A rate without its denominator is the shape this repository bars."""
-    r = conformance_reading(REPO_ROOT / "tests" / "emission-stage-a-v9.14" / "documents")
+    r = conformance_reading(
+        REPO_ROOT / "tests" / "emission-stage-a-v9.14" / "documents"
+    )
     for field, v in r["rates"].items():
         if "denominator" not in v or "numerator" not in v:
             return f"C20: {field} reports a rate with no numerator/denominator"
@@ -1019,7 +1181,7 @@ _C21_BASE_DOC = (
 # would inflate `conclusion_claims`/`untraced_claims` if section 6 absorbed
 # them instead.
 _C21_PLANTED = (
-    "- \"Do the thing\" -> chain C1\n\n"
+    '- "Do the thing" -> chain C1\n\n'
     "**Recommended approach:** Adopt the alternative option instead.\n"
 )
 
@@ -1187,10 +1349,15 @@ def describe() -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("command", nargs="?", default="plan",
-                    choices=["plan", "run", "read", "reextract", "conformance"])
-    ap.add_argument("--out-dir", type=Path,
-                    default=REPO_ROOT / "tests" / "emission-stage-a-v9.14")
+    ap.add_argument(
+        "command",
+        nargs="?",
+        default="plan",
+        choices=["plan", "run", "read", "reextract", "conformance"],
+    )
+    ap.add_argument(
+        "--out-dir", type=Path, default=REPO_ROOT / "tests" / "emission-stage-a-v9.14"
+    )
     ap.add_argument("--self-test", action="store_true")
     ap.add_argument("--describe", action="store_true")
     args = ap.parse_args(argv)

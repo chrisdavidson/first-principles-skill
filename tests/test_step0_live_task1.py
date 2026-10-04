@@ -7,6 +7,7 @@ hardened with:
   - _classify_mode (none->full-composer inference)
   - KNOWN_MODES allowlist validation
 """
+
 from __future__ import annotations
 
 import importlib.util
@@ -36,6 +37,7 @@ def harness():
 
 
 # --- Task 1 RED assertions ---
+
 
 def test_harness_file_exists():
     """check-step0-live.py must exist (renamed from spike — D-04)."""
@@ -74,20 +76,29 @@ def test_read_step0_catalog_sp01_first(harness):
 
 def test_classify_mode_none_with_dispatch_returns_full_composer(harness, tmp_path):
     """_classify_mode on none-capture WITH dispatch returns 'full-composer' (LOAD-BEARING)."""
-    dispatch_line = json.dumps({
-        "type": "assistant",
-        "message": {
-            "content": [{
-                "type": "tool_use",
-                "name": "Agent",
-                "input": {"subagent_type": "first-principles:first-principles", "prompt": "test"}
-            }]
+    dispatch_line = json.dumps(
+        {
+            "type": "assistant",
+            "message": {
+                "content": [
+                    {
+                        "type": "tool_use",
+                        "name": "Agent",
+                        "input": {
+                            "subagent_type": "first-principles:first-principles",
+                            "prompt": "test",
+                        },
+                    }
+                ]
+            },
         }
-    })
-    clarification_line = json.dumps({
-        "type": "assistant",
-        "text": "I need more information to run the analysis. Please share the plan.",
-    })
+    )
+    clarification_line = json.dumps(
+        {
+            "type": "assistant",
+            "text": "I need more information to run the analysis. Please share the plan.",
+        }
+    )
     p = tmp_path / "none_with_dispatch.jsonl"
     p.write_text(dispatch_line + "\n" + clarification_line + "\n", encoding="utf-8")
     result = harness._classify_mode(p)
@@ -99,7 +110,9 @@ def test_classify_mode_none_with_dispatch_returns_full_composer(harness, tmp_pat
 
 def test_classify_mode_none_without_dispatch_stays_none(harness, tmp_path):
     """_classify_mode on none-capture WITHOUT dispatch returns 'none'."""
-    text_line = json.dumps({"type": "assistant", "text": "Hello world. Nothing special."})
+    text_line = json.dumps(
+        {"type": "assistant", "text": "Hello world. Nothing special."}
+    )
     p = tmp_path / "none_no_dispatch.jsonl"
     p.write_text(text_line + "\n", encoding="utf-8")
     result = harness._classify_mode(p)
@@ -125,16 +138,23 @@ def test_read_step0_catalog_rejects_unknown_mode(harness, tmp_path):
 
 def test_agent_was_dispatched_true(harness, tmp_path):
     """_agent_was_dispatched returns True when first-principles dispatch present."""
-    line = json.dumps({
-        "type": "assistant",
-        "message": {
-            "content": [{
-                "type": "tool_use",
-                "name": "Agent",
-                "input": {"subagent_type": "FIRST-PRINCIPLES:FIRST-PRINCIPLES", "prompt": "x"}
-            }]
+    line = json.dumps(
+        {
+            "type": "assistant",
+            "message": {
+                "content": [
+                    {
+                        "type": "tool_use",
+                        "name": "Agent",
+                        "input": {
+                            "subagent_type": "FIRST-PRINCIPLES:FIRST-PRINCIPLES",
+                            "prompt": "x",
+                        },
+                    }
+                ]
+            },
         }
-    })
+    )
     p = tmp_path / "dispatch.jsonl"
     p.write_text(line + "\n", encoding="utf-8")
     assert harness._agent_was_dispatched(p) is True
@@ -143,5 +163,7 @@ def test_agent_was_dispatched_true(harness, tmp_path):
 def test_agent_was_dispatched_false(harness, tmp_path):
     """_agent_was_dispatched returns False when no dispatch line present."""
     p = tmp_path / "no_dispatch.jsonl"
-    p.write_text(json.dumps({"type": "assistant", "text": "Hello"}) + "\n", encoding="utf-8")
+    p.write_text(
+        json.dumps({"type": "assistant", "text": "Hello"}) + "\n", encoding="utf-8"
+    )
     assert harness._agent_was_dispatched(p) is False

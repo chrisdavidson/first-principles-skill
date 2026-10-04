@@ -51,6 +51,7 @@ from typing import Literal
 # Register a stub so @dataclass(frozen=True) resolves correctly.
 if __name__ not in sys.modules:
     import types as _types
+
     _mod_stub = _types.ModuleType(__name__)
     sys.modules[__name__] = _mod_stub
 
@@ -74,8 +75,16 @@ DEFAULT_PLUGIN_DIR: Path = REPO_ROOT / "first-principles"
 # both directions, which is what makes the roster load-bearing rather than a
 # parallel list.
 RR_SENTINEL_IDS: tuple[str, ...] = (
-    "RR-80-01", "RR-79-01", "RR-114-01", "RR-117-01", "RR-117-02",
-    "RR-119-01", "RR-119-02", "RR-108-02", "RR-108-04", "RR-108-05",
+    "RR-80-01",
+    "RR-79-01",
+    "RR-114-01",
+    "RR-117-01",
+    "RR-117-02",
+    "RR-119-01",
+    "RR-119-02",
+    "RR-108-02",
+    "RR-108-04",
+    "RR-108-05",
     "RR-77-08",
 )
 
@@ -206,7 +215,11 @@ LOCKED_TRANSPORT_ARGV_TEMPLATE: tuple[str, ...] = (
 )
 
 
-def _run_prompt_to(prompt: BoundaryPrompt | FocusedPrompt | MergedPrompt, plugin_dir: Path, out_path: Path) -> Path:
+def _run_prompt_to(
+    prompt: BoundaryPrompt | FocusedPrompt | MergedPrompt,
+    plugin_dir: Path,
+    out_path: Path,
+) -> Path:
     """Issue one prompt via `claude -p` and capture the stream-json log to out_path.
 
     Transport per D-10 (verbatim, copied from check-routing.py lines 329-341):
@@ -220,9 +233,9 @@ def _run_prompt_to(prompt: BoundaryPrompt | FocusedPrompt | MergedPrompt, plugin
     # (the fixed flags/order), never hand-retyped here; only the two
     # placeholders vary per invocation.
     argv = [
-        str(plugin_dir) if tok == "<plugin_dir>" else (
-            prompt.text if tok == "<prompt>" else tok
-        )
+        str(plugin_dir)
+        if tok == "<plugin_dir>"
+        else (prompt.text if tok == "<prompt>" else tok)
         for tok in LOCKED_TRANSPORT_ARGV_TEMPLATE
     ]
     proc = subprocess.run(
@@ -353,7 +366,9 @@ class BoundaryPrompt:
 # ---------------------------------------------------------------------------
 
 
-def parse_boundary_catalog(path: Path) -> tuple[list[BoundaryPrompt], list[BoundaryPrompt]]:
+def parse_boundary_catalog(
+    path: Path,
+) -> tuple[list[BoundaryPrompt], list[BoundaryPrompt]]:
     """Parse a sub-skill-routing-catalog.md-shaped Markdown catalog.
 
     Returns (positives, negatives). Rows are classified by the prefix of
@@ -575,7 +590,10 @@ _FIXTURE_PREMORTEM_VIA_SKILL = "\n".join(
             {
                 "type": "tool_use",
                 "name": "Skill",
-                "input": {"skill": "first-principles:pre-mortem", "args": "stress-test the plan"},
+                "input": {
+                    "skill": "first-principles:pre-mortem",
+                    "args": "stress-test the plan",
+                },
             }
         ),
         json.dumps({"type": "assistant", "text": "Loaded the pre-mortem sub-skill."}),
@@ -596,7 +614,9 @@ _FIXTURE_INVERSION_VIA_AGENT = "\n".join(
                 },
             }
         ),
-        json.dumps({"type": "assistant", "text": "Delegating to the inversion sub-skill."}),
+        json.dumps(
+            {"type": "assistant", "text": "Delegating to the inversion sub-skill."}
+        ),
     ]
 )
 
@@ -634,7 +654,10 @@ _FIXTURE_BOTH = "\n".join(
             {
                 "type": "tool_use",
                 "name": "Agent",
-                "input": {"subagent_type": "first-principles:inversion", "prompt": "..."},
+                "input": {
+                    "subagent_type": "first-principles:inversion",
+                    "prompt": "...",
+                },
             }
         ),
         json.dumps({"type": "assistant", "text": "Then inversion."}),
@@ -645,8 +668,12 @@ _FIXTURE_BOTH = "\n".join(
 # first-principles invocation at all.
 _FIXTURE_NONE = "\n".join(
     [
-        json.dumps({"type": "assistant", "text": "Hello world. Here is a generic answer."}),
-        json.dumps({"type": "assistant", "text": "Nothing distinctive in this text at all."}),
+        json.dumps(
+            {"type": "assistant", "text": "Hello world. Here is a generic answer."}
+        ),
+        json.dumps(
+            {"type": "assistant", "text": "Nothing distinctive in this text at all."}
+        ),
     ]
 )
 
@@ -759,7 +786,9 @@ _FIXTURE_READ_RESULT_CONTAMINATION = "\n".join(
                         {
                             "type": "tool_use",
                             "name": "Read",
-                            "input": {"file_path": "scripts/check-sub-skill-routing.py"},
+                            "input": {
+                                "file_path": "scripts/check-sub-skill-routing.py"
+                            },
                         }
                     ],
                 },
@@ -832,8 +861,16 @@ def self_test_boundary() -> int:
         ("both", _FIXTURE_BOTH, "both"),
         ("none-or-other", _FIXTURE_NONE, "none-or-other"),
         ("composer_only_LOAD_BEARING", _FIXTURE_COMPOSER_ONLY, "none-or-other"),
-        ("read_result_contamination_LOAD_BEARING", _FIXTURE_READ_RESULT_CONTAMINATION, "none-or-other"),
-        ("composer_with_quoted_subskills_LOAD_BEARING", _FIXTURE_COMPOSER_WITH_QUOTED_SUBSKILLS, "none-or-other"),
+        (
+            "read_result_contamination_LOAD_BEARING",
+            _FIXTURE_READ_RESULT_CONTAMINATION,
+            "none-or-other",
+        ),
+        (
+            "composer_with_quoted_subskills_LOAD_BEARING",
+            _FIXTURE_COMPOSER_WITH_QUOTED_SUBSKILLS,
+            "none-or-other",
+        ),
     ]
     all_passed = True
     for name, body, expected in fixtures:
@@ -1081,9 +1118,11 @@ def self_test_boundary() -> int:
     _rr8001_mechanism_ok = (
         _rr8001_pm_count == 1
         and _rr8001_pm_count < MIN_HEADER_HITS
-        and "pre-mortem" not in _rr8001_fired               # barrier holds at MIN_HEADER_HITS=2
-        and "pre-mortem" in _rr8001_would_fire_at_1          # barrier is load-bearing (>=1 would fire)
-        and _rr8001_at_1_result == "focused-pre-mortem"      # mechanism counter-check (focused branch live)
+        and "pre-mortem" not in _rr8001_fired  # barrier holds at MIN_HEADER_HITS=2
+        and "pre-mortem"
+        in _rr8001_would_fire_at_1  # barrier is load-bearing (>=1 would fire)
+        and _rr8001_at_1_result
+        == "focused-pre-mortem"  # mechanism counter-check (focused branch live)
         and _rr8001_result != "focused-pre-mortem"
     )
 
@@ -1121,9 +1160,11 @@ def self_test_boundary() -> int:
     # NON_BLOCKING per D-16. Honest carried vector — not forced to a clean all-below.
     _rr8001_v711_ok = (
         _rr8001_sn04_counts == [3, 3, 2, 1, 1]
-        and _rr8001_sn04_counts[0] >= MIN_HEADER_HITS    # run1 over-routes (counter-check, non-vacuous)
-        and _rr8001_sn04_counts[3] < MIN_HEADER_HITS     # run4 stays below barrier (mixed over-routing)
-        and _rr8001_pm_pattern_count == 9                # drift guard (Phase 117 FIX-02 bump: 7→9)
+        and _rr8001_sn04_counts[0]
+        >= MIN_HEADER_HITS  # run1 over-routes (counter-check, non-vacuous)
+        and _rr8001_sn04_counts[3]
+        < MIN_HEADER_HITS  # run4 stays below barrier (mixed over-routing)
+        and _rr8001_pm_pattern_count == 9  # drift guard (Phase 117 FIX-02 bump: 7→9)
     )
 
     _rr8001_assertions_ok = _rr8001_mechanism_ok and _rr8001_v711_ok
@@ -1231,9 +1272,9 @@ def self_test_boundary() -> int:
     # IS reachable on runs 2, 3, 5 in the live CONF-03 captures).
     _rr7901_ok = (
         _rr7901_counts == [3, 3, 2, 2, 3]
-        and _rr7901_counts[1] >= MIN_HEADER_HITS    # run2 fires (counter-check)
-        and _rr7901_counts[2] >= MIN_HEADER_HITS    # run3 fires (counter-check)
-        and _rr7901_pm_pattern_count == 9           # drift guard (Phase 117 FIX-02 bump: 7→9)
+        and _rr7901_counts[1] >= MIN_HEADER_HITS  # run2 fires (counter-check)
+        and _rr7901_counts[2] >= MIN_HEADER_HITS  # run3 fires (counter-check)
+        and _rr7901_pm_pattern_count == 9  # drift guard (Phase 117 FIX-02 bump: 7→9)
     )
     if _rr7901_ok:
         print(
@@ -1371,8 +1412,10 @@ def self_test_boundary() -> int:
     # the synthetic reachability check remains as the non-vacuous proof.
     _rr11401_ok = (
         _rr11401_inv_counts == [0, 0, 0, 0, 0]
-        and _rr11401_inv_pattern_count == 13             # drift guard (D-08 bump: 6→7→8→9, Phase 94; D-03 bump: 9→13, Phase 121 OCH-02)
-        and _rr11401_synth_inv >= MIN_HEADER_HITS         # detector is reachable (synthetic check — sole non-vacuous proof at v8.5)
+        and _rr11401_inv_pattern_count
+        == 13  # drift guard (D-08 bump: 6→7→8→9, Phase 94; D-03 bump: 9→13, Phase 121 OCH-02)
+        and _rr11401_synth_inv
+        >= MIN_HEADER_HITS  # detector is reachable (synthetic check — sole non-vacuous proof at v8.5)
     )
     if _rr11401_ok:
         print(
@@ -1439,16 +1482,15 @@ def self_test_boundary() -> int:
     # (b) Single-heading check: ## Stress-Test Verdict (no overlapping existing marker).
     # Gives inversion == 1 only via the new Stress-Test Verdict heading-anchored pattern.
     _rr11401_sv_text = _fixture_assistant_text(
-        "## Stress-Test Verdict\n"
-        "The stress-test verdict for this inversion."
+        "## Stress-Test Verdict\nThe stress-test verdict for this inversion."
     )
     _rr11401_sv_parsed = [json.loads(_rr11401_sv_text)]
     _rr11401_sv_extracted = _extract_assistant_text(_rr11401_sv_parsed)
     _rr11401_sv_inv = _technique_hits(_rr11401_sv_extracted).get("inversion", 0)
 
     _rr11401_teeth_ok = (
-        _rr11401_hdr_inv >= MIN_HEADER_HITS   # (a) 4-header fixture reaches bar
-        and _rr11401_sv_inv >= 1              # (b) clean anchor: Stress-Test Verdict fires
+        _rr11401_hdr_inv >= MIN_HEADER_HITS  # (a) 4-header fixture reaches bar
+        and _rr11401_sv_inv >= 1  # (b) clean anchor: Stress-Test Verdict fires
     )
     if _rr11401_teeth_ok:
         print(
@@ -1580,9 +1622,10 @@ def self_test_boundary() -> int:
     # the five — proving the markers fired even where the classify() MODE mismatched.
     _rr11701_ok = (
         _rr11701_fb_counts == [2, 2, 2, 3, 4]
-        and _rr11701_fb_counts[0] >= MIN_HEADER_HITS    # run1 fires (counter-check)
-        and _rr11701_fb_counts[4] >= MIN_HEADER_HITS    # run5 fires (counter-check; CEILING-suppressed, not marker-absent)
-        and _rr11701_fb_pattern_count == 7              # drift guard (FIX-01 bump: 6→7)
+        and _rr11701_fb_counts[0] >= MIN_HEADER_HITS  # run1 fires (counter-check)
+        and _rr11701_fb_counts[4]
+        >= MIN_HEADER_HITS  # run5 fires (counter-check; CEILING-suppressed, not marker-absent)
+        and _rr11701_fb_pattern_count == 7  # drift guard (FIX-01 bump: 6→7)
     )
     if _rr11701_ok:
         print(
@@ -1651,9 +1694,12 @@ def self_test_boundary() -> int:
 
     _rr11702_ok = (
         _rr11702_sn03_counts == [5, 0, 0, 1, 0]
-        and _rr11702_sn03_counts[0] >= MIN_HEADER_HITS              # run1 over-routes (pre-mortem fires)
-        and all(c < MIN_HEADER_HITS for c in _rr11702_sn03_counts[1:])  # runs 2-5 stay below barrier
-        and _rr11702_sp01_run2_pm >= MIN_HEADER_HITS                # detector reachable (non-vacuous)
+        and _rr11702_sn03_counts[0]
+        >= MIN_HEADER_HITS  # run1 over-routes (pre-mortem fires)
+        and all(
+            c < MIN_HEADER_HITS for c in _rr11702_sn03_counts[1:]
+        )  # runs 2-5 stay below barrier
+        and _rr11702_sp01_run2_pm >= MIN_HEADER_HITS  # detector reachable (non-vacuous)
     )
     if _rr11702_ok:
         print(
@@ -1714,8 +1760,9 @@ def self_test_boundary() -> int:
     # on S-N01 text — the 3/5 result is a genuine partial-pass, not a dead detector.
     _rr11901_ok = (
         _rr11901_sn01_counts == [1, 3, 2, 2, 2]
-        and _rr11901_sn01_counts[1] >= MIN_HEADER_HITS    # run2 over-routes (counter-check, non-vacuous)
-        and _rr7901_pm_pattern_count == 9                 # drift guard (reuses RR-79-01 guard above)
+        and _rr11901_sn01_counts[1]
+        >= MIN_HEADER_HITS  # run2 over-routes (counter-check, non-vacuous)
+        and _rr7901_pm_pattern_count == 9  # drift guard (reuses RR-79-01 guard above)
     )
     if _rr11901_ok:
         print(
@@ -1778,8 +1825,9 @@ def self_test_boundary() -> int:
     # on S-N02 text — the 3/5 result is a genuine partial-pass, not a dead detector.
     _rr11902_ok = (
         _rr11902_sn02_counts == [1, 0, 1, 2, 3]
-        and _rr11902_sn02_counts[4] >= MIN_HEADER_HITS    # run5 over-routes (counter-check, non-vacuous)
-        and _rr7901_pm_pattern_count == 9                 # drift guard (reuses RR-79-01 guard above)
+        and _rr11902_sn02_counts[4]
+        >= MIN_HEADER_HITS  # run5 over-routes (counter-check, non-vacuous)
+        and _rr7901_pm_pattern_count == 9  # drift guard (reuses RR-79-01 guard above)
     )
     if _rr11902_ok:
         print(
@@ -1870,9 +1918,12 @@ def self_test_boundary() -> int:
     # on v7.6 evidence (count 2 each: two trade-off markers co-fire on those runs).
     _rr10802_ok = (
         _rr10802_to_counts == [3, 3, 2, 3, 2]
-        and _rr10802_to_counts[0] >= MIN_HEADER_HITS    # run1 fires (positive counter-check)
-        and _rr10802_to_counts[1] >= MIN_HEADER_HITS    # run2 fires (positive counter-check)
-        and _rr10802_to_pattern_count == 10             # drift guard (D-08 bump: 4→5→6, Phase 94; D-03 bump: 6→10, Phase 121 OCH-02)
+        and _rr10802_to_counts[0]
+        >= MIN_HEADER_HITS  # run1 fires (positive counter-check)
+        and _rr10802_to_counts[1]
+        >= MIN_HEADER_HITS  # run2 fires (positive counter-check)
+        and _rr10802_to_pattern_count
+        == 10  # drift guard (D-08 bump: 4→5→6, Phase 94; D-03 bump: 6→10, Phase 121 OCH-02)
     )
     if _rr10802_ok:
         print(
@@ -1890,9 +1941,13 @@ def self_test_boundary() -> int:
         )
     else:
         _offending_to = [
-            f"run{i+1}={c}" for i, c in enumerate(_rr10802_to_counts)
-            if (i == 0 and c != 3) or (i == 1 and c != 3) or (i == 2 and c != 2)
-            or (i == 3 and c != 3) or (i == 4 and c != 2)
+            f"run{i + 1}={c}"
+            for i, c in enumerate(_rr10802_to_counts)
+            if (i == 0 and c != 3)
+            or (i == 1 and c != 3)
+            or (i == 2 and c != 2)
+            or (i == 3 and c != 3)
+            or (i == 4 and c != 2)
         ]
         _offending_to_str = ", ".join(_offending_to) if _offending_to else "none"
         print(
@@ -2010,7 +2065,15 @@ def self_test_boundary() -> int:
         ("RR-108-05", "S-P14", "theoretical-limit",  [0, 0, 0, 0, 0], [0, 0, 0, 1, 0], _load_excerpt_v85, "v8.5"),
     )
     # fmt: on
-    for _rr_id, _row_id, _tech_name, _expected_comp, _expected_tech_sums, _loader, _ver_label in _NEW_TECH_SENTINELS:
+    for (
+        _rr_id,
+        _row_id,
+        _tech_name,
+        _expected_comp,
+        _expected_tech_sums,
+        _loader,
+        _ver_label,
+    ) in _NEW_TECH_SENTINELS:
         _comp_counts: list[int] = []
         _focused_tech_sums: list[int] = []
         for _run in range(1, 6):
@@ -2024,8 +2087,7 @@ def self_test_boundary() -> int:
         # any non-zero sums come from incidental hits of OTHER technique patterns
         # in the output prose (e.g. "## Second-Order Effects" in an estimate output).
         _new_ok = (
-            _comp_counts == _expected_comp
-            and _focused_tech_sums == _expected_tech_sums
+            _comp_counts == _expected_comp and _focused_tech_sums == _expected_tech_sums
         )
         if _new_ok:
             print(
@@ -2094,10 +2156,11 @@ def self_test_boundary() -> int:
     # non-vacuous.  Stated relatively, not against a literal: TEARDOWN-02
     # released the freeze on the value (docs/v8.7-constraint-teardown.md).
     _rr7708_assertions_ok = (
-        _rr7708_composer == 3                                     # exact composer hits
-        and _rr7708_fired == {"pre-mortem"}                       # exactly n==1
-        and _rr7708_result == "focused-pre-mortem"                # correct at the current ceiling value
-        and _rr7708_composer == _COMPOSER_FOCUS_CEILING - 1       # load-bearing check
+        _rr7708_composer == 3  # exact composer hits
+        and _rr7708_fired == {"pre-mortem"}  # exactly n==1
+        and _rr7708_result
+        == "focused-pre-mortem"  # correct at the current ceiling value
+        and _rr7708_composer == _COMPOSER_FOCUS_CEILING - 1  # load-bearing check
     )
     if _rr7708_assertions_ok:
         print(
@@ -2118,7 +2181,9 @@ def self_test_boundary() -> int:
         all_passed = False
 
     if all_passed:
-        print("self-test PASS (8 fixtures + RR-80-01 [S-N04 2/5 FAIL CARRIED; v7.11] + RR-79-01 [S-P01 CLOSED; SUSTAINED 5/5 v7.11] + RR-114-01 [S-P02 0/5 FAIL CARRIED; v8.5] + RR-114-01 teeth [OCH-02 inversion 9→13] + RR-108-02 [S-P05 CLOSED; SUSTAINED 5/5 v7.11] + RR-108-02 teeth [OCH-02 trade-off 6→10] + RR-108-03 [S-P09 v7.4 frozen] + RR-108-04 [S-P10 0/5 CARRIED; v8.5] + RR-108-05 [S-P14 0/5 CARRIED; v8.5] + RR-77-08 + RR-117-01 [S-P03 fishbone; 4/5 PASS CLOSE v8.6] + RR-117-02 [S-N03 precision; v7.11] + RR-119-01 [S-N01 REGRESSED 1/5 v7.11] + RR-119-02 [S-N02 SUSTAINED 3/5 v7.11] named assertions)")
+        print(
+            "self-test PASS (8 fixtures + RR-80-01 [S-N04 2/5 FAIL CARRIED; v7.11] + RR-79-01 [S-P01 CLOSED; SUSTAINED 5/5 v7.11] + RR-114-01 [S-P02 0/5 FAIL CARRIED; v8.5] + RR-114-01 teeth [OCH-02 inversion 9→13] + RR-108-02 [S-P05 CLOSED; SUSTAINED 5/5 v7.11] + RR-108-02 teeth [OCH-02 trade-off 6→10] + RR-108-03 [S-P09 v7.4 frozen] + RR-108-04 [S-P10 0/5 CARRIED; v8.5] + RR-108-05 [S-P14 0/5 CARRIED; v8.5] + RR-77-08 + RR-117-01 [S-P03 fishbone; 4/5 PASS CLOSE v8.6] + RR-117-02 [S-N03 precision; v7.11] + RR-119-01 [S-N01 REGRESSED 1/5 v7.11] + RR-119-02 [S-N02 SUSTAINED 3/5 v7.11] named assertions)"
+        )
         return 0
     return 1
 
@@ -2513,12 +2578,16 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
             r"^#{2,6}\s+Failure[-\s]?Guaranteeing\s+Conditions\b",
             re.IGNORECASE | re.MULTILINE,
         ),
-        re.compile(r"^#{2,6}\s+Necessary\s+Preconditions\b", re.IGNORECASE | re.MULTILINE),
+        re.compile(
+            r"^#{2,6}\s+Necessary\s+Preconditions\b", re.IGNORECASE | re.MULTILINE
+        ),
         # Clean teeth anchor (no overlapping existing inversion marker):
         # "## Stress-Test Verdict" has NO corresponding old-prose marker, so a
         # synthetic fixture containing only this heading can prove this new marker
         # fires independently. Does not appear in any frozen S-P02 v7.6 capture.
-        re.compile(r"^#{2,6}\s+Stress[-\s]?Test\s+Verdict\b", re.IGNORECASE | re.MULTILINE),
+        re.compile(
+            r"^#{2,6}\s+Stress[-\s]?Test\s+Verdict\b", re.IGNORECASE | re.MULTILINE
+        ),
     ),
     "fishbone": (
         # fishbone.md procedure section — "cause categories"
@@ -2542,7 +2611,10 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # general prose. If it appears in full-composer output, the composer-
         # structure override fires first (>=2 scaffold tokens from Ground Truths /
         # Assumption Audit / Verdict), correctly labeling the run full-composer.
-        re.compile(r"\bPeople[,;]?\s+(and\s+)?Process[,;]?\s+(Technology|Tools)\b", re.IGNORECASE),
+        re.compile(
+            r"\bPeople[,;]?\s+(and\s+)?Process[,;]?\s+(Technology|Tools)\b",
+            re.IGNORECASE,
+        ),
         # v7.7-diag capture-backed: "candidate cause(s)" fires in S-P03-run2, run3, run5
         # (tests/step0-captures-v7.7-diag/S-P03-run{1..5}.txt). In run5 (a genuine false
         # negative with only 1 existing fishbone marker) candidate-causes supplies the 2nd
@@ -2805,7 +2877,9 @@ class FocusedPrompt:
 # ---------------------------------------------------------------------------
 
 
-def parse_focused_catalog(path: Path) -> tuple[list[FocusedPrompt], list[FocusedPrompt]]:
+def parse_focused_catalog(
+    path: Path,
+) -> tuple[list[FocusedPrompt], list[FocusedPrompt]]:
     """Parse a Markdown routing/output-structure catalog.
 
     Returns (positives, negatives). Rows are classified by the prefix of
@@ -2858,9 +2932,7 @@ def parse_focused_catalog(path: Path) -> tuple[list[FocusedPrompt], list[Focused
             continue
 
         if not expected_raw:
-            raise ValueError(
-                f"row {rid!r}: expected verdict cell must be non-empty"
-            )
+            raise ValueError(f"row {rid!r}: expected verdict cell must be non-empty")
 
         prompt = FocusedPrompt(id=rid, text=prompt_text, expected=expected_raw)
         if rid.startswith("P"):
@@ -2949,9 +3021,7 @@ def _composer_structure_hits(text: str) -> int:
     return total
 
 
-def classify(
-    fired: set[str], composer_structure_hits: int = 0
-) -> OutputStructure:
+def classify(fired: set[str], composer_structure_hits: int = 0) -> OutputStructure:
     """Cardinality-based output-structure classifier.
 
     Per 46-RESEARCH §Q4 cardinality table, calibrated by 46-01-SUMMARY
@@ -3583,9 +3653,7 @@ _FIXTURE_SECONDORDER_EFFECTS_NEGATIVE = "\n".join(
 # ---------------------------------------------------------------------------
 
 
-def _run_one_fixture_focused(
-    name: str, body: str, expected: OutputStructure
-) -> bool:
+def _run_one_fixture_focused(name: str, body: str, expected: OutputStructure) -> bool:
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".jsonl", delete=False, encoding="utf-8"
     ) as tmp:
@@ -3696,24 +3764,56 @@ def self_test_focused() -> int:
             "full-composer",
         ),
         # D-08: capture-backed positive — v5.0 natural inversion phrasing
-        ("focused_inversion_v50_natural_phrasing", _FIXTURE_FOCUSED_INVERSION_V50, "focused-inversion"),
+        (
+            "focused_inversion_v50_natural_phrasing",
+            _FIXTURE_FOCUSED_INVERSION_V50,
+            "focused-inversion",
+        ),
         # D-09: single new marker does NOT fire inversion alone
-        ("inversion_single_new_marker_negative", _FIXTURE_INVERSION_SINGLE_MARKER, "none"),
+        (
+            "inversion_single_new_marker_negative",
+            _FIXTURE_INVERSION_SINGLE_MARKER,
+            "none",
+        ),
         # D-08 (pre-mortem): capture-backed positive — v5.1 pre-mortem natural phrasing
         # (section-header + failure_causes new markers must fire >= 2 distinct)
-        ("focused_premortem_v51_natural_phrasing", _FIXTURE_FOCUSED_PREMORTEM_V51, "focused-pre-mortem"),
+        (
+            "focused_premortem_v51_natural_phrasing",
+            _FIXTURE_FOCUSED_PREMORTEM_V51,
+            "focused-pre-mortem",
+        ),
         # D-09 (pre-mortem): single new section-header marker alone must NOT fire
-        ("premortem_single_new_marker_negative", _FIXTURE_PREMORTEM_SINGLE_MARKER, "none"),
+        (
+            "premortem_single_new_marker_negative",
+            _FIXTURE_PREMORTEM_SINGLE_MARKER,
+            "none",
+        ),
         # D-08 (five-whys): capture-backed positive — v5.1 five-whys natural phrasing
         # (existing five-whys + new causal_link marker must reach 2 distinct hits)
-        ("focused_fivewhys_v51_natural_phrasing", _FIXTURE_FOCUSED_FIVEWHYS_V51, "focused-five-whys"),
+        (
+            "focused_fivewhys_v51_natural_phrasing",
+            _FIXTURE_FOCUSED_FIVEWHYS_V51,
+            "focused-five-whys",
+        ),
         # D-09 (five-whys): single new causal_link marker alone must NOT fire five-whys
-        ("fivewhys_single_new_marker_negative", _FIXTURE_FIVEWHYS_SINGLE_MARKER, "none"),
+        (
+            "fivewhys_single_new_marker_negative",
+            _FIXTURE_FIVEWHYS_SINGLE_MARKER,
+            "none",
+        ),
         # D-08 (second-order): capture-backed positive — v5.1 second-order natural phrasing
         # (two new second-order marker patterns must each fire as distinct hits)
-        ("focused_secondorder_v51_natural_phrasing", _FIXTURE_FOCUSED_SECONDORDER_V51, "focused-second-order"),
+        (
+            "focused_secondorder_v51_natural_phrasing",
+            _FIXTURE_FOCUSED_SECONDORDER_V51,
+            "focused-second-order",
+        ),
         # D-09 (second-order): single broad second-order marker alone must NOT fire
-        ("secondorder_single_new_marker_negative", _FIXTURE_SECONDORDER_SINGLE_MARKER, "none"),
+        (
+            "secondorder_single_new_marker_negative",
+            _FIXTURE_SECONDORDER_SINGLE_MARKER,
+            "none",
+        ),
         # D-09 (second-order / CR-01): bare-prose "second-order effects" only (no heading,
         # no "effect chains") must classify `none` — guards the de-nested pattern B.
         ("secondorder_effects_negative", _FIXTURE_SECONDORDER_EFFECTS_NEGATIVE, "none"),
@@ -3749,7 +3849,8 @@ def self_test_focused() -> int:
     probe3_counted = 1 if probe3_result is not None else 0
     fixture_total = len(fixtures) + probe3_counted
     skip_note = (
-        "" if probe3_result is not None
+        ""
+        if probe3_result is not None
         else " (Fixture 8 probe3 sanity feed skipped — local capture absent)"
     )
     if all_passed:
@@ -3762,6 +3863,7 @@ def self_test_focused() -> int:
 # SECTION 4: New symbols (no source analog — Phase 67 additions)
 # ===========================================================================
 
+
 # new in Phase 67 (no source analog)
 @dataclass(frozen=True)
 class MergedPrompt:
@@ -3770,7 +3872,7 @@ class MergedPrompt:
     id: str
     text: str
     expected_boundary: str  # "none-or-other" | sub-skill | "n-a"
-    expected_output: str    # "focused-<technique>" | "NOT-any-focused" | "n-a"
+    expected_output: str  # "focused-<technique>" | "NOT-any-focused" | "n-a"
 
 
 # new in Phase 67 (no source analog)
@@ -3844,7 +3946,10 @@ def parse_merged_catalog(path: Path) -> tuple[list[MergedPrompt], list[MergedPro
 
         # Validate expected_boundary (unless n-a)
         expected_boundary_lc = expected_boundary_raw.lower()
-        if expected_boundary_lc != "n-a" and expected_boundary_lc not in _VALID_SUBSKILLS:
+        if (
+            expected_boundary_lc != "n-a"
+            and expected_boundary_lc not in _VALID_SUBSKILLS
+        ):
             raise ValueError(
                 f"row {rid!r}: expected_boundary must be one of "
                 f"{sorted(_VALID_SUBSKILLS)} or 'n-a', got {expected_boundary_raw!r}"
@@ -3852,9 +3957,7 @@ def parse_merged_catalog(path: Path) -> tuple[list[MergedPrompt], list[MergedPro
 
         # expected_output: accept any non-empty string
         if not expected_output_raw:
-            raise ValueError(
-                f"row {rid!r}: expected_output cell must be non-empty"
-            )
+            raise ValueError(f"row {rid!r}: expected_output cell must be non-empty")
 
         prompt = MergedPrompt(
             id=rid,
@@ -3902,7 +4005,8 @@ def _both_match(
         b_count = min_pass  # auto-pass
     else:
         b_count = sum(
-            1 for v in boundary_verdicts
+            1
+            for v in boundary_verdicts
             if _is_match(v, expected_boundary)  # type: ignore[arg-type]
         )
 
@@ -3910,8 +4014,7 @@ def _both_match(
         f_count = min_pass  # auto-pass
     else:
         f_count = sum(
-            1 for v in focused_verdicts
-            if _verdict_matches(v, expected_output)
+            1 for v in focused_verdicts if _verdict_matches(v, expected_output)
         )
 
     return b_count, f_count, (b_count >= min_pass and f_count >= min_pass)

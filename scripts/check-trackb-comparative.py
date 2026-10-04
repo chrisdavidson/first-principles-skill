@@ -89,7 +89,14 @@ RUN_ID_2 = "trackb-run-v9.15"
 # explicit-frame fallback if a transport probe shows the slash form does not
 # dispatch under `-p`.
 ARM_T_INVOCATION = "/first-principles:first-principles-analysis "
-ALLOWED_TOOLS: tuple[str, ...] = ("Read", "Glob", "Grep", "WebFetch", "WebSearch", "Bash(*)")
+ALLOWED_TOOLS: tuple[str, ...] = (
+    "Read",
+    "Glob",
+    "Grep",
+    "WebFetch",
+    "WebSearch",
+    "Bash(*)",
+)
 JUDGE_ALLOWED_TOOLS: tuple[str, ...] = ("Read", "Glob", "Grep")
 # Confirmed live 2026-09-29 (read-only) against ~/.claude/settings.json's own
 # schema: `enabledPlugins` maps a marketplace-qualified plugin id to a bool.
@@ -155,9 +162,23 @@ _FORMAT_TOKENS = (
 
 # Substrings that would leak to a judge that a comparison exists.
 _FORBIDDEN_JUDGE_SUBSTRINGS = (
-    "compare", "comparison", "arm a", "arm b", "treatment", "control",
-    "baseline", "plugin", "agent", "unaided", "versus", " vs ",
-    "first-principles", "better", "worse", "improvement", "experiment",
+    "compare",
+    "comparison",
+    "arm a",
+    "arm b",
+    "treatment",
+    "control",
+    "baseline",
+    "plugin",
+    "agent",
+    "unaided",
+    "versus",
+    " vs ",
+    "first-principles",
+    "better",
+    "worse",
+    "improvement",
+    "experiment",
 )
 
 
@@ -214,9 +235,9 @@ class DocScore:
 
     doc_id: str
     prompt_id: str
-    arm: str           # "T" or "C"
+    arm: str  # "T" or "C"
     judge: int
-    bands: dict        # criterion -> band
+    bands: dict  # criterion -> band
     total: int
 
 
@@ -439,9 +460,7 @@ def evaluate(
             per_prompt[pid]["T"] - per_prompt[pid]["C"]
         )
     domains_in_direction = sum(
-        1
-        for d, vals in by_domain.items()
-        if statistics.fmean(vals) > 0
+        1 for d, vals in by_domain.items() if statistics.fmean(vals) > 0
     )
 
     cond_stat = p_value < ALPHA
@@ -468,7 +487,9 @@ def evaluate(
 
     return {
         "status": "cleared" if cleared else "null",
-        "reason": "all three pre-registered conditions met" if cleared else "; ".join(unmet),
+        "reason": "all three pre-registered conditions met"
+        if cleared
+        else "; ".join(unmet),
         "mean_difference": round(mean_diff, 4),
         "p_value": round(p_value, 6),
         "in_run_drift": round(drift, 4),
@@ -518,7 +539,8 @@ def run_prompt(prompt_text: str, out_path: Path, plugin: bool, model: str) -> Pa
         argv += ["--plugin-dir", str(PLUGIN_DIR)]
     argv += [
         "--no-session-persistence",
-        "--permission-mode", "bypassPermissions",
+        "--permission-mode",
+        "bypassPermissions",
         prompt_text,
     ]
     env = {**os.environ, **_PRINT_BG_WAIT_ENV}
@@ -577,8 +599,10 @@ def init_check(jsonl: str, arm: str) -> list[str]:
     if arm == "T":
         if len(fp) != 1:
             return [
-                (f"arm T init event lists {len(fp)} first-principles plugin(s), "
-                f"expected exactly 1: {fp!r}")
+                (
+                    f"arm T init event lists {len(fp)} first-principles plugin(s), "
+                    f"expected exactly 1: {fp!r}"
+                )
             ]
         # Compare relative paths from repository root to work across checkout locations
         plugin_path_str = fp[0].get("path") or ""
@@ -587,7 +611,9 @@ def init_check(jsonl: str, arm: str) -> list[str]:
             plugin_relative = plugin_path.relative_to(REPO_ROOT)
         except ValueError:
             # If the path is not relative to REPO_ROOT, compare it as-is
-            plugin_relative = plugin_path.name if plugin_path.name == PLUGIN_DIR.name else plugin_path
+            plugin_relative = (
+                plugin_path.name if plugin_path.name == PLUGIN_DIR.name else plugin_path
+            )
 
         try:
             expected_relative = PLUGIN_DIR.relative_to(REPO_ROOT)
@@ -596,8 +622,10 @@ def init_check(jsonl: str, arm: str) -> list[str]:
 
         if plugin_relative != expected_relative:
             return [
-                (f"arm T first-principles plugin path is {fp[0].get('path')!r}, "
-                f"expected {str(PLUGIN_DIR)!r}")
+                (
+                    f"arm T first-principles plugin path is {fp[0].get('path')!r}, "
+                    f"expected {str(PLUGIN_DIR)!r}"
+                )
             ]
         return []
     raise TrackBError(f"init_check: unknown arm {arm!r}")
@@ -612,9 +640,15 @@ def dispatched(jsonl: str) -> bool:
         for block in (obj.get("message") or {}).get("content") or []:
             if not isinstance(block, dict):
                 continue
-            if block.get("type") != "tool_use" or block.get("name") not in ("Agent", "Task"):
+            if block.get("type") != "tool_use" or block.get("name") not in (
+                "Agent",
+                "Task",
+            ):
                 continue
-            if block.get("input", {}).get("subagent_type") == "first-principles:first-principles":
+            if (
+                block.get("input", {}).get("subagent_type")
+                == "first-principles:first-principles"
+            ):
                 return True
     return False
 
@@ -671,9 +705,13 @@ def _assert_argv_safe(argv: list[str]) -> None:
         raise TrackBError("refusing to dispatch with bypassPermissions")
     if "Bash" in argv:
         raise TrackBError("refusing a bare Bash entry in the allowlist")
-    allowed = [a for a in argv if isinstance(a, str) and a.startswith("--allowedTools=")]
+    allowed = [
+        a for a in argv if isinstance(a, str) and a.startswith("--allowedTools=")
+    ]
     if len(allowed) != 1:
-        raise TrackBError(f"argv must carry exactly one --allowedTools= token, got {allowed!r}")
+        raise TrackBError(
+            f"argv must carry exactly one --allowedTools= token, got {allowed!r}"
+        )
 
 
 def argv_t(prompt: str, model: str) -> list[str]:
@@ -682,12 +720,20 @@ def argv_t(prompt: str, model: str) -> list[str]:
     symmetry with arm C even though they are inert against an ephemeral
     --plugin-dir load (the only manipulated variable stays the plugin)."""
     argv = [
-        "claude", "-p", "--model", model,
-        "--plugin-dir", str(PLUGIN_DIR),
-        "--output-format", "stream-json", "--verbose",
-        "--permission-mode", "acceptEdits",
+        "claude",
+        "-p",
+        "--model",
+        model,
+        "--plugin-dir",
+        str(PLUGIN_DIR),
+        "--output-format",
+        "stream-json",
+        "--verbose",
+        "--permission-mode",
+        "acceptEdits",
         "--allowedTools=" + ",".join(ALLOWED_TOOLS),
-        "--settings", ISOLATION_SETTINGS,
+        "--settings",
+        ISOLATION_SETTINGS,
         ARM_T_INVOCATION + prompt,
     ]
     _assert_argv_safe(argv)
@@ -699,11 +745,18 @@ def argv_c(prompt: str, model: str) -> list[str]:
     point 5 of the pre-registration: the control is not denied any tool arm T
     has)."""
     argv = [
-        "claude", "-p", "--model", model,
-        "--output-format", "stream-json", "--verbose",
-        "--permission-mode", "acceptEdits",
+        "claude",
+        "-p",
+        "--model",
+        model,
+        "--output-format",
+        "stream-json",
+        "--verbose",
+        "--permission-mode",
+        "acceptEdits",
         "--allowedTools=" + ",".join(ALLOWED_TOOLS),
-        "--settings", ISOLATION_SETTINGS,
+        "--settings",
+        ISOLATION_SETTINGS,
         prompt,
     ]
     _assert_argv_safe(argv)
@@ -715,10 +768,15 @@ def argv_judge(model: str) -> list[str]:
     stdout, as in the v9.13 judge), never bypassPermissions, isolation
     settings applied for the same reason as the generation arms."""
     argv = [
-        "claude", "-p", "--model", model,
-        "--permission-mode", "acceptEdits",
+        "claude",
+        "-p",
+        "--model",
+        model,
+        "--permission-mode",
+        "acceptEdits",
         "--allowedTools=" + ",".join(JUDGE_ALLOWED_TOOLS),
-        "--settings", ISOLATION_SETTINGS,
+        "--settings",
+        ISOLATION_SETTINGS,
         JUDGE_PROMPT,
     ]
     _assert_argv_safe(argv)
@@ -727,8 +785,13 @@ def argv_judge(model: str) -> list[str]:
 
 def _fresh_scratch_dir(scratch_root: Path, name: str) -> Path:
     resolved_root = scratch_root.resolve()
-    if resolved_root == REPO_ROOT.resolve() or REPO_ROOT.resolve() in resolved_root.parents:
-        raise TrackBError(f"scratch root {resolved_root} resolves inside the repository")
+    if (
+        resolved_root == REPO_ROOT.resolve()
+        or REPO_ROOT.resolve() in resolved_root.parents
+    ):
+        raise TrackBError(
+            f"scratch root {resolved_root} resolves inside the repository"
+        )
     d = resolved_root / name
     d.mkdir(parents=True, exist_ok=True)
     return d
@@ -809,13 +872,23 @@ def _judge_once(doc_text: str, out_path: Path, model: str) -> dict | None:
 
     env = {**os.environ, **_PRINT_BG_WAIT_ENV}
     argv = [
-        "claude", "-p", "--model", model,
+        "claude",
+        "-p",
+        "--model",
+        model,
         "--no-session-persistence",
-        "--permission-mode", "bypassPermissions",
+        "--permission-mode",
+        "bypassPermissions",
         JUDGE_PROMPT,
     ]
     proc = subprocess.run(
-        argv, capture_output=True, text=True, timeout=1800, cwd=packet, env=env, check=False
+        argv,
+        capture_output=True,
+        text=True,
+        timeout=1800,
+        cwd=packet,
+        env=env,
+        check=False,
     )
     out = proc.stdout + proc.stderr
     out_path.write_text(out, encoding="utf-8")
@@ -861,8 +934,11 @@ def cmd_run(out_dir: Path, model: str) -> int:
                 voided.append(cell)
                 continue
             docs[cell] = text
-    print(f"[gen] captured {len(docs)}, voided {len(voided)}, "
-          f"dispatch failures {dispatch_failures}", flush=True)
+    print(
+        f"[gen] captured {len(docs)}, voided {len(voided)}, "
+        f"dispatch failures {dispatch_failures}",
+        flush=True,
+    )
 
     # --- Phase 2: blind ----------------------------------------------------
     cells = sorted(docs)
@@ -871,7 +947,8 @@ def cmd_run(out_dir: Path, model: str) -> int:
     rng.shuffle(opaque)
     key = dict(zip(cells, opaque))
     (out_dir / "blinding-key.json").write_text(
-        json.dumps(key, indent=2, sort_keys=True), encoding="utf-8")
+        json.dumps(key, indent=2, sort_keys=True), encoding="utf-8"
+    )
 
     # --- Phase 3 + 4: judge, then drift-control re-judge -------------------
     unparseable = 0
@@ -939,13 +1016,20 @@ def cmd_run(out_dir: Path, model: str) -> int:
         "drift_pairs": drift_pairs,
     }
     _write_result(record, extra)
-    print(json.dumps({**record, **{k: extra[k] for k in ("n_per_arm", "voided_cells")}},
-                     indent=2, sort_keys=True))
+    print(
+        json.dumps(
+            {**record, **{k: extra[k] for k in ("n_per_arm", "voided_cells")}},
+            indent=2,
+            sort_keys=True,
+        )
+    )
     print(f"\nstatus: {record['status']} -- {record['reason']}")
     return 0
 
 
-def _write_result(record: dict, extra: dict, *, extra_paths: tuple[Path, ...] = ()) -> None:
+def _write_result(
+    record: dict, extra: dict, *, extra_paths: tuple[Path, ...] = ()
+) -> None:
     payload = {**record, **extra}
     text = json.dumps(payload, indent=2, sort_keys=True) + "\n"
     RESULT_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -970,9 +1054,13 @@ def cmd_plan_2() -> int:
     print("  arms                 : 2 (T=agent's delivered document, C=unaided)")
     print(f"  runs per cell        : {RUNS_PER_CELL}")
     print(f"  generations          : {len(prompts) * 2 * RUNS_PER_CELL}")
-    print(f"  primary judgings     : {len(prompts) * 2 * RUNS_PER_CELL * JUDGES_PER_DOC}")
+    print(
+        f"  primary judgings     : {len(prompts) * 2 * RUNS_PER_CELL * JUDGES_PER_DOC}"
+    )
     print(f"  drift-control arm    : {DRIFT_ARM_SIZE}")
-    print(f"  secondary judgings   : {SECONDARY_JUDGINGS} (orchestrator message, non-gating)")
+    print(
+        f"  secondary judgings   : {SECONDARY_JUDGINGS} (orchestrator message, non-gating)"
+    )
     print(f"  TOTAL live calls     : {total}")
     print(f"  max attempts/cell    : {MAX_ATTEMPTS}")
     print(f"  void cap             : {MAX_VOID_FRACTION:.0%} of 20 cells")
@@ -1010,7 +1098,15 @@ def _judge_call_2(doc_text: str, out_path: Path, model: str) -> str:
         raise TrackBError("JUDGE_PROMPT leaks comparison terms; run void")
     env = {**_os.environ, **_PRINT_BG_WAIT_ENV}
     argv = argv_judge(model)
-    proc = subprocess.run(argv, capture_output=True, text=True, timeout=1800, cwd=packet, env=env, check=False)
+    proc = subprocess.run(
+        argv,
+        capture_output=True,
+        text=True,
+        timeout=1800,
+        cwd=packet,
+        env=env,
+        check=False,
+    )
     out = proc.stdout + proc.stderr
     out_path.write_text(out, encoding="utf-8")
     shutil.rmtree(packet, ignore_errors=True)
@@ -1026,7 +1122,11 @@ def _judge_pool_2(out_dir: Path, prompts: tuple, model: str, *, live: bool) -> d
     judge_dir = out_dir / "judgings"
     judge_dir.mkdir(parents=True, exist_ok=True)
     cells_path = out_dir / "cells.json"
-    cells = json.loads(cells_path.read_text(encoding="utf-8")) if cells_path.is_file() else {}
+    cells = (
+        json.loads(cells_path.read_text(encoding="utf-8"))
+        if cells_path.is_file()
+        else {}
+    )
 
     scored_prompts = sorted(
         pr.prompt_id
@@ -1034,7 +1134,9 @@ def _judge_pool_2(out_dir: Path, prompts: tuple, model: str, *, live: bool) -> d
         if cells.get(f"{pr.prompt_id}-T", {}).get("outcome") == "scored"
         and cells.get(f"{pr.prompt_id}-C", {}).get("outcome") == "scored"
     )
-    primary_cells = sorted(f"{pid}-{arm}" for pid in scored_prompts for arm in ("T", "C"))
+    primary_cells = sorted(
+        f"{pid}-{arm}" for pid in scored_prompts for arm in ("T", "C")
+    )
     secondary_candidates = sorted(scored_prompts)
 
     blinding_path = out_dir / "blinding-key.json"
@@ -1052,7 +1154,9 @@ def _judge_pool_2(out_dir: Path, prompts: tuple, model: str, *, live: bool) -> d
             json.dumps(key, indent=2, sort_keys=True) + "\n", encoding="utf-8"
         )
     else:
-        raise TrackBError(f"{blinding_path} missing; --recompute needs a complete capture")
+        raise TrackBError(
+            f"{blinding_path} missing; --recompute needs a complete capture"
+        )
 
     def _text(kind: str, ident: str) -> str:
         if kind == "primary":
@@ -1115,7 +1219,9 @@ def _judge_pool_2(out_dir: Path, prompts: tuple, model: str, *, live: bool) -> d
             if dbands is None:
                 unparseable_primary += 1
             elif doc_bands.get(ident):
-                drift_pairs.append((score_total(doc_bands[ident][0]), score_total(dbands)))
+                drift_pairs.append(
+                    (score_total(doc_bands[ident][0]), score_total(dbands))
+                )
 
     return {
         "scored_prompts": scored_prompts,
@@ -1130,8 +1236,14 @@ def _judge_pool_2(out_dir: Path, prompts: tuple, model: str, *, live: bool) -> d
 
 
 def _build_record_2(
-    prompts: tuple, domain_of: dict, pool: dict, cells: dict, voided_cells: list,
-    *, model: str, measured_date: str,
+    prompts: tuple,
+    domain_of: dict,
+    pool: dict,
+    cells: dict,
+    voided_cells: list,
+    *,
+    model: str,
+    measured_date: str,
 ) -> tuple[dict, dict]:
     per_prompt: dict = {}
     for pid in pool["scored_prompts"]:
@@ -1151,9 +1263,13 @@ def _build_record_2(
         else 1.0
     )
     void_fraction = round(len(voided_cells) / 20, 4)
-    record = evaluate(per_prompt, pool["drift_pairs"], frac, 0, void_fraction=void_fraction)
+    record = evaluate(
+        per_prompt, pool["drift_pairs"], frac, 0, void_fraction=void_fraction
+    )
 
-    per_crit: dict[str, dict[str, list[int]]] = {arm: {c: [] for c in _CRITERIA} for arm in ("T", "C")}
+    per_crit: dict[str, dict[str, list[int]]] = {
+        arm: {c: [] for c in _CRITERIA} for arm in ("T", "C")
+    }
     for pid in pool["scored_prompts"]:
         for arm in ("T", "C"):
             for bands in pool["doc_bands"].get(f"{pid}-{arm}", []):
@@ -1198,10 +1314,16 @@ def _build_record_2(
                 agree_hits += 1
             abs_diffs.append(abs(score_total(j1) - score_total(j2)))
             for c in _CRITERIA:
-                per_crit_diffs[c].append(abs(_BAND_WEIGHTS[j1[c]] - _BAND_WEIGHTS[j2[c]]))
+                per_crit_diffs[c].append(
+                    abs(_BAND_WEIGHTS[j1[c]] - _BAND_WEIGHTS[j2[c]])
+                )
     agreement = {
-        "exact_band_agreement_rate": round(agree_hits / agree_total, 4) if agree_total else None,
-        "mean_abs_diff_total": round(statistics.fmean(abs_diffs), 3) if abs_diffs else None,
+        "exact_band_agreement_rate": round(agree_hits / agree_total, 4)
+        if agree_total
+        else None,
+        "mean_abs_diff_total": round(statistics.fmean(abs_diffs), 3)
+        if abs_diffs
+        else None,
         "mean_abs_diff_per_criterion": {
             c: (round(statistics.fmean(vals), 3) if vals else None)
             for c, vals in per_crit_diffs.items()
@@ -1213,7 +1335,9 @@ def _build_record_2(
     for pid in pool["scored_prompts"]:
         bl = pool["secondary_bands"].get(pid, [])
         if bl:
-            secondary_means[pid] = round(statistics.fmean(score_total(b) for b in bl), 3)
+            secondary_means[pid] = round(
+                statistics.fmean(score_total(b) for b in bl), 3
+            )
     secondary_summary_gap = None
     common = [pid for pid in per_prompt if pid in secondary_means]
     if common:
@@ -1284,12 +1408,19 @@ def cmd_run_2(out_dir: Path, scratch_root: Path, model: str) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     result_path = out_dir / "result.json"
     if result_path.is_file():
-        sys.stderr.write(f"[trackb-2] {result_path} already exists; this run is complete\n")
+        sys.stderr.write(
+            f"[trackb-2] {result_path} already exists; this run is complete\n"
+        )
         return 1
 
     resolved_scratch = scratch_root.resolve()
-    if resolved_scratch == REPO_ROOT.resolve() or REPO_ROOT.resolve() in resolved_scratch.parents:
-        raise TrackBError(f"--scratch {resolved_scratch} resolves inside the repository")
+    if (
+        resolved_scratch == REPO_ROOT.resolve()
+        or REPO_ROOT.resolve() in resolved_scratch.parents
+    ):
+        raise TrackBError(
+            f"--scratch {resolved_scratch} resolves inside the repository"
+        )
     resolved_scratch.mkdir(parents=True, exist_ok=True)
 
     raw_dir = out_dir / "raw"
@@ -1342,7 +1473,11 @@ def cmd_run_2(out_dir: Path, scratch_root: Path, model: str) -> int:
     domain_of = {p.prompt_id: p.domain for p in prompts}
 
     cells_path = out_dir / "cells.json"
-    cells: dict = json.loads(cells_path.read_text(encoding="utf-8")) if cells_path.is_file() else {}
+    cells: dict = (
+        json.loads(cells_path.read_text(encoding="utf-8"))
+        if cells_path.is_file()
+        else {}
+    )
 
     def _save_cells() -> None:
         cells_path.write_text(
@@ -1367,12 +1502,20 @@ def cmd_run_2(out_dir: Path, scratch_root: Path, model: str) -> int:
             argv = argv_t(pr.text, model) if arm == "T" else argv_c(pr.text, model)
             print(f"[gen] {cell} attempt {n} ...", flush=True)
             proc = subprocess.run(
-                argv, capture_output=True, text=True, timeout=5400, env=env, cwd=subdir, check=False
+                argv,
+                capture_output=True,
+                text=True,
+                timeout=5400,
+                env=env,
+                cwd=subdir,
+                check=False,
             )
             jsonl = proc.stdout
             raw_path = raw_dir / f"{cell}.a{n}.jsonl"
             raw_path.write_text(jsonl, encoding="utf-8")
-            files = _collect_first_principles_files(subdir, raw_dir / f"{cell}.a{n}.files")
+            files = _collect_first_principles_files(
+                subdir, raw_dir / f"{cell}.a{n}.files"
+            )
             attempts.append(raw_path.name)
             if is_limit_stub(jsonl):
                 stub_path = raw_dir / f"{cell}.a{n}.limit-stub.jsonl"
@@ -1381,24 +1524,43 @@ def cmd_run_2(out_dir: Path, scratch_root: Path, model: str) -> int:
                 rec.update({"outcome": "pending", "attempts": attempts})
                 cells[cell] = rec
                 _save_cells()
-                print(f"[pause] {cell}: usage-limit stub. Resume with:\n  {resume_cmd}", flush=True)
+                print(
+                    f"[pause] {cell}: usage-limit stub. Resume with:\n  {resume_cmd}",
+                    flush=True,
+                )
                 raise TrackBPause(f"usage-limit stub at {stub_path}")
             problems = init_check(jsonl, arm)
             if problems:
-                rec.update({"outcome": "aborted", "attempts": attempts, "abort_reason": problems})
+                rec.update(
+                    {
+                        "outcome": "aborted",
+                        "attempts": attempts,
+                        "abort_reason": problems,
+                    }
+                )
                 cells[cell] = rec
                 _save_cells()
                 raise TrackBAbort(f"{cell}: " + "; ".join(problems))
             if arm == "T":
                 disp = dispatched(jsonl)
                 candidates = sorted(
-                    (p for p in files if p.name.startswith("analysis-") and p.suffix == ".md"),
+                    (
+                        p
+                        for p in files
+                        if p.name.startswith("analysis-") and p.suffix == ".md"
+                    ),
                     key=lambda p: p.stat().st_size,
                 )
                 if not disp or not candidates:
-                    void_reason = "not dispatched" if not disp else "no delivered analysis-*.md file"
+                    void_reason = (
+                        "not dispatched"
+                        if not disp
+                        else "no delivered analysis-*.md file"
+                    )
                     print(f"[miss] {cell} attempt {n}: {void_reason}", flush=True)
-                    rec.update({"outcome": "pending", "attempts": attempts, "dispatched": disp})
+                    rec.update(
+                        {"outcome": "pending", "attempts": attempts, "dispatched": disp}
+                    )
                     cells[cell] = rec
                     _save_cells()
                     continue
@@ -1408,7 +1570,9 @@ def cmd_run_2(out_dir: Path, scratch_root: Path, model: str) -> int:
                 if probs:
                     void_reason = "; ".join(probs)
                     print(f"[miss] {cell} attempt {n}: {void_reason}", flush=True)
-                    rec.update({"outcome": "pending", "attempts": attempts, "dispatched": disp})
+                    rec.update(
+                        {"outcome": "pending", "attempts": attempts, "dispatched": disp}
+                    )
                     cells[cell] = rec
                     _save_cells()
                     continue
@@ -1418,8 +1582,11 @@ def cmd_run_2(out_dir: Path, scratch_root: Path, model: str) -> int:
                 )
                 rec.update(
                     {
-                        "outcome": "scored", "attempts": attempts, "dispatched": True,
-                        "delivered": docfile.name, "words": len(text.split()),
+                        "outcome": "scored",
+                        "attempts": attempts,
+                        "dispatched": True,
+                        "delivered": docfile.name,
+                        "words": len(text.split()),
                     }
                 )
                 cells[cell] = rec
@@ -1436,14 +1603,25 @@ def cmd_run_2(out_dir: Path, scratch_root: Path, model: str) -> int:
                     _save_cells()
                     continue
                 (gen_dir / f"{pr.prompt_id}-C.txt").write_text(text, encoding="utf-8")
-                rec.update({"outcome": "scored", "attempts": attempts, "words": len(text.split())})
+                rec.update(
+                    {
+                        "outcome": "scored",
+                        "attempts": attempts,
+                        "words": len(text.split()),
+                    }
+                )
                 cells[cell] = rec
                 _save_cells()
                 return
-        rec.update({"outcome": "void", "attempts": attempts, "void_reason": void_reason})
+        rec.update(
+            {"outcome": "void", "attempts": attempts, "void_reason": void_reason}
+        )
         cells[cell] = rec
         _save_cells()
-        print(f"[gen] {cell} VOID after {len(attempts)} attempts: {void_reason}", flush=True)
+        print(
+            f"[gen] {cell} VOID after {len(attempts)} attempts: {void_reason}",
+            flush=True,
+        )
 
     try:
         for pr in prompts:
@@ -1454,8 +1632,13 @@ def cmd_run_2(out_dir: Path, scratch_root: Path, model: str) -> int:
         voided_cells = [c for c, r in cells.items() if r.get("outcome") == "void"]
         pool = _judge_pool_2(out_dir, prompts, model, live=True)
         record, extra = _build_record_2(
-            prompts, domain_of, pool, cells, voided_cells,
-            model=model, measured_date=manifest["started_utc"][:10],
+            prompts,
+            domain_of,
+            pool,
+            cells,
+            voided_cells,
+            model=model,
+            measured_date=manifest["started_utc"][:10],
         )
     except TrackBPause as exc:
         sys.stderr.write(f"[pause] {exc}\n")
@@ -1477,7 +1660,9 @@ def cmd_recompute_2(out_dir: Path) -> int:
     manifest_path = out_dir / "manifest.json"
     cells_path = out_dir / "cells.json"
     if not manifest_path.is_file() or not cells_path.is_file():
-        raise TrackBError(f"{out_dir} holds no manifest.json/cells.json to recompute from")
+        raise TrackBError(
+            f"{out_dir} holds no manifest.json/cells.json to recompute from"
+        )
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     cells = json.loads(cells_path.read_text(encoding="utf-8"))
     prompts = parse_catalog(CATALOG.read_text(encoding="utf-8"))
@@ -1486,8 +1671,13 @@ def cmd_recompute_2(out_dir: Path) -> int:
 
     pool = _judge_pool_2(out_dir, prompts, manifest["model"], live=False)
     record, extra = _build_record_2(
-        prompts, domain_of, pool, cells, voided_cells,
-        model=manifest["model"], measured_date=manifest["started_utc"][:10],
+        prompts,
+        domain_of,
+        pool,
+        cells,
+        voided_cells,
+        model=manifest["model"],
+        measured_date=manifest["started_utc"][:10],
     )
     # Round-trip through JSON before comparing: the live record holds Python
     # tuples (e.g. drift_pairs) that a JSON list will never `==` even when
@@ -1499,16 +1689,22 @@ def cmd_recompute_2(out_dir: Path) -> int:
     if not existing_path.is_file():
         raise TrackBError(f"{existing_path} missing; nothing to recompute against")
     existing = json.loads(existing_path.read_text(encoding="utf-8"))
-    mismatches = {k: (existing.get(k), v) for k, v in fresh.items() if existing.get(k) != v}
+    mismatches = {
+        k: (existing.get(k), v) for k, v in fresh.items() if existing.get(k) != v
+    }
     if mismatches:
         for k, (old, new) in mismatches.items():
-            sys.stderr.write(f"[recompute] mismatch on {k!r}: recorded={old!r} recomputed={new!r}\n")
+            sys.stderr.write(
+                f"[recompute] mismatch on {k!r}: recorded={old!r} recomputed={new!r}\n"
+            )
         return 1
     print(f"recompute: {existing_path} reproduced exactly ({len(fresh)} fields)")
     return 0
 
 
-def _run_streaming_until_dispatch_or_result(argv: list[str], cwd: Path, timeout: int) -> str:
+def _run_streaming_until_dispatch_or_result(
+    argv: list[str], cwd: Path, timeout: int
+) -> str:
     """Popen + line-by-line read, terminating as soon as a dispatch tool_use or
     a `result` event is seen -- saves most of a 10-20 minute generation when
     used for a cheap pre-run probe, which is the only caller."""
@@ -1517,7 +1713,12 @@ def _run_streaming_until_dispatch_or_result(argv: list[str], cwd: Path, timeout:
 
     env = {**os.environ, "CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS": "0"}
     proc = subprocess.Popen(
-        argv, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, cwd=cwd, env=env
+        argv,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        cwd=cwd,
+        env=env,
     )
     lines: list[str] = []
     start = time.time()
@@ -1560,8 +1761,13 @@ def cmd_probe_2(out_dir: Path, scratch_root: Path, model: str) -> int:
     probe_dir = out_dir / "probe"
     probe_dir.mkdir(parents=True, exist_ok=True)
     resolved_scratch = scratch_root.resolve()
-    if resolved_scratch == REPO_ROOT.resolve() or REPO_ROOT.resolve() in resolved_scratch.parents:
-        raise TrackBError(f"--scratch {resolved_scratch} resolves inside the repository")
+    if (
+        resolved_scratch == REPO_ROOT.resolve()
+        or REPO_ROOT.resolve() in resolved_scratch.parents
+    ):
+        raise TrackBError(
+            f"--scratch {resolved_scratch} resolves inside the repository"
+        )
     resolved_scratch.mkdir(parents=True, exist_ok=True)
 
     c_dir = _fresh_scratch_dir(resolved_scratch, "probe-c")
@@ -1596,7 +1802,11 @@ def cmd_probe_2(out_dir: Path, scratch_root: Path, model: str) -> int:
         json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
     print(json.dumps(result, indent=2, sort_keys=True))
-    ok = result["arm_c_init_ok"] and result["arm_t_init_ok"] and result["arm_t_dispatched"]
+    ok = (
+        result["arm_c_init_ok"]
+        and result["arm_t_init_ok"]
+        and result["arm_t_dispatched"]
+    )
     return 0 if ok else 1
 
 
@@ -1684,7 +1894,7 @@ def _c07_permutation_test_is_calibrated() -> str | None:
     # all-negative sign assignments reach the observed mean => 2/1024.
     p_strong = paired_permutation_p([2.0] * 10)
     if abs(p_strong - 2 / 1024) > 1e-9:
-        return f"uniform effect p={p_strong}, expected {2/1024}"
+        return f"uniform effect p={p_strong}, expected {2 / 1024}"
     # A symmetric split must be far from significant.
     p_null = paired_permutation_p([1.0, -1.0] * 5)
     if p_null < 0.5:
@@ -1775,19 +1985,25 @@ def _c18_plugin_arm_rejects_an_orchestrator_summary() -> str | None:
     must NOT void on the control arm -- the control is unaided and never carries the
     contract, so a symmetric check would void every control cell.
     """
-    summary = ("Here's the analysis, distilled from the full first-principles "
-               "breakdown: " + "the city should price congestion. " * 80)
+    summary = (
+        "Here's the analysis, distilled from the full first-principles "
+        "breakdown: " + "the city should price congestion. " * 80
+    )
     if len(summary.split()) < 120:
         return "C18 fixture is under the word floor; it would void for the wrong reason"
     plugin = extraction_problems(summary, plugin_arm=True)
     if not any("not the agent's document" in x for x in plugin):
         return "C18: a plugin-arm summary was accepted -- the v9.13 defect can recur"
     if extraction_problems(summary, plugin_arm=False):
-        return ("C18: the same text voided on the CONTROL arm; that would void every "
-                "control cell and destroy the comparison")
-    document = ("# Analysis\n## Problem Essence\n## Assumptions Table\n"
-                "## Ground Truths\n## Derivation Chains\n## Abandoned Reasoning\n"
-                "## Conclusion\n" + "word " * 300)
+        return (
+            "C18: the same text voided on the CONTROL arm; that would void every "
+            "control cell and destroy the comparison"
+        )
+    document = (
+        "# Analysis\n## Problem Essence\n## Assumptions Table\n"
+        "## Ground Truths\n## Derivation Chains\n## Abandoned Reasoning\n"
+        "## Conclusion\n" + "word " * 300
+    )
     if extraction_problems(document, plugin_arm=True):
         return f"C18: a real agent document voided: {extraction_problems(document, plugin_arm=True)}"
     return None
@@ -1799,13 +2015,21 @@ def _c19_the_frozen_arm_t_captures_would_now_void() -> str | None:
     gens = REPO_ROOT / "tests" / "trackb-run-v9.13" / "generations"
     if not gens.is_dir():
         return None  # frozen evidence absent (shallow clone); not a failure
-    passed = [f.name for f in sorted(gens.glob("TB-*-T.txt"))
-              if not extraction_problems(f.read_text(encoding="utf-8"), plugin_arm=True)]
+    passed = [
+        f.name
+        for f in sorted(gens.glob("TB-*-T.txt"))
+        if not extraction_problems(f.read_text(encoding="utf-8"), plugin_arm=True)
+    ]
     if passed:
-        return (f"C19: {len(passed)} frozen arm-T summaries still pass the plugin-arm "
-                f"guard ({passed[:3]})")
-    controls = [f.name for f in sorted(gens.glob("TB-*-C.txt"))
-                if extraction_problems(f.read_text(encoding="utf-8"), plugin_arm=False)]
+        return (
+            f"C19: {len(passed)} frozen arm-T summaries still pass the plugin-arm "
+            f"guard ({passed[:3]})"
+        )
+    controls = [
+        f.name
+        for f in sorted(gens.glob("TB-*-C.txt"))
+        if extraction_problems(f.read_text(encoding="utf-8"), plugin_arm=False)
+    ]
     if controls:
         return f"C19: {len(controls)} frozen CONTROL captures void under the unchanged check ({controls[:3]})"
     return None
@@ -1919,14 +2143,17 @@ def _c14_status_vocabulary_matches_the_card() -> str | None:
     per_big = {
         f"TB-{i:02d}": {
             "domain": ["software", "policy", "science", "personal"][i % 4],
-            "T": 13.0, "C": 8.0,
+            "T": 13.0,
+            "C": 8.0,
         }
         for i in range(1, 11)
     }
     produced.add(evaluate(per_big, [(10, 10)] * 20, 0.0, 0)["status"])
     allowed = {"cleared", "null", "inconclusive"}
     if not produced <= allowed:
-        return f"evaluate() produced status outside the vocabulary: {produced - allowed}"
+        return (
+            f"evaluate() produced status outside the vocabulary: {produced - allowed}"
+        )
     if "cleared" not in produced:
         return "no input reached 'cleared'; the threshold is unreachable"
     return None
@@ -1962,8 +2189,10 @@ def _c20_prereg2_code_agree() -> str | None:
         "2 independent blinded judges": "2 independent blinded judges" in text,
         "20 documents re-judged": "20 documents re-judged" in text,
         "p < 0.05": "*p* < 0.05" in text,
-        "twice the in-run measured judge drift": "twice the in-run measured judge drift" in text,
-        "at least three of the four domains": "at least three of the four domains" in text,
+        "twice the in-run measured judge drift": "twice the in-run measured judge drift"
+        in text,
+        "at least three of the four domains": "at least three of the four domains"
+        in text,
         "max 3 attempts": "up to 3 attempts" in text,
         "10% void cap": "10% of the 20 cells" in text,
         "model claude-sonnet-5": "claude-sonnet-5" in text,
@@ -2056,11 +2285,15 @@ def _c23_arm_isolation() -> str | None:
         # PLUGIN_DIR. Re-anchor the recorded path to this checkout so the
         # control tests init_check's logic, not where the repo happens to live.
         recorded = [
-            p.get("path") for p in init_plugins(jsonl) if p.get("name") == "first-principles"
+            p.get("path")
+            for p in init_plugins(jsonl)
+            if p.get("name") == "first-principles"
         ]
         if len(recorded) != 1 or not recorded[0]:
             return f"answer-first fixture lists {len(recorded)} first-principles plugin path(s)"
-        jsonl = jsonl.replace(json.dumps(recorded[0])[1:-1], json.dumps(str(PLUGIN_DIR))[1:-1])
+        jsonl = jsonl.replace(
+            json.dumps(recorded[0])[1:-1], json.dumps(str(PLUGIN_DIR))[1:-1]
+        )
         if init_check(jsonl, "C") == []:
             return "init_check(arm='C') accepted an init event listing first-principles"
         problems_t = init_check(jsonl, "T")
@@ -2079,7 +2312,9 @@ def _c24_delivered_file_accepted() -> str | None:
     if extraction_problems(doc_path.read_text(encoding="utf-8"), plugin_arm=True):
         return "the delivered answer-first TB-01.md failed extraction_problems(plugin_arm=True)"
     old = REPO_ROOT / "tests/trackb-run-v9.13/generations/TB-04-T.txt"
-    if old.is_file() and not extraction_problems(old.read_text(encoding="utf-8"), plugin_arm=True):
+    if old.is_file() and not extraction_problems(
+        old.read_text(encoding="utf-8"), plugin_arm=True
+    ):
         return "a frozen v9.13 TB-04-T summary passed the plugin-arm guard"
     return None
 
@@ -2114,7 +2349,9 @@ def _c26_unchanged_is_verbatim() -> str | None:
     i = len(words) // 2
     words[i] = words[i] + "zq"
     if " ".join(words) in src:
-        return "anti-masking: a mutated passage still matched verbatim (comparator broken)"
+        return (
+            "anti-masking: a mutated passage still matched verbatim (comparator broken)"
+        )
     return None
 
 
@@ -2141,7 +2378,9 @@ def _c27_is_limit_stub_false_positive_fixed() -> str | None:
             "a complete non-error answer mentioning 'rate limiting' was misclassified "
             "as a usage-limit stub (the TB-01-C false-positive class)"
         )
-    real_stub_path = REPO_ROOT / "tests/trackb-run-v9.15/raw/TB-06-T.a1.limit-stub.jsonl"
+    real_stub_path = (
+        REPO_ROOT / "tests/trackb-run-v9.15/raw/TB-06-T.a1.limit-stub.jsonl"
+    )
     if real_stub_path.is_file() and not is_limit_stub(
         real_stub_path.read_text(encoding="utf-8")
     ):
@@ -2161,24 +2400,39 @@ def _c27_is_limit_stub_false_positive_fixed() -> str | None:
 
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("C01-rubric-format-neutral", _c01_rubric_is_format_neutral),
-    ("C02-rubric-neutralises-format-and-length", _c02_rubric_declares_format_carries_no_marks),
+    (
+        "C02-rubric-neutralises-format-and-length",
+        _c02_rubric_declares_format_carries_no_marks,
+    ),
     ("C03-judge-prompt-no-leak", _c03_judge_prompt_does_not_leak),
     ("C04-catalog-parses-balanced", _c04_catalog_parses_and_is_balanced),
     ("C05-scoreline-roundtrip", _c05_scoreline_roundtrip),
     ("C06-malformed-scorelines-rejected", _c06_malformed_scorelines_rejected),
     ("C07-permutation-calibrated", _c07_permutation_test_is_calibrated),
-    ("C08-drift-blocks-noise-sized-effect", _c08_drift_threshold_blocks_a_noise_sized_effect),
+    (
+        "C08-drift-blocks-noise-sized-effect",
+        _c08_drift_threshold_blocks_a_noise_sized_effect,
+    ),
     ("C09-no-drift-arm-cannot-clear", _c09_missing_drift_arm_cannot_clear),
     ("C10-real-effect-does-clear", _c10_a_real_effect_does_clear),
-    ("C11-broken-mechanics-inconclusive", _c11_broken_mechanics_is_inconclusive_not_null),
+    (
+        "C11-broken-mechanics-inconclusive",
+        _c11_broken_mechanics_is_inconclusive_not_null,
+    ),
     ("C12-extraction-integrity", _c12_extraction_integrity_detects_both_faults),
     ("C13-prereg-code-agree", _c13_prereg_and_code_constants_agree),
     ("C14-status-vocabulary", _c14_status_vocabulary_matches_the_card),
     ("C15-transport-bg-wait-fix", _c15_transport_carries_the_bg_wait_fix),
     ("C16-delegation-stub-rejected", _c16_a_delegation_stub_would_be_rejected),
     ("C17-status-is-derived-not-asserted", _c17_status_cannot_be_asserted_by_a_caller),
-    ("C18-plugin-arm-rejects-orchestrator-summary", _c18_plugin_arm_rejects_an_orchestrator_summary),
-    ("C19-frozen-arm-t-captures-would-void", _c19_the_frozen_arm_t_captures_would_now_void),
+    (
+        "C18-plugin-arm-rejects-orchestrator-summary",
+        _c18_plugin_arm_rejects_an_orchestrator_summary,
+    ),
+    (
+        "C19-frozen-arm-t-captures-would-void",
+        _c19_the_frozen_arm_t_captures_would_now_void,
+    ),
     ("C20-prereg2-code-agree", _c20_prereg2_code_agree),
     ("C21-void-cap", _c21_void_cap_blocks_and_default_preserves_old_controls),
     ("C22-dispatch-detection", _c22_dispatch_detection),
@@ -2232,17 +2486,25 @@ def describe() -> dict:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Track B comparative harness.")
     parser.add_argument("--self-test", action="store_true")
-    parser.add_argument("--plan", action="store_true", help="print the run plan; no spend")
+    parser.add_argument(
+        "--plan", action="store_true", help="print the run plan; no spend"
+    )
     parser.add_argument("--describe", action="store_true")
     parser.add_argument("--run", action="store_true", help="execute the registered run")
-    parser.add_argument("--probe", action="store_true", help="trackb-2 pre-run mechanics probe")
     parser.add_argument(
-        "--recompute", action="store_true", help="recompute trackb-2 from frozen captures"
+        "--probe", action="store_true", help="trackb-2 pre-run mechanics probe"
+    )
+    parser.add_argument(
+        "--recompute",
+        action="store_true",
+        help="recompute trackb-2 from frozen captures",
     )
     parser.add_argument("--protocol", choices=("trackb", "trackb-2"), default="trackb")
     parser.add_argument("--out", type=Path, help="capture directory")
     parser.add_argument(
-        "--scratch", type=Path, help="scratch root for trackb-2 live cells (outside the repo)"
+        "--scratch",
+        type=Path,
+        help="scratch root for trackb-2 live cells (outside the repo)",
     )
     parser.add_argument("--model", default="claude-sonnet-5", help="pinned model")
     args = parser.parse_args(argv)
@@ -2266,20 +2528,28 @@ def main(argv: list[str] | None = None) -> int:
                 )
                 return 1
             if not args.scratch:
-                sys.stderr.write("[trackb] --run --protocol trackb-2 requires --scratch DIR\n")
+                sys.stderr.write(
+                    "[trackb] --run --protocol trackb-2 requires --scratch DIR\n"
+                )
                 return 1
             return cmd_run_2(args.out, args.scratch, args.model)
         if args.probe:
             if args.protocol != "trackb-2":
-                sys.stderr.write("[trackb] --probe is only defined for --protocol trackb-2\n")
+                sys.stderr.write(
+                    "[trackb] --probe is only defined for --protocol trackb-2\n"
+                )
                 return 1
             if not args.out or not args.scratch:
-                sys.stderr.write("[trackb] --probe requires --out DIR and --scratch DIR\n")
+                sys.stderr.write(
+                    "[trackb] --probe requires --out DIR and --scratch DIR\n"
+                )
                 return 1
             return cmd_probe_2(args.out, args.scratch, args.model)
         if args.recompute:
             if args.protocol != "trackb-2":
-                sys.stderr.write("[trackb] --recompute is only defined for --protocol trackb-2\n")
+                sys.stderr.write(
+                    "[trackb] --recompute is only defined for --protocol trackb-2\n"
+                )
                 return 1
             if not args.out:
                 sys.stderr.write("[trackb] --recompute requires --out DIR\n")

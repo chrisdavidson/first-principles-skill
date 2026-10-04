@@ -491,7 +491,10 @@ def run_battery(
     out_dir.mkdir(parents=True, exist_ok=True)
 
     total = len(positives) + len(negatives)
-    _print(f"check-routing: catalog has {len(positives)} P + {len(negatives)} N (total {total})", quiet)
+    _print(
+        f"check-routing: catalog has {len(positives)} P + {len(negatives)} N (total {total})",
+        quiet,
+    )
     _print(f"  plugin-dir: {plugin_dir}", quiet)
     _print(f"  out:        {out_dir}", quiet)
     _print(f"  thresholds: P >= {p_threshold}, N >= {n_threshold}", quiet)
@@ -511,10 +514,16 @@ def run_battery(
         if repeat == 1:
             # Legacy output format: byte-identical to v3.1 (plus optional resume tag)
             actual = verdicts[0]
-            _print(f"    -> actual={actual} {'PASS' if prompt_passed else 'FAIL'}{resume_tag}", quiet)
+            _print(
+                f"    -> actual={actual} {'PASS' if prompt_passed else 'FAIL'}{resume_tag}",
+                quiet,
+            )
         else:
             ratio_str = f"{match_count}/{repeat}"
-            _print(f"    -> {ratio_str} {'PASS' if prompt_passed else 'FAIL'}{resume_tag}", quiet)
+            _print(
+                f"    -> {ratio_str} {'PASS' if prompt_passed else 'FAIL'}{resume_tag}",
+                quiet,
+            )
 
     # scores.tsv
     scores_path = out_dir / "scores.tsv"
@@ -524,21 +533,27 @@ def run_battery(
             fh.write("id\texpected\tactual\tpass\n")
             for prompt, verdicts, match_count, prompt_passed in prompt_results:
                 actual = verdicts[0]
-                fh.write(f"{prompt.id}\t{prompt.expected}\t{actual}\t{'pass' if prompt_passed else 'fail'}\n")
+                fh.write(
+                    f"{prompt.id}\t{prompt.expected}\t{actual}\t{'pass' if prompt_passed else 'fail'}\n"
+                )
         else:
             # v3.4 per-run row format
             fh.write("id\trun\texpected\tactual\tmatch\n")
             for prompt, verdicts, match_count, prompt_passed in prompt_results:
                 for run_idx, actual in enumerate(verdicts, start=1):
                     match_flag = 1 if actual == prompt.expected else 0
-                    fh.write(f"{prompt.id}\t{run_idx}\t{prompt.expected}\t{actual}\t{match_flag}\n")
+                    fh.write(
+                        f"{prompt.id}\t{run_idx}\t{prompt.expected}\t{actual}\t{match_flag}\n"
+                    )
 
     p_pass = sum(
-        1 for prompt, verdicts, match_count, prompt_passed in prompt_results
+        1
+        for prompt, verdicts, match_count, prompt_passed in prompt_results
         if prompt.id.startswith("P") and prompt_passed
     )
     n_pass = sum(
-        1 for prompt, verdicts, match_count, prompt_passed in prompt_results
+        1
+        for prompt, verdicts, match_count, prompt_passed in prompt_results
         if prompt.id.startswith("N") and prompt_passed
     )
     battery_pass = p_pass >= p_threshold and n_pass >= n_threshold
@@ -600,7 +615,9 @@ _FIXTURE_SIGNAL_A = "\n".join(
 # Fixture (b): DELEGATE via Signal B (>= 4 distinct header categories)
 _FIXTURE_SIGNAL_B = "\n".join(
     [
-        json.dumps({"type": "assistant", "text": "## Essence\nThe core question is ..."}),
+        json.dumps(
+            {"type": "assistant", "text": "## Essence\nThe core question is ..."}
+        ),
         json.dumps({"type": "assistant", "text": "## Assumption Audit\nWe assume ..."}),
         json.dumps({"type": "assistant", "text": "## Ground Truths\nWhat we know ..."}),
         json.dumps({"type": "assistant", "text": "## Conclusion\nTherefore ..."}),
@@ -720,7 +737,16 @@ def self_test() -> int:
 
     # (d) K>N rejection: --repeat 2 --min-pass 3 must exit 2 before any I/O
     try:
-        rc = main(["--catalog", "/nonexistent/path/that/does/not/exist", "--repeat", "2", "--min-pass", "3"])
+        rc = main(
+            [
+                "--catalog",
+                "/nonexistent/path/that/does/not/exist",
+                "--repeat",
+                "2",
+                "--min-pass",
+                "3",
+            ]
+        )
     except SystemExit as exc:
         rc = exc.code if isinstance(exc.code, int) else 2
     if rc != 2:
@@ -740,28 +766,40 @@ def self_test() -> int:
             (_out / f"P99-run{n}.jsonl").write_text(_FIXTURE_SIGNAL_A, encoding="utf-8")
         _paths_e = _existing_run_paths(_p, _out, repeat=3)
         if not _is_prompt_complete(_paths_e):
-            print("self-test FAIL: 'resume_all_present' expected complete=True", file=sys.stderr)
+            print(
+                "self-test FAIL: 'resume_all_present' expected complete=True",
+                file=sys.stderr,
+            )
             all_passed = False
 
         # (f) resume_one_missing: repeat=3, one run file missing -> incomplete
         (_out / "P99-run2.jsonl").unlink()
         _paths_f = _existing_run_paths(_p, _out, repeat=3)
         if _is_prompt_complete(_paths_f):
-            print("self-test FAIL: 'resume_one_missing' expected complete=False", file=sys.stderr)
+            print(
+                "self-test FAIL: 'resume_one_missing' expected complete=False",
+                file=sys.stderr,
+            )
             all_passed = False
 
         # (g) resume_empty_file: repeat=3, all present but one is whitespace-only -> incomplete
         (_out / "P99-run2.jsonl").write_text("   \n  ", encoding="utf-8")
         _paths_g = _existing_run_paths(_p, _out, repeat=3)
         if _is_prompt_complete(_paths_g):
-            print("self-test FAIL: 'resume_empty_file' expected complete=False", file=sys.stderr)
+            print(
+                "self-test FAIL: 'resume_empty_file' expected complete=False",
+                file=sys.stderr,
+            )
             all_passed = False
 
         # (h) resume_legacy_single: repeat=1, single {id}.jsonl present and non-empty -> complete
         (_out / "P99.jsonl").write_text(_FIXTURE_NO_SIGNAL, encoding="utf-8")
         _paths_h = _existing_run_paths(_p, _out, repeat=1)
         if not _is_prompt_complete(_paths_h):
-            print("self-test FAIL: 'resume_legacy_single' expected complete=True", file=sys.stderr)
+            print(
+                "self-test FAIL: 'resume_legacy_single' expected complete=True",
+                file=sys.stderr,
+            )
             all_passed = False
 
     # --priority ordering fixtures (i)(j)(k) — Phase 136 D-03. No claude invocation.
@@ -784,7 +822,14 @@ def self_test() -> int:
     # (j) priority_unknown_value_rejection: unknown --priority must exit 2
     #     BEFORE any catalog I/O (reuse the kofn K>N try/except idiom).
     try:
-        rc = main(["--catalog", "/nonexistent/path/that/does/not/exist", "--priority", "UNKNOWN_ID"])
+        rc = main(
+            [
+                "--catalog",
+                "/nonexistent/path/that/does/not/exist",
+                "--priority",
+                "UNKNOWN_ID",
+            ]
+        )
     except SystemExit as exc:
         rc = exc.code if isinstance(exc.code, int) else 2
     if rc != 2:
@@ -807,7 +852,9 @@ def self_test() -> int:
         all_passed = False
 
     if all_passed:
-        print("self-test PASS (15 fixtures)")  # Update this count if fixtures are added.
+        print(
+            "self-test PASS (15 fixtures)"
+        )  # Update this count if fixtures are added.
         return 0
     return 1
 

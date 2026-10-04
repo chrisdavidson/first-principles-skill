@@ -82,10 +82,14 @@ REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 _RC_PATH: Path = REPO_ROOT / "scripts" / "report-conformance.py"
 _rc_spec = importlib.util.spec_from_file_location("_report_conformance", _RC_PATH)
 if _rc_spec is None or _rc_spec.loader is None:
-    sys.stderr.write(f"check-conf-gate: ENV FAIL — could not build a module spec for {_RC_PATH}\n")
+    sys.stderr.write(
+        f"check-conf-gate: ENV FAIL — could not build a module spec for {_RC_PATH}\n"
+    )
     sys.exit(2)
 _rc = importlib.util.module_from_spec(_rc_spec)
-sys.modules["_report_conformance"] = _rc  # assignment must precede exec_module (3.13/3.14 dataclasses._is_type)
+sys.modules["_report_conformance"] = (
+    _rc  # assignment must precede exec_module (3.13/3.14 dataclasses._is_type)
+)
 _rc_spec.loader.exec_module(_rc)
 
 detect_defects = _rc.detect_defects
@@ -458,11 +462,15 @@ def _targets_problems(rows: list[dict]) -> list[str]:
                 for r in surf_rows
                 if str(r["section_resolution"]).startswith("SectionResolutionError:")
             ),
-            "heading_malformed_blocks": sum(r["heading_malformed_blocks"] for r in surf_rows),
+            "heading_malformed_blocks": sum(
+                r["heading_malformed_blocks"] for r in surf_rows
+            ),
             "nonconforming_verdict_cells": sum(
                 r["nonconforming_verdict_cells"] for r in readable
             ),
-            "silent_untraced_claims": sum(r["silent_untraced_claims"] for r in readable),
+            "silent_untraced_claims": sum(
+                r["silent_untraced_claims"] for r in readable
+            ),
         }
         for key, target in _TARGETS.items():
             actual = readings[key]
@@ -473,7 +481,9 @@ def _targets_problems(rows: list[dict]) -> list[str]:
     return problems
 
 
-def _claim_floor_roster_problems(floor_keys: set[str], discovered_ids: set[str]) -> list[str]:
+def _claim_floor_roster_problems(
+    floor_keys: set[str], discovered_ids: set[str]
+) -> list[str]:
     """D-07: EQUALITY, never subset, between _CLAIM_FLOORS' keys and the live-
     discovered shared-examples ids. Reports both `missing` (discovered but
     unfloored) and `extra` (floored but no longer discovered) by name.
@@ -558,7 +568,9 @@ def _population_floor_problems(rows: list[dict]) -> list[str]:
     return problems
 
 
-def _d03_rule_problems_from_text(text: str, analysis_id: str, relpath: str) -> list[str]:
+def _d03_rule_problems_from_text(
+    text: str, analysis_id: str, relpath: str
+) -> list[str]:
     """D-03: a claim carrying CAVEAT_MARKER may not open with one of the three
     prescribed lead-ins. Calls the frozen `detect_defects` directly (never a
     second markdown parse) and reads the audit-only `_untraced_claims_text`
@@ -588,7 +600,9 @@ def _ratchet_problems(rows: list[dict]) -> list[str]:
         if r["surface"] in _GATED_SURFACES and r["section_resolution"] == "OK"
     )
     if marked_sum > _MARKED_RATCHET:
-        return [f"MARKED-CLAIM RATCHET VIOLATION: {marked_sum} > pinned {_MARKED_RATCHET}"]
+        return [
+            f"MARKED-CLAIM RATCHET VIOLATION: {marked_sum} > pinned {_MARKED_RATCHET}"
+        ]
     return []
 
 
@@ -696,7 +710,9 @@ def _run_d08_arm_on(path: Path, analysis_id: str) -> tuple[list[str], list[str]]
     baseline_malformed = sum(
         1 for _, b in baseline_blocks if not _rc._chain_block_well_formed(b)
     )
-    baseline_marked = sum(1 for t in baseline["_untraced_claims_text"] if CAVEAT_MARKER in t)
+    baseline_marked = sum(
+        1 for t in baseline["_untraced_claims_text"] if CAVEAT_MARKER in t
+    )
     baseline_silent = baseline["untraced_claims"] - baseline_marked
 
     problems: list[str] = []
@@ -733,7 +749,9 @@ def _run_d08_arm_on(path: Path, analysis_id: str) -> tuple[list[str], list[str]]
     else:
         site_b = _d08_unfenced_site(text, _D08_CELL_NEEDLE)
         mutated_b = (
-            text[:site_b] + _D08_CELL_REPLACEMENT + text[site_b + len(_D08_CELL_NEEDLE) :]
+            text[:site_b]
+            + _D08_CELL_REPLACEMENT
+            + text[site_b + len(_D08_CELL_NEEDLE) :]
         )
         record_b = detect_defects(mutated_b, analysis_id)
         if (
@@ -759,10 +777,14 @@ def _run_d08_arm_on(path: Path, analysis_id: str) -> tuple[list[str], list[str]]
     else:
         site_c = _d08_unfenced_site(text, _D08_CITE_NEEDLE)
         mutated_c = (
-            text[:site_c] + _D08_CITE_REPLACEMENT + text[site_c + len(_D08_CITE_NEEDLE) :]
+            text[:site_c]
+            + _D08_CITE_REPLACEMENT
+            + text[site_c + len(_D08_CITE_NEEDLE) :]
         )
         record_c = detect_defects(mutated_c, analysis_id)
-        marked_c = sum(1 for t in record_c["_untraced_claims_text"] if CAVEAT_MARKER in t)
+        marked_c = sum(
+            1 for t in record_c["_untraced_claims_text"] if CAVEAT_MARKER in t
+        )
         silent_c = record_c["untraced_claims"] - marked_c
         if silent_c != baseline_silent + 1:
             problems.append(
@@ -789,15 +811,18 @@ def _run_d08_arm(rows: list[dict]) -> tuple[list[str], list[str]]:
         (
             r
             for r in rows
-            if r["surface"] == _D08_TARGET_SURFACE and r["analysis_id"] == _D08_TARGET_ID
+            if r["surface"] == _D08_TARGET_SURFACE
+            and r["analysis_id"] == _D08_TARGET_ID
         ),
         None,
     )
     if target_row is None:
         return (
             [
-                (f"D-08 target {_D08_TARGET_ID!r} not found on surface "
-                f"{_D08_TARGET_SURFACE!r}; the anti-vacuity arm cannot run")
+                (
+                    f"D-08 target {_D08_TARGET_ID!r} not found on surface "
+                    f"{_D08_TARGET_SURFACE!r}; the anti-vacuity arm cannot run"
+                )
             ],
             [],
         )
@@ -821,7 +846,9 @@ def run_live() -> int:
     problems: list[str] = []
     problems += _targets_problems(rows)
 
-    discovered_ids = {r["analysis_id"] for r in rows if r["surface"] == "shared-examples"}
+    discovered_ids = {
+        r["analysis_id"] for r in rows if r["surface"] == "shared-examples"
+    }
     problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)
     problems += _claim_floor_problems(rows)
     problems += _population_floor_problems(rows)
@@ -871,7 +898,9 @@ _D03_FIRE_TEXT = (
     "## 3. Ground Truths\n- GT-1: some ground truth here.\n\n"
     "## 4. Derivation Chains\nGT-1 -> some conclusion, with no numbered chain heading.\n\n"
     "## 5. Abandoned Reasoning\nNone.\n\n"
-    "## 6. Conclusion\n**Recommended approach:** " + CAVEAT_MARKER + ", this claim is long "
+    "## 6. Conclusion\n**Recommended approach:** "
+    + CAVEAT_MARKER
+    + ", this claim is long "
     "enough to clear the assertiveness floor on its own merits.\n"
 )
 
@@ -881,7 +910,9 @@ _D03_PASS_TEXT = (
     "## 3. Ground Truths\n- GT-1: some ground truth here.\n\n"
     "## 4. Derivation Chains\nGT-1 -> some conclusion, with no numbered chain heading.\n\n"
     "## 5. Abandoned Reasoning\nNone.\n\n"
-    "## 6. Conclusion\n**Non-prescribed label:** " + CAVEAT_MARKER + ", this claim is long "
+    "## 6. Conclusion\n**Non-prescribed label:** "
+    + CAVEAT_MARKER
+    + ", this claim is long "
     "enough to clear the assertiveness floor on its own merits.\n"
 )
 
@@ -960,7 +991,10 @@ _D08_FIXTURE_FENCE_ONLY_NEEDLES = (
 
 def _control_target_unreadable_fires() -> None:
     bad = _rc._synthetic_row(
-        "shared-examples", "u.md", "u", section_resolution="SectionResolutionError: boom"
+        "shared-examples",
+        "u.md",
+        "u",
+        section_resolution="SectionResolutionError: boom",
     )
     problems = _targets_problems([bad])
     assert any("unreadable" in p for p in problems), problems
@@ -978,7 +1012,9 @@ def _control_target_heading_malformed_fires() -> None:
 
 
 def _control_target_nonconforming_verdict_fires() -> None:
-    bad = _rc._synthetic_row("shared-examples", "n.md", "n", nonconforming_verdict_cells=1)
+    bad = _rc._synthetic_row(
+        "shared-examples", "n.md", "n", nonconforming_verdict_cells=1
+    )
     problems = _targets_problems([bad])
     assert any("nonconforming_verdict_cells" in p for p in problems), problems
 
@@ -996,7 +1032,9 @@ def _control_targets_pass_on_generated_twin_too() -> None:
 
 
 def _control_target_fires_on_generated_twin() -> None:
-    bad_twin = _rc._synthetic_row("generated-twin", "t.md", "t", nonconforming_verdict_cells=1)
+    bad_twin = _rc._synthetic_row(
+        "generated-twin", "t.md", "t", nonconforming_verdict_cells=1
+    )
     problems = _targets_problems([bad_twin])
     assert any("[generated-twin]" in p for p in problems), problems
 
@@ -1054,7 +1092,10 @@ def _control_d04_floor_fires() -> None:
     # invariant to the floor's own value and cannot fail when the floor is
     # loosened. See _CLAIM_FLOORS_LOCK's comment.
     row = _rc._synthetic_row(
-        "shared-examples", "personal-general.md", "personal-general", conclusion_claims=6
+        "shared-examples",
+        "personal-general.md",
+        "personal-general",
+        conclusion_claims=6,
     )
     problems = _claim_floor_problems([row])
     assert any("personal-general" in p for p in problems), problems
@@ -1064,7 +1105,10 @@ def _control_d04_floor_passes_at_floor() -> None:
     # CR-02(a): INLINE by design (7 is exactly personal-general's pinned
     # floor) — see _control_d04_floor_fires' comment.
     row = _rc._synthetic_row(
-        "shared-examples", "personal-general.md", "personal-general", conclusion_claims=7
+        "shared-examples",
+        "personal-general.md",
+        "personal-general",
+        conclusion_claims=7,
     )
     assert _claim_floor_problems([row]) == []
 
@@ -1098,7 +1142,9 @@ def _control_population_floor_fires() -> None:
     problems = _population_floor_problems([shared_row, twin_row])
     assert len(problems) == 4, problems
     assert any("[shared-examples] verdict_cells" in p for p in problems), problems
-    assert any("[shared-examples] heading_chain_blocks" in p for p in problems), problems
+    assert any("[shared-examples] heading_chain_blocks" in p for p in problems), (
+        problems
+    )
     assert any("[generated-twin] verdict_cells" in p for p in problems), problems
     assert any("[generated-twin] heading_chain_blocks" in p for p in problems), problems
 
@@ -1199,11 +1245,10 @@ def _control_d03_passes_on_unmarked_prescribed_leadin() -> None:
     record = detect_defects(_D03_UNMARKED_TEXT, "u")
     assert record["untraced_claims"] >= 1, record
     assert any(
-        t.startswith("**Recommended approach:**") for t in record["_untraced_claims_text"]
+        t.startswith("**Recommended approach:**")
+        for t in record["_untraced_claims_text"]
     ), record["_untraced_claims_text"]
-    assert (
-        _d03_rule_problems_from_text(_D03_UNMARKED_TEXT, "u", "synthetic/u.md") == []
-    )
+    assert _d03_rule_problems_from_text(_D03_UNMARKED_TEXT, "u", "synthetic/u.md") == []
 
 
 def _control_ratchet_fires_above() -> None:
@@ -1239,8 +1284,12 @@ def _control_ratchet_fires_across_both_surfaces() -> None:
     `_ratchet_problems` back to shared-examples-only fails this control by
     name.
     """
-    shared_row = _rc._synthetic_row("shared-examples", "s.md", "s", marked_untraced_claims=2)
-    twin_row = _rc._synthetic_row("generated-twin", "t.md", "t", marked_untraced_claims=3)
+    shared_row = _rc._synthetic_row(
+        "shared-examples", "s.md", "s", marked_untraced_claims=2
+    )
+    twin_row = _rc._synthetic_row(
+        "generated-twin", "t.md", "t", marked_untraced_claims=3
+    )
     problems = _ratchet_problems([shared_row, twin_row])
     assert problems != [], problems
     assert "5" in problems[0] and "4" in problems[0], problems
@@ -1383,7 +1432,9 @@ def _control_census_x2_missing() -> None:
 
 
 def _control_census_x3_duplicated() -> None:
-    problems = _call_site_census_problems(_CENSUS_X3_DUPLICATED_SOURCE, _LIVE_CALL_SITES)
+    problems = _call_site_census_problems(
+        _CENSUS_X3_DUPLICATED_SOURCE, _LIVE_CALL_SITES
+    )
     assert len(problems) == 1, problems
     assert "_ratchet_problems" in problems[0], problems
     assert "occurs 2 time" in problems[0], problems
@@ -1434,7 +1485,9 @@ def _control_live_call_site_roster_locked() -> None:
     assert not forms_diff, f"CALL-SITE ROSTER DRIFT: {sorted(forms_diff)}"
 
     wrong_counts = sorted(k for k, v in _LIVE_CALL_SITES.items() if v != 1)
-    assert not wrong_counts, f"CALL-SITE ROSTER DRIFT: expected-count != 1 for {wrong_counts}"
+    assert not wrong_counts, (
+        f"CALL-SITE ROSTER DRIFT: expected-count != 1 for {wrong_counts}"
+    )
 
 
 # BL-04/WR-06 (18-REVIEW.md): four controls driving the D-08 arm's four
@@ -1499,9 +1552,9 @@ def _control_d08_needle_not_unique_reported() -> None:
         path = Path(tmp) / "fixture.md"
         path.write_text(_D08_FIXTURE_DUPLICATE_HOP, encoding="utf-8")
         problems, _lines = _run_d08_arm_on(path, "personal-general")
-    assert any(
-        "D-08(a)" in p and "not found (or not unique)" in p for p in problems
-    ), problems
+    assert any("D-08(a)" in p and "not found (or not unique)" in p for p in problems), (
+        problems
+    )
 
 
 def _control_d08_fenced_duplicate_ignored() -> None:
@@ -1583,7 +1636,9 @@ def _control_describe_consistency() -> None:
     )
     assert desc["locked_constants"]["prescribed_lead_ins"] == " | ".join(
         _PRESCRIBED_LEAD_INS_LOCK
-    ), f"prescribed_lead_ins disagrees with _PRESCRIBED_LEAD_INS_LOCK: {desc['locked_constants']}"
+    ), (
+        f"prescribed_lead_ins disagrees with _PRESCRIBED_LEAD_INS_LOCK: {desc['locked_constants']}"
+    )
 
 
 _CONTROLS: tuple[tuple[str, object], ...] = (
@@ -1632,7 +1687,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("live-call-site-roster-locked", _control_live_call_site_roster_locked),
     ("d08-missing-target-row-reported", _control_d08_missing_target_row_reported),
     ("d08-missing-sites-reported", _control_d08_missing_sites_reported),
-    ("d08-increments-not-produced-reported", _control_d08_increments_not_produced_reported),
+    (
+        "d08-increments-not-produced-reported",
+        _control_d08_increments_not_produced_reported,
+    ),
     ("d08-needle-not-unique-reported", _control_d08_needle_not_unique_reported),
     ("d08-fenced-duplicate-ignored", _control_d08_fenced_duplicate_ignored),
     ("describe", _control_describe_consistency),
@@ -1712,14 +1770,18 @@ def self_test() -> int:
         failures.append(
             (
                 "coverage-floor",
-                (f"registered/executed control-id mismatch: missing={sorted(missing)} "
-                f"extra={sorted(extra)}"),
+                (
+                    f"registered/executed control-id mismatch: missing={sorted(missing)} "
+                    f"extra={sorted(extra)}"
+                ),
             )
         )
 
     if failures:
         for control_id, message in failures:
-            sys.stderr.write(f"check-conf-gate: SELF-TEST FAIL [{control_id}] — {message}\n")
+            sys.stderr.write(
+                f"check-conf-gate: SELF-TEST FAIL [{control_id}] — {message}\n"
+            )
         return 1
 
     print(f"check-conf-gate: SELF-TEST PASS — {len(executed)} controls run")

@@ -395,8 +395,7 @@ RUBRIC_FILE: Path = (
 # --- Body (agent) anchors -----------------------------------------------------
 _BODY_SECTION_START = "## Before presenting conclusions"
 _BODY_SCAN_LEAD = (
-    "**Self-audit scan (emit after the ledger is clean, before the verdict "
-    "blocks):**"
+    "**Self-audit scan (emit after the ledger is clean, before the verdict blocks):**"
 )
 _BODY_LEDGER_FENCE_TAIL = '- "[claim text]" → CUT (no chain; claim removed)'
 _BODY_LEDGER_CLEAN = "Only once the ledger is clean"
@@ -417,8 +416,7 @@ _COLS_CHAIN = (
 # Tightening the match itself is a guard-on-guard change (docs/PROCESS.md
 # depth rule) and is deliberately NOT taken here.
 _COLS_CLAIM = (
-    "§6 Span (brief) | Construct | Claim under R11? | R11 clause applied | "
-    "Chain cited"
+    "§6 Span (brief) | Construct | Claim under R11? | R11 clause applied | Chain cited"
 )
 _BODY_ROWRULE_CHAIN = "one row per section-4 chain block, in order"
 _BODY_ROWRULE_CLAIM = "one row per section-6 construct, in order"
@@ -491,8 +489,7 @@ _BODY_VALIDATE_STEP = (
     "Criteria 4 and 6, and the Assumption Audit scan for Criterion 2."
 )
 _BODY_VALIDATE_PREAMENDMENT = (
-    "quote the specific span of your analysis that satisfies or fails "
-    "each criterion"
+    "quote the specific span of your analysis that satisfies or fails each criterion"
 )
 
 # --- Rubric anchors -------------------------------------------------------------
@@ -510,7 +507,7 @@ _USAGE_NOTE = "## Usage Note"
 
 _RUBRIC_DIVLABOUR_1 = (
     "The scan itself is not performed here — the agent already performed it "
-    "at Phase 5 emission time (`SKILL.md`, \"Before presenting conclusions\") "
+    'at Phase 5 emission time (`SKILL.md`, "Before presenting conclusions") '
     "before the verdict blocks are written."
 )
 _RUBRIC_DIVLABOUR_2 = (
@@ -614,8 +611,8 @@ _RUBRIC_FORMAT_ADMISSION_SUPERSEDED = (
 _ADMISSION_SCOPE_C46 = "the self-audit scan for Criteria 4 and 6"
 _ADMISSION_SCOPE_C2 = "the Assumption Audit scan for Criterion 2"
 _RUBRIC_C2_AA_ARTIFACT = (
-    "Assumption Audit artifact produced before scoring (per \"How to "
-    "Apply This Rubric\") confirms this scan was exhaustive over named "
+    'Assumption Audit artifact produced before scoring (per "How to '
+    'Apply This Rubric") confirms this scan was exhaustive over named '
     "derivation chain steps, not an open-ended survey of the universe "
     "of conceivable assumptions."
 )
@@ -802,7 +799,9 @@ def _hardwrap_reinstate_in_range(
     if literal in wrapped:
         raise ValueError(f"fixture did not break the literal across lines: {literal!r}")
     if not _contains(wrapped, literal):
-        raise ValueError(f"wrapped fixture no longer whitespace-normalizes to {literal!r}")
+        raise ValueError(
+            f"wrapped fixture no longer whitespace-normalizes to {literal!r}"
+        )
     new_region = stripped_region + "\n\n" + wrapped + "\n"
     return head + new_region + tail
 
@@ -841,10 +840,16 @@ def _hardwrap_relocate_in_range(
     if literal in wrapped:
         raise ValueError(f"fixture did not break the literal across lines: {literal!r}")
     if not _contains(wrapped, literal):
-        raise ValueError(f"wrapped fixture no longer whitespace-normalizes to {literal!r}")
+        raise ValueError(
+            f"wrapped fixture no longer whitespace-normalizes to {literal!r}"
+        )
     insert_idx = anchor_idx + len(new_anchor)
     new_region = (
-        stripped_region[:insert_idx] + "\n\n" + wrapped + "\n\n" + stripped_region[insert_idx:]
+        stripped_region[:insert_idx]
+        + "\n\n"
+        + wrapped
+        + "\n\n"
+        + stripped_region[insert_idx:]
     )
     return head + new_region + tail
 
@@ -915,7 +920,9 @@ def _mutate_within_range_flat(
     return head + mutated + tail
 
 
-def _duplicate_within_range_flat(text: str, start_anchor: str, end_anchor: str, target: str) -> str:
+def _duplicate_within_range_flat(
+    text: str, start_anchor: str, end_anchor: str, target: str
+) -> str:
     """Like `_duplicate_within_range`, but locates *target* inside the
     range via `_flat_pattern`, for a hard-wrapped target. Inserts a second,
     UNWRAPPED copy of *target* immediately after the matched (possibly
@@ -981,7 +988,9 @@ def _check_body_text(text: str) -> list[str]:
     tail_idx = _find_flat(text, _BODY_LEDGER_FENCE_TAIL)
     clean_idx = _find_flat(text, _BODY_LEDGER_CLEAN)
     if lead_idx == -1:
-        failures.append(f"Body-3: scan lead {_BODY_SCAN_LEAD!r} not found in whole file")
+        failures.append(
+            f"Body-3: scan lead {_BODY_SCAN_LEAD!r} not found in whole file"
+        )
     if tail_idx == -1:
         failures.append(
             f"Body-3: ledger fence tail {_BODY_LEDGER_FENCE_TAIL!r} not found in whole file"
@@ -1033,7 +1042,8 @@ def _check_body_text(text: str) -> list[str]:
     ]
     if missing_rowrule:
         failures.append(
-            "Body-7: missing row-rule sentence(s): " + "; ".join(repr(m) for m in missing_rowrule)
+            "Body-7: missing row-rule sentence(s): "
+            + "; ".join(repr(m) for m in missing_rowrule)
         )
 
     # Body-8: non-claim construct rows are still populated.
@@ -1058,7 +1068,9 @@ def _check_body_text(text: str) -> list[str]:
 
     # Body-11: the single reconciliation line, lead and template.
     missing_recon = [
-        lit for lit in (_BODY_RECON_LEAD, _BODY_RECON_TEMPLATE) if not _contains(section, lit)
+        lit
+        for lit in (_BODY_RECON_LEAD, _BODY_RECON_TEMPLATE)
+        if not _contains(section, lit)
     ]
     if missing_recon:
         failures.append(
@@ -1068,7 +1080,9 @@ def _check_body_text(text: str) -> list[str]:
 
     # Body-12: the scan's own placement-and-provenance sentences.
     missing_placement = [
-        lit for lit in (_BODY_PLACEMENT_1, _BODY_PLACEMENT_2) if not _contains(section, lit)
+        lit
+        for lit in (_BODY_PLACEMENT_1, _BODY_PLACEMENT_2)
+        if not _contains(section, lit)
     ]
     if missing_placement:
         failures.append(
@@ -1082,7 +1096,9 @@ def _check_body_text(text: str) -> list[str]:
 
     # Body-14: the disclosed enforcement bound.
     if not _contains(section, _BODY_DISCLOSED_BOUND):
-        failures.append(f"Body-14: missing disclosed-bound sentence: {_BODY_DISCLOSED_BOUND!r}")
+        failures.append(
+            f"Body-14: missing disclosed-bound sentence: {_BODY_DISCLOSED_BOUND!r}"
+        )
 
     # Body-15: the amended handoff sentence occurs exactly once in the whole
     # file, and the pre-amendment form occurs zero times.
@@ -1496,7 +1512,10 @@ def _check_cross_surface(body_text: str, rubric_text: str) -> list[str]:
     coverage-bound sentence appear on BOTH surfaces. Returns failure
     strings (empty == valid)."""
     failures: list[str] = []
-    for col_name, col_literal in (("chain-form column list", _COLS_CHAIN), ("claim-inventory column list", _COLS_CLAIM)):
+    for col_name, col_literal in (
+        ("chain-form column list", _COLS_CHAIN),
+        ("claim-inventory column list", _COLS_CLAIM),
+    ):
         if not _contains(body_text, col_literal):
             failures.append(f"Cross-1: {col_name} missing from agent-body surface")
         if not _contains(rubric_text, col_literal):
@@ -1506,17 +1525,27 @@ def _check_cross_surface(body_text: str, rubric_text: str) -> list[str]:
     if not _contains(rubric_text, _SCAN_HEADING):
         failures.append("Cross-2: scan heading missing from rubric surface")
     if not _contains(body_text, _TABLE_COVERAGE_BOUND):
-        failures.append("Cross-3: coverage-bound sentence missing from agent-body surface")
+        failures.append(
+            "Cross-3: coverage-bound sentence missing from agent-body surface"
+        )
     if not _contains(rubric_text, _TABLE_COVERAGE_BOUND):
         failures.append("Cross-3: coverage-bound sentence missing from rubric surface")
     if not _contains(body_text, _ADMISSION_SCOPE_C46):
-        failures.append("Cross-4: Criteria-4/6 admission clause missing from agent-body surface")
+        failures.append(
+            "Cross-4: Criteria-4/6 admission clause missing from agent-body surface"
+        )
     if not _contains(rubric_text, _ADMISSION_SCOPE_C46):
-        failures.append("Cross-4: Criteria-4/6 admission clause missing from rubric surface")
+        failures.append(
+            "Cross-4: Criteria-4/6 admission clause missing from rubric surface"
+        )
     if not _contains(body_text, _ADMISSION_SCOPE_C2):
-        failures.append("Cross-4: Criterion-2 admission clause missing from agent-body surface")
+        failures.append(
+            "Cross-4: Criterion-2 admission clause missing from agent-body surface"
+        )
     if not _contains(rubric_text, _ADMISSION_SCOPE_C2):
-        failures.append("Cross-4: Criterion-2 admission clause missing from rubric surface")
+        failures.append(
+            "Cross-4: Criterion-2 admission clause missing from rubric surface"
+        )
     # Cross-5 (plan 15-11): the superseded narrow quoted-span wording is
     # absent from BOTH prescriptive surfaces — the rubric arm deliberately
     # overlaps Rubric-13's whole-file count-0 guard (the same overlap
@@ -1525,9 +1554,13 @@ def _check_cross_surface(body_text: str, rubric_text: str) -> list[str]:
     # prescriptive statement of the quoting rule and nothing else stops it
     # regressing to the narrow form.
     if _contains(body_text, _RUBRIC_FORMAT_QUOTED_SPAN_SUPERSEDED):
-        failures.append("Cross-5: superseded narrow quoted-span wording present in agent-body surface")
+        failures.append(
+            "Cross-5: superseded narrow quoted-span wording present in agent-body surface"
+        )
     if _contains(rubric_text, _RUBRIC_FORMAT_QUOTED_SPAN_SUPERSEDED):
-        failures.append("Cross-5: superseded narrow quoted-span wording present in rubric surface")
+        failures.append(
+            "Cross-5: superseded narrow quoted-span wording present in rubric surface"
+        )
     return failures
 
 
@@ -1555,7 +1588,9 @@ def _validate_files() -> int:
         sys.stderr.write(f"check-selfaudit-scan: agent file not found: {AGENT_FILE}\n")
         return 2
     if not RUBRIC_FILE.exists():
-        sys.stderr.write(f"check-selfaudit-scan: rubric file not found: {RUBRIC_FILE}\n")
+        sys.stderr.write(
+            f"check-selfaudit-scan: rubric file not found: {RUBRIC_FILE}\n"
+        )
         return 2
 
     body_text = AGENT_FILE.read_text(encoding="utf-8")
@@ -1644,8 +1679,10 @@ def _selfaudit_meta_floor_problems(
     extra = executed_set - registered_set
     if missing or extra:
         return [
-            (f"control roster/executed mismatch: missing={sorted(missing)} "
-            f"extra={sorted(extra)}")
+            (
+                f"control roster/executed mismatch: missing={sorted(missing)} "
+                f"extra={sorted(extra)}"
+            )
         ]
     return []
 
@@ -1791,56 +1828,106 @@ REQUIRED_BRANCHES: frozenset[str] = frozenset(
 # set that actually differs is caught.
 _BRANCH_ROSTER_LOCK: frozenset[str] = frozenset(
     {
-        "B-01-slice-count", "B-01-slice-noheading",
-        "B-02-lead-slice", "B-02-lead-whole", "B-02-lead-dup",
-        "B-03-placement-tail", "B-03-placement-clean",
-        "B-04-heading-missing", "B-04-heading-dup",
-        "B-05-cols-chain-missing", "B-05-cols-chain-dup",
-        "B-06-cols-claim-missing", "B-06-cols-claim-dup",
-        "B-07-rowrule-chain", "B-07-rowrule-claim",
-        "B-08-rejected", "B-09-cleanpass",
-        "B-10-ledger-indep-1", "B-10-ledger-indep-2",
-        "B-11-recon-lead", "B-11-recon-template",
-        "B-12-placement-1", "B-12-placement-2",
-        "B-13-refix", "B-14-bound",
-        "B-15-donotpresent-amended", "B-15-donotpresent-preamendment",
+        "B-01-slice-count",
+        "B-01-slice-noheading",
+        "B-02-lead-slice",
+        "B-02-lead-whole",
+        "B-02-lead-dup",
+        "B-03-placement-tail",
+        "B-03-placement-clean",
+        "B-04-heading-missing",
+        "B-04-heading-dup",
+        "B-05-cols-chain-missing",
+        "B-05-cols-chain-dup",
+        "B-06-cols-claim-missing",
+        "B-06-cols-claim-dup",
+        "B-07-rowrule-chain",
+        "B-07-rowrule-claim",
+        "B-08-rejected",
+        "B-09-cleanpass",
+        "B-10-ledger-indep-1",
+        "B-10-ledger-indep-2",
+        "B-11-recon-lead",
+        "B-11-recon-template",
+        "B-12-placement-1",
+        "B-12-placement-2",
+        "B-13-refix",
+        "B-14-bound",
+        "B-15-donotpresent-amended",
+        "B-15-donotpresent-preamendment",
         "B-15-donotpresent-dup",
-        "B-16-coverage-bound-missing", "B-16-coverage-bound-dup",
-        "R-01-block-missing", "R-01-block-dup", "R-01-no-mask",
-        "R-02-placement-order", "R-02-placement-anchor", "R-02-placement-aa",
-        "R-03-divlabour-1", "R-03-divlabour-2",
+        "B-16-coverage-bound-missing",
+        "B-16-coverage-bound-dup",
+        "R-01-block-missing",
+        "R-01-block-dup",
+        "R-01-no-mask",
+        "R-02-placement-order",
+        "R-02-placement-anchor",
+        "R-02-placement-aa",
+        "R-03-divlabour-1",
+        "R-03-divlabour-2",
         "R-04-two-criteria",
-        "R-05-cols-chain", "R-05-cols-claim",
+        "R-05-cols-chain",
+        "R-05-cols-claim",
         "R-06-ledger",
-        "R-07-missing-absent", "R-07-missing-neartwin",
+        "R-07-missing-absent",
+        "R-07-missing-neartwin",
         "R-08-bound",
-        "R-09-crit4-count-missing", "R-09-crit4-count-dup", "R-09-crit4-order",
-        "R-09-crit4-direct-missing", "R-09-crit4-direct-dup",
-        "R-10-crit6-count-missing", "R-10-crit6-count-dup", "R-10-crit6-order",
-        "R-10-crit6-direct-missing", "R-10-crit6-direct-dup",
-        "R-11-bands-crit4-rigorous", "R-11-bands-crit4-sound",
-        "R-11-bands-crit4-handwavy", "R-11-bands-crit4-absent",
-        "R-11-bands-crit6-rigorous", "R-11-bands-crit6-sound",
-        "R-11-bands-crit6-handwavy", "R-11-bands-crit6-absent",
-        "R-12-halt-missing", "R-12-halt-dup",
-        "R-13-format-amended-missing", "R-13-format-amended-dup",
-        "R-13-format-admission-missing", "R-13-format-admission-dup",
-        "R-13-format-preamendment", "R-13-format-order",
-        "R-13-format-admission-c46-missing", "R-13-format-admission-c46-dup",
-        "R-13-format-admission-c2-missing", "R-13-format-admission-c2-dup",
+        "R-09-crit4-count-missing",
+        "R-09-crit4-count-dup",
+        "R-09-crit4-order",
+        "R-09-crit4-direct-missing",
+        "R-09-crit4-direct-dup",
+        "R-10-crit6-count-missing",
+        "R-10-crit6-count-dup",
+        "R-10-crit6-order",
+        "R-10-crit6-direct-missing",
+        "R-10-crit6-direct-dup",
+        "R-11-bands-crit4-rigorous",
+        "R-11-bands-crit4-sound",
+        "R-11-bands-crit4-handwavy",
+        "R-11-bands-crit4-absent",
+        "R-11-bands-crit6-rigorous",
+        "R-11-bands-crit6-sound",
+        "R-11-bands-crit6-handwavy",
+        "R-11-bands-crit6-absent",
+        "R-12-halt-missing",
+        "R-12-halt-dup",
+        "R-13-format-amended-missing",
+        "R-13-format-amended-dup",
+        "R-13-format-admission-missing",
+        "R-13-format-admission-dup",
+        "R-13-format-preamendment",
+        "R-13-format-order",
+        "R-13-format-admission-c46-missing",
+        "R-13-format-admission-c46-dup",
+        "R-13-format-admission-c2-missing",
+        "R-13-format-admission-c2-dup",
         "R-13-format-admission-superseded",
-        "R-13-format-template-c46-missing", "R-13-format-template-c46-dup",
-        "R-13-format-template-c2-missing", "R-13-format-template-c2-dup",
+        "R-13-format-template-c46-missing",
+        "R-13-format-template-c46-dup",
+        "R-13-format-template-c2-missing",
+        "R-13-format-template-c2-dup",
         "R-13-format-quoted-span-superseded",
-        "R-14-c2-descriptor-missing", "R-14-c2-descriptor-dup",
-        "B-17-validate-missing", "B-17-validate-dup", "B-17-validate-preamendment",
-        "X-01-cols-chain-body", "X-01-cols-chain-rubric",
-        "X-01-cols-claim-body", "X-01-cols-claim-rubric",
-        "X-02-heading-body", "X-02-heading-rubric",
-        "X-03-bound-body", "X-03-bound-rubric",
-        "X-04-admission-c46-body", "X-04-admission-c46-rubric",
-        "X-04-admission-c2-body", "X-04-admission-c2-rubric",
-        "X-05-superseded-body", "X-05-superseded-rubric",
+        "R-14-c2-descriptor-missing",
+        "R-14-c2-descriptor-dup",
+        "B-17-validate-missing",
+        "B-17-validate-dup",
+        "B-17-validate-preamendment",
+        "X-01-cols-chain-body",
+        "X-01-cols-chain-rubric",
+        "X-01-cols-claim-body",
+        "X-01-cols-claim-rubric",
+        "X-02-heading-body",
+        "X-02-heading-rubric",
+        "X-03-bound-body",
+        "X-03-bound-rubric",
+        "X-04-admission-c46-body",
+        "X-04-admission-c46-rubric",
+        "X-04-admission-c2-body",
+        "X-04-admission-c2-rubric",
+        "X-05-superseded-body",
+        "X-05-superseded-rubric",
     }
 )
 
@@ -1937,8 +2024,10 @@ def _entry_source_problems(source_text: str, expected_call_args: str) -> list[st
     if _contains(source_text, expected_call_args):
         return []
     return [
-        (f"real call's argument-triple text {expected_call_args!r} not "
-        "found in source (rewritten, aliased, or missing call site)")
+        (
+            f"real call's argument-triple text {expected_call_args!r} not "
+            "found in source (rewritten, aliased, or missing call site)"
+        )
     ]
 
 
@@ -2003,7 +2092,9 @@ def _run_self_test() -> int:
             )
             problems.append(f"{label}: wrong-reason failure")
             return
-        if expected_detail is not None and not any(expected_detail in f for f in matched):
+        if expected_detail is not None and not any(
+            expected_detail in f for f in matched
+        ):
             print(
                 f"({label}) failed for the WRONG reason (check ID "
                 f"{expected_check_id!r} fired but no message of that ID contains "
@@ -2035,7 +2126,9 @@ def _run_self_test() -> int:
     # (c) Positive control — cross-surface.
     c_failures = _check_cross_surface(real_body, real_rubric)
     if c_failures:
-        print(f"(c) positive control — cross-surface: WRONGLY FAILED: {'; '.join(c_failures)}")
+        print(
+            f"(c) positive control — cross-surface: WRONGLY FAILED: {'; '.join(c_failures)}"
+        )
         problems.append("(c): unexpected failures against real cross-surface check")
     else:
         print("(c) positive control — cross-surface: PASS (0 failures)")
@@ -2248,13 +2341,21 @@ def _run_self_test() -> int:
     # B-08-rejected: strip the non-claim-rows-populated sentence.
     body_b08 = _strip_everywhere(real_body, _BODY_REJECTED_ROW)
     _check_negative(
-        "B-08", _check_body_text(body_b08), "Body-8", "missing sentence", "B-08-rejected"
+        "B-08",
+        _check_body_text(body_b08),
+        "Body-8",
+        "missing sentence",
+        "B-08-rejected",
     )
 
     # B-09-cleanpass: strip the clean-pass sentence.
     body_b09 = _strip_everywhere(real_body, _BODY_CLEANPASS)
     _check_negative(
-        "B-09", _check_body_text(body_b09), "Body-9", "missing sentence", "B-09-cleanpass"
+        "B-09",
+        _check_body_text(body_b09),
+        "Body-9",
+        "missing sentence",
+        "B-09-cleanpass",
     )
 
     # B-10-ledger-indep-1: strip the "derive independently" half.
@@ -2323,7 +2424,11 @@ def _run_self_test() -> int:
     # B-13-refix: strip the re-run-on-Fix sentence.
     body_b13 = _strip_everywhere(real_body, _BODY_REFIX)
     _check_negative(
-        "B-13", _check_body_text(body_b13), "Body-13", "missing re-fix sentence", "B-13-refix"
+        "B-13",
+        _check_body_text(body_b13),
+        "Body-13",
+        "missing re-fix sentence",
+        "B-13-refix",
     )
 
     # B-14-bound: strip the disclosed enforcement bound.
@@ -2449,7 +2554,9 @@ def _run_self_test() -> int:
         )
         problems.append("(hw-body): hard-wrap normalization not load-bearing")
     else:
-        print("(hw-body) hard-wrap arm: PASS — Body-10 tolerates a hard-wrapped literal")
+        print(
+            "(hw-body) hard-wrap arm: PASS — Body-10 tolerates a hard-wrapped literal"
+        )
 
     # --- Rubric branch negative controls ------------------------------------
     # Clause-level split (plan 15-06, closing WR-01's rubric-surface rows m6,
@@ -2532,7 +2639,9 @@ def _run_self_test() -> int:
     # predicate to `scan_idx < precedence_idx` previously left `--self-test`
     # at rc=0 reporting all branches covered against exactly this
     # malformation. Violates only the Assumption Audit half.
-    rubric_r02c = _relocate(real_rubric, _RUBRIC_SCAN_BLOCK, "## How to Apply This Gate")
+    rubric_r02c = _relocate(
+        real_rubric, _RUBRIC_SCAN_BLOCK, "## How to Apply This Gate"
+    )
     _r02c_failures = _check_rubric_text(rubric_r02c)
     _r02c_ids = sorted({f.split(" ", 1)[0].rstrip(":") for f in _r02c_failures})
     print(f"(R-02c) failure list check IDs: {_r02c_ids}")
@@ -2579,7 +2688,11 @@ def _run_self_test() -> int:
     # rather than kept as an unfalsifiable arm — see the comment at its
     # former call site. This presence check is the real, falsifiable one.
     rubric_r04 = _mutate_within_range(
-        real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE, _RUBRIC_TWO_CRIT_SENTENCE, ""
+        real_rubric,
+        _RUBRIC_SCAN_BLOCK,
+        _RUBRIC_PRECEDENCE,
+        _RUBRIC_TWO_CRIT_SENTENCE,
+        "",
     )
     _check_negative(
         "R-04",
@@ -3010,7 +3123,10 @@ def _run_self_test() -> int:
     # R-13-format-admission-c46-dup: duplicate the Criteria-4/6 clause
     # inside the same ADMISSION region.
     rubric_r13h = _duplicate_within_range(
-        real_rubric, _RUBRIC_FORMAT_ADMISSION, _RUBRIC_CRITERIA_START, _ADMISSION_SCOPE_C46
+        real_rubric,
+        _RUBRIC_FORMAT_ADMISSION,
+        _RUBRIC_CRITERIA_START,
+        _ADMISSION_SCOPE_C46,
     )
     _check_negative(
         "R-13h",
@@ -3040,7 +3156,10 @@ def _run_self_test() -> int:
     # R-13-format-admission-c2-dup: duplicate the Criterion-2 clause inside
     # the same ADMISSION region — the `!= 1` guard's OTHER direction.
     rubric_r13j = _duplicate_within_range(
-        real_rubric, _RUBRIC_FORMAT_ADMISSION, _RUBRIC_CRITERIA_START, _ADMISSION_SCOPE_C2
+        real_rubric,
+        _RUBRIC_FORMAT_ADMISSION,
+        _RUBRIC_CRITERIA_START,
+        _ADMISSION_SCOPE_C2,
     )
     _check_negative(
         "R-13j",
@@ -3091,7 +3210,10 @@ def _run_self_test() -> int:
     # R-13-format-template-c46-dup: duplicate the Criteria-4/6 clause inside
     # the same TEMPLATE region.
     rubric_r13m = _duplicate_within_range(
-        real_rubric, _RUBRIC_FORMAT_START, _RUBRIC_FORMAT_ADMISSION, _ADMISSION_SCOPE_C46
+        real_rubric,
+        _RUBRIC_FORMAT_START,
+        _RUBRIC_FORMAT_ADMISSION,
+        _ADMISSION_SCOPE_C46,
     )
     _check_negative(
         "R-13m",
@@ -3181,7 +3303,9 @@ def _run_self_test() -> int:
     rubric_hw = _hardwrap_reinstate_in_range(
         real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE, _RUBRIC_LEDGER_INADMISSIBLE
     )
-    hw_rubric_failures = [f for f in _check_rubric_text(rubric_hw) if f.startswith("Rubric-6")]
+    hw_rubric_failures = [
+        f for f in _check_rubric_text(rubric_hw) if f.startswith("Rubric-6")
+    ]
     if hw_rubric_failures:
         print(
             "(hw-rubric) hard-wrap arm: WRONGLY FAILED — Rubric-6 fired against a "
@@ -3189,7 +3313,9 @@ def _run_self_test() -> int:
         )
         problems.append("(hw-rubric): hard-wrap normalization not load-bearing")
     else:
-        print("(hw-rubric) hard-wrap arm: PASS — Rubric-6 tolerates a hard-wrapped literal")
+        print(
+            "(hw-rubric) hard-wrap arm: PASS — Rubric-6 tolerates a hard-wrapped literal"
+        )
 
     # --- Cross-surface branch negative controls -----------------------------
 
@@ -3377,26 +3503,42 @@ def _run_self_test() -> int:
     # helper with SYNTHETIC id sets only — never `REQUIRED_BRANCHES`, never
     # `_BRANCH_ROSTER_LOCK` — so the comparison logic is proven correct
     # independently of whether the two real registries happen to agree today.
-    roster_x1 = _roster_problems(frozenset({"A", "B"}), frozenset({"A", "B"}), frozenset({"A"}))
+    roster_x1 = _roster_problems(
+        frozenset({"A", "B"}), frozenset({"A", "B"}), frozenset({"A"})
+    )
     if roster_x1 != []:
         print(f"(roster-x1) ISOLATION CLEAN: WRONGLY reported problem(s): {roster_x1}")
         problems.append(f"(roster-x1): clean case wrongly reported {roster_x1}")
     else:
         print("(roster-x1) ISOLATION CLEAN: PASS")
 
-    roster_x2 = _roster_problems(frozenset({"A"}), frozenset({"A", "B"}), frozenset({"A"}))
-    if not (len(roster_x2) == 1 and "B" in roster_x2[0] and "ROSTER LOCK:" in roster_x2[0]):
-        print(f"(roster-x2) ISOLATION NARROWED: expected one problem naming 'B', got {roster_x2}")
-        problems.append(f"(roster-x2): narrowed case did not name missing id 'B': {roster_x2}")
+    roster_x2 = _roster_problems(
+        frozenset({"A"}), frozenset({"A", "B"}), frozenset({"A"})
+    )
+    if not (
+        len(roster_x2) == 1 and "B" in roster_x2[0] and "ROSTER LOCK:" in roster_x2[0]
+    ):
+        print(
+            f"(roster-x2) ISOLATION NARROWED: expected one problem naming 'B', got {roster_x2}"
+        )
+        problems.append(
+            f"(roster-x2): narrowed case did not name missing id 'B': {roster_x2}"
+        )
     else:
         print(f"(roster-x2) ISOLATION NARROWED: PASS ({roster_x2[0]})")
 
     roster_x3 = _roster_problems(
         frozenset({"A", "B"}), frozenset({"A", "B"}), frozenset({"A", "B", "C"})
     )
-    if not (len(roster_x3) == 1 and "C" in roster_x3[0] and "unregistered" in roster_x3[0]):
-        print(f"(roster-x3) ISOLATION EXTRA: expected one problem naming 'C', got {roster_x3}")
-        problems.append(f"(roster-x3): extra case did not name surplus id 'C': {roster_x3}")
+    if not (
+        len(roster_x3) == 1 and "C" in roster_x3[0] and "unregistered" in roster_x3[0]
+    ):
+        print(
+            f"(roster-x3) ISOLATION EXTRA: expected one problem naming 'C', got {roster_x3}"
+        )
+        problems.append(
+            f"(roster-x3): extra case did not name surplus id 'C': {roster_x3}"
+        )
     else:
         print(f"(roster-x3) ISOLATION EXTRA: PASS ({roster_x3[0]})")
 
@@ -3418,7 +3560,9 @@ def _run_self_test() -> int:
             "call site(s), expected 4"
         )
     else:
-        print(f"(roster-census) CALL-SITE CENSUS: PASS ({roster_call_count} call sites)")
+        print(
+            f"(roster-census) CALL-SITE CENSUS: PASS ({roster_call_count} call sites)"
+        )
 
     # (roster-entry-source) ENTRY-SOURCE LOCK (T-15-31, WR-04
     # `15-REVIEW.md`, plan 15-12 — mirrors `check-quality-harness.py`'s (x)
@@ -3456,7 +3600,10 @@ def _run_self_test() -> int:
     # developing this control, fixed before landing.
     executed.append("roster-entry-source")
     roster_entry_source_expected = (
-        "REQUIRED_BRANCHES" + ", " + "_BRANCH_ROSTER_LOCK" + ", "
+        "REQUIRED_BRANCHES"
+        + ", "
+        + "_BRANCH_ROSTER_LOCK"
+        + ", "
         + "frozenset(covered_branches)"
     )
     roster_entry_source_problems = _entry_source_problems(
@@ -3480,7 +3627,9 @@ def _run_self_test() -> int:
         "call(\n        A, B, frozenset(C)\n    )", "A, B, frozenset(C)"
     )
     if roster_es_x1 != []:
-        print(f"(roster-es-x1) ISOLATION CLEAN: WRONGLY reported problem(s): {roster_es_x1}")
+        print(
+            f"(roster-es-x1) ISOLATION CLEAN: WRONGLY reported problem(s): {roster_es_x1}"
+        )
         problems.append(f"(roster-es-x1): clean case wrongly reported {roster_es_x1}")
     else:
         print("(roster-es-x1) ISOLATION CLEAN: PASS")
@@ -3501,7 +3650,9 @@ def _run_self_test() -> int:
         print(f"(roster-es-x2) ISOLATION ALIASED: PASS ({roster_es_x2[0]})")
 
     # roster-es-x3: no matching call at all (the call site itself deleted).
-    roster_es_x3 = _entry_source_problems("def _other():\n    pass\n", "A, B, frozenset(C)")
+    roster_es_x3 = _entry_source_problems(
+        "def _other():\n    pass\n", "A, B, frozenset(C)"
+    )
     if len(roster_es_x3) != 1 or "not found" not in roster_es_x3[0]:
         print(
             "(roster-es-x3) ISOLATION MISSING: expected one problem naming "
@@ -3520,7 +3671,9 @@ def _run_self_test() -> int:
     # exact defect the lock exists to catch restored.
     executed.append("roster-es-census")
     roster_es_call_pattern = "_entry_source_problems" + "("
-    roster_es_call_count = inspect.getsource(_run_self_test).count(roster_es_call_pattern)
+    roster_es_call_count = inspect.getsource(_run_self_test).count(
+        roster_es_call_pattern
+    )
     if roster_es_call_count != 4:
         print(
             f"(roster-es-census) CALL-SITE CENSUS: observed "
@@ -3532,7 +3685,9 @@ def _run_self_test() -> int:
             "_entry_source_problems call site(s), expected 4"
         )
     else:
-        print(f"(roster-es-census) CALL-SITE CENSUS: PASS ({roster_es_call_count} call sites)")
+        print(
+            f"(roster-es-census) CALL-SITE CENSUS: PASS ({roster_es_call_count} call sites)"
+        )
 
     # ISOLATION arms for `_live_exit_code` (T-15-18, `15-VERIFICATION.md` gap
     # 2): the failure-to-exit-code decision `_validate_files` makes is
@@ -3640,8 +3795,9 @@ def _run_self_test() -> int:
         this_module._SCANGUARD_DISPATCH_REENTRANT = True
         try:
             dispatch_out, dispatch_err = io.StringIO(), io.StringIO()
-            with contextlib.redirect_stdout(dispatch_out), contextlib.redirect_stderr(
-                dispatch_err
+            with (
+                contextlib.redirect_stdout(dispatch_out),
+                contextlib.redirect_stderr(dispatch_err),
             ):
                 dispatch_rc = main(["--self-test"])
             dispatch_text = dispatch_out.getvalue()
@@ -3658,14 +3814,18 @@ def _run_self_test() -> int:
                     "(dispatch) dispatch control: WRONGLY FAILED — captured "
                     f"stdout did not contain control (a)'s PASS text: {dispatch_text!r}"
                 )
-                problems.append("(dispatch): captured stdout missing control (a) PASS text")
+                problems.append(
+                    "(dispatch): captured stdout missing control (a) PASS text"
+                )
             else:
                 print(
                     "(dispatch) dispatch control: PASS — main(['--self-test']) "
                     "reaches this block end-to-end"
                 )
         except Exception as exc:  # noqa: BLE001 - self-test must report, not crash
-            print(f"(dispatch) dispatch control: WRONGLY FAILED — unexpected exception: {exc!r}")
+            print(
+                f"(dispatch) dispatch control: WRONGLY FAILED — unexpected exception: {exc!r}"
+            )
             problems.append(f"(dispatch): unexpected exception: {exc!r}")
         finally:
             this_module._SCANGUARD_DISPATCH_REENTRANT = False
@@ -3684,8 +3844,9 @@ def _run_self_test() -> int:
     executed.append("live-dispatch")
     live_dispatch_out, live_dispatch_err = io.StringIO(), io.StringIO()
     try:
-        with contextlib.redirect_stdout(live_dispatch_out), contextlib.redirect_stderr(
-            live_dispatch_err
+        with (
+            contextlib.redirect_stdout(live_dispatch_out),
+            contextlib.redirect_stderr(live_dispatch_err),
         ):
             live_dispatch_rc = main([])
         live_dispatch_text = live_dispatch_out.getvalue()
@@ -3715,7 +3876,9 @@ def _run_self_test() -> int:
                 "_validate_files end-to-end"
             )
     except Exception as exc:  # noqa: BLE001 - self-test must report, not crash
-        print(f"(live-dispatch) dispatch control: WRONGLY FAILED — unexpected exception: {exc!r}")
+        print(
+            f"(live-dispatch) dispatch control: WRONGLY FAILED — unexpected exception: {exc!r}"
+        )
         problems.append(f"(live-dispatch): unexpected exception: {exc!r}")
 
     # Live-dispatch-control CALL-SITE CENSUS: count the live-dispatch
@@ -3768,7 +3931,9 @@ def _run_self_test() -> int:
             "(roster-floor-missing/extra) negative arms: WRONGLY FAILED — "
             "_selfaudit_meta_floor_problems did NOT fire on a synthetic mismatch"
         )
-        problems.append("(roster-floor-missing/extra): floor did not fire on synthetic mismatch")
+        problems.append(
+            "(roster-floor-missing/extra): floor did not fire on synthetic mismatch"
+        )
     else:
         _missing_clause, _extra_clause = _roster_arm_clauses(_synthetic_text)
         if "synthetic-b" not in _missing_clause or "synthetic-c" not in _extra_clause:
@@ -3777,7 +3942,9 @@ def _run_self_test() -> int:
                 f"did not name both the missing and extra synthetic ids in their "
                 f"correct clauses: missing_clause={_missing_clause!r} extra_clause={_extra_clause!r}"
             )
-            problems.append("(roster-floor-missing/extra): floor did not name both directions")
+            problems.append(
+                "(roster-floor-missing/extra): floor did not name both directions"
+            )
         else:
             print(
                 "(roster-floor-missing/extra) negative arms: PASS — fires and names "
@@ -3808,9 +3975,13 @@ def _run_self_test() -> int:
     if _desc["branch_roster"] != sorted(REQUIRED_BRANCHES):
         problems.append("(describe): branch_roster disagrees with REQUIRED_BRANCHES")
     elif _desc["branch_count"] != len(REQUIRED_BRANCHES):
-        problems.append("(describe): branch_count disagrees with len(REQUIRED_BRANCHES)")
+        problems.append(
+            "(describe): branch_count disagrees with len(REQUIRED_BRANCHES)"
+        )
     elif _desc["call_site_census"] != {symbol: 1 for symbol in _VALIDATE_LEG_SYMBOLS}:
-        problems.append("(describe): call_site_census disagrees with _VALIDATE_LEG_SYMBOLS")
+        problems.append(
+            "(describe): call_site_census disagrees with _VALIDATE_LEG_SYMBOLS"
+        )
     elif set(_desc["control_ids"]) != set(executed):
         problems.append("(describe): control_ids disagrees with executed controls")
     elif _desc["control_count"] != len(executed):
@@ -3834,7 +4005,9 @@ def _run_self_test() -> int:
     _meta_roster_problems = _selfaudit_meta_floor_problems(executed, _META_CONTROL_IDS)
     if _meta_roster_problems:
         problems.extend(_meta_roster_problems)
-        print("control roster/executed floor: FAIL — " + "; ".join(_meta_roster_problems))
+        print(
+            "control roster/executed floor: FAIL — " + "; ".join(_meta_roster_problems)
+        )
     else:
         print(
             f"control roster/executed floor: PASS — {len(executed)} meta-controls "
@@ -3842,7 +4015,9 @@ def _run_self_test() -> int:
         )
 
     if problems:
-        sys.stderr.write("check-selfaudit-scan --self-test: FAIL — " + "; ".join(problems) + "\n")
+        sys.stderr.write(
+            "check-selfaudit-scan --self-test: FAIL — " + "; ".join(problems) + "\n"
+        )
         return 1
 
     print("check-selfaudit-scan --self-test: PASS")

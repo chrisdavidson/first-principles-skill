@@ -6,6 +6,7 @@ These assertions document the TDD requirements for the self_test() function:
   - Catalog parse sub-test
   - Fully offline (no claude, no network)
 """
+
 from __future__ import annotations
 
 import importlib.util
@@ -37,7 +38,8 @@ def test_self_test_exits_0_offline():
     result = subprocess.run(
         [sys.executable, str(HARNESS), "--self-test"],
         capture_output=True,
-        text=True, check=False,
+        text=True,
+        check=False,
     )
     assert result.returncode == 0, (
         f"--self-test exited {result.returncode}\nstdout: {result.stdout}\nstderr: {result.stderr}"
@@ -49,7 +51,8 @@ def test_self_test_prints_pass_anchor():
     result = subprocess.run(
         [sys.executable, str(HARNESS), "--self-test"],
         capture_output=True,
-        text=True, check=False,
+        text=True,
+        check=False,
     )
     assert "self-test PASS" in result.stdout, (
         f"'self-test PASS' not found in stdout:\n{result.stdout}"
@@ -84,7 +87,8 @@ sys.exit(mod.self_test())
     result = subprocess.run(
         [sys.executable, "-c", wrapper],
         capture_output=True,
-        text=True, check=False,
+        text=True,
+        check=False,
     )
     assert result.returncode == 0, (
         f"self_test() failed when claude was unavailable (not offline-safe!):\n"
@@ -98,20 +102,26 @@ def test_load_bearing_fixture_inference_guard(harness):
     import tempfile
 
     # Build the none_with_dispatch fixture body
-    dispatch_line = json.dumps({
-        "type": "assistant",
-        "message": {
-            "content": [{
-                "type": "tool_use",
-                "name": "Agent",
-                "input": {"subagent_type": "first-principles:first-principles", "prompt": "test"}
-            }]
+    dispatch_line = json.dumps(
+        {
+            "type": "assistant",
+            "message": {
+                "content": [
+                    {
+                        "type": "tool_use",
+                        "name": "Agent",
+                        "input": {
+                            "subagent_type": "first-principles:first-principles",
+                            "prompt": "test",
+                        },
+                    }
+                ]
+            },
         }
-    })
-    clarification_line = json.dumps({
-        "type": "assistant",
-        "text": "I need more information to run the analysis."
-    })
+    )
+    clarification_line = json.dumps(
+        {"type": "assistant", "text": "I need more information to run the analysis."}
+    )
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as f:
         f.write(dispatch_line + "\n" + clarification_line + "\n")
@@ -126,7 +136,9 @@ def test_load_bearing_fixture_inference_guard(harness):
 
         # _agent_was_dispatched: must return True for this fixture
         dispatched = harness._agent_was_dispatched(p)
-        assert dispatched is True, "LOAD-BEARING: _agent_was_dispatched must be True for dispatch fixture"
+        assert dispatched is True, (
+            "LOAD-BEARING: _agent_was_dispatched must be True for dispatch fixture"
+        )
 
         # detect_output_structure_from_file alone (WITHOUT inference): returns 'none'
         raw_mode = harness.detect_output_structure_from_file(p)

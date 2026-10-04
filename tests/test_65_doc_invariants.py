@@ -42,6 +42,7 @@ BATTERY_CATALOG = TESTS / "routing-battery-catalog.md"
 # CAT-01: sub-skill catalog rows P12/P24/N2 all expect none-or-other
 # ---------------------------------------------------------------------------
 
+
 def test_sub_skill_catalog_p12_expects_none_or_other() -> None:
     """P12 row in sub-skill catalog must expect none-or-other (not direct sub-skill)."""
     text = SUB_SKILL_CATALOG.read_text(encoding="utf-8")
@@ -83,6 +84,7 @@ def test_sub_skill_catalog_n2_expects_none_or_other() -> None:
 # CAT-02: sub-skill catalog header references check-focused-output and disable-model-invocation
 # ---------------------------------------------------------------------------
 
+
 def test_sub_skill_catalog_header_references_focused_output_script() -> None:
     """Catalog header must mention check-focused-output (FU-21 gate lives there)."""
     text = SUB_SKILL_CATALOG.read_text(encoding="utf-8")
@@ -111,6 +113,7 @@ def test_sub_skill_catalog_header_has_no_must_start_passing() -> None:
 # FOCUS-01: focused-output catalog dry-run parses as 4 P-prompts, 1 N-prompt
 # ---------------------------------------------------------------------------
 
+
 def test_battery_catalog_dry_run_parses() -> None:
     """check-routing-battery.py --dry-run must parse its catalog and exit 0.
 
@@ -120,12 +123,17 @@ def test_battery_catalog_dry_run_parses() -> None:
     invariant that survives is that the catalog parses cleanly.
     """
     result = subprocess.run(
-        [sys.executable, str(CHECK_BATTERY),
-         "--catalog", str(BATTERY_CATALOG),
-         "--dry-run"],
+        [
+            sys.executable,
+            str(CHECK_BATTERY),
+            "--catalog",
+            str(BATTERY_CATALOG),
+            "--dry-run",
+        ],
         capture_output=True,
         text=True,
-        timeout=30, check=False,
+        timeout=30,
+        check=False,
     )
     output = result.stdout + result.stderr
     assert result.returncode == 0, (
@@ -139,6 +147,7 @@ def test_battery_catalog_dry_run_parses() -> None:
 # FOCUS-02: focused-output catalog contains NOT-any-focused
 # ---------------------------------------------------------------------------
 
+
 def test_focused_output_catalog_contains_not_any_focused() -> None:
     """focused-output-catalog.md must contain NOT-any-focused (N1 negative control)."""
     text = FOCUSED_CATALOG.read_text(encoding="utf-8")
@@ -151,6 +160,7 @@ def test_focused_output_catalog_contains_not_any_focused() -> None:
 # FOCUS-03: focused-output catalog exists (file guard)
 # ---------------------------------------------------------------------------
 
+
 def test_focused_output_catalog_exists() -> None:
     """tests/focused-output-catalog.md must exist as a committed file."""
     assert FOCUSED_CATALOG.exists(), (
@@ -161,6 +171,7 @@ def test_focused_output_catalog_exists() -> None:
 # ---------------------------------------------------------------------------
 # STRICT-01: CLAUDE.md battery commands and threshold invariants
 # ---------------------------------------------------------------------------
+
 
 def test_claude_md_names_the_merged_battery() -> None:
     """CLAUDE.md must name check-routing-battery.py as a runnable command.
@@ -221,6 +232,7 @@ def test_claude_md_has_zero_p_threshold_2_n_threshold_1() -> None:
 # STRICT-01 sweep: no active --p-threshold 0 in scripts or test catalogs
 # ---------------------------------------------------------------------------
 
+
 def _active_p_threshold_0_lines(path: Path) -> list[str]:
     """Return lines containing '--p-threshold 0' that are not in SUPERSEDED blocks."""
     lines = path.read_text(encoding="utf-8").splitlines()
@@ -238,23 +250,20 @@ def test_no_active_p_threshold_0_in_scripts() -> None:
     """No script in scripts/ must carry an active '--p-threshold 0'."""
     for py_file in sorted(SCRIPTS.glob("*.py")):
         hits = _active_p_threshold_0_lines(py_file)
-        assert not hits, (
-            f"{py_file.name} has active '--p-threshold 0' lines: {hits}"
-        )
+        assert not hits, f"{py_file.name} has active '--p-threshold 0' lines: {hits}"
 
 
 def test_no_active_p_threshold_0_in_test_catalogs() -> None:
     """No *catalog*.md in tests/ must carry an active '--p-threshold 0'."""
     for md in sorted(TESTS.glob("*catalog*.md")):
         hits = _active_p_threshold_0_lines(md)
-        assert not hits, (
-            f"{md.name} has active '--p-threshold 0' lines: {hits}"
-        )
+        assert not hits, f"{md.name} has active '--p-threshold 0' lines: {hits}"
 
 
 # ---------------------------------------------------------------------------
 # SUPERSEDED banners on the three archived baselines
 # ---------------------------------------------------------------------------
+
 
 def test_sub_skill_baseline_v38_has_superseded_banner() -> None:
     """sub-skill-routing-baseline-v3.8.md must have SUPERSEDED banner at head."""
@@ -288,6 +297,7 @@ def test_focused_output_baseline_v38_has_superseded_banner() -> None:
 # (successor to the retired check-sub-skill-routing.py guards)
 # ---------------------------------------------------------------------------
 
+
 def test_battery_boundary_p_threshold_default_is_2() -> None:
     """check-routing-battery.py --help must report a boundary p-threshold default of 2.
 
@@ -299,7 +309,8 @@ def test_battery_boundary_p_threshold_default_is_2() -> None:
         [sys.executable, str(CHECK_BATTERY), "--help"],
         capture_output=True,
         text=True,
-        timeout=15, check=False,
+        timeout=15,
+        check=False,
     )
     output = result.stdout + result.stderr
     assert "--boundary-p-threshold" in output, (
@@ -327,13 +338,15 @@ def test_battery_source_has_no_p_threshold_0() -> None:
 # Self-test: the merged battery must pass its own --self-test
 # ---------------------------------------------------------------------------
 
+
 def test_battery_self_test_passes() -> None:
     """check-routing-battery.py --self-test must exit 0 (also the BATT-06 CI gate)."""
     result = subprocess.run(
         [sys.executable, str(CHECK_BATTERY), "--self-test"],
         capture_output=True,
         text=True,
-        timeout=120, check=False,
+        timeout=120,
+        check=False,
     )
     output = result.stdout + result.stderr
     assert result.returncode == 0, (
@@ -344,6 +357,7 @@ def test_battery_self_test_passes() -> None:
 # ---------------------------------------------------------------------------
 # Retirement guard: the shims must stay gone
 # ---------------------------------------------------------------------------
+
 
 def test_retired_shims_are_absent() -> None:
     """The scripts retired by the 2026-08-16 audit must not reappear.
@@ -364,4 +378,5 @@ def test_retired_shims_are_absent() -> None:
 
 if __name__ == "__main__":
     import pytest
+
     sys.exit(pytest.main([__file__, "-v"]))

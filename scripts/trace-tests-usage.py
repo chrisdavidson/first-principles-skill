@@ -73,9 +73,14 @@ SELF_EXCLUDE = frozenset({"tests/README.md"})
 def tracked_test_files() -> list[str]:
     out = subprocess.run(
         ["git", "ls-files", "tests"],
-        cwd=REPO_ROOT, capture_output=True, text=True, check=True,
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout
-    return sorted(line for line in out.splitlines() if line and line not in SELF_EXCLUDE)
+    return sorted(
+        line for line in out.splitlines() if line and line not in SELF_EXCLUDE
+    )
 
 
 def trace_one(command: tuple[str, ...]) -> set[str]:
@@ -96,7 +101,7 @@ def trace_one(command: tuple[str, ...]) -> set[str]:
             return
         absolute = os.path.abspath(path)
         if absolute.startswith(prefix):
-            relative = absolute[len(prefix):]
+            relative = absolute[len(prefix) :]
             if relative.startswith("tests/"):
                 seen.add(relative)
 
@@ -106,7 +111,10 @@ def trace_one(command: tuple[str, ...]) -> set[str]:
     try:
         os.chdir(REPO_ROOT)
         sys.argv = list(command)
-        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+        with (
+            contextlib.redirect_stdout(io.StringIO()),
+            contextlib.redirect_stderr(io.StringIO()),
+        ):
             try:
                 runpy.run_path(str(REPO_ROOT / command[0]), run_name="__main__")
             except SystemExit:
@@ -131,9 +139,14 @@ def gate_opened_paths() -> tuple[set[str], list[str]]:
     for command in GATE_COMMANDS:
         result = subprocess.run(
             [sys.executable, str(tracer), "--trace-one", *command],
-            cwd=REPO_ROOT, capture_output=True, text=True, check=False,
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
         )
-        paths = [line for line in result.stdout.splitlines() if line.startswith("tests/")]
+        paths = [
+            line for line in result.stdout.splitlines() if line.startswith("tests/")
+        ]
         opened.update(paths)
         if result.returncode != 0:
             detail = (result.stderr.strip().splitlines() or ["(no stderr)"])[-1]
@@ -149,7 +162,8 @@ def artifact_link_paths() -> set[str]:
     matrix = json.loads((REPO_ROOT / "docs" / "data" / "matrix.json").read_text())
     rows = matrix["rows"] if isinstance(matrix, dict) else matrix
     return {
-        link for row in rows
+        link
+        for row in rows
         if (link := (row.get("artifact_link") or "").strip()).startswith("tests/")
     }
 
@@ -157,7 +171,10 @@ def artifact_link_paths() -> set[str]:
 def pytest_collected_paths() -> set[str]:
     result = subprocess.run(
         [sys.executable, "-m", "pytest", "tests/", "--collect-only", "-q"],
-        cwd=REPO_ROOT, capture_output=True, text=True, check=False,
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
     )
     return {
         line.split("::", 1)[0]
@@ -183,18 +200,25 @@ def classify() -> tuple[dict[str, str], list[str]]:
 
 
 def group_of(path: str) -> str:
-    rest = path[len("tests/"):]
+    rest = path[len("tests/") :]
     return rest.split("/", 1)[0] if "/" in rest else "(top level)"
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--trace-one", nargs=argparse.REMAINDER,
-                        help="internal: trace a single gate command and print its tests/ reads")
-    parser.add_argument("--tier", choices=("gate-pinned", "live-unwired", "archive"),
-                        help="print every path in one tier and exit")
-    parser.add_argument("--list-archive", action="store_true",
-                        help="shorthand for --tier archive")
+    parser.add_argument(
+        "--trace-one",
+        nargs=argparse.REMAINDER,
+        help="internal: trace a single gate command and print its tests/ reads",
+    )
+    parser.add_argument(
+        "--tier",
+        choices=("gate-pinned", "live-unwired", "archive"),
+        help="print every path in one tier and exit",
+    )
+    parser.add_argument(
+        "--list-archive", action="store_true", help="shorthand for --tier archive"
+    )
     args = parser.parse_args()
 
     if args.trace_one:
@@ -219,19 +243,25 @@ def main() -> int:
         counts[tier] += 1
         with contextlib.suppress(OSError):
             sizes[tier] += (REPO_ROOT / path).stat().st_size
-        per_group.setdefault(group_of(path), {"gate-pinned": 0, "live-unwired": 0, "archive": 0})
+        per_group.setdefault(
+            group_of(path), {"gate-pinned": 0, "live-unwired": 0, "archive": 0}
+        )
         per_group[group_of(path)][tier] += 1
 
     total = len(tiers)
     print(f"tracked under tests/: {total} files\n")
     for tier in ("gate-pinned", "live-unwired", "archive"):
         share = (100 * counts[tier] / total) if total else 0
-        print(f"  {tier:<13} {counts[tier]:>4} files  ({share:4.1f} %)  {sizes[tier] / 1_000_000:.2f} MB")
+        print(
+            f"  {tier:<13} {counts[tier]:>4} files  ({share:4.1f} %)  {sizes[tier] / 1_000_000:.2f} MB"
+        )
 
     print("\nper directory (gate-pinned / live-unwired / archive):")
     for group in sorted(per_group):
         row = per_group[group]
-        print(f"  {group:<28} {row['gate-pinned']:>4} / {row['live-unwired']:>4} / {row['archive']:>4}")
+        print(
+            f"  {group:<28} {row['gate-pinned']:>4} / {row['live-unwired']:>4} / {row['archive']:>4}"
+        )
 
     if failures:
         print(

@@ -131,7 +131,9 @@ RECURRENCE_RECORD_FILES: tuple[str, str, str, str, str, str] = (
 _HARNESS_PATH: Path = REPO_ROOT / "scripts" / "check-quality-harness.py"
 _spec = importlib.util.spec_from_file_location("_quality_harness", _HARNESS_PATH)
 _mod = importlib.util.module_from_spec(_spec)  # type: ignore[arg-type]
-sys.modules["_quality_harness"] = _mod  # Python 3.13+ dataclass compat -- must precede exec_module
+sys.modules["_quality_harness"] = (
+    _mod  # Python 3.13+ dataclass compat -- must precede exec_module
+)
 _spec.loader.exec_module(_mod)  # type: ignore[union-attr]
 
 detect_defects = _mod.detect_defects
@@ -167,7 +169,9 @@ _read_quality_catalog = _mod._read_quality_catalog
 # agreement, and `[_PROVENANCE_START:]` would fold them into provenance instead.
 _PROVENANCE_START = _DEFECT_RECORD_FIELDS.index("provenance_labels")
 _PROVENANCE_END = _DEFECT_RECORD_FIELDS.index("provenance_flag") + 1
-PROVENANCE_FIELDS: tuple[str, ...] = _DEFECT_RECORD_FIELDS[_PROVENANCE_START:_PROVENANCE_END]
+PROVENANCE_FIELDS: tuple[str, ...] = _DEFECT_RECORD_FIELDS[
+    _PROVENANCE_START:_PROVENANCE_END
+]
 MEASURED_SCHEMA_FIELDS: tuple[str, ...] = tuple(
     f for f in _DEFECT_RECORD_FIELDS[1:] if f not in PROVENANCE_FIELDS
 )
@@ -325,7 +329,9 @@ def discover_artifacts(repo_root: Path) -> list[Artifact]:
         )
     for p in corpus_paths:
         artifacts.append(
-            Artifact("adversarial-corpus", p.relative_to(repo_root).as_posix(), p, p.stem)
+            Artifact(
+                "adversarial-corpus", p.relative_to(repo_root).as_posix(), p, p.stem
+            )
         )
     for p in live_paths:
         artifacts.append(
@@ -336,7 +342,9 @@ def discover_artifacts(repo_root: Path) -> list[Artifact]:
     for name in RECURRENCE_RECORD_FILES:
         p = recurrence_dir / name
         artifacts.append(
-            Artifact("recurrence-reading", p.relative_to(repo_root).as_posix(), p, p.stem)
+            Artifact(
+                "recurrence-reading", p.relative_to(repo_root).as_posix(), p, p.stem
+            )
         )
     return artifacts
 
@@ -486,7 +494,9 @@ def parse_corpus_catalog(repo_root: Path) -> tuple[dict[str, dict], list[str]]:
             break
         cells = [c.strip() for c in stripped.strip("|").split("|")]
         if len(cells) <= max(col_index.values()):
-            problems.append(f"CATALOG PARSE FAIL — short row, cannot map columns: {stripped!r}")
+            problems.append(
+                f"CATALOG PARSE FAIL — short row, cannot map columns: {stripped!r}"
+            )
             continue
 
         file_cell = cells[col_index["File"]]
@@ -575,7 +585,9 @@ def build_row(artifact: Artifact, _audit_record_out: dict | None = None) -> dict
 
     blocks = _render_example_chain_blocks(text)
     heading_chain_blocks = len(blocks)
-    heading_malformed_blocks = sum(1 for _, b in blocks if not _chain_block_well_formed(b))
+    heading_malformed_blocks = sum(
+        1 for _, b in blocks if not _chain_block_well_formed(b)
+    )
 
     row: dict = {
         "surface": artifact.surface,
@@ -595,7 +607,9 @@ def build_row(artifact: Artifact, _audit_record_out: dict | None = None) -> dict
         # scores untraced (R-CLAIM-CAVEAT-MARKED); this only splits that existing count into
         # "disclosed the gap" vs. "silently untraced".
         marked_untraced = sum(
-            1 for claim_text in record["_untraced_claims_text"] if CAVEAT_MARKER in claim_text
+            1
+            for claim_text in record["_untraced_claims_text"]
+            if CAVEAT_MARKER in claim_text
         )
         row["marked_untraced_claims"] = marked_untraced
         row["silent_untraced_claims"] = row["untraced_claims"] - marked_untraced
@@ -803,8 +817,8 @@ def build_live_row(artifact: Artifact, catalog_entry: dict | None) -> dict:
         md_artifact = Artifact("live-conformance", md_relpath, md_path, stem)
         row = build_row(md_artifact)
         analysis_present = True
-        askuserquestion_disclosed = _NONINTERACTIVE_DISCLOSURE_MARKER in md_path.read_text(
-            encoding="utf-8"
+        askuserquestion_disclosed = (
+            _NONINTERACTIVE_DISCLOSURE_MARKER in md_path.read_text(encoding="utf-8")
         )
     else:
         row = {
@@ -830,7 +844,9 @@ def build_live_row(artifact: Artifact, catalog_entry: dict | None) -> dict:
     row["outcome"] = outcome
     row["analysis_present"] = analysis_present
     row["askuserquestion_disclosed"] = askuserquestion_disclosed
-    row["disposition"] = catalog_entry["disposition"] if catalog_entry is not None else "MISSING"
+    row["disposition"] = (
+        catalog_entry["disposition"] if catalog_entry is not None else "MISSING"
+    )
 
     if row["section_resolution"] == "OK":
         row["form_defects"] = sum(row[f] for f in _LIVE_FORM_FIELDS)
@@ -1043,7 +1059,9 @@ def build_rows(repo_root: Path) -> list[dict]:
     rows: list[dict] = []
     for artifact in discover_artifacts(repo_root):
         if artifact.surface == "adversarial-corpus":
-            rows.append(build_corpus_row(artifact, catalog_entries.get(artifact.analysis_id)))
+            rows.append(
+                build_corpus_row(artifact, catalog_entries.get(artifact.analysis_id))
+            )
         elif artifact.surface == "live-conformance":
             rows.append(
                 build_live_row(artifact, live_catalog_entries.get(artifact.analysis_id))
@@ -1133,7 +1151,11 @@ def _roster_drift_finding(problems: list[str]) -> str:
 # The three disposition prefixes D-04/CONTEXT.md's stratum table names as
 # honest dispositions. A fourth value ("MISSING", or an empty cell) is
 # exactly the silent pass CONF-08 forbids.
-_VALID_DISPOSITION_PREFIXES: tuple[str, ...] = ("fix", "accept-with-reason", "defer-with-owner")
+_VALID_DISPOSITION_PREFIXES: tuple[str, ...] = (
+    "fix",
+    "accept-with-reason",
+    "defer-with-owner",
+)
 
 
 def _corpus_disposition_problems(corpus_rows: list[dict]) -> list[str]:
@@ -1581,7 +1603,9 @@ def _corpus_perturbation_problems(rows: list[dict], repo_root: Path) -> list[str
 
         site_a = _corpus_verdict_mutation_site(text, section2, sec2_start)
         if site_a is None:
-            problems.append(f"D-03(a) mutation site not found (or not unique) in {relpath}")
+            problems.append(
+                f"D-03(a) mutation site not found (or not unique) in {relpath}"
+            )
         else:
             a_start, a_end = site_a
             mutated_text = text[:a_start] + "-" + text[a_end:]
@@ -1617,7 +1641,9 @@ def _corpus_perturbation_problems(rows: list[dict], repo_root: Path) -> list[str
 
         site_c = _corpus_citation_mutation_site(section6, sec6_start, chain_ids)
         if site_c is None:
-            problems.append(f"D-03(c) mutation site not found (or not unique) in {relpath}")
+            problems.append(
+                f"D-03(c) mutation site not found (or not unique) in {relpath}"
+            )
         else:
             c_start, c_end = site_c
             mutated_text = text[:c_start] + text[c_end:]
@@ -2073,7 +2099,9 @@ def pair_agreement(
     divergences). A source row with no twin counterpart, or vice versa, is itself a named
     divergence -- it is never silently dropped from the denominator.
     """
-    source_by_id = {r["analysis_id"]: r for r in rows if r["surface"] == "shared-examples"}
+    source_by_id = {
+        r["analysis_id"]: r for r in rows if r["surface"] == "shared-examples"
+    }
     twin_by_id = {r["analysis_id"]: r for r in rows if r["surface"] == "generated-twin"}
     all_ids = sorted(set(source_by_id) | set(twin_by_id))
 
@@ -2112,7 +2140,9 @@ def _readable(group: list[dict]) -> list[dict]:
 
 def _unreadable_count(group: list[dict]) -> int:
     return sum(
-        1 for r in group if str(r["section_resolution"]).startswith("SectionResolutionError:")
+        1
+        for r in group
+        if str(r["section_resolution"]).startswith("SectionResolutionError:")
     )
 
 
@@ -2256,12 +2286,15 @@ def compute_live_headline(live_rows: list[dict]) -> dict:
     for r in live_rows:
         by_outcome[r["outcome"]] = by_outcome.get(r["outcome"], 0) + 1
 
-    form_defects = sum(r["form_defects"] for r in live_rows if r["section_resolution"] == "OK")
+    form_defects = sum(
+        r["form_defects"] for r in live_rows if r["section_resolution"] == "OK"
+    )
 
     nonclean_without_disposition = sum(
         1
         for r in live_rows
-        if r["clean"] is not True and (not r.get("disposition") or r["disposition"] == "MISSING")
+        if r["clean"] is not True
+        and (not r.get("disposition") or r["disposition"] == "MISSING")
     )
 
     return {
@@ -2375,7 +2408,9 @@ def compute_recurrence_headline(recurrence_rows: list[dict]) -> dict:
     }
 
 
-def render_json(rows: list[dict], agreement: tuple[int, int, list[tuple[str, list[str]]]]) -> str:
+def render_json(
+    rows: list[dict], agreement: tuple[int, int, list[tuple[str, list[str]]]]
+) -> str:
     agreeing, total, divergences = agreement
     corpus_rows = [r for r in rows if r["surface"] == "adversarial-corpus"]
     live_rows = [r for r in rows if r["surface"] == "live-conformance"]
@@ -2392,7 +2427,9 @@ def render_json(rows: list[dict], agreement: tuple[int, int, list[tuple[str, lis
     # (no `section_resolution`, no measured schema fields), so it is excluded from the
     # flat "rows" list on the same grounds -- it appears only under "recurrence_reading".
     published_rows = [
-        r for r in rows if r["surface"] not in ("live-conformance", "recurrence-reading")
+        r
+        for r in rows
+        if r["surface"] not in ("live-conformance", "recurrence-reading")
     ]
     obj = {
         "measurement_date": MEASUREMENT_DATE,
@@ -2412,9 +2449,13 @@ def render_json(rows: list[dict], agreement: tuple[int, int, list[tuple[str, lis
         "artifact_count": len(published_rows),
         "discovered_artifact_count": len(rows),
         "surface_counts": {
-            "shared-examples": sum(1 for r in rows if r["surface"] == "shared-examples"),
+            "shared-examples": sum(
+                1 for r in rows if r["surface"] == "shared-examples"
+            ),
             "generated-twin": sum(1 for r in rows if r["surface"] == "generated-twin"),
-            "contract-surface": sum(1 for r in rows if r["surface"] == "contract-surface"),
+            "contract-surface": sum(
+                1 for r in rows if r["surface"] == "contract-surface"
+            ),
             "adversarial-corpus": len(corpus_rows),
             "live-conformance": len(live_rows),
             "recurrence-reading": len(recurrence_rows),
@@ -2474,7 +2515,9 @@ _CORPUS_TABLE_FIELDS: tuple[str, ...] = (
 _STRATUM_ORDER: tuple[str, ...] = ("A", "B1", "B2", "MISSING")
 
 
-def _render_adversarial_corpus_section(corpus_rows: list[dict], headline: dict) -> list[str]:
+def _render_adversarial_corpus_section(
+    corpus_rows: list[dict], headline: dict
+) -> list[str]:
     """Phase 19 (CONF-07/CONF-08): the ## adversarial-corpus section. Reads every figure
     from `headline` (itself computed from `corpus_rows` by `compute_corpus_headline`) --
     nothing here is a hardcoded literal."""
@@ -2527,7 +2570,9 @@ def _render_adversarial_corpus_section(corpus_rows: list[dict], headline: dict) 
         "B2: reachable by nothing this project ships."
     )
     lines.append("")
-    caught_stems = sorted(r["analysis_id"] for r in corpus_rows if r["target_missed"] is False)
+    caught_stems = sorted(
+        r["analysis_id"] for r in corpus_rows if r["target_missed"] is False
+    )
     diverging_stems = sorted(
         r["analysis_id"]
         for r in corpus_rows
@@ -2619,14 +2664,15 @@ def _render_live_conformance_section(
         "**Live conformance rate:** "
         f"{headline['clean']} of {headline['total']} runs attempted scored zero form "
         "defects across the four counts this rate is defined on: `section_resolution` "
-        "reading `\"OK\"` (readable), plus `heading_malformed_blocks`, "
+        'reading `"OK"` (readable), plus `heading_malformed_blocks`, '
         "`nonconforming_verdict_cells` and `silent_untraced_claims` all reading zero. "
         f"N = {headline['total']} because CONF-10's rate is stated over every catalog "
         "row dispatched, whether or not the run went on to complete."
     )
     lines.append("")
     outcome_breakdown = ", ".join(
-        f"{count} `{outcome}`" for outcome, count in sorted(headline["by_outcome"].items())
+        f"{count} `{outcome}`"
+        for outcome, count in sorted(headline["by_outcome"].items())
     )
     lines.append(
         "**Secondary rate, conditional on completion:** "
@@ -2743,8 +2789,8 @@ def _render_live_conformance_section(
     lines.append(
         "**Provenance departure (D-06).** All nine provenance columns read `n/a` for "
         "these runs even though the `.jsonl` captures exist in-tree, because nothing "
-        "joins them this phase. `n/a` means no join was performed, never \"checked, "
-        "found clean\". Backlog 999.12 / MEAS-01 stays open, with its input now "
+        'joins them this phase. `n/a` means no join was performed, never "checked, '
+        'found clean". Backlog 999.12 / MEAS-01 stays open, with its input now '
         "in-tree for the first time."
     )
     lines.append("")
@@ -2821,7 +2867,9 @@ def _render_recurrence_reading_section(
 
     present_rows = [r for r in recurrence_rows if r["present"]]
     for r in present_rows:
-        arm_label = "scanner" if r["arm"] == "scanner" else f"prose, reader {r['reader']}"
+        arm_label = (
+            "scanner" if r["arm"] == "scanner" else f"prose, reader {r['reader']}"
+        )
         lines.append(
             f"**{r['timing']}, {arm_label}** (`{r['record_file']}`): "
             f"{r['sites_product']} sites / {r['claims_product']} distinct claims "
@@ -2841,7 +2889,8 @@ def _render_recurrence_reading_section(
             "them is itself a measurement of how far the migration mechanism reaches "
             "versus how much of the class still needs a human reader. Sites the prose "
             "arm recorded that the scanner arm did "
-            "not: " + (", ".join(f"`{s}`" for s in gap["prose_not_scanner"]) or "none")
+            "not: "
+            + (", ".join(f"`{s}`" for s in gap["prose_not_scanner"]) or "none")
             + ". Sites the scanner arm recorded that the prose arm did not: "
             + (", ".join(f"`{s}`" for s in gap["scanner_not_prose"]) or "none")
             + "."
@@ -2998,7 +3047,9 @@ def render_markdown(
     # provenance-field schema at all (they are not a `detect_defects`-scored document) --
     # counting them here would silently misstate what "the four surfaces above" means.
     non_live = [
-        r for r in rows if r["surface"] not in ("live-conformance", "recurrence-reading")
+        r
+        for r in rows
+        if r["surface"] not in ("live-conformance", "recurrence-reading")
     ]
     lines.append(
         "Three kinds of value appear in the per-artifact tables below. A number means the "
@@ -3026,7 +3077,7 @@ def render_markdown(
         "**1. Chain-form reach.** `heading_malformed_blocks == 0` means every scanned "
         "block conforms under `_chain_block_well_formed`'s measured reach -- the head and "
         "first hop, up to the second arrow of the first matching candidate. This is NOT "
-        "the same claim as \"no R7 violations remain in `shared/examples/`\": a wrap or a "
+        'the same claim as "no R7 violations remain in `shared/examples/`": a wrap or a '
         "GT-led hop after the second arrow is not detected. This phase fixes to the "
         "detector's bound, which is what CONF-04 states; fixing to R7 as published is a "
         "strictly larger job and is recorded as backlog, not as done."
@@ -3066,9 +3117,9 @@ def render_markdown(
     lines.append(
         "**4. The closure-ledger route has zero shipped exemplars.** "
         "`output-template.md` §6 blesses two citation routes; the exemplars use one -- "
-        "the inline `(chain Cn)` form the template itself calls \"the mechanically "
-        "checkable form\" (decision D-01). After this phase no shipped worked example "
-        "demonstrates the `- \"quoted claim\" → chain Cn` closure-ledger row, because of "
+        'the inline `(chain Cn)` form the template itself calls "the mechanically '
+        'checkable form" (decision D-01). After this phase no shipped worked example '
+        'demonstrates the `- "quoted claim" → chain Cn` closure-ledger row, because of '
         "backlog 999.24 (an unfenced in-section-6 ledger row counts itself as a claim) "
         "and `_slice_sections`'s section-6 rule, which ends §6 at the first ATX heading "
         "of any depth."
@@ -3133,9 +3184,7 @@ def render_markdown(
             lines.append(f"- `{analysis_id}`: {', '.join(fields)}")
     lines.append("")
 
-    lines.append(
-        "Prior readings: `git log --follow docs/conformance-baseline.md`."
-    )
+    lines.append("Prior readings: `git log --follow docs/conformance-baseline.md`.")
 
     return "\n".join(lines) + "\n"
 
@@ -3161,7 +3210,9 @@ def cmd_write() -> int:
     for path, text in generated.items():
         _write_text(path, text)
     row_count = len(json.loads(generated[JSON_PATH])["rows"])
-    print(f"report-conformance: PASS — wrote {MD_PATH} + {JSON_PATH} ({row_count} rows)")
+    print(
+        f"report-conformance: PASS — wrote {MD_PATH} + {JSON_PATH} ({row_count} rows)"
+    )
     return 0
 
 
@@ -3179,7 +3230,9 @@ def _diff_against_disk(generated: dict[Path, str]) -> list[Path]:
         on_disk = path.read_text(encoding="utf-8") if path.exists() else ""
         if on_disk != text:
             drifted.append(path)
-            rel = path.relative_to(REPO_ROOT) if path.is_relative_to(REPO_ROOT) else path
+            rel = (
+                path.relative_to(REPO_ROOT) if path.is_relative_to(REPO_ROOT) else path
+            )
             sys.stderr.write(f"DRIFT: {rel}\n")
             sys.stderr.writelines(
                 difflib.unified_diff(
@@ -3237,7 +3290,10 @@ def cmd_check() -> int:
     live_rows = [r for r in rows if r["surface"] == "live-conformance"]
     live_catalog_entries, live_catalog_problems = _read_live_catalog(REPO_ROOT)
 
+    # The call-form lock reads this statement as a single source line.
+    # fmt: off
     problems += _live_roster_problems(live_catalog_entries, live_catalog_problems, live_rows)
+    # fmt: on
     problems += _live_disposition_problems(live_rows)
     problems += _live_population_problems(live_rows)
 
@@ -3245,7 +3301,9 @@ def cmd_check() -> int:
         for p in problems:
             sys.stderr.write(f"report-conformance: FAIL — {p}\n")
         if drifted:
-            sys.stderr.write("Run: python3 scripts/report-conformance.py && git add -u\n")
+            sys.stderr.write(
+                "Run: python3 scripts/report-conformance.py && git add -u\n"
+            )
         return 1
     print("report-conformance: PASS — no drift")
     return 0
@@ -3256,6 +3314,7 @@ def cmd_check() -> int:
 # touches the real tree, never writes under tests/. Each control has a stable
 # id string; every failure names its id and states expected vs. actual.
 # ---------------------------------------------------------------------------
+
 
 # A synthetic row shaped exactly like a real build_row() output: measured
 # fields default to 0, provenance fields default to "n/a" (never 0), matching
@@ -3392,7 +3451,9 @@ def _control_floor_shared_short() -> None:
             assert "expected >= 14" in msg, msg
             assert "found 13" in msg, msg
         else:
-            raise AssertionError("discover_artifacts did not raise on a 13-file shared glob")
+            raise AssertionError(
+                "discover_artifacts did not raise on a 13-file shared glob"
+            )
 
 
 def _control_floor_twin_short() -> None:
@@ -3407,7 +3468,9 @@ def _control_floor_twin_short() -> None:
             assert TWIN_EXAMPLES_GLOB in msg, msg
             assert "found 13" in msg, msg
         else:
-            raise AssertionError("discover_artifacts did not raise on a 13-file twin glob")
+            raise AssertionError(
+                "discover_artifacts did not raise on a 13-file twin glob"
+            )
 
 
 def _control_floor_contract_missing() -> None:
@@ -3422,7 +3485,9 @@ def _control_floor_contract_missing() -> None:
             assert CONTRACT_SURFACE_RELPATH in msg, msg
             assert "found 0" not in msg, msg
         else:
-            raise AssertionError("discover_artifacts did not raise when the contract surface is missing")
+            raise AssertionError(
+                "discover_artifacts did not raise when the contract surface is missing"
+            )
 
 
 def _control_floor_glob_empty() -> None:
@@ -3435,7 +3500,9 @@ def _control_floor_glob_empty() -> None:
             assert SHARED_EXAMPLES_GLOB in msg, msg
             assert TWIN_EXAMPLES_GLOB in msg, msg
         else:
-            raise AssertionError("discover_artifacts did not raise on a completely empty root")
+            raise AssertionError(
+                "discover_artifacts did not raise on a completely empty root"
+            )
 
 
 def _control_floor_passes_at_minimum() -> None:
@@ -3518,13 +3585,22 @@ def _control_agreement_field_scope() -> None:
         "orphan_fetches",
         "provenance_flag",
     ), PROVENANCE_FIELDS
-    for field in ("high_conf_chains", "high_conf_unverified_head",
-                  "confidence_inversions", "confidence_unparsed",
-                  "selfaudit_bands_parsed", "selfaudit_offvocab_bands",
-                  "prechecks_parsed", "precheck_unparsed",
-                  "precheck_disagreements", "rollups_checked",
-                  "rollup_inversions", "hop_arithmetic_checked",
-                  "hop_arithmetic_unparsed", "hop_arithmetic_mismatches"):
+    for field in (
+        "high_conf_chains",
+        "high_conf_unverified_head",
+        "confidence_inversions",
+        "confidence_unparsed",
+        "selfaudit_bands_parsed",
+        "selfaudit_offvocab_bands",
+        "prechecks_parsed",
+        "precheck_unparsed",
+        "precheck_disagreements",
+        "rollups_checked",
+        "rollup_inversions",
+        "hop_arithmetic_checked",
+        "hop_arithmetic_unparsed",
+        "hop_arithmetic_mismatches",
+    ):
         assert field in MEASURED_SCHEMA_FIELDS, field
         assert field not in PROVENANCE_FIELDS, field
 
@@ -3634,8 +3710,12 @@ def _control_unreadable_columns_are_literal() -> None:
         path.write_text(_UNREADABLE_FIXTURE_TEXT, encoding="utf-8")
         artifact = Artifact("shared-examples", "bad.md", path, "bad")
         row = build_row(artifact)
-        assert row["marked_untraced_claims"] == "unreadable", row["marked_untraced_claims"]
-        assert row["silent_untraced_claims"] == "unreadable", row["silent_untraced_claims"]
+        assert row["marked_untraced_claims"] == "unreadable", row[
+            "marked_untraced_claims"
+        ]
+        assert row["silent_untraced_claims"] == "unreadable", row[
+            "silent_untraced_claims"
+        ]
 
         coerced = dict(row)
         coerced["marked_untraced_claims"] = 0
@@ -3718,7 +3798,9 @@ def _control_render_marked_silent_parsed_from_output() -> None:
     except AssertionError:
         pass
     else:
-        raise AssertionError("a rendering that coerced marked/silent to 0 was not caught")
+        raise AssertionError(
+            "a rendering that coerced marked/silent to 0 was not caught"
+        )
 
 
 def _control_corpus_render_no_hardcoded_stems() -> None:
@@ -3789,7 +3871,9 @@ def _control_corpus_render_no_hardcoded_stems() -> None:
         "t13",
         "t14",
     ):
-        assert bad not in rendered, f"hardcoded stem literal {bad!r} found in rendered output"
+        assert bad not in rendered, (
+            f"hardcoded stem literal {bad!r} found in rendered output"
+        )
 
     for good in ("x01", "x02", "x03"):
         assert good in rendered, f"synthetic stem {good!r} missing from rendered output"
@@ -3824,8 +3908,12 @@ def _control_corpus_missed_without_disposition() -> None:
         no_column_fired=True,
         target_missed=True,
     )
-    headline = compute_corpus_headline([missed_with_disposition, missed_without_disposition])
-    assert headline["missed_without_disposition"] == 1, headline["missed_without_disposition"]
+    headline = compute_corpus_headline(
+        [missed_with_disposition, missed_without_disposition]
+    )
+    assert headline["missed_without_disposition"] == 1, headline[
+        "missed_without_disposition"
+    ]
 
     perturbed = dict(missed_without_disposition)
     perturbed["disposition"] = "accept-with-reason: now has one."
@@ -3911,7 +3999,9 @@ def _control_roster_arm_shape_guard() -> None:
     except ValueError:
         pass
 
-    well_formed = "D-04 CORPUS ROSTER DRIFT: " + "missing=" + "['a']" + " extra=" + "['b']"
+    well_formed = (
+        "D-04 CORPUS ROSTER DRIFT: " + "missing=" + "['a']" + " extra=" + "['b']"
+    )
     missing_clause, extra_clause = _roster_arm_clauses(well_formed)
     assert missing_clause == "['a']", missing_clause
     assert extra_clause == "['b']", extra_clause
@@ -4266,7 +4356,9 @@ def _control_corpus_target_stratum_contradiction_detected() -> None:
         no_column_fired=True,
         form_defects=0,
     )
-    problems2 = _corpus_target_problems([legal_a, legal_b2], caught_lock=frozenset({"c"}))
+    problems2 = _corpus_target_problems(
+        [legal_a, legal_b2], caught_lock=frozenset({"c"})
+    )
     assert not any("TARGET/STRATUM CONTRADICTION" in p for p in problems2), problems2
 
 
@@ -4308,8 +4400,7 @@ def _control_corpus_target_caught_set_drift_detected() -> None:
     missing_lock: frozenset[str] = frozenset()
     problems_missing = _corpus_target_problems(rows, caught_lock=missing_lock)
     assert any(
-        "TARGET CAUGHT-SET DRIFT" in p and "gained=['c']" in p
-        for p in problems_missing
+        "TARGET CAUGHT-SET DRIFT" in p and "gained=['c']" in p for p in problems_missing
     ), problems_missing
 
 
@@ -4393,7 +4484,9 @@ def _control_corpus_population_per_item_zero_detected() -> None:
         verdict_cells=1,
     )
     problems = _corpus_population_problems([row])
-    assert any("CORPUS POPULATION [a] conclusion_claims: 0" in p for p in problems), problems
+    assert any("CORPUS POPULATION [a] conclusion_claims: 0" in p for p in problems), (
+        problems
+    )
 
 
 def _control_corpus_population_per_item_unreadable_detected() -> None:
@@ -4427,9 +4520,15 @@ def _control_corpus_population_corpuswide_breach_detected() -> None:
         verdict_cells=1,
     )
     problems = _corpus_population_problems([row])
-    assert any("CORPUS POPULATION FLOOR BREACH conclusion_claims" in p for p in problems), problems
-    assert any("CORPUS POPULATION FLOOR BREACH verdict_cells" in p for p in problems), problems
-    assert any("CORPUS POPULATION FLOOR BREACH chain_blocks" in p for p in problems), problems
+    assert any(
+        "CORPUS POPULATION FLOOR BREACH conclusion_claims" in p for p in problems
+    ), problems
+    assert any("CORPUS POPULATION FLOOR BREACH verdict_cells" in p for p in problems), (
+        problems
+    )
+    assert any("CORPUS POPULATION FLOOR BREACH chain_blocks" in p for p in problems), (
+        problems
+    )
 
 
 def _control_corpus_population_floor_values_locked() -> None:
@@ -4510,20 +4609,18 @@ _D03_FIXTURE_NO_C_SITE_TEXT = _D03_FIXTURE_TEXT.replace(
 
 # All three families absent at once: (a), (b) and (c) all removed, so the
 # item admits zero mutations.
-_D03_FIXTURE_NO_SITES_TEXT = (
-    _D03_FIXTURE_NO_A_SITE_TEXT.replace(
-        "GT-1 (some observation about the ground truth)\n"
-        "→ An intermediate claim that is long enough to look like real chain content and stays open\n"
-        "→ The final conclusion text that is also long enough to be a real chain conclusion.",
-        "GT-1 (some observation about the ground truth) → An intermediate claim that is "
-        "long enough to look like real chain content → The final conclusion text that is "
-        "also long enough to be a real chain conclusion.",
-    ).replace(
-        "**Recommended approach:** (chain C1) Do the thing that the chain concludes should be "
-        "done here.",
-        "**Recommended approach:** Do the thing that this analysis concludes should be done, "
-        "stated without naming any chain at all here.",
-    )
+_D03_FIXTURE_NO_SITES_TEXT = _D03_FIXTURE_NO_A_SITE_TEXT.replace(
+    "GT-1 (some observation about the ground truth)\n"
+    "→ An intermediate claim that is long enough to look like real chain content and stays open\n"
+    "→ The final conclusion text that is also long enough to be a real chain conclusion.",
+    "GT-1 (some observation about the ground truth) → An intermediate claim that is "
+    "long enough to look like real chain content → The final conclusion text that is "
+    "also long enough to be a real chain conclusion.",
+).replace(
+    "**Recommended approach:** (chain C1) Do the thing that the chain concludes should be "
+    "done here.",
+    "**Recommended approach:** Do the thing that this analysis concludes should be done, "
+    "stated without naming any chain at all here.",
 )
 
 # The WR-03 masking shape `_chain_block_well_formed`'s own docstring
@@ -4576,7 +4673,9 @@ def _control_corpus_d03_positive_all_families() -> None:
     with tempfile.TemporaryDirectory() as td:
         root = Path(td)
         (root / "item.md").write_text(_D03_FIXTURE_TEXT, encoding="utf-8")
-        problems = _corpus_perturbation_problems([_corpus_perturbation_row("item")], root)
+        problems = _corpus_perturbation_problems(
+            [_corpus_perturbation_row("item")], root
+        )
         assert problems == [], problems
 
 
@@ -4584,7 +4683,9 @@ def _control_corpus_d03_family_a_not_found() -> None:
     with tempfile.TemporaryDirectory() as td:
         root = Path(td)
         (root / "item.md").write_text(_D03_FIXTURE_NO_A_SITE_TEXT, encoding="utf-8")
-        problems = _corpus_perturbation_problems([_corpus_perturbation_row("item")], root)
+        problems = _corpus_perturbation_problems(
+            [_corpus_perturbation_row("item")], root
+        )
         assert any("D-03(a) mutation site not found" in p for p in problems), problems
 
 
@@ -4592,7 +4693,9 @@ def _control_corpus_d03_family_b_absence_not_reported() -> None:
     with tempfile.TemporaryDirectory() as td:
         root = Path(td)
         (root / "item.md").write_text(_D03_FIXTURE_NO_B_SITE_TEXT, encoding="utf-8")
-        problems = _corpus_perturbation_problems([_corpus_perturbation_row("item")], root)
+        problems = _corpus_perturbation_problems(
+            [_corpus_perturbation_row("item")], root
+        )
         assert not any("D-03(b)" in p for p in problems), problems
         assert not any("NO MUTATION APPLIED" in p for p in problems), problems
         assert problems == [], problems
@@ -4602,7 +4705,9 @@ def _control_corpus_d03_family_c_not_found() -> None:
     with tempfile.TemporaryDirectory() as td:
         root = Path(td)
         (root / "item.md").write_text(_D03_FIXTURE_NO_C_SITE_TEXT, encoding="utf-8")
-        problems = _corpus_perturbation_problems([_corpus_perturbation_row("item")], root)
+        problems = _corpus_perturbation_problems(
+            [_corpus_perturbation_row("item")], root
+        )
         assert any("D-03(c) mutation site not found" in p for p in problems), problems
 
 
@@ -4610,7 +4715,9 @@ def _control_corpus_d03_no_mutation_applied() -> None:
     with tempfile.TemporaryDirectory() as td:
         root = Path(td)
         (root / "item.md").write_text(_D03_FIXTURE_NO_SITES_TEXT, encoding="utf-8")
-        problems = _corpus_perturbation_problems([_corpus_perturbation_row("item")], root)
+        problems = _corpus_perturbation_problems(
+            [_corpus_perturbation_row("item")], root
+        )
         assert any("D-03(a) mutation site not found" in p for p in problems), problems
         assert any("D-03(c) mutation site not found" in p for p in problems), problems
         assert any("D-03 NO MUTATION APPLIED [item]" in p for p in problems), problems
@@ -4620,7 +4727,9 @@ def _control_corpus_d03_delta_mismatch_detected() -> None:
     with tempfile.TemporaryDirectory() as td:
         root = Path(td)
         (root / "item.md").write_text(_D03_FIXTURE_MASKED_HOP_TEXT, encoding="utf-8")
-        problems = _corpus_perturbation_problems([_corpus_perturbation_row("item")], root)
+        problems = _corpus_perturbation_problems(
+            [_corpus_perturbation_row("item")], root
+        )
         assert any(
             "D-03(b) chain-hop re-wrap mutation" in p and "did not increment" in p
             for p in problems
@@ -4636,7 +4745,9 @@ def _control_corpus_d03_unreadable_skipped() -> None:
 
 def _control_corpus_call_site_census_positive() -> None:
     source = inspect.getsource(cmd_check)
-    problems = _corpus_call_site_census_problems(source, _CORPUS_CALL_SITES, _CORPUS_CALL_FORMS)
+    problems = _corpus_call_site_census_problems(
+        source, _CORPUS_CALL_SITES, _CORPUS_CALL_FORMS
+    )
     assert problems == [], problems
 
 
@@ -4672,8 +4783,12 @@ def _control_corpus_call_form_lock_rewritten() -> None:
         "    problems += " + "_corpus_perturbation_problems(rows, REPO_ROOT)\n"
         "    return 0\n"
     )
-    problems = _corpus_call_site_census_problems(source, _CORPUS_CALL_SITES, _CORPUS_CALL_FORMS)
-    assert any("CALL-FORM LOCK: _corpus_roster_problems" in p for p in problems), problems
+    problems = _corpus_call_site_census_problems(
+        source, _CORPUS_CALL_SITES, _CORPUS_CALL_FORMS
+    )
+    assert any("CALL-FORM LOCK: _corpus_roster_problems" in p for p in problems), (
+        problems
+    )
 
 
 def _control_corpus_call_sites_roster_lock_positive() -> None:
@@ -4750,7 +4865,9 @@ def _control_live_prior_fixtures_carry_disclosure() -> None:
     """
     for relpath in _PRIOR_LIVE_FIXTURE_ANALYSES:
         path = REPO_ROOT / relpath
-        assert path.exists(), f"prior live fixture named in the rendered prose is gone: {relpath}"
+        assert path.exists(), (
+            f"prior live fixture named in the rendered prose is gone: {relpath}"
+        )
         text = path.read_text(encoding="utf-8")
         assert _NONINTERACTIVE_DISCLOSURE_MARKER in text, (
             f"{relpath} no longer carries {_NONINTERACTIVE_DISCLOSURE_MARKER!r}; the "
@@ -4777,9 +4894,11 @@ def _control_live_row_askuserquestion_derivation() -> None:
             ("without", "# a\n\nNo marker in this one.\n"),
             (
                 "buried",
-                ("# a\n\nOpening paragraph with no marker at all.\n\n"
-                "## 4. Reasoning\n\nA late mention of "
-                f"{_NONINTERACTIVE_DISCLOSURE_MARKER} deep in the body.\n"),
+                (
+                    "# a\n\nOpening paragraph with no marker at all.\n\n"
+                    "## 4. Reasoning\n\nA late mention of "
+                    f"{_NONINTERACTIVE_DISCLOSURE_MARKER} deep in the body.\n"
+                ),
             ),
         ):
             (root / f"{stem}.jsonl").write_text("", encoding="utf-8")
@@ -4808,15 +4927,15 @@ def _control_live_row_no_analysis_literals() -> None:
     with tempfile.TemporaryDirectory() as td:
         capture_path = Path(td) / "stub.jsonl"
         capture_path.write_text("", encoding="utf-8")
-        artifact = Artifact(
-            "live-conformance", "stub.jsonl", capture_path, "stub"
-        )
+        artifact = Artifact("live-conformance", "stub.jsonl", capture_path, "stub")
         row = build_live_row(artifact, None)
         assert row["outcome"] == "no_terminal_result", row["outcome"]
         assert row["analysis_present"] is False, row["analysis_present"]
         assert row["section_resolution"] == "no-analysis", row["section_resolution"]
         assert row["heading_chain_blocks"] == "no-analysis", row["heading_chain_blocks"]
-        assert row["heading_malformed_blocks"] == "no-analysis", row["heading_malformed_blocks"]
+        assert row["heading_malformed_blocks"] == "no-analysis", row[
+            "heading_malformed_blocks"
+        ]
         assert row["form_defects"] == "no-analysis", row["form_defects"]
         assert row["clean"] is False, row["clean"]
         assert row["disposition"] == "MISSING", row["disposition"]
@@ -4837,9 +4956,7 @@ def _control_live_row_unreadable_is_not_clean() -> None:
         capture_path = root / "bad.jsonl"
         capture_path.write_text(_COMPLETED_JSONL_LINE, encoding="utf-8")
         (root / "bad.md").write_text(_UNREADABLE_FIXTURE_TEXT, encoding="utf-8")
-        artifact = Artifact(
-            "live-conformance", "bad.jsonl", capture_path, "bad"
-        )
+        artifact = Artifact("live-conformance", "bad.jsonl", capture_path, "bad")
         row = build_live_row(artifact, None)
         assert row["outcome"] == "completed", row["outcome"]
         assert row["analysis_present"] is True, row["analysis_present"]
@@ -4857,8 +4974,12 @@ def _control_live_row_stub_is_not_clean() -> None:
     completed_like = _synthetic_row("live-conformance", "x.md", "x")
     assert _live_row_clean("completed", completed_like) is True, completed_like
     assert _live_row_clean("rate_limit_stub", completed_like) is False, completed_like
-    assert _live_row_clean("transport_error_stub", completed_like) is False, completed_like
-    assert _live_row_clean("no_terminal_result", completed_like) is False, completed_like
+    assert _live_row_clean("transport_error_stub", completed_like) is False, (
+        completed_like
+    )
+    assert _live_row_clean("no_terminal_result", completed_like) is False, (
+        completed_like
+    )
 
 
 def _control_live_row_clean_requires_all_three_fields() -> None:
@@ -4917,9 +5038,7 @@ def _control_live_headline_counts_by_predicate() -> None:
     with tempfile.TemporaryDirectory() as td:
         capture_path = Path(td) / "c.jsonl"
         capture_path.write_text("", encoding="utf-8")
-        stub_artifact = Artifact(
-            "live-conformance", "c.jsonl", capture_path, "c"
-        )
+        stub_artifact = Artifact("live-conformance", "c.jsonl", capture_path, "c")
         stub_row = build_live_row(stub_artifact, None)
 
     rows = [clean_row, nonclean_row, stub_row]
@@ -4929,9 +5048,9 @@ def _control_live_headline_counts_by_predicate() -> None:
     assert headline["completed"] == 2, headline
     assert headline["no_analysis"] == 1, headline
     assert headline["unreadable"] == 0, headline
-    assert headline["by_outcome"] == {"completed": 2, "no_terminal_result": 1}, headline[
-        "by_outcome"
-    ]
+    assert headline["by_outcome"] == {"completed": 2, "no_terminal_result": 1}, (
+        headline["by_outcome"]
+    )
     assert headline["form_defects"] == 1, headline
     assert headline["nonclean_without_disposition"] == 1, headline
 
@@ -4952,7 +5071,12 @@ def _control_live_headline_not_in_compute_headline() -> None:
     against populated dicts rather than empty ones.
     """
     live_row = _synthetic_row(
-        "live-conformance", "a.md", "a", outcome="completed", clean=True, disposition="MISSING"
+        "live-conformance",
+        "a.md",
+        "a",
+        outcome="completed",
+        clean=True,
+        disposition="MISSING",
     )
     other_rows = _synthetic_rows_for_render()
     headline = compute_headline(other_rows + [live_row])
@@ -4995,7 +5119,9 @@ def _control_live_render_no_hardcoded_stems() -> None:
     row_a = _synthetic_live_row("x01.md", "x01")
     headline_a = compute_live_headline([row_a])
     rendered_a = "\n".join(
-        _render_live_conformance_section([row_a], headline_a, compute_corpus_headline([]))
+        _render_live_conformance_section(
+            [row_a], headline_a, compute_corpus_headline([])
+        )
     )
 
     row_b = _synthetic_live_row(
@@ -5009,7 +5135,9 @@ def _control_live_render_no_hardcoded_stems() -> None:
     )
     headline_b = compute_live_headline([row_a, row_b])
     rendered_b = "\n".join(
-        _render_live_conformance_section([row_a, row_b], headline_b, compute_corpus_headline([]))
+        _render_live_conformance_section(
+            [row_a, row_b], headline_b, compute_corpus_headline([])
+        )
     )
 
     assert rendered_a != rendered_b, "rendered live-conformance section did not move"
@@ -5081,7 +5209,9 @@ def _control_render_vocabulary_scoped_and_derived() -> None:
     ]
     rendered = render_markdown(base, pair_agreement(base))
 
-    assert "a capture DOES exist and those columns still read `n/a`" in rendered, rendered
+    assert "a capture DOES exist and those columns still read `n/a`" in rendered, (
+        rendered
+    )
     assert "true of all 29 artifacts" not in rendered, "stale hardcoded count is back"
     # The four non-live rows above are what the scoped claim covers.
     assert "true of all 4 artifacts on the four surfaces above" in rendered, rendered
@@ -5154,7 +5284,9 @@ def _control_json_count_scopes_agree() -> None:
     )
     # The two scopes must really differ here, or this control would pass on a build
     # that quietly folded the live rows back into `rows`.
-    assert obj["discovered_artifact_count"] > obj["artifact_count"], obj["artifact_count"]
+    assert obj["discovered_artifact_count"] > obj["artifact_count"], obj[
+        "artifact_count"
+    ]
 
 
 def _control_live_json_key_is_sibling() -> None:
@@ -5164,7 +5296,9 @@ def _control_live_json_key_is_sibling() -> None:
     agreement = pair_agreement(rows)
     obj = json.loads(render_json(rows, agreement))
     assert "live_conformance" in obj, obj.keys()
-    assert obj["live_conformance"]["rows"] == [live_row], obj["live_conformance"]["rows"]
+    assert obj["live_conformance"]["rows"] == [live_row], obj["live_conformance"][
+        "rows"
+    ]
     assert obj["surface_counts"]["live-conformance"] == 1, obj["surface_counts"]
     assert all(r["surface"] != "live-conformance" for r in obj["rows"]), obj["rows"]
     assert all(
@@ -5299,7 +5433,9 @@ def _control_live_disposition_covers_all_three_nonclean_shapes() -> None:
         section_resolution="no-analysis",
         form_defects="no-analysis",
     )
-    problems = _live_disposition_problems([nonzero_row, unreadable_row, no_analysis_row])
+    problems = _live_disposition_problems(
+        [nonzero_row, unreadable_row, no_analysis_row]
+    )
     assert len(problems) == 3, problems
     assert any("LIVE SILENT PASS [a]" in p for p in problems), problems
     assert any("LIVE SILENT PASS [b]" in p for p in problems), problems
@@ -5318,7 +5454,9 @@ def _control_live_population_per_item_zero_detected() -> None:
         verdict_cells=1,
     )
     problems = _live_population_problems([row])
-    assert any("LIVE POPULATION [a] conclusion_claims: 0" in p for p in problems), problems
+    assert any("LIVE POPULATION [a] conclusion_claims: 0" in p for p in problems), (
+        problems
+    )
 
 
 def _control_live_population_per_item_unreadable_skipped() -> None:
@@ -5364,14 +5502,21 @@ def _control_live_population_surfacewide_breach_detected() -> None:
     assert any(
         "LIVE POPULATION FLOOR BREACH conclusion_claims" in p for p in problems
     ), problems
-    assert any("LIVE POPULATION FLOOR BREACH verdict_cells" in p for p in problems), problems
+    assert any("LIVE POPULATION FLOOR BREACH verdict_cells" in p for p in problems), (
+        problems
+    )
     assert any(
         "LIVE POPULATION FLOOR BREACH heading_chain_blocks" in p for p in problems
     ), problems
     assert not any(
         "LIVE POPULATION FLOOR BREACH chain_blocks" in p for p in problems
-    ), (("chain_blocks is no longer a surface-wide floor (CR-01); a breach reported "
-        "under that name means the floor set regressed to the corpus copy"), problems)
+    ), (
+        (
+            "chain_blocks is no longer a surface-wide floor (CR-01); a breach reported "
+            "under that name means the floor set regressed to the corpus copy"
+        ),
+        problems,
+    )
 
 
 def _control_live_population_per_item_verdict_cells_zero_detected() -> None:
@@ -5430,6 +5575,7 @@ def _control_live_render_disclosure_split_derived() -> None:
     rows with opposite flags must land on opposite sides, and swapping the flags must
     swap the sides -- a hardcoded id list passes neither direction.
     """
+
     def split(rows: list[dict]) -> tuple[str, str]:
         text = "\n".join(
             _render_live_conformance_section(
@@ -5491,7 +5637,11 @@ def _control_live_population_floor_values_locked() -> None:
     the pinned floors must equal an INLINE dict literal written at the control site,
     never read from `_LIVE_POPULATION_FLOORS` itself.
     """
-    expected = {"conclusion_claims": 64, "verdict_cells": 153, "heading_chain_blocks": 6}
+    expected = {
+        "conclusion_claims": 64,
+        "verdict_cells": 153,
+        "heading_chain_blocks": 6,
+    }
     assert _LIVE_POPULATION_FLOORS == expected, (
         f"LIVE POPULATION FLOOR VALUE MISMATCH: {_LIVE_POPULATION_FLOORS} != {expected}"
     )
@@ -5499,7 +5649,9 @@ def _control_live_population_floor_values_locked() -> None:
 
 def _control_live_call_site_census_positive() -> None:
     source = inspect.getsource(cmd_check)
-    problems = _live_call_site_census_problems(source, _LIVE_CALL_SITES, _LIVE_CALL_FORMS)
+    problems = _live_call_site_census_problems(
+        source, _LIVE_CALL_SITES, _LIVE_CALL_FORMS
+    )
     assert problems == [], problems
 
 
@@ -5533,7 +5685,9 @@ def _control_live_call_form_lock_rewritten() -> None:
         "    problems += " + "_live_population_problems(live_rows)\n"
         "    return 0\n"
     )
-    problems = _live_call_site_census_problems(source, _LIVE_CALL_SITES, _LIVE_CALL_FORMS)
+    problems = _live_call_site_census_problems(
+        source, _LIVE_CALL_SITES, _LIVE_CALL_FORMS
+    )
     assert any("CALL-FORM LOCK: _live_roster_problems" in p for p in problems), problems
 
 
@@ -5656,9 +5810,7 @@ def _recurrence_record_text(
     for i, r in enumerate(rows_spec, start=1):
         lines.append(
             "| "
-            + " | ".join(
-                [str(i)] + [r[k] for k in _RECURRENCE_RECORD_HEADER[1:]]
-            )
+            + " | ".join([str(i)] + [r[k] for k in _RECURRENCE_RECORD_HEADER[1:]])
             + " |"
         )
     lines.append("")
@@ -5701,7 +5853,9 @@ def _control_recurrence_support_floor() -> None:
             assert RECURRENCE_READING_DIR in msg, msg
             assert "COUNT FLOOR FAIL" in msg, msg
         else:
-            raise AssertionError("discover_artifacts did not raise when protocol.md is missing")
+            raise AssertionError(
+                "discover_artifacts did not raise when protocol.md is missing"
+            )
 
 
 def _control_recurrence_totals_line_must_match_rows() -> None:
@@ -5800,7 +5954,11 @@ def _control_recurrence_absent_record_emits_no_digit() -> None:
             "record_file": f"{RECURRENCE_READING_DIR}/{name}",
             "timing": "pre-arm" if name.startswith("pre-arm") else "post-arm",
             "arm": "scanner" if "scanner" in name else "prose",
-            "reader": "a" if "reader-a" in name else "b" if "reader-b" in name else "n/a",
+            "reader": "a"
+            if "reader-a" in name
+            else "b"
+            if "reader-b" in name
+            else "n/a",
             "present": False,
         }
         for name in RECURRENCE_RECORD_FILES
@@ -5824,7 +5982,13 @@ def _control_recurrence_arms_never_summed() -> None:
         "n/a",
         sites_product=3,
         claims_product=1,
-        rows=[{"file:line": "docs/README.md:1", "claimed value": "x", "distinct claim": "x"}],
+        rows=[
+            {
+                "file:line": "docs/README.md:1",
+                "claimed value": "x",
+                "distinct claim": "x",
+            }
+        ],
     )
     prose_row = _synthetic_recurrence_row(
         f"{RECURRENCE_READING_DIR}/pre-arm-reader-a.md",
@@ -5833,7 +5997,13 @@ def _control_recurrence_arms_never_summed() -> None:
         "a",
         sites_product=4,
         claims_product=1,
-        rows=[{"file:line": "docs/README.md:2", "claimed value": "y", "distinct claim": "y"}],
+        rows=[
+            {
+                "file:line": "docs/README.md:2",
+                "claimed value": "y",
+                "distinct claim": "y",
+            }
+        ],
     )
     rows = [scanner_row, prose_row]
     headline = compute_recurrence_headline(rows)
@@ -5851,7 +6021,13 @@ def _control_recurrence_readers_never_averaged() -> None:
         "prose",
         "a",
         sites_product=2,
-        rows=[{"file:line": "docs/README.md:1", "claimed value": "x", "distinct claim": "x"}],
+        rows=[
+            {
+                "file:line": "docs/README.md:1",
+                "claimed value": "x",
+                "distinct claim": "x",
+            }
+        ],
     )
     reader_b = _synthetic_recurrence_row(
         f"{RECURRENCE_READING_DIR}/pre-arm-reader-b.md",
@@ -5859,7 +6035,13 @@ def _control_recurrence_readers_never_averaged() -> None:
         "prose",
         "b",
         sites_product=6,
-        rows=[{"file:line": "docs/OTHER.md:1", "claimed value": "z", "distinct claim": "z"}],
+        rows=[
+            {
+                "file:line": "docs/OTHER.md:1",
+                "claimed value": "z",
+                "distinct claim": "z",
+            }
+        ],
     )
     rows = [reader_a, reader_b]
     headline = compute_recurrence_headline(rows)
@@ -5878,14 +6060,26 @@ def _control_recurrence_timing_delta_joins_on_content() -> None:
         "pre-arm",
         "scanner",
         "n/a",
-        rows=[{"file:line": "docs/README.md:20", "claimed value": "5", "distinct claim": "x"}],
+        rows=[
+            {
+                "file:line": "docs/README.md:20",
+                "claimed value": "5",
+                "distinct claim": "x",
+            }
+        ],
     )
     post_row = _synthetic_recurrence_row(
         f"{RECURRENCE_READING_DIR}/post-arm-scanner.md",
         "post-arm",
         "scanner",
         "n/a",
-        rows=[{"file:line": "docs/README.md:25", "claimed value": "5", "distinct claim": "x"}],
+        rows=[
+            {
+                "file:line": "docs/README.md:25",
+                "claimed value": "5",
+                "distinct claim": "x",
+            }
+        ],
     )
     headline = compute_recurrence_headline([pre_row, post_row])
     delta = headline["timing_delta"]["scanner"]
@@ -5911,7 +6105,11 @@ def _if_guards_exit_form(node: ast.If) -> bool:
     for stmt in ast.walk(node):
         if isinstance(stmt, ast.Raise):
             return True
-        if isinstance(stmt, ast.Return) and isinstance(stmt.value, ast.Constant) and stmt.value.value == 1:
+        if (
+            isinstance(stmt, ast.Return)
+            and isinstance(stmt.value, ast.Constant)
+            and stmt.value.value == 1
+        ):
             return True
         if (
             isinstance(stmt, ast.Call)
@@ -5949,7 +6147,9 @@ def _control_recurrence_no_exit_code_conditioned_on_count() -> None:
     forbidden shape."""
     source = Path(__file__).read_text(encoding="utf-8")
     violations = _recurrence_exit_conditioning_violations(source)
-    assert violations == [], f"exit form conditioned on a recurrence figure: {violations}"
+    assert violations == [], (
+        f"exit form conditioned on a recurrence figure: {violations}"
+    )
 
     synthetic = (
         "def f(headline):\n"
@@ -5969,7 +6169,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("partial-row-records-heading-census", _control_partial_row_records_heading_census),
     ("partial-row-not-dropped", _control_partial_row_not_dropped),
     ("agreement-field-scope", _control_agreement_field_scope),
-    ("agreement-detects-measured-divergence", _control_agreement_detects_measured_divergence),
+    (
+        "agreement-detects-measured-divergence",
+        _control_agreement_detects_measured_divergence,
+    ),
     ("agreement-vacuity-guard", _control_agreement_vacuity_guard),
     ("agreement-unpaired-is-divergence", _control_agreement_unpaired_is_divergence),
     ("render-determinism", _control_render_determinism),
@@ -6003,7 +6206,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_corpus_disposition_form_bad_detected,
     ),
     ("corpus-disposition-valid-passes", _control_corpus_disposition_valid_passes),
-    ("corpus-disposition-nonclean-skipped", _control_corpus_disposition_nonclean_skipped),
+    (
+        "corpus-disposition-nonclean-skipped",
+        _control_corpus_disposition_nonclean_skipped,
+    ),
     (
         "corpus-disposition-target-missed-covered",
         _control_corpus_disposition_target_missed_covered,
@@ -6087,8 +6293,14 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_corpus_call_sites_roster_lock_wrong_count,
     ),
     ("live-floor-short", _control_live_floor_short),
-    ("live-prior-fixtures-carry-disclosure", _control_live_prior_fixtures_carry_disclosure),
-    ("live-row-askuserquestion-derivation", _control_live_row_askuserquestion_derivation),
+    (
+        "live-prior-fixtures-carry-disclosure",
+        _control_live_prior_fixtures_carry_disclosure,
+    ),
+    (
+        "live-row-askuserquestion-derivation",
+        _control_live_row_askuserquestion_derivation,
+    ),
     ("live-row-no-analysis-literals", _control_live_row_no_analysis_literals),
     ("live-row-unreadable-is-not-clean", _control_live_row_unreadable_is_not_clean),
     ("live-row-stub-is-not-clean", _control_live_row_stub_is_not_clean),
@@ -6112,7 +6324,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_live_render_states_noninteractive_bound,
     ),
     ("live-render-determinism", _control_live_render_determinism),
-    ("render-vocabulary-scoped-and-derived", _control_render_vocabulary_scoped_and_derived),
+    (
+        "render-vocabulary-scoped-and-derived",
+        _control_render_vocabulary_scoped_and_derived,
+    ),
     ("json-count-scopes-agree", _control_json_count_scopes_agree),
     ("live-json-key-is-sibling", _control_live_json_key_is_sibling),
     ("live-roster-drift-detected", _control_live_roster_drift_detected),
@@ -6197,7 +6412,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         "recurrence-totals-line-must-match-rows",
         _control_recurrence_totals_line_must_match_rows,
     ),
-    ("recurrence-closed-column-vocabulary", _control_recurrence_closed_column_vocabulary),
+    (
+        "recurrence-closed-column-vocabulary",
+        _control_recurrence_closed_column_vocabulary,
+    ),
     (
         "recurrence-absent-record-emits-no-digit",
         _control_recurrence_absent_record_emits_no_digit,
@@ -6353,14 +6571,18 @@ def self_test() -> int:
         failures.append(
             (
                 "coverage-floor",
-                (f"registered/executed control-id mismatch: missing={sorted(missing)} "
-                f"extra={sorted(extra)}"),
+                (
+                    f"registered/executed control-id mismatch: missing={sorted(missing)} "
+                    f"extra={sorted(extra)}"
+                ),
             )
         )
 
     if failures:
         for control_id, message in failures:
-            sys.stderr.write(f"report-conformance: SELF-TEST FAIL [{control_id}] — {message}\n")
+            sys.stderr.write(
+                f"report-conformance: SELF-TEST FAIL [{control_id}] — {message}\n"
+            )
         return 1
 
     print(f"report-conformance: SELF-TEST PASS — {len(executed)} controls run")

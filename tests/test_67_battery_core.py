@@ -100,13 +100,13 @@ _EXPECTED_CATALOG_ROWS: list[tuple[str, str, str]] = [
     # (id, expected_boundary, expected_output)
     ("B-P12", "none-or-other", "n-a"),
     ("B-P24", "none-or-other", "n-a"),
-    ("B-N1",  "none-or-other", "n-a"),
-    ("B-N2",  "none-or-other", "n-a"),
+    ("B-N1", "none-or-other", "n-a"),
+    ("B-N2", "none-or-other", "n-a"),
     ("F-P12", "n-a", "focused-pre-mortem"),
     ("F-P24", "n-a", "focused-inversion"),
     ("F-P25", "n-a", "focused-pre-mortem"),
     ("F-P26", "n-a", "focused-pre-mortem"),
-    ("F-N1",  "n-a", "NOT-any-focused"),
+    ("F-N1", "n-a", "NOT-any-focused"),
 ]
 
 _EXPECTED_P_IDS = {"B-P12", "B-P24", "F-P12", "F-P24", "F-P25", "F-P26"}
@@ -197,7 +197,10 @@ def test_transport_argv_locked() -> None:
     bc.subprocess.run = fake_run
     try:
         dummy_prompt = bc.MergedPrompt(
-            id="test", text="hello world", expected_boundary="n-a", expected_output="n-a"
+            id="test",
+            text="hello world",
+            expected_boundary="n-a",
+            expected_output="n-a",
         )
         plugin_dir = Path("/tmp/fake-plugin-dir")
         out_path = Path("/tmp/fake-out.jsonl")
@@ -276,9 +279,7 @@ def test_kn_guard_fires() -> None:
     except SystemExit as exc:
         rc = exc.code if isinstance(exc.code, int) else 2
 
-    assert rc == 2, (
-        f"K>N guard (repeat=2, min-pass=3) expected exit code 2, got {rc}"
-    )
+    assert rc == 2, f"K>N guard (repeat=2, min-pass=3) expected exit code 2, got {rc}"
 
 
 # ===========================================================================
@@ -407,11 +408,11 @@ def test_both_match_na_auto_pass() -> None:
     """_both_match n-a signals auto-pass; real-signal mismatch fails."""
     # Case 1: boundary is n-a → b_count forced to min_pass regardless of boundary verdicts.
     b_count, f_count, passed = bc._both_match(
-        ["none-or-other"] * 5,          # boundary verdicts (all non-matching)
-        ["focused-pre-mortem"] * 5,      # focused verdicts (all matching)
-        "n-a",                           # expected_boundary: auto-pass
-        "focused-pre-mortem",            # expected_output: real signal
-        3,                               # min_pass
+        ["none-or-other"] * 5,  # boundary verdicts (all non-matching)
+        ["focused-pre-mortem"] * 5,  # focused verdicts (all matching)
+        "n-a",  # expected_boundary: auto-pass
+        "focused-pre-mortem",  # expected_output: real signal
+        3,  # min_pass
     )
     assert b_count == 3, f"n-a boundary: expected b_count=3 (==min_pass), got {b_count}"
     assert f_count == 5, f"n-a boundary: expected f_count=5, got {f_count}"
@@ -419,10 +420,10 @@ def test_both_match_na_auto_pass() -> None:
 
     # Case 2: output is n-a → f_count forced to min_pass regardless of focused verdicts.
     b_count2, f_count2, passed2 = bc._both_match(
-        ["pre-mortem"] * 5,   # boundary verdicts (matching — _is_match passes)
-        ["none"] * 5,          # focused verdicts (all non-matching if output expected was real)
-        "pre-mortem",          # expected_boundary: real signal
-        "n-a",                 # expected_output: auto-pass
+        ["pre-mortem"] * 5,  # boundary verdicts (matching — _is_match passes)
+        ["none"] * 5,  # focused verdicts (all non-matching if output expected was real)
+        "pre-mortem",  # expected_boundary: real signal
+        "n-a",  # expected_output: auto-pass
         3,
     )
     assert f_count2 == 3, f"n-a output: expected f_count=3 (==min_pass), got {f_count2}"
@@ -433,7 +434,7 @@ def test_both_match_na_auto_pass() -> None:
     b_count3, _f_count3, passed3 = bc._both_match(
         ["none-or-other"] * 5,  # boundary verdicts: all wrong
         ["none"] * 5,
-        "pre-mortem",            # expected_boundary: real signal that all verdicts miss
+        "pre-mortem",  # expected_boundary: real signal that all verdicts miss
         "n-a",
         3,
     )
@@ -455,15 +456,17 @@ def test_verdict_output_format(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) 
     # Build a canned pre-mortem assistant-text JSONL response.
     # The focused detector needs procedure markers to fire 'focused-pre-mortem'.
     # Use the same text as _FIXTURE_FOCUSED_PREMORTEM so the detector fires correctly.
-    canned_jsonl = json.dumps({
-        "type": "assistant",
-        "text": (
-            "Running a prospective-hindsight analysis on the plan. "
-            "Imagine the plan has already failed. What caused it?\n\n"
-            "Working backward: what caused the rollout to stall?\n"
-            "We adopt the prospective-hindsight stance throughout."
-        ),
-    })
+    canned_jsonl = json.dumps(
+        {
+            "type": "assistant",
+            "text": (
+                "Running a prospective-hindsight analysis on the plan. "
+                "Imagine the plan has already failed. What caused it?\n\n"
+                "Working backward: what caused the rollout to stall?\n"
+                "We adopt the prospective-hindsight stance throughout."
+            ),
+        }
+    )
 
     def fake_run_prompt_n_times_to_paths(prompt, plugin_dir, out_dir, repeat):
         """Write canned JSONL fixture per requested run and return the paths."""
@@ -481,7 +484,9 @@ def test_verdict_output_format(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) 
         """No-op: skip the 'claude' binary check during the test."""
         return
 
-    monkeypatch.setattr(crb, "_run_prompt_n_times_to_paths", fake_run_prompt_n_times_to_paths)
+    monkeypatch.setattr(
+        crb, "_run_prompt_n_times_to_paths", fake_run_prompt_n_times_to_paths
+    )
     monkeypatch.setattr(crb, "_ensure_claude_available", fake_ensure_claude_available)
 
     # Use one F-* MergedPrompt: expected_boundary=n-a, expected_output=focused-pre-mortem.
@@ -526,6 +531,7 @@ def test_verdict_output_format(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) 
 
     # At least one BATTERY: PASS or BATTERY: FAIL line must appear per section.
     import re as _re
+
     battery_lines = _re.findall(r"BATTERY: (?:PASS|FAIL)", verdict_text)
     assert len(battery_lines) >= 3, (
         f"expected >= 3 'BATTERY: PASS|FAIL' lines (one per section), "

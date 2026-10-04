@@ -272,7 +272,9 @@ def _read_quality_catalog(path: Path) -> list[QualityPrompt]:
                 f"got {cells!r}"
             )
         if len(cells) < 2 or not cells[0].strip() or not cells[1].strip():
-            raise ValueError(f"{path}:{lineno}: row missing ID or prompt text: {cells!r}")
+            raise ValueError(
+                f"{path}:{lineno}: row missing ID or prompt text: {cells!r}"
+            )
         row_id = cells[0]
         if not _CATALOG_ID_RE.match(row_id):
             raise ValueError(
@@ -284,7 +286,9 @@ def _read_quality_catalog(path: Path) -> list[QualityPrompt]:
         notes = cells[2] if len(cells) > 2 else ""
         prompts.append(QualityPrompt(id=row_id, text=prompt_text, notes=notes))
     if not header_seen:
-        raise ValueError(f"{path}: no catalog header found (expected '| ID | Prompt | Notes |')")
+        raise ValueError(
+            f"{path}: no catalog header found (expected '| ID | Prompt | Notes |')"
+        )
     if not prompts:
         raise ValueError(f"{path}: no data rows parsed")
     return prompts
@@ -524,10 +528,7 @@ def _strip_handback_frame(text: str) -> str:
     for line in lines:
         if line.strip() and not line.startswith(_HANDBACK_REPORT_INDENT):
             return text
-    return "\n".join(
-        line.removeprefix(_HANDBACK_REPORT_INDENT)
-        for line in lines
-    )
+    return "\n".join(line.removeprefix(_HANDBACK_REPORT_INDENT) for line in lines)
 
 
 def _iter_jsonl_objects(jsonl_path: Path) -> list[dict]:
@@ -570,7 +571,9 @@ def _find_agent_dispatch_ids(objs: list[dict], subagent_type: str) -> list[str]:
             # lowering — dict.get(key, default) returns None (not the
             # default) when the key is present with a JSON-null value.
             candidate = (
-                (inp.get("subagent_type") or "").lower() if isinstance(inp, dict) else ""
+                (inp.get("subagent_type") or "").lower()
+                if isinstance(inp, dict)
+                else ""
             )
             if candidate == target:
                 tool_use_id = c.get("id")
@@ -908,7 +911,11 @@ def _reference_reads_census(capture_id: str, jsonl_path: Path) -> dict:
     calls = _capture_subagent_tool_calls(
         jsonl_path, _REFERENCE_READS_SUBAGENT_TYPE, tool_names=("Read",)
     )
-    hit = {"read_rubric": False, "read_output_template": False, "read_any_technique_ref": False}
+    hit = {
+        "read_rubric": False,
+        "read_output_template": False,
+        "read_any_technique_ref": False,
+    }
     total = 0
     for _tool_name, target, _unused_text in calls:
         bucket = _reference_read_bucket(target)
@@ -998,9 +1005,7 @@ def _reference_reads_tsv(rows: list[dict]) -> str:
     lines = ["\t".join(_REFERENCE_READS_FIELDS)]
     for row in rows:
         cells = [str(row[field]) for field in _REFERENCE_READS_FIELDS]
-        bad_cells_rendered = [
-            c for c in cells if "\t" in c or "\n" in c or "\r" in c
-        ]
+        bad_cells_rendered = [c for c in cells if "\t" in c or "\n" in c or "\r" in c]
         if bad_cells_rendered:
             raise ValueError(
                 f"_reference_reads_tsv: cell value {bad_cells_rendered[0]!r} "
@@ -1364,10 +1369,12 @@ def _persist_or_diagnose_analysis(
     ) as exc:
         return (
             None,
-            (f"Probe analysis NOT written — the capture completed but its "
-            f"analysis could not be persisted: {exc}. The raw capture is "
-            f"intact at {jsonl_path} and can be re-extracted without another "
-            f"live run."),
+            (
+                f"Probe analysis NOT written — the capture completed but its "
+                f"analysis could not be persisted: {exc}. The raw capture is "
+                f"intact at {jsonl_path} and can be re-extracted without another "
+                f"live run."
+            ),
             1,
         )
     if path is not None:
@@ -1399,7 +1406,11 @@ def extract_judge_verdict(jsonl_path: Path) -> str:
         msg = obj.get("message", {})
         content = msg.get("content", []) if isinstance(msg, dict) else []
         for c in content if isinstance(content, list) else []:
-            if isinstance(c, dict) and c.get("type") == "tool_use" and c.get("name") == "Agent":
+            if (
+                isinstance(c, dict)
+                and c.get("type") == "tool_use"
+                and c.get("name") == "Agent"
+            ):
                 raise ValueError(
                     f"judge capture {jsonl_path} contains an Agent dispatch; "
                     "judging must not delegate to a subagent"
@@ -1434,9 +1445,7 @@ def extract_judge_verdict(jsonl_path: Path) -> str:
     raise ValueError(f"no judge verdict text found in {jsonl_path}")
 
 
-def build_judge_packet(
-    analysis: str | bytes, packet_root: Path | None = None
-) -> Path:
+def build_judge_packet(analysis: str | bytes, packet_root: Path | None = None) -> Path:
     """Create a sealed judge packet dir outside the repository (D-05).
 
     Writes exactly two files: `analysis.md` (the passed-in, already-anonymised
@@ -1494,7 +1503,7 @@ JUDGE_PROMPT = (
     "`analysis.md`, found in your current working directory, against the "
     "rubric in `validation-rubric.md`, also in your current working "
     "directory. Read both files in full, then apply every criterion in the "
-    "rubric exactly as its own \"How to Apply This Rubric\" section "
+    'rubric exactly as its own "How to Apply This Rubric" section '
     "instructs: complete the Assumption Audit first, then produce one "
     "verdict block per criterion using the rubric's prescribed Verdict "
     "Block Format.\n\n"
@@ -1667,7 +1676,12 @@ def read_scorelines(path: Path | str) -> list[dict]:
         if not line.strip():
             continue
         cells = line.split("\t")
-        if lineno == 1 and cells[0] == "packet_id" and len(cells) > 1 and cells[1] == "C1":
+        if (
+            lineno == 1
+            and cells[0] == "packet_id"
+            and len(cells) > 1
+            and cells[1] == "C1"
+        ):
             continue
         if len(cells) < 1 + len(_CRITERIA) + 1:
             raise ValueError(
@@ -1761,7 +1775,9 @@ def tabulate_rows(rows: list[dict]) -> str:
     disagreement between the judge's own stated verdict and the
     independently-derived one is reported, never resolved toward either side.
     """
-    header = "\t".join(["packet_id", *_CRITERIA, "judge_verdict", "derived_verdict", "agreement"])
+    header = "\t".join(
+        ["packet_id", *_CRITERIA, "judge_verdict", "derived_verdict", "agreement"]
+    )
     lines = [header]
     for row in rows:
         lines.append(
@@ -1807,7 +1823,7 @@ def _build_scoreline_row(packet_id: str, judge_text: str) -> dict:
 # own stated Verdict, so the tracer path exercises the AGREE branch.
 _FIXTURE_SCORELINE_TEXT = (
     "**Criterion 1: Identify Essence**\n"
-    "Quoted span: \"[offline fixture — rationale text omitted for brevity]\"\n"
+    'Quoted span: "[offline fixture — rationale text omitted for brevity]"\n'
     "Band: **Rigorous**\n"
     "Justification: Fixture stands in for a full judge rationale; only the "
     "terminal block below is parsed.\n\n"
@@ -2007,7 +2023,9 @@ def _selftest_guardrail_a() -> bool:
         ok = False
 
     try:
-        extract_agent_analysis(stub_path, subagent_type="first-principles:first-principles")
+        extract_agent_analysis(
+            stub_path, subagent_type="first-principles:first-principles"
+        )
         print(
             "self-test FAIL: guardrail_a negative (gen-stub-only.jsonl) did "
             "not raise — a capture with no completed task_notification "
@@ -2155,7 +2173,9 @@ def _selftest_guardrail_b() -> bool:
     internal_path = FIXTURES_DIR / "gen-internal-tools.jsonl"
 
     try:
-        extract_agent_analysis(multi_path, subagent_type="first-principles:first-principles")
+        extract_agent_analysis(
+            multi_path, subagent_type="first-principles:first-principles"
+        )
         print(
             "self-test FAIL: guardrail_b negative (gen-multi-dispatch.jsonl) "
             "did not raise on two distinct Agent dispatches",
@@ -2316,7 +2336,9 @@ def _selftest_capture_tool_reader() -> bool:
         )
         ok = False
     read_targets = {target for _, target, _ in read_triples}
-    if not any(t.endswith("agents/references/validation-rubric.md") for t in read_targets) or not any(
+    if not any(
+        t.endswith("agents/references/validation-rubric.md") for t in read_targets
+    ) or not any(
         t.endswith("agents/references/output-template.md") for t in read_targets
     ):
         print(
@@ -2379,9 +2401,11 @@ def _selftest_capture_tool_reader() -> bool:
                 content = msg.get("content") if isinstance(msg, dict) else None
                 if isinstance(content, list):
                     for c in content:
-                        if isinstance(c, dict) and c.get("type") == "tool_use" and c.get(
-                            "name"
-                        ) == "WebFetch":
+                        if (
+                            isinstance(c, dict)
+                            and c.get("type") == "tool_use"
+                            and c.get("name") == "WebFetch"
+                        ):
                             c["name"] = "NotAWebFetchTool"
             renamed_objs.append(obj_copy)
         renamed_path = tmp_path / "renamed.jsonl"
@@ -2389,7 +2413,9 @@ def _selftest_capture_tool_reader() -> bool:
             "\n".join(json.dumps(o) for o in renamed_objs), encoding="utf-8"
         )
         renamed_triples = _iter_capture_tool_calls(renamed_path)
-        if len(renamed_triples) != 2 or any(name != "Read" for name, _, _ in renamed_triples):
+        if len(renamed_triples) != 2 or any(
+            name != "Read" for name, _, _ in renamed_triples
+        ):
             print(
                 f"self-test FAIL: capture_tool_reader control 4 "
                 f"(anti-vacuity, rename) — expected exactly 2 Read "
@@ -2419,7 +2445,9 @@ def _selftest_capture_tool_reader() -> bool:
             "\n".join(json.dumps(o) for o in stripped_objs), encoding="utf-8"
         )
         stripped_triples = _iter_capture_tool_calls(stripped_path)
-        if len(stripped_triples) != 9 or not all(target for _, target, _ in stripped_triples):
+        if len(stripped_triples) != 9 or not all(
+            target for _, target, _ in stripped_triples
+        ):
             print(
                 f"self-test FAIL: capture_tool_reader control 5 "
                 f"(anti-vacuity, id-join) — expected 9 triples with "
@@ -2640,9 +2668,7 @@ def _selftest_capture_tool_reader() -> bool:
     if (
         len(internal_own_triples) != 1
         or internal_own_triples[0][0] != "Read"
-        or not internal_own_triples[0][1].endswith(
-            "svg-precision/references/spec.md"
-        )
+        or not internal_own_triples[0][1].endswith("svg-precision/references/spec.md")
         or len(internal_own_triples[0][2]) != 6309
     ):
         print(
@@ -2784,7 +2810,9 @@ def _selftest_analysis_persistence() -> bool:
             ok = False
         else:
             written_text = expected_md_path.read_text(encoding="utf-8")
-            committed_text = (PROVENANCE_FIXTURE_DIR / "PR-P1.md").read_text(encoding="utf-8")
+            committed_text = (PROVENANCE_FIXTURE_DIR / "PR-P1.md").read_text(
+                encoding="utf-8"
+            )
             if written_text != committed_text:
                 print(
                     "self-test FAIL: analysis_persistence control 1 (positive "
@@ -3008,7 +3036,9 @@ def _selftest_single_refusal() -> bool:
             ok = False
         else:
             written_text = expected_md_path.read_text(encoding="utf-8")
-            committed_text = (PROVENANCE_FIXTURE_DIR / "PR-P1.md").read_text(encoding="utf-8")
+            committed_text = (PROVENANCE_FIXTURE_DIR / "PR-P1.md").read_text(
+                encoding="utf-8"
+            )
             if written_text != committed_text:
                 print(
                     "self-test FAIL: single_refusal control 1 (positive) — "
@@ -3346,7 +3376,10 @@ def _selftest_persistence_write_guards() -> bool:
         # Control 3: the pathspec list parses off the live battery script.
         battery_text = BATTERY_PATH.read_text(encoding="utf-8")
         specs = read_frozen_pathspecs(battery_text)
-        for expected_spec in ("tests/quality-provenance-v8.24", "tests/step0-baseline-v*.md"):
+        for expected_spec in (
+            "tests/quality-provenance-v8.24",
+            "tests/step0-baseline-v*.md",
+        ):
             if expected_spec not in specs:
                 print(
                     f"self-test FAIL: persistence_write_guards control 3 "
@@ -3358,7 +3391,9 @@ def _selftest_persistence_write_guards() -> bool:
 
         # Control 4: fail-closed on an unparseable or empty array.
         renamed = battery_text.replace("_FROZEN_PATHS=(", "_THAWED_PATHS=(", 1)
-        emptied = _FROZEN_PATHS_ARRAY_RE.sub("_FROZEN_PATHS=(\n)", battery_text, count=1)
+        emptied = _FROZEN_PATHS_ARRAY_RE.sub(
+            "_FROZEN_PATHS=(\n)", battery_text, count=1
+        )
         for label, mutated in (("renamed array", renamed), ("emptied array", emptied)):
             try:
                 read_frozen_pathspecs(mutated)
@@ -3503,7 +3538,10 @@ def _selftest_persistence_write_guards() -> bool:
         # Controls 9 + 10: the two failure captures must be diagnosed, never
         # raised, out of the probe helper.
         failure_statuses: dict[str, int] = {}
-        for control_no, name in ((9, "gen-stub-only.jsonl"), (10, "gen-multi-dispatch.jsonl")):
+        for control_no, name in (
+            (9, "gen-stub-only.jsonl"),
+            (10, "gen-multi-dispatch.jsonl"),
+        ):
             fixture = _probe_copy(name)
             try:
                 fpath, fmsg, fstatus = _persist_or_diagnose_analysis(
@@ -3746,7 +3784,9 @@ def _selftest_scoreline() -> bool:
 
     globals()["parse_scoreline"] = _counting_parse_scoreline
     try:
-        row = _build_scoreline_row("d13-check", "no terminal block anywhere in this text")
+        row = _build_scoreline_row(
+            "d13-check", "no terminal block anywhere in this text"
+        )
     finally:
         globals()["parse_scoreline"] = real_parse_scoreline
 
@@ -3757,7 +3797,10 @@ def _selftest_scoreline() -> bool:
             file=sys.stderr,
         )
         ok = False
-    if row["bands"] != [UNPARSEABLE] * len(_CRITERIA) or row["judge_verdict"] != UNPARSEABLE:
+    if (
+        row["bands"] != [UNPARSEABLE] * len(_CRITERIA)
+        or row["judge_verdict"] != UNPARSEABLE
+    ):
         print(
             f"self-test FAIL: scoreline D-13 no-retry check — malformed row "
             f"did not fully record UNPARSEABLE: {row!r}",
@@ -3794,7 +3837,9 @@ def check_blinding(analysis_text: str) -> list[str]:
 
     entries = sorted(p.name for p in packet_dir.iterdir())
     if entries != ["analysis.md", "validation-rubric.md"]:
-        findings.append(f"packet dir {packet_dir} does not hold exactly the two expected files: {entries!r}")
+        findings.append(
+            f"packet dir {packet_dir} does not hold exactly the two expected files: {entries!r}"
+        )
 
     resolved = packet_dir.resolve()
     repo_root_resolved = REPO_ROOT.resolve()
@@ -3829,7 +3874,9 @@ def check_blinding(analysis_text: str) -> list[str]:
         findings.append("copied rubric is not byte-identical to its source")
 
     if not _check_judge_prompt_unblinded():
-        findings.append("JUDGE_PROMPT contains a forbidden comparison-leaking substring")
+        findings.append(
+            "JUDGE_PROMPT contains a forbidden comparison-leaking substring"
+        )
 
     return findings
 
@@ -3890,7 +3937,9 @@ def _selftest_blinding() -> bool:
     disagree_bands = ["Rigorous"] * len(_CRITERIA)
     disagree_judge_verdict = "FAIL"
     disagree_derived = derive_pass_fail(disagree_bands)
-    disagree_agreement = "AGREE" if disagree_derived == disagree_judge_verdict else "DISAGREE"
+    disagree_agreement = (
+        "AGREE" if disagree_derived == disagree_judge_verdict else "DISAGREE"
+    )
     if disagree_agreement != "DISAGREE":
         print(
             "self-test FAIL: blinding D-14 synthetic disagreement row did not "
@@ -4242,7 +4291,9 @@ def _selftest_baseline() -> bool:
             file=sys.stderr,
         )
         ok = False
-    elif not any("data rows but" in f and "analysis files" in f for f in truncated_findings):
+    elif not any(
+        "data rows but" in f and "analysis files" in f for f in truncated_findings
+    ):
         print(
             f"self-test FAIL: baseline integrity on the truncated fixture "
             f"reported findings, but none names the count mismatch: "
@@ -4352,6 +4403,8 @@ def _fenced_code_flags(lines: list[str]) -> list[bool]:
     return inside
 
 
+# sha256-pinned via inspect.getsource (see _*_PINNED_DIGEST); must not be reformatted.
+# fmt: off
 def _slice_sections(text: str) -> dict[int, str]:
     """Locate the six numbered output-template sections; return num -> body text.
 
@@ -4501,6 +4554,7 @@ def _slice_sections(text: str) -> dict[int, str]:
                 body_end = min(body_end, gate.start())
         sections[num] = text[body_start:body_end]
     return sections
+# fmt: on
 
 
 def _verdict_cells(section2: str) -> list[str]:
@@ -4619,7 +4673,9 @@ def _verdict_conforms(cell: str) -> bool:
 # alternative and never falls through to the bare one).
 _CHAIN_LABEL_PATTERN = r"(?:[A-Z]{2}-\d+|(?:Chain|Conclusion)\s+[A-Za-z0-9]+)"
 _CHAIN_LABEL_PATTERN_BARE = r"[A-Z]\d*"
-_CHAIN_LABEL_PATTERN_ANY = r"(?:" + _CHAIN_LABEL_PATTERN + r"|" + _CHAIN_LABEL_PATTERN_BARE + r")"
+_CHAIN_LABEL_PATTERN_ANY = (
+    r"(?:" + _CHAIN_LABEL_PATTERN + r"|" + _CHAIN_LABEL_PATTERN_BARE + r")"
+)
 
 # A bare single-letter label is only accepted as a chain-label family when
 # it is used consistently (repeated/sequenced) as a §4 lead-in — a lone
@@ -4902,6 +4958,8 @@ def _segment_sentence_closed(seg: str) -> bool:
     return bool(_SEGMENT_SENTENCE_END_RE.search(text))
 
 
+# sha256-pinned via inspect.getsource (see _*_PINNED_DIGEST); must not be reformatted.
+# fmt: off
 def _chain_block_well_formed(block: str) -> bool:
     """Match the prescribed chain form across a block (D-05, D-06).
 
@@ -5023,6 +5081,7 @@ def _chain_block_well_formed(block: str) -> bool:
         if _CHAIN_FORM_LINE_RE.search(" ".join(seg)):
             return True
     return False
+# fmt: on
 
 
 def _chain_detector_source() -> str:
@@ -5077,18 +5136,18 @@ def _chain_detector_pin_problems(source: str) -> list[str]:
     written-amendment pre-commitment on a mismatch, or an empty list when
     *source* still hashes to the pinned value.
     """
-    digest = "sha256:" + hashlib.sha256(
-        source.rstrip("\n").encode("utf-8")
-    ).hexdigest()
+    digest = "sha256:" + hashlib.sha256(source.rstrip("\n").encode("utf-8")).hexdigest()
     if digest == _CHAIN_DETECTOR_PINNED_DIGEST:
         return []
     return [
-        (f"chain-detector: source digest {digest!r} != pinned "
-        f"{_CHAIN_DETECTOR_PINNED_DIGEST!r} — _chain_block_well_formed is "
-        "frozen under CONTRACT-06. If this change is intended, amend the "
-        "milestone goal in writing FIRST (STATE.md's standing "
-        "pre-commitment), then recompute. Do not recompute to make this "
-        "pass.")
+        (
+            f"chain-detector: source digest {digest!r} != pinned "
+            f"{_CHAIN_DETECTOR_PINNED_DIGEST!r} — _chain_block_well_formed is "
+            "frozen under CONTRACT-06. If this change is intended, amend the "
+            "milestone goal in writing FIRST (STATE.md's standing "
+            "pre-commitment), then recompute. Do not recompute to make this "
+            "pass."
+        )
     ]
 
 
@@ -5134,18 +5193,18 @@ def _conclusion_claims_pin_problems(source: str) -> list[str]:
     both digests on a mismatch, or an empty list when *source* still hashes
     to the pinned value.
     """
-    digest = "sha256:" + hashlib.sha256(
-        source.rstrip("\n").encode("utf-8")
-    ).hexdigest()
+    digest = "sha256:" + hashlib.sha256(source.rstrip("\n").encode("utf-8")).hexdigest()
     if digest == _CONCLUSION_CLAIMS_PINNED_DIGEST:
         return []
     return [
-        (f"conclusion-claims-detector: source digest {digest!r} != pinned "
-        f"{_CONCLUSION_CLAIMS_PINNED_DIGEST!r} — _conclusion_claims is "
-        "frozen under CONTRACT-06. If this change is intended, amend the "
-        "milestone goal in writing FIRST (STATE.md's standing "
-        "pre-commitment), then recompute. Do not recompute to make this "
-        "pass.")
+        (
+            f"conclusion-claims-detector: source digest {digest!r} != pinned "
+            f"{_CONCLUSION_CLAIMS_PINNED_DIGEST!r} — _conclusion_claims is "
+            "frozen under CONTRACT-06. If this change is intended, amend the "
+            "milestone goal in writing FIRST (STATE.md's standing "
+            "pre-commitment), then recompute. Do not recompute to make this "
+            "pass."
+        )
     ]
 
 
@@ -5185,18 +5244,18 @@ def _slice_sections_pin_problems(source: str) -> list[str]:
     both digests on a mismatch, or an empty list when *source* still hashes
     to the pinned value.
     """
-    digest = "sha256:" + hashlib.sha256(
-        source.rstrip("\n").encode("utf-8")
-    ).hexdigest()
+    digest = "sha256:" + hashlib.sha256(source.rstrip("\n").encode("utf-8")).hexdigest()
     if digest == _SLICE_SECTIONS_PINNED_DIGEST:
         return []
     return [
-        (f"slice-sections-detector: source digest {digest!r} != pinned "
-        f"{_SLICE_SECTIONS_PINNED_DIGEST!r} — _slice_sections is frozen "
-        "under CONTRACT-06. If this change is intended, amend the "
-        "milestone goal in writing FIRST (STATE.md's standing "
-        "pre-commitment), then recompute. Do not recompute to make this "
-        "pass.")
+        (
+            f"slice-sections-detector: source digest {digest!r} != pinned "
+            f"{_SLICE_SECTIONS_PINNED_DIGEST!r} — _slice_sections is frozen "
+            "under CONTRACT-06. If this change is intended, amend the "
+            "milestone goal in writing FIRST (STATE.md's standing "
+            "pre-commitment), then recompute. Do not recompute to make this "
+            "pass."
+        )
     ]
 
 
@@ -5225,6 +5284,7 @@ def describe() -> dict[str, object]:
     rule ids and the fourth (non-CONTRACT-06) `_RENDER_RULE_LITERALS`
     digest pin's CONTENT is a read, never a recompute of that pin either.
     """
+
     def _rule_sort_key(rule_id: str) -> tuple[int, str]:
         return (int(rule_id[1:]), rule_id)
 
@@ -5393,7 +5453,38 @@ _LEDGER_QUOTE_RE = re.compile(r"[\"\u201c]([^\"\u201d\n]{8,})[\"\u201d]")
 _TOKEN_RE = re.compile(r"[a-z0-9]+(?:\.[0-9]+)?")
 
 _TRACE_STOPWORDS = frozenset(
-    ["a", "an", "and", "are", "as", "at", "be", "by", "do", "does", "for", "from", "in", "is", "it", "its", "of", "on", "or", "that", "the", "to", "with", "not", "no", "was", "were", "this", "these", "those"]
+    [
+        "a",
+        "an",
+        "and",
+        "are",
+        "as",
+        "at",
+        "be",
+        "by",
+        "do",
+        "does",
+        "for",
+        "from",
+        "in",
+        "is",
+        "it",
+        "its",
+        "of",
+        "on",
+        "or",
+        "that",
+        "the",
+        "to",
+        "with",
+        "not",
+        "no",
+        "was",
+        "were",
+        "this",
+        "these",
+        "those",
+    ]
 )
 
 # A fragment below this many content tokens is too generic to discharge a
@@ -5500,7 +5591,9 @@ _RESTATEMENT_LEADIN_RE = re.compile(
 _DUAL_NEGATION_COROLLARY_RE = re.compile(r"^\*\*[^*\n]+\*\*,?\s+and\s+\*\*[^*\n]+\*\*:")
 
 
-def _is_excluded_restatement(candidate: str, chain_ids: list[str], prior_claims: list[str]) -> bool:
+def _is_excluded_restatement(
+    candidate: str, chain_ids: list[str], prior_claims: list[str]
+) -> bool:
     """FIX-CONTRACT-01 limitation 3(c): near-paraphrase restatement / direct
     logical entailment of an already-extracted, already-cited claim earlier
     in the same section.
@@ -5515,12 +5608,15 @@ def _is_excluded_restatement(candidate: str, chain_ids: list[str], prior_claims:
     if _label_has_any_citation(candidate, chain_ids):
         return False
     if not (
-        _RESTATEMENT_LEADIN_RE.match(candidate) or _DUAL_NEGATION_COROLLARY_RE.match(candidate)
+        _RESTATEMENT_LEADIN_RE.match(candidate)
+        or _DUAL_NEGATION_COROLLARY_RE.match(candidate)
     ):
         return False
     return any(_label_has_any_citation(c, chain_ids) for c in prior_claims)
 
 
+# sha256-pinned via inspect.getsource (see _*_PINNED_DIGEST); must not be reformatted.
+# fmt: off
 def _conclusion_claims(section6: str, chain_ids: list[str] | None = None) -> list[str]:
     """Return the assertive claims in section 6: bold colon-lead-ins and list items.
 
@@ -5584,6 +5680,7 @@ def _conclusion_claims(section6: str, chain_ids: list[str] | None = None) -> lis
             ):
                 claims.append(candidate)
     return claims
+# fmt: on
 
 
 def _claim_is_traced(
@@ -5860,7 +5957,7 @@ def _chain_dependency_defects(section4: str) -> dict:
         stack.append(node)
         for dep in sorted(deps.get(node, ())):
             if colour.get(dep) == GREY:
-                in_cycle.update(stack[stack.index(dep):])
+                in_cycle.update(stack[stack.index(dep) :])
             elif colour.get(dep) == WHITE:
                 visit(dep, stack)
         stack.pop()
@@ -5881,9 +5978,7 @@ def _chain_dependency_defects(section4: str) -> dict:
         if own_gt.get(node):
             memo[node] = True
             return True
-        result = any(
-            grounded(dep, seen | {node}) for dep in sorted(deps.get(node, ()))
-        )
+        result = any(grounded(dep, seen | {node}) for dep in sorted(deps.get(node, ())))
         if not seen:
             memo[node] = result
         return result
@@ -6393,12 +6488,9 @@ _HOP_UNIT_SRC = r"(?:[ \t]?[A-Za-z/°µ²³]{1,15})?"
 # Claude's discretion (D-02 names `x`/`-`; `*` is the third ASCII
 # multiplication glyph analysts also write, and P25's own trip case needs
 # it recognised, not silently excluded from the candidate scan).
-_HOP_OP_SRC = (
-    r"(?:[ \t]*[×÷/+−][ \t]*|[ \t]x[ \t]|[ \t]-[ \t]|[ \t]\*[ \t])"
-)
+_HOP_OP_SRC = r"(?:[ \t]*[×÷/+−][ \t]*|[ \t]x[ \t]|[ \t]-[ \t]|[ \t]\*[ \t])"
 _HOP_EXPR_RE = re.compile(
-    r"(?P<num1>" + _HOP_NUM_SRC + r")" + _HOP_UNIT_SRC +
-    r"(?P<op>" + _HOP_OP_SRC + r")"
+    r"(?P<num1>" + _HOP_NUM_SRC + r")" + _HOP_UNIT_SRC + r"(?P<op>" + _HOP_OP_SRC + r")"
     r"(?P<num2>" + _HOP_NUM_SRC + r")" + _HOP_UNIT_SRC + r"[ \t]*$"
 )
 _HOP_OP_AT_END_RE = re.compile(
@@ -6654,9 +6746,12 @@ def _hop_scan_segment(
             # WR-05: a minus sign directly on the first operand (`−5 + 3`),
             # at the window's start or after whitespace/`(`, is a signed
             # operand, not a second operator — named, not called "chained".
-            if prefix and prefix[-1] in _HOP_RIGHT_SIGN and (
-                len(prefix) == 1 or prefix[-2] in " \t("
-            ) and not _HOP_OP_AT_END_RE.search(prefix[:-1]):
+            if (
+                prefix
+                and prefix[-1] in _HOP_RIGHT_SIGN
+                and (len(prefix) == 1 or prefix[-2] in " \t(")
+                and not _HOP_OP_AT_END_RE.search(prefix[:-1])
+            ):
                 unparsed.append({"expr": expr, "reason": "negative operand"})
                 continue
             # WR-06: a match starting right after `.` or `,` (no space) began
@@ -6687,9 +6782,7 @@ def _hop_scan_segment(
             elif _HOP_UNSPACED_HYPHEN_RE.search(left_stripped):
                 unparsed.append({"expr": expr, "reason": "unspaced hyphen"})
             elif _HOP_EXP_PAREN_RE.search(left_stripped):
-                unparsed.append(
-                    {"expr": expr, "reason": "exponent or parentheses"}
-                )
+                unparsed.append({"expr": expr, "reason": "exponent or parentheses"})
             else:
                 unparsed.append({"expr": expr, "reason": "chained"})
             continue
@@ -6720,9 +6813,7 @@ def _hop_scan_segment(
             unparsed.append({"expr": expr, "reason": "unparsed number"})
             continue
         # The stated result's own trailing `%` disqualifies (D-02).
-        if right_nocur[stated_m.end() : stated_m.end() + 2].lstrip(" \t")[
-            :1
-        ] == "%":
+        if right_nocur[stated_m.end() : stated_m.end() + 2].lstrip(" \t")[:1] == "%":
             unparsed.append({"expr": expr, "reason": "percentage"})
             continue
         stated_text = stated_m.group(0)
@@ -6855,7 +6946,12 @@ _SELFAUDIT_TRAILING_VERDICT_RE = re.compile(
 _SELFAUDIT_CONTRADICTIONS: dict[int, tuple[str, ...]] = {
     2: ("nonconforming_verdict_cells",),
     4: ("malformed_chain_blocks", "_dependency_cycles", "hop_arithmetic_mismatches"),
-    5: ("high_conf_unverified_head", "confidence_inversions", "precheck_disagreements", "rollup_inversions"),
+    5: (
+        "high_conf_unverified_head",
+        "confidence_inversions",
+        "precheck_disagreements",
+        "rollup_inversions",
+    ),
     6: ("untraced_claims",),
 }
 
@@ -7090,7 +7186,7 @@ def _prov_source_string(line_body: str) -> str:
     m2 = _PROV_LABEL_RE.search(line_body)
     if not m2:
         return ""
-    rest = line_body[m2.end():].lstrip()
+    rest = line_body[m2.end() :].lstrip()
     rest = re.sub(r"^[\u2014\u2013-]\s*", "", rest)
     return rest.split(",", 1)[0].strip()
 
@@ -7224,7 +7320,9 @@ def _prov_bind(
     key = _prov_join_key(gt.source)
     if not key:
         return None
-    matches = [(i, t) for i, t in enumerate(tool_calls) if _prov_anchored_match(key, t[1])]
+    matches = [
+        (i, t) for i, t in enumerate(tool_calls) if _prov_anchored_match(key, t[1])
+    ]
     if not matches:
         return None
     distinct_targets = {t[1] for _, t in matches}
@@ -7285,7 +7383,9 @@ def prov_verify(
 
     # Per-source normalized corpus, built once -- the D-04 cross-source lookup is
     # then near-free.
-    corpus: dict[int, str] = {i: t[2].replace(",", "") for i, t in enumerate(tool_calls)}
+    corpus: dict[int, str] = {
+        i: t[2].replace(",", "") for i, t in enumerate(tool_calls)
+    }
 
     bound_indices: set[int] = set()
     unmatched_ids: list[str] = []
@@ -7438,7 +7538,9 @@ _PROV_NA_COLUMNS: dict[str, str] = {
 }
 
 
-def _provenance_verify_if_available(analysis_text: str, capture_path: Path | None = None) -> dict:
+def _provenance_verify_if_available(
+    analysis_text: str, capture_path: Path | None = None
+) -> dict:
     """Verify an analysis's read-at-source ground truths against a capture.
 
     Runs `prov_verify` (the provenance engine check-provenance.py also uses)
@@ -7471,7 +7573,9 @@ def _provenance_verify_if_available(analysis_text: str, capture_path: Path | Non
     return _prov_result_columns(result)
 
 
-def detect_defects(analysis_text: str, analysis_id: str, capture_path: Path | None = None) -> dict:
+def detect_defects(
+    analysis_text: str, analysis_id: str, capture_path: Path | None = None
+) -> dict:
     """D-18: parse `analysis_text` structurally and report the three defect families.
 
     `capture_path` optionally names the analysis's `.jsonl` capture. When it
@@ -7508,9 +7612,7 @@ def detect_defects(analysis_text: str, analysis_id: str, capture_path: Path | No
     hop_arith = _hop_arithmetic_defects(blocks)
     claims = _conclusion_claims(section6, chain_ids)
     ledger = _closure_ledger_fragments(section6, chain_ids)
-    untraced = [
-        c for c in claims if not _claim_is_traced(c, chain_ids, blocks, ledger)
-    ]
+    untraced = [c for c in claims if not _claim_is_traced(c, chain_ids, blocks, ledger)]
 
     record = {
         "analysis_id": analysis_id,
@@ -7548,54 +7650,62 @@ def detect_defects(analysis_text: str, analysis_id: str, capture_path: Path | No
     # above alongside `dependency`. Placed before the self-audit
     # reconciliation call below so a later criterion-5 wiring (Phase 41
     # plan 03) sees these counts in `record`.
-    record.update({
-        "high_conf_chains": len(confidence["high"]),
-        "high_conf_unverified_head": len(confidence["unverified_head"]),
-        "confidence_inversions": len(confidence["inversions"]),
-        "confidence_unparsed": len(confidence["unparsed"]),
-        "_high_conf_unverified_head": confidence["unverified_head"],
-        "_confidence_inversions": confidence["inversions"],
-        "_confidence_unparsed": confidence["unparsed"],
-        "_confidence_inversions_partial": confidence["inversions_partial"],
-        "_confidence_unpairable": confidence["unpairable"],
-    })
+    record.update(
+        {
+            "high_conf_chains": len(confidence["high"]),
+            "high_conf_unverified_head": len(confidence["unverified_head"]),
+            "confidence_inversions": len(confidence["inversions"]),
+            "confidence_unparsed": len(confidence["unparsed"]),
+            "_high_conf_unverified_head": confidence["unverified_head"],
+            "_confidence_inversions": confidence["inversions"],
+            "_confidence_unparsed": confidence["unparsed"],
+            "_confidence_inversions_partial": confidence["inversions_partial"],
+            "_confidence_unpairable": confidence["unpairable"],
+        }
+    )
     # Phase 52 (OBS-02, D-04/D-05): the pre-check dimension, computed above
     # alongside `dependency`/`confidence`. Placed before the self-audit
     # reconciliation call below so the widened `_SELFAUDIT_CONTRADICTIONS[5]`
     # sees `precheck_disagreements` in `record`.
-    record.update({
-        "prechecks_parsed": len(precheck["parsed"]),
-        "precheck_unparsed": len(precheck["unparsed"]),
-        "precheck_disagreements": len(precheck["disagreements"]),
-        "_prechecks_parsed": precheck["parsed"],
-        "_precheck_unparsed": precheck["unparsed"],
-        "_precheck_disagreements": precheck["disagreements"],
-    })
+    record.update(
+        {
+            "prechecks_parsed": len(precheck["parsed"]),
+            "precheck_unparsed": len(precheck["unparsed"]),
+            "precheck_disagreements": len(precheck["disagreements"]),
+            "_prechecks_parsed": precheck["parsed"],
+            "_precheck_unparsed": precheck["unparsed"],
+            "_precheck_disagreements": precheck["disagreements"],
+        }
+    )
     # Phase 52 (OBS-02 residue R-52-01, D-03): the §6 roll-up dimension,
     # computed above alongside `dependency`/`confidence`/`precheck`. Placed
     # before the self-audit reconciliation call below so the widened
     # `_SELFAUDIT_CONTRADICTIONS[5]` sees `rollup_inversions` in `record`.
-    record.update({
-        "rollups_checked": len(rollup["checked"]),
-        "rollup_inversions": len(rollup["inversions"]),
-        "_rollups_checked": rollup["checked"],
-        "_rollup_inversions": rollup["inversions"],
-        "_rollup_unpairable": rollup["unpairable"],
-        "_rollup_unparsed": rollup["unparsed"],
-    })
+    record.update(
+        {
+            "rollups_checked": len(rollup["checked"]),
+            "rollup_inversions": len(rollup["inversions"]),
+            "_rollups_checked": rollup["checked"],
+            "_rollup_inversions": rollup["inversions"],
+            "_rollup_unpairable": rollup["unpairable"],
+            "_rollup_unparsed": rollup["unparsed"],
+        }
+    )
     # Phase 53 (OBS-03, D-01/D-02): the hop-arithmetic dimension, computed
     # above alongside `dependency`/`confidence`/`precheck`/`rollup`. Placed
     # before the self-audit reconciliation call below so Task 2's widened
     # `_SELFAUDIT_CONTRADICTIONS[4]` sees `hop_arithmetic_mismatches` in
     # `record`.
-    record.update({
-        "hop_arithmetic_checked": len(hop_arith["checked"]),
-        "hop_arithmetic_unparsed": len(hop_arith["unparsed"]),
-        "hop_arithmetic_mismatches": len(hop_arith["mismatches"]),
-        "_hop_arithmetic_checked": hop_arith["checked"],
-        "_hop_arithmetic_unparsed": hop_arith["unparsed"],
-        "_hop_arithmetic_mismatches": hop_arith["mismatches"],
-    })
+    record.update(
+        {
+            "hop_arithmetic_checked": len(hop_arith["checked"]),
+            "hop_arithmetic_unparsed": len(hop_arith["unparsed"]),
+            "hop_arithmetic_mismatches": len(hop_arith["mismatches"]),
+            "_hop_arithmetic_checked": hop_arith["checked"],
+            "_hop_arithmetic_unparsed": hop_arith["unparsed"],
+            "_hop_arithmetic_mismatches": hop_arith["mismatches"],
+        }
+    )
     disagreements = _selfaudit_calibration_defects(analysis_text, record)
     record["selfaudit_disagreements"] = len(disagreements)
     record["_selfaudit_disagreements"] = disagreements
@@ -8135,7 +8245,9 @@ def _selftest_defects() -> bool:
     # malformed chains.
     section4_start = defective_text.index("## 4. Derivation Chains")
     section5_start = defective_text.index("## 5. Abandoned Reasoning")
-    missing_section4_text = defective_text[:section4_start] + defective_text[section5_start:]
+    missing_section4_text = (
+        defective_text[:section4_start] + defective_text[section5_start:]
+    )
     try:
         detect_defects(missing_section4_text, "analyses-defective-missing-section4")
     except SectionResolutionError:
@@ -8490,7 +8602,7 @@ Nothing material here.
     )
     p8_selfaudit = (
         "\n\n**Criterion 5: Conclusion**\n"
-        "Quoted span: *\"x\"*\n"
+        'Quoted span: *"x"*\n'
         "Band: **{band}**\n"
         "Justification: y."
     )
@@ -8704,9 +8816,11 @@ Nothing material here.
         "GT-1 → intermediate three → conclusion three."
     )
     p13_rec = detect_defects(p13_doc, "confidence-p13")
-    if p13_rec["confidence_unparsed"] != 3 or set(
-        p13_rec["_confidence_unparsed"]
-    ) != {"c1", "c2", "c3"}:
+    if p13_rec["confidence_unparsed"] != 3 or set(p13_rec["_confidence_unparsed"]) != {
+        "c1",
+        "c2",
+        "c3",
+    }:
         print(
             f"self-test FAIL: defects confidence (P13) expected all three "
             f"near-miss labels to stay unparsed, got confidence_unparsed="
@@ -8800,7 +8914,8 @@ Nothing material here.
     if (
         p15_high_rec["precheck_disagreements"] != 1
         or p15_high_rec["prechecks_parsed"] != 1
-        or p15_high_rec["_precheck_disagreements"][0]["kinds"] != ["label_above_ceiling"]
+        or p15_high_rec["_precheck_disagreements"][0]["kinds"]
+        != ["label_above_ceiling"]
     ):
         print(
             f"self-test FAIL: defects precheck (P15) label above stated "
@@ -8865,10 +8980,9 @@ Nothing material here.
         "**Confidence:** MEDIUM"
     )
     p16b_rec = detect_defects(p16b_doc, "precheck-p16b")
-    if (
-        p16b_rec["precheck_disagreements"] != 1
-        or p16b_rec["_precheck_disagreements"][0]["kinds"] != ["ceiling_above_head"]
-    ):
+    if p16b_rec["precheck_disagreements"] != 1 or p16b_rec["_precheck_disagreements"][
+        0
+    ]["kinds"] != ["ceiling_above_head"]:
         print(
             f"self-test FAIL: defects precheck (P16) a cited LOW chain "
             f"expected kinds=['ceiling_above_head'], got "
@@ -9118,7 +9232,10 @@ Nothing material here.
     p21_medium_rec = detect_defects(
         _p21_doc("MEDIUM", "chains C1 and C2"), "rollup-p21-medium"
     )
-    if p21_medium_rec["rollup_inversions"] != 0 or p21_medium_rec["rollups_checked"] != 1:
+    if (
+        p21_medium_rec["rollup_inversions"] != 0
+        or p21_medium_rec["rollups_checked"] != 1
+    ):
         print(
             f"self-test FAIL: defects rollup (P21) a roll-up at MEDIUM over "
             f"two MEDIUM chains wrongly flagged: rollup_inversions="
@@ -9173,8 +9290,7 @@ Nothing material here.
         "### Chain C1 — first\n\n"
         "GT-1 → intermediate → conclusion one.\n\n"
         "**Confidence: MEDIUM**",
-        "**Recommended approach:** names no chain at all.\n\n"
-        "**Confidence:** HIGH",
+        "**Recommended approach:** names no chain at all.\n\n**Confidence:** HIGH",
     )
     p22_nochain_rec = detect_defects(p22_nochain_doc, "rollup-p22-nochain")
     if (
@@ -9685,7 +9801,7 @@ Nothing material here.
     # to end reconciles the same way.
     p29_c4_selfaudit = (
         "\n\n**Criterion 4: Reason Upward**\n"
-        "Quoted span: *\"x\"*\n"
+        'Quoted span: *"x"*\n'
         "Band: **{band}**\n"
         "Justification: y."
     )
@@ -9913,7 +10029,9 @@ def _selftest_provenance_capture() -> bool:
 
     def fail(letter: str, message: str) -> None:
         nonlocal ok
-        print(f"self-test FAIL: provenance_capture ({letter}) {message}", file=sys.stderr)
+        print(
+            f"self-test FAIL: provenance_capture ({letter}) {message}", file=sys.stderr
+        )
         ok = False
 
     def check_columns(letter: str, record: dict, expected: dict) -> None:
@@ -9933,13 +10051,17 @@ def _selftest_provenance_capture() -> bool:
         check_columns("a", rec, expected_clean)
         for field in prov_fields:
             if type(rec.get(field)) is not int:
-                fail("a", f"{field} expected an int, got {type(rec.get(field)).__name__}")
+                fail(
+                    "a", f"{field} expected an int, got {type(rec.get(field)).__name__}"
+                )
     except Exception as exc:  # noqa: BLE001 -- report, never abort the other controls
         fail("a", f"raised {exc!r}")
 
     # (b) ANTI-VACUITY: GT-1's own literal, mutated.
     try:
-        mutated, n_subs = re.subn(re.escape("$0.0000166667"), "$0.0000199999", text, count=1)
+        mutated, n_subs = re.subn(
+            re.escape("$0.0000166667"), "$0.0000199999", text, count=1
+        )
         if n_subs != 1:
             fail("b", f"expected 1 substitution of GT-1's literal, got {n_subs}")
         else:
@@ -9961,7 +10083,9 @@ def _selftest_provenance_capture() -> bool:
 
     # (c) COVERAGE FLOOR: zero read-at-source labels against retrieved sources.
     try:
-        relabelled = text.replace("*Provenance: read-at-source", "*Provenance: unverified")
+        relabelled = text.replace(
+            "*Provenance: read-at-source", "*Provenance: unverified"
+        )
         if relabelled == text:
             fail("c", "relabelling changed nothing -- fixture label shape moved")
         else:
@@ -9982,7 +10106,9 @@ def _selftest_provenance_capture() -> bool:
         # (e) MISSING FILE.
         try:
             check_columns(
-                "e", _provenance_verify_if_available(text, tmp / "absent.jsonl"), expected_na
+                "e",
+                _provenance_verify_if_available(text, tmp / "absent.jsonl"),
+                expected_na,
             )
         except Exception as exc:  # noqa: BLE001
             fail("e", f"raised {exc!r}")
@@ -9991,7 +10117,9 @@ def _selftest_provenance_capture() -> bool:
         try:
             undispatched = tmp / "undispatched.jsonl"
             undispatched.write_text('{"type": "system"}\n', encoding="utf-8")
-            check_columns("f", _provenance_verify_if_available(text, undispatched), expected_na)
+            check_columns(
+                "f", _provenance_verify_if_available(text, undispatched), expected_na
+            )
         except Exception as exc:  # noqa: BLE001
             fail("f", f"raised {exc!r}")
 
@@ -10011,8 +10139,10 @@ def _selftest_provenance_capture() -> bool:
         ("h-no-capture", False, ["n/a"] * 9),
     ):
         try:
-            with tempfile.TemporaryDirectory() as analyses_tmp, \
-                    tempfile.TemporaryDirectory() as out_tmp:
+            with (
+                tempfile.TemporaryDirectory() as analyses_tmp,
+                tempfile.TemporaryDirectory() as out_tmp,
+            ):
                 analyses_dir = Path(analyses_tmp)
                 shutil.copyfile(fixture_md, analyses_dir / "PR-P1.md")
                 if with_capture:
@@ -10021,7 +10151,9 @@ def _selftest_provenance_capture() -> bool:
                 run_detect_defects(analyses_dir, out_path)
                 rows = out_path.read_text(encoding="utf-8").splitlines()
                 if len(rows) != 2:
-                    fail(label, f"expected header plus 1 data row, got {len(rows)} lines")
+                    fail(
+                        label, f"expected header plus 1 data row, got {len(rows)} lines"
+                    )
                     continue
                 cells = rows[1].split("\t")
                 got_cells = [cells[i] for i in indices]
@@ -10332,17 +10464,17 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         id="C-RENDER-EXAMPLE-PREFIX",
         kind="chain",
         text=(
-            'Example: `GT-2 + GT-5 (criteria facts) → weighted totals: B=82 > A=64, '
-            'driven by reliability×warranty → recommend B`. The full matrix stays in '
+            "Example: `GT-2 + GT-5 (criteria facts) → weighted totals: B=82 > A=64, "
+            "driven by reliability×warranty → recommend B`. The full matrix stays in "
             "the technique's own output — this subsection carries only the single "
-            'collapsed chain, never the matrix re-expressed row-by-row (that would '
-            'violate the one-chain-per-conclusion rule above). An exact tie between '
-            'weighted totals still resolves to a single named recommended option; a '
-            'tie must not produce a multi-option chain endpoint. **Exact-tie tiebreak '
-            '(deterministic):** on an exact tie, prefer the option with fewer `GT-N?` '
-            '(unverified) inputs among its winning criteria; if still tied, name both '
-            'totals in the chain intermediate but select the first-listed option as '
-            'the chain endpoint, and flag the tie explicitly in the Conclusion '
+            "collapsed chain, never the matrix re-expressed row-by-row (that would "
+            "violate the one-chain-per-conclusion rule above). An exact tie between "
+            "weighted totals still resolves to a single named recommended option; a "
+            "tie must not produce a multi-option chain endpoint. **Exact-tie tiebreak "
+            "(deterministic):** on an exact tie, prefer the option with fewer `GT-N?` "
+            "(unverified) inputs among its winning criteria; if still tied, name both "
+            "totals in the chain intermediate but select the first-listed option as "
+            "the chain endpoint, and flag the tie explicitly in the Conclusion "
             "section's confidence line."
         ),
         expected=True,
@@ -10368,13 +10500,13 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         id="C-RENDER-SECONDORDER-PREFIX",
         kind="chain",
         text=(
-            'Example: `GT-1 → first-order conclusion →[2nd] flag-config surface grows '
-            '→[3rd] flag debt accumulates (contradicts GT-4 → back to P2)`. The order '
+            "Example: `GT-1 → first-order conclusion →[2nd] flag-config surface grows "
+            "→[3rd] flag debt accumulates (contradicts GT-4 → back to P2)`. The order "
             "marks (`[2nd]`, `[3rd]`) make the extension's sequence legible. A "
-            'contradicting effect routes the conclusion back to Phase 2 — never '
-            'directly to Phase 3 or past Phase 2. A pass that surfaces no '
-            'non-contradicting downstream effect leaves the parent chain unextended — '
-            'a clean no-op, not an error.'
+            "contradicting effect routes the conclusion back to Phase 2 — never "
+            "directly to Phase 3 or past Phase 2. A pass that surfaces no "
+            "non-contradicting downstream effect leaves the parent chain unextended — "
+            "a clean no-op, not an error."
         ),
         expected=True,
         owner="DETECT-03",
@@ -10394,11 +10526,11 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         id="C-RENDER-BACKTICK",
         kind="chain",
         text=(
-            '`GT-1 (Amdahl) + GT-4 (RTT is encoding-invariant) → the law-permitted '
-            'ceiling on latency improvement from any transport change is exactly the '
-            'fraction of the latency budget currently spent on encoding and connection '
-            'management → everything else (RTT, queuing, DB, downstream fan-out, cold '
-            'starts, GC pauses) is untouched by gRPC.`'
+            "`GT-1 (Amdahl) + GT-4 (RTT is encoding-invariant) → the law-permitted "
+            "ceiling on latency improvement from any transport change is exactly the "
+            "fraction of the latency budget currently spent on encoding and connection "
+            "management → everything else (RTT, queuing, DB, downstream fan-out, cold "
+            "starts, GC pauses) is untouched by gRPC.`"
         ),
         expected=True,
         owner=None,
@@ -10414,8 +10546,8 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         id="C-RENDER-BLOCKQUOTE-BOLD",
         kind="chain",
         text=(
-            '> **GT-1 + GT-2 + GT-4 → attic saves ≈ 107 W/K → GT-5 (attic ≈ '
-            '£500–1,000) → ≈ 3–6 W/K per £100 spent**'
+            "> **GT-1 + GT-2 + GT-4 → attic saves ≈ 107 W/K → GT-5 (attic ≈ "
+            "£500–1,000) → ≈ 3–6 W/K per £100 spent**"
         ),
         expected=True,
         owner=None,
@@ -10554,8 +10686,7 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         id="C-JOIN-ORDERMARK-NEWGT",
         kind="chain",
         text=(
-            "GT-1 → first-order conclusion\n"
-            "→[2nd] GT-9 (another fact) drives the rest"
+            "GT-1 → first-order conclusion\n→[2nd] GT-9 (another fact) drives the rest"
         ),
         expected=False,
         owner=None,
@@ -10596,11 +10727,7 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
     ContractFixture(
         id="C-WRAP-GT-QMARK",
         kind="chain",
-        text=(
-            "GT-2 + GT-5?\n"
-            "→ intermediate claim here\n"
-            "→ final conclusion here"
-        ),
+        text=("GT-2 + GT-5?\n→ intermediate claim here\n→ final conclusion here"),
         expected=True,
         owner="DETECT-03",
         source=(
@@ -11113,12 +11240,15 @@ _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
     "R-VERDICT-EXPIRY": ("Accept — expires at",),
     "R-VERDICT-EXPIRY-BAD": ("Current constraint (expires",),
     "R-HEAD-PROSE-BAD": (
-        "C2's threshold", "bill composition unknown", "+ C2's threshold\n→",
+        "C2's threshold",
+        "bill composition unknown",
+        "+ C2's threshold\n→",
     ),
     "R-HEAD-CHAINREF": ("C2 (threshold)", "bill composition unknown"),
     "R-HEAD-ALLCHAIN": ("C5 (~73% ceiling", "C2's saving"),
     "R-HEAD-PROSE-MID": (
-        "+ C2's threshold + GT-12?", "bill composition unknown",
+        "+ C2's threshold + GT-12?",
+        "bill composition unknown",
     ),
     # `R-HEAD-GTHOP-BAD` / `R-HEAD-GTHOP-OK` (plan 13-09, BL-02) are the
     # same hop differing only in whether it leads with `GT-4`: each first
@@ -11126,14 +11256,17 @@ _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
     # `R-HEAD-ALLCHAIN`; the shared second needle catches an extraction
     # landing outside the C1/C2 family entirely.
     "R-HEAD-GTHOP-BAD": (
-        "→ GT-4's stated duty cycle", "2.20× at full duty",
+        "→ GT-4's stated duty cycle",
+        "2.20× at full duty",
         "threshold)\n→ GT-4's stated duty cycle",
     ),
     "R-HEAD-GTHOP-OK": (
-        "→ the duty cycle stated in GT-4", "2.20× at full duty",
+        "→ the duty cycle stated in GT-4",
+        "2.20× at full duty",
     ),
     "R-HEAD-GTHOP-LATE": (
-        "the second reading is the binding one", "2.20× at full duty",
+        "the second reading is the binding one",
+        "2.20× at full duty",
         "binding one\n→ GT-4's stated duty cycle",
     ),
     # `R-HEAD-PERIOD-BAD` / `R-HEAD-PERIOD-OK` / `R-HEAD-PERIOD-LATE`
@@ -11158,15 +11291,18 @@ _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
     # the newline, and the closing hop the check never re-tests once its
     # two-arrow requirement is already satisfied.
     "R-HEAD-PERIOD-BAD": (
-        "C1's saving is unconditional", "2.20× at full duty",
+        "C1's saving is unconditional",
+        "2.20× at full duty",
         "workload shape.\n→ C2's saving",
     ),
     "R-HEAD-PERIOD-OK": (
-        "C1's saving is unconditional", "2.20× at full duty",
+        "C1's saving is unconditional",
+        "2.20× at full duty",
         "workload shape\n→ C2's saving",
     ),
     "R-HEAD-PERIOD-LATE": (
-        "does not rest on C1 alone", "2.20× at full duty",
+        "does not rest on C1 alone",
+        "2.20× at full duty",
         "alone\n→ C2's saving is real only above the duty-cycle threshold this estimate assumes.",
     ),
     # Phase 14 (LEDGER-03, LEDGER-04, Task 1's needle-uniqueness discipline,
@@ -11190,9 +11326,7 @@ _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
     "R-CLAIM-LABEL-INLINE": (
         "Move sustained workloads to Fargate before evaluating Lambda",
     ),
-    "R-CLAIM-LABEL-CITED": (
-        "**Recommended approach, established in chain C1:**",
-    ),
+    "R-CLAIM-LABEL-CITED": ("**Recommended approach, established in chain C1:**",),
     "R-CLAIM-COLON-MID": ("confidence: HIGH.**",),
     "R-CLAIM-COLON-END": ("confidence:** HIGH —",),
     "R-CLAIM-TERSE-DROP": ("- Measure duty cycle first",),
@@ -11276,8 +11410,7 @@ def _render_unscored_fixture_ids(
     return sorted(
         fid
         for fid in locked_ids
-        if fid not in scored_id_set
-        and not _render_fixture_id_accounted(fid, problems)
+        if fid not in scored_id_set and not _render_fixture_id_accounted(fid, problems)
     )
 
 
@@ -11298,9 +11431,7 @@ def _render_chain_family_ids(
     contract — this is what lets control (x)'s x5 arm drive it with
     synthetic literals instead of the real locked set.
     """
-    return {
-        fid for fid in locked_ids if fid.startswith(tuple(prefixes))
-    }
+    return {fid for fid in locked_ids if fid.startswith(tuple(prefixes))}
 
 
 def _render_coverage_floor_problems(
@@ -11755,8 +11886,7 @@ def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
                 _render_fixture_problem(
                     "mode 2: shape mismatch",
                     fixture_id,
-                    f"extracted text is missing required substring(s) "
-                    f"{missing!r}",
+                    f"extracted text is missing required substring(s) {missing!r}",
                 )
             )
             continue
@@ -11771,8 +11901,7 @@ def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
                 _render_fixture_problem(
                     "mode 2: forbidden substring present",
                     fixture_id,
-                    f"extracted text unexpectedly contains "
-                    f"{present_forbidden!r}",
+                    f"extracted text unexpectedly contains {present_forbidden!r}",
                 )
             )
             continue
@@ -12034,7 +12163,7 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
     # R2: the brevity rule, structural half (D-03).
     "R2": (
         "A hop states exactly ONE inference. If a hop joins two claims "
-        "with \"and\", or carries a parenthetical that could stand as its "
+        'with "and", or carries a parenthetical that could stand as its '
         "own claim, it is two hops — split it."
     ),
     # R3: the brevity rule's `TELL (not the rule):` diagnostic (D-03).
@@ -12256,12 +12385,34 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
 # set, which is half the point of registering it.
 _RENDER_SURFACE_REQUIRED_RULES: dict[str, tuple[str, ...]] = {
     "shared/spine/references/output-template.md": (
-        "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10",
-        "R11", "R12", "R13",
+        "R1",
+        "R2",
+        "R3",
+        "R4",
+        "R5",
+        "R6",
+        "R7",
+        "R8",
+        "R9",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
     ),
     "shared/spine/SKILL-body.md": (
-        "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10",
-        "R11", "R12", "R13",
+        "R1",
+        "R2",
+        "R3",
+        "R4",
+        "R5",
+        "R6",
+        "R7",
+        "R8",
+        "R9",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
     ),
     # R4 is deliberately NOT added here — plan 14-02 declined that
     # extension (D-06): the rubric is a scoring instrument, not the
@@ -12270,10 +12421,21 @@ _RENDER_SURFACE_REQUIRED_RULES: dict[str, tuple[str, ...]] = {
     # three surfaces the claim-inventory and caveat rules must carry
     # (it grades the construct these rules govern).
     "shared/spine/references/validation-rubric.md": (
-        "R1", "R6", "R7", "R8", "R9", "R10", "R11", "R12",
+        "R1",
+        "R6",
+        "R7",
+        "R8",
+        "R9",
+        "R10",
+        "R11",
+        "R12",
     ),
     "shared/references/reason-upward.md": (
-        "R6", "R7", "R8", "R9", "R10",
+        "R6",
+        "R7",
+        "R8",
+        "R9",
+        "R10",
     ),
 }
 
@@ -12306,21 +12468,27 @@ _RENDER_PRE_CONTRACT_WORDINGS: tuple[str, ...] = (
     # surfaces"). Verified via `git show 54cad62~1:shared/spine/SKILL-body.md`
     # showing no wrap wording, then `git show 54cad62:shared/spine/SKILL-body.md`
     # carrying this sentence.
-    ("**A chain too long for one line wraps with arrow-led continuation "
-    "lines — never numbered steps.**"),
+    (
+        "**A chain too long for one line wraps with arrow-led continuation "
+        "lines — never numbered steps.**"
+    ),
     # shared/spine/references/output-template.md, pre-Phase-11, the same
     # commit 54cad62 — a differently-worded twin added to the second
     # surface in the same commit.
-    ("**Multi-hop chains wrap with arrow-led continuation lines — never "
-    "numbered steps.**"),
+    (
+        "**Multi-hop chains wrap with arrow-led continuation lines — never "
+        "numbered steps.**"
+    ),
     # shared/spine/references/validation-rubric.md, removed by plan 11-06
     # commit e4ff9c0 ("fix(11-06): reword validation-rubric.md Criterion 4
     # to the split-not-wrap form") — CR-01's own finding
     # (`11-REVIEW.md`/`11-VERIFICATION.md`): this wording shipped for a
     # full milestone inside the tree while sitting outside this gate's
     # pre-Plan-11-07 scan scope.
-    ("a chain too long for one line wraps with `→`-led continuation "
-    "lines, never as an ordered list"),
+    (
+        "a chain too long for one line wraps with `→`-led continuation "
+        "lines, never as an ordered list"
+    ),
 )
 
 # Real fabricated-example wordings this tree actually shipped — the
@@ -12336,8 +12504,10 @@ _RENDER_PRE_CONTRACT_WORDINGS: tuple[str, ...] = (
 # DISCLOSED LIMITATION: this leg detects an ENUMERATED frame set pinned
 # against a wording this tree really shipped, not arbitrary fabrication.
 _RENDER_FABRICATED_EXAMPLE_WORDINGS: tuple[str, ...] = (
-    ("Rendered examples follow the prescribed head form (`GT-1? "
-    "([brief fact label]) + C2 ([brief fact label])`)."),
+    (
+        "Rendered examples follow the prescribed head form (`GT-1? "
+        "([brief fact label]) + C2 ([brief fact label])`)."
+    ),
     "Rendered examples follow",
     "examples follow the prescribed head form",
 )
@@ -12665,9 +12835,7 @@ class _RenderRegistrySnapshot:
         """The only producer that reads the real module constants."""
         return cls(
             extraction_rows=_RENDER_CONTRACT_EXTRACTION_TABLE,
-            extraction_ids=tuple(
-                row[0] for row in _RENDER_CONTRACT_EXTRACTION_TABLE
-            ),
+            extraction_ids=tuple(row[0] for row in _RENDER_CONTRACT_EXTRACTION_TABLE),
             fixture_shape=_RENDER_FIXTURE_SHAPE,
             fixture_forbidden=_RENDER_FIXTURE_FORBIDDEN,
             surfaces=_RENDER_RULE_SURFACES,
@@ -12715,6 +12883,7 @@ _RENDER_REGISTRY_FIELDS: tuple[str, ...] = (
     "chain_form_exempt",
 )
 
+
 def _render_registry_lock_problems(
     snapshot: _RenderRegistrySnapshot,
 ) -> tuple[list[str], set[str]]:
@@ -12744,17 +12913,33 @@ def _render_registry_lock_problems(
     checked: set[str] = set()
 
     expected_ids = [
-        "R-CHAIN-CONFORMING", "R-CHAIN-NUMBERED", "R-CHAIN-WRAPPED",
-        "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
-        "R-CLAIM-CAVEAT-CITED", "R-CLAIM-CAVEAT-MARKED",
-        "R-CLAIM-COLON-END", "R-CLAIM-COLON-MID",
-        "R-CLAIM-LABEL-BARE", "R-CLAIM-LABEL-CITED", "R-CLAIM-LABEL-INLINE",
-        "R-CLAIM-TERSE-DROP", "R-CLAIM-TERSE-KEEP",
-        "R-HEAD-ALLCHAIN", "R-HEAD-CHAINREF", "R-HEAD-GTHOP-BAD",
-        "R-HEAD-GTHOP-LATE", "R-HEAD-GTHOP-OK",
-        "R-HEAD-PERIOD-BAD", "R-HEAD-PERIOD-LATE", "R-HEAD-PERIOD-OK",
-        "R-HEAD-PROSE-BAD", "R-HEAD-PROSE-MID",
-        "R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD",
+        "R-CHAIN-CONFORMING",
+        "R-CHAIN-NUMBERED",
+        "R-CHAIN-WRAPPED",
+        "R-CITE-INLINE",
+        "R-CITE-LEDGER",
+        "R-CITE-NONE",
+        "R-CLAIM-CAVEAT-CITED",
+        "R-CLAIM-CAVEAT-MARKED",
+        "R-CLAIM-COLON-END",
+        "R-CLAIM-COLON-MID",
+        "R-CLAIM-LABEL-BARE",
+        "R-CLAIM-LABEL-CITED",
+        "R-CLAIM-LABEL-INLINE",
+        "R-CLAIM-TERSE-DROP",
+        "R-CLAIM-TERSE-KEEP",
+        "R-HEAD-ALLCHAIN",
+        "R-HEAD-CHAINREF",
+        "R-HEAD-GTHOP-BAD",
+        "R-HEAD-GTHOP-LATE",
+        "R-HEAD-GTHOP-OK",
+        "R-HEAD-PERIOD-BAD",
+        "R-HEAD-PERIOD-LATE",
+        "R-HEAD-PERIOD-OK",
+        "R-HEAD-PROSE-BAD",
+        "R-HEAD-PROSE-MID",
+        "R-VERDICT-EXPIRY",
+        "R-VERDICT-EXPIRY-BAD",
     ]
 
     # The AUTHORITATIVE extraction arm: all FOUR columns of every row, not
@@ -12771,166 +12956,166 @@ def _render_registry_lock_problems(
     # cases, not as the authority.
     expected_extraction_rows = (
         (
-            'R-CHAIN-CONFORMING',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Conforming — head, then one hop per line:**',
+            "R-CHAIN-CONFORMING",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Conforming — head, then one hop per line:**",
         ),
         (
-            'R-CHAIN-WRAPPED',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Non-conforming — a hop broken across physical lines:**',
+            "R-CHAIN-WRAPPED",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Non-conforming — a hop broken across physical lines:**",
         ),
         (
-            'R-CHAIN-NUMBERED',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Non-conforming — the same hops rendered as a numbered list:**',
+            "R-CHAIN-NUMBERED",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Non-conforming — the same hops rendered as a numbered list:**",
         ),
         (
-            'R-CITE-INLINE',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Conforming — inline chain citation:**',
+            "R-CITE-INLINE",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Conforming — inline chain citation:**",
         ),
         (
-            'R-CITE-LEDGER',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Conforming — closure-ledger row:**',
+            "R-CITE-LEDGER",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Conforming — closure-ledger row:**",
         ),
         (
-            'R-CITE-NONE',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Non-conforming — a claim naming no chain and quoted by no ledger row:**',
+            "R-CITE-NONE",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Non-conforming — a claim naming no chain and quoted by no ledger row:**",
         ),
         (
-            'R-VERDICT-EXPIRY',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Conforming — a current constraint recording its expiry:**',
+            "R-VERDICT-EXPIRY",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Conforming — a current constraint recording its expiry:**",
         ),
         (
-            'R-VERDICT-EXPIRY-BAD',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Non-conforming — the expiry hoisted into the token slot:**',
+            "R-VERDICT-EXPIRY-BAD",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Non-conforming — the expiry hoisted into the token slot:**",
         ),
         (
-            'R-HEAD-PROSE-BAD',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Non-conforming — an input carrying unparenthesized prose:**',
+            "R-HEAD-PROSE-BAD",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Non-conforming — an input carrying unparenthesized prose:**",
         ),
         (
-            'R-HEAD-CHAINREF',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Conforming — the same head with the upstream chain as an input:**',
+            "R-HEAD-CHAINREF",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Conforming — the same head with the upstream chain as an input:**",
         ),
         (
-            'R-HEAD-ALLCHAIN',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Conforming — a chain consuming only upstream conclusions:**',
+            "R-HEAD-ALLCHAIN",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Conforming — a chain consuming only upstream conclusions:**",
         ),
         (
-            'R-HEAD-PROSE-MID',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Non-conforming, and undetected by the form check — the same prose input in a non-final position:**',
+            "R-HEAD-PROSE-MID",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Non-conforming, and undetected by the form check — the same prose input in a non-final position:**",
         ),
         (
-            'R-HEAD-GTHOP-BAD',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Non-conforming — a hop beginning with a GT-N identifier:**',
+            "R-HEAD-GTHOP-BAD",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Non-conforming — a hop beginning with a GT-N identifier:**",
         ),
         (
-            'R-HEAD-GTHOP-OK',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Conforming — the same hop with the identifier moved off the front:**',
+            "R-HEAD-GTHOP-OK",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Conforming — the same hop with the identifier moved off the front:**",
         ),
         (
-            'R-HEAD-GTHOP-LATE',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Non-conforming, and undetected by the form check — the GT-led hop in a later position:**',
+            "R-HEAD-GTHOP-LATE",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Non-conforming, and undetected by the form check — the GT-led hop in a later position:**",
         ),
         (
-            'R-HEAD-PERIOD-BAD',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Non-conforming — the first hop closing its own sentence:**',
+            "R-HEAD-PERIOD-BAD",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Non-conforming — the first hop closing its own sentence:**",
         ),
         (
-            'R-HEAD-PERIOD-OK',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
+            "R-HEAD-PERIOD-OK",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
             "**Conforming — the same chain with the first hop's terminal period removed:**",
         ),
         (
-            'R-HEAD-PERIOD-LATE',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Non-conforming, and undetected by the form check — the same period moved to a later hop:**',
+            "R-HEAD-PERIOD-LATE",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Non-conforming, and undetected by the form check — the same period moved to a later hop:**",
         ),
         (
-            'R-CLAIM-LABEL-BARE',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Not a claim — a bold lead-in alone on its line, carrying no citation:**',
+            "R-CLAIM-LABEL-BARE",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Not a claim — a bold lead-in alone on its line, carrying no citation:**",
         ),
         (
-            'R-CLAIM-LABEL-INLINE',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**A claim — the same lead-in carrying its assertion on the same line:**',
+            "R-CLAIM-LABEL-INLINE",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**A claim — the same lead-in carrying its assertion on the same line:**",
         ),
         (
-            'R-CLAIM-LABEL-CITED',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**A claim — the lead-in alone on its line, but carrying its own citation:**',
+            "R-CLAIM-LABEL-CITED",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**A claim — the lead-in alone on its line, but carrying its own citation:**",
         ),
         (
-            'R-CLAIM-COLON-MID',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Not matched at all — a bold span whose colon sits inside it:**',
+            "R-CLAIM-COLON-MID",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Not matched at all — a bold span whose colon sits inside it:**",
         ),
         (
-            'R-CLAIM-COLON-END',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**A claim — the same statement with the colon closing the bold span:**',
+            "R-CLAIM-COLON-END",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**A claim — the same statement with the colon closing the bold span:**",
         ),
         (
-            'R-CLAIM-TERSE-DROP',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Not a claim — a short list item with no sentence-ending punctuation:**',
+            "R-CLAIM-TERSE-DROP",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Not a claim — a short list item with no sentence-ending punctuation:**",
         ),
         (
-            'R-CLAIM-TERSE-KEEP',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**A claim — a short list item closing its own sentence:**',
+            "R-CLAIM-TERSE-KEEP",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**A claim — a short list item closing its own sentence:**",
         ),
         (
-            'R-CLAIM-CAVEAT-MARKED',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Conformant but still untraced — a caveat carrying the flagged-assumption marker:**',
+            "R-CLAIM-CAVEAT-MARKED",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Conformant but still untraced — a caveat carrying the flagged-assumption marker:**",
         ),
         (
-            'R-CLAIM-CAVEAT-CITED',
-            'shared/spine/references/output-template.md',
-            'fenced-block',
-            '**Conformant and traced — the same caveat citing the chain it qualifies:**',
+            "R-CLAIM-CAVEAT-CITED",
+            "shared/spine/references/output-template.md",
+            "fenced-block",
+            "**Conformant and traced — the same caveat citing the chain it qualifies:**",
         ),
     )
     if snapshot.extraction_rows != expected_extraction_rows:
@@ -12992,40 +13177,51 @@ def _render_registry_lock_problems(
             "R-VERDICT-EXPIRY": ("Accept — expires at",),
             "R-VERDICT-EXPIRY-BAD": ("Current constraint (expires",),
             "R-HEAD-PROSE-BAD": (
-                "C2's threshold", "bill composition unknown", "+ C2's threshold\n→",
+                "C2's threshold",
+                "bill composition unknown",
+                "+ C2's threshold\n→",
             ),
             "R-HEAD-CHAINREF": ("C2 (threshold)", "bill composition unknown"),
             "R-HEAD-ALLCHAIN": ("C5 (~73% ceiling", "C2's saving"),
             "R-HEAD-PROSE-MID": (
-                "+ C2's threshold + GT-12?", "bill composition unknown",
+                "+ C2's threshold + GT-12?",
+                "bill composition unknown",
             ),
             "R-HEAD-GTHOP-BAD": (
-                "→ GT-4's stated duty cycle", "2.20× at full duty",
+                "→ GT-4's stated duty cycle",
+                "2.20× at full duty",
                 "threshold)\n→ GT-4's stated duty cycle",
             ),
             "R-HEAD-GTHOP-OK": (
-                "→ the duty cycle stated in GT-4", "2.20× at full duty",
+                "→ the duty cycle stated in GT-4",
+                "2.20× at full duty",
             ),
             "R-HEAD-GTHOP-LATE": (
-                "the second reading is the binding one", "2.20× at full duty",
+                "the second reading is the binding one",
+                "2.20× at full duty",
                 "binding one\n→ GT-4's stated duty cycle",
             ),
             "R-HEAD-PERIOD-BAD": (
-                "C1's saving is unconditional", "2.20× at full duty",
+                "C1's saving is unconditional",
+                "2.20× at full duty",
                 "workload shape.\n→ C2's saving",
             ),
             "R-HEAD-PERIOD-OK": (
-                "C1's saving is unconditional", "2.20× at full duty",
+                "C1's saving is unconditional",
+                "2.20× at full duty",
                 "workload shape\n→ C2's saving",
             ),
             "R-HEAD-PERIOD-LATE": (
-                "does not rest on C1 alone", "2.20× at full duty",
+                "does not rest on C1 alone",
+                "2.20× at full duty",
                 "alone\n→ C2's saving is real only above the duty-cycle threshold this estimate assumes.",
             ),
             # Phase 14 (LEDGER-03, LEDGER-04): the nine R-CLAIM-* ids carry
             # their discriminating needles from the start, the same
             # treatment every fixture added since WR-01 has received.
-            "R-CLAIM-LABEL-BARE": ("**Recommended approach — three steps, in this order:**",),
+            "R-CLAIM-LABEL-BARE": (
+                "**Recommended approach — three steps, in this order:**",
+            ),
             "R-CLAIM-LABEL-INLINE": (
                 "Move sustained workloads to Fargate before evaluating Lambda",
             ),
@@ -13068,25 +13264,57 @@ def _render_registry_lock_problems(
     )
     if snapshot.surfaces != expected_surfaces:
         problems.append(
-            f"surfaces: {snapshot.surfaces!r} != expected "
-            f"{expected_surfaces!r}"
+            f"surfaces: {snapshot.surfaces!r} != expected {expected_surfaces!r}"
         )
     checked.add("surfaces")
 
     expected_required_rules = {
         "shared/spine/references/output-template.md": (
-            "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10",
-            "R11", "R12", "R13",
+            "R1",
+            "R2",
+            "R3",
+            "R4",
+            "R5",
+            "R6",
+            "R7",
+            "R8",
+            "R9",
+            "R10",
+            "R11",
+            "R12",
+            "R13",
         ),
         "shared/spine/SKILL-body.md": (
-            "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10",
-            "R11", "R12", "R13",
+            "R1",
+            "R2",
+            "R3",
+            "R4",
+            "R5",
+            "R6",
+            "R7",
+            "R8",
+            "R9",
+            "R10",
+            "R11",
+            "R12",
+            "R13",
         ),
         "shared/spine/references/validation-rubric.md": (
-            "R1", "R6", "R7", "R8", "R9", "R10", "R11", "R12",
+            "R1",
+            "R6",
+            "R7",
+            "R8",
+            "R9",
+            "R10",
+            "R11",
+            "R12",
         ),
         "shared/references/reason-upward.md": (
-            "R6", "R7", "R8", "R9", "R10",
+            "R6",
+            "R7",
+            "R8",
+            "R9",
+            "R10",
         ),
     }
     if snapshot.required_rules != expected_required_rules:
@@ -13177,12 +13405,18 @@ def _render_registry_lock_problems(
     # GREEN with (l1) running zero real cases. Locked by value here; the
     # non-tautology and case-count floors live beside (l1) itself.
     expected_pre_contract_wordings = (
-        ("**A chain too long for one line wraps with arrow-led continuation "
-        "lines — never numbered steps.**"),
-        ("**Multi-hop chains wrap with arrow-led continuation lines — never "
-        "numbered steps.**"),
-        ("a chain too long for one line wraps with `→`-led continuation "
-        "lines, never as an ordered list"),
+        (
+            "**A chain too long for one line wraps with arrow-led continuation "
+            "lines — never numbered steps.**"
+        ),
+        (
+            "**Multi-hop chains wrap with arrow-led continuation lines — never "
+            "numbered steps.**"
+        ),
+        (
+            "a chain too long for one line wraps with `→`-led continuation "
+            "lines, never as an ordered list"
+        ),
     )
     if snapshot.pre_contract_wordings != expected_pre_contract_wordings:
         problems.append(
@@ -13241,15 +13475,14 @@ def _render_registry_lock_problems(
     # surface for. Locked here by value, never against the module
     # constant it mirrors.
     expected_fabricated_example_wordings = (
-        ("Rendered examples follow the prescribed head form (`GT-1? "
-        "([brief fact label]) + C2 ([brief fact label])`)."),
+        (
+            "Rendered examples follow the prescribed head form (`GT-1? "
+            "([brief fact label]) + C2 ([brief fact label])`)."
+        ),
         "Rendered examples follow",
         "examples follow the prescribed head form",
     )
-    if (
-        snapshot.fabricated_example_wordings
-        != expected_fabricated_example_wordings
-    ):
+    if snapshot.fabricated_example_wordings != expected_fabricated_example_wordings:
         problems.append(
             f"fabricated_example_wordings: "
             f"{snapshot.fabricated_example_wordings!r} != expected "
@@ -13361,8 +13594,7 @@ def _render_registry_lock_problems(
         for key, clause in expected_literal_clauses.items():
             if clause not in snapshot.literals[key]:
                 problems.append(
-                    f"literals: {key} is missing its required clause "
-                    f"{clause!r}"
+                    f"literals: {key} is missing its required clause {clause!r}"
                 )
 
     # A `sha256:<hex>` pin over `_RENDER_RULE_LITERALS`, recomputed as
@@ -13410,15 +13642,17 @@ def _render_registry_lock_problems(
     expected_literal_digest = (
         "sha256:6237790c44cea1093dbcb391d2cce7f0d758b9ddeb1e7697f27f437a55e1524a"
     )
-    literal_digest = "sha256:" + hashlib.sha256(
-        "\x00".join(
-            f"{k}={v}" for k, v in sorted(snapshot.literals.items())
-        ).encode("utf-8")
-    ).hexdigest()
+    literal_digest = (
+        "sha256:"
+        + hashlib.sha256(
+            "\x00".join(
+                f"{k}={v}" for k, v in sorted(snapshot.literals.items())
+            ).encode("utf-8")
+        ).hexdigest()
+    )
     if literal_digest != expected_literal_digest:
         problems.append(
-            f"literals: digest {literal_digest!r} != pinned "
-            f"{expected_literal_digest!r}"
+            f"literals: digest {literal_digest!r} != pinned {expected_literal_digest!r}"
         )
     checked.add("literals")
 
@@ -13535,8 +13769,7 @@ def _render_required_rule_problems(
                 continue
             if literal not in text:
                 problems.append(
-                    f"{relpath}: rule {key} is missing — deleted from "
-                    f"this surface"
+                    f"{relpath}: rule {key} is missing — deleted from this surface"
                 )
     return problems
 
@@ -13815,7 +14048,9 @@ def _dispatch_reachability_problems(
     return problems
 
 
-def _extract_whole_physical_line(source_text: str, anchor: str, source_file: str) -> str:
+def _extract_whole_physical_line(
+    source_text: str, anchor: str, source_file: str
+) -> str:
     """Habitat mode `whole-physical-line`: return the anchor's own physical
     line, stripped — lead-in text and all, not a de-contextualised
     substring.
@@ -13823,7 +14058,8 @@ def _extract_whole_physical_line(source_text: str, anchor: str, source_file: str
     matches = [line for line in source_text.splitlines() if anchor in line]
     if len(matches) != 1:
         raise _ContractAnchorError(
-            anchor, source_file,
+            anchor,
+            source_file,
             f"matched {len(matches)} physical lines (need exactly 1)",
         )
     return matches[0].strip()
@@ -13841,13 +14077,15 @@ def _extract_quoted_eg(source_text: str, anchor: str, source_file: str) -> str:
     matches = [line for line in source_text.splitlines() if anchor in line]
     if len(matches) != 1:
         raise _ContractAnchorError(
-            anchor, source_file,
+            anchor,
+            source_file,
             f"matched {len(matches)} physical lines (need exactly 1)",
         )
     m = _QUOTED_EG_RE.search(matches[0])
     if m is None:
         raise _ContractAnchorError(
-            anchor, source_file,
+            anchor,
+            source_file,
             'bullet line resolved but no (e.g., "...") parenthetical found on it',
         )
     return m.group(1)
@@ -13867,7 +14105,8 @@ def _extract_heading_block(source_text: str, anchor: str, source_file: str) -> s
     matches = list(heading_re.finditer(source_text))
     if len(matches) != 1:
         raise _ContractAnchorError(
-            anchor, source_file,
+            anchor,
+            source_file,
             f"line-start heading matched {len(matches)} times (need exactly 1)",
         )
     start = matches[0].start()
@@ -13875,7 +14114,8 @@ def _extract_heading_block(source_text: str, anchor: str, source_file: str) -> s
     term_idx = source_text.find(terminator, start)
     if term_idx == -1:
         raise _ContractAnchorError(
-            anchor, source_file,
+            anchor,
+            source_file,
             f"heading resolved but no {terminator!r} terminator found after it",
         )
     block = source_text[start:term_idx]
@@ -13899,7 +14139,8 @@ def _extract_fenced_block(source_text: str, anchor: str, source_file: str) -> st
     label_count = source_text.count(anchor)
     if label_count != 1:
         raise _ContractAnchorError(
-            anchor, source_file,
+            anchor,
+            source_file,
             f"label matched {label_count} times (need exactly 1)",
         )
     label_idx = source_text.index(anchor)
@@ -13907,8 +14148,9 @@ def _extract_fenced_block(source_text: str, anchor: str, source_file: str) -> st
     m = _FENCED_TEXT_BLOCK_RE.search(after)
     if m is None:
         raise _ContractAnchorError(
-            anchor, source_file,
-            'label resolved but no fenced ```text block found after it',
+            anchor,
+            source_file,
+            "label resolved but no fenced ```text block found after it",
         )
     return m.group(1)
 
@@ -13927,7 +14169,8 @@ def _extract_backtick_span(source_text: str, anchor: str, source_file: str) -> s
     matches = [line for line in source_text.splitlines() if anchor in line]
     if len(matches) != 1:
         raise _ContractAnchorError(
-            anchor, source_file,
+            anchor,
+            source_file,
             f"matched {len(matches)} physical lines (need exactly 1)",
         )
     line = matches[0]
@@ -13941,7 +14184,8 @@ def _extract_backtick_span(source_text: str, anchor: str, source_file: str) -> s
         if span.startswith(prefix):
             return span
     raise _ContractAnchorError(
-        anchor, source_file,
+        anchor,
+        source_file,
         f"no backtick span on the anchor line starts with {prefix!r}",
     )
 
@@ -13979,7 +14223,9 @@ def _extract_contract_example(row: tuple[str, str, str, str]) -> str:
         return _extract_fenced_block(source_text, anchor, source_file)
     if habitat_mode == "backtick-span":
         return _extract_backtick_span(source_text, anchor, source_file)
-    raise _ContractAnchorError(anchor, source_file, f"unknown habitat mode {habitat_mode!r}")
+    raise _ContractAnchorError(
+        anchor, source_file, f"unknown habitat mode {habitat_mode!r}"
+    )
 
 
 # D-09: the qualification behind ROADMAP criterion 2, recorded in-source
@@ -14105,7 +14351,9 @@ def _selftest_contract_pin(strict: bool = False) -> bool:
     bad_kind_ids: set[str] = set()
     for fx in _CONTRACT_FIXTURES:
         if not fx.id:
-            print("self-test FAIL: contract_pin Guard D empty fixture id", file=sys.stderr)
+            print(
+                "self-test FAIL: contract_pin Guard D empty fixture id", file=sys.stderr
+            )
             ok = False
         elif fx.id in seen_ids:
             print(
@@ -14331,7 +14579,9 @@ def _selftest_contract_pin(strict: bool = False) -> bool:
         # literal silently in place (D-11). `leading` is the first derived
         # token, matching the order-sensitive comparison above.
         leading = derived_vocab[0].capitalize()
-        constructed_emdash = f"{leading} \u2014 rubric-derived vocabulary, not transcribed"
+        constructed_emdash = (
+            f"{leading} \u2014 rubric-derived vocabulary, not transcribed"
+        )
         constructed_bare = leading
 
         emdash_fx = fixtures_by_id.get("V-RUBRIC-CRIT2-EMDASH")
@@ -14358,9 +14608,14 @@ def _selftest_contract_pin(strict: bool = False) -> bool:
                 # for existing, so it carries its own distinctly-worded
                 # message rather than sharing the extraction-plumbing text
                 # above.
-                emdash_observed = _contract_fixture_result(emdash_fx, constructed_emdash)
+                emdash_observed = _contract_fixture_result(
+                    emdash_fx, constructed_emdash
+                )
                 bare_observed = _contract_fixture_result(bare_fx, constructed_bare)
-                if emdash_observed != emdash_fx.expected or bare_observed != bare_fx.expected:
+                if (
+                    emdash_observed != emdash_fx.expected
+                    or bare_observed != bare_fx.expected
+                ):
                     print(
                         f"self-test FAIL: contract_pin Guard A [rubric "
                         f"mode 3: DETECTOR REGRESSION against the "
@@ -14437,11 +14692,13 @@ def _selftest_contract_pin(strict: bool = False) -> bool:
     # owner tally, so the two per-owner counts can legitimately sum to less
     # than `n_pinned_red` while Guard B is failing.
     n_detect02 = sum(
-        1 for i in pinned_red_ids
+        1
+        for i in pinned_red_ids
         if (fx := fixtures_by_id.get(i)) is not None and fx.owner == "DETECT-02"
     )
     n_detect03 = sum(
-        1 for i in pinned_red_ids
+        1
+        for i in pinned_red_ids
         if (fx := fixtures_by_id.get(i)) is not None and fx.owner == "DETECT-03"
     )
 
@@ -14649,7 +14906,8 @@ def _selftest_gap6_composition_heads() -> bool:
 
     def _section(*pairs: tuple[str, str]) -> str:
         return "\n\n".join(
-            f"### Conclusion {cid}: t\n\n{head}{tail}" for cid, head in pairs)
+            f"### Conclusion {cid}: t\n\n{head}{tail}" for cid, head in pairs
+        )
 
     # (d) clean DAG: C2 composes on C1, which is GT-headed.
     clean = _section(("C1", "GT-1 (a) + GT-2 (b)"), ("C2", "GT-3 (c) + C1 (d)"))
@@ -14660,18 +14918,12 @@ def _selftest_gap6_composition_heads() -> bool:
     # (e) two-node cycle.
     cyc = _section(("C1", "GT-1 (a) + C2 (b)"), ("C2", "GT-2 (c) + C1 (d)"))
     if sorted(_chain_dependency_defects(cyc)["cycles"]) != ["c1", "c2"]:
-        _fail(
-            f"(e) two-node cycle not reported: "
-            f"{_chain_dependency_defects(cyc)!r}"
-        )
+        _fail(f"(e) two-node cycle not reported: {_chain_dependency_defects(cyc)!r}")
 
     # (f) self-loop.
     selfloop = _section(("C1", "GT-1 (a) + C1 (b)"))
     if _chain_dependency_defects(selfloop)["cycles"] != ["c1"]:
-        _fail(
-            f"(f) self-loop not reported: "
-            f"{_chain_dependency_defects(selfloop)!r}"
-        )
+        _fail(f"(f) self-loop not reported: {_chain_dependency_defects(selfloop)!r}")
 
     # (h) scope guard: a head-less block is a SHAPE defect owned by
     #     `_chain_block_well_formed`, not a grounding defect. Reporting it
@@ -14679,7 +14931,8 @@ def _selftest_gap6_composition_heads() -> bool:
     #     contains exactly this shape (condA-P3, condB-P2).
     headless = _section(("C1", "GT-1 (a) + GT-2 (b)")) + (
         "\n\n### Conclusion C2: t\n\n1. **2nd order:** an effect with no "
-        "chain head at all\n")
+        "chain head at all\n"
+    )
     dep = _chain_dependency_defects(headless)
     if "c2" in dep["ungrounded"]:
         _fail(f"(h) head-less block wrongly reported ungrounded: {dep!r}")
@@ -14735,27 +14988,26 @@ def _selftest_gap8_bold_chain_labels() -> bool:
     tail = "\n-> intermediate claim\n-> the conclusion"
 
     def _section(*pairs: tuple[str, str]) -> str:
-        return "\n\n".join(
-            f"**{cid} — t**\n\n{head}{tail}" for cid, head in pairs)
+        return "\n\n".join(f"**{cid} — t**\n\n{head}{tail}" for cid, head in pairs)
 
     # (a) the regressing shape: a bold label above a GT head. The label must
     #     be skipped and the GTs read — NOT `(set(), {'C1'})`.
     if _chain_head_refs(f"**C1 — t**\n\nGT-1 (a) + GT-2 (b){tail}") != (
-        {"GT-1", "GT-2"}, set()
+        {"GT-1", "GT-2"},
+        set(),
     ):
         _fail("(a) bold-labelled GT head not read as its own head")
 
     # (b) a bold-labelled COMPOSING chain still reports its real chain ref,
     #     so the skip did not cost the composition signal GAP-6 added.
-    if _chain_head_refs(f"**C2 — t**\n\nGT-3 (c) + C1 (d){tail}") != (
-        {"GT-3"}, {"C1"}
-    ):
+    if _chain_head_refs(f"**C2 — t**\n\nGT-3 (c) + C1 (d){tail}") != ({"GT-3"}, {"C1"}):
         _fail("(b) bold-labelled composing head lost its chain ref")
 
     # (c) end-to-end on the run-4 shape: a clean two-chain DAG under bold
     #     labels reports neither cycles nor ungrounded chains.
     dep = _chain_dependency_defects(
-        _section(("C1", "GT-1 (a) + GT-2 (b)"), ("C2", "GT-3 (c) + C1 (d)")))
+        _section(("C1", "GT-1 (a) + GT-2 (b)"), ("C2", "GT-3 (c) + C1 (d)"))
+    )
     if dep["cycles"] or dep["ungrounded"]:
         _fail(f"(c) clean bold-labelled DAG reported defects: {dep!r}")
 
@@ -14763,7 +15015,8 @@ def _selftest_gap8_bold_chain_labels() -> bool:
     #     Pins `idx == 0`; a blanket bold skip returns `(set(), set())` here
     #     and turns a well-formed grounded chain into a head-less one.
     if _chain_head_refs(f"**C1 — t**\n\n**GT-1 (a) + GT-2 (b)**{tail}") != (
-        {"GT-1", "GT-2"}, set()
+        {"GT-1", "GT-2"},
+        set(),
     ):
         _fail("(d) bolded head line below the label was wrongly skipped")
 
@@ -14771,18 +15024,21 @@ def _selftest_gap8_bold_chain_labels() -> bool:
     #     the heading form is untouched. A guard that skipped everything
     #     would pass (a)-(d) while detecting nothing.
     cyc = _chain_dependency_defects(
-        _section(("C1", "GT-1 (a) + C2 (b)"), ("C2", "GT-2 (c) + C1 (d)")))
+        _section(("C1", "GT-1 (a) + C2 (b)"), ("C2", "GT-2 (c) + C1 (d)"))
+    )
     if sorted(cyc["cycles"]) != ["c1", "c2"]:
         _fail(f"(e) bold-labelled two-node cycle not reported: {cyc!r}")
     if _chain_head_refs(f"### Conclusion C1: t\n\nGT-1 (a) + GT-2 (b){tail}") != (
-        {"GT-1", "GT-2"}, set()
+        {"GT-1", "GT-2"},
+        set(),
     ):
         _fail("(e) heading-form head regressed")
 
     # (f) NON-VACUITY: a genuinely ungrounded bold-labelled chain is still
     #     reported, and does not come back as a cycle.
     ung = _chain_dependency_defects(
-        _section(("C1", "GT-1 (a) + GT-2 (b)"), ("C2", "C8 + C9")))
+        _section(("C1", "GT-1 (a) + GT-2 (b)"), ("C2", "C8 + C9"))
+    )
     if ung["ungrounded"] != ["c2"]:
         _fail(f"(f) bold-labelled ungrounded chain not reported: {ung!r}")
     if ung["cycles"]:
@@ -15191,9 +15447,7 @@ def _selftest_render_contract() -> bool:
         return fragments
 
     # (b) Chain verdicts.
-    if conforming is not None and not _score_chain(
-        "R-CHAIN-CONFORMING", conforming
-    ):
+    if conforming is not None and not _score_chain("R-CHAIN-CONFORMING", conforming):
         _fail(
             "(b) R-CHAIN-CONFORMING (doc label 'Conforming — head, then "
             "one hop per line:') scored malformed, expected well-formed"
@@ -15223,25 +15477,19 @@ def _selftest_render_contract() -> bool:
     #     all-`Cn` shape GAP-6 widened `_CHAIN_REF_TOKEN` for; without it a
     #     future narrowing of that token breaks this shape with every
     #     other gate green.
-    if head_prose_bad is not None and _score_chain(
-        "R-HEAD-PROSE-BAD", head_prose_bad
-    ):
+    if head_prose_bad is not None and _score_chain("R-HEAD-PROSE-BAD", head_prose_bad):
         _fail(
             "(b) R-HEAD-PROSE-BAD (doc label 'Non-conforming — an input "
             "carrying unparenthesized prose:') scored well-formed, "
             "expected malformed"
         )
-    if head_chainref is not None and not _score_chain(
-        "R-HEAD-CHAINREF", head_chainref
-    ):
+    if head_chainref is not None and not _score_chain("R-HEAD-CHAINREF", head_chainref):
         _fail(
             "(b) R-HEAD-CHAINREF (doc label 'Conforming — the same head "
             "with the upstream chain as an input:') scored malformed, "
             "expected well-formed"
         )
-    if head_allchain is not None and not _score_chain(
-        "R-HEAD-ALLCHAIN", head_allchain
-    ):
+    if head_allchain is not None and not _score_chain("R-HEAD-ALLCHAIN", head_allchain):
         _fail(
             "(b) R-HEAD-ALLCHAIN (doc label 'Conforming — a chain "
             "consuming only upstream conclusions:') scored malformed, "
@@ -15274,17 +15522,13 @@ def _selftest_render_contract() -> bool:
     #     pin BOTH halves of R9 — the refusal and the rewrite it prescribes.
     #     A relaxation of `_ARROW_LED_GT_RE` fails the first; a narrowing
     #     that also rejected the rewrite fails the second.
-    if head_gthop_bad is not None and _score_chain(
-        "R-HEAD-GTHOP-BAD", head_gthop_bad
-    ):
+    if head_gthop_bad is not None and _score_chain("R-HEAD-GTHOP-BAD", head_gthop_bad):
         _fail(
             "(b) R-HEAD-GTHOP-BAD (doc label 'Non-conforming — a hop "
             "beginning with a GT-N identifier:') scored well-formed, "
             "expected malformed"
         )
-    if head_gthop_ok is not None and not _score_chain(
-        "R-HEAD-GTHOP-OK", head_gthop_ok
-    ):
+    if head_gthop_ok is not None and not _score_chain("R-HEAD-GTHOP-OK", head_gthop_ok):
         _fail(
             "(b) R-HEAD-GTHOP-OK (doc label 'Conforming — the same hop "
             "with the identifier moved off the front:') scored malformed, "
@@ -15408,9 +15652,7 @@ def _selftest_render_contract() -> bool:
             "constraint recording its expiry:') scored non-conforming, "
             "expected conforming"
         )
-    if verdict_bad is not None and _score_verdict(
-        "R-VERDICT-EXPIRY-BAD", verdict_bad
-    ):
+    if verdict_bad is not None and _score_verdict("R-VERDICT-EXPIRY-BAD", verdict_bad):
         _fail(
             "(e) R-VERDICT-EXPIRY-BAD (doc label 'Non-conforming — the "
             "expiry hoisted into the token slot:') scored conforming, "
@@ -15610,17 +15852,33 @@ def _selftest_render_contract() -> bool:
     #     backstop over the recorder's write idioms; it is explicitly NOT
     #     the thing that closes the fail-OPEN shape.
     render_locked_fixture_ids = {
-        "R-CHAIN-CONFORMING", "R-CHAIN-NUMBERED", "R-CHAIN-WRAPPED",
-        "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
-        "R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD",
-        "R-HEAD-ALLCHAIN", "R-HEAD-CHAINREF", "R-HEAD-PROSE-BAD",
-        "R-HEAD-PROSE-MID", "R-HEAD-GTHOP-BAD", "R-HEAD-GTHOP-OK",
+        "R-CHAIN-CONFORMING",
+        "R-CHAIN-NUMBERED",
+        "R-CHAIN-WRAPPED",
+        "R-CITE-INLINE",
+        "R-CITE-LEDGER",
+        "R-CITE-NONE",
+        "R-VERDICT-EXPIRY",
+        "R-VERDICT-EXPIRY-BAD",
+        "R-HEAD-ALLCHAIN",
+        "R-HEAD-CHAINREF",
+        "R-HEAD-PROSE-BAD",
+        "R-HEAD-PROSE-MID",
+        "R-HEAD-GTHOP-BAD",
+        "R-HEAD-GTHOP-OK",
         "R-HEAD-GTHOP-LATE",
-        "R-HEAD-PERIOD-BAD", "R-HEAD-PERIOD-OK", "R-HEAD-PERIOD-LATE",
-        "R-CLAIM-LABEL-BARE", "R-CLAIM-LABEL-INLINE", "R-CLAIM-LABEL-CITED",
-        "R-CLAIM-COLON-MID", "R-CLAIM-COLON-END",
-        "R-CLAIM-TERSE-DROP", "R-CLAIM-TERSE-KEEP",
-        "R-CLAIM-CAVEAT-MARKED", "R-CLAIM-CAVEAT-CITED",
+        "R-HEAD-PERIOD-BAD",
+        "R-HEAD-PERIOD-OK",
+        "R-HEAD-PERIOD-LATE",
+        "R-CLAIM-LABEL-BARE",
+        "R-CLAIM-LABEL-INLINE",
+        "R-CLAIM-LABEL-CITED",
+        "R-CLAIM-COLON-MID",
+        "R-CLAIM-COLON-END",
+        "R-CLAIM-TERSE-DROP",
+        "R-CLAIM-TERSE-KEEP",
+        "R-CLAIM-CAVEAT-MARKED",
+        "R-CLAIM-CAVEAT-CITED",
     }
     if requested_ids != render_locked_fixture_ids:
         _fail(
@@ -15774,9 +16032,7 @@ def _selftest_render_contract() -> bool:
             f"'R-VERDICT-EXPIRY-BAD' wrongly accounted for the proper "
             f"prefix 'R-VERDICT-EXPIRY' — {render_prefix_probe!r}"
         )
-    if not _render_fixture_id_accounted(
-        "R-VERDICT-EXPIRY-BAD", render_prefix_probe
-    ):
+    if not _render_fixture_id_accounted("R-VERDICT-EXPIRY-BAD", render_prefix_probe):
         _fail(
             f"(p) ISOLATION prefix discrimination: a problem naming "
             f"'R-VERDICT-EXPIRY-BAD' did not account for it — the "
@@ -15949,9 +16205,7 @@ def _selftest_render_contract() -> bool:
     render_t_verdict_call_count = render_contract_src.count(
         render_t_verdict_call_pattern
     )
-    render_t_chain_call_count = render_contract_src.count(
-        render_t_chain_call_pattern
-    )
+    render_t_chain_call_count = render_contract_src.count(render_t_chain_call_pattern)
     render_t_update_count = render_contract_src.count(render_t_update_pattern)
     render_t_coverage_call_count = render_contract_src.count(
         render_t_coverage_call_pattern
@@ -16053,17 +16307,16 @@ def _selftest_render_contract() -> bool:
         render_u_symbols, render_u_self_test_src
     )
     if render_u_live_problems:
-        _fail(
-            f"(u) DISPATCH REACHABILITY LIVE POSITIVE: "
-            f"{render_u_live_problems!r}"
-        )
+        _fail(f"(u) DISPATCH REACHABILITY LIVE POSITIVE: {render_u_live_problems!r}")
 
     # 4. SYNTHETIC NEGATIVES: drive `_dispatch_reachability_problems` with
     #    two in-memory sources — never the live tree.
     render_u_neg_uncalled = _dispatch_reachability_problems(
         ("_selftest_x",), "def self_test():\n    pass\n"
     )
-    if not (len(render_u_neg_uncalled) == 1 and "_selftest_x" in render_u_neg_uncalled[0]):
+    if not (
+        len(render_u_neg_uncalled) == 1 and "_selftest_x" in render_u_neg_uncalled[0]
+    ):
         _fail(
             f"(u) DISPATCH REACHABILITY SYNTHETIC NEGATIVE (uncalled): "
             f"expected one problem naming '_selftest_x', got "
@@ -16073,7 +16326,9 @@ def _selftest_render_contract() -> bool:
     render_u_neg_commented = _dispatch_reachability_problems(
         ("_selftest_x",), "def self_test():\n    # _selftest_x()\n"
     )
-    if not (len(render_u_neg_commented) == 1 and "_selftest_x" in render_u_neg_commented[0]):
+    if not (
+        len(render_u_neg_commented) == 1 and "_selftest_x" in render_u_neg_commented[0]
+    ):
         _fail(
             f"(u) DISPATCH REACHABILITY SYNTHETIC NEGATIVE (commented): "
             f"expected one problem naming '_selftest_x', got "
@@ -16157,9 +16412,7 @@ def _selftest_render_contract() -> bool:
     # REGISTRY MEMBERSHIP LOCK, copying control (m)'s `_QUAL01_DOC_ROWS`
     # membership-lock shape: what makes deleting an entry from the
     # registry above LOUD instead of silently shrinking coverage.
-    render_x_entry_names = tuple(
-        name for name, _, _ in render_coverage_floor_entries
-    )
+    render_x_entry_names = tuple(name for name, _, _ in render_coverage_floor_entries)
     render_x_expected_entry_names = (
         "arm 4a chain re-score table",
         "arm 4b recorded-verdict table",
@@ -16220,17 +16473,33 @@ def _selftest_render_contract() -> bool:
         ),
         "arm 4b recorded-verdict table": frozenset(
             {
-                "R-CHAIN-CONFORMING", "R-CHAIN-NUMBERED", "R-CHAIN-WRAPPED",
-                "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
-                "R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD",
-                "R-HEAD-ALLCHAIN", "R-HEAD-CHAINREF", "R-HEAD-PROSE-BAD",
-                "R-HEAD-PROSE-MID", "R-HEAD-GTHOP-BAD", "R-HEAD-GTHOP-OK",
+                "R-CHAIN-CONFORMING",
+                "R-CHAIN-NUMBERED",
+                "R-CHAIN-WRAPPED",
+                "R-CITE-INLINE",
+                "R-CITE-LEDGER",
+                "R-CITE-NONE",
+                "R-VERDICT-EXPIRY",
+                "R-VERDICT-EXPIRY-BAD",
+                "R-HEAD-ALLCHAIN",
+                "R-HEAD-CHAINREF",
+                "R-HEAD-PROSE-BAD",
+                "R-HEAD-PROSE-MID",
+                "R-HEAD-GTHOP-BAD",
+                "R-HEAD-GTHOP-OK",
                 "R-HEAD-GTHOP-LATE",
-                "R-HEAD-PERIOD-BAD", "R-HEAD-PERIOD-OK", "R-HEAD-PERIOD-LATE",
-                "R-CLAIM-LABEL-BARE", "R-CLAIM-LABEL-INLINE",
-                "R-CLAIM-LABEL-CITED", "R-CLAIM-COLON-MID", "R-CLAIM-COLON-END",
-                "R-CLAIM-TERSE-DROP", "R-CLAIM-TERSE-KEEP",
-                "R-CLAIM-CAVEAT-MARKED", "R-CLAIM-CAVEAT-CITED",
+                "R-HEAD-PERIOD-BAD",
+                "R-HEAD-PERIOD-OK",
+                "R-HEAD-PERIOD-LATE",
+                "R-CLAIM-LABEL-BARE",
+                "R-CLAIM-LABEL-INLINE",
+                "R-CLAIM-LABEL-CITED",
+                "R-CLAIM-COLON-MID",
+                "R-CLAIM-COLON-END",
+                "R-CLAIM-TERSE-DROP",
+                "R-CLAIM-TERSE-KEEP",
+                "R-CLAIM-CAVEAT-MARKED",
+                "R-CLAIM-CAVEAT-CITED",
             }
         ),
         "(u) dispatch-reachability symbol set": frozenset(
@@ -16383,10 +16652,7 @@ def _selftest_render_contract() -> bool:
         (("x8 UNREGISTERED", frozenset({"A"}), frozenset({"A"})),),
         {},
     )
-    if (
-        len(render_x8_problems) != 1
-        or "x8 UNREGISTERED" not in render_x8_problems[0]
-    ):
+    if len(render_x8_problems) != 1 or "x8 UNREGISTERED" not in render_x8_problems[0]:
         _fail(
             f"(x) ISOLATION x8 UNREGISTERED: expected exactly one problem "
             f"naming 'x8 UNREGISTERED', got {render_x8_problems!r}"
@@ -16551,10 +16817,7 @@ def _selftest_render_contract() -> bool:
     )
     render_z3_blocks = _render_example_chain_blocks(render_z3_text)
     if len(render_z3_blocks) != 2:
-        _fail(
-            f"(z3) BLOCK BOUND: expected 2 blocks, got "
-            f"{len(render_z3_blocks)}"
-        )
+        _fail(f"(z3) BLOCK BOUND: expected 2 blocks, got {len(render_z3_blocks)}")
     elif "second block heading" in render_z3_blocks[0][1]:
         _fail(
             "(z3) BLOCK BOUND: the first block's text "
@@ -16576,26 +16839,21 @@ def _selftest_render_contract() -> bool:
     render_z5_problems = _render_example_conformance_problems(
         {
             "synthetic/clean.md": (
-                f"{render_z_claim} appears here.\n"
-                "### Conclusion: ok\nGOOD content\n"
+                f"{render_z_claim} appears here.\n### Conclusion: ok\nGOOD content\n"
             ),
         },
         render_z_claim,
         render_z_scorer,
     )
     if render_z5_problems != []:
-        _fail(
-            f"(z5) CONFORMANCE CLEAN: expected [], got "
-            f"{render_z5_problems!r}"
-        )
+        _fail(f"(z5) CONFORMANCE CLEAN: expected [], got {render_z5_problems!r}")
 
     # z6 CONFORMANCE FAILING: exactly one problem naming the relpath and
     # the block's heading line number.
     render_z6_problems = _render_example_conformance_problems(
         {
             "synthetic/failing.md": (
-                f"{render_z_claim} appears here.\n"
-                "### Conclusion: bad\nBAD content\n"
+                f"{render_z_claim} appears here.\n### Conclusion: bad\nBAD content\n"
             ),
         },
         render_z_claim,
@@ -16642,8 +16900,7 @@ def _selftest_render_contract() -> bool:
     )
     if render_z8_problems != []:
         _fail(
-            f"(z8) NON-CLAIMING FILE IGNORED: expected [], "
-            f"got {render_z8_problems!r}"
+            f"(z8) NON-CLAIMING FILE IGNORED: expected [], got {render_z8_problems!r}"
         )
 
     # z9 ANTI-MASKING, multi-file: the same property control (x)'s x4
@@ -16728,7 +16985,8 @@ def _selftest_render_contract() -> bool:
         )
     render_v_chain_recorded = scored_verdicts.get("PROBE-SCORE-CHAIN")
     render_v_chain_expected_recorded = [
-        render_v_chain_raw_false, render_v_chain_raw_true
+        render_v_chain_raw_false,
+        render_v_chain_raw_true,
     ]
     if render_v_chain_recorded != render_v_chain_expected_recorded:
         _fail(
@@ -16815,20 +17073,20 @@ def _selftest_render_contract() -> bool:
     render_w_verdict_wrong = _render_verdict_floor_problems(
         {"X": [False]}, {"X": [True]}, []
     )
-    if len(render_w_verdict_wrong) != 1 or _render_fixture_id_token(
-        "X"
-    ) not in render_w_verdict_wrong[0]:
+    if (
+        len(render_w_verdict_wrong) != 1
+        or _render_fixture_id_token("X") not in render_w_verdict_wrong[0]
+    ):
         _fail(
             f"(w) FLOOR HELPER ISOLATION verdict WRONG-VERDICT: expected "
             f"exactly one problem naming 'X', got {render_w_verdict_wrong!r}"
         )
 
-    render_w_verdict_missing = _render_verdict_floor_problems(
-        {"X": [True]}, {}, []
-    )
-    if len(render_w_verdict_missing) != 1 or _render_fixture_id_token(
-        "X"
-    ) not in render_w_verdict_missing[0]:
+    render_w_verdict_missing = _render_verdict_floor_problems({"X": [True]}, {}, [])
+    if (
+        len(render_w_verdict_missing) != 1
+        or _render_fixture_id_token("X") not in render_w_verdict_missing[0]
+    ):
         _fail(
             f"(w) FLOOR HELPER ISOLATION verdict MISSING: expected exactly "
             f"one problem naming 'X', got {render_w_verdict_missing!r}"
@@ -16861,9 +17119,10 @@ def _selftest_render_contract() -> bool:
     render_w_verdict_antimask = _render_verdict_floor_problems(
         {"X": [True], "X-BAD": [True]}, {}, render_w_verdict_antimask_problems
     )
-    if len(render_w_verdict_antimask) != 1 or _render_fixture_id_token(
-        "X"
-    ) not in render_w_verdict_antimask[0]:
+    if (
+        len(render_w_verdict_antimask) != 1
+        or _render_fixture_id_token("X") not in render_w_verdict_antimask[0]
+    ):
         _fail(
             f"(w) FLOOR HELPER ISOLATION verdict ANTI-MASKING: expected "
             f"exactly one problem naming the proper prefix 'X' (not "
@@ -16887,9 +17146,10 @@ def _selftest_render_contract() -> bool:
     render_w_chain_wrong = _render_chain_verdict_floor_problems(
         {"X": False}, {"X": "this text is ok"}, render_w_chain_scorer, []
     )
-    if len(render_w_chain_wrong) != 1 or _render_fixture_id_token(
-        "X"
-    ) not in render_w_chain_wrong[0]:
+    if (
+        len(render_w_chain_wrong) != 1
+        or _render_fixture_id_token("X") not in render_w_chain_wrong[0]
+    ):
         _fail(
             f"(w) FLOOR HELPER ISOLATION chain WRONG-VERDICT: expected "
             f"exactly one problem naming 'X', got {render_w_chain_wrong!r}"
@@ -16898,9 +17158,10 @@ def _selftest_render_contract() -> bool:
     render_w_chain_absent = _render_chain_verdict_floor_problems(
         {"X": True}, {}, render_w_chain_scorer, []
     )
-    if len(render_w_chain_absent) != 1 or _render_fixture_id_token(
-        "X"
-    ) not in render_w_chain_absent[0]:
+    if (
+        len(render_w_chain_absent) != 1
+        or _render_fixture_id_token("X") not in render_w_chain_absent[0]
+    ):
         _fail(
             f"(w) FLOOR HELPER ISOLATION chain FIXTURE-ABSENT: expected "
             f"exactly one problem REPORTING (not skipping) 'X', got "
@@ -16943,9 +17204,10 @@ def _selftest_render_contract() -> bool:
         render_w_chain_scorer,
         render_w_chain_antimask_problems,
     )
-    if len(render_w_chain_antimask) != 1 or _render_fixture_id_token(
-        "X"
-    ) not in render_w_chain_antimask[0]:
+    if (
+        len(render_w_chain_antimask) != 1
+        or _render_fixture_id_token("X") not in render_w_chain_antimask[0]
+    ):
         _fail(
             f"(w) FLOOR HELPER ISOLATION chain ANTI-MASKING: expected "
             f"exactly one problem naming the proper prefix 'X' (not "
@@ -16974,9 +17236,7 @@ def _selftest_render_contract() -> bool:
     render_accounting_dup = _render_fixture_accounting_problems(
         ("A", "A", "B"), {"A", "B"}, []
     )
-    if not any(
-        "duplicated row id" in p and "'A'" in p for p in render_accounting_dup
-    ):
+    if not any("duplicated row id" in p and "'A'" in p for p in render_accounting_dup):
         _fail(
             f"(q) ISOLATION duplicated-id case did not name the "
             f"duplicate: {render_accounting_dup!r}"
@@ -17027,12 +17287,12 @@ def _selftest_render_contract() -> bool:
     # subsumes the clause arm (a hash over the whole dict changes whenever a
     # required clause is gutted), so a field-name-only assertion left the
     # clause arm deletable with both cases still green.
-    render_lock_negative_cases: list[
-        tuple[str, str, str, _RenderRegistrySnapshot]
-    ] = [
+    render_lock_negative_cases: list[tuple[str, str, str, _RenderRegistrySnapshot]] = [
         (
-            ("extraction_rows with every source_file repointed at the "
-            "generated tree (WR-03 reproduction)"),
+            (
+                "extraction_rows with every source_file repointed at the "
+                "generated tree (WR-03 reproduction)"
+            ),
             "extraction_rows",
             "!= expected",
             replace(
@@ -17040,8 +17300,7 @@ def _selftest_render_contract() -> bool:
                 extraction_rows=tuple(
                     (
                         row[0],
-                        ("first-principles/agents/references/"
-                        "output-template.md"),
+                        ("first-principles/agents/references/output-template.md"),
                         row[2],
                         row[3],
                     )
@@ -17050,8 +17309,10 @@ def _selftest_render_contract() -> bool:
             ),
         ),
         (
-            ("extraction_rows with one anchor repointed at a sibling "
-            "block (WR-03 reproduction)"),
+            (
+                "extraction_rows with one anchor repointed at a sibling "
+                "block (WR-03 reproduction)"
+            ),
             "extraction_rows",
             "!= expected",
             replace(
@@ -17072,23 +17333,25 @@ def _selftest_render_contract() -> bool:
         (
             "extraction_ids emptied (CR-02 reproduction)",
             "extraction_ids",
-            'sorted ids',
+            "sorted ids",
             replace(render_live_snapshot, extraction_ids=()),
         ),
         (
             "extraction_ids with one id dropped",
             "extraction_ids",
-            'sorted ids',
+            "sorted ids",
             replace(
                 render_live_snapshot,
                 extraction_ids=render_live_snapshot.extraction_ids[1:],
             ),
         ),
         (
-            ("fixture_shape with a chain needle tuple degraded to the "
-            "undiscriminating pair (IN-04 reproduction)"),
+            (
+                "fixture_shape with a chain needle tuple degraded to the "
+                "undiscriminating pair (IN-04 reproduction)"
+            ),
             "fixture_shape",
-            'expected discriminating shape',
+            "expected discriminating shape",
             replace(
                 render_live_snapshot,
                 fixture_shape={
@@ -17098,8 +17361,10 @@ def _selftest_render_contract() -> bool:
             ),
         ),
         (
-            ("fixture_shape with a non-chain needle tuple emptied "
-            "(WR-01 reproduction)"),
+            (
+                "fixture_shape with a non-chain needle tuple emptied "
+                "(WR-01 reproduction)"
+            ),
             "fixture_shape",
             "expected discriminating shape",
             replace(
@@ -17113,13 +17378,13 @@ def _selftest_render_contract() -> bool:
         (
             "fixture_forbidden emptied",
             "fixture_forbidden",
-            '!= expected',
+            "!= expected",
             replace(render_live_snapshot, fixture_forbidden={}),
         ),
         (
             "surfaces with the rubric entry dropped",
             "surfaces",
-            '!= expected',
+            "!= expected",
             replace(
                 render_live_snapshot,
                 surfaces=tuple(
@@ -17132,7 +17397,7 @@ def _selftest_render_contract() -> bool:
         (
             "surfaces reordered",
             "surfaces",
-            '!= expected',
+            "!= expected",
             replace(
                 render_live_snapshot,
                 surfaces=tuple(reversed(render_live_snapshot.surfaces)),
@@ -17141,7 +17406,7 @@ def _selftest_render_contract() -> bool:
         (
             "required_rules with the rubric key dropped",
             "required_rules",
-            '!= expected',
+            "!= expected",
             replace(
                 render_live_snapshot,
                 required_rules={
@@ -17154,13 +17419,13 @@ def _selftest_render_contract() -> bool:
         (
             "contradiction_phrases emptied",
             "contradiction_phrases",
-            '!= expected',
+            "!= expected",
             replace(render_live_snapshot, contradiction_phrases=()),
         ),
         (
             "contradiction_phrases with the CR-01 live phrase dropped",
             "contradiction_phrases",
-            '!= expected',
+            "!= expected",
             replace(
                 render_live_snapshot,
                 contradiction_phrases=tuple(
@@ -17178,7 +17443,7 @@ def _selftest_render_contract() -> bool:
             # failure against the fixed single-entry constant below.
             "qual01_doc_rows emptied",
             "qual01_doc_rows",
-            '!= expected',
+            "!= expected",
             replace(
                 render_live_snapshot,
                 qual01_doc_rows=render_live_snapshot.qual01_doc_rows[1:],
@@ -17187,7 +17452,7 @@ def _selftest_render_contract() -> bool:
         (
             "qual01_doc_row_tokens with one token dropped",
             "qual01_doc_row_tokens",
-            '!= expected',
+            "!= expected",
             replace(
                 render_live_snapshot,
                 qual01_doc_row_tokens=render_live_snapshot.qual01_doc_row_tokens[1:],
@@ -17200,22 +17465,22 @@ def _selftest_render_contract() -> bool:
             replace(render_live_snapshot, pre_contract_wordings=()),
         ),
         (
-            ("pre_contract_wordings with an entry replaced by a bare "
-            "contradiction phrase (CR-01's tautology reproduction)"),
+            (
+                "pre_contract_wordings with an entry replaced by a bare "
+                "contradiction phrase (CR-01's tautology reproduction)"
+            ),
             "pre_contract_wordings",
             "!= expected",
             replace(
                 render_live_snapshot,
-                pre_contract_wordings=(
-                    "wraps with arrow-led continuation",
-                )
+                pre_contract_wordings=("wraps with arrow-led continuation",)
                 + render_live_snapshot.pre_contract_wordings[1:],
             ),
         ),
         (
             "literals clause arm: R1 gutted (WR-01 reproduction)",
             "literals",
-            'is missing its required clause',
+            "is missing its required clause",
             replace(
                 render_live_snapshot,
                 literals={
@@ -17227,7 +17492,7 @@ def _selftest_render_contract() -> bool:
         (
             "literals digest arm: R1 clause kept, benign sentence appended",
             "literals",
-            'digest',
+            "digest",
             replace(
                 render_live_snapshot,
                 literals={
@@ -17244,8 +17509,7 @@ def _selftest_render_contract() -> bool:
             replace(render_live_snapshot, chain_family_prefixes=()),
         ),
         (
-            ("example_claim_literal replaced with a different string "
-            "(plan 13-14)"),
+            ("example_claim_literal replaced with a different string (plan 13-14)"),
             "example_claim_literal",
             "!= expected",
             replace(
@@ -17265,21 +17529,17 @@ def _selftest_render_contract() -> bool:
             "!= expected",
             replace(
                 render_live_snapshot,
-                example_claiming_files=render_live_snapshot.example_claiming_files[
-                    1:
-                ],
+                example_claiming_files=render_live_snapshot.example_claiming_files[1:],
             ),
         ),
         (
-            ("fabricated_example_wordings emptied (plan 13-23, CR-02 "
-            "reproduction)"),
+            ("fabricated_example_wordings emptied (plan 13-23, CR-02 reproduction)"),
             "fabricated_example_wordings",
             "!= expected",
             replace(render_live_snapshot, fabricated_example_wordings=()),
         ),
         (
-            ("chain_form_signature replaced with a different pattern "
-            "(plan 13-24)"),
+            ("chain_form_signature replaced with a different pattern (plan 13-24)"),
             "chain_form_signature",
             "!= expected",
             replace(
@@ -17329,9 +17589,7 @@ def _selftest_render_contract() -> bool:
     #     (`scripts/check-act-limb.py`): a case table failing to cover the
     #     full field set, or the lock itself failing to check a field, is
     #     caught here rather than leaving either uncovered.
-    render_snapshot_field_names = tuple(
-        f.name for f in fields(_RenderRegistrySnapshot)
-    )
+    render_snapshot_field_names = tuple(f.name for f in fields(_RenderRegistrySnapshot))
     if render_snapshot_field_names != _RENDER_REGISTRY_FIELDS:
         _fail(
             f"(h2) ANTI-MASKING FLOOR: _RenderRegistrySnapshot field names "
@@ -17626,9 +17884,7 @@ def _selftest_render_contract() -> bool:
             stripped_text = read.text.replace(literal, "")
             stripped = _RenderSurfaceRead(relpath=read.relpath, text=stripped_text)
             stripped_problems = _render_rule_report(stripped)
-            if not any(
-                read.relpath in p and key in p for p in stripped_problems
-            ):
+            if not any(read.relpath in p and key in p for p in stripped_problems):
                 missing_cases_unfired.append(f"{read.relpath}/{key}")
     if missing_cases_unfired:
         _fail(
@@ -17699,13 +17955,8 @@ def _selftest_render_contract() -> bool:
             f"(l1) CASE-COUNT FLOOR: expected 3 pinned historical "
             f"wordings, got {len(_RENDER_PRE_CONTRACT_WORDINGS)}"
         )
-    render_l1_expected_cases = len(render_reads) * len(
-        _RENDER_PRE_CONTRACT_WORDINGS
-    )
-    if (
-        render_l1_cases_run != render_l1_expected_cases
-        or render_l1_cases_run == 0
-    ):
+    render_l1_expected_cases = len(render_reads) * len(_RENDER_PRE_CONTRACT_WORDINGS)
+    if render_l1_cases_run != render_l1_expected_cases or render_l1_cases_run == 0:
         _fail(
             f"(l1) CASE-COUNT FLOOR: ran {render_l1_cases_run} case(s), "
             f"expected {render_l1_expected_cases} "
@@ -17748,8 +17999,7 @@ def _selftest_render_contract() -> bool:
             )
             contradicted_problems = _render_rule_report(contradicted)
             if not any(
-                read.relpath in p and phrase in p
-                for p in contradicted_problems
+                read.relpath in p and phrase in p for p in contradicted_problems
             ):
                 contradiction_cases_unfired.append(f"{read.relpath}/{phrase}")
     if contradiction_cases_unfired:
@@ -17849,13 +18099,9 @@ def _selftest_render_contract() -> bool:
                 r"\s+".join(re.escape(part) for part in token.split())
             )
             stripped_text = token_ws_pattern.sub("", read.text)
-            stripped_read = _RenderSurfaceRead(
-                relpath=read.relpath, text=stripped_text
-            )
+            stripped_read = _RenderSurfaceRead(relpath=read.relpath, text=stripped_text)
             stripped_problems = _qual01_row_problem(stripped_read)
-            if not any(
-                read.relpath in p and token in p for p in stripped_problems
-            ):
+            if not any(read.relpath in p and token in p for p in stripped_problems):
                 _fail(
                     f"(m) NEGATIVE: stripping {token!r} from "
                     f"{read.relpath} did not produce a problem naming "
@@ -17880,13 +18126,9 @@ def _selftest_render_contract() -> bool:
                 + f"fence-only mention: {token}\n"
                 + "<!-- END GENERATED:FACTS -->\n"
             )
-            masked_read = _RenderSurfaceRead(
-                relpath=read.relpath, text=fence_only_text
-            )
+            masked_read = _RenderSurfaceRead(relpath=read.relpath, text=fence_only_text)
             masked_problems = _qual01_row_problem(masked_read)
-            if not any(
-                read.relpath in p and token in p for p in masked_problems
-            ):
+            if not any(read.relpath in p and token in p for p in masked_problems):
                 _fail(
                     f"(m) ANTI-MASKING: {read.relpath}'s narrative lost "
                     f"{token!r} while a synthetic generated fence gained "
@@ -17940,9 +18182,7 @@ def _selftest_render_contract() -> bool:
     # 30 (1 doc row x 30 tokens) by derivation — the repoint is a change
     # of input source, not of the control population, so the token count
     # (30) is unchanged and only the doc-row factor moved from 2 to 1.
-    qual01_negative_case_count = len(_QUAL01_DOC_ROWS) * len(
-        _QUAL01_DOC_ROW_TOKENS
-    )
+    qual01_negative_case_count = len(_QUAL01_DOC_ROWS) * len(_QUAL01_DOC_ROW_TOKENS)
     if qual01_negative_case_count != 30:
         _fail(
             f"(m) NEGATIVE-CASE COUNT FLOOR: derived "
@@ -18042,8 +18282,7 @@ def _selftest_render_contract() -> bool:
             real_relpath, render_reads[0].text, required_rules=unknown_key_rules
         )
         if not any(
-            real_relpath in p and "R-DOES-NOT-EXIST" in p
-            for p in unknown_key_problems
+            real_relpath in p and "R-DOES-NOT-EXIST" in p for p in unknown_key_problems
         ):
             _fail(
                 "(o) ISOLATION unknown-key: the unknown-required-key "
@@ -18125,10 +18364,7 @@ def _selftest_render_contract() -> bool:
         frozenset(),
         (),
     )
-    if not (
-        len(render_cf_i) == 1
-        and "synthetic/unregistered.md" in render_cf_i[0]
-    ):
+    if not (len(render_cf_i) == 1 and "synthetic/unregistered.md" in render_cf_i[0]):
         _fail(
             f"(cf-iso i) UNREGISTERED MATCH: expected exactly one problem "
             f"naming synthetic/unregistered.md, got {render_cf_i!r}"
@@ -18142,10 +18378,7 @@ def _selftest_render_contract() -> bool:
         (),
     )
     if render_cf_ii:
-        _fail(
-            f"(cf-iso ii) REGISTERED: expected zero problems, got "
-            f"{render_cf_ii!r}"
-        )
+        _fail(f"(cf-iso ii) REGISTERED: expected zero problems, got {render_cf_ii!r}")
 
     # (iii) the same relpath in `exempt`, with a written reason, yields
     #     zero.
@@ -18156,10 +18389,7 @@ def _selftest_render_contract() -> bool:
         (("synthetic/exempt.md", "a written reason"),),
     )
     if render_cf_iii:
-        _fail(
-            f"(cf-iso iii) EXEMPT: expected zero problems, got "
-            f"{render_cf_iii!r}"
-        )
+        _fail(f"(cf-iso iii) EXEMPT: expected zero problems, got {render_cf_iii!r}")
 
     # (iv) an empty candidate set yields the NON-VACUITY problem.
     render_cf_iv = _render_chain_form_surface_problems(
@@ -18243,8 +18473,7 @@ def _selftest_chain_detector_pin() -> bool:
     positive_problems = _chain_detector_pin_problems(real_source)
     if positive_problems:
         _fail(
-            "(a) POSITIVE: unmodified source reported problems: "
-            f"{positive_problems!r}"
+            f"(a) POSITIVE: unmodified source reported problems: {positive_problems!r}"
         )
 
     # (b) NEGATIVE, anti-vacuity: two independent perturbations, each must
@@ -18269,12 +18498,10 @@ def _selftest_chain_detector_pin() -> bool:
         )
 
     # (c) FORMULA CONTROL.
-    naive_digest = "sha256:" + hashlib.sha256(
-        real_source.encode("utf-8")
-    ).hexdigest()
-    stripped_digest = "sha256:" + hashlib.sha256(
-        real_source.rstrip("\n").encode("utf-8")
-    ).hexdigest()
+    naive_digest = "sha256:" + hashlib.sha256(real_source.encode("utf-8")).hexdigest()
+    stripped_digest = (
+        "sha256:" + hashlib.sha256(real_source.rstrip("\n").encode("utf-8")).hexdigest()
+    )
     if naive_digest == _CHAIN_DETECTOR_PINNED_DIGEST:
         _fail(
             "(c) FORMULA CONTROL: the naive un-stripped digest unexpectedly "
@@ -18340,8 +18567,7 @@ def _selftest_conclusion_claims_pin() -> bool:
     positive_problems = _conclusion_claims_pin_problems(real_source)
     if positive_problems:
         _fail(
-            "(a) POSITIVE: unmodified source reported problems: "
-            f"{positive_problems!r}"
+            f"(a) POSITIVE: unmodified source reported problems: {positive_problems!r}"
         )
 
     # (b) NEGATIVE, anti-vacuity.
@@ -18365,12 +18591,10 @@ def _selftest_conclusion_claims_pin() -> bool:
         )
 
     # (c) FORMULA CONTROL.
-    naive_digest = "sha256:" + hashlib.sha256(
-        real_source.encode("utf-8")
-    ).hexdigest()
-    stripped_digest = "sha256:" + hashlib.sha256(
-        real_source.rstrip("\n").encode("utf-8")
-    ).hexdigest()
+    naive_digest = "sha256:" + hashlib.sha256(real_source.encode("utf-8")).hexdigest()
+    stripped_digest = (
+        "sha256:" + hashlib.sha256(real_source.rstrip("\n").encode("utf-8")).hexdigest()
+    )
     if naive_digest == _CONCLUSION_CLAIMS_PINNED_DIGEST:
         _fail(
             "(c) FORMULA CONTROL: the naive un-stripped digest unexpectedly "
@@ -18436,8 +18660,7 @@ def _selftest_slice_sections_pin() -> bool:
     positive_problems = _slice_sections_pin_problems(real_source)
     if positive_problems:
         _fail(
-            "(a) POSITIVE: unmodified source reported problems: "
-            f"{positive_problems!r}"
+            f"(a) POSITIVE: unmodified source reported problems: {positive_problems!r}"
         )
 
     # (b) NEGATIVE, anti-vacuity.
@@ -18461,12 +18684,10 @@ def _selftest_slice_sections_pin() -> bool:
         )
 
     # (c) FORMULA CONTROL.
-    naive_digest = "sha256:" + hashlib.sha256(
-        real_source.encode("utf-8")
-    ).hexdigest()
-    stripped_digest = "sha256:" + hashlib.sha256(
-        real_source.rstrip("\n").encode("utf-8")
-    ).hexdigest()
+    naive_digest = "sha256:" + hashlib.sha256(real_source.encode("utf-8")).hexdigest()
+    stripped_digest = (
+        "sha256:" + hashlib.sha256(real_source.rstrip("\n").encode("utf-8")).hexdigest()
+    )
     if naive_digest == _SLICE_SECTIONS_PINNED_DIGEST:
         _fail(
             "(c) FORMULA CONTROL: the naive un-stripped digest unexpectedly "
@@ -18541,71 +18762,84 @@ def _selftest_selfaudit_calibration() -> bool:
 
     def _audit(**bands: str) -> str:
         names = {
-            2: "Challenge Assumptions", 4: "Reason Upward",
+            2: "Challenge Assumptions",
+            4: "Reason Upward",
             5: "Conclusion",
             6: "Conclusion-to-Ground-Truth Traceability",
         }
         return "\n\n".join(
-            f"**Criterion {n}: {names[n]}**\nQuoted span: *\"x\"*\n"
+            f'**Criterion {n}: {names[n]}**\nQuoted span: *"x"*\n'
             f"Band: **{b}**\nJustification: y."
-            for n, b in ((int(k[1:]), v) for k, v in bands.items()))
+            for n, b in ((int(k[1:]), v) for k, v in bands.items())
+        )
 
-    clean = {"malformed_chain_blocks": 0, "untraced_claims": 0,
-             "nonconforming_verdict_cells": 0, "_dependency_cycles": [],
-             "high_conf_unverified_head": 0, "confidence_inversions": 0}
+    clean = {
+        "malformed_chain_blocks": 0,
+        "untraced_claims": 0,
+        "nonconforming_verdict_cells": 0,
+        "_dependency_cycles": [],
+        "high_conf_unverified_head": 0,
+        "confidence_inversions": 0,
+    }
 
     # (a) Criterion 4 Rigorous vs malformed chains — the observed case.
     d = _selfaudit_calibration_defects(
-        _audit(c4="Rigorous"), {**clean, "malformed_chain_blocks": 6})
+        _audit(c4="Rigorous"), {**clean, "malformed_chain_blocks": 6}
+    )
     if [x["criterion"] for x in d] != [4] or d[0]["measured"] != 6:
         _fail(f"(a) C4 Rigorous vs 6 malformed chains not reported: {d!r}")
 
     # (b) Criterion 6 Rigorous vs untraced claims.
     d = _selfaudit_calibration_defects(
-        _audit(c6="Rigorous"), {**clean, "untraced_claims": 1})
+        _audit(c6="Rigorous"), {**clean, "untraced_claims": 1}
+    )
     if [x["criterion"] for x in d] != [6]:
         _fail(f"(b) C6 Rigorous vs untraced claim not reported: {d!r}")
 
     # (c) Criterion 2 Rigorous vs non-conforming verdict cells.
     d = _selfaudit_calibration_defects(
-        _audit(c2="Rigorous"), {**clean, "nonconforming_verdict_cells": 3})
+        _audit(c2="Rigorous"), {**clean, "nonconforming_verdict_cells": 3}
+    )
     if [x["criterion"] for x in d] != [2]:
         _fail(f"(c) C2 Rigorous vs nonconforming verdicts not reported: {d!r}")
 
     # (d) Criterion 4 Rigorous vs a dependency cycle (GAP-6's defect).
     d = _selfaudit_calibration_defects(
-        _audit(c4="Rigorous"), {**clean, "_dependency_cycles": ["c1", "c2"]})
+        _audit(c4="Rigorous"), {**clean, "_dependency_cycles": ["c1", "c2"]}
+    )
     if not d or d[0]["contradicted_by"] != "_dependency_cycles":
         _fail(f"(d) C4 Rigorous vs dependency cycle not reported: {d!r}")
 
     # (e) ANTI-OVERREACH: a correct Rigorous claim on a clean record.
-    if _selfaudit_calibration_defects(_audit(c2="Rigorous", c4="Rigorous",
-                                             c5="Rigorous", c6="Rigorous"),
-                                       clean):
+    if _selfaudit_calibration_defects(
+        _audit(c2="Rigorous", c4="Rigorous", c5="Rigorous", c6="Rigorous"), clean
+    ):
         _fail("(e) clean record with Rigorous claims spuriously reported")
 
     # (f) ANTI-OVERREACH: Sound alongside malformed chains is the CORRECT
     #     self-report under the Criterion 4 Sound band, not a disagreement.
     if _selfaudit_calibration_defects(
-            _audit(c4="Sound"), {**clean, "malformed_chain_blocks": 6}):
+        _audit(c4="Sound"), {**clean, "malformed_chain_blocks": 6}
+    ):
         _fail("(f) conceded Sound band wrongly reported as a disagreement")
 
     # (g) ANTI-OVERREACH: no self-audit at all yields no finding — absence is
     #     a disclosure defect owned elsewhere, not silent agreement here.
     if _selfaudit_calibration_defects(
-            "no verdict blocks here", {**clean, "malformed_chain_blocks": 6}):
+        "no verdict blocks here", {**clean, "malformed_chain_blocks": 6}
+    ):
         _fail("(g) missing self-audit wrongly produced a calibration finding")
 
     # (h) ANTI-OVERREACH: a criterion block with no Band line states no claim.
-    noband = "**Criterion 4: Reason Upward**\nQuoted span: *\"x\"*\nJustification: y."
-    if _selfaudit_calibration_defects(
-            noband, {**clean, "malformed_chain_blocks": 6}):
+    noband = '**Criterion 4: Reason Upward**\nQuoted span: *"x"*\nJustification: y.'
+    if _selfaudit_calibration_defects(noband, {**clean, "malformed_chain_blocks": 6}):
         _fail("(h) unstated band wrongly scored as a Rigorous claim")
 
     # (i) Criterion 5 Rigorous vs a HIGH chain resting on an unverified
     # ground truth (999.120 H2, D-05).
     d = _selfaudit_calibration_defects(
-        _audit(c5="Rigorous"), {**clean, "high_conf_unverified_head": 1})
+        _audit(c5="Rigorous"), {**clean, "high_conf_unverified_head": 1}
+    )
     if (
         len(d) != 1
         or d[0]["criterion"] != 5
@@ -18616,7 +18850,8 @@ def _selftest_selfaudit_calibration() -> bool:
 
     # (j) Criterion 5 Rigorous vs a confidence inversion.
     d = _selfaudit_calibration_defects(
-        _audit(c5="Rigorous"), {**clean, "confidence_inversions": 2})
+        _audit(c5="Rigorous"), {**clean, "confidence_inversions": 2}
+    )
     if (
         len(d) != 1
         or d[0]["criterion"] != 5
@@ -18629,25 +18864,31 @@ def _selftest_selfaudit_calibration() -> bool:
     # order (high_conf_unverified_head, then confidence_inversions).
     d = _selfaudit_calibration_defects(
         _audit(c5="Rigorous"),
-        {**clean, "high_conf_unverified_head": 1, "confidence_inversions": 2})
+        {**clean, "high_conf_unverified_head": 1, "confidence_inversions": 2},
+    )
     if [x["contradicted_by"] for x in d] != [
-        "high_conf_unverified_head", "confidence_inversions"
+        "high_conf_unverified_head",
+        "confidence_inversions",
     ]:
-        _fail(f"(k) C5 Rigorous vs both nonzero did not report two findings "
-              f"in tuple order: {d!r}")
+        _fail(
+            f"(k) C5 Rigorous vs both nonzero did not report two findings "
+            f"in tuple order: {d!r}"
+        )
 
     # (l) ANTI-OVERREACH: a conceded Sound band next to both nonzero yields
     # no finding.
     if _selfaudit_calibration_defects(
-            _audit(c5="Sound"),
-            {**clean, "high_conf_unverified_head": 1, "confidence_inversions": 2}):
+        _audit(c5="Sound"),
+        {**clean, "high_conf_unverified_head": 1, "confidence_inversions": 2},
+    ):
         _fail("(l) conceded Sound band wrongly reported as a disagreement")
 
     # (m) ANTI-OVERREACH: a Rigorous Criterion 5 claim on a clean record
     # (both confidence fields zero) yields no finding.
     if _selfaudit_calibration_defects(_audit(c5="Rigorous"), clean):
-        _fail("(m) clean confidence record with a Rigorous C5 claim "
-              "spuriously reported")
+        _fail(
+            "(m) clean confidence record with a Rigorous C5 claim spuriously reported"
+        )
 
     # (n) DEMO-TRIAGE shape: six `**Criterion N — Title: PRESENT.**` lines.
     # PRESENT is outside `_BAND_VOCAB`, so the census parses no bands at
@@ -18667,10 +18908,13 @@ def _selftest_selfaudit_calibration() -> bool:
     # only the census helper.
     d = _selfaudit_calibration_defects(
         "**Criterion 4 — Reason Upward: Rigorous.** Prose about the chains.",
-        {**clean, "malformed_chain_blocks": 6})
+        {**clean, "malformed_chain_blocks": 6},
+    )
     if [x["criterion"] for x in d] != [4]:
-        _fail(f"(o) embedded in-vocabulary Rigorous vs malformed chains "
-              f"not reported: {d!r}")
+        _fail(
+            f"(o) embedded in-vocabulary Rigorous vs malformed chains "
+            f"not reported: {d!r}"
+        )
 
     # (p) Q-P2 trailing shape: two criteria, each a bold head followed by
     # an ALL-CAPS verdict word outside the closing `**`.
@@ -18687,65 +18931,88 @@ def _selftest_selfaudit_calibration() -> bool:
     # (q) ANTI-OVERREACH: ordinary prose after the bold head is never read
     # as a verdict — the trailing shape requires an ALL-CAPS word.
     bands, offvocab = _selfaudit_band_census(
-        "**Criterion 4 — Chains.** The chains are fine.")
+        "**Criterion 4 — Chains.** The chains are fine."
+    )
     if bands or offvocab:
-        _fail(f"(q) ANTI-OVERREACH prose after the head wrongly read as a "
-              f"verdict: bands={bands!r} offvocab={offvocab!r}")
+        _fail(
+            f"(q) ANTI-OVERREACH prose after the head wrongly read as a "
+            f"verdict: bands={bands!r} offvocab={offvocab!r}"
+        )
 
     # (q-2) ANTI-OVERREACH (999.120 gap closure, WR-04): a leading acronym
     # in ordinary prose is never read as a verdict.
     bands, offvocab = _selfaudit_band_census(
-        "**Criterion 3 — Evidence.** DNS resolution was verified.\n")
+        "**Criterion 3 — Evidence.** DNS resolution was verified.\n"
+    )
     if bands or offvocab:
-        _fail(f"(q-2) ANTI-OVERREACH a leading acronym wrongly read as a "
-              f"verdict: bands={bands!r} offvocab={offvocab!r}")
+        _fail(
+            f"(q-2) ANTI-OVERREACH a leading acronym wrongly read as a "
+            f"verdict: bands={bands!r} offvocab={offvocab!r}"
+        )
 
     # (q-3) ANTI-OVERREACH (999.120 gap closure, WR-04): a leading
     # ground-truth id is never read as a verdict.
     bands, offvocab = _selfaudit_band_census(
-        "**Criterion 3 — Evidence.** GT-3 is unverified.\n")
+        "**Criterion 3 — Evidence.** GT-3 is unverified.\n"
+    )
     if bands or offvocab:
-        _fail(f"(q-3) ANTI-OVERREACH a leading GT-N id wrongly read as a "
-              f"verdict: bands={bands!r} offvocab={offvocab!r}")
+        _fail(
+            f"(q-3) ANTI-OVERREACH a leading GT-N id wrongly read as a "
+            f"verdict: bands={bands!r} offvocab={offvocab!r}"
+        )
 
     # (q-4) a whole-word ALL-CAPS verdict is still read: an out-of-vocabulary
     # one (PRESENT) and an in-vocabulary one (HAND-WAVY, canonicalised).
-    bands, offvocab = _selfaudit_band_census(
-        "**Criterion 3 — Evidence.** PRESENT.\n")
+    bands, offvocab = _selfaudit_band_census("**Criterion 3 — Evidence.** PRESENT.\n")
     if bands or offvocab != {3: "PRESENT"}:
-        _fail(f"(q-4) whole-word ALL-CAPS PRESENT misread: "
-              f"bands={bands!r} offvocab={offvocab!r}")
-    bands, offvocab = _selfaudit_band_census(
-        "**Criterion 3 — Evidence.** HAND-WAVY\n")
+        _fail(
+            f"(q-4) whole-word ALL-CAPS PRESENT misread: "
+            f"bands={bands!r} offvocab={offvocab!r}"
+        )
+    bands, offvocab = _selfaudit_band_census("**Criterion 3 — Evidence.** HAND-WAVY\n")
     if bands != {3: "Hand-wavy"} or offvocab:
-        _fail(f"(q-4) whole-word ALL-CAPS HAND-WAVY misread: "
-              f"bands={bands!r} offvocab={offvocab!r}")
+        _fail(
+            f"(q-4) whole-word ALL-CAPS HAND-WAVY misread: "
+            f"bands={bands!r} offvocab={offvocab!r}"
+        )
 
     # (r) legacy `Band: **PRESENT**` under a colon-separated head — an
     # out-of-vocabulary word read via the wide band line, not the strict one.
     bands, offvocab = _selfaudit_band_census(
-        "**Criterion 3: Evidence**\nBand: **PRESENT**\nJustification: y.")
+        "**Criterion 3: Evidence**\nBand: **PRESENT**\nJustification: y."
+    )
     if bands or offvocab != {3: "PRESENT"}:
-        _fail(f"(r) legacy out-of-vocabulary band misread: "
-              f"bands={bands!r} offvocab={offvocab!r}")
+        _fail(
+            f"(r) legacy out-of-vocabulary band misread: "
+            f"bands={bands!r} offvocab={offvocab!r}"
+        )
 
     # (s) legacy regression: `_selfaudit_bands` (now backed by the census)
     # returns exactly the bands passed in, on the original colon-separated
     # shape.
     legacy_bands = {2: "Rigorous", 4: "Sound", 5: "Hand-wavy", 6: "Absent"}
-    got_bands = _selfaudit_bands(_audit(
-        c2=legacy_bands[2], c4=legacy_bands[4],
-        c5=legacy_bands[5], c6=legacy_bands[6]))
+    got_bands = _selfaudit_bands(
+        _audit(
+            c2=legacy_bands[2],
+            c4=legacy_bands[4],
+            c5=legacy_bands[5],
+            c6=legacy_bands[6],
+        )
+    )
     if got_bands != legacy_bands:
-        _fail(f"(s) legacy _selfaudit_bands regression: expected "
-              f"{legacy_bands!r}, got {got_bands!r}")
+        _fail(
+            f"(s) legacy _selfaudit_bands regression: expected "
+            f"{legacy_bands!r}, got {got_bands!r}"
+        )
 
     # (t) the CONTRACT-06-pinned narrow pattern is byte-unchanged.
     if _SELFAUDIT_CRITERION_RE.pattern != (
         r"^\*\*Criterion[ \t]+(?P<num>[1-6])[ \t]*:[^\n]*\*\*[ \t]*$"
     ):
-        _fail(f"(t) _SELFAUDIT_CRITERION_RE pattern changed: "
-              f"{_SELFAUDIT_CRITERION_RE.pattern!r}")
+        _fail(
+            f"(t) _SELFAUDIT_CRITERION_RE pattern changed: "
+            f"{_SELFAUDIT_CRITERION_RE.pattern!r}"
+        )
 
     return ok
 
@@ -18829,7 +19096,9 @@ def _selftest_ledger_traceability() -> bool:
         '- "A Savings Plan commits you to an hourly floor for three '
         'years" -> chain C3\n'
     )
-    ledgered = prose + "\n## Closure ledger\n\n" + '```' + "text\n" + rows + '```' + "\n"
+    ledgered = (
+        prose + "\n## Closure ledger\n\n" + "```" + "text\n" + rows + "```" + "\n"
+    )
 
     # (a) POSITIVE: every prose claim is discharged by the ledger.
     claims = _conclusion_claims(ledgered, chain_ids)
@@ -18847,16 +19116,26 @@ def _selftest_ledger_traceability() -> bool:
     #     weakened claim extractor.
     bare_claims = _conclusion_claims(prose, chain_ids)
     bare_untraced = [
-        c for c in bare_claims
-        if not _claim_is_traced(c, chain_ids, [], _closure_ledger_fragments(prose, chain_ids))
+        c
+        for c in bare_claims
+        if not _claim_is_traced(
+            c, chain_ids, [], _closure_ledger_fragments(prose, chain_ids)
+        )
     ]
     if len(bare_untraced) != 3:
         _fail(f"(c) ledger-free section did not report 3 untraced: {bare_untraced!r}")
 
     # (d) ANTI-OVERREACH: a ledger citing a chain absent from section 4 has
     #     no authority to discharge anything.
-    bogus = prose + "\n" + '```' + "text\n" + rows.replace("C1", "C9").replace(
-        "C2", "C8").replace("C3", "C7") + '```' + "\n"
+    bogus = (
+        prose
+        + "\n"
+        + "```"
+        + "text\n"
+        + rows.replace("C1", "C9").replace("C2", "C8").replace("C3", "C7")
+        + "```"
+        + "\n"
+    )
     if _closure_ledger_fragments(bogus, chain_ids):
         _fail("(d) ledger citing non-existent chains yielded fragments")
 
@@ -18867,7 +19146,8 @@ def _selftest_ledger_traceability() -> bool:
         "survive contact with the duty cycle."
     )
     generic_frags = _closure_ledger_fragments(
-        '- "serverless is cheaper" -> chain C1\n', chain_ids)
+        '- "serverless is cheaper" -> chain C1\n', chain_ids
+    )
     if not generic_frags:
         _fail("(e) precondition: generic ledger line yielded no fragment to reject")
     elif _claim_is_traced(generic_claim, chain_ids, [], generic_frags):
@@ -18877,7 +19157,8 @@ def _selftest_ledger_traceability() -> bool:
     #     discharges nothing.
     other_frags = _closure_ledger_fragments(
         '- "the migration raises network and observability lines" -> chain C1\n',
-        chain_ids)
+        chain_ids,
+    )
     savings_claim = [c for c in claims if "Savings Plan commits" in c]
     if not (other_frags and savings_claim):
         _fail("(f) precondition: unrelated-fragment control not constructed")
@@ -18886,16 +19167,19 @@ def _selftest_ledger_traceability() -> bool:
 
     # (g) ANTI-OVERREACH: coverage is measured over the FRAGMENT, so a long
     #     claim cannot absorb a short quote it never made.
-    if _ledger_fragment_covers("alpha beta gamma delta epsilon zeta",
-                               " ".join(["padding"] * 400)):
+    if _ledger_fragment_covers(
+        "alpha beta gamma delta epsilon zeta", " ".join(["padding"] * 400)
+    ):
         _fail("(g) coverage credited a claim that contains none of the fragment")
 
     # (h) The fence rule, not `_is_assertive_claim`, is what excludes the
     #     ledger rows: unfenced, the same rows ARE claims (each self-cited).
     unfenced = prose + "\n## Closure ledger\n\n" + rows
     if len(_conclusion_claims(unfenced, chain_ids)) != 6:
-        _fail("(h) unfenced ledger rows were excluded by something other "
-              "than the fence rule")
+        _fail(
+            "(h) unfenced ledger rows were excluded by something other "
+            "than the fence rule"
+        )
 
     # (i) The frozen calibration corpus does not move. The saturated
     #     `_CALIBRATION_UNTRACED_FLAGS` cannot see this axis at all.
@@ -18931,33 +19215,46 @@ def _selftest_ledger_traceability() -> bool:
         "_CALIBRATION_UNTRACED_CLAIMS": len(_CALIBRATION_UNTRACED_CLAIMS),
     }
     if len(set(lengths.values())) != 1 or lengths["_CALIBRATION_ANALYSIS_ORDER"] != 6:
-        _fail(f"(i) LENGTH FLOOR: calibration vectors are not all length 6: "
-              f"{lengths!r}")
+        _fail(
+            f"(i) LENGTH FLOOR: calibration vectors are not all length 6: {lengths!r}"
+        )
     else:
         measured_claims, measured_untraced = [], []
         for name in _CALIBRATION_ANALYSIS_ORDER:
-            rec = detect_defects((base / f"{name}.md").read_text(encoding="utf-8"), name)
+            rec = detect_defects(
+                (base / f"{name}.md").read_text(encoding="utf-8"), name
+            )
             measured_claims.append(rec["conclusion_claims"])
             measured_untraced.append(rec["untraced_claims"])
 
         if measured_claims != _CALIBRATION_CONCLUSION_CLAIMS:
-            _fail(f"(i) conclusion_claims moved: {measured_claims} != "
-                  f"{_CALIBRATION_CONCLUSION_CLAIMS}")
+            _fail(
+                f"(i) conclusion_claims moved: {measured_claims} != "
+                f"{_CALIBRATION_CONCLUSION_CLAIMS}"
+            )
         if measured_untraced != _CALIBRATION_UNTRACED_CLAIMS:
-            _fail(f"(i) untraced_claims moved: {measured_untraced} != "
-                  f"{_CALIBRATION_UNTRACED_CLAIMS}")
+            _fail(
+                f"(i) untraced_claims moved: {measured_untraced} != "
+                f"{_CALIBRATION_UNTRACED_CLAIMS}"
+            )
 
         for name, m_claims, p_claims, m_untraced, p_untraced in zip(
-            _CALIBRATION_ANALYSIS_ORDER, measured_claims,
-            _CALIBRATION_CONCLUSION_CLAIMS, measured_untraced,
+            _CALIBRATION_ANALYSIS_ORDER,
+            measured_claims,
+            _CALIBRATION_CONCLUSION_CLAIMS,
+            measured_untraced,
             _CALIBRATION_UNTRACED_CLAIMS,
         ):
             if m_claims != p_claims:
-                _fail(f"(i) {name}: conclusion_claims moved: "
-                      f"measured {m_claims} != pinned {p_claims}")
+                _fail(
+                    f"(i) {name}: conclusion_claims moved: "
+                    f"measured {m_claims} != pinned {p_claims}"
+                )
             if m_untraced != p_untraced:
-                _fail(f"(i) {name}: untraced_claims moved: "
-                      f"measured {m_untraced} != pinned {p_untraced}")
+                _fail(
+                    f"(i) {name}: untraced_claims moved: "
+                    f"measured {m_untraced} != pinned {p_untraced}"
+                )
 
     # (j) THE LIVE LEG (D-04, plan 14-05): a committed, tracked fixture the
     #     v8.7 corpus cannot substitute for — see
@@ -18970,14 +19267,20 @@ def _selftest_ledger_traceability() -> bool:
     fixture_rec = detect_defects(ledger_fixture_text, "PR-P1-ledger-v8.26")
 
     if fixture_rec["conclusion_claims"] != 7:
-        _fail(f"(j) conclusion_claims: measured "
-              f"{fixture_rec['conclusion_claims']} != pinned 7")
+        _fail(
+            f"(j) conclusion_claims: measured "
+            f"{fixture_rec['conclusion_claims']} != pinned 7"
+        )
     if len(fixture_rec["_closure_ledger_fragments"]) != 0:
-        _fail(f"(j) closure_ledger_fragments: measured "
-              f"{len(fixture_rec['_closure_ledger_fragments'])} != pinned 0")
+        _fail(
+            f"(j) closure_ledger_fragments: measured "
+            f"{len(fixture_rec['_closure_ledger_fragments'])} != pinned 0"
+        )
     if fixture_rec["untraced_claims"] != 1:
-        _fail(f"(j) untraced_claims: measured "
-              f"{fixture_rec['untraced_claims']} != pinned 1")
+        _fail(
+            f"(j) untraced_claims: measured "
+            f"{fixture_rec['untraced_claims']} != pinned 1"
+        )
 
     # IDENTITY, not just count (D-10): a count can move for an innocent
     # reason (a legitimate emission change); the identity of the untraced
@@ -18989,8 +19292,10 @@ def _selftest_ledger_traceability() -> bool:
         "a long-term, all-upfront commitment"
     )
     if len(untraced_text) != 1 or not untraced_text[0].startswith(expected_prefix):
-        _fail(f"(j) untraced claim identity moved: {untraced_text!r} does "
-              f"not start with {expected_prefix!r}")
+        _fail(
+            f"(j) untraced claim identity moved: {untraced_text!r} does "
+            f"not start with {expected_prefix!r}"
+        )
 
     # ANTI-VACUITY (T-14-14): one mutation arm per pinned number, each
     # derived from `ledger_fixture_text` — the bytes this control actually
@@ -19005,48 +19310,60 @@ def _selftest_ledger_traceability() -> bool:
             trade_offs_line, trade_offs_line + " (chain C5).", 1
         )
         if mutated_1 == ledger_fixture_text:
-            _fail("(j) arm 1 precondition: trade-offs line not found in "
-                  "the fixture text for mutation")
+            _fail(
+                "(j) arm 1 precondition: trade-offs line not found in "
+                "the fixture text for mutation"
+            )
         else:
             rec_1 = detect_defects(mutated_1, "PR-P1-ledger-v8.26-arm1")
             if rec_1["untraced_claims"] != 0:
-                _fail(f"(j) arm 1 ANTI-VACUITY: appending an inline chain "
-                      f"C5 citation to the trade-offs claim did not "
-                      f"discharge it — untraced_claims measured "
-                      f"{rec_1['untraced_claims']}, expected 0; the "
-                      f"untraced-axis assertion is passing vacuously")
+                _fail(
+                    f"(j) arm 1 ANTI-VACUITY: appending an inline chain "
+                    f"C5 citation to the trade-offs claim did not "
+                    f"discharge it — untraced_claims measured "
+                    f"{rec_1['untraced_claims']}, expected 0; the "
+                    f"untraced-axis assertion is passing vacuously"
+                )
 
         # Arm 3 (ledger axis): a structural ledger row inside section 6,
         # quoting a span of the trade-offs claim and naming a real chain id
         # from section 4, must produce a fragment AND discharge the claim.
         # Derived from the same `trade_offs_line` so the quoted span is
         # guaranteed to be a real substring of the claim it discharges.
-        quoted_span = trade_offs_line[
-            len("**Trade-offs acknowledged:** "):
-        ].split(";", 1)[0]
+        quoted_span = trade_offs_line[len("**Trade-offs acknowledged:** ") :].split(
+            ";", 1
+        )[0]
         ledger_row = f'```text\n- "{quoted_span}" -> chain C5\n```\n\n'
         mutated_3 = ledger_fixture_text.replace(
             trade_offs_line, ledger_row + trade_offs_line, 1
         )
         if mutated_3 == ledger_fixture_text:
-            _fail("(j) arm 3 precondition: trade-offs line not found in "
-                  "the fixture text for mutation")
+            _fail(
+                "(j) arm 3 precondition: trade-offs line not found in "
+                "the fixture text for mutation"
+            )
         else:
             rec_3 = detect_defects(mutated_3, "PR-P1-ledger-v8.26-arm3")
             if not rec_3["_closure_ledger_fragments"]:
-                _fail("(j) arm 3 ANTI-VACUITY: inserting a structural "
-                      "ledger row inside section 6 yielded zero "
-                      "closure-ledger fragments; the ledger-axis assertion "
-                      "is passing vacuously")
+                _fail(
+                    "(j) arm 3 ANTI-VACUITY: inserting a structural "
+                    "ledger row inside section 6 yielded zero "
+                    "closure-ledger fragments; the ledger-axis assertion "
+                    "is passing vacuously"
+                )
             elif rec_3["untraced_claims"] != 0:
-                _fail(f"(j) arm 3 ANTI-VACUITY: the inserted ledger row's "
-                      f"fragment did not discharge the trade-offs claim — "
-                      f"untraced_claims measured {rec_3['untraced_claims']}, "
-                      f"expected 0; the ledger-axis assertion is passing "
-                      f"vacuously")
+                _fail(
+                    f"(j) arm 3 ANTI-VACUITY: the inserted ledger row's "
+                    f"fragment did not discharge the trade-offs claim — "
+                    f"untraced_claims measured {rec_3['untraced_claims']}, "
+                    f"expected 0; the ledger-axis assertion is passing "
+                    f"vacuously"
+                )
     else:
-        _fail("(j) arm 1/3 precondition: expected exactly one untraced "
-              "claim to derive the mutation from")
+        _fail(
+            "(j) arm 1/3 precondition: expected exactly one untraced "
+            "claim to derive the mutation from"
+        )
 
     # Arm 2 (claims axis): deleting the Key Insight claim must drop
     # conclusion_claims by exactly one. Derived from `_claims_text` itself
@@ -19056,22 +19373,27 @@ def _selftest_ledger_traceability() -> bool:
         c for c in fixture_rec["_claims_text"] if c.startswith("**Key insight")
     ]
     if len(key_insight_claims) != 1:
-        _fail(f"(j) arm 2 precondition: expected exactly one Key Insight "
-              f"claim to mutate, found {len(key_insight_claims)}")
+        _fail(
+            f"(j) arm 2 precondition: expected exactly one Key Insight "
+            f"claim to mutate, found {len(key_insight_claims)}"
+        )
     else:
         key_insight_line = key_insight_claims[0]
         mutated_2 = ledger_fixture_text.replace(key_insight_line + "\n\n", "", 1)
         if mutated_2 == ledger_fixture_text:
-            _fail("(j) arm 2 precondition: Key Insight line deletion "
-                  "produced no change to the fixture text")
+            _fail(
+                "(j) arm 2 precondition: Key Insight line deletion "
+                "produced no change to the fixture text"
+            )
         else:
             rec_2 = detect_defects(mutated_2, "PR-P1-ledger-v8.26-arm2")
             if rec_2["conclusion_claims"] != 6:
-                _fail(f"(j) arm 2 ANTI-VACUITY: deleting the Key Insight "
-                      f"claim did not drop conclusion_claims to 6 — "
-                      f"measured {rec_2['conclusion_claims']}; the "
-                      f"claims-axis assertion is passing vacuously")
-
+                _fail(
+                    f"(j) arm 2 ANTI-VACUITY: deleting the Key Insight "
+                    f"claim did not drop conclusion_claims to 6 — "
+                    f"measured {rec_2['conclusion_claims']}; the "
+                    f"claims-axis assertion is passing vacuously"
+                )
 
     # Arms 4-5 (BOUNDARY REGRESSIONS, CR-01/CR-02): the two defects the
     # phase-14 review found in the D-02 slicer fix. Both were live-
@@ -19099,8 +19421,7 @@ def _selftest_ledger_traceability() -> bool:
     # follows the fixture if its appendix is ever retitled.
     section6_at = ledger_fixture_text.find("# 6. Conclusion")
     if section6_at < 0:
-        _fail("(j) arm 4 precondition: section 6 heading not found in the "
-              "fixture text")
+        _fail("(j) arm 4 precondition: section 6 heading not found in the fixture text")
     else:
         # Every depth 1-6, not just 4. Flooring depth 4 alone left
         # `#{1,4}`, `#{2,6}` and `#{2,4}` all passing while both doc rows
@@ -19124,34 +19445,38 @@ def _selftest_ledger_traceability() -> bool:
         # rather than inside the sweep, where a `break` left the outer loop
         # running and reported one structural failure six times.
         if re.search(r"(?m)^##(?=[ \t]+\S)", ledger_fixture_text[section6_at:]) is None:
-            _fail("(j) arm 4 precondition: no `##` appendix heading found "
-                  "after section 6 to rewrite")
+            _fail(
+                "(j) arm 4 precondition: no `##` appendix heading found "
+                "after section 6 to rewrite"
+            )
         else:
-          for depth in range(1, 7):
-            for indent in ("", "   "):
-                deepened, n_deepened = re.subn(
-                    r"(?m)^##(?=[ \t]+\S)",
-                    indent + "#" * depth,
-                    ledger_fixture_text[section6_at:],
-                )
-                mutated_4 = ledger_fixture_text[:section6_at] + deepened
-                rec_4 = detect_defects(
-                    mutated_4, f"PR-P1-ledger-v8.26-arm4-d{depth}i{len(indent)}"
-                )
-                reading_4 = (
-                    rec_4["conclusion_claims"],
-                    len(rec_4["_closure_ledger_fragments"]),
-                    rec_4["untraced_claims"],
-                )
-                if reading_4 != baseline_reading:
-                    _fail(f"(j) arm 4 BOUNDARY REGRESSION (CR-01): rewriting "
-                          f"{n_deepened} appendix heading(s) to depth "
-                          f"{depth} with {len(indent)} leading space(s) "
-                          f"moved the reading to {reading_4} from "
-                          f"{baseline_reading}; section 6 must stop at an "
-                          f"appendix heading of ANY depth CommonMark "
-                          f"recognises, which is what both `| QUAL-01 |` "
-                          f"doc rows publish")
+            for depth in range(1, 7):
+                for indent in ("", "   "):
+                    deepened, n_deepened = re.subn(
+                        r"(?m)^##(?=[ \t]+\S)",
+                        indent + "#" * depth,
+                        ledger_fixture_text[section6_at:],
+                    )
+                    mutated_4 = ledger_fixture_text[:section6_at] + deepened
+                    rec_4 = detect_defects(
+                        mutated_4, f"PR-P1-ledger-v8.26-arm4-d{depth}i{len(indent)}"
+                    )
+                    reading_4 = (
+                        rec_4["conclusion_claims"],
+                        len(rec_4["_closure_ledger_fragments"]),
+                        rec_4["untraced_claims"],
+                    )
+                    if reading_4 != baseline_reading:
+                        _fail(
+                            f"(j) arm 4 BOUNDARY REGRESSION (CR-01): rewriting "
+                            f"{n_deepened} appendix heading(s) to depth "
+                            f"{depth} with {len(indent)} leading space(s) "
+                            f"moved the reading to {reading_4} from "
+                            f"{baseline_reading}; section 6 must stop at an "
+                            f"appendix heading of ANY depth CommonMark "
+                            f"recognises, which is what both `| QUAL-01 |` "
+                            f"doc rows publish"
+                        )
 
     # Arm 5 (CR-02, fenced pseudo-heading): a `#`-shaped line inside a
     # fenced block is verbatim content, not an appendix boundary. This is
@@ -19160,8 +19485,7 @@ def _selftest_ledger_traceability() -> bool:
     if section6_at >= 0:
         s6_line_end = ledger_fixture_text.find("\n", section6_at)
         if s6_line_end < 0:
-            _fail("(j) arm 5 precondition: section 6 heading is not "
-                  "newline-terminated")
+            _fail("(j) arm 5 precondition: section 6 heading is not newline-terminated")
         else:
             mutated_5 = (
                 ledger_fixture_text[: s6_line_end + 1]
@@ -19179,13 +19503,15 @@ def _selftest_ledger_traceability() -> bool:
                     rec_5["untraced_claims"],
                 )
                 if reading_5 != baseline_reading:
-                    _fail(f"(j) arm 5 BOUNDARY REGRESSION (CR-02): a fenced "
-                          f"`## ...` line inside section 6 moved the reading "
-                          f"to {reading_5} from {baseline_reading}; a "
-                          f"pseudo-heading inside a fence is verbatim "
-                          f"content, never a section boundary. A reading of "
-                          f"(0, 0, 0) here is the false-clean this arm "
-                          f"exists to catch.")
+                    _fail(
+                        f"(j) arm 5 BOUNDARY REGRESSION (CR-02): a fenced "
+                        f"`## ...` line inside section 6 moved the reading "
+                        f"to {reading_5} from {baseline_reading}; a "
+                        f"pseudo-heading inside a fence is verbatim "
+                        f"content, never a section boundary. A reading of "
+                        f"(0, 0, 0) here is the false-clean this arm "
+                        f"exists to catch."
+                    )
 
     # Arms 10-11 (DIRECT BOUNDARY ARMS). The Gate cap above is a safety
     # net, and a safety net MASKS the thing it catches: with the cap in
@@ -19198,59 +19524,100 @@ def _selftest_ledger_traceability() -> bool:
     def _synthetic(section6_body: str) -> str:
         head = "".join(
             f"# {n}. {name.title()}\n\nbody {n}\n\n"
-            for n, name in sorted(_SECTION_NAMES.items()) if n != 6
+            for n, name in sorted(_SECTION_NAMES.items())
+            if n != 6
         )
         return head + "# 6. Conclusion\n\n" + section6_body
 
     # Arm 10: `_fenced_code_flags` implements CommonMark's closing rules,
     # not a parity toggle. Each case names the rule it pins.
     flag_cases: tuple[tuple[str, str, tuple[bool, ...]], ...] = (
-        ("plain fence", "```\nx\n```\nout",
-         (True, True, True, False)),
-        ("``` cannot close ~~~", "~~~\n```\nstill inside\n~~~\nout",
-         (True, True, True, True, False)),
-        ("closer must be >= opener", "````\n```\ninside\n````\nout",
-         (True, True, True, True, False)),
-        ("closer carries no info string", "```\n``` js\ninside\n```\nout",
-         (True, True, True, True, False)),
-        ("backtick info bars the opener", "``` a`b\nnot a fence\n",
-         (False, False, False)),
-        ("unterminated runs to end", "```\na\nb",
-         (True, True, True)),
+        ("plain fence", "```\nx\n```\nout", (True, True, True, False)),
+        (
+            "``` cannot close ~~~",
+            "~~~\n```\nstill inside\n~~~\nout",
+            (True, True, True, True, False),
+        ),
+        (
+            "closer must be >= opener",
+            "````\n```\ninside\n````\nout",
+            (True, True, True, True, False),
+        ),
+        (
+            "closer carries no info string",
+            "```\n``` js\ninside\n```\nout",
+            (True, True, True, True, False),
+        ),
+        (
+            "backtick info bars the opener",
+            "``` a`b\nnot a fence\n",
+            (False, False, False),
+        ),
+        ("unterminated runs to end", "```\na\nb", (True, True, True)),
     )
     for label, body, expected_flags in flag_cases:
         measured = tuple(_fenced_code_flags(body.split("\n")))
         if measured != expected_flags:
-            _fail(f"(j) arm 10 FENCE SEMANTICS [{label}]: "
-                  f"_fenced_code_flags returned {measured}, expected "
-                  f"{expected_flags}; a parity toggle passes several of "
-                  f"these and is wrong on all of them")
+            _fail(
+                f"(j) arm 10 FENCE SEMANTICS [{label}]: "
+                f"_fenced_code_flags returned {measured}, expected "
+                f"{expected_flags}; a parity toggle passes several of "
+                f"these and is wrong on all of them"
+            )
 
     # Arm 11: section 6's boundary on documents with NO Self-Audit Gate, so
     # the cap cannot mask a wrong answer. `hidden` means the appendix
     # heading must NOT end section 6; `boundary` means it must.
     boundary_cases: tuple[tuple[str, str, bool], ...] = tuple(
-        [(f"depth {d} appendix heading", "keep\n\n" + "#" * d + " Appendix\n\nappendix\n", True)
-         for d in range(1, 7)]
-        + [("3-space indented heading", "keep\n\n   ## Appendix\n\nappendix\n", True),
-           ("4-space indent is code, not a heading", "keep\n\n    ## Appendix\n\nmore\n", False),
-           ("heading inside a fence", "keep\n\n```\n## Appendix\n```\n\nmore\n", False),
-           ("two headings inside one fence", "keep\n\n```\n## A\n## B\n```\n\nmore\n", False),
-           ("heading inside a ~~~ quoting ```", "keep\n\n~~~\n## A\n```\n~~~\n\nmore\n", False)]
+        [
+            (
+                f"depth {d} appendix heading",
+                "keep\n\n" + "#" * d + " Appendix\n\nappendix\n",
+                True,
+            )
+            for d in range(1, 7)
+        ]
+        + [
+            ("3-space indented heading", "keep\n\n   ## Appendix\n\nappendix\n", True),
+            (
+                "4-space indent is code, not a heading",
+                "keep\n\n    ## Appendix\n\nmore\n",
+                False,
+            ),
+            (
+                "heading inside a fence",
+                "keep\n\n```\n## Appendix\n```\n\nmore\n",
+                False,
+            ),
+            (
+                "two headings inside one fence",
+                "keep\n\n```\n## A\n## B\n```\n\nmore\n",
+                False,
+            ),
+            (
+                "heading inside a ~~~ quoting ```",
+                "keep\n\n~~~\n## A\n```\n~~~\n\nmore\n",
+                False,
+            ),
+        ]
     )
     for label, body, expect_boundary in boundary_cases:
         try:
             measured_s6 = _slice_sections(_synthetic(body))[6]
         except SectionResolutionError as exc:  # pragma: no cover - guard
-            _fail(f"(j) arm 11 precondition [{label}]: synthetic document "
-                  f"did not resolve: {exc}")
+            _fail(
+                f"(j) arm 11 precondition [{label}]: synthetic document "
+                f"did not resolve: {exc}"
+            )
             continue
         ended_early = "appendix" not in measured_s6 and "more" not in measured_s6
         if ended_early != expect_boundary:
-            _fail(f"(j) arm 11 BOUNDARY [{label}]: section 6 "
-                  f"{'ended at' if ended_early else 'ran past'} the heading, "
-                  f"expected it to {'end at' if expect_boundary else 'run past'} "
-                  f"it. Sliced body: {measured_s6!r}")
+            _fail(
+                f"(j) arm 11 BOUNDARY [{label}]: section 6 "
+                f"{'ended at' if ended_early else 'ran past'} the heading, "
+                f"expected it to {'end at' if expect_boundary else 'run past'} "
+                f"it. Sliced body: {measured_s6!r}"
+            )
 
     # Arms 6-9 (FENCE SHAPE BATTERY). Every entry is a shape that a
     # previous cut of this boundary logic got WRONG, each found by review
@@ -19278,12 +19645,18 @@ def _selftest_ledger_traceability() -> bool:
     #          the conservative direction (too short, never absorbing the
     #          Gate). It is asserted as 0/0/0 so that a change to it must be
     #          deliberate.
-    s6_body_at = ledger_fixture_text.find("\n", section6_at) + 1 if section6_at >= 0 else -1
-    first_appendix = ledger_fixture_text.find("\n## ", section6_at) if section6_at >= 0 else -1
+    s6_body_at = (
+        ledger_fixture_text.find("\n", section6_at) + 1 if section6_at >= 0 else -1
+    )
+    first_appendix = (
+        ledger_fixture_text.find("\n## ", section6_at) if section6_at >= 0 else -1
+    )
     last_appendix = ledger_fixture_text.rfind("\n## ")
     if s6_body_at <= 0 or first_appendix < 0 or last_appendix <= first_appendix:
-        _fail("(j) arms 6-9 precondition: could not locate section 6's body "
-              "and two following `## ` appendix headings in the fixture")
+        _fail(
+            "(j) arms 6-9 precondition: could not locate section 6's body "
+            "and two following `## ` appendix headings in the fixture"
+        )
     else:
         heading_end = ledger_fixture_text.find("\n", last_appendix + 1)
         spanning = (
@@ -19293,49 +19666,77 @@ def _selftest_ledger_traceability() -> bool:
             + "\n```\n"
             + ledger_fixture_text[heading_end:]
         )
+
         def _insert_into_s6(block: str) -> str:
             return (
-                ledger_fixture_text[:s6_body_at] + block
+                ledger_fixture_text[:s6_body_at]
+                + block
                 + ledger_fixture_text[s6_body_at:]
             )
+
         fence_shapes: tuple[tuple[str, str, str, tuple[int, int, int]], ...] = (
-            ("arm 6", "fence spanning the appendix headings",
-             spanning, baseline_reading),
-            ("arm 7", "fenced block holding two heading-shaped lines",
-             _insert_into_s6("\n```bash\n# step one\n# step two\nls\n```\n"),
-             baseline_reading),
-            ("arm 8", "`~~~` block quoting an unclosed ``` example",
-             _insert_into_s6("\n~~~text\n## x\n```python\nnever closed\n~~~\n"),
-             baseline_reading),
-            ("arm 9", ("unterminated fence at the top of section 6 "
-                      "(DISCLOSED BOUND: reads as code to end of document)"),
-             _insert_into_s6("\n```text\nnever closed\n"),
-             (0, 0, 0)),
+            (
+                "arm 6",
+                "fence spanning the appendix headings",
+                spanning,
+                baseline_reading,
+            ),
+            (
+                "arm 7",
+                "fenced block holding two heading-shaped lines",
+                _insert_into_s6("\n```bash\n# step one\n# step two\nls\n```\n"),
+                baseline_reading,
+            ),
+            (
+                "arm 8",
+                "`~~~` block quoting an unclosed ``` example",
+                _insert_into_s6("\n~~~text\n## x\n```python\nnever closed\n~~~\n"),
+                baseline_reading,
+            ),
+            (
+                "arm 9",
+                (
+                    "unterminated fence at the top of section 6 "
+                    "(DISCLOSED BOUND: reads as code to end of document)"
+                ),
+                _insert_into_s6("\n```text\nnever closed\n"),
+                (0, 0, 0),
+            ),
         )
         for arm, description, mutated, expected in fence_shapes:
             if mutated == ledger_fixture_text:
-                _fail(f"(j) {arm} precondition: {description} produced no "
-                      f"change to the fixture text")
+                _fail(
+                    f"(j) {arm} precondition: {description} produced no "
+                    f"change to the fixture text"
+                )
                 continue
-            rec_f = detect_defects(mutated, f"PR-P1-ledger-v8.26-{arm.replace(' ', '')}")
+            rec_f = detect_defects(
+                mutated, f"PR-P1-ledger-v8.26-{arm.replace(' ', '')}"
+            )
             reading_f = (
                 rec_f["conclusion_claims"],
                 len(rec_f["_closure_ledger_fragments"]),
                 rec_f["untraced_claims"],
             )
             absorbed = [
-                c for c in rec_f["_claims_text"]
+                c
+                for c in rec_f["_claims_text"]
                 if c.startswith("**Residual disclosed:")
             ]
             if reading_f != expected or absorbed:
-                _fail(f"(j) {arm} FENCE SHAPE: {description} read "
-                      f"{reading_f}, expected {expected}"
-                      + (f"; and pulled {len(absorbed)} Self-Audit Gate "
-                         f"line(s) in as section-6 claim(s): {absorbed!r}"
-                         if absorbed else "")
-                      + ". Section 6 must never absorb the Gate that "
-                        "grades it, and a legitimate fenced block must "
-                        "never truncate it.")
+                _fail(
+                    f"(j) {arm} FENCE SHAPE: {description} read "
+                    f"{reading_f}, expected {expected}"
+                    + (
+                        f"; and pulled {len(absorbed)} Self-Audit Gate "
+                        f"line(s) in as section-6 claim(s): {absorbed!r}"
+                        if absorbed
+                        else ""
+                    )
+                    + ". Section 6 must never absorb the Gate that "
+                    "grades it, and a legitimate fenced block must "
+                    "never truncate it."
+                )
 
     return ok
 
@@ -19402,6 +19803,7 @@ def _selftest_incidence_schema_compat() -> bool:
     current_row = widest_row + "\t0" * (len(_DEFECT_RECORD_FIELDS) - prov05_width)
 
     with tempfile.TemporaryDirectory() as d:
+
         def _w(name: str, text: str) -> Path:
             f = Path(d) / name
             f.write_text(text, encoding="utf-8")
@@ -19449,9 +19851,13 @@ def _selftest_incidence_schema_compat() -> bool:
         # (i) three widths agree: ten-, thirteen- and twenty-two-column
         # files all parse to the identical {"untraced","verdict","chain","n"}
         # dict (D-12).
-        i_narrow = read_defect_incidence(_w("i-narrow.tsv", f"{narrow_header}\n{narrow_row}\n"))
+        i_narrow = read_defect_incidence(
+            _w("i-narrow.tsv", f"{narrow_header}\n{narrow_row}\n")
+        )
         i_wide = read_defect_incidence(_w("i-wide.tsv", f"{wide_header}\n{wide_row}\n"))
-        i_widest = read_defect_incidence(_w("i-widest.tsv", f"{widest_header}\n{widest_row}\n"))
+        i_widest = read_defect_incidence(
+            _w("i-widest.tsv", f"{widest_header}\n{widest_row}\n")
+        )
         if i_narrow != i_wide:
             _fail(f"(i) narrow and wide disagree: {i_narrow!r} vs {i_wide!r}")
         if i_narrow != i_widest:
@@ -19485,7 +19891,9 @@ def _selftest_incidence_schema_compat() -> bool:
         # `_REQUIRED`.
         k_renamed = widest_header.replace("provenance_flag", "provenance_flagg")
         try:
-            read_defect_incidence(_w("k-renamed-prov.tsv", f"{k_renamed}\n{widest_row}\n"))
+            read_defect_incidence(
+                _w("k-renamed-prov.tsv", f"{k_renamed}\n{widest_row}\n")
+            )
         except ValueError as exc:
             _fail(
                 f"(k) 22-col header with provenance_flag renamed "
@@ -19496,7 +19904,9 @@ def _selftest_incidence_schema_compat() -> bool:
         # chain_flag stays required at the new width too.
         k_bad_required = widest_header.replace("chain_flag", "chain_flagg")
         try:
-            read_defect_incidence(_w("k-badreq.tsv", f"{k_bad_required}\n{widest_row}\n"))
+            read_defect_incidence(
+                _w("k-badreq.tsv", f"{k_bad_required}\n{widest_row}\n")
+            )
         except ValueError:
             pass
         else:
@@ -19516,11 +19926,15 @@ def _selftest_incidence_schema_compat() -> bool:
         # (l-2) the live-width header paired with the PROV-05-era 22-cell
         # row raises — the live header is wider than that row now.
         try:
-            read_defect_incidence(_w("l2-ragged.tsv", f"{current_header}\n{widest_row}\n"))
+            read_defect_incidence(
+                _w("l2-ragged.tsv", f"{current_header}\n{widest_row}\n")
+            )
         except ValueError:
             pass
         else:
-            _fail("(l-2) live-width header with a PROV-05-era 22-cell row did not raise")
+            _fail(
+                "(l-2) live-width header with a PROV-05-era 22-cell row did not raise"
+            )
 
     # (f)-(h) NON-VACUITY: the three appended columns must actually CARRY the
     # findings. Pinning them only at zero — which every fixture in this file
@@ -19580,16 +19994,20 @@ Band: **Rigorous**
 Justification: every chain names its GT-IDs.
 """
     rec = detect_defects(doc, "schema-nonvacuity")
-    for field, want in (("dependency_cycles", 2),
-                        ("ungrounded_chains", 1),
-                        ("selfaudit_disagreements", 1)):
+    for field, want in (
+        ("dependency_cycles", 2),
+        ("ungrounded_chains", 1),
+        ("selfaudit_disagreements", 1),
+    ):
         if rec[field] != want:
             _fail(f"(f-h) emitted {field}: expected {want}, got {rec[field]!r}")
 
     # The emitted count must track the audit list, not be computed twice.
-    for scalar, listed in (("dependency_cycles", "_dependency_cycles"),
-                           ("ungrounded_chains", "_ungrounded_chains"),
-                           ("selfaudit_disagreements", "_selfaudit_disagreements")):
+    for scalar, listed in (
+        ("dependency_cycles", "_dependency_cycles"),
+        ("ungrounded_chains", "_ungrounded_chains"),
+        ("selfaudit_disagreements", "_selfaudit_disagreements"),
+    ):
         if rec[scalar] != len(rec[listed]):
             _fail(
                 f"(f-h) {scalar}={rec[scalar]!r} disagrees with "
@@ -19885,7 +20303,9 @@ def plan_invocations(
                     "kind": "judge",
                     "source_id": prompt.id,
                     "run_index": run_idx,
-                    "dest": out_dir / "judgments" / f"{prompt.id}-run{run_idx}-judge.jsonl",
+                    "dest": out_dir
+                    / "judgments"
+                    / f"{prompt.id}-run{run_idx}-judge.jsonl",
                 }
             )
     if rejudge_dir is not None:
@@ -19969,7 +20389,9 @@ def run_generation_arm(
             )
             if not already_completed:
                 if resume and cap_path.is_file():
-                    redispatch_reason = "prior capture was a transport-error or rate-limit stub"
+                    redispatch_reason = (
+                        "prior capture was a transport-error or rate-limit stub"
+                    )
                 start = time.monotonic()
                 wrapped = _wrap_for_bypass(prompt.text)
                 _run_prompt_to(wrapped, cap_path, plugin_dir=plugin_dir)
@@ -19992,7 +20414,9 @@ def run_generation_arm(
             analysis_text = extract_agent_analysis(
                 cap_path, subagent_type="first-principles:first-principles"
             )
-            (analyses_dir / f"{source_id}.md").write_text(analysis_text, encoding="utf-8")
+            (analyses_dir / f"{source_id}.md").write_text(
+                analysis_text, encoding="utf-8"
+            )
             analyses[source_id] = analysis_text
     return analyses
 
@@ -20080,14 +20504,18 @@ def run_judging_arm(
         )
         if not already_completed:
             if resume and judge_capture.is_file():
-                redispatch_reason = "prior judge capture was a transport-error or rate-limit stub"
+                redispatch_reason = (
+                    "prior judge capture was a transport-error or rate-limit stub"
+                )
             packet_dir = (
                 _build_rejudge_packet(analysis)
                 if isinstance(analysis, Path)
                 else build_judge_packet(analysis)
             )
             start = time.monotonic()
-            _run_prompt_to(JUDGE_PROMPT, judge_capture, plugin_dir=plugin_dir, cwd=packet_dir)
+            _run_prompt_to(
+                JUDGE_PROMPT, judge_capture, plugin_dir=plugin_dir, cwd=packet_dir
+            )
             duration = time.monotonic() - start
         outcome = classify_invocation_outcome(judge_capture)
         manifest_rows.append(
@@ -20117,7 +20545,9 @@ def run_judging_arm(
         judge_text = extract_judge_verdict(judge_capture)
         # The rationale is evidence, never a score (D-12) — captured verbatim
         # to a sidecar file alongside the parsed row.
-        (judgments_dir / f"{packet_id}-rationale.md").write_text(judge_text, encoding="utf-8")
+        (judgments_dir / f"{packet_id}-rationale.md").write_text(
+            judge_text, encoding="utf-8"
+        )
         row = _build_scoreline_row(packet_id=packet_id, judge_text=judge_text)
         row["source_id"] = source_id
         rows.append(row)
@@ -20219,17 +20649,38 @@ def _selftest_resume_classification() -> bool:
     cases = [
         (
             "completed",
-            [{"type": "result", "subtype": "success", "is_error": False, "api_error_status": None}],
+            [
+                {
+                    "type": "result",
+                    "subtype": "success",
+                    "is_error": False,
+                    "api_error_status": None,
+                }
+            ],
             "completed",
         ),
         (
             "transport_error",
-            [{"type": "result", "subtype": "error", "is_error": True, "api_error_status": None}],
+            [
+                {
+                    "type": "result",
+                    "subtype": "error",
+                    "is_error": True,
+                    "api_error_status": None,
+                }
+            ],
             "transport_error_stub",
         ),
         (
             "rate_limited",
-            [{"type": "result", "subtype": "error", "is_error": True, "api_error_status": 429}],
+            [
+                {
+                    "type": "result",
+                    "subtype": "error",
+                    "is_error": True,
+                    "api_error_status": 429,
+                }
+            ],
             "rate_limit_stub",
         ),
         (
@@ -20267,7 +20718,7 @@ def _selftest_resume_classification() -> bool:
         print(
             "self-test FAIL: run_layer resume classification — expected the "
             "committed probe capture to contain the literal "
-            '\'"api_error_status"\' key (demonstrating why a bare grep for '
+            "'\"api_error_status\"' key (demonstrating why a bare grep for "
             "that key is wrong), but it was absent",
             file=sys.stderr,
         )
@@ -20747,19 +21198,27 @@ def format_compare_report(result: dict) -> str:
     lines.append("[BANDS]")
     for crit in _CRITERIA:
         row = result["per_criterion"][crit]
-        lines.append(f"  {crit}: {row['baseline']} -> {row['post']} ({row['delta']:+d})")
+        lines.append(
+            f"  {crit}: {row['baseline']} -> {row['post']} ({row['delta']:+d})"
+        )
     agg = result["aggregate"]
     lines.append(
         f"  aggregate: {agg['baseline_total']}/108 -> {agg['post_total']}/108 "
         f"({agg['delta']:+d})"
     )
-    lines.append(f"  mean/analysis: {agg['baseline_mean']:.2f} -> {agg['post_mean']:.2f}")
+    lines.append(
+        f"  mean/analysis: {agg['baseline_mean']:.2f} -> {agg['post_mean']:.2f}"
+    )
     lines.append("")
 
     lines.append("[PASS SPLIT]")
     ps = result["pass_split"]
-    lines.append(f"  PASS: {ps['baseline_pass']} -> {ps['post_pass']} ({ps['delta_pass']:+d})")
-    lines.append(f"  FAIL: {ps['baseline_fail']} -> {ps['post_fail']} ({ps['delta_fail']:+d})")
+    lines.append(
+        f"  PASS: {ps['baseline_pass']} -> {ps['post_pass']} ({ps['delta_pass']:+d})"
+    )
+    lines.append(
+        f"  FAIL: {ps['baseline_fail']} -> {ps['post_fail']} ({ps['delta_fail']:+d})"
+    )
     lines.append("")
 
     lines.append("[DEFECT INCIDENCE]")
@@ -20931,7 +21390,9 @@ def _selftest_compare() -> bool:
     # fixture's own defect families must have actually fallen and its C2/
     # C4/C6 bands must have actually stayed flat, so the True verdict above
     # is non-vacuous rather than an accident of a mis-built fixture.
-    if not any(goodhart["defects"][f]["delta"] < 0 for f in ("untraced", "verdict", "chain")):
+    if not any(
+        goodhart["defects"][f]["delta"] < 0 for f in ("untraced", "verdict", "chain")
+    ):
         print(
             "self-test FAIL: compare goodhart fixture defect deltas did not "
             "fall on any family — fixture does not exercise the condition "
@@ -21141,7 +21602,9 @@ def self_test() -> int:
     # plus the honesty-not-score anti-overreach guard.
     if not _selftest_limitation3_extractionscope():
         all_passed = False
-        print("self-test: limitation3_extractionscope sub-check FAILED", file=sys.stderr)
+        print(
+            "self-test: limitation3_extractionscope sub-check FAILED", file=sys.stderr
+        )
     else:
         print("self-test: limitation3_extractionscope sub-check PASSED")
 
@@ -21375,13 +21838,24 @@ def _selftest_describe_consistency() -> bool:
         return False
     if desc["disclosed_bounds_anchors"] != sorted(_QUAL01_DOC_ROW_TOKENS):
         return False
-    if desc["derived_counts"]["qual01_doc_row_token_count"] != len(_QUAL01_DOC_ROW_TOKENS):
+    if desc["derived_counts"]["qual01_doc_row_token_count"] != len(
+        _QUAL01_DOC_ROW_TOKENS
+    ):
         return False
-    if desc["contract_pins"]["_chain_block_well_formed"]["digest"] != _CHAIN_DETECTOR_PINNED_DIGEST:
+    if (
+        desc["contract_pins"]["_chain_block_well_formed"]["digest"]
+        != _CHAIN_DETECTOR_PINNED_DIGEST
+    ):
         return False
-    if desc["contract_pins"]["_conclusion_claims"]["digest"] != _CONCLUSION_CLAIMS_PINNED_DIGEST:
+    if (
+        desc["contract_pins"]["_conclusion_claims"]["digest"]
+        != _CONCLUSION_CLAIMS_PINNED_DIGEST
+    ):
         return False
-    return desc["contract_pins"]["_slice_sections"]["digest"] == _SLICE_SECTIONS_PINNED_DIGEST
+    return (
+        desc["contract_pins"]["_slice_sections"]["digest"]
+        == _SLICE_SECTIONS_PINNED_DIGEST
+    )
 
 
 def _selftest_reference_reads() -> bool:
@@ -21522,7 +21996,9 @@ def _selftest_reference_reads() -> bool:
             },
         }
 
-    def _subagent_call_event(parent_id: str, call_id: str, tool_name: str, target: str) -> dict:
+    def _subagent_call_event(
+        parent_id: str, call_id: str, tool_name: str, target: str
+    ) -> dict:
         inp = {"file_path": target} if tool_name == "Read" else {"command": target}
         return {
             "type": "assistant",
@@ -21562,7 +22038,9 @@ def _selftest_reference_reads() -> bool:
         objs_a = [
             _dispatch_event("d-a"),
             _subagent_call_event(
-                "d-a", "c-a1", "Read",
+                "d-a",
+                "c-a1",
+                "Read",
                 "${CLAUDE_PLUGIN_ROOT}/agents/references/validation-rubric.md",
             ),
             _subagent_call_event(
@@ -21581,7 +22059,10 @@ def _selftest_reference_reads() -> bool:
             and r["reference_reads_total"] == 2
             and r["subagent_read_calls"] == 2
         ):
-            print(f"self-test FAIL: reference_reads control (a) — got {r}", file=sys.stderr)
+            print(
+                f"self-test FAIL: reference_reads control (a) — got {r}",
+                file=sys.stderr,
+            )
             ok = False
 
         # (b) anti-overreach: non-reference Read only.
@@ -21599,12 +22080,18 @@ def _selftest_reference_reads() -> bool:
             and r["reference_reads_total"] == 0
             and r["subagent_read_calls"] == 1
         ):
-            print(f"self-test FAIL: reference_reads control (b) — got {r}", file=sys.stderr)
+            print(
+                f"self-test FAIL: reference_reads control (b) — got {r}",
+                file=sys.stderr,
+            )
             ok = False
 
         # (c) never_dispatched: well-formed, no matching dispatch.
         objs_c = [
-            {"type": "assistant", "message": {"content": [{"type": "text", "text": "hello"}]}},
+            {
+                "type": "assistant",
+                "message": {"content": [{"type": "text", "text": "hello"}]},
+            },
             {"type": "user", "message": {"content": [{"type": "text", "text": "hi"}]}},
         ]
         path_c = _write_jsonl(tmp_path, "c.jsonl", objs_c)
@@ -21724,7 +22211,10 @@ def _selftest_reference_reads() -> bool:
             and r["read_output_template"] == "false"
             and r["read_any_technique_ref"] == "false"
         ):
-            print(f"self-test FAIL: reference_reads control (h) — got {r}", file=sys.stderr)
+            print(
+                f"self-test FAIL: reference_reads control (h) — got {r}",
+                file=sys.stderr,
+            )
             ok = False
 
         # (i) anti-overreach: parent-session Read of the rubric; the
@@ -21740,7 +22230,10 @@ def _selftest_reference_reads() -> bool:
             and r["read_rubric"] == "false"
             and r["subagent_read_calls"] == 0
         ):
-            print(f"self-test FAIL: reference_reads control (i) — got {r}", file=sys.stderr)
+            print(
+                f"self-test FAIL: reference_reads control (i) — got {r}",
+                file=sys.stderr,
+            )
             ok = False
 
         # Baseline row for the D-13 mutation controls below: control (a)'s
@@ -21757,7 +22250,9 @@ def _selftest_reference_reads() -> bool:
         objs_k = [
             _dispatch_event("d-k"),
             _subagent_call_event(
-                "d-k", "c-k1", "Grep",
+                "d-k",
+                "c-k1",
+                "Grep",
                 "${CLAUDE_PLUGIN_ROOT}/agents/references/validation-rubric.md",
             ),
             _subagent_call_event(
@@ -21770,7 +22265,8 @@ def _selftest_reference_reads() -> bool:
         r_k = _reference_reads_census("k", path_k)
         if not (
             r_k["read_rubric"] == "false"
-            and r_k["reference_reads_total"] == r_a_baseline["reference_reads_total"] - 1
+            and r_k["reference_reads_total"]
+            == r_a_baseline["reference_reads_total"] - 1
         ):
             print(
                 f"self-test FAIL: reference_reads control (k) — baseline "
@@ -21792,7 +22288,10 @@ def _selftest_reference_reads() -> bool:
             and r_l["reference_reads_total"] == "n/a"
             and r_l["subagent_read_calls"] == "n/a"
         ):
-            print(f"self-test FAIL: reference_reads control (l) — got {r_l}", file=sys.stderr)
+            print(
+                f"self-test FAIL: reference_reads control (l) — got {r_l}",
+                file=sys.stderr,
+            )
             ok = False
 
         # (m) D-13 mutation 3: two arms on the same well-formed list --
@@ -21948,7 +22447,9 @@ def _selftest_reference_reads() -> bool:
         and r_n["read_any_technique_ref"] == "false"
         and r_n["reference_reads_total"] == 0
     ):
-        print(f"self-test FAIL: reference_reads control (n) — got {r_n}", file=sys.stderr)
+        print(
+            f"self-test FAIL: reference_reads control (n) — got {r_n}", file=sys.stderr
+        )
         ok = False
 
     # (r) anti-overreach on (n): the frozen capture's three WebFetch calls
@@ -22051,7 +22552,9 @@ def _selftest_reference_reads() -> bool:
     # ONLY -- neither is written by this or any control.
 
     # (q2) the gap's own reproducer.
-    ids_q2 = _reference_reads_capture_ids(REPO_ROOT / "tests" / "reference-reads-v9.2.1")
+    ids_q2 = _reference_reads_capture_ids(
+        REPO_ROOT / "tests" / "reference-reads-v9.2.1"
+    )
     if ids_q2 != ["DEMO-TRIAGE"]:
         print(
             f"self-test FAIL: reference_reads control (q) — (q2) discovery "
@@ -22071,7 +22574,9 @@ def _selftest_reference_reads() -> bool:
         ok = False
 
     # (q3) a real corpus with no transcripts at all.
-    ids_q3 = _reference_reads_capture_ids(REPO_ROOT / "tests" / "adversarial-corpus-v9.0")
+    ids_q3 = _reference_reads_capture_ids(
+        REPO_ROOT / "tests" / "adversarial-corpus-v9.0"
+    )
     if ids_q3 != []:
         print(
             f"self-test FAIL: reference_reads control (q) — (q3) discovery "
@@ -22282,7 +22787,9 @@ def main(argv: list[str] | None = None) -> int:
     # this function's source also sees `args.reference_reads` first.
     if args.reference_reads is not None:
         if not args.reference_reads.is_dir():
-            parser.error(f"--reference-reads directory not found: {args.reference_reads}")
+            parser.error(
+                f"--reference-reads directory not found: {args.reference_reads}"
+            )
         run_reference_reads(args.reference_reads)
         return 0
 

@@ -265,34 +265,26 @@ def parse_manifest(manifest_path: Path) -> dict:
     environment, not a content-validation failure.
     """
     if not manifest_path.is_file():
-        sys.stderr.write(
-            f"check-registration: manifest not found: {manifest_path}\n"
-        )
+        sys.stderr.write(f"check-registration: manifest not found: {manifest_path}\n")
         sys.exit(2)
 
     try:
         text = manifest_path.read_text(encoding="utf-8")
     except OSError as exc:
-        sys.stderr.write(
-            f"check-registration: cannot read manifest: {exc}\n"
-        )
+        sys.stderr.write(f"check-registration: cannot read manifest: {exc}\n")
         sys.exit(2)
 
     try:
         manifest = json.loads(text)
     except json.JSONDecodeError as exc:
-        sys.stderr.write(
-            f"check-registration: malformed JSON in manifest: {exc}\n"
-        )
+        sys.stderr.write(f"check-registration: malformed JSON in manifest: {exc}\n")
         sys.exit(2)
 
     # V5 input validation: do not assume shape. The schema requires the root
     # to be a JSON object; a list or scalar root would fail later and less
     # clearly on .get() calls in extract_registered_paths().
     if not isinstance(manifest, dict):
-        sys.stderr.write(
-            "check-registration: manifest root is not a JSON object\n"
-        )
+        sys.stderr.write("check-registration: manifest root is not a JSON object\n")
         sys.exit(2)
 
     return manifest
@@ -483,9 +475,7 @@ def build_discovery_report(
     nine Phase 1 keys byte-identical. Plan 40-05 (999.104 successor) adds a
     fourth, skill_invocation_verification, in the same flat shape.
     """
-    registered_skill_paths, registered_agent_paths = extract_registered_paths(
-        manifest
-    )
+    registered_skill_paths, registered_agent_paths = extract_registered_paths(manifest)
     registration_source = (
         "manifest-paths"
         if (registered_skill_paths or registered_agent_paths)
@@ -693,9 +683,7 @@ def build_ci_registration_records(
     """
     for path in (battery_path, workflow_path):
         if not path.exists():
-            sys.stderr.write(
-                f"check-registration: required file not found: {path}\n"
-            )
+            sys.stderr.write(f"check-registration: required file not found: {path}\n")
             sys.exit(2)
 
     battery_text = battery_path.read_text(encoding="utf-8")
@@ -718,9 +706,7 @@ def build_ci_registration_records(
         )
         sys.exit(1)
 
-    return verify_ci_job_registration(
-        battery_gate_ids, extract_ci_gate_ids(workflow)
-    )
+    return verify_ci_job_registration(battery_gate_ids, extract_ci_gate_ids(workflow))
 
 
 def format_ci_registration_text(records: list[dict]) -> str:
@@ -730,10 +716,14 @@ def format_ci_registration_text(records: list[dict]) -> str:
     lines = [
         "",
         "CI job registration (GATE-02 — battery gate -> validation.yml job):",
-        (f"  Battery gates: {len(records)} registered in "
-        "scripts/check-firewall-battery.sh"),
-        (f"  CI-matched: {len(matched)}; battery-only by design: "
-        f"{len(exempt)} ({', '.join(r['gate_id'] for r in exempt) or 'none'})"),
+        (
+            f"  Battery gates: {len(records)} registered in "
+            "scripts/check-firewall-battery.sh"
+        ),
+        (
+            f"  CI-matched: {len(matched)}; battery-only by design: "
+            f"{len(exempt)} ({', '.join(r['gate_id'] for r in exempt) or 'none'})"
+        ),
     ]
     failures = collect_ci_registration_failures(records)
     if failures:
@@ -753,9 +743,7 @@ def format_report_text(report: dict) -> str:
 
     agent = report["discovered_agent"]
     presence = "present" if agent["present"] else "absent"
-    lines.append(
-        f"Discovered agent: {agent['name']} ({presence}) at {agent['path']}"
-    )
+    lines.append(f"Discovered agent: {agent['name']} ({presence}) at {agent['path']}")
 
     lines.append(f"Manifest: {report['manifest_path']}")
 
@@ -779,7 +767,9 @@ def format_report_text(report: dict) -> str:
     if agent_verification["matches"]:
         agent_status = f"name-matched ({agent_verification['expected_name']})"
     elif not agent_verification["present"]:
-        agent_status = f"MISMATCH — absent (expected '{agent_verification['expected_name']}')"
+        agent_status = (
+            f"MISMATCH — absent (expected '{agent_verification['expected_name']}')"
+        )
     else:
         frontmatter_name = agent_verification["frontmatter_name"] or "(none)"
         agent_status = (
@@ -1056,9 +1046,7 @@ def _run_self_test() -> None:
 
     _executed.append("c12")
     # Control 13 — list-valued field passthrough.
-    list_field_result = extract_registered_paths(
-        {"agents": ["./a.md", "./b.md"]}
-    )
+    list_field_result = extract_registered_paths({"agents": ["./a.md", "./b.md"]})
     if list_field_result != ([], ["./a.md", "./b.md"]):
         sys.stderr.write(
             "check-registration --self-test: FAIL — list-valued field "
@@ -2079,8 +2067,10 @@ def describe() -> dict[str, object]:
         "control_ids": sorted(_CONTROL_IDS),
         "control_count": len(_CONTROL_IDS),
         "registered_surfaces": [
-            ("plugin axis (skill/agent frontmatter name: matches directory/file "
-            "basename; every skill stub's disable-model-invocation is true)"),
+            (
+                "plugin axis (skill/agent frontmatter name: matches directory/file "
+                "basename; every skill stub's disable-model-invocation is true)"
+            ),
             "CI-job axis (every battery gate id has a matching name: <job> (<GATE-ID>) job)",
         ],
         "checked_files": sorted(
@@ -2187,9 +2177,7 @@ def main() -> None:
     )
     invocation_total = len(invocation_verifications)
 
-    ci_matched = sum(
-        1 for r in ci_records if r["registered"] and not r["battery_only"]
-    )
+    ci_matched = sum(1 for r in ci_records if r["registered"] and not r["battery_only"])
     pass_line = (
         f"check-registration: PASS (discovered {len(skills)} skills, "
         "agent present, manifest parsed, "

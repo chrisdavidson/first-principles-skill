@@ -29,8 +29,10 @@ sys.path.insert(0, str(SCRIPTS_DIR))
 # We import lazily so the module is only loaded once.
 # ---------------------------------------------------------------------------
 
+
 def _import_check_links():
     import importlib.util
+
     spec = importlib.util.spec_from_file_location(
         "check_links", SCRIPTS_DIR / "check-links.py"
     )
@@ -47,6 +49,7 @@ def check_links_mod():
 # ---------------------------------------------------------------------------
 # Test A: docs/-prefixed link is flagged BROKEN
 # ---------------------------------------------------------------------------
+
 
 def test_a_docs_prefixed_link_flagged(check_links_mod, tmp_path):
     """A link written as docs/TESTING.md from inside a docs/ file is BROKEN.
@@ -88,6 +91,7 @@ def test_a_docs_prefixed_link_flagged(check_links_mod, tmp_path):
 # ---------------------------------------------------------------------------
 # Test B: dangling/mis-slugged anchor is caught as BROKEN
 # ---------------------------------------------------------------------------
+
 
 def test_b_dangling_anchor_caught(check_links_mod, tmp_path):
     """A link to a real file but with a non-existent anchor is BROKEN."""
@@ -133,6 +137,7 @@ def test_b_dangling_anchor_caught(check_links_mod, tmp_path):
 # ---------------------------------------------------------------------------
 # Test C: real em-dash anchor passes (github-slugger double-hyphen rule)
 # ---------------------------------------------------------------------------
+
 
 def test_c_github_slug_em_dash_double_hyphen(check_links_mod):
     """_github_slug must produce double-hyphen for em-dash headings."""
@@ -185,8 +190,12 @@ def test_c_doc_anchors_dedup_duplicate_headings(check_links_mod, tmp_path):
     )
     anchors = mod._doc_anchors(doc)
     assert "overview" in anchors, f"first occurrence base slug missing; got {anchors}"
-    assert "overview-1" in anchors, f"second occurrence '-1' suffix missing; got {anchors}"
-    assert "overview-2" in anchors, f"third occurrence '-2' suffix missing; got {anchors}"
+    assert "overview-1" in anchors, (
+        f"second occurrence '-1' suffix missing; got {anchors}"
+    )
+    assert "overview-2" in anchors, (
+        f"third occurrence '-2' suffix missing; got {anchors}"
+    )
 
 
 def test_c_real_em_dash_anchor_passes(check_links_mod, tmp_path):
@@ -232,13 +241,15 @@ def test_c_real_em_dash_anchor_passes(check_links_mod, tmp_path):
 # Test D: live clean run exits 0 on real repo
 # ---------------------------------------------------------------------------
 
+
 def test_d_live_clean_run():
     """python3 scripts/check-links.py exits 0 on the real repo."""
     result = subprocess.run(
         [sys.executable, str(SCRIPTS_DIR / "check-links.py")],
         capture_output=True,
         text=True,
-        cwd=str(REPO_ROOT), check=False,
+        cwd=str(REPO_ROOT),
+        check=False,
     )
     assert result.returncode == 0, (
         f"check-links.py exited {result.returncode}.\n"
