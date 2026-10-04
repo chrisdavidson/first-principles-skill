@@ -9863,6 +9863,185 @@ Nothing material here.
     return ok
 
 
+def _selftest_provenance_capture() -> bool:
+    """Phase 88 (P1): read-at-source provenance verified through `detect_defects`.
+
+    Pins the shared provenance engine (`prov_verify`, reached via
+    `_provenance_verify_if_available`) through `detect_defects` and
+    `run_detect_defects` against the frozen PR-P1 fixture. Expected values
+    are literals in this function, never reflected from a run, so a silent
+    drop in extraction fails rather than passing with a smaller number.
+
+    (a) POSITIVE -- PR-P1.md with PR-P1.jsonl gives the nine provenance
+        columns 7/0/0/35/0/0/0/2/0, each an int.
+    (b) ANTI-VACUITY -- mutating GT-1's literal $0.0000166667 to
+        $0.0000199999 gives literals_checked=35, unlocated_literals=1,
+        provenance_flag=1, with ("GT-1", "$0.0000199999") unlocated.
+    (c) COVERAGE FLOOR -- relabelling every read-at-source ground truth as
+        unverified gives provenance_labels=0 and provenance_flag=1, never a
+        clean 0.
+    (d) NO CAPTURE -- capture_path None gives "n/a" in all nine.
+    (e) MISSING FILE -- an absent `.jsonl` path gives "n/a" in all nine.
+    (f) NEVER DISPATCHED -- a capture holding only a system event gives
+        "n/a" in all nine.
+    (g) LOUD FAILURE -- an analysis whose sections do not resolve raises
+        SectionResolutionError rather than falling back to "n/a".
+    (h) AUTO-DETECT -- `run_detect_defects` over a directory holding PR-P1.md
+        and PR-P1.jsonl writes the (a) counts; over PR-P1.md alone it writes
+        nine "n/a" cells.
+
+    The fixture directory is read-only: directory-shaped inputs are copies
+    in a `tempfile.TemporaryDirectory()`.
+    """
+    ok = True
+    prov_fields = (
+        "provenance_labels",
+        "unmatched_sources",
+        "unreadable_sources",
+        "literals_checked",
+        "unlocated_literals",
+        "misattributed_literals",
+        "zero_literal_gts",
+        "orphan_fetches",
+        "provenance_flag",
+    )
+    expected_clean = {
+        "provenance_labels": 7,
+        "unmatched_sources": 0,
+        "unreadable_sources": 0,
+        "literals_checked": 35,
+        "unlocated_literals": 0,
+        "misattributed_literals": 0,
+        "zero_literal_gts": 0,
+        "orphan_fetches": 2,
+        "provenance_flag": 0,
+    }
+    expected_na = {field: "n/a" for field in prov_fields}
+    fixture_md = PROVENANCE_FIXTURE_DIR / "PR-P1.md"
+    fixture_jsonl = PROVENANCE_FIXTURE_DIR / "PR-P1.jsonl"
+
+    def fail(letter: str, message: str) -> None:
+        nonlocal ok
+        print(f"self-test FAIL: provenance_capture ({letter}) {message}", file=sys.stderr)
+        ok = False
+
+    def check_columns(letter: str, record: dict, expected: dict) -> None:
+        got = {field: record.get(field) for field in expected}
+        if got != expected:
+            fail(letter, f"expected {expected!r}, got {got!r}")
+
+    try:
+        text = fixture_md.read_text(encoding="utf-8")
+    except OSError as exc:
+        fail("a", f"cannot read fixture {fixture_md}: {exc!r}")
+        return False
+
+    # (a) POSITIVE.
+    try:
+        rec = detect_defects(text, "PR-P1", fixture_jsonl)
+        check_columns("a", rec, expected_clean)
+        for field in prov_fields:
+            if type(rec.get(field)) is not int:
+                fail("a", f"{field} expected an int, got {type(rec.get(field)).__name__}")
+    except Exception as exc:  # noqa: BLE001 -- report, never abort the other controls
+        fail("a", f"raised {exc!r}")
+
+    # (b) ANTI-VACUITY: GT-1's own literal, mutated.
+    try:
+        mutated, n_subs = re.subn(re.escape("$0.0000166667"), "$0.0000199999", text, count=1)
+        if n_subs != 1:
+            fail("b", f"expected 1 substitution of GT-1's literal, got {n_subs}")
+        else:
+            rec = detect_defects(mutated, "PR-P1", fixture_jsonl)
+            check_columns(
+                "b",
+                rec,
+                {"literals_checked": 35, "unlocated_literals": 1, "provenance_flag": 1},
+            )
+            result = prov_verify(mutated, fixture_jsonl, _PROVENANCE_SUBAGENT_TYPE)
+            if ("GT-1", "$0.0000199999") not in result._unlocated_pairs:
+                fail(
+                    "b",
+                    f"expected ('GT-1', '$0.0000199999') in _unlocated_pairs, "
+                    f"got {result._unlocated_pairs!r}",
+                )
+    except Exception as exc:  # noqa: BLE001
+        fail("b", f"raised {exc!r}")
+
+    # (c) COVERAGE FLOOR: zero read-at-source labels against retrieved sources.
+    try:
+        relabelled = text.replace("*Provenance: read-at-source", "*Provenance: unverified")
+        if relabelled == text:
+            fail("c", "relabelling changed nothing -- fixture label shape moved")
+        else:
+            rec = detect_defects(relabelled, "PR-P1", fixture_jsonl)
+            check_columns("c", rec, {"provenance_labels": 0, "provenance_flag": 1})
+    except Exception as exc:  # noqa: BLE001
+        fail("c", f"raised {exc!r}")
+
+    # (d) NO CAPTURE.
+    try:
+        check_columns("d", _provenance_verify_if_available(text, None), expected_na)
+    except Exception as exc:  # noqa: BLE001
+        fail("d", f"raised {exc!r}")
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp = Path(tmpdir)
+
+        # (e) MISSING FILE.
+        try:
+            check_columns(
+                "e", _provenance_verify_if_available(text, tmp / "absent.jsonl"), expected_na
+            )
+        except Exception as exc:  # noqa: BLE001
+            fail("e", f"raised {exc!r}")
+
+        # (f) NEVER DISPATCHED.
+        try:
+            undispatched = tmp / "undispatched.jsonl"
+            undispatched.write_text('{"type": "system"}\n', encoding="utf-8")
+            check_columns("f", _provenance_verify_if_available(text, undispatched), expected_na)
+        except Exception as exc:  # noqa: BLE001
+            fail("f", f"raised {exc!r}")
+
+    # (g) LOUD FAILURE: exactly SectionResolutionError is the pass condition.
+    try:
+        _provenance_verify_if_available("no sections here", fixture_jsonl)
+        fail("g", "expected SectionResolutionError, nothing was raised")
+    except SectionResolutionError:
+        pass
+    except Exception as exc:  # noqa: BLE001
+        fail("g", f"expected SectionResolutionError, got {exc!r}")
+
+    # (h) AUTO-DETECT through run_detect_defects.
+    indices = [_DEFECT_RECORD_FIELDS.index(field) for field in prov_fields]
+    for label, with_capture, expected_cells in (
+        ("h-positive", True, ["7", "0", "0", "35", "0", "0", "0", "2", "0"]),
+        ("h-no-capture", False, ["n/a"] * 9),
+    ):
+        try:
+            with tempfile.TemporaryDirectory() as analyses_tmp, \
+                    tempfile.TemporaryDirectory() as out_tmp:
+                analyses_dir = Path(analyses_tmp)
+                shutil.copyfile(fixture_md, analyses_dir / "PR-P1.md")
+                if with_capture:
+                    shutil.copyfile(fixture_jsonl, analyses_dir / "PR-P1.jsonl")
+                out_path = Path(out_tmp) / "defects.tsv"
+                run_detect_defects(analyses_dir, out_path)
+                rows = out_path.read_text(encoding="utf-8").splitlines()
+                if len(rows) != 2:
+                    fail(label, f"expected header plus 1 data row, got {len(rows)} lines")
+                    continue
+                cells = rows[1].split("\t")
+                got_cells = [cells[i] for i in indices]
+                if got_cells != expected_cells:
+                    fail(label, f"expected cells {expected_cells!r}, got {got_cells!r}")
+        except Exception as exc:  # noqa: BLE001
+            fail(label, f"raised {exc!r}")
+
+    return ok
+
+
 # ---------------------------------------------------------------------------
 # DETECT-01 (Phase 182): the D-18 contract-pin red-carry mechanism.
 #
@@ -20829,7 +21008,10 @@ def self_test() -> int:
     closure) proves the `--single` CALL SITE — not the helper — refuses to
     reach `build_judge_packet` when the analysis was not persisted (CR-02):
     item 20's six controls all passed while the call site consuming that
-    helper was defective, so this item asserts the consumer. Each of the
+    helper was defective, so this item asserts the consumer. The
+    provenance_capture sub-check (Phase 88) pins read-at-source provenance
+    verification through `detect_defects` and `run_detect_defects` against
+    the frozen PR-P1 capture. Each of the
     twenty-one items prints its own labelled PASS/FAILED result line —
     exactly twenty-one such lines, always, per run (D-16: the
     fault-injection proof for each item is recorded in the corresponding
@@ -20909,6 +21091,13 @@ def self_test() -> int:
         print("self-test: defects sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: defects sub-check PASSED")
+
+    # Phase 88 (P1): provenance verification through detect_defects against the frozen PR-P1 capture.
+    if not _selftest_provenance_capture():
+        all_passed = False
+        print("self-test: provenance_capture sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: provenance_capture sub-check PASSED")
 
     # Item 8 (Plan 04 Task 1): the run layer — dry-run enumeration and
     # zero-side-effect proof, the rejudge byte-identity passthrough, the
