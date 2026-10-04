@@ -7428,59 +7428,67 @@ def _prov_result_columns(result: ProvenanceResult) -> dict[str, int]:
     }
 
 
-# P1: Provenance Verification Helper (2026-10-04)
-# This function enables P1 (provenance verification against .jsonl capture)
-# by attempting to verify read-at-source ground truths when a capture is available.
-# Returns dict with provenance_* columns populated or "n/a" placeholders.
+# Read-at-source provenance columns for `detect_defects`. The subagent type
+# whose WebFetch/Read calls a capture is searched for, and the sentinel record
+# returned whenever no check could be made. "n/a" means "no capture available /
+# unchecked" and must never print the same value as "checked, found clean"
+# (PROV-05, D-10): a 0 here would read as a verified-clean source.
+_PROVENANCE_SUBAGENT_TYPE = "first-principles:first-principles"
+_PROV_NA_COLUMNS: dict[str, str] = {
+    "provenance_labels": "n/a",
+    "unmatched_sources": "n/a",
+    "unreadable_sources": "n/a",
+    "literals_checked": "n/a",
+    "unlocated_literals": "n/a",
+    "misattributed_literals": "n/a",
+    "zero_literal_gts": "n/a",
+    "orphan_fetches": "n/a",
+    "provenance_flag": "n/a",
+}
+
 
 def _provenance_verify_if_available(analysis_text: str, capture_path: Path | None = None) -> dict:
-    """P1: Attempt to verify provenance claims against a capture if available.
+    """Verify an analysis's read-at-source ground truths against a capture.
 
-    Returns a dict with the 9 provenance columns. If no capture exists or
-    verification fails, all columns return "n/a" (graceful fallback).
+    Runs `prov_verify` (the provenance engine check-provenance.py also uses)
+    over `capture_path` and returns the nine provenance columns as ints.
 
-    This is the integration point for P1 (provenance verification). When a
-    .jsonl capture is available alongside the analysis, this function:
-    1. Parses section 3 (Ground Truths) for read-at-source markers
-    2. Joins each GT to WebFetch/Read calls in the capture
-    3. Verifies literals appear in retrieved source text
-    4. Returns counts and flags for each provenance defect class
+    Returns `_PROV_NA_COLUMNS` ("n/a" in all nine) when no check can be made:
+    `capture_path` is None; it is not an existing file; or the capture cannot
+    be used -- the first-principles subagent never dispatched in it
+    (`ValueError`) or the file is unreadable (`OSError`).
 
-    NOTE: Full check-provenance.py integration is a future enhancement.
-    For now, this function returns "n/a" for all fields (backward compatible).
-    The framework is in place for adding real provenance verification.
+    `SectionResolutionError` propagates: a document whose sections cannot be
+    resolved must fail loudly, never fall back to "n/a". It subclasses
+    `ValueError`, so it is re-raised before the fallback clause.
+
+    The engine's coverage floor -- section 3 yielding zero ground truths, or
+    zero read-at-source labels against retrieved sources -- folds into
+    `provenance_flag=1`, so an unparseable section 3 never reads as clean.
     """
-    # Determine capture path if not provided
-    if capture_path is None and analysis_text:
-        # Heuristic: if this is called from run_detect_defects, we may have a
-        # .jsonl file at the same location as the .md. This would be set up
-        # by a caller that has both files available.
-        pass
-
-    # Placeholder: return "n/a" for all provenance columns (safe fallback)
-    # When check-provenance.py logic is fully integrated, this will be replaced
-    # with real verification that calls provenance_defect_record() or similar.
-    return {
-        "provenance_labels": "n/a",
-        "unmatched_sources": "n/a",
-        "unreadable_sources": "n/a",
-        "literals_checked": "n/a",
-        "unlocated_literals": "n/a",
-        "misattributed_literals": "n/a",
-        "zero_literal_gts": "n/a",
-        "orphan_fetches": "n/a",
-        "provenance_flag": "n/a",
-    }
+    if capture_path is None:
+        return dict(_PROV_NA_COLUMNS)
+    capture_path = Path(capture_path)
+    if not capture_path.is_file():
+        return dict(_PROV_NA_COLUMNS)
+    try:
+        result = prov_verify(analysis_text, capture_path, _PROVENANCE_SUBAGENT_TYPE)
+    except SectionResolutionError:
+        raise
+    except (ValueError, OSError):
+        return dict(_PROV_NA_COLUMNS)
+    return _prov_result_columns(result)
 
 
 def detect_defects(analysis_text: str, analysis_id: str, capture_path: Path | None = None) -> dict:
     """D-18: parse `analysis_text` structurally and report the three defect families.
 
-    P1 Enhancement: accepts optional capture_path for provenance verification.
-    When capture_path points to a valid .jsonl capture file, populates the
-    provenance_* columns with real values from check-provenance.py logic.
-    When capture_path is None or file missing, returns "n/a" for provenance columns
-    (graceful fallback, backward compatible).
+    `capture_path` optionally names the analysis's `.jsonl` capture. When it
+    is an existing capture in which the first-principles subagent dispatched,
+    the nine provenance_* columns carry the counts computed by the shared
+    provenance engine (`prov_verify`, also used by check-provenance.py). They
+    are "n/a" when `capture_path` is None, is not an existing file, records no
+    such dispatch, or cannot be read.
 
     Raises `SectionResolutionError` (propagated from `_slice_sections`) if
     the six output-template sections do not resolve — a document the parser
@@ -7538,14 +7546,11 @@ def detect_defects(analysis_text: str, analysis_id: str, capture_path: Path | No
         "_dependency_cycles": dependency["cycles"],
         "_ungrounded_chains": dependency["ungrounded"],
     }
-    # Phase 5 (PROV-05, D-10): P1 Enhancement (2026-10-04)
-    # When capture_path is provided and points to a valid .jsonl file,
-    # populate provenance columns with real verification results from
-    # check-provenance.py logic. When capture unavailable, use "n/a"
-    # sentinel — "no capture available" and "checked, found clean" must
-    # not print the same value, and `read_defect_incidence` `int()`s only
-    # the three `*_flag` columns, so a string round-trips safely.
-    # P1: Try provenance verification if capture available
+    # Phase 5 (PROV-05, D-10): the provenance columns are real counts when
+    # a usable capture is supplied and the "n/a" sentinel otherwise --
+    # "no capture available" and "checked, found clean" must not print the
+    # same value, and `read_defect_incidence` `int()`s only the three
+    # `*_flag` columns, so a string round-trips safely.
     prov_result = _provenance_verify_if_available(analysis_text, capture_path)
     record.update(prov_result)
     # Phase 41 (999.120, D-02/D-04): the confidence dimension, computed
@@ -7623,12 +7628,19 @@ def run_detect_defects(analyses_dir: Path, out_path: Path) -> None:
     """`--detect-defects` CLI body: run `detect_defects` over a directory, write a TSV.
 
     Records are written in filename order with a header row, one column
-    per name in `_DEFECT_RECORD_FIELDS`.
+    per name in `_DEFECT_RECORD_FIELDS`. A same-stem sibling `.jsonl` beside
+    an analysis is used as its provenance capture when present; otherwise
+    the nine provenance columns are "n/a".
     """
     files = sorted(Path(analyses_dir).glob("*.md"))
     lines = ["\t".join(_DEFECT_RECORD_FIELDS)]
     for f in files:
-        record = detect_defects(f.read_text(encoding="utf-8"), f.stem)
+        capture = f.with_suffix(".jsonl")
+        record = detect_defects(
+            f.read_text(encoding="utf-8"),
+            f.stem,
+            capture if capture.is_file() else None,
+        )
         lines.append("\t".join(str(record[field]) for field in _DEFECT_RECORD_FIELDS))
     Path(out_path).write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -21967,6 +21979,8 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "Run the D-18 mechanical defect detector over a directory of "
             "analysis .md files and write the ten-column TSV to --out. "
+            "A same-stem .jsonl beside an analysis is read as its capture "
+            "for the provenance columns. "
             "Fully offline — no `claude` invoked."
         ),
     )
