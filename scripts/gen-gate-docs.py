@@ -6046,14 +6046,11 @@ def _control_containment_slash_paired_vector_stripped() -> None:
 
 def _control_delta_chain_hops_confsurface_corrected() -> None:
     """docs/gates/CONF-SURFACE.md's real, live outside text, driven through
-    `generate_all()` (never a paraphrase) -- AFTER Phase 85 plan 03's own
-    correction: one chain, hop count 10, terminus `('174',)`, matching
-    the live `_DEFERRED_LEDGER_MAX`. This control is LIVE-TEXT-DRIVEN; each
-    prior plan that shrank the ledger (26-06, 40-06, 40-10, Phase 43 plan 01
-    Task 1) revised this same assertion to the hop count and terminus its
-    own correction produced. Revised again here in the SAME commit that
-    corrects the real page, per the plan's own note that a live-text control
-    tracks whatever the live text says. See
+    `generate_all()` (never a paraphrase). This control is LIVE-TEXT-DRIVEN;
+    each prior plan that shrank the ledger revised this same assertion to the
+    hop count and terminus its own correction produced. Revised again here in
+    the SAME commit that corrects the real page, per the plan's own note that
+    a live-text control tracks whatever the live text says. See
     `_control_chain_terminus_pre_fix_synthetic_fixture` for the control that
     stays provable in perpetuity after this correction."""
     pass1 = generate_all()
@@ -6067,15 +6064,15 @@ def _control_delta_chain_hops_confsurface_corrected() -> None:
     ]
     chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
     assert len(chains) == 1, chains
-    assert len(chains[0]) == 10, chains[0]
-    assert chains[0][-1][1] == ("174",), chains[0]
+    assert len(chains[0]) == 9, chains[0]
+    assert chains[0][-1][1] == ("175",), chains[0]
     inside_numbers = _normalise_numbers(
         _strip_citation_shaped_numbers(
             "\n".join(line for line, is_in in zip(lines, inside) if is_in)
         ),
         include_spelled_out=True,
     )
-    assert "174" in inside_numbers, inside_numbers
+    assert "175" in inside_numbers, inside_numbers
 
 
 def _control_delta_chain_hops_qual01_out_of_grammar() -> None:
