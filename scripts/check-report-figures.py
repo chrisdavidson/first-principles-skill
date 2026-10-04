@@ -852,7 +852,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if require_typst() is None:
         print("FIG-GATE: BLOCKED — typst not found on PATH; figures were not rendered (this is not a pass)")
-        return 2
+        return 1
 
     if args.render is not None:
         return _do_render(Path(args.render))
