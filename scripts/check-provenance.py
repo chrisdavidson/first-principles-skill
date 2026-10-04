@@ -60,10 +60,8 @@ import re
 import socket
 import sys
 import tempfile
-from dataclasses import dataclass
 from pathlib import Path
 from unittest import mock
-from urllib.parse import urlsplit
 
 
 # Repo-anchored, not caller-supplied: check-agent.py's rationale reproduced here --
@@ -80,14 +78,10 @@ _FIXTURE_SUBAGENT_TYPE: str = "first-principles:first-principles"
 _EXPECTED_SOURCES: int = 7
 _EXPECTED_LITERALS: int = 35
 
-# Deliberately NOT derived from the fixture's own 532-char minimum retrieved-text
-# length, which would make the floor fixture-shaped. 50 is clearly below any real
-# fetched page and clearly above an empty or near-empty fetch.
-_MIN_RETRIEVED_TEXT_CHARS: int = 50
-
 
 # ---------------------------------------------------------------------------
-# Harness import (one-way). check-quality-harness.py never imports this file.
+# Harness import (one-way): check-quality-harness.py never imports this file.
+# Since Phase 88 the provenance engine lives in the harness and is aliased below.
 # ---------------------------------------------------------------------------
 
 _HARNESS_PATH: Path = REPO_ROOT / "scripts" / "check-quality-harness.py"
@@ -101,6 +95,21 @@ _capture_subagent_tool_calls = _mod._capture_subagent_tool_calls
 detect_defects = _mod.detect_defects
 read_defect_incidence = _mod.read_defect_incidence
 _DEFECT_RECORD_FIELDS = _mod._DEFECT_RECORD_FIELDS
+GroundTruth = _mod.ProvGroundTruth
+ProvenanceResult = _mod.ProvenanceResult
+_GT_LINE_RE = _mod._PROV_GT_LINE_RE
+_PROVENANCE_LABEL_RE = _mod._PROV_LABEL_RE
+_LITERAL_RE = _mod._PROV_LITERAL_RE
+_claim_body = _mod._prov_claim_body
+_source_string = _mod._prov_source_string
+_label = _mod._prov_label
+_parse_ground_truths = _mod._prov_parse_ground_truths
+parse_analysis = _mod.prov_parse_analysis
+_BACKTICK_RE = _mod._PROV_BACKTICK_RE
+_join_key = _mod._prov_join_key
+_anchored_match = _mod._prov_anchored_match
+_bind = _mod._prov_bind
+_MIN_RETRIEVED_TEXT_CHARS = _mod._PROV_MIN_RETRIEVED_TEXT_CHARS
 
 
 def _require_python_version() -> None:
@@ -112,414 +121,14 @@ def _require_python_version() -> None:
         sys.exit(2)
 
 
-# ---------------------------------------------------------------------------
-# PROV-01: section-3 parsing
-# ---------------------------------------------------------------------------
-
-
-@dataclass(frozen=True)
-class GroundTruth:
-    """One `- **GT-n**` list item parsed from an analysis's section 3."""
-
-    gt_id: str
-    label: str
-    claim_body: str
-    source: str
-    literals: tuple[str, ...]
-
-
-# A section-3 list item: "- **GT-1** <rest of line>". `re.M` so `$` anchors each
-# GT to its own line -- every GT in the fixture is single-line.
-#
-# 999.7: the marker class was `-` alone, which is the committed fixture's
-# rendering and nothing else. PR-P1 run 4 rendered the identical content as an
-# ORDERED list and this gate read zero ground truths from it, then reported a
-# clean bill. Unordered (`-`, `*`, `+`) and ordered (`1.`, `1)`) markers are all
-# valid CommonMark list items and all appear in real agent output. The `**GT-n**`
-# bold-id anchor is what actually identifies the line and is unchanged.
-_GT_LINE_RE = re.compile(
-    r"^(?:[-*+]|\d+[.)])\s+\*\*(GT-\d+\??)\*\*\s+(.*)$", re.M
-)
-
-# The literal label FORM, never the bare "read-at-source" substring: the fixture's
-# section 3 contains "read-at-source" 26 times total (7 in this label, 19 more
-# inside each GT's own "read-at-source: <location>" clause), but the label form
-# itself only 7 times.
-# The label FORM, never the bare "read-at-source" substring: the fixture's
-# section 3 contains "read-at-source" 26 times total (7 in this label, 19 more
-# inside each GT's own "read-at-source: <location>" clause), but the label form
-# itself only 7 times. The `*Provenance:` prefix and closing `*` are what carry
-# that distinction and are unchanged.
-#
-# 999.7, two changes. The trailing period is now OPTIONAL: it was required
-# inside the emphasis -- `*Provenance: read-at-source.*` and nothing else -- so
-# PR-P1 run 4's `*Provenance: read-at-source*` scored zero labels. A sentence
-# terminator belongs to the prose, not to the label, and requiring it encodes
-# one author's punctuation as a contract.
-#
-# And this regex is now the SINGLE authority for the label form. `_label` used
-# to test a `_READ_AT_SOURCE_LABEL` string constant first and fall through to
-# here; that branch was measured decisive in no case -- it agreed with this
-# regex on the label form, on a differently-labelled GT, and on the bare
-# mention alike -- so it was dead weight before 999.7 and, once both were
-# widened, it also made the widening untestable: reverting it alone changed no
-# behaviour, leaving `REACH-labelperiod-positive` with nothing to fail against.
-_PROVENANCE_LABEL_RE = re.compile(r"\*Provenance:\s*([a-zA-Z][a-zA-Z\-]*)\.?\*")
-
-# D-01, locked verbatim. No word-boundary anchor: it deliberately also matches a
-# digit run that is the tail of an alphanumeric identifier (see limit 2 above).
-_LITERAL_RE = re.compile(r"\$?\d[\d,]*(?:\.\d+)?")
-
-
-def _claim_body(line_body: str) -> str:
-    """Return the claim substring preceding the '— source: ...' clause.
-
-    Without this split, digits inside the 'read-at-source: <location>'
-    description are scanned too and the literal count lands on 37, not 35.
-    """
-    ends: list[int] = []
-    m = re.search(r"\s+—\s+source:", line_body)
-    if m:
-        ends.append(m.start())
-    # 999.7: in the label-led rendering there is no "— source:" clause at all,
-    # so without this the provenance clause's own digits are mined as claim
-    # literals and every one of them is then "located" in the source it names.
-    m2 = _PROVENANCE_LABEL_RE.search(line_body)
-    if m2:
-        ends.append(m2.start())
-    return line_body[: min(ends)] if ends else line_body
-
-
-def _source_string(line_body: str) -> str:
-    """Return the text between '— source:' and the following ';', or the
-    '*Provenance:' label if the source clause carries no semicolon, stripped.
-    """
-    m = re.search(r"—\s+source:\s*(.*)", line_body)
-    if m:
-        rest = m.group(1)
-        if ";" in rest:
-            return rest.split(";", 1)[0].strip()
-        return rest.split("*Provenance:", 1)[0].strip()
-    # 999.7: label-led rendering -- the source trails the provenance label
-    # rather than sitting in its own "— source:" clause. Take the first
-    # comma-delimited component, which is the source itself; what follows it is
-    # the read-location description ("duration pricing example", "on-demand rate
-    # table"). Deliberately NOT the whole remainder: `_join_key` feeds
-    # `_anchored_match`, which compares netloc and path exactly, so trailing
-    # prose would defeat every bind.
-    m2 = _PROVENANCE_LABEL_RE.search(line_body)
-    if not m2:
-        return ""
-    rest = line_body[m2.end():].lstrip()
-    rest = re.sub(r"^[\u2014\u2013-]\s*", "", rest)
-    return rest.split(",", 1)[0].strip()
-
-
-def _label(line_body: str) -> str:
-    """Return the GT's provenance label word ("read-at-source", "unverified", ...).
-
-    Matches the label FORM via `_PROVENANCE_LABEL_RE` -- see that pattern's own
-    comment for why a bare "read-at-source" substring is not a label, and for
-    why the redundant string-constant pre-check it used to carry was removed.
-    """
-    m = _PROVENANCE_LABEL_RE.search(line_body)
-    return m.group(1) if m else ""
-
-
-def _parse_ground_truths(section3: str) -> list[GroundTruth]:
-    """Parse every '- **GT-n**' list item in `section3` into a `GroundTruth`.
-
-    Includes every GT regardless of its provenance label; callers filter on
-    `label == "read-at-source"`.
-    """
-    out: list[GroundTruth] = []
-    for m in _GT_LINE_RE.finditer(section3):
-        gt_id = m.group(1)
-        line_body = m.group(2)
-        claim = _claim_body(line_body)
-        out.append(
-            GroundTruth(
-                gt_id=gt_id,
-                label=_label(line_body),
-                claim_body=claim,
-                source=_source_string(line_body),
-                literals=tuple(_LITERAL_RE.findall(claim)),
-            )
-        )
-    return out
-
-
-def parse_analysis(analysis_text: str) -> list[GroundTruth]:
-    """Slice section 3 (Ground Truths) out of an analysis and parse its GT list.
-
-    Lets `SectionResolutionError` from `_slice_sections` propagate -- a document
-    the parser cannot read must fail loudly, never report zero findings.
-    """
-    section3 = _slice_sections(analysis_text)[3]
-    return _parse_ground_truths(section3)
-
-
-# ---------------------------------------------------------------------------
-# PROV-02: source <-> fetch join
-# ---------------------------------------------------------------------------
-
-_BACKTICK_RE = re.compile(r"`([^`]+)`")
-
-
-def _join_key(source: str) -> str:
-    """Return the join key used to bind a GT's source string to a capture triple.
-
-    If `source` contains backticked tokens, return the LAST one -- the verbatim
-    filename join for the two doc-name-plus-backticked-filename sources. Otherwise
-    return the bare source string stripped of a leading http(s) scheme and of any
-    trailing '/' or '.'.
-
-    Exact-URL canonicalization is rejected: it fails outright on the two
-    backticked-filename GTs, whose source strings are not URLs at all -- "AWS
-    Lambda Developer Guide" is not a resolvable scheme+host.
-    """
-    tokens = _BACKTICK_RE.findall(source)
-    if tokens:
-        return tokens[-1]
-    key = source.strip()
-    key = re.sub(r"^https?://", "", key)
-    return key.rstrip("/.")
-
-
-def _anchored_match(key: str, target: str) -> bool:
-    """CR-01: anchor the source<->fetch join instead of raw substring
-    containment, so a key can never bind by mere prefix/substring collision
-    (e.g. 'example.com' must not match '...ref=example.com-mirror', and
-    'lambda' must not match inside 'lambda-old'). Both sides are parsed with
-    `urllib.parse.urlsplit` -- never a raw substring test.
-
-    `key` is either a host+path string (scheme-stripped, from a bare GT
-    source with a path) or a bare token (a backticked filename, or a bare
-    hostname with no path):
-
-    - If `key` contains '/', treat it as host+path: require exact host
-      (netloc) equality (case-insensitive) AND exact path equality (mod a
-      trailing '/'). A trailing scheme is added back (`https://`) purely so
-      `urlsplit` parses the netloc/path split correctly; the scheme itself is
-      never compared.
-    - Otherwise, treat `key` as a single bare token: it binds either as an
-      exact netloc match (a bare-hostname source) or as an exact
-      `/`-delimited path segment of the target's path (a backticked filename
-      cited without its containing directory) -- never as a substring
-      landing mid-segment.
-    """
-    target_parts = urlsplit(target)
-    if "/" in key:
-        key_parts = urlsplit("https://" + key)
-        return (
-            key_parts.netloc.lower() == target_parts.netloc.lower()
-            and key_parts.path.rstrip("/") == target_parts.path.rstrip("/")
-        )
-    if key == target_parts.netloc:
-        return True
-    return key in target_parts.path.split("/")
-
-
-def _bind(
-    gt: GroundTruth, tool_calls: list[tuple[str, str, str]]
-) -> tuple[int, tuple[str, str, str], tuple[int, ...]] | None:
-    """Bind `gt` to the capture triple(s) whose target anchors on gt's join
-    key (see `_anchored_match` -- never a raw substring test).
-
-    Zero matches is unmatched (returns None). Two or more matches with
-    DIFFERING `target` strings is a genuine ambiguous join -- an ambiguous
-    join must never be silently resolved by taking the first (measured: no
-    such collision on the fixture) -- and also returns None (CR-01/CR-02).
-
-    Two or more matches that all share the SAME `target` string (e.g. a
-    WebFetch retried after a transient failure, or fetched twice for two
-    different literals) are NOT ambiguous: they bind to the first occurrence,
-    and every matching index is returned alongside it so the caller can mark
-    all of them bound rather than reporting the retry as unmatched (CR-02).
-
-    Returns `(index, triple, all_matched_indices)` on a successful bind, so
-    `verify()` never needs to re-derive the index via a value-equality
-    `tool_calls.index(triple)` lookup.
-    """
-    key = _join_key(gt.source)
-    if not key:
-        return None
-    matches = [(i, t) for i, t in enumerate(tool_calls) if _anchored_match(key, t[1])]
-    if not matches:
-        return None
-    distinct_targets = {t[1] for _, t in matches}
-    if len(distinct_targets) > 1:
-        return None
-    first_index, first_triple = matches[0]
-    return first_index, first_triple, tuple(i for i, _ in matches)
-
-
-# ---------------------------------------------------------------------------
-# PROV-03 location, D-03/D-04/D-06/D-08 finding families, PROV-05 record
-# ---------------------------------------------------------------------------
-
-
-@dataclass(frozen=True)
-class ProvenanceResult:
-    """The nine D-11 counters plus underscore-prefixed audit lists.
-
-    The audit lists let a caller (the D-15 mutation control, the self-test) assert
-    on a SPECIFIC gt_id/literal rather than merely on a count.
-    """
-
-    provenance_labels: int
-    unmatched_sources: int
-    unreadable_sources: int
-    literals_checked: int
-    unlocated_literals: int
-    misattributed_literals: int
-    zero_literal_gts: int
-    orphan_fetches: int
-    provenance_flag: int
-    coverage_floor_breach: int
-    _floor_reasons: tuple[str, ...]
-    _unmatched_gt_ids: tuple[str, ...]
-    _unreadable_gt_ids: tuple[str, ...]
-    _zero_literal_gt_ids: tuple[str, ...]
-    _unlocated_pairs: tuple[tuple[str, str], ...]
-    _misattributed_pairs: tuple[tuple[str, str], ...]
-    _orphan_targets: tuple[str, ...]
-
-
 def verify(
     analysis_text: str, capture_path: Path, subagent_type: str, analysis_id: str
 ) -> ProvenanceResult:
-    """PROV-02/PROV-03 engine: join, locate, and roll every read-at-source GT into
-    a `ProvenanceResult`.
-
-    Calls `_capture_subagent_tool_calls` WITHOUT a try/except wrapper -- a
-    `ValueError` from a never-dispatched subagent must propagate (constraint 5).
-
-    Comparison is comma-normalized on both sides (the literal and the retrieved
-    text each have ',' stripped before the substring test); '$' is never stripped.
+    """Delegate to the harness's `prov_verify`, the single implementation of the
+    provenance engine since Phase 88. `analysis_id` is retained for call-site
+    compatibility and is unused.
     """
-    ground_truths = parse_analysis(analysis_text)
-    read_gts = [gt for gt in ground_truths if gt.label == "read-at-source"]
-
-    tool_calls = _capture_subagent_tool_calls(capture_path, subagent_type)
-
-    # Per-source normalized corpus, built once -- the D-04 cross-source lookup is
-    # then near-free.
-    corpus: dict[int, str] = {i: t[2].replace(",", "") for i, t in enumerate(tool_calls)}
-
-    bound_indices: set[int] = set()
-    unmatched_ids: list[str] = []
-    unreadable_ids: list[str] = []
-    zero_literal_ids: list[str] = []
-    unlocated_pairs: list[tuple[str, str]] = []
-    misattributed_pairs: list[tuple[str, str]] = []
-    literals_checked = 0
-
-    for gt in read_gts:
-        bound = _bind(gt, tool_calls)
-        if bound is None:
-            unmatched_ids.append(gt.gt_id)
-            continue
-        idx, triple, all_indices = bound
-        bound_indices.update(all_indices)
-        retrieved = triple[2]
-
-        # D-08: an unreadable bound source is counted INSTEAD OF running literal
-        # location for that GT, so an infrastructure failure is never mislabelled
-        # as fabrication.
-        if len(retrieved) < _MIN_RETRIEVED_TEXT_CHARS:
-            unreadable_ids.append(gt.gt_id)
-            continue
-
-        # D-03: zero checkable literals is reported, never failed.
-        if not gt.literals:
-            zero_literal_ids.append(gt.gt_id)
-            continue
-
-        own_corpus = retrieved.replace(",", "")
-        for literal in gt.literals:
-            literals_checked += 1
-            norm = literal.replace(",", "")
-            if norm in own_corpus:
-                continue
-            # D-04: absent from the bound source but present in a DIFFERENT
-            # fetched source is a distinct finding from absent-everywhere.
-            found_elsewhere = any(
-                j != idx and norm in other for j, other in corpus.items()
-            )
-            if found_elsewhere:
-                misattributed_pairs.append((gt.gt_id, literal))
-            else:
-                unlocated_pairs.append((gt.gt_id, literal))
-
-    # D-06: a tool call bound to no read-at-source GT is an orphan fetch --
-    # counted and reported, never failed.
-    orphan_targets = [t[1] for i, t in enumerate(tool_calls) if i not in bound_indices]
-
-    unmatched_sources = len(unmatched_ids)
-    unreadable_sources = len(unreadable_ids)
-    unlocated_literals = len(unlocated_pairs)
-    misattributed_literals = len(misattributed_pairs)
-    zero_literal_gts = len(zero_literal_ids)
-    orphan_fetches = len(orphan_targets)
-    # 999.7 COVERAGE FLOOR. Every counter above is a count of defects FOUND, so
-    # an analysis this parser cannot read at all scores zero on all of them and
-    # returns a clean bill -- PASS by silence. Measured on PR-P1 run 4, which
-    # renders its GTs as an ordered list and its label without the trailing
-    # period: sixteen ground truths, twelve of them read-at-source, every cited
-    # source genuinely fetched, and this gate reported
-    # `provenance_labels 0, literals_checked 0, provenance_flag 0`.
-    #
-    # The floor is deliberately independent of how many renderings the parsers
-    # accept. Widening a regex fixes the rendering that was measured; the floor
-    # converts every rendering NOT yet measured from a silent pass into a loud
-    # failure, which is the property that actually generalises.
-    floor_reasons: list[str] = []
-    if not ground_truths:
-        floor_reasons.append(
-            "section 3 yielded zero ground truths -- the parser could not read it"
-        )
-    elif not read_gts and tool_calls:
-        # Anti-overreach: `read_gts` empty with NO tool calls is an analysis that
-        # fetched nothing, which has nothing to verify and is legitimately clean.
-        # It is the conjunction that is contradictory -- sources were retrieved
-        # and none of them is claimed by a read-at-source label.
-        floor_reasons.append(
-            f"zero read-at-source labels against {len(tool_calls)} retrieved source(s)"
-        )
-    coverage_floor_breach = 1 if floor_reasons else 0
-
-    provenance_flag = (
-        1
-        if (
-            unmatched_sources
-            or unreadable_sources
-            or unlocated_literals
-            or misattributed_literals
-            or coverage_floor_breach
-        )
-        else 0
-    )
-
-    return ProvenanceResult(
-        provenance_labels=len(read_gts),
-        unmatched_sources=unmatched_sources,
-        unreadable_sources=unreadable_sources,
-        literals_checked=literals_checked,
-        unlocated_literals=unlocated_literals,
-        misattributed_literals=misattributed_literals,
-        zero_literal_gts=zero_literal_gts,
-        orphan_fetches=orphan_fetches,
-        provenance_flag=provenance_flag,
-        coverage_floor_breach=coverage_floor_breach,
-        _floor_reasons=tuple(floor_reasons),
-        _unmatched_gt_ids=tuple(unmatched_ids),
-        _unreadable_gt_ids=tuple(unreadable_ids),
-        _zero_literal_gt_ids=tuple(zero_literal_ids),
-        _unlocated_pairs=tuple(unlocated_pairs),
-        _misattributed_pairs=tuple(misattributed_pairs),
-        _orphan_targets=tuple(orphan_targets),
-    )
+    return _mod.prov_verify(analysis_text, capture_path, subagent_type)
 
 
 def provenance_defect_record(analysis_text: str, analysis_id: str, result: ProvenanceResult) -> dict:
