@@ -219,45 +219,45 @@ python3 scripts/check-provenance-rollup.py --emission-reading | awk -F'\t' 'NR>1
 **R5** — content count, from the list on this page:
 
 ```sh
-awk '/<!-- content-list:start -->/,/<!-- content-list:end -->/' docs/rollup-emission-reading.md | /usr/bin/grep -oE 'tests/[A-Za-z0-9._/-]+\.md:[0-9]+' | sort -u | wc -l
+awk '/^<!-- content-list:start -->$/,/^<!-- content-list:end -->$/' docs/rollup-emission-reading.md | /usr/bin/grep -oE 'tests/[A-Za-z0-9._/-]+\.md:[0-9]+' | sort -u | wc -l
 ```
 
 **R6** — print every audited line:
 
 ```sh
-awk '/<!-- content-list:start -->/,/<!-- content-list:end -->/' docs/rollup-emission-reading.md | /usr/bin/grep -oE 'tests/[A-Za-z0-9._/-]+\.md:[0-9]+' | sort -u | while IFS=: read -r f n; do printf '%s:%s: ' "$f" "$n"; sed -n "${n}p" "$f"; done
+awk '/^<!-- content-list:start -->$/,/^<!-- content-list:end -->$/' docs/rollup-emission-reading.md | /usr/bin/grep -oE 'tests/[A-Za-z0-9._/-]+\.md:[0-9]+' | sort -u | while IFS=: read -r f n; do printf '%s:%s: ' "$f" "$n"; sed -n "${n}p" "$f"; done
 ```
 
 **R7** — template readers with no content (expect no output):
 
 ```sh
-comm -23 <(python3 scripts/check-provenance-rollup.py --emission-reading | awk -F'\t' 'NR>1 && $3=="true"{print $1}' | sort) <(awk '/<!-- content-list:start -->/,/<!-- content-list:end -->/' docs/rollup-emission-reading.md | /usr/bin/grep -oE 'tests/[A-Za-z0-9._/-]+\.md:[0-9]+' | cut -d: -f1 | sort -u)
+comm -23 <(python3 scripts/check-provenance-rollup.py --emission-reading | awk -F'\t' 'NR>1 && $3=="true"{print $1}' | sort) <(awk '/^<!-- content-list:start -->$/,/^<!-- content-list:end -->$/' docs/rollup-emission-reading.md | /usr/bin/grep -oE 'tests/[A-Za-z0-9._/-]+\.md:[0-9]+' | cut -d: -f1 | sort -u)
 ```
 
 **R8** — non-readers carrying the content:
 
 ```sh
-comm -12 <(python3 scripts/check-provenance-rollup.py --emission-reading | awk -F'\t' 'NR>1 && $3=="false"{print $1}' | sort) <(awk '/<!-- content-list:start -->/,/<!-- content-list:end -->/' docs/rollup-emission-reading.md | /usr/bin/grep -oE 'tests/[A-Za-z0-9._/-]+\.md:[0-9]+' | cut -d: -f1 | sort -u) | wc -l
+comm -12 <(python3 scripts/check-provenance-rollup.py --emission-reading | awk -F'\t' 'NR>1 && $3=="false"{print $1}' | sort) <(awk '/^<!-- content-list:start -->$/,/^<!-- content-list:end -->$/' docs/rollup-emission-reading.md | /usr/bin/grep -oE 'tests/[A-Za-z0-9._/-]+\.md:[0-9]+' | cut -d: -f1 | sort -u) | wc -l
 ```
 
 **R9** — readable set against content set (expect no output):
 
 ```sh
-comm -3 <(python3 scripts/check-provenance-rollup.py --emission-reading | awk -F'\t' 'NR>1 && $4!="unreadable"{print $1}' | sort) <(awk '/<!-- content-list:start -->/,/<!-- content-list:end -->/' docs/rollup-emission-reading.md | /usr/bin/grep -oE 'tests/[A-Za-z0-9._/-]+\.md:[0-9]+' | cut -d: -f1 | sort -u)
+comm -3 <(python3 scripts/check-provenance-rollup.py --emission-reading | awk -F'\t' 'NR>1 && $4!="unreadable"{print $1}' | sort) <(awk '/^<!-- content-list:start -->$/,/^<!-- content-list:end -->$/' docs/rollup-emission-reading.md | /usr/bin/grep -oE 'tests/[A-Za-z0-9._/-]+\.md:[0-9]+' | cut -d: -f1 | sort -u)
 ```
 
 **R10** — per-corpus rows from the instrument, then the per-corpus content count from the list:
 
 ```sh
 python3 scripts/check-provenance-rollup.py --emission-reading | awk -F'\t' 'NR>1{split($1,p,"/"); c=p[2]; if(c=="w4-paired"){c=c ($1 ~ /\.old\./ ? " (old)" : " (new)")} n[c]++; if($4=="unreadable")u[c]++; if($4=="present")l[c]++; if($3=="true")t[c]++} END{for(c in n) printf "%s\tn=%d\tunreadable=%d\tline_format=%d\ttemplate_read=%d\n", c, n[c], u[c]+0, l[c]+0, t[c]+0}' | sort
-awk '/<!-- content-list:start -->/,/<!-- content-list:end -->/' docs/rollup-emission-reading.md | /usr/bin/grep -oE 'tests/[A-Za-z0-9._/-]+\.md:[0-9]+' | sort -u | awk -F: '{split($1,p,"/"); c=p[2]; if(c=="w4-paired"){c=c ($1 ~ /\.old\./ ? " (old)" : " (new)")} n[c]++} END{for(c in n) printf "%s\tcontent=%d\n", c, n[c]}' | sort
+awk '/^<!-- content-list:start -->$/,/^<!-- content-list:end -->$/' docs/rollup-emission-reading.md | /usr/bin/grep -oE 'tests/[A-Za-z0-9._/-]+\.md:[0-9]+' | sort -u | awk -F: '{split($1,p,"/"); c=p[2]; if(c=="w4-paired"){c=c ($1 ~ /\.old\./ ? " (old)" : " (new)")} n[c]++} END{for(c in n) printf "%s\tcontent=%d\n", c, n[c]}' | sort
 ```
 
 **R11** — the two named corpora:
 
 ```sh
 python3 scripts/check-provenance-rollup.py --emission-reading | awk -F'\t' 'NR>1' | /usr/bin/grep -E '^tests/(emission-stage-a-v9.14|live-conformance-v9.0)/' | awk -F'\t' '{print $4}' | sort | uniq -c
-awk '/<!-- content-list:start -->/,/<!-- content-list:end -->/' docs/rollup-emission-reading.md | /usr/bin/grep -oE 'tests/[A-Za-z0-9._/-]+\.md:[0-9]+' | sort -u | /usr/bin/grep -E '^tests/(emission-stage-a-v9.14|live-conformance-v9.0)/' | wc -l
+awk '/^<!-- content-list:start -->$/,/^<!-- content-list:end -->$/' docs/rollup-emission-reading.md | /usr/bin/grep -oE 'tests/[A-Za-z0-9._/-]+\.md:[0-9]+' | sort -u | /usr/bin/grep -E '^tests/(emission-stage-a-v9.14|live-conformance-v9.0)/' | wc -l
 ```
 
 **R12** — the line-format reading is pinned capture by capture (`[line-format-pin]`). This is a
