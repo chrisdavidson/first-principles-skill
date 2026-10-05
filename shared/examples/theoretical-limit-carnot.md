@@ -250,7 +250,7 @@ machine, and a real plant can exceed it without violating anything.
 
 ```text
 ?-marked: none (0 of 4)
-Read-at-source: GT-4 — published material data for Solar Salt (direct measurement)
+Read-at-source: GT-4 — published material data for Solar Salt (direct measurement), established in the five-whys (reduce-to-primitives) example this drill hands off from
 Read-at-source: GT-5 — Sandia, An Evaluation of Possible Next-Generation High Temperature Molten-Salt Power Towers (OSTI 1035342, Table 2), temperatures from water saturation data
 Read-at-source: GT-6 — the same Sandia design characterization (OSTI 1035342, Table 2), restated in Sandia OSTI 1088078 §1.1
 ```
