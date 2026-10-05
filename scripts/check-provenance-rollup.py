@@ -220,6 +220,7 @@ Usage:
     python3 scripts/check-provenance-rollup.py --dir shared/examples
     python3 scripts/check-provenance-rollup.py --self-test
     python3 scripts/check-provenance-rollup.py --inject empty-ground-truths
+    python3 scripts/check-provenance-rollup.py --emission-reading   # TSV, report-only
     python3 scripts/check-provenance-rollup.py --describe   # CONF-SURFACE self-description
 
 Exit codes:
@@ -686,6 +687,14 @@ Check2 = Callable[[Rollup, list[GroundTruth]], list[str]]
 _SECTION3_PARSER: Section3Parser = section3_ground_truths
 _CHECK2: Check2 = enumeration_problems
 
+# The roll-up locator `read_document` reads through. Only `read_document` uses
+# this seam: the template-only tripwire (`_files_with_rollup`) and
+# `_live_arm_subject_count` stay on the regex directly, so a stubbed locator
+# cannot also mask the tripwire, and the two fail independently.
+RollupLocator = Callable[[str], Rollup | None]
+
+_ROLLUP_LOCATOR: RollupLocator = find_rollup
+
 
 def read_document(name: str, text: str) -> DocReading:
     """Read one analysis document: presence, check 2, check 3."""
@@ -700,7 +709,7 @@ def read_document(name: str, text: str) -> DocReading:
     dupes = tuple(duplicate_gt_ids(section3))
     marked = sum(1 for g in population if g.marked)
 
-    rollup = find_rollup(section3)
+    rollup = _ROLLUP_LOCATOR(section3)
     if rollup is None:
         return DocReading(
             name, None, False, None, len(population), marked, dupes, (), ()
@@ -1532,6 +1541,211 @@ def template_read_problems() -> list[str]:
     return problems
 
 
+# --- the line-format reading on frozen captures (Phase 92, D-03/D-04) ---
+#
+# This group reads the template's LINE FORMAT only -- a line-start `?-marked:`
+# inside section 3 -- through the same locator `read_document` uses
+# (`_ROLLUP_LOCATOR`). It is not a content reading: an agent can emit the
+# roll-up's content (an enumerated `?`-marked set with its count) in a form
+# this locator does not match, and the content figure is a hand-audited
+# reading in docs/rollup-emission-reading.md, not a number computed here.
+#
+# It is a regression pin of this instrument on frozen bytes, not a K-of-N live
+# gate (docs/v8.7-constraint-teardown.md §2 item 3) -- the same view Phase 91
+# D-01 took for the census pinned by `[template-read]`. The captures it reads
+# are frozen, so a disagreement means the locator or the census moved.
+#
+# Only the line format is pinned (the D-04 fallback). A reviewable content
+# detector was tried at planning time and read 72 of the 73 readable captures:
+# it misses one capture whose section 3 rewords the roll-up's label in plain
+# language, and catching that needs free-text widening, which is backlog
+# 999.187's to decide, not this module's.
+
+# The frozen corpora the reading walks, repo-relative and always resolved as
+# `REPO_ROOT / corpus`, so the self-test does not depend on the cwd.
+_LINE_FORMAT_CORPORA: tuple[str, ...] = (
+    "tests/adversarial-firing-v9.5",
+    "tests/baseline-reading-v9.6",
+    "tests/confidence-transitivity-v9.4",
+    "tests/emission-stage-a-v9.14",
+    "tests/live-conformance-v9.0",
+    "tests/quality-ledger-v8.26",
+    "tests/quality-provenance-v8.24",
+    "tests/rebaseline-reading-v9.6",
+    "tests/reference-reads-v9.2.1",
+    "tests/w4-paired",
+)
+
+
+def _paired_captures(corpus_root: Path) -> list[tuple[Path, Path]]:
+    """Every analysis document under `corpus_root` that has a transcript.
+
+    The partner transcript is `<stem>.jsonl` beside the document, or failing
+    that `../raw/<stem>.jsonl`. A document with neither is skipped, as are
+    `README.md` and `*.orchestrator.md` files, which are not agent documents.
+    """
+    pairs: list[tuple[Path, Path]] = []
+    for md in sorted(corpus_root.rglob("*.md")):
+        if md.name == "README.md" or md.name.endswith(".orchestrator.md"):
+            continue
+        jsonl = md.with_suffix(".jsonl")
+        if not jsonl.exists():
+            jsonl = md.parent.parent / "raw" / f"{md.stem}.jsonl"
+            if not jsonl.exists():
+                continue
+        pairs.append((md, jsonl))
+    return pairs
+
+
+def line_format_reading() -> list[tuple[str, str, str, str]]:
+    """The line-format and template-read reading over the frozen captures.
+
+    Returns `(path, capture_state, read_output_template, line_format)` per
+    paired capture, in corpus then path order. `line_format` is "unreadable"
+    when the six sections do not resolve, else "present" or "absent" from
+    `read_document`, so it goes through `_ROLLUP_LOCATOR`. The census goes
+    through `_TEMPLATE_READ_CENSUS`. An absent corpus contributes no rows;
+    `line_format_pin_problems()` reports it.
+    """
+    rows: list[tuple[str, str, str, str]] = []
+    for corpus in _LINE_FORMAT_CORPORA:
+        root = REPO_ROOT / corpus
+        if not root.is_dir():
+            continue
+        for md, jsonl in _paired_captures(root):
+            census = _TEMPLATE_READ_CENSUS(md.stem, jsonl)
+            reading = read_document(md.name, md.read_text(encoding="utf-8"))
+            if reading.unreadable is not None:
+                line_format = "unreadable"
+            else:
+                line_format = "present" if reading.present else "absent"
+            rows.append(
+                (
+                    md.relative_to(REPO_ROOT).as_posix(),
+                    census["capture_state"],
+                    census["read_output_template"],
+                    line_format,
+                )
+            )
+    return rows
+
+
+# HAND-TRANSCRIBED from the planner's scratch measurement of 2026-10-05, and
+# re-confirmed by an independent scratch run of the same pairing rule at the
+# phase's recorded base commit, never computed by the code under test: a pin
+# derived from the locator would agree with any locator, including a broken
+# one. The inputs are frozen under FROZEN-EVIDENCE.
+_LINE_FORMAT_PAIRED_TOTAL = 77
+_LINE_FORMAT_TEMPLATE_READ_TOTAL = 59
+_LINE_FORMAT_PRESENT: frozenset[str] = frozenset(
+    {
+        "tests/adversarial-firing-v9.5/PR-P2.md",
+        "tests/adversarial-firing-v9.5/Q-P2.md",
+        "tests/adversarial-firing-v9.5/Q-P3.md",
+        "tests/baseline-reading-v9.6/PR-P1.md",
+        "tests/baseline-reading-v9.6/PR-P2.md",
+        "tests/baseline-reading-v9.6/Q-P1.md",
+        "tests/baseline-reading-v9.6/Q-P2.md",
+        "tests/baseline-reading-v9.6/Q-P3.md",
+        "tests/confidence-transitivity-v9.4/CT-A1.md",
+        "tests/confidence-transitivity-v9.4/CT-A2.md",
+        "tests/confidence-transitivity-v9.4/CT-A3.md",
+        "tests/confidence-transitivity-v9.4/CT-A4.md",
+        "tests/confidence-transitivity-v9.4/CT-B1.md",
+        "tests/confidence-transitivity-v9.4/CT-B2.md",
+        "tests/confidence-transitivity-v9.4/CT-B3.md",
+        "tests/confidence-transitivity-v9.4/CT-B4.md",
+        "tests/confidence-transitivity-v9.4/CT-B5.md",
+        "tests/confidence-transitivity-v9.4/CT-P1.md",
+        "tests/live-conformance-v9.0/PR-P2.md",
+        "tests/quality-provenance-v8.24/PR-P1.md",
+        "tests/rebaseline-reading-v9.6/PR-P1.md",
+        "tests/rebaseline-reading-v9.6/PR-P2.md",
+        "tests/rebaseline-reading-v9.6/Q-P2.md",
+        "tests/rebaseline-reading-v9.6/Q-P3.md",
+        "tests/w4-paired/documents/PR-N1.new.r3.md",
+        "tests/w4-paired/documents/TB-06.old.r1.md",
+        "tests/w4-paired/documents/TB-06.old.r2.md",
+        "tests/w4-paired/documents/TB-10.new.r2.md",
+        "tests/w4-paired/documents/TB-10.old.r1.md",
+        "tests/w4-paired/documents/TB-10.old.r3.md",
+    }
+)
+_LINE_FORMAT_UNREADABLE: frozenset[str] = frozenset(
+    {
+        "tests/emission-stage-a-v9.14/documents/TB-08.md",
+        "tests/w4-paired/documents/PR-N1.old.r2.md",
+        "tests/w4-paired/documents/PR-N1.old.r3.md",
+        "tests/w4-paired/documents/Q-P2.new.r2.md",
+    }
+)
+
+
+def line_format_pin_problems() -> list[str]:
+    """The pinned line-format reading still holds, capture by capture.
+
+    (a) The pin is non-vacuous: a present set, an unreadable set, and at least
+        one readable capture outside the present set, or a locator stubbed to
+        find nothing or everything could not be told apart from the real one.
+    (b) Each corpus directory exists. An absent one is a problem, never a skip.
+    (c) The number of paired captures equals the pinned total.
+    (d) The observed present set equals the pin.
+    (e) The observed unreadable set equals the pin.
+    (f) Every capture carrying the line format read the template.
+    (g) The number of captures that read the template equals the pinned total.
+    """
+    problems: list[str] = []
+    readable_absent = (
+        _LINE_FORMAT_PAIRED_TOTAL
+        - len(_LINE_FORMAT_PRESENT)
+        - len(_LINE_FORMAT_UNREADABLE)
+    )
+    if not (_LINE_FORMAT_PRESENT and _LINE_FORMAT_UNREADABLE and readable_absent > 0):
+        problems.append(
+            "the pinned expectation lacks a present, an unreadable or a readable-absent "
+            "capture, so the pin cannot tell a stubbed locator apart from the real one"
+        )
+
+    for corpus in _LINE_FORMAT_CORPORA:
+        if not (REPO_ROOT / corpus).is_dir():
+            problems.append(f"{corpus}: corpus directory is absent")
+
+    rows = line_format_reading()
+    if len(rows) != _LINE_FORMAT_PAIRED_TOTAL:
+        problems.append(
+            f"paired captures: expected {_LINE_FORMAT_PAIRED_TOTAL}, found {len(rows)}"
+        )
+
+    present = {path for path, _s, _r, lf in rows if lf == "present"}
+    unreadable = {path for path, _s, _r, lf in rows if lf == "unreadable"}
+    for label, observed, pinned in (
+        ("present", present, _LINE_FORMAT_PRESENT),
+        ("unreadable", unreadable, _LINE_FORMAT_UNREADABLE),
+    ):
+        missing = sorted(pinned - observed)
+        extra = sorted(observed - pinned)
+        if missing:
+            problems.append(f"pinned {label} but not located: {missing}")
+        if extra:
+            problems.append(f"located {label} but not pinned: {extra}")
+
+    not_read = sorted(
+        path for path, _s, read, lf in rows if lf == "present" and read != "true"
+    )
+    if not_read:
+        problems.append(
+            f"line format present but the template was not read: {not_read}"
+        )
+
+    read_true = sum(1 for _p, _s, read, _lf in rows if read == "true")
+    if read_true != _LINE_FORMAT_TEMPLATE_READ_TOTAL:
+        problems.append(
+            f"captures that read the template: expected "
+            f"{_LINE_FORMAT_TEMPLATE_READ_TOTAL}, census reads {read_true}"
+        )
+    return problems
+
+
 # --- the template-only tripwire (a falsifier, not a promise) ----------------
 
 # The roll-up form, as the four plan-time falsifiers F1-F3 match it: a
@@ -1784,6 +1998,8 @@ INJECTIONS: tuple[str, ...] = (
     "census-no-reads",
     "exemplar-rollup-dropped",
     "kept-row-dropped",
+    "locator-never",
+    "locator-everywhere",
 )
 
 # The control group each injection must be caught BY (WR-06). A failure from
@@ -1799,6 +2015,8 @@ _INJECTION_GROUP: dict[str, str] = {
     "census-no-reads": "template-read",
     "exemplar-rollup-dropped": "exemplar",
     "kept-row-dropped": "retirement",
+    "locator-never": "line-format-pin",
+    "locator-everywhere": "line-format-pin",
 }
 
 
@@ -1869,9 +2087,19 @@ def _inject_kept_row_dropped() -> tuple[tuple[str, str, int], ...]:
     )
 
 
+def _inject_locator_never(section3: str) -> Rollup | None:
+    """The roll-up locator stubbed to locate nothing, in any document."""
+    return None
+
+
+def _inject_locator_everywhere(section3: str) -> Rollup | None:
+    """The roll-up locator stubbed to locate a roll-up in every document."""
+    return Rollup("<stub>", (), None, None, ())
+
+
 def _run_controls(injection: str | None) -> list[str]:
     """Run every control group, with `injection` (if any) active."""
-    global _SECTION3_PARSER, _CHECK2, _TEMPLATE_READ_CENSUS
+    global _SECTION3_PARSER, _CHECK2, _TEMPLATE_READ_CENSUS, _ROLLUP_LOCATOR
     global _EXEMPLAR_TEXT, _TEMPLATE_ONLY_SURFACES
     saved_parser, saved_check2, saved_census = (
         _SECTION3_PARSER,
@@ -1879,6 +2107,7 @@ def _run_controls(injection: str | None) -> list[str]:
         _TEMPLATE_READ_CENSUS,
     )
     saved_exemplar_text, saved_surfaces = _EXEMPLAR_TEXT, _TEMPLATE_ONLY_SURFACES
+    saved_locator = _ROLLUP_LOCATOR
 
     if injection == "always-pass":
         _CHECK2 = _inject_always_pass
@@ -1894,6 +2123,10 @@ def _run_controls(injection: str | None) -> list[str]:
         _EXEMPLAR_TEXT = _inject_exemplar_rollup_dropped
     elif injection == "kept-row-dropped":
         _TEMPLATE_ONLY_SURFACES = _inject_kept_row_dropped()
+    elif injection == "locator-never":
+        _ROLLUP_LOCATOR = _inject_locator_never
+    elif injection == "locator-everywhere":
+        _ROLLUP_LOCATOR = _inject_locator_everywhere
     elif injection is not None:
         raise SystemExit(f"error: unknown injection {injection!r}; one of {INJECTIONS}")
 
@@ -1901,6 +2134,7 @@ def _run_controls(injection: str | None) -> list[str]:
         problems: list[str] = []
         problems += [f"[harness] {p}" for p in harness_surface_problems()]
         problems += [f"[template-read] {p}" for p in template_read_problems()]
+        problems += [f"[line-format-pin] {p}" for p in line_format_pin_problems()]
         problems += [f"[structure] {p}" for p in structure_problems()]
         problems += [f"[template-only] {p}" for p in template_only_problems()]
         problems += [f"[retirement] {p}" for p in retirement_guard_problems()]
@@ -1919,6 +2153,7 @@ def _run_controls(injection: str | None) -> list[str]:
             saved_census,
         )
         _EXEMPLAR_TEXT, _TEMPLATE_ONLY_SURFACES = saved_exemplar_text, saved_surfaces
+        _ROLLUP_LOCATOR = saved_locator
 
 
 def self_test(injection: str | None = None) -> int:
@@ -1960,7 +2195,8 @@ def self_test(injection: str | None = None) -> int:
         f"fixtures: {len(FIXTURES)}; injections: {len(INJECTIONS)}; "
         f"template-only surfaces: {len(_TEMPLATE_ONLY_SURFACES)}; "
         f"template-read captures: "
-        f"{sum(len(exp) for _c, exp in _TEMPLATE_READ_CORPORA)}"
+        f"{sum(len(exp) for _c, exp in _TEMPLATE_READ_CORPORA)}; "
+        f"line-format captures: {_LINE_FORMAT_PAIRED_TOTAL}"
     )
     if problems:
         for p in problems:
@@ -2024,6 +2260,7 @@ def describe() -> dict:
     """
     control_ids = sorted([f.fid for f in FIXTURES] + list(INJECTIONS))
     reading = template_read_reading()
+    line_format = line_format_reading()
     return {
         "control_ids": control_ids,
         "control_count": len(control_ids),
@@ -2056,6 +2293,13 @@ def describe() -> dict:
             "template_read_captures": len(reading),
             "template_read_dispatched": sum(1 for r in reading if r[2] == "ok"),
             "template_read_true": sum(1 for r in reading if r[3] == "true"),
+            # The line-format reading over the ten frozen corpora, re-read through
+            # the locator seam at call time and never typed here.
+            "line_format_paired_captures": len(line_format),
+            "line_format_present": sum(1 for r in line_format if r[3] == "present"),
+            "line_format_unreadable": sum(
+                1 for r in line_format if r[3] == "unreadable"
+            ),
         },
         "disclosed_bounds_anchors": sorted(
             [
@@ -2070,6 +2314,7 @@ def describe() -> dict:
                 "read-at-source-grammar-unprescribed",
                 "template-read-pinned-on-frozen-captures-only",
                 "exemplar-floor-gates-shipped-files-not-live-readings",
+                "line-format-pinned-on-frozen-captures-only",
             ]
         ),
     }
@@ -2100,10 +2345,26 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument(
         "--describe", action="store_true", help="emit self-description JSON"
     )
+    ap.add_argument(
+        "--emission-reading",
+        action="store_true",
+        help=(
+            "print the line-format and template-read reading over the frozen "
+            "paired captures as TSV; report-only, gates nothing"
+        ),
+    )
     args = ap.parse_args(argv)
 
     if args.describe:
         print(json.dumps(describe(), indent=2, sort_keys=True))
+        return 0
+
+    if args.emission_reading:
+        # Report-only: exits 0 whatever the reading says
+        # (docs/v8.7-constraint-teardown.md §2 item 3).
+        print("path\tcapture_state\tread_output_template\tline_format")
+        for row in line_format_reading():
+            print("\t".join(row))
         return 0
 
     if args.inject:
@@ -2113,7 +2374,10 @@ def main(argv: list[str] | None = None) -> int:
 
     paths = _collect_inputs(args)
     if not paths:
-        ap.error("one of --analysis, --dir, --self-test or --inject is required")
+        ap.error(
+            "one of --analysis, --dir, --self-test, --inject or --emission-reading "
+            "is required"
+        )
 
     readings: list[DocReading] = []
     for path in paths:
