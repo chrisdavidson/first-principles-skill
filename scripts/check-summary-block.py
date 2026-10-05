@@ -1732,7 +1732,16 @@ def _xc_prechecks(text, sections, block, exemplar) -> list[Finding]:
     precheck-overlaps-qual01-precheck-defects -- QUAL-01's
     `_precheck_defects` stays and checks a pre-check's internal consistency,
     blank-line tolerant; this comparator checks it against the chain and is
-    strict about adjacency."""
+    strict about adjacency.
+    precheck-cited-band-reader-not-fence-aware -- each chain's true section
+    4 band, the truth CITED-BAND, LOWEST and CEILING derive from, is read by
+    `qh._chain_confidence_label`, which searches the whole chain block and
+    is not fence-aware, while the paired label comes from the fence-aware
+    `_confidence_and_precheck`. A fenced `**Confidence:**` line placed
+    before a chain's real one sets that chain's band from the fence, so
+    every pre-check citing the chain is compared against the wrong band.
+    SB-CHAIN-CONFIDENCE reads through the same harness reader and shares
+    the blind spot; C28(d) uses the real band word for that reason."""
     if sections is None:
         return []
     conclusion = block.get("conclusion") if isinstance(block, dict) else None
@@ -4019,7 +4028,8 @@ def _c28_precheck_decoys() -> str | None:
         return f"(c) unlocated head: expected SB-PRECHECK-HEAD 'head line not located', got {findings!r}"
     # The decoy's Confidence word matches C1's real band on purpose: the
     # chain band source, `qh._chain_confidence_label`, searches the whole
-    # block without fence awareness (as SB-CHAIN-CONFIDENCE does), so a
+    # block without fence awareness (as SB-CHAIN-CONFIDENCE does; disclosed
+    # bound precheck-cited-band-reader-not-fence-aware), so a
     # different word would test that reader, not this one. A fenced C9
     # pre-check that was read would still fire CITED-BAND or count as an
     # orphan.
@@ -4287,7 +4297,14 @@ def _m10_precheck_real_fixture_mutation() -> str | None:
 def _x3_precheck_comparator_stub() -> str | None:
     """Anti-masking: with `_precheck_field_findings` stubbed to return [],
     C27 and M10 must both fail. A stub that leaves either green means the
-    controls are not reaching the comparator."""
+    controls are not reaching the comparator.
+
+    Disclosed bound precheck-x3-passes-by-construction-under-a-comparator-stub:
+    X3 proves only that C27 and M10 route through `_precheck_field_findings`.
+    It cannot detect a comparator that is itself stubbed in-tree -- its own
+    stub then reproduces the in-tree state, C27 and M10 fail either way, and
+    X3 passes by construction. The self-test still goes red in that case,
+    through C25, C27, C28 and M10, not through X3."""
     global _precheck_field_findings
     original = _precheck_field_findings
     try:
@@ -4316,7 +4333,17 @@ def _x4_exemplar_precheck_floor() -> str | None:
     chain and section 6 has a Confidence line with a field-correct pre-check
     directly above it, and the two surfaces agree on the total. The chain
     count is read by `qh._chain_ids`, independently of the Confidence-line
-    locator, so a locator that finds nothing cannot pass vacuously."""
+    locator, so a locator that finds nothing cannot pass vacuously.
+
+    Disclosed bound precheck-x4-chain-count-shares-the-site-chain-id-reader:
+    that count is independent of the Confidence locator only. The sites are
+    sliced by `_doc_chain_index`, which reads chain ids through the same
+    `qh._chain_ids`, so a chain heading that reader misses (TB-01's
+    `### Conclusion C4 (second-order ...):` shape) is invisible to both: the
+    chain merges into the block above it, its Confidence line is never
+    counted, and `confidence_lines == chains + 1` still holds. All 31
+    exemplar chains are recognised today, a count verified by hand at the
+    Phase 93 review, not by this control."""
     qh = _load_qh()
     totals: list[int] = []
     for surface in EXEMPLAR_SURFACES:
@@ -4515,6 +4542,9 @@ def describe() -> dict:
                 "precheck-band-raised-to-ceiling-undetectable",
                 "precheck-section6-head-completeness-not-checked",
                 "precheck-overlaps-qual01-precheck-defects",
+                "precheck-cited-band-reader-not-fence-aware",
+                "precheck-x3-passes-by-construction-under-a-comparator-stub",
+                "precheck-x4-chain-count-shares-the-site-chain-id-reader",
             ]
         ),
     }

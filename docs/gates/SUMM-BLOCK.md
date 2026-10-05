@@ -9,7 +9,7 @@
 - `checked_files` (4): `tests/summary-block-v9.16/personal-general.md`, `tests/summary-block-v9.16/software-systems.md`, `tests/summary-block-v9.16/science-engineering.md`, `tests/summary-block-v9.16/tb-01.md`
 - `locked_constants` (3 entries): `BLOCK_HEADING`='## Structured summary (process output)', `DEFAULT_SCHEMA`='shared/spine/references/summary-schema.json', `SCHEMA_VERSION`=1
 - `derived_counts` (2 entries): `cross_checks`=17, `finding_codes`=32
-- `disclosed_bounds_anchors` (11): `not-applied-phase-only-where-stated`, `precheck-band-raised-to-ceiling-undetectable`, `precheck-missing-fails-in-exemplar-mode-only`, `precheck-overlaps-qual01-precheck-defects`, `precheck-section6-head-completeness-not-checked`, `recommendation-bold-markers-ignored`, `reentry-read-from-gate-span-and-disclosure-only`, `rests_on-order-not-compared`, `run-mode-only-where-stated`, `second-order-and-input-reopen-edges-need-a-disclosed-paragraph`, `techniques-applied-vocabulary-only`
+- `disclosed_bounds_anchors` (14): `not-applied-phase-only-where-stated`, `precheck-band-raised-to-ceiling-undetectable`, `precheck-cited-band-reader-not-fence-aware`, `precheck-missing-fails-in-exemplar-mode-only`, `precheck-overlaps-qual01-precheck-defects`, `precheck-section6-head-completeness-not-checked`, `precheck-x3-passes-by-construction-under-a-comparator-stub`, `precheck-x4-chain-count-shares-the-site-chain-id-reader`, `recommendation-bold-markers-ignored`, `reentry-read-from-gate-span-and-disclosure-only`, `rests_on-order-not-compared`, `run-mode-only-where-stated`, `second-order-and-input-reopen-edges-need-a-disclosed-paragraph`, `techniques-applied-vocabulary-only`
 <!-- END GENERATED:FACTS -->
 
 <!-- GENERATED:HOW-TO-RUN -->
