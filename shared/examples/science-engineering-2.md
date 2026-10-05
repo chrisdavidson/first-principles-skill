@@ -122,6 +122,14 @@ prescribe a counter-intervention different from the operator's first hypothesis
   the analysis hinges on this GT alone — it does not, because GT-1 plus GT-3 already
   contradict the boundary-lubrication hypothesis on independent grounds.
 
+```text
+?-marked: GT-2?, GT-7? (2 of 7)
+Read-at-source: GT-3 — metallographic report from the accredited failure-analysis lab, with SEM imagery (Stadler & Stubenrauch 2013, Fig. 4 reference geometry)
+Read-at-source: GT-4 — bearing manufacturer's life calculation per ISO 281, with the SCADA-derived load spectrum
+Read-at-source: GT-5 — on-removal electrical-test report from the same failure-analysis lab
+Read-at-source: GT-6 — turbine OEM data sheet
+```
+
 ---
 
 ## 4. Derivation Chains

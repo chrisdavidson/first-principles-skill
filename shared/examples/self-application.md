@@ -167,6 +167,14 @@ question is whether the budget tracks anything the agent actually depends on.
   rigor of the analyses it then produces. The Phase 28 EVAL-01 climbing-gym test
   evaluated rigor but was a single point, not a body-size sweep.
 
+```text
+?-marked: GT-9? (1 of 9)
+Read-at-source: GT-1 — direct measurement of first-principles/agents/first-principles.md on the working branch
+Read-at-source: GT-2 — heading scan of first-principles/agents/first-principles.md (## Methodology at line 45, ## Output format at line 142)
+Read-at-source: GT-3 — heading scan of the same file (six ## Procedure headings, appendix boundary at line 415)
+Read-at-source: GT-5 — line-level diff of agent-body lines 415–567 against shared/spine/references/output-template.md
+```
+
 ---
 
 ## 4. Derivation Chains

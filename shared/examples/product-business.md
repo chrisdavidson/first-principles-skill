@@ -37,6 +37,13 @@ A complete first-principles analysis of a product and business pricing question,
 - **GT-3** Free-tier infrastructure and support must be budgeted separately from the paid-tier cost structure; they cannot be absorbed as zero marginal cost into the current operating model. — source: accounting principle; confirmed by finance team (infrastructure and support costs scale with active users, not paying users)
 - **GT-4?** The free-to-paid conversion rate for this product in this ICP segment is unknown and has not been measured; no historical pilot or freemium experiment has been run. — source: verified gap (product and sales teams confirm no conversion data exists)
 
+```text
+?-marked: GT-4? (1 of 4)
+Read-at-source: GT-1 — internal financial report (company's own ARR dashboard)
+Read-at-source: GT-2 — known channel mix (sales team records)
+Read-at-source: GT-3 — accounting principle, confirmed by the finance team
+```
+
 ---
 
 ## 4. Derivation Chains

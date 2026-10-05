@@ -102,6 +102,11 @@ required to meet the cabin's daily electrical load reliably?
   binding constraint since it is reached before the panel array's own limit), the sizing
   outputs below must be revised upward.
 
+```text
+?-marked: GT-5? (1 of 5)
+Read-at-source: none — no chain is rated HIGH
+```
+
 ---
 
 ## 4. Derivation Chains
