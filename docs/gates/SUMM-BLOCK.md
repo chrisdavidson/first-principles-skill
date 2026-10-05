@@ -8,7 +8,7 @@
 - `registered_surfaces` (2): `shared/spine/references/summary-schema.json`, `tests/summary-block-v9.16`
 - `checked_files` (4): `tests/summary-block-v9.16/personal-general.md`, `tests/summary-block-v9.16/software-systems.md`, `tests/summary-block-v9.16/science-engineering.md`, `tests/summary-block-v9.16/tb-01.md`
 - `locked_constants` (3 entries): `BLOCK_HEADING`='## Structured summary (process output)', `DEFAULT_SCHEMA`='shared/spine/references/summary-schema.json', `SCHEMA_VERSION`=1
-- `derived_counts` (2 entries): `cross_checks`=16, `finding_codes`=24
+- `derived_counts` (2 entries): `cross_checks`=17, `finding_codes`=32
 - `disclosed_bounds_anchors` (7): `not-applied-phase-only-where-stated`, `recommendation-bold-markers-ignored`, `reentry-read-from-gate-span-and-disclosure-only`, `rests_on-order-not-compared`, `run-mode-only-where-stated`, `second-order-and-input-reopen-edges-need-a-disclosed-paragraph`, `techniques-applied-vocabulary-only`
 <!-- END GENERATED:FACTS -->
 

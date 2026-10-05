@@ -39,7 +39,8 @@ APPENDIX_HEADING = "## Appendix — process output"
 
 # Closed set of finding codes. Plan 01 emits the first eight; Plan 02 of
 # v9.16 emitted fifteen cross-check codes (against the report's own prose);
-# Phase 80 adds one more (SB-CONCLUSION-RESTS-ON).
+# Phase 80 adds one more (SB-CONCLUSION-RESTS-ON); Phase 93 adds the eight
+# SB-PRECHECK-* codes of the pre-check field comparator.
 FINDING_CODES: tuple[str, ...] = (
     "SB-MISSING",
     "SB-MULTIPLE",
@@ -65,7 +66,23 @@ FINDING_CODES: tuple[str, ...] = (
     "SB-CONCLUSION-TEXT",
     "SB-CONCLUSION-CONFIDENCE",
     "SB-CONCLUSION-RESTS-ON",
+    "SB-PRECHECK-SHAPE",
+    "SB-PRECHECK-HEAD",
+    "SB-PRECHECK-CITED-BAND",
+    "SB-PRECHECK-QMARK",
+    "SB-PRECHECK-LOWEST",
+    "SB-PRECHECK-CEILING",
+    "SB-PRECHECK-BAND",
+    "SB-PRECHECK-MISSING",
 )
+
+# Whether a Confidence line with no **Pre-check:** line directly above it
+# fails an exemplar-mode run. False while the worked examples do not yet all
+# carry their pre-checks: the missing-line reading is then report-only
+# (`--precheck-reading`). Plan 93-04 removes this constant once all fourteen
+# exemplars carry them, making SB-PRECHECK-MISSING an exemplar-mode failure.
+# Live mode never emits it either way.
+PRECHECK_MISSING_FAILS: bool = False
 
 
 class Finding(NamedTuple):
@@ -1183,8 +1200,10 @@ def _section6_precheck_head_ids(section6: str) -> list[str] | str | None:
 
 def _xc_conclusion_rests_on(text, sections, block, exemplar) -> list[Finding]:
     """SB-CONCLUSION-RESTS-ON: block conclusion.rests_on vs section 6's own
-    **Pre-check:** head field, compared as a SET (disclosed bound:
-    rests_on-order-not-compared, the same bound chains already carry).
+    **Pre-check:** head field, compared as a SET here. Order is compared
+    separately, by `_xc_prechecks` as SB-PRECHECK-HEAD, and only when the two
+    sets agree, so one defect never reports under both codes; the
+    rests_on-order-not-compared bound still holds for `chains[].rests_on`.
     SB-NULL (exemplar mode only -- live mode's SB-NULL already comes from
     validate()) fires when rests_on is null but section 6 carries a
     Pre-check line."""
@@ -1230,6 +1249,481 @@ def _xc_conclusion_rests_on(text, sections, block, exemplar) -> list[Finding]:
             )
         ]
     return []
+
+
+# ---------------------------------------------------------------------------
+# Pre-check field comparator (SB-PRECHECK-*)
+# ---------------------------------------------------------------------------
+#
+# Grammar (output-template.md, "Confidence pre-check (Inputs axis)"): four
+# fields separated by ` · `. `head ` (no colon) lists every identifier on the
+# chain's head line in order, each Cn carrying its own band `Cn (BAND)`;
+# `?-marked: ` the `?`-suffixed head ids or `none`; `lowest cited: ` the
+# lowest band among the head's Cn or `none`; `Inputs ceiling: ` LOW if lowest
+# cited is LOW, else MEDIUM if anything is ?-marked or lowest cited is MEDIUM,
+# else HIGH. The paired Confidence label may sit at or below the ceiling,
+# never above. The line regex, separator and head-item regex are the quality
+# harness's own, reached through `_load_qh()`: one grammar, not two.
+
+_PRECHECK_BAND_RANK = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
+_PRECHECK_GT_ID_RE = re.compile(r"^GT-[1-9][0-9]*\??$")
+_PRECHECK_CN_ID_RE = re.compile(r"^[Cc][1-9][0-9]*$")
+# A head term's leading identifier: GT-N, GT-N? or Cn, then whitespace, `(`,
+# `*` or end of term -- so `C1a` and `C2's` are not identifiers. Single
+# level, anchored, matched with `.match()` (T-52-07 discipline).
+_HEAD_LEAD_ID_RE = re.compile(r"^(GT-[1-9][0-9]*\??|[Cc][1-9][0-9]*)(?=[\s(*]|$)")
+
+
+def _split_top_level_plus(s: str) -> list[str]:
+    """Split `s` on `+` at parenthesis depth 0 only."""
+    out: list[str] = []
+    depth = 0
+    cur: list[str] = []
+    for ch in s:
+        if ch == "(":
+            depth += 1
+        elif ch == ")" and depth > 0:
+            depth -= 1
+        if ch == "+" and depth == 0:
+            out.append("".join(cur))
+            cur = []
+        else:
+            cur.append(ch)
+    out.append("".join(cur))
+    return out
+
+
+def _lead_id(term: str) -> str | None:
+    """A head term's leading identifier (Cn upper-cased, GT-N? kept as
+    written), after optional whitespace and `**`; None when it has none."""
+    t = term.strip()
+    if t.startswith("**"):
+        t = t[2:].lstrip()
+    m = _HEAD_LEAD_ID_RE.match(t)
+    if m is None:
+        return None
+    rid = m.group(1)
+    return rid.upper() if _PRECHECK_CN_ID_RE.match(rid) else rid
+
+
+def _chain_head_ids(block: str) -> list[str] | None:
+    """The chain's head-line identifiers, IN ORDER (D-06).
+
+    Deliberately not `qh._chain_head_refs`, which returns sets (order lost)
+    and takes the first line merely CONTAINING an identifier as the head --
+    999.183's intro-sentence false positive. Here the head line is the first
+    unfenced line after the block's own heading or bold label (line 0) whose
+    first token, after optional whitespace and `**`, IS an identifier. The
+    text before its first arrow (`→` or `->`) is split on `+` at parenthesis
+    depth 0, and each term contributes its own leading identifier, so a
+    parenthetical mention (`GT-1 (see GT-9)`) is never read as an input.
+    Returns None -- reported unlocated, never guessed -- when no line
+    qualifies or any term has no leading identifier."""
+    qh = _load_qh()
+    lines = block.splitlines()
+    fenced = qh._fenced_code_flags(lines)
+    for idx, raw in enumerate(lines):
+        if idx == 0 or fenced[idx]:
+            continue
+        if _lead_id(raw) is None:
+            continue
+        head = raw
+        for arrow in ("→", "->"):
+            pos = head.find(arrow)
+            if pos != -1:
+                head = head[:pos]
+        ids: list[str] = []
+        for term in _split_top_level_plus(head):
+            rid = _lead_id(term)
+            if rid is None:
+                return None
+            ids.append(rid)
+        return ids
+    return None
+
+
+def _parse_precheck(body: str) -> dict | str:
+    """Parse a **Pre-check:** body into `{head: [(id, band|None)], qmark:
+    list|'none', lowest: band|'none', ceiling: band}`, or return an error
+    string naming the first violation. Splitting is `str.split` throughout,
+    never a nested regex (T-52-07)."""
+    qh = _load_qh()
+    parts = body.strip().split(qh._PRECHECK_SEP)
+    if len(parts) != 4:
+        return f"expected 4 ` · `-separated fields, found {len(parts)}"
+    prefixes = ("head ", "?-marked: ", "lowest cited: ", "Inputs ceiling: ")
+    values: list[str] = []
+    for part, prefix in zip(parts, prefixes):
+        if not part.startswith(prefix):
+            return f"field {part!r} does not start with {prefix!r}"
+        values.append(part[len(prefix) :].strip())
+    head_s, qmark_s, lowest_s, ceiling_s = values
+
+    head: list[tuple[str, str | None]] = []
+    if not head_s:
+        return "empty head field"
+    for item in head_s.split(", "):
+        item = item.strip()
+        if _PRECHECK_GT_ID_RE.match(item):
+            head.append((item, None))
+            continue
+        im = qh._PRECHECK_HEAD_ITEM_RE.fullmatch(item)
+        if im is None or not _PRECHECK_CN_ID_RE.match(im.group("id")):
+            return f"head item {item!r} is neither a bare GT-N[?] nor `Cn (BAND)`"
+        band = im.group("band")
+        if band not in _PRECHECK_BAND_RANK:
+            return f"head item {item!r} carries band {band!r}, not HIGH/MEDIUM/LOW"
+        head.append((im.group("id").upper(), band))
+
+    if qmark_s == "none":
+        qmark: list[str] | str = "none"
+    else:
+        qmark = qmark_s.split(", ")
+        for q in qmark:
+            if not (_PRECHECK_GT_ID_RE.match(q) and q.endswith("?")):
+                return f"?-marked item {q!r} is not a GT-N? id"
+    if lowest_s != "none" and lowest_s not in _PRECHECK_BAND_RANK:
+        return f"lowest cited {lowest_s!r} is neither `none` nor a band"
+    if ceiling_s not in _PRECHECK_BAND_RANK:
+        return f"Inputs ceiling {ceiling_s!r} is not a band"
+    return {"head": head, "qmark": qmark, "lowest": lowest_s, "ceiling": ceiling_s}
+
+
+def _precheck_field_findings(
+    where: str,
+    parsed: dict,
+    truth_head: list[str] | None,
+    chain_bands: dict[str, str | None],
+    label: str,
+    *,
+    section6: bool,
+) -> list[Finding]:
+    """Compare one parsed pre-check with the truth it summarises.
+
+    Fields 2-4 are derived from the STATED head ids combined with each cited
+    Cn's TRUE section 4 band, so each defect fires its own code alone: a
+    wrong head fires HEAD, not also QMARK/LOWEST/CEILING; a wrong cited band
+    fires CITED-BAND, not also LOWEST. `truth_head` is the chain's head-line
+    ids for section 4, or `conclusion.rests_on` (or None) for section 6."""
+    findings: list[Finding] = []
+    stated_ids = [rid for rid, _band in parsed["head"]]
+
+    if not section6:
+        if truth_head is None:
+            findings.append(Finding("SB-PRECHECK-HEAD", f"{where}: head line not located"))
+        elif stated_ids != truth_head:
+            findings.append(
+                Finding(
+                    "SB-PRECHECK-HEAD",
+                    f"{where}: Pre-check head {stated_ids!r} disagrees with the "
+                    f"chain's head line {truth_head!r} (ids in head-line order)",
+                )
+            )
+    elif (
+        isinstance(truth_head, list)
+        and set(stated_ids) == set(truth_head)
+        and stated_ids != truth_head
+    ):
+        findings.append(
+            Finding(
+                "SB-PRECHECK-HEAD",
+                f"{where}: Pre-check head order {stated_ids!r} disagrees with "
+                f"conclusion.rests_on order {truth_head!r}",
+            )
+        )
+
+    true_cited: list[str] = []
+    for rid, band in parsed["head"]:
+        if band is None:
+            continue
+        if rid not in chain_bands:
+            findings.append(
+                Finding(
+                    "SB-PRECHECK-CITED-BAND",
+                    f"{where}: head cites {rid} ({band}), but {rid} is not a "
+                    f"section 4 chain",
+                )
+            )
+            continue
+        true_band = chain_bands[rid]
+        if true_band is None:
+            findings.append(
+                Finding(
+                    "SB-PRECHECK-CITED-BAND",
+                    f"{where}: head cites {rid} ({band}), but chain {rid} has no "
+                    f"readable section 4 band",
+                )
+            )
+            continue
+        true_cited.append(true_band)
+        if band != true_band:
+            findings.append(
+                Finding(
+                    "SB-PRECHECK-CITED-BAND",
+                    f"{where}: head cites {rid} ({band}), but chain {rid}'s "
+                    f"section 4 band is {true_band}",
+                )
+            )
+
+    expected_q = [rid for rid in stated_ids if rid.endswith("?")]
+    stated_q = [] if parsed["qmark"] == "none" else list(parsed["qmark"])
+    if stated_q != expected_q:
+        findings.append(
+            Finding(
+                "SB-PRECHECK-QMARK",
+                f"{where}: ?-marked {', '.join(stated_q) or 'none'!r} disagrees "
+                f"with the head's ?-suffixed ids {', '.join(expected_q) or 'none'!r}",
+            )
+        )
+
+    expected_lowest = (
+        min(true_cited, key=_PRECHECK_BAND_RANK.__getitem__) if true_cited else "none"
+    )
+    if parsed["lowest"] != expected_lowest:
+        findings.append(
+            Finding(
+                "SB-PRECHECK-LOWEST",
+                f"{where}: lowest cited {parsed['lowest']!r} disagrees with the "
+                f"lowest section 4 band among the head's chains ({expected_lowest!r})",
+            )
+        )
+
+    if expected_lowest == "LOW":
+        expected_ceiling = "LOW"
+    elif expected_q or expected_lowest == "MEDIUM":
+        expected_ceiling = "MEDIUM"
+    else:
+        expected_ceiling = "HIGH"
+    if parsed["ceiling"] != expected_ceiling:
+        findings.append(
+            Finding(
+                "SB-PRECHECK-CEILING",
+                f"{where}: Inputs ceiling {parsed['ceiling']!r} disagrees with the "
+                f"derived ceiling {expected_ceiling!r}",
+            )
+        )
+
+    if _PRECHECK_BAND_RANK[label] > _PRECHECK_BAND_RANK[expected_ceiling]:
+        findings.append(
+            Finding(
+                "SB-PRECHECK-BAND",
+                f"{where}: Confidence {label} ranks above the derived Inputs "
+                f"ceiling {expected_ceiling}",
+            )
+        )
+    return findings
+
+
+def _confidence_and_precheck(
+    lines: list[str], fenced: list[bool], start: int = 0
+) -> tuple[int | None, str | None, str | None]:
+    """(confidence line index, band, paired pre-check body) for the first
+    unfenced `**Confidence:**` line at or after `start`. The band is None
+    (the line counts as unlocated) when its word is not HIGH/MEDIUM/LOW. The
+    pre-check is paired only when it is the line DIRECTLY above (D-02 strict
+    adjacency): a blank line in between means unpaired."""
+    qh = _load_qh()
+    for i in range(start, len(lines)):
+        if fenced[i]:
+            continue
+        m = qh._CONFIDENCE_LINE_RE.match(lines[i])
+        if m is None:
+            continue
+        word = m.group("word").upper()
+        if word not in _PRECHECK_BAND_RANK:
+            return None, None, None
+        body = None
+        if i > 0 and not fenced[i - 1]:
+            pm = qh._PRECHECK_LINE_RE.match(lines[i - 1])
+            if pm is not None:
+                body = pm.group("body")
+        return i, word, body
+    return None, None, None
+
+
+def _orphan_lines(
+    lines: list[str], fenced: list[bool], paired_idx: int | None, start: int = 0
+) -> int:
+    """Unfenced pre-check lines at or after `start` other than the one at
+    `paired_idx` (the line directly above the paired Confidence line)."""
+    qh = _load_qh()
+    n = 0
+    for i in range(start, len(lines)):
+        if fenced[i] or i == paired_idx:
+            continue
+        if qh._PRECHECK_LINE_RE.match(lines[i]):
+            n += 1
+    return n
+
+
+def _precheck_sites(sections: dict) -> dict:
+    """Every pre-check site in sections 4 and 6.
+
+    Returns `{sites, orphans, chains, confidence_lines, chain_bands}`. Each
+    site is `{where, label, body, head}`: `label` None when the section's
+    Confidence line is not located, `body` the paired pre-check body or
+    None, `head` the chain's head-line ids (section 4 only). `orphans` lists
+    the where-string of each unfenced pre-check line that is not directly
+    above its section's paired Confidence line."""
+    qh = _load_qh()
+    section4 = sections.get(4, "") or ""
+    section6 = sections.get(6, "") or ""
+    doc_ids, doc_blocks = _doc_chain_index(section4)
+    sites: list[dict] = []
+    orphans: list[str] = []
+    chain_bands: dict[str, str | None] = {}
+
+    # Section 4 text before the first chain block (or all of it, when no
+    # chain label is found) holds no site; any pre-check there is an orphan.
+    if doc_ids and doc_blocks:
+        preamble = section4[: section4.find(doc_blocks[0])]
+    else:
+        preamble = section4
+    pre_lines = preamble.splitlines()
+    for _ in range(_orphan_lines(pre_lines, qh._fenced_code_flags(pre_lines), None)):
+        orphans.append("section 4 (before the first chain)")
+
+    for cid, blk in zip(doc_ids, doc_blocks):
+        chain_bands[cid] = qh._chain_confidence_label(blk)
+        lines = blk.splitlines()
+        fenced = qh._fenced_code_flags(lines)
+        idx, band, body = _confidence_and_precheck(lines, fenced, start=1)
+        paired_idx = idx - 1 if (idx is not None and body is not None) else None
+        sites.append(
+            {"where": cid, "label": band, "body": body, "head": _chain_head_ids(blk)}
+        )
+        for _ in range(_orphan_lines(lines, fenced, paired_idx)):
+            orphans.append(cid)
+
+    lines6 = section6.splitlines()
+    fenced6 = qh._fenced_code_flags(lines6)
+    idx6, band6, body6 = _confidence_and_precheck(lines6, fenced6)
+    paired6 = idx6 - 1 if (idx6 is not None and body6 is not None) else None
+    sites.append({"where": "section 6", "label": band6, "body": body6, "head": None})
+    for _ in range(_orphan_lines(lines6, fenced6, paired6)):
+        orphans.append("section 6")
+
+    return {
+        "sites": sites,
+        "orphans": orphans,
+        "chains": len(doc_ids),
+        "confidence_lines": sum(1 for s in sites if s["label"] is not None),
+        "chain_bands": chain_bands,
+    }
+
+
+def _precheck_site_findings(site: dict, chain_bands: dict, rests_on) -> list[Finding]:
+    """SHAPE or field findings for one paired site (none for an unpaired
+    one)."""
+    if site["label"] is None or site["body"] is None:
+        return []
+    parsed = _parse_precheck(site["body"])
+    if isinstance(parsed, str):
+        return [Finding("SB-PRECHECK-SHAPE", f"{site['where']}: {parsed}")]
+    section6 = site["where"] == "section 6"
+    truth = (rests_on if isinstance(rests_on, list) else None) if section6 else site["head"]
+    return _precheck_field_findings(
+        site["where"], parsed, truth, chain_bands, site["label"], section6=section6
+    )
+
+
+def _xc_prechecks(text, sections, block, exemplar) -> list[Finding]:
+    """SB-PRECHECK-*: each **Pre-check:** line directly above a section 4
+    chain's or section 6's **Confidence:** line, compared field by field
+    with its own chain (head-line ids in order, each cited Cn's section 4
+    band, the derived ?-marked / lowest cited / Inputs ceiling) and its
+    paired label against that ceiling.
+
+    Disclosed bounds:
+    precheck-missing-report-only-until-sweep -- a Confidence line with no
+    pre-check directly above it is SB-PRECHECK-MISSING only in exemplar mode
+    and only while PRECHECK_MISSING_FAILS is set; until then it is read by
+    `--precheck-reading` alone, and live mode never emits it, because a live
+    presence reading is K-of-N and barred from gating.
+    precheck-band-raised-to-ceiling-undetectable -- a label at or below its
+    derived ceiling is legal, so a band raised up to its ceiling passes this
+    checker; only a diff of the Confidence lines guards against that.
+    precheck-section6-head-completeness-not-checked -- section 6's head is
+    compared with conclusion.rests_on for order and with section 4 for
+    bands; nothing checks that it names every chain the Conclusion rests
+    on, which is a reading of section 6's prose.
+    precheck-overlaps-qual01-precheck-defects -- QUAL-01's
+    `_precheck_defects` stays and checks a pre-check's internal consistency,
+    blank-line tolerant; this comparator checks it against the chain and is
+    strict about adjacency."""
+    if sections is None:
+        return []
+    conclusion = block.get("conclusion") if isinstance(block, dict) else None
+    rests_on = conclusion.get("rests_on") if isinstance(conclusion, dict) else None
+    read = _precheck_sites(sections)
+    findings: list[Finding] = []
+    for site in read["sites"]:
+        findings.extend(_precheck_site_findings(site, read["chain_bands"], rests_on))
+    if exemplar and PRECHECK_MISSING_FAILS:
+        for site in read["sites"]:
+            if site["label"] is not None and site["body"] is None:
+                findings.append(
+                    Finding(
+                        "SB-PRECHECK-MISSING",
+                        f"{site['where']}: no **Pre-check:** line directly above "
+                        f"its **Confidence:** line",
+                    )
+                )
+        for where in read["orphans"]:
+            findings.append(
+                Finding(
+                    "SB-PRECHECK-MISSING",
+                    f"{where}: a **Pre-check:** line is not directly above its "
+                    f"**Confidence:** line",
+                )
+            )
+        if read["confidence_lines"] != read["chains"] + 1:
+            findings.append(
+                Finding(
+                    "SB-PRECHECK-MISSING",
+                    f"{read['confidence_lines']} Confidence line(s) located for "
+                    f"{read['chains']} chain(s) plus section 6",
+                )
+            )
+    return findings
+
+
+def precheck_reading(text: str) -> dict:
+    """Report-only reading of a document's pre-checks, sharing
+    `_xc_prechecks`'s site reader and comparator. Integer keys: chains,
+    confidence_lines, compared, missing, orphans, field_findings. A document
+    whose sections cannot be resolved reads all zeros."""
+    qh = _load_qh()
+    zero = dict.fromkeys(
+        ("chains", "confidence_lines", "compared", "missing", "orphans", "field_findings"),
+        0,
+    )
+    try:
+        sections = qh._slice_sections(text)
+    except qh.SectionResolutionError:
+        return zero
+    rests_on = None
+    blocks = find_blocks(text)
+    if len(blocks) == 1:
+        try:
+            value = json.loads(blocks[0].body)
+        except json.JSONDecodeError:
+            value = None
+        if isinstance(value, dict) and isinstance(value.get("conclusion"), dict):
+            rests_on = value["conclusion"].get("rests_on")
+    read = _precheck_sites(sections)
+    located = [s for s in read["sites"] if s["label"] is not None]
+    field = 0
+    for site in located:
+        field += len(_precheck_site_findings(site, read["chain_bands"], rests_on))
+    return {
+        "chains": read["chains"],
+        "confidence_lines": read["confidence_lines"],
+        "compared": sum(1 for s in located if s["body"] is not None),
+        "missing": sum(1 for s in located if s["body"] is None),
+        "orphans": len(read["orphans"]),
+        "field_findings": field,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -1771,6 +2265,7 @@ _CROSS_CHECKS: tuple[tuple[str, Callable[..., list[Finding]]], ...] = (
     ("SB-GATE-RESULT", _xc_gate_result),
     ("SB-GATE-CLEARED", _xc_gate_cleared),
     ("SB-REENTRY", _xc_reentry),
+    ("SB-PRECHECK-HEAD", _xc_prechecks),
 )
 
 
@@ -1839,6 +2334,40 @@ _CRITERION_TITLES = (
 )
 
 
+def _synthetic_precheck_line(
+    ids: list[str], chain_bands: dict[str, str], fallback_band: str
+) -> str:
+    """A **Pre-check:** line for head `ids`: each Cn with its band from
+    `chain_bands` (`fallback_band` when the id is not a chain), every other
+    id bare, and the remaining three fields derived by the template's
+    formula."""
+    rank = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
+    rendered: list[str] = []
+    q_marked: list[str] = []
+    cited: list[str] = []
+    for rid in ids:
+        if rid.startswith("C"):
+            band = chain_bands.get(rid, fallback_band)
+            rendered.append(f"{rid} ({band})")
+            cited.append(band)
+        else:
+            rendered.append(rid)
+            if rid.endswith("?"):
+                q_marked.append(rid)
+    lowest = min(cited, key=lambda b: rank.get(b, 0)) if cited else "none"
+    if lowest == "LOW":
+        ceiling = "LOW"
+    elif q_marked or lowest == "MEDIUM":
+        ceiling = "MEDIUM"
+    else:
+        ceiling = "HIGH"
+    q_str = ", ".join(q_marked) if q_marked else "none"
+    return (
+        f"**Pre-check:** head {', '.join(rendered)} · ?-marked: {q_str} · "
+        f"lowest cited: {lowest} · Inputs ceiling: {ceiling}"
+    )
+
+
 def _synthetic_report(block: dict, **overrides) -> str:
     """Build a minimal, complete report whose prose agrees with `block`.
 
@@ -1859,6 +2388,14 @@ def _synthetic_report(block: dict, **overrides) -> str:
                                        **Disclosed:** paragraph with this text
       omit_gate_section              -- drop the Self-Audit Gate section
                                          regardless of `block['gate']`
+      omit_chain_prechecks            -- drop the section 4 **Pre-check:**
+                                          line rendered directly above each
+                                          chain's **Confidence:** line
+
+    Every rendered pre-check (each section 4 chain's, and section 6's when
+    `conclusion.rests_on` is non-null) is built from the ids actually
+    rendered on its head, with each Cn's band taken from the block's chains
+    and the remaining fields derived by the template's formula.
     """
     omit_block = overrides.get("omit_block", False)
     duplicate_block = overrides.get("duplicate_block", False)
@@ -1870,6 +2407,7 @@ def _synthetic_report(block: dict, **overrides) -> str:
     mode_statement = overrides.get("mode_statement")
     disclosed = overrides.get("disclosed")
     omit_gate_section = overrides.get("omit_gate_section", False)
+    omit_chain_prechecks = overrides.get("omit_chain_prechecks", False)
 
     body_json = (
         raw_block_body if raw_block_body is not None else json.dumps(block, indent=2)
@@ -1917,12 +2455,16 @@ def _synthetic_report(block: dict, **overrides) -> str:
         suffix = "" if gt["read_at_source"] else "?"
         lines.append(f"- **{gt['id']}{suffix}** synthetic ground truth statement.")
     lines += ["", "## 4. Derivation Chains"]
+    chain_bands = {c["id"]: c["confidence"] for c in chains}
     for c in chains:
         lines.append(f"### Conclusion {c['id']}: synthetic conclusion")
-        head = " + ".join(c.get("rests_on") or []) or "GT-1"
+        head_ids = list(c.get("rests_on") or []) or ["GT-1"]
+        head = " + ".join(head_ids)
         lines.append(
             f"{head} → synthetic intermediate reasoning → synthetic conclusion."
         )
+        if not omit_chain_prechecks:
+            lines.append(_synthetic_precheck_line(head_ids, chain_bands, "MEDIUM"))
         lines.append(
             f"**Confidence:** {c['confidence']} — synthetic confidence rationale."
         )
@@ -1941,31 +2483,10 @@ def _synthetic_report(block: dict, **overrides) -> str:
     lines.append("**Key insight:** synthetic key insight.")
     rests_on = conclusion.get("rests_on")
     if rests_on is not None:
-        _band_rank = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
-        chain_bands = {c["id"]: c["confidence"] for c in chains}
-        conclusion_band = conclusion.get("confidence", "MEDIUM")
-        rendered: list[str] = []
-        q_marked: list[str] = []
-        cited_bands: list[str] = []
-        for rid in rests_on:
-            if rid.startswith("C"):
-                band = chain_bands.get(rid, conclusion_band)
-                rendered.append(f"{rid} ({band})")
-                cited_bands.append(band)
-            else:
-                rendered.append(rid)
-                if rid.endswith("?"):
-                    q_marked.append(rid)
-        items_str = ", ".join(rendered)
-        q_str = ", ".join(q_marked) if q_marked else "none"
-        low_str = (
-            min(cited_bands, key=lambda b: _band_rank.get(b, 0))
-            if cited_bands
-            else "none"
-        )
         lines.append(
-            f"**Pre-check:** head {items_str} · ?-marked: {q_str} · "
-            f"lowest cited: {low_str} · Inputs ceiling: {conclusion_band}"
+            _synthetic_precheck_line(
+                rests_on, chain_bands, conclusion.get("confidence", "MEDIUM")
+            )
         )
     lines.append(
         f"**Confidence:** {conclusion.get('confidence', 'MEDIUM')} — synthetic confidence rationale."
@@ -2876,15 +3397,20 @@ def _c25_conclusion_rests_on_null_and_absence() -> str | None:
             f"unmutated example, exemplar mode: expected [], got {findings_exemplar!r}"
         )
 
-    # reversed order is clean (disclosed bound: rests_on-order-not-compared).
+    # reversed order: section 6's order is now compared, by SB-PRECHECK-HEAD
+    # alone (SB-CONCLUSION-RESTS-ON still compares sets, so it stays silent).
+    # The rests_on-order-not-compared bound still holds for chains[].rests_on.
     reversed_rests_on = copy.deepcopy(example)
     reversed_rests_on["conclusion"]["rests_on"] = list(
         reversed(reversed_rests_on["conclusion"]["rests_on"])
     )
     text_rev = _synthetic_report(example, raw_block_body=json.dumps(reversed_rests_on))
-    findings_rev = check_report(text_rev, schema=schema)
-    if findings_rev:
-        return f"reversed rests_on order: expected [], got {findings_rev!r}"
+    codes_rev = {f.code for f in check_report(text_rev, schema=schema)}
+    if codes_rev != {"SB-PRECHECK-HEAD"}:
+        return (
+            f"reversed rests_on order: expected {{'SB-PRECHECK-HEAD'}}, "
+            f"got {codes_rev!r}"
+        )
 
     # null-iff-absent, case 1: rests_on null, no Pre-check line rendered --
     # clean in exemplar mode.
@@ -2935,13 +3461,18 @@ def _c25_conclusion_rests_on_null_and_absence() -> str | None:
             f"{{'SB-CONCLUSION-RESTS-ON'}}, got {codes_exemplar!r}"
         )
 
-    # Pre-check line present but with no readable `head ` field.
-    text_unreadable = text.replace("**Pre-check:** head ", "**Pre-check:** ", 1)
+    # Section 6's Pre-check line present but with no readable `head ` field.
+    # Section 6's is the LAST pre-check in the text (each section 4 chain
+    # carries its own above it), so the replacement targets the last one.
+    marker = "**Pre-check:** head "
+    cut = text.rfind(marker)
+    text_unreadable = text[:cut] + "**Pre-check:** " + text[cut + len(marker) :]
     codes_unreadable = {f.code for f in check_report(text_unreadable, schema=schema)}
-    if codes_unreadable != {"SB-CONCLUSION-RESTS-ON"}:
+    if codes_unreadable != {"SB-CONCLUSION-RESTS-ON", "SB-PRECHECK-SHAPE"}:
         return (
             f"unreadable Pre-check head field: expected "
-            f"{{'SB-CONCLUSION-RESTS-ON'}}, got {codes_unreadable!r}"
+            f"{{'SB-CONCLUSION-RESTS-ON', 'SB-PRECHECK-SHAPE'}}, "
+            f"got {codes_unreadable!r}"
         )
 
     # fenced decoy (80-REVIEW AP-01): a Pre-check line inside a fenced block
@@ -3421,6 +3952,38 @@ def describe() -> dict:
     }
 
 
+_PRECHECK_READING_KEYS = (
+    ("chains", "chains"),
+    ("confidence-lines", "confidence_lines"),
+    ("compared", "compared"),
+    ("missing", "missing"),
+    ("orphans", "orphans"),
+    ("field-findings", "field_findings"),
+)
+
+
+def _print_precheck_reading(reports: list[str]) -> int:
+    """`--precheck-reading`: one fixed-format line per REPORT, then a total.
+    Report-only: exits 0 whatever it reads, 2 on an unreadable path."""
+    totals = dict.fromkeys((k for _label, k in _PRECHECK_READING_KEYS), 0)
+    out: list[str] = []
+    for report_arg in reports:
+        try:
+            text = Path(report_arg).read_text()
+        except OSError as exc:
+            print(f"ERROR: cannot read {report_arg}: {exc}", file=sys.stderr)
+            return 2
+        r = precheck_reading(text)
+        for _label, k in _PRECHECK_READING_KEYS:
+            totals[k] += r[k]
+        fields = " ".join(f"{label}={r[k]}" for label, k in _PRECHECK_READING_KEYS)
+        out.append(f"PRECHECK-READING {report_arg}: {fields}")
+    fields = " ".join(f"{label}={totals[k]}" for label, k in _PRECHECK_READING_KEYS)
+    out.append(f"PRECHECK-READING total: files={len(reports)} {fields}")
+    print("\n".join(out))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("reports", nargs="*", metavar="REPORT")
@@ -3429,6 +3992,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--schema", type=Path, default=None)
     ap.add_argument("--self-test", action="store_true")
     ap.add_argument("--describe", action="store_true")
+    ap.add_argument("--precheck-reading", action="store_true", dest="precheck_reading")
     args = ap.parse_args(argv)
 
     if args.describe:
@@ -3440,6 +4004,9 @@ def main(argv: list[str] | None = None) -> int:
     if not args.reports:
         print("ERROR: no REPORT given", file=sys.stderr)
         return 2
+
+    if args.precheck_reading:
+        return _print_precheck_reading(args.reports)
 
     schema_path = args.schema if args.schema is not None else DEFAULT_SCHEMA
     try:
