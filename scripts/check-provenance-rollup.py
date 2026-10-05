@@ -30,7 +30,7 @@ dispatched it. Line-format presence on the same 18 documents is 1
 documents reproduces. That is a line-format count, not a content count: the
 roll-up's content (an enumerated `?`-marked set with its count, in section 3)
 is present in every readable document of those corpora, as a hand-audited
-reading published outside this module. Backlog 999.173's "twelve of fifteen" reading from quick
+reading published in `docs/rollup-emission-reading.md`. Backlog 999.173's "twelve of fifteen" reading from quick
 task `260924-tcv` cannot be re-taken, because its captures were not kept, and
 it is not carried forward.
 
@@ -228,9 +228,10 @@ Disclosed bounds
     `-marked`; it does not find a `**Provenance summary:**` lead-in; and it
     does not find a plain-language rewording (one frozen capture writes
     `**Unverified (`?`) entries:**`). So the presence count is a LOWER BOUND
-    on content emission, never a measure of it. Widening the locator is
-    backlog 999.187, not this module's to decide; `_ROLLUP_MARKED_RE` is
-    unchanged.
+    on content emission, never a measure of it. The content reading, capture
+    by capture, is published in `docs/rollup-emission-reading.md`. Widening
+    the locator is backlog 999.187, not this module's to decide;
+    `_ROLLUP_MARKED_RE` is unchanged.
 (h) **The line-format reading is pinned on frozen captures only.** Control
     group `[line-format-pin]` re-reads every transcript-paired capture in ten
     frozen corpora under `tests/` (a document is paired when `<stem>.jsonl`
