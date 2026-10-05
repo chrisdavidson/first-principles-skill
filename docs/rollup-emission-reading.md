@@ -40,7 +40,9 @@ met in any capture.
 
 The agent body prescribes the same content in its own words. Its Phase 3 exit criterion says
 "Enumerate the `?`-marked ground truths by ID", and it has done so since commit `eb9d5e3e`
-(release 8.17.0), the same commit that added the template clause. The body's example writes the
+(release 8.17.0), the same commit that rewrote the template's "(required)" clause from a count
+to an enumeration and added its `?-marked:` line-format example. The clause itself is older:
+`2e15ad74` (first tagged `v8.16`) introduced it, asking for a count. The body's example writes the
 token with a backtick between the `?` and `-marked`, mid-paragraph. That is the form most captures
 use: 41 of the 73 audited lines that R6 prints carry it, against 30 in the template's line format.
 
