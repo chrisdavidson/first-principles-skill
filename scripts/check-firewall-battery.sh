@@ -668,10 +668,11 @@ gate "RETRACT-01" \
 #               enumerated ids against the document's own section 3, so an
 #               emitted label cannot satisfy it.
 #               Runs --self-test plus a live leg over the 14 shipped
-#               exemplars, matching RETRACT-01/CONF-GATE's shape. The live
-#               leg is green on absence today (999.176 records that reading);
-#               it turns into a real comparison the moment an exemplar grows
-#               a roll-up, which is what exemplar_problems() enforces.
+#               exemplars, matching RETRACT-01/CONF-GATE's shape. Since
+#               Phase 91 every shipped exemplar carries a roll-up, so the live
+#               leg's check 2 compares each one against its own section 3,
+#               and the self-test's exemplar floor fails if any exemplar
+#               loses its roll-up.
 gate "PROV-ROLLUP" \
     "check-provenance-rollup.py --self-test + live exemplars" \
     "python3 scripts/check-provenance-rollup.py --self-test" \

@@ -66,7 +66,10 @@ The checks, and which of them can fail
    the two pinned corpora), and
    `docs/v8.7-constraint-teardown.md` §2 item 3 bars a K-of-N live reading from
    gating anything -- measured on the S-P04 vector swinging 2/5 -> 0/5 -> 2/5
-   with no source change between readings.
+   with no source change between readings. The single exception is the
+   self-test's exemplar floor (`exemplar_problems()`), which requires each
+   shipped exemplar to carry a roll-up because those are fixed files and not a
+   live reading (Phase 91 D-04).
 2. **Enumeration agreement** -- when the roll-up is present: the ids it
    enumerates are exactly the `?`-suffixed ground truths in section 3, `M`
    equals the section-3 ground-truth population, and `N` equals the length of
@@ -1704,13 +1707,22 @@ def structure_problems() -> list[str]:
 
 
 def exemplar_problems() -> list[str]:
-    """The shipped exemplars read without a wall of failures.
+    """Every shipped exemplar carries a roll-up that passes check 2.
 
-    An exemplar's roll-up, where present, must have been genuinely evaluated:
-    a roll-up over a section 3 that read empty, with check 2 still passing, is
-    a vacuous agreement and fails here. Exemplars without a roll-up are not
-    failed by this control; plan 05 of Phase 91 turns it into a floor requiring
-    every exemplar to carry one, once the sweep has given them one.
+    This is a floor, not a reading. The worked exemplars under
+    `shared/examples/` are fixed shipped files, not a K-of-N live reading, so
+    `docs/v8.7-constraint-teardown.md` §2 item 3 does not apply to them and
+    gating their presence is permitted. Live documents read through
+    `--analysis` or `--dir` stay report-only on presence; this function is the
+    only place an absent roll-up fails anything. The floor exists so a later
+    exemplar edit cannot silently drop a roll-up (999.176 records the
+    exemplars shipping without one while the battery stayed green).
+
+    The floor is "every discovered exemplar", never a typed count, so it
+    equals the live-discovered exemplar population. An exemplar the
+    six-section slicer cannot read fails here too, because its roll-up cannot
+    be shown to exist. A roll-up over a section 3 that read empty, with check 2
+    still passing, is a vacuous agreement and also fails.
     """
     problems: list[str] = []
     examples = sorted((REPO_ROOT / "shared" / "examples").glob("*.md"))
@@ -1719,10 +1731,20 @@ def exemplar_problems() -> list[str]:
     for p in examples:
         r = read_document(p.name, p.read_text(encoding="utf-8"))
         if r.unreadable is not None:
-            # An exemplar the six-section slicer cannot read is not this
-            # module's finding to make; it is reported, never failed.
+            problems.append(
+                f"{p.name}: section 3 does not resolve, so the exemplar roll-up floor "
+                f"cannot be met: {r.unreadable}"
+            )
             continue
-        if r.present and not r.check2 and r.population == 0:
+        if not r.present:
+            problems.append(
+                f"{p.name}: carries no section-3 provenance roll-up (exemplar floor, "
+                "Phase 91 D-04)"
+            )
+            continue
+        if r.check2:
+            problems.append(f"{p.name}: roll-up fails check 2: {r.check2[0]}")
+        if not r.check2 and r.population == 0:
             problems.append(
                 f"{p.name}: a roll-up was found but section 3 read empty, and check 2 "
                 "still passed"
@@ -1944,13 +1966,11 @@ def describe() -> dict:
             "injections": len(INJECTIONS),
             "template_only_surfaces": len(_TEMPLATE_ONLY_SURFACES),
             # The registered live arm's subject count, published rather than left
-            # implicit. Check 2 is this gate's only FAILING check and it fires only
-            # where a roll-up exists, so an arm with zero subjects passes vacuously
-            # and says nothing. The value is derived, never typed, and moves as the
-            # exemplars are swept to carry a conforming roll-up. On the two corpora
-            # pinned by `[template-read]`, one document of eighteen carries a roll-up
-            # (`tests/live-conformance-v9.0/PR-P2.md`). Publishing the number is
-            # what stops a vacuous PASS reading as a clean bill of health.
+            # implicit. Check 2 is this gate's only FAILING check on a reading and it
+            # fires only where a roll-up exists. The value now equals the exemplar
+            # floor: the self-test requires every shipped exemplar to carry a roll-up
+            # that passes check 2, so check 2 on the live arm is no longer vacuous.
+            # Derived at call time, never typed.
             "live_arm_rollup_subjects": _live_arm_subject_count(),
             # The direct template-read census over the two pinned frozen corpora,
             # re-read through the seam at call time and never typed here.
@@ -1970,6 +1990,7 @@ def describe() -> dict:
                 "chain-head-window-is-head-line-only",
                 "read-at-source-grammar-unprescribed",
                 "template-read-pinned-on-frozen-captures-only",
+                "exemplar-floor-gates-shipped-files-not-live-readings",
             ]
         ),
     }
