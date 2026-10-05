@@ -116,6 +116,7 @@ GT-2 (0.80 derating factor — covers temperature, wiring, MPPT, inverter, and b
 → Applying GT-1 (5.5 PSH annual average) to 1,875 Wh/day yields panel capacity = 1,875 Wh ÷ 5.5 PSH ≈ 341 W
 → Recommendation: 400 W array (e.g., 2 × 200 W panels), providing a 17% margin above the minimum 341 W to buffer winter PSH variability (winter minimum ~4.5 PSH at this site would require ~417 W; the 400 W array is slightly undersized for worst-case winter, and GT-2's 0.80 factor is itself optimistic by roughly 3–5 percentage points against the enumerated loss list, so the winter shortfall is somewhat larger than the 0.80 arithmetic shows — at 0.80 the array delivers 400 × 4.5 × 0.80 = 1,440 Wh/day against the 1,500 Wh/day load, but at the enumerated 0.75 it delivers only 1,350 Wh/day. The margin is carried by the option to reduce non-essential loads during extended low-sun periods, not by the derate).
 
+**Pre-check:** head GT-2, GT-5?, GT-1 · ?-marked: GT-5? · lowest cited: none · Inputs ceiling: MEDIUM
 **Confidence: MEDIUM** — GT-5? (daily energy load estimate of 1.5 kWh/day) is unverified.
 If measured load consistently exceeds 1.76 kWh/day (400 W × 5.5 PSH × 0.80 = 1,760 Wh/day
 = 1.76 kWh/day), the required panel capacity exceeds 400 W and the array must be upsized
@@ -131,6 +132,7 @@ GT-5? (1.5 kWh/day estimated load) + GT-4 (3 days of autonomy)
 → Applying GT-3 (80% DoD) yields required rated battery capacity = 4.5 kWh ÷ 0.80 = 5.625 kWh
 → Recommendation: 6 kWh LiFePO4 bank (practical sizing rounds up to the next available configuration above 5.625 kWh; a 6 kWh bank satisfies the requirement with a small margin).
 
+**Pre-check:** head GT-5?, GT-4 · ?-marked: GT-5? · lowest cited: none · Inputs ceiling: MEDIUM
 **Confidence: MEDIUM** — GT-5? (daily energy load estimate of 1.5 kWh/day) is unverified.
 If measured load is significantly higher (e.g., 2.0 kWh/day), the required rated capacity
 rises to 2.0 × 3 ÷ 0.80 = 7.5 kWh, and the 6 kWh bank is inadequate. Verification:
@@ -196,6 +198,7 @@ into night. The 3-day autonomy target is a design decision, not a physical minim
 to consecutive overcast days. Both trade-offs are resolvable with confirmed load
 measurement and site-specific weather data.
 
+**Pre-check:** head C1 (MEDIUM), C2 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
 **Confidence: MEDIUM** — Both sizing chains depend on GT-5? (the estimated 1.5 kWh/day
 daily load), which is unverified. GT-1, GT-3 and GT-4 are well-established and do not
 introduce material uncertainty. GT-2's 0.80 derate is well-established on its own
@@ -309,7 +312,10 @@ both together would raise confidence in the sizing outputs to HIGH.
   "conclusion": {
     "recommendation": "(chains C1 and C2) Install a 400 W panel array (2 × 200 W panels) and a 6 kWh\nLiFePO4 battery bank. These sizes are derived from the site's 5.5 PSH annual average\n(GT-1), the 0.80 system derating factor (GT-2), the 80% DoD limit of LiFePO4 chemistry\n(GT-3), the 3-day autonomy target (GT-4), and the estimated 1.5 kWh/day daily load\n(GT-5?). Commission a 30-day energy-monitoring period before finalizing the order; above\napproximately 1.6 kWh/day (6 kWh × 0.80 DoD ÷ 3 days) the 6 kWh bank no longer meets the\n3-day autonomy target and should be upsized to 7.5–8 kWh, and above approximately\n1.76 kWh/day (400 W × 5.5 PSH × 0.80) the 400 W array no longer meets the daily load and\nshould be upsized to 600 W.",
     "confidence": "MEDIUM",
-    "rests_on": null
+    "rests_on": [
+      "C1",
+      "C2"
+    ]
   }
 }
 ```

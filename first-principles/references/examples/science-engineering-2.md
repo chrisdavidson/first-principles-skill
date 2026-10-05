@@ -142,6 +142,7 @@ GT-1 (crack origin ~0.4 mm subsurface) + GT-2? (Hertz subsurface-stress maximum 
 → The observed origin depth sits inside the depth band where Hertzian subsurface shear stress is maximised under the bearing's assumed loading — but that agreement carries no evidential weight here, because GT-2?'s geometry was fitted to reproduce GT-1's depth (see GT-2?). This hop therefore claims nothing from the coincidence. What it does claim is the part that survives the disclosure: GT-1 on its own places the initiation site ~0.4 mm *inside* the material, and GT-2? contributes only the qualitative, geometry-independent consequence of Hertz theory that a line contact under load has its shear-stress maximum below the surface rather than at it. GT-1 alone could in principle be a void or inclusion at depth; GT-2? alone is a stress-field prediction without an observed crack
 → The failure mechanism is subsurface-initiated, ruling out every surface-origin mechanism (boundary lubrication wear, contamination indentation, mounting damage, electrical pitting on the running surface) as the *primary* cause of the spall.
 
+**Pre-check:** head GT-1, GT-2? · ?-marked: GT-2? · lowest cited: none · Inputs ceiling: MEDIUM
 **Confidence: MEDIUM** — GT-1 is a direct metallographic measurement, but GT-2?'s
 geometry inputs (effective roller contact length, race radius) were back-solved to
 reproduce GT-1's own observed 0.4 mm origin depth rather than read from a bearing
@@ -161,6 +162,7 @@ GT-3 (WEC + butterfly microstructure in the subsurface shear-stress band) + GT-4
 → Classical RCF is already modelled by ISO 281 and its L10 figure. A 9× shortfall inside that envelope (GT-4) demands a *non-classical* mechanism — i.e., a degradation pathway that ISO 281 does not capture. [Assumes: a 9× L10 shortfall exceeds classical RCF Weibull variance — see Assumptions Table row.] WEC morphology (GT-3) is the published fingerprint of that non-classical pathway in wind-turbine HSS bearings. GT-5 supplies the proximate physical cause (open bonding path → rotor voltage discharges through the bearing rolling contact) and GT-6 confirms the drivetrain falls inside the IEC-defined domain where this mechanism is known to apply. None of these GTs alone fixes the mechanism: WEC has multiple published candidate causes; bonding-ring failure alone need not produce WEC if voltage is below threshold; L10 shortfall alone could be misload or material defect. Combined, they trace a single causal chain
 → The root cause is electrically-induced bearing damage from a degraded shaft-to-ground bonding path, producing WEC-mediated subsurface degradation that drives premature spalling at the Hertz-stress depth.
 
+**Pre-check:** head GT-3, GT-4, GT-5, GT-6 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
 **Confidence: HIGH** — all four inputs are verified GTs; the chain is co-supported by
 the codified mechanism in IEC TS 60034-25, which prescribes exactly the failure
 fingerprint observed here.
@@ -251,6 +253,7 @@ wear-morphology mapping) is supported by textbook reference rather than in-house
 controlled test — which is acceptable because GT-1 alone is dispositive against the
 boundary-lubrication attribution; GT-7? is corroborative, not load-bearing.
 
+**Pre-check:** head C1 (MEDIUM), C2 (HIGH) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
 **Confidence: MEDIUM** — the section's rating is bound by the lower of the chains its
 Recommended approach names: chain C2 is HIGH, but chain C1 is MEDIUM because its head
 cites GT-2?, so this section cannot be rated above MEDIUM. Neither Criterion 5 EXCEPT
@@ -379,7 +382,10 @@ conductance survey before the next scheduled gearbox inspection cycle.
   "conclusion": {
     "recommendation": "(chains C1 and C2) Replace the failed HSS bearing with a new bearing of the same\nspecification AND simultaneously restore the shaft-to-ground bonding path — clean and\nre-seat the brush-block, restore conductance to the IEC TS 60034-25 prescribed range\n(≥10⁻² S), and add to the turbine's preventive-maintenance schedule a quarterly\nbonding-ring conductance check. Do NOT change the lubricant specification on the basis\nof the operator's initial hypothesis — that intervention would not address the\nverified root cause and would consume maintenance budget on a non-causal lever.",
     "confidence": "MEDIUM",
-    "rests_on": null
+    "rests_on": [
+      "C1",
+      "C2"
+    ]
   }
 }
 ```

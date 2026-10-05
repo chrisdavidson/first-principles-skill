@@ -270,6 +270,7 @@ GT-4 (Solar Salt stable 290–565 °C; hot tank T_hot ≈ 838 K — direct measu
 → Closing the ~19-point gap at fixed T_hot would require heat transfer approaching reversibility, which needs either infinite exchanger area or infinite time, so most of it is not recoverable by better equipment
 → The demonstrated lever is therefore raising T_hot rather than perfecting the cycle at fixed T_hot, and raising it translates the whole bracket upward: a 650 °C ultra-supercritical design is rated 49.6% against its own ~66% ceiling, a gap of ~16 points rather than none.
 
+**Pre-check:** head GT-4, GT-5, GT-6 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
 **Confidence:** HIGH — the Carnot ceiling is a physical law applied to a reservoir pair whose
 hot end is GT-4 and whose cold end is a published design condenser pressure, and the chain's
 head cites no `GT-N?`. The conclusion holds at both ends of the unresolved cooling-method
@@ -330,6 +331,7 @@ reframes the question from "why is practice so far below the law?" to "how much 
   irreversibilities is not measured here, and a per-component exergy balance for a specific
   plant is what would measure it.
 
+**Pre-check:** head C1 (HIGH) · ?-marked: none · lowest cited: HIGH · Inputs ceiling: HIGH
 **Confidence:** HIGH — matches chain C1. The ceiling is a physical law applied to a sourced
 reservoir pair, the ceiling-to-practice gap holds at both ends of the cooling range, and the
 one unverified belief in §2 can only widen it. The rating covers the bracket and the direction
@@ -396,7 +398,9 @@ of the gap, not any apportionment of it across components.
   "conclusion": {
     "recommendation": "Treat the ~19-point ceiling-to-practice gap (chain C1) as mostly\nirreducible rather than as recoverable headroom, and pursue efficiency by raising the source\ntemperature — supercritical and ultra-supercritical cycles at 600–650 °C salt — rather than by\nchasing component refinements at fixed T_hot.\nBefore quoting any figure in the bracket, state whether it is a power-block or a whole-plant\nnumber; the two differ by roughly a factor of two and are routinely confused.",
     "confidence": "HIGH",
-    "rests_on": null
+    "rests_on": [
+      "C1"
+    ]
   }
 }
 ```
