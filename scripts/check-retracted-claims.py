@@ -816,6 +816,17 @@ REGISTRY: tuple[RetractedClaim, ...] = (
             "tests/live-conformance-v9.0/Q-P1.md:90, whose C1 is HIGH."
         ),
     ),
+    RetractedClaim(
+        literal="the content traces to the body",
+        retracted_by="Phase 92 (92-REVIEW WR-01)",
+        corrected=(
+            "An association, not a cause. Template reading was not assigned, "
+            "and 8 of the 14 runs that never opened the output template read "
+            "the validation rubric, which also prescribes enumerating the "
+            "`?`-marked ground truths by ID; at most 6 of the 14 can be "
+            "attributed to the agent body alone."
+        ),
+    ),
 )
 
 

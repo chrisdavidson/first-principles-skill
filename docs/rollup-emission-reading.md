@@ -35,8 +35,8 @@ met in any capture.
 The agent body prescribes the same content in its own words. Its Phase 3 exit criterion says
 "Enumerate the `?`-marked ground truths by ID", and it has done so since commit `eb9d5e3e`
 (release 8.17.0), the same commit that added the template clause. The body's example writes the
-token with a backtick between the `?` and `-marked`, mid-paragraph, which is the form most agents
-copy.
+token with a backtick between the `?` and `-marked`, mid-paragraph. That is the form most captures
+use: 41 of the 73 audited lines that R6 prints carry it, against 30 in the template's line format.
 
 ## Two readings, two instruments
 
@@ -99,7 +99,13 @@ because the agent was never dispatched and no analysis exists. **73** are readab
 - **0** template-reading runs emitted no content.
 - **14** runs never opened the template, and all 14 emitted the content.
 
-The line format traces to the template; the content traces to the body.
+These are associations, not causes. Template reading was not assigned: every run also had the
+agent body, and the 30-of-30 figure is a cross-tab over the runs that happened, not a controlled
+contrast. The content half is also confounded by a third prescription.
+`shared/spine/references/validation-rubric.md` asks that the `?`-marked ground truths be
+"enumerated by ID", and **8 of the 14** runs that never opened the template did read the rubric
+(the harness's `_reference_reads_census`, `read_rubric` true 8, false 6; R13). At most 6 of the
+14 can be attributed to the body alone.
 
 ## Per corpus
 
@@ -170,6 +176,7 @@ Run every command from the repository root, in `bash` (R7–R9 use process subst
 | R10 | the per-corpus table | the table's rows |
 | R11 | named corpora: line format 1 of 18, content 17 of 17 readable | `16 absent` / `1 present` / `1 unreadable`, then `17` |
 | R12 | the line-format figures are pinned in PROV-ROLLUP's self-test | exit 0 |
+| R13 | 8 of the 14 template non-readers read the validation rubric | `[('false', 6), ('true', 8)]` |
 
 **R1** — total rows:
 
@@ -243,6 +250,12 @@ awk '/<!-- content-list:start -->/,/<!-- content-list:end -->/' docs/rollup-emis
 
 ```sh
 python3 scripts/check-provenance-rollup.py --self-test
+```
+
+**R13** — rubric reads among the runs that never opened the template:
+
+```sh
+python3 -c 'import importlib.util as u, sys, collections as c; s = u.spec_from_file_location("m", "scripts/check-provenance-rollup.py"); m = u.module_from_spec(s); sys.modules["m"] = m; s.loader.exec_module(m); r = [m.QH._reference_reads_census(d.stem, j) for k in m._LINE_FORMAT_CORPORA for d, j in m._paired_captures(m.REPO_ROOT / k)]; print(sorted(c.Counter(x["read_rubric"] for x in r if x["read_output_template"] == "false").items()))'
 ```
 
 The content figure is not pinned by any gate. It stands on the list below, which R5 counts and R6
