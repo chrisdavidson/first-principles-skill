@@ -3,7 +3,7 @@ name: pre-mortem
 description: Runs a focused pre-mortem only — prospective-hindsight failure analysis. Invoke via /pre-mortem only.
 disable-model-invocation: true
 metadata:
-  version: "9.18.3"
+  version: "9.18.4"
 license: MIT
 ---
 # Focused Pre-Mortem Mode

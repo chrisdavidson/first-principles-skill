@@ -13,6 +13,41 @@ installed session.
 
 ## [Unreleased]
 
+## [9.18.4] — 2026-10-05
+
+Patch release: **the check runners read source, never a stale bytecode cache.** The shipped
+plugin is unchanged apart from its version stamps: no agent or skill body was edited.
+
+### Fixed
+
+- CPython reuses a `__pycache__` entry when the source's whole-second mtime and size match
+  the ones the entry recorded. A same-size mutate-run-restore edit made within the second
+  could therefore be served stale bytecode in either direction: the mutation never ran, or a
+  restored file ran as still mutated. Reproduced on `scripts/_battery_core.py`: mutated to
+  `MIN_HEADER_HITS = 3` over a cache of the original, the battery reported
+  `FIREWALL: GREEN (32/32)` without executing the mutation. Turning off bytecode writes alone
+  does not fix it, because an existing stale entry is still read.
+- `scripts/check-firewall-battery.sh`, both pre-commit hooks (`.githooks/pre-commit`,
+  `scripts/git-hooks/pre-commit`) and a new `tests/conftest.py` now point
+  `PYTHONPYCACHEPREFIX` at a per-run directory. The directory begins empty and is removed on
+  exit, and every child process inherits it, so no cache entry from an earlier run is ever
+  read. Rerun on the same planted state, the battery reports `FIREWALL: RED (30/32)` with BATT-06 failing. Under pytest, a
+  planted stale cache was read before the fix, both in-process and in a child process. After
+  the fix, both read the source.
+- Both pre-commit hooks no longer `exec` their final gate. `exec` replaced the shell before its
+  EXIT trap could remove the cache directory, which leaked one directory per commit. As the
+  last command, the gate's exit status is still the hook's.
+- `docs/TESTING.md` documents the hazard. A single script run by hand outside these runners
+  is not covered unless it exports a fresh `PYTHONPYCACHEPREFIX`.
+
+### Cost
+
+Bytecode writes stay on inside the per-run directory, so processes within a run still share
+compiled modules. A first cut that also turned writes off measured 212s -> 450s for a full
+battery. With writes on, a full battery takes 238s, against 212s before.
+
+`FIREWALL: GREEN (32/32)`; `tests/`: 132 passed; VERSION-01 green on every stamp.
+
 ## [9.18.3] — 2026-10-04
 
 Patch release: **the `tests/` suite is green again.** At 9.18.2, `uv run pytest tests/` failed
