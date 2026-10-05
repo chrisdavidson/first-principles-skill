@@ -29,12 +29,12 @@ set -eu
 
 cd "$(git rev-parse --show-toplevel)"
 
-# Read source, never a cached .pyc: a same-size edit within the same second can
-# be served stale bytecode (see scripts/check-firewall-battery.sh). Writes off
-# and the cache redirected to an empty per-run directory, children included.
+# Bytecode cache begins empty and dies with this run, so a same-size edit made
+# within the same second is never served stale bytecode from an earlier run
+# (see scripts/check-firewall-battery.sh). Children inherit it.
 PYCACHE_DIR=$(mktemp -d "${TMPDIR:-/tmp}/fp-hook-pycache.XXXXXX")
 trap 'rm -rf "$PYCACHE_DIR"' EXIT
-export PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX="$PYCACHE_DIR"
+export PYTHONPYCACHEPREFIX="$PYCACHE_DIR"
 
 # --- Interpreter resolution --------------------------------------------------
 
@@ -80,7 +80,7 @@ if [ "${SKIP_DRIFT_CHECK:-0}" = "1" ]; then
     $PY scripts/report-conformance.py --self-test || exit $?
 
     # Gate 3: claim-surface generator self-test (terminal)
-    exec $PY scripts/gen-gate-docs.py --self-test
+    $PY scripts/gen-gate-docs.py --self-test
 else
     # Normal mode: run all gates (drift checks + self-tests)
 
@@ -113,7 +113,9 @@ else
     # --- Gate 3: claim-surface generator self-test (terminal) --------------------
     # Same WR-05 ordering discipline as Gate 2, for scripts/gen-gate-docs.py
     # (CONF-SURFACE, D-21-C, plan 21-11): the generator's own controls must be
-    # caught as the final pre-commit check. Terminal -- only this one may use exec.
+    # caught as the final pre-commit check. Terminal, but not exec'd: exec would
+    # skip the EXIT trap that removes the per-run bytecode cache directory. As the
+    # last command, its exit status is the hook's.
 
-    exec $PY scripts/gen-gate-docs.py --self-test
+    $PY scripts/gen-gate-docs.py --self-test
 fi

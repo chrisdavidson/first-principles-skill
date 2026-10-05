@@ -163,10 +163,12 @@ bytecode in either direction. The mutation can go unexecuted and the run report 
 restored file can still be read as mutated. Turning off bytecode writes does not help on its
 own, because an existing stale entry is still read.
 
-The battery, both pre-commit hooks and `tests/conftest.py` turn writes off and redirect the
-cache to an empty per-run directory, and every child process they spawn inherits both
-settings. A probe that runs a single script by hand is not covered: export the same two
-variables first, exactly as the top of `scripts/check-firewall-battery.sh` does.
+The battery, both pre-commit hooks and `tests/conftest.py` redirect the cache to a directory
+that begins empty and is removed when the run ends, and every child process they spawn
+inherits it. No entry from an earlier run is ever read. Processes within a run, where no
+source is edited, still share compiled modules. A probe that runs a single script by hand is
+not covered: export `PYTHONPYCACHEPREFIX` to a fresh directory first, as the top of
+`scripts/check-firewall-battery.sh` does.
 
 ## See also
 

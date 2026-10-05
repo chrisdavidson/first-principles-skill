@@ -275,16 +275,19 @@ set -u
 REPO=$(cd "$(dirname "$0")/.." && pwd)
 cd "$REPO"
 
-# Every Python process this battery starts, and every child they spawn, reads
-# source and never a cached .pyc. CPython trusts a __pycache__ entry whose
-# recorded source mtime (whole seconds) and size match, so a same-size edit
-# made within the second -- a mutate-run-restore probe -- can be served stale
-# bytecode in either direction: the mutation unseen, or the restored file read
-# as still mutated. Disabling writes alone still READS a stale entry, so the
-# cache is also redirected to an empty per-run directory.
+# Every Python process this battery starts, and every child they spawn, uses
+# a bytecode cache that begins empty and dies with this run. CPython trusts a
+# __pycache__ entry whose recorded source mtime (whole seconds) and size match,
+# so a same-size edit made within the second -- a mutate-run-restore probe --
+# can be served stale bytecode in either direction: the mutation unseen, or
+# the restored file read as still mutated. Disabling writes alone still READS
+# a stale entry. Redirecting the cache to a fresh per-run directory means no
+# entry from an earlier run is ever read, while processes within this run,
+# where no source is edited, still share compiled modules (writes stay on:
+# turning them off measured 212s -> 450s for a full battery).
 PYCACHE_DIR=$(mktemp -d "${TMPDIR:-/tmp}/fp-battery-pycache.XXXXXX")
 trap 'rm -rf "$PYCACHE_DIR"' EXIT
-export PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX="$PYCACHE_DIR"
+export PYTHONPYCACHEPREFIX="$PYCACHE_DIR"
 
 TOTAL=0
 PASS=0
