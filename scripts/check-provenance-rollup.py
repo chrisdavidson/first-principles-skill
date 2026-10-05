@@ -1712,6 +1712,18 @@ def structure_problems() -> list[str]:
     return problems
 
 
+def _read_exemplar(p: Path) -> str:
+    """How the exemplar floor reads a shipped exemplar: the file, verbatim."""
+    return p.read_text(encoding="utf-8")
+
+
+# The seam the exemplar floor reads every exemplar through. It exists so the
+# `exemplar-rollup-dropped` injection can degrade the floor's INPUT rather than
+# stub the floor itself: a degraded input caught under `[exemplar]` proves the
+# floor is both invoked by `_run_controls` and able to fail (WR-06).
+_EXEMPLAR_TEXT: Callable[[Path], str] = _read_exemplar
+
+
 def exemplar_problems() -> list[str]:
     """Every shipped exemplar carries a roll-up that passes check 2.
 
@@ -1735,7 +1747,7 @@ def exemplar_problems() -> list[str]:
     if not examples:
         return ["shared/examples/ holds no .md files"]
     for p in examples:
-        r = read_document(p.name, p.read_text(encoding="utf-8"))
+        r = read_document(p.name, _EXEMPLAR_TEXT(p))
         if r.unreadable is not None:
             problems.append(
                 f"{p.name}: section 3 does not resolve, so the exemplar roll-up floor "
@@ -1770,7 +1782,24 @@ INJECTIONS: tuple[str, ...] = (
     "empty-ground-truths",
     "census-always-true",
     "census-no-reads",
+    "exemplar-rollup-dropped",
+    "kept-row-dropped",
 )
+
+# The control group each injection must be caught BY (WR-06). A failure from
+# any other group does not count: an injection caught only incidentally proves
+# nothing about the component it degrades. The last two entries are the wiring
+# proof for the exemplar floor and the retirement guard -- deleting either
+# group's call from `_run_controls` leaves its injection uncaught.
+_INJECTION_GROUP: dict[str, str] = {
+    "always-pass": "fixture",
+    "presence-is-agreement": "fixture",
+    "empty-ground-truths": "fixture",
+    "census-always-true": "template-read",
+    "census-no-reads": "template-read",
+    "exemplar-rollup-dropped": "exemplar",
+    "kept-row-dropped": "retirement",
+}
 
 
 def _inject_always_pass(rollup: Rollup, population: list[GroundTruth]) -> list[str]:
@@ -1818,14 +1847,38 @@ def _inject_census_no_reads(capture_id: str, jsonl_path: Path) -> dict:
     }
 
 
+def _inject_exemplar_rollup_dropped(p: Path) -> str:
+    """Every exemplar read with its roll-up's `?-marked:` line deleted.
+
+    The floor's input degraded, not the floor: only a floor that `_run_controls`
+    actually invokes, and that can fail, catches this under `[exemplar]`.
+    """
+    text = p.read_text(encoding="utf-8")
+    kept = [ln for ln in text.splitlines() if _ROLLUP_MARKED_RE.match(ln) is None]
+    return "\n".join(kept) + "\n"
+
+
+def _inject_kept_row_dropped() -> tuple[tuple[str, str, int], ...]:
+    """The template-only roster with its agent-body row removed.
+
+    The retirement guard's input degraded: only a guard that `_run_controls`
+    actually invokes catches this under `[retirement]`.
+    """
+    return tuple(
+        row for row in _TEMPLATE_ONLY_SURFACES if row[1] != "shared/spine/SKILL-body.md"
+    )
+
+
 def _run_controls(injection: str | None) -> list[str]:
     """Run every control group, with `injection` (if any) active."""
     global _SECTION3_PARSER, _CHECK2, _TEMPLATE_READ_CENSUS
+    global _EXEMPLAR_TEXT, _TEMPLATE_ONLY_SURFACES
     saved_parser, saved_check2, saved_census = (
         _SECTION3_PARSER,
         _CHECK2,
         _TEMPLATE_READ_CENSUS,
     )
+    saved_exemplar_text, saved_surfaces = _EXEMPLAR_TEXT, _TEMPLATE_ONLY_SURFACES
 
     if injection == "always-pass":
         _CHECK2 = _inject_always_pass
@@ -1837,6 +1890,10 @@ def _run_controls(injection: str | None) -> list[str]:
         _TEMPLATE_READ_CENSUS = _inject_census_always_true
     elif injection == "census-no-reads":
         _TEMPLATE_READ_CENSUS = _inject_census_no_reads
+    elif injection == "exemplar-rollup-dropped":
+        _EXEMPLAR_TEXT = _inject_exemplar_rollup_dropped
+    elif injection == "kept-row-dropped":
+        _TEMPLATE_ONLY_SURFACES = _inject_kept_row_dropped()
     elif injection is not None:
         raise SystemExit(f"error: unknown injection {injection!r}; one of {INJECTIONS}")
 
@@ -1861,21 +1918,37 @@ def _run_controls(injection: str | None) -> list[str]:
             saved_check2,
             saved_census,
         )
+        _EXEMPLAR_TEXT, _TEMPLATE_ONLY_SURFACES = saved_exemplar_text, saved_surfaces
 
 
 def self_test(injection: str | None = None) -> int:
     problems = _run_controls(injection)
 
     if injection is None:
-        # Anti-masking: every injection must be caught by the controls above.
-        # An injection the suite passes means the suite cannot see that
-        # component failing, which is the CONF-GATE CR-02(a) failure mode.
+        # Anti-masking: every injection must be caught by the controls above,
+        # and by its OWN control group (`_INJECTION_GROUP`). An injection the
+        # suite passes means the suite cannot see that component failing, which
+        # is the CONF-GATE CR-02(a) failure mode; an injection caught only by
+        # another group proves nothing about the component it degrades.
+        if set(_INJECTION_GROUP) != set(INJECTIONS):
+            problems.append(
+                "[anti-masking] _INJECTION_GROUP and INJECTIONS name different "
+                f"injections: {sorted(set(_INJECTION_GROUP) ^ set(INJECTIONS))!r}"
+            )
         for name in INJECTIONS:
-            caught = _run_controls(name)
+            group = _INJECTION_GROUP.get(name, "")
+            failures = _run_controls(name)
+            caught = [p for p in failures if p.startswith(f"[{group}] ")]
             if caught:
                 print(
-                    f"[anti-masking] {name}: CAUGHT as designed "
-                    f"({len(caught)} control failure(s)); first: {caught[0]}"
+                    f"[anti-masking] {name}: CAUGHT by [{group}] as designed "
+                    f"({len(caught)} of {len(failures)} control failure(s)); "
+                    f"first: {caught[0]}"
+                )
+            elif failures:
+                problems.append(
+                    f"[anti-masking] injection {name!r} was not caught by its own "
+                    f"group [{group}]; only by other groups, first: {failures[0]}"
                 )
             else:
                 problems.append(
