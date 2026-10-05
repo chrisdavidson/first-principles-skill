@@ -1266,23 +1266,80 @@ _PRECHECK_CN_ID_RE = re.compile(r"^[Cc][1-9][0-9]*$")
 _HEAD_LEAD_ID_RE = re.compile(r"^(GT-[1-9][0-9]*\??|[Cc][1-9][0-9]*)(?=[\s(*]|$)")
 
 
-def _split_top_level_plus(s: str) -> list[str]:
-    """Split `s` on `+` at parenthesis depth 0 only."""
+# ` and ` as a head-term joiner, matched only at parenthesis depth 0.
+_HEAD_AND_RE = re.compile(r"\s+and\s+")
+
+
+def _split_top_level_terms(s: str) -> list[str]:
+    """Split a head expression into its terms on `+`, `,` or the word `and`,
+    at parenthesis depth 0 only, so a joiner inside a parenthetical label
+    never splits it. `and` and `,` are separators because a head written
+    `GT-1 and GT-3?` names two inputs, not one input with trailing prose."""
     out: list[str] = []
     depth = 0
     cur: list[str] = []
-    for ch in s:
+    k = 0
+    while k < len(s):
+        ch = s[k]
         if ch == "(":
             depth += 1
         elif ch == ")" and depth > 0:
             depth -= 1
-        if ch == "+" and depth == 0:
-            out.append("".join(cur))
-            cur = []
-        else:
-            cur.append(ch)
+        if depth == 0:
+            if ch in "+,":
+                out.append("".join(cur))
+                cur = []
+                k += 1
+                continue
+            am = _HEAD_AND_RE.match(s, k)
+            if am is not None:
+                out.append("".join(cur))
+                cur = []
+                k = am.end()
+                continue
+        cur.append(ch)
+        k += 1
     out.append("".join(cur))
     return out
+
+
+def _depth0_arrow_at(s: str) -> int | None:
+    """Index of the first `→` or `->` at parenthesis depth 0, else None. An
+    arrow inside a parenthetical label (`GT-2 (ratio 1:40 → 1:67)`) is part
+    of the label, not the head's end."""
+    depth = 0
+    for k, ch in enumerate(s):
+        if ch == "(":
+            depth += 1
+        elif ch == ")" and depth > 0:
+            depth -= 1
+        elif depth == 0 and (s.startswith("→", k) or s.startswith("->", k)):
+            return k
+    return None
+
+
+def _only_parentheticals(rest: str) -> bool:
+    """True when `rest` -- a head term's text after its leading identifier --
+    is empty or nothing but balanced parenthetical groups, whitespace and
+    `**`. Anything else is prose that could hide an input."""
+    rest = rest.replace("**", "").strip()
+    while rest:
+        if not rest.startswith("("):
+            return False
+        depth = 0
+        close = None
+        for k, ch in enumerate(rest):
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+                if depth == 0:
+                    close = k
+                    break
+        if close is None:
+            return False
+        rest = rest[close + 1 :].replace("**", "").strip()
+    return True
 
 
 def _lead_id(term: str) -> str | None:
@@ -1305,12 +1362,23 @@ def _chain_head_ids(block: str) -> list[str] | None:
     and takes the first line merely CONTAINING an identifier as the head --
     999.183's intro-sentence false positive. Here the head line is the first
     unfenced line after the block's own heading or bold label (line 0) whose
-    first token, after optional whitespace and `**`, IS an identifier. The
-    text before its first arrow (`→` or `->`) is split on `+` at parenthesis
-    depth 0, and each term contributes its own leading identifier, so a
-    parenthetical mention (`GT-1 (see GT-9)`) is never read as an input.
+    first token, after optional whitespace and `**`, IS an identifier.
+
+    The head expression runs from there to the first arrow (`→` or `->`) at
+    parenthesis depth 0, so an arrow inside a parenthetical label never cuts
+    it short. While no such arrow has been reached, a following unfenced
+    line that starts with `+` -- or any line after a head that ends with
+    `+` -- is a hard-wrapped continuation and is joined. The expression is
+    split into terms on `+`, `,` and the word `and` at depth 0, and each
+    term contributes its own leading identifier, so a parenthetical mention
+    (`GT-1 (see GT-9)`) is never read as an input and a parenthetical arrow
+    never hides one.
+
     Returns None -- reported unlocated, never guessed -- when no line
-    qualifies or any term has no leading identifier."""
+    qualifies, when any term has no leading identifier, or when a term
+    carries anything after its identifier other than parenthetical labels
+    (`GT-2 such as GT-3?`): an input this reader cannot see must fail closed,
+    not shrink the truth the pre-check is compared with (CR-01)."""
     qh = _load_qh()
     lines = block.splitlines()
     fenced = qh._fenced_code_flags(lines)
@@ -1320,16 +1388,29 @@ def _chain_head_ids(block: str) -> list[str] | None:
         if _lead_id(raw) is None:
             continue
         head = raw
-        for arrow in ("→", "->"):
-            pos = head.find(arrow)
-            if pos != -1:
-                head = head[:pos]
+        cut = _depth0_arrow_at(head)
+        j = idx + 1
+        while (
+            cut is None
+            and j < len(lines)
+            and not fenced[j]
+            and (lines[j].lstrip().startswith("+") or head.rstrip().endswith("+"))
+        ):
+            head = head.rstrip() + " " + lines[j].strip()
+            cut = _depth0_arrow_at(head)
+            j += 1
+        if cut is not None:
+            head = head[:cut]
         ids: list[str] = []
-        for term in _split_top_level_plus(head):
-            rid = _lead_id(term)
-            if rid is None:
+        for term in _split_top_level_terms(head):
+            t = term.strip()
+            if t.startswith("**"):
+                t = t[2:].lstrip()
+            m = _HEAD_LEAD_ID_RE.match(t)
+            if m is None or not _only_parentheticals(t[m.end() :]):
                 return None
-            ids.append(rid)
+            rid = m.group(1)
+            ids.append(rid.upper() if _PRECHECK_CN_ID_RE.match(rid) else rid)
         return ids
     return None
 
@@ -3803,7 +3884,7 @@ def _m9_two_hand_wavy_cleared() -> str | None:
 
 
 # ---------------------------------------------------------------------------
-# Pre-check comparator controls (C26-C29, P5, M10, X3)
+# Pre-check comparator controls (C26-C31, P5, M10, X3)
 # ---------------------------------------------------------------------------
 
 
@@ -3949,6 +4030,132 @@ def _c28_precheck_decoys() -> str | None:
     r = precheck_reading(fenced)
     if (r["compared"], r["orphans"], r["confidence_lines"]) != (3, 0, 3):
         return f"(d) fenced decoy: expected compared 3, orphans 0, confidence_lines 3, got {r!r}"
+    return None
+
+
+# C30: the three head shapes CR-01 found truncating, rebuilt from the
+# review's ishikawa-fishbone scratch reproduction. Each mutant moves GT-3 to
+# GT-3? on C1's head in a shape the pre-fix reader cut short, then writes
+# the pre-check and rests_on the truncated "truth" would agree with, keeping
+# Confidence HIGH -- a D-07 violation. The fixed reader must see GT-3? and
+# fire SB-PRECHECK-HEAD; the pre-fix reader, kept below as the negative
+# witness, must leave the same mutant with no finding at all, which is what
+# proves the mutant is the false PASS and not some other defect.
+
+_C30_EXEMPLAR = REPO_ROOT / "shared" / "examples" / "ishikawa-fishbone.md"
+_C30_HEAD = (
+    'GT-2 (11 of 23 churned accounts cite "felt unsupported") + GT-3 '
+    "(CSM-to-account ratio 1:67 vs. design threshold 1:40 in the uncovered tier)"
+)
+_C30_GT3 = "(CSM-to-account ratio 1:67 vs. design threshold 1:40 in the uncovered tier)"
+# (case, head, the rests_on the pre-fix readers agree with). Shapes a and b
+# also truncate the harness's `qh._chain_head_refs`, which SB-CHAIN-RESTS-ON
+# reads, so rests_on drops GT-3? too; shape c does not truncate that set
+# reader, so its rests_on keeps GT-3? and only the pre-check comparator was
+# blind.
+_C30_SHAPES: tuple[tuple[str, str, str], ...] = (
+    (
+        "a arrow inside a parenthetical label",
+        'GT-2 (11 of 23 churned accounts cite "felt unsupported"; ratio 1:40 → 1:67) '
+        f"+ GT-3? {_C30_GT3}",
+        '"rests_on": [\n        "GT-2"\n      ]',
+    ),
+    (
+        "b head hard-wrapped onto a +-led line",
+        f'GT-2 (11 of 23 churned accounts cite "felt unsupported")\n+ GT-3? {_C30_GT3}',
+        '"rests_on": [\n        "GT-2"\n      ]',
+    ),
+    (
+        "c ids joined with and",
+        f'GT-2 (11 of 23 churned accounts cite "felt unsupported") and GT-3? {_C30_GT3}',
+        '"rests_on": [\n        "GT-2",\n        "GT-3?"\n      ]',
+    ),
+)
+_C30_PRECHECK = "**Pre-check:** head GT-2, GT-3 · ?-marked: none"
+_C30_RESTS_ON = '"rests_on": [\n        "GT-2",\n        "GT-3"\n      ]'
+
+
+def _c30_pre_fix_head_ids(block: str) -> list[str] | None:
+    """The head reader as it stood before CR-01, kept only as C30's negative
+    witness: first physical head line, cut at its first arrow at any depth,
+    split on `+` alone."""
+    qh = _load_qh()
+    lines = block.splitlines()
+    fenced = qh._fenced_code_flags(lines)
+    for idx, raw in enumerate(lines):
+        if idx == 0 or fenced[idx] or _lead_id(raw) is None:
+            continue
+        head = raw
+        for arrow in ("→", "->"):
+            pos = head.find(arrow)
+            if pos != -1:
+                head = head[:pos]
+        ids: list[str] = []
+        depth = 0
+        cur: list[str] = []
+        terms: list[str] = []
+        for ch in head:
+            if ch == "(":
+                depth += 1
+            elif ch == ")" and depth > 0:
+                depth -= 1
+            if ch == "+" and depth == 0:
+                terms.append("".join(cur))
+                cur = []
+            else:
+                cur.append(ch)
+        terms.append("".join(cur))
+        for term in terms:
+            rid = _lead_id(term)
+            if rid is None:
+                return None
+            ids.append(rid)
+        return ids
+    return None
+
+
+def _c30_mutants() -> list[tuple[str, str]]:
+    text = _C30_EXEMPLAR.read_text()
+    for literal in (_C30_HEAD, _C30_PRECHECK, _C30_RESTS_ON):
+        if text.count(literal) != 1:
+            raise ValueError(f"expected {literal!r} exactly once in {_relpath(_C30_EXEMPLAR)}")
+    base = text.replace(_C30_PRECHECK, "**Pre-check:** head GT-2 · ?-marked: none")
+    return [
+        (case, base.replace(_C30_HEAD, head).replace(_C30_RESTS_ON, rests_on))
+        for case, head, rests_on in _C30_SHAPES
+    ]
+
+
+def _c30_head_shapes() -> str | None:
+    global _chain_head_ids
+    for case, head, _rests_on in _C30_SHAPES:
+        got = _chain_head_ids(f"### Conclusion C1: x\n{head}\n→ x → y\n")
+        if got != ["GT-2", "GT-3?"]:
+            return f"({case}) reader: expected ['GT-2', 'GT-3?'], got {got!r}"
+    got = _chain_head_ids("### Conclusion C1: x\nGT-2 (a) such as GT-3? (b) → x\n")
+    if got is not None:
+        return f"(d) trailing prose after an id: expected None (fail closed), got {got!r}"
+    mutants = _c30_mutants()
+    for case, mutant in mutants:
+        for exemplar in (False, True):
+            got_codes = _precheck_codes(check_report(mutant, exemplar=exemplar))
+            if got_codes != {"SB-PRECHECK-HEAD"}:
+                return (
+                    f"({case}, exemplar={exemplar}) fixed reader: expected exactly "
+                    f"{{'SB-PRECHECK-HEAD'}}, got {got_codes!r}"
+                )
+    fixed = _chain_head_ids
+    try:
+        _chain_head_ids = _c30_pre_fix_head_ids
+        for case, mutant in mutants:
+            witness = check_report(mutant, exemplar=True)
+            if witness:
+                return (
+                    f"({case}) pre-fix reader: expected the false PASS this control "
+                    f"exists to close (no finding), got {witness!r}"
+                )
+    finally:
+        _chain_head_ids = fixed
     return None
 
 
@@ -4159,6 +4366,7 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("C27-precheck-field-mutations", _c27_precheck_field_mutations),
     ("C28-precheck-decoys", _c28_precheck_decoys),
     ("C29-precheck-missing", _c29_precheck_missing),
+    ("C30-precheck-head-shapes", _c30_head_shapes),
     ("P1-personal-general", _p1_personal_general),
     ("P2-software-systems", _p2_software_systems),
     ("P3-science-engineering", _p3_science_engineering),
