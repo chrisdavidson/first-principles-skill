@@ -174,7 +174,7 @@ question is whether the budget tracks anything the agent actually depends on.
 Read-at-source: GT-1 — direct measurement of first-principles/agents/first-principles.md on the working branch
 Read-at-source: GT-2 — heading scan of first-principles/agents/first-principles.md (## Methodology at line 45, ## Output format at line 142)
 Read-at-source: GT-3 — heading scan of the same file (six ## Procedure headings, appendix boundary at line 415)
-Read-at-source: GT-5 — line-level diff of agent-body lines 415–567 against shared/spine/references/output-template.md
+Read-at-source: GT-5 — agent body from ## How to Use This Template at line 415 to the end of the file at line 878 (approximately 464 lines); content identity from a line-level diff of agent-body lines 415–567 against shared/spine/references/output-template.md
 ```
 
 ---
