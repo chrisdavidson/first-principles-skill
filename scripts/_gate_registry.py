@@ -1007,7 +1007,11 @@ ENTRIES: tuple[GateEntry, ...] = (
             "exactly when its own section is absent. Reading live agent "
             "reports stays a recorded measurement, never a gate, and a "
             "live shortfall is reported, never absorbed by loosening the "
-            "checker."
+            "checker. It also compares every **Pre-check:** line with its "
+            "own chain's head line, the bands it cites and the ceiling "
+            "those imply, and in exemplar mode fails when a Confidence line "
+            "has no pre-check directly above it; a band raised to its "
+            "ceiling stays invisible to it."
         ),
         consumes=(
             "control_ids",

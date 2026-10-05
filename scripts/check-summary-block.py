@@ -76,14 +76,6 @@ FINDING_CODES: tuple[str, ...] = (
     "SB-PRECHECK-MISSING",
 )
 
-# Whether a Confidence line with no **Pre-check:** line directly above it
-# fails an exemplar-mode run. False while the worked examples do not yet all
-# carry their pre-checks: the missing-line reading is then report-only
-# (`--precheck-reading`). Plan 93-04 removes this constant once all fourteen
-# exemplars carry them, making SB-PRECHECK-MISSING an exemplar-mode failure.
-# Live mode never emits it either way.
-PRECHECK_MISSING_FAILS: bool = False
-
 
 class Finding(NamedTuple):
     code: str
@@ -1635,11 +1627,10 @@ def _xc_prechecks(text, sections, block, exemplar) -> list[Finding]:
     paired label against that ceiling.
 
     Disclosed bounds:
-    precheck-missing-report-only-until-sweep -- a Confidence line with no
-    pre-check directly above it is SB-PRECHECK-MISSING only in exemplar mode
-    and only while PRECHECK_MISSING_FAILS is set; until then it is read by
-    `--precheck-reading` alone, and live mode never emits it, because a live
-    presence reading is K-of-N and barred from gating.
+    precheck-missing-fails-in-exemplar-mode-only -- a Confidence line with
+    no pre-check directly above it is SB-PRECHECK-MISSING in exemplar mode
+    only; live mode never emits it, because a live presence reading is
+    K-of-N and barred from gating, and `--precheck-reading` reports it.
     precheck-band-raised-to-ceiling-undetectable -- a label at or below its
     derived ceiling is legal, so a band raised up to its ceiling passes this
     checker; only a diff of the Confidence lines guards against that.
@@ -1659,7 +1650,7 @@ def _xc_prechecks(text, sections, block, exemplar) -> list[Finding]:
     findings: list[Finding] = []
     for site in read["sites"]:
         findings.extend(_precheck_site_findings(site, read["chain_bands"], rests_on))
-    if exemplar and PRECHECK_MISSING_FAILS:
+    if exemplar:
         for site in read["sites"]:
             if site["label"] is not None and site["body"] is None:
                 findings.append(
@@ -3462,10 +3453,11 @@ def _c25_conclusion_rests_on_null_and_absence() -> str | None:
     codes_exemplar = {
         f.code for f in check_report(text_nonnull_absent, exemplar=True, schema=schema)
     }
-    if codes_exemplar != {"SB-CONCLUSION-RESTS-ON"}:
+    if codes_exemplar != {"SB-CONCLUSION-RESTS-ON", "SB-PRECHECK-MISSING"}:
         return (
             f"rests_on non-null, no Pre-check line, exemplar mode: expected "
-            f"{{'SB-CONCLUSION-RESTS-ON'}}, got {codes_exemplar!r}"
+            f"{{'SB-CONCLUSION-RESTS-ON', 'SB-PRECHECK-MISSING'}}, "
+            f"got {codes_exemplar!r}"
         )
 
     # Section 6's Pre-check line present but with no readable `head ` field.
@@ -3961,7 +3953,6 @@ def _c28_precheck_decoys() -> str | None:
 
 
 def _c29_precheck_missing() -> str | None:
-    global PRECHECK_MISSING_FAILS
     schema = load_schema(DEFAULT_SCHEMA)
     example = schema["example"]
     omitted = _synthetic_report(example, omit_chain_prechecks=True)
@@ -3970,29 +3961,19 @@ def _c29_precheck_missing() -> str | None:
     pos = full.find(first)
     eol = full.find("\n", pos)
     blank = full[:eol] + "\n" + full[eol:]
-    saved = PRECHECK_MISSING_FAILS
-    try:
-        PRECHECK_MISSING_FAILS = True
-        got = [f for f in check_report(omitted, exemplar=True, schema=schema)]
-        missing = [f for f in got if f.code == "SB-PRECHECK-MISSING"]
-        if not missing or not all(
-            any(f.message.startswith(f"{cid}:") for f in missing) for cid in ("C1", "C2")
-        ):
-            return f"(a) omitted chain pre-checks, exemplar mode: expected SB-PRECHECK-MISSING naming C1 and C2, got {got!r}"
-        codes = _precheck_codes(check_report(blank, exemplar=True, schema=schema))
-        if codes != {"SB-PRECHECK-MISSING"}:
-            return f"(b) blank line between pre-check and Confidence: expected {{'SB-PRECHECK-MISSING'}}, got {codes!r}"
-        for label, t in (("omitted", omitted), ("blank-line", blank)):
-            codes = {f.code for f in check_report(t, exemplar=False, schema=schema)}
-            if "SB-PRECHECK-MISSING" in codes:
-                return f"(c) {label}, live mode: SB-PRECHECK-MISSING must never fire live"
-    finally:
-        PRECHECK_MISSING_FAILS = saved
-    if PRECHECK_MISSING_FAILS:
-        return None
-    codes = {f.code for f in check_report(omitted, exemplar=True, schema=schema)}
-    if "SB-PRECHECK-MISSING" in codes:
-        return "shipped report-only: SB-PRECHECK-MISSING fired in exemplar mode with the flag off"
+    got = [f for f in check_report(omitted, exemplar=True, schema=schema)]
+    missing = [f for f in got if f.code == "SB-PRECHECK-MISSING"]
+    if not missing or not all(
+        any(f.message.startswith(f"{cid}:") for f in missing) for cid in ("C1", "C2")
+    ):
+        return f"(a) omitted chain pre-checks, exemplar mode: expected SB-PRECHECK-MISSING naming C1 and C2, got {got!r}"
+    codes = _precheck_codes(check_report(blank, exemplar=True, schema=schema))
+    if codes != {"SB-PRECHECK-MISSING"}:
+        return f"(b) blank line between pre-check and Confidence: expected {{'SB-PRECHECK-MISSING'}}, got {codes!r}"
+    for label, t in (("omitted", omitted), ("blank-line", blank)):
+        codes = {f.code for f in check_report(t, exemplar=False, schema=schema)}
+        if "SB-PRECHECK-MISSING" in codes:
+            return f"(c) {label}, live mode: SB-PRECHECK-MISSING must never fire live"
     r = precheck_reading(omitted)
     if r["missing"] != 2:
         return f"report-only reading: expected missing 2, got {r!r}"
@@ -4049,6 +4030,52 @@ def _x3_precheck_comparator_stub() -> str | None:
 
 
 # ---------------------------------------------------------------------------
+# X4: the shipped worked examples carry a pre-check above every Confidence line
+# ---------------------------------------------------------------------------
+
+EXEMPLAR_SURFACES: tuple[Path, ...] = (
+    REPO_ROOT / "shared" / "examples",
+    REPO_ROOT / "first-principles" / "references" / "examples",
+)
+
+
+def _x4_exemplar_precheck_floor() -> str | None:
+    """Every worked example on both surfaces, discovered live: each section 4
+    chain and section 6 has a Confidence line with a field-correct pre-check
+    directly above it, and the two surfaces agree on the total. The chain
+    count is read by `qh._chain_ids`, independently of the Confidence-line
+    locator, so a locator that finds nothing cannot pass vacuously."""
+    qh = _load_qh()
+    totals: list[int] = []
+    for surface in EXEMPLAR_SURFACES:
+        files = sorted(surface.glob("*.md"))
+        if not files:
+            return f"{_relpath(surface)}: no worked example discovered"
+        total = 0
+        for path in files:
+            rel = _relpath(path)
+            text = path.read_text()
+            try:
+                sections = qh._slice_sections(text)
+            except qh.SectionResolutionError as exc:
+                return f"{rel}: sections not resolvable ({exc})"
+            chains = len(qh._chain_ids(sections.get(4, "") or ""))
+            r = precheck_reading(text)
+            if not (r["compared"] == r["confidence_lines"] == chains + 1):
+                return (
+                    f"{rel}: expected compared == confidence_lines == chains + 1 "
+                    f"({chains + 1}), got {r!r}"
+                )
+            if r["missing"] or r["orphans"] or r["field_findings"]:
+                return f"{rel}: expected no missing, orphan or field finding, got {r!r}"
+            total += r["compared"]
+        totals.append(total)
+    if len(set(totals)) != 1:
+        return f"surfaces disagree on the pre-check total: {totals!r}"
+    return None
+
+
+# ---------------------------------------------------------------------------
 # X2: every registered cross-check must be load-bearing (an ablation)
 # ---------------------------------------------------------------------------
 
@@ -4075,6 +4102,7 @@ def _x2_cross_check_ablation() -> str | None:
             "X1-extraction-floor",
             "X2-cross-check-ablation",
             "X3-precheck-comparator-stub",
+            "X4-exemplar-precheck-floor",
         )
     ]
     dead: list[str] = []
@@ -4149,6 +4177,7 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("X1-extraction-floor", _x1_extraction_floor),
     ("X2-cross-check-ablation", _x2_cross_check_ablation),
     ("X3-precheck-comparator-stub", _x3_precheck_comparator_stub),
+    ("X4-exemplar-precheck-floor", _x4_exemplar_precheck_floor),
 )
 
 
@@ -4184,7 +4213,11 @@ def describe() -> dict:
     return {
         "control_ids": [cid for cid, _fn in _CONTROLS],
         "control_count": len(_CONTROLS),
-        "registered_surfaces": [_relpath(DEFAULT_SCHEMA), _relpath(FIXTURE_DIR)],
+        "registered_surfaces": [
+            _relpath(DEFAULT_SCHEMA),
+            _relpath(FIXTURE_DIR),
+            *(_relpath(surface) for surface in EXEMPLAR_SURFACES),
+        ],
         "checked_files": [_relpath(FIXTURE_DIR / name) for name in FIXTURES],
         "locked_constants": {
             "DEFAULT_SCHEMA": _relpath(DEFAULT_SCHEMA),
@@ -4204,7 +4237,7 @@ def describe() -> dict:
                 "recommendation-bold-markers-ignored",
                 "reentry-read-from-gate-span-and-disclosure-only",
                 "second-order-and-input-reopen-edges-need-a-disclosed-paragraph",
-                "precheck-missing-report-only-until-sweep",
+                "precheck-missing-fails-in-exemplar-mode-only",
                 "precheck-band-raised-to-ceiling-undetectable",
                 "precheck-section6-head-completeness-not-checked",
                 "precheck-overlaps-qual01-precheck-defects",
