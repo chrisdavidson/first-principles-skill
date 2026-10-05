@@ -21,7 +21,7 @@ Run from repo root:
 
 from __future__ import annotations
 
-import importlib.util
+import json
 import re
 import subprocess
 import sys
@@ -279,32 +279,82 @@ def test_focused_output_baseline_v38_has_superseded_banner() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Script defaults: check-routing-battery.py boundary p-threshold default=2
-# (successor to the retired check-sub-skill-routing.py guards)
+# Script defaults: check-routing-battery.py threshold defaults
+# (successor to the retired check-sub-skill-routing.py and
+# check-focused-output.py guards)
 # ---------------------------------------------------------------------------
 
+# Loads the script from a fresh compile of its source in a child process, so
+# a stale scripts/__pycache__ entry can never stand in for the current source
+# and the test process's sys.path / sys.modules stay untouched.
+_PARSER_DEFAULTS_PROBE = """
+import json, sys, types
+path = sys.argv[1]
+module = types.ModuleType("check_routing_battery")
+module.__file__ = path
+sys.modules[module.__name__] = module
+with open(path, encoding="utf-8") as fh:
+    exec(compile(fh.read(), path, "exec"), module.__dict__)
+print(json.dumps({a.dest: a.default for a in module.build_parser()._actions}, default=str))
+"""
 
-def test_battery_boundary_p_threshold_default_is_2() -> None:
-    """check-routing-battery.py --help must report a boundary p-threshold default of 2.
 
-    The retired check-sub-skill-routing.py shim owned this default; the merged
-    battery carries it forward under a namespaced flag. Pinning it here keeps
-    the pre-merge verdicts reproducible.
+def _battery_help_defaults() -> dict[str, int]:
+    """Map each documented option of check-routing-battery.py --help to its default.
+
+    The help strings type their defaults by hand, so this reads what a user is
+    told, which _battery_parser_defaults() checks against what argparse applies.
+    The lookahead stops a flag whose own '(default: N' is missing from borrowing
+    the next option's.
     """
     result = subprocess.run(
-        [sys.executable, str(CHECK_BATTERY), "--help"],
+        [sys.executable, "-B", str(CHECK_BATTERY), "--help"],
         capture_output=True,
         text=True,
         timeout=15,
         check=False,
     )
-    output = result.stdout + result.stderr
-    assert "--boundary-p-threshold" in output, (
-        f"--help does not expose --boundary-p-threshold; got:\n{output}"
+    assert result.returncode == 0, (
+        f"--help exited {result.returncode}:\n{result.stdout}{result.stderr}"
     )
-    assert "default: 2" in output or "default=2" in output, (
-        f"--help does not show a default of 2; got:\n{output}"
+    output = " ".join(result.stdout.split())
+    return {
+        m.group(1): int(m.group(2))
+        for m in re.finditer(
+            r"(--[a-z-]+) [A-Z_]+ (?:(?! --[a-z]).)*?\(default: (\d+)", output
+        )
+    }
+
+
+def _battery_parser_defaults() -> dict[str, object]:
+    """Map each argparse dest of check-routing-battery.py to its real default."""
+    result = subprocess.run(
+        [sys.executable, "-B", "-c", _PARSER_DEFAULTS_PROBE, str(CHECK_BATTERY)],
+        capture_output=True,
+        text=True,
+        timeout=15,
+        check=False,
     )
+    assert result.returncode == 0, f"parser probe failed:\n{result.stderr}"
+    return json.loads(result.stdout)
+
+
+def test_battery_boundary_p_threshold_default_is_2() -> None:
+    """check-routing-battery.py must default --boundary-p-threshold to 2.
+
+    The retired check-sub-skill-routing.py shim owned this default; the merged
+    battery carries it forward under a namespaced flag. Pinning it here keeps
+    the pre-merge verdicts reproducible. Read per flag: --boundary-n-threshold
+    also documents 'default: 2', so a bare substring match could not see this
+    one change.
+    """
+    help_defaults = _battery_help_defaults()
+    assert help_defaults.get("--boundary-p-threshold") == 2, (
+        f"--help documents --boundary-p-threshold default "
+        f"{help_defaults.get('--boundary-p-threshold')}, expected 2"
+    )
+    actual = _battery_parser_defaults().get("boundary_p_threshold")
+    assert actual == 2, f"parser default boundary_p_threshold is {actual}, expected 2"
 
 
 def test_battery_focused_thresholds_default_4_1() -> None:
@@ -316,29 +366,17 @@ def test_battery_focused_thresholds_default_4_1() -> None:
     help string types its default by hand, so it alone could disagree with
     the value argparse actually applies.
     """
-    result = subprocess.run(
-        [sys.executable, str(CHECK_BATTERY), "--help"],
-        capture_output=True,
-        text=True,
-        timeout=15,
-        check=False,
-    )
-    output = " ".join((result.stdout + result.stderr).split())
-    for flag, value in (("--focused-p-threshold", 4), ("--focused-n-threshold", 1)):
-        match = re.search(rf"{re.escape(flag)} [A-Z_]+ .*?\(default: (\d+)", output)
-        assert match, f"--help does not document a default for {flag}; got:\n{output}"
-        assert int(match.group(1)) == value, (
-            f"--help shows {flag} default {match.group(1)}, expected {value}"
+    help_defaults = _battery_help_defaults()
+    parser_defaults = _battery_parser_defaults()
+    for flag, dest, value in (
+        ("--focused-p-threshold", "focused_p_threshold", 4),
+        ("--focused-n-threshold", "focused_n_threshold", 1),
+    ):
+        assert help_defaults.get(flag) == value, (
+            f"--help documents {flag} default {help_defaults.get(flag)}, "
+            f"expected {value}"
         )
-
-    spec = importlib.util.spec_from_file_location(
-        "check_routing_battery", CHECK_BATTERY
-    )
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    parser = module.build_parser()
-    for dest, value in (("focused_p_threshold", 4), ("focused_n_threshold", 1)):
-        actual = parser.get_default(dest)
+        actual = parser_defaults.get(dest)
         assert actual == value, f"parser default {dest} is {actual}, expected {value}"
 
 
