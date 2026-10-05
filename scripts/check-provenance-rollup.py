@@ -77,15 +77,19 @@ The checks, and which of them can fail
 --------------------------------------
 1. **Line-format presence** -- does the template's line format occur in
    section 3? **REPORT ONLY. Never fails, on any input.** The rate it reports
-   is a line-format rate (1 of 18 documents on the two pinned corpora) and a
-   lower bound on content emission, since a roll-up written in another form is
-   not located (disclosed bound (g)). It is a K-of-N live reading, and
+   is a line-format rate and a lower bound on content emission, since a
+   roll-up written in another form is not located (disclosed bound (g)). On a
+   live document it is a K-of-N live reading, and
    `docs/v8.7-constraint-teardown.md` §2 item 3 bars a K-of-N live reading from
    gating anything -- measured on the S-P04 vector swinging 2/5 -> 0/5 -> 2/5
-   with no source change between readings. The single exception is the
-   self-test's exemplar floor (`exemplar_problems()`), which requires each
-   shipped exemplar to carry a roll-up because those are fixed files and not a
-   live reading (Phase 91 D-04).
+   with no source change between readings. The 1-of-18 figure on the two
+   pinned corpora is a frozen-capture reading, not a live one. There are two
+   exceptions, both on fixed inputs: the self-test's exemplar floor
+   (`exemplar_problems()`), which requires each shipped exemplar to carry a
+   roll-up because those are fixed files and not a live reading (Phase 91
+   D-04), and the frozen-capture line-format pin
+   (`line_format_pin_problems()`, bound (h)), which fails when a pinned
+   frozen capture's roll-up is no longer located.
 2. **Enumeration agreement** -- when the roll-up is present: the ids it
    enumerates are exactly the `?`-suffixed ground truths in section 3, `M`
    equals the section-3 ground-truth population, and `N` equals the length of
@@ -1994,8 +1998,10 @@ def exemplar_problems() -> list[str]:
     `shared/examples/` are fixed shipped files, not a K-of-N live reading, so
     `docs/v8.7-constraint-teardown.md` §2 item 3 does not apply to them and
     gating their presence is permitted. Live documents read through
-    `--analysis` or `--dir` stay report-only on presence; this function is the
-    only place an absent roll-up fails anything. The floor exists so a later
+    `--analysis` or `--dir` stay report-only on presence; this function is
+    one of two places an absent roll-up fails anything, the other being the
+    frozen-capture line-format pin (`line_format_pin_problems()`, bound (h)),
+    and neither reads a live document. The floor exists so a later
     exemplar edit cannot silently drop a roll-up (999.176 records the
     exemplars shipping without one while the battery stayed green).
 

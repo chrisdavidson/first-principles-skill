@@ -839,6 +839,16 @@ REGISTRY: tuple[RetractedClaim, ...] = (
             "arm (v9.0.0) ran before it."
         ),
     ),
+    RetractedClaim(
+        literal="only place an absent roll-up fails anything",
+        retracted_by="Phase 92 (92-REVIEW WR-05)",
+        corrected=(
+            "Since 3a6e8360 an absent roll-up fails in two places, both on fixed "
+            "inputs: PROV-ROLLUP's exemplar floor (`exemplar_problems()`) and "
+            "its frozen-capture line-format pin (`line_format_pin_problems()`, "
+            "bound (h))."
+        ),
+    ),
 )
 
 
