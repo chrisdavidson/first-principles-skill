@@ -76,8 +76,10 @@ fi
 #   SKIP_DRIFT_CHECK=1 git commit
 #
 # This skips only the sync-drift gate; CI (DUAL-04) and the battery still run it.
-# Use only when intentionally regenerating outputs. Safe because CI gates
-# always run on every PR, regardless of pre-commit bypass.
+# Use only when intentionally regenerating outputs. CI runs sync-drift
+# (DUAL-04) and claim-surface drift (CONF-SURFACE) on every PR; conformance
+# drift (CONF-DRIFT) runs only in the offline battery, which no CI job runs --
+# run bash scripts/check-firewall-battery.sh before pushing.
 # ---------------------------------------------------------------------
 
 # --- Gate execution: SKIP_DRIFT_CHECK conditional wrapper --------

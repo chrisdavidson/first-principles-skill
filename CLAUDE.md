@@ -97,7 +97,7 @@ Skip pre-commit drift checks when intentionally regenerating outputs:
 SKIP_DRIFT_CHECK=1 git commit
 ```
 
-Skips only the pre-commit sync-drift gate; both generator self-tests still run. It does not skip claim-surface drift: the `gen-gate-docs.py --self-test` the hooks run in both modes compares the generated surfaces against the working tree, so regenerate with `python3 scripts/gen-gate-docs.py --write` before committing. CI and battery verify all drifts on PR.
+Skips only the pre-commit sync-drift gate; both generator self-tests still run. It does not skip claim-surface drift: the `gen-gate-docs.py --self-test` the hooks run in both modes compares the generated surfaces against the working tree, so regenerate with `python3 scripts/gen-gate-docs.py --write` before committing. CI verifies sync-drift (DUAL-04) and claim-surface drift (CONF-SURFACE) on PR; conformance-baseline drift (CONF-DRIFT) runs only in the offline battery, which no CI job runs, so run `bash scripts/check-firewall-battery.sh` before pushing.
 
 ### Bypass patterns
 
