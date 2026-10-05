@@ -208,7 +208,7 @@ shipped artifact. The arithmetic does not depend on any unverified input.
 
 ### Conclusion C3: De-inlining the appendices is the minimum-cost intervention that restores the budget property, *if* the budget is treated as binding
 
-GT-4 (Output Template and Validation Rubric already exist as separate files under `shared/spine/references/`, 470 lines combined) + GT-5 (the agent body re-inlines those same files verbatim as ~464 lines of appendix content) + GT-6 (the agent body already uses an external Layer-3 reference at line 92 with no observed regression) + GT-8 (the regression gates `check-agent.py --self-test` and `sync-content.py --check` do not depend on the appendix content being inlined; Check 7 verifies no unresolved sync markers, Check 8 verifies the four trigger phrases — neither check inspects appendix prose)
+GT-4 (Output Template and Validation Rubric already exist as separate files under `shared/spine/references/`, 470 lines combined) + GT-5 (the agent body re-inlines those same files verbatim as ~464 lines of appendix content) + GT-6 (the agent body already uses an external Layer-3 reference at line 92 with no observed regression) + GT-8 (the regression gates `check-agent.py --self-test` and `sync-content.py --check` do not depend on the appendix content being inlined; Check 7 verifies no unresolved sync markers, Check 8 verifies the four trigger phrases — neither check inspects appendix prose) + C1 (the line budget is a recorded convention with no measured property behind it)
 → The appendix inlining is a content duplication: the same Layer-3 reference material exists in two places in the source tree (`shared/spine/references/*` and the inlined appendix region of the agent body); removing the appendix region from the agent body and replacing it with the same one-level-deep reference link the agent already uses at line 92 drops the body from 878 lines to approximately 414 lines — under the META-Q4 budget by a wide margin — and preserves the agent's access to the appendix content via the same delegation pattern Phase 31 proved out
 → The intervention is configuration-level, not architectural: the body's `#first-principles-analysis-output-template` and `#validation-rubric` anchors get replaced with relative-path links to the existing reference files; the sync pipeline (`scripts/sync-content.py`) already propagates `shared/spine/references/*` to `first-principles/agents/references/`; no new content is authored and no shipped artifact is deleted. Reversibility: the inlining can be restored by reverting the body edit if reasoning-quality measurement (the GT-9? verification step) shows the de-inlining harmed agent performance.
 
@@ -572,7 +572,8 @@ is unchanged by this postscript.
         "GT-4",
         "GT-5",
         "GT-6",
-        "GT-8"
+        "GT-8",
+        "C1"
       ]
     }
   ],

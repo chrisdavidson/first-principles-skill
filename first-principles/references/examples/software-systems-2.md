@@ -134,7 +134,7 @@ Read-at-source: GT-6 — direct observation of the team's current infrastructure
 
 ### Conclusion C1: The build path's headline cost is lower than the buy path at the current MAU, but only if the build-side economic hinge holds
 
-GT-4 (4–8 weeks initial build + 0.1–0.3 FTE ongoing maintenance) + GT-3 (managed provider list prices ≈ $200–$800/month at the projected 1,000-MAU midpoint)
+GT-4 (4–8 weeks initial build + 0.1–0.3 FTE ongoing maintenance) + GT-3 (managed provider list prices ≈ $200–$800/month at the projected 1,000-MAU midpoint) + GT-7? (the provider's pricing trajectory beyond today's list prices, unverified)
 → At the current ~120 tenants and an immediate launch budget, the buy path costs approximately $0–$300/month (the lowest tier of most providers covers a small MAU count) and the build path costs 4–8 weeks of engineering time once plus ~0.1–0.3 FTE ongoing; converted at typical fully-loaded engineering cost ($15K–$25K/month per FTE), the build path's ongoing cost is approximately $1,500–$7,500/month — strictly higher than the buy path at every tier through the 24-month horizon's midpoint; the build path's apparent advantage exists only at the initial-implementation one-time cost line, not in the steady-state operating cost; this inverts the common "buy is more expensive" intuition
 → The build path's economic case rests on GT-4's lower-bound 0.1 FTE estimate holding, which is itself conditional on the team being able to build and operate auth to the security floor — the load-bearing assumption flagged as `untested belief — economic-hinge` in Section 2. If the team requires 0.3 FTE rather than 0.1 FTE because they hit unfamiliar territory (MFA flow edge cases, account-takeover protections, audit-log correctness for a future compliance audit), the build path's ongoing cost is ~$4,500–$7,500/month and the buy path dominates on cost alone at every tier the 24-month projection crosses.
 
@@ -445,7 +445,8 @@ resolves.
       "confidence": "MEDIUM",
       "rests_on": [
         "GT-4",
-        "GT-3"
+        "GT-3",
+        "GT-7?"
       ]
     },
     {

@@ -347,7 +347,7 @@ discarded.
 
 ## 6. Conclusion
 
-**Recommended approach:** Treat the 85% electricity round-trip efficiency claim as refuted (chain C1) and do not proceed with a design predicated on it; use the Carnot-anchored ~38% round-trip figure as the physically realistic basis for any further cost-competitiveness comparison.
+**Recommended approach:** Treat the 85% electricity round-trip efficiency claim as refuted (chain C1) and do not proceed with a design predicated on it; use the Carnot-anchored ~38% round-trip figure as the physically realistic basis for any further cost-competitiveness comparison, whose size rests directly on GT-7? and GT-8?, both unverified, which reach this section through the cost-competitiveness sub-claim and not through any derivation chain.
 
 **Key insight:** The 85% claim fails not because of an engineering shortfall that better design could close, but because Rankine-cycle heat-to-electricity conversion is capped by the Carnot limit (chain C1) — an irreducible physical law, not an assumption.
 
@@ -420,7 +420,7 @@ discarded.
   "gate": null,
   "re_entry": null,
   "conclusion": {
-    "recommendation": "Treat the 85% electricity round-trip efficiency claim as refuted (chain C1) and do not proceed with a design predicated on it; use the Carnot-anchored ~38% round-trip figure as the physically realistic basis for any further cost-competitiveness comparison.",
+    "recommendation": "Treat the 85% electricity round-trip efficiency claim as refuted (chain C1) and do not proceed with a design predicated on it; use the Carnot-anchored ~38% round-trip figure as the physically realistic basis for any further cost-competitiveness comparison, whose size rests directly on GT-7? and GT-8?, both unverified, which reach this section through the cost-competitiveness sub-claim and not through any derivation chain.",
     "confidence": "MEDIUM",
     "rests_on": null
   }
