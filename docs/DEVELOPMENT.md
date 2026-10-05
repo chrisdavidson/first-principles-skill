@@ -48,6 +48,25 @@ python3 scripts/sync-content.py --check     # DUAL-04: no drift
 python3 scripts/check-agent.py              # GATE-01: agent structure
 ```
 
+## Lint and format (Ruff)
+
+Ruff is a local convention for the Python under `scripts/` and `tests/`. It is not registered as a
+gate: neither CI nor the battery runs it, so run it yourself before committing Python changes.
+
+```sh
+uv run ruff check            # lint with Ruff defaults
+uv run ruff format           # format .py files
+uv run ruff format --check   # verify formatting without writing
+```
+
+- The version is pinned in the dev group of `pyproject.toml`; `uv sync` installs it.
+- Recorded run directories under `tests/` are excluded so frozen evidence stays byte-identical, and
+  Markdown is excluded from the formatter.
+- Functions whose source is sha256-pinned, and statements a gate reads as a single source line, are
+  fenced with `# fmt: off` / `# fmt: on`. Keep the fences when editing nearby code.
+- The mass reformat is listed in `.git-blame-ignore-revs`. To have `git blame` skip it:
+  `git config blame.ignoreRevsFile .git-blame-ignore-revs`.
+
 ## How your edit reaches a session — and how it silently fails to
 
 Regenerating `first-principles/` does **not** mean a Claude Code session will load what you just

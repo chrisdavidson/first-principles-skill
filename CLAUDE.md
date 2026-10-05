@@ -60,6 +60,19 @@ python3 scripts/check-step0-live.py --self-test
 python3 scripts/check-step0-emulator.py --self-test
 ```
 
+### Lint and format (Ruff)
+
+```sh
+uv run ruff check              # lint, Ruff defaults
+uv run ruff format             # format .py files
+uv run ruff format --check     # verify formatting without writing
+```
+
+A local convention, not a gate: Ruff is not registered in CI or the battery. The version is pinned in
+`pyproject.toml`'s dev group. Frozen and recorded `tests/<run-dir>/` scripts are excluded, and
+sha256-pinned functions are fenced with `# fmt: off` / `# fmt: on`. To hide the mass reformat from
+blame: `git config blame.ignoreRevsFile .git-blame-ignore-revs`.
+
 ### Plugin validation and installation
 
 ```sh
@@ -296,7 +309,7 @@ See [`docs/MEASUREMENT-MAP.md`](docs/MEASUREMENT-MAP.md#measurement-layers) for 
 | Tool | Measured | CI gate |
 |------|----------|---------|
 | `check-routing.py` | DELEGATE / NO-DELEGATE boundary | None |
-| `check-routing-battery.py` | Dual-signal: boundary + focused-output | BATT-06 |
+| `check-routing-battery.py` | Dual-signal: boundary + focused-output (FU-21 gate) | BATT-06 |
 | `check-step0-emulator.py` | Offline phrase-detection classifier | STEP0-08 |
 | `check-step0-live.py` | Live MODE classification | STEP0-06 |
 

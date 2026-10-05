@@ -46,6 +46,10 @@ list omits gates added later and keeps naming ones that were retired. The loop i
 full, including the faster inner loop for iterating, in
 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#standard-editing-loop).
 
+Python changes under `scripts/` or `tests/` should also pass `uv run ruff check` and
+`uv run ruff format --check`. Ruff is a local convention, not a gate; see
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#lint-and-format-ruff).
+
 ## Setting up pre-commit hooks (recommended)
 
 Install the hook so sync drift is caught before you push:

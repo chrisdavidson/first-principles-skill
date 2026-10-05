@@ -150,6 +150,10 @@ uv run scripts/sync-content.py --check
 uv run scripts/check-agent.py --file first-principles/agents/first-principles.md
 ```
 
+Ruff lint and format checks (`uv run ruff check`, `uv run ruff format --check`) are a local
+convention and are not part of the battery or CI; see
+[DEVELOPMENT.md](DEVELOPMENT.md#lint-and-format-ruff).
+
 ## See also
 
 - [docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory) — full gate inventory (canonical source)
