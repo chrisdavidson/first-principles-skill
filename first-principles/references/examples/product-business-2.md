@@ -87,6 +87,12 @@ against?
   as a deal-deciding factor. The retention-delta and acquisition-uplift
   magnitudes are unmeasured.
 
+```text
+?-marked: GT-5? (1 of 5)
+Read-at-source: GT-1 — in-product feedback log and post-cancellation churn-survey instrument, both queried Q-1
+Read-at-source: GT-3 — signed LOI filed with finance and legal
+```
+
 ---
 
 ## 4. Derivation Chains

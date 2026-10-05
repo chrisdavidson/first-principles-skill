@@ -48,6 +48,13 @@ A complete first-principles analysis of the question "Should I take a higher-pay
 
 - **GT-5** The person's stated long-term goal is: build deep expertise in distributed systems, reach a principal-level engineer role within three years, and maintain a stable living arrangement that does not require the partner to abandon an established career — source: direct statement by the person at the start of the analysis. This is verified by direct statement, not by external measurement. It is not inferred or assumed; the person stated it explicitly.
 
+```text
+?-marked: none (0 of 5)
+Read-at-source: GT-1 — offer letter from the prospective employer
+Read-at-source: GT-2 — rental market listings (Zillow, Apartments.com) for mid-range neighborhoods
+Read-at-source: GT-3 — California Franchise Tax Board and Oregon Department of Revenue published rate schedules
+```
+
 ---
 
 ## 4. Derivation Chains
