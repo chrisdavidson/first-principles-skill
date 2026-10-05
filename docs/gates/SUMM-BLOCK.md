@@ -3,13 +3,13 @@
 <!-- GENERATED:FACTS -->
 ## Facts
 
-- `control_ids` (42): `C01`, `C02`, `C03`, `C04`, `C05`, `C06`, `C07`, `C08`, `C09`, `C10`, `C11`, `C12`, `C13`, `C14`, `C15`, `C15b`, `C15c`, `C16`, `C17`, `C18`, `C19`, `C20`, `C21`, `C22`, `C23`, `C24`, `C25`, `P1-personal-general`, `P2-software-systems`, `P3-science-engineering`, `P4-tb-01`, `M1-missing-block`, `M2-two-blocks`, `M3-malformed-json`, `M4-chain-confidence`, `M5-reentry-fired-personal-general`, `M6-reentry-not-fired-software-systems`, `M7-single-pass-before-fix`, `M8-conclusion-cut`, `M9-two-hand-wavy-cleared`, `X1-extraction-floor`, `X2-cross-check-ablation`
-- `control_count`: `42`
+- `control_ids` (49): `C01`, `C02`, `C03`, `C04`, `C05`, `C06`, `C07`, `C08`, `C09`, `C10`, `C11`, `C12`, `C13`, `C14`, `C15`, `C15b`, `C15c`, `C16`, `C17`, `C18`, `C19`, `C20`, `C21`, `C22`, `C23`, `C24`, `C25`, `C26-precheck-clean`, `C27-precheck-field-mutations`, `C28-precheck-decoys`, `C29-precheck-missing`, `P1-personal-general`, `P2-software-systems`, `P3-science-engineering`, `P4-tb-01`, `P5-precheck-real-fixtures`, `M1-missing-block`, `M2-two-blocks`, `M3-malformed-json`, `M4-chain-confidence`, `M5-reentry-fired-personal-general`, `M6-reentry-not-fired-software-systems`, `M7-single-pass-before-fix`, `M8-conclusion-cut`, `M9-two-hand-wavy-cleared`, `M10-precheck-real-fixture-mutation`, `X1-extraction-floor`, `X2-cross-check-ablation`, `X3-precheck-comparator-stub`
+- `control_count`: `49`
 - `registered_surfaces` (2): `shared/spine/references/summary-schema.json`, `tests/summary-block-v9.16`
 - `checked_files` (4): `tests/summary-block-v9.16/personal-general.md`, `tests/summary-block-v9.16/software-systems.md`, `tests/summary-block-v9.16/science-engineering.md`, `tests/summary-block-v9.16/tb-01.md`
 - `locked_constants` (3 entries): `BLOCK_HEADING`='## Structured summary (process output)', `DEFAULT_SCHEMA`='shared/spine/references/summary-schema.json', `SCHEMA_VERSION`=1
 - `derived_counts` (2 entries): `cross_checks`=17, `finding_codes`=32
-- `disclosed_bounds_anchors` (7): `not-applied-phase-only-where-stated`, `recommendation-bold-markers-ignored`, `reentry-read-from-gate-span-and-disclosure-only`, `rests_on-order-not-compared`, `run-mode-only-where-stated`, `second-order-and-input-reopen-edges-need-a-disclosed-paragraph`, `techniques-applied-vocabulary-only`
+- `disclosed_bounds_anchors` (11): `not-applied-phase-only-where-stated`, `precheck-band-raised-to-ceiling-undetectable`, `precheck-missing-report-only-until-sweep`, `precheck-overlaps-qual01-precheck-defects`, `precheck-section6-head-completeness-not-checked`, `recommendation-bold-markers-ignored`, `reentry-read-from-gate-span-and-disclosure-only`, `rests_on-order-not-compared`, `run-mode-only-where-stated`, `second-order-and-input-reopen-edges-need-a-disclosed-paragraph`, `techniques-applied-vocabulary-only`
 <!-- END GENERATED:FACTS -->
 
 <!-- GENERATED:HOW-TO-RUN -->

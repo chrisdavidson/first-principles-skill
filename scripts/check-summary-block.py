@@ -2858,9 +2858,16 @@ def _c11_all_observed_codes_are_registered() -> str | None:
     for f in check_report(_synthetic_report(inv), schema=schema):
         observed.add(f.code)
 
+    mutants = {case[0]: case[1] for case in _c27_mutants()}
+    for case in ("a wrong head id", "i wrong separator"):
+        for f in check_report(mutants[case], schema=schema):
+            observed.add(f.code)
+
     unknown = observed - set(FINDING_CODES)
     if unknown:
         return f"observed codes outside FINDING_CODES: {sorted(unknown)!r}"
+    if not any(code.startswith("SB-PRECHECK-") for code in observed):
+        return "no SB-PRECHECK- code observed across fixtures"
     if not observed:
         return (
             "no codes observed across fixtures -- controls are not exercising findings"
@@ -3804,6 +3811,244 @@ def _m9_two_hand_wavy_cleared() -> str | None:
 
 
 # ---------------------------------------------------------------------------
+# Pre-check comparator controls (C26-C29, P5, M10, X3)
+# ---------------------------------------------------------------------------
+
+
+def _precheck_codes(findings: list[Finding]) -> set[str]:
+    return {f.code for f in findings if f.code.startswith("SB-PRECHECK-")}
+
+
+def _mutate_precheck_line(text: str, index: int, old: str, new: str) -> str:
+    """Replace `old` with `new` inside the `index`-th **Pre-check:** line of
+    `text` (Python indexing, so -1 is the last one,
+    section 6's), never by a first-match replace over the whole text.
+    Raises when `old` is not in that line."""
+    lines = text.split("\n")
+    positions = [i for i, ln in enumerate(lines) if ln.startswith("**Pre-check:**")]
+    pos = positions[index]
+    if old not in lines[pos]:
+        raise ValueError(f"{old!r} not in pre-check line {lines[pos]!r}")
+    lines[pos] = lines[pos].replace(old, new, 1)
+    return "\n".join(lines)
+
+
+_C2_PRECHECK_LITERAL = (
+    "**Pre-check:** head GT-2?, C1 (HIGH) · ?-marked: GT-2? · "
+    "lowest cited: HIGH · Inputs ceiling: MEDIUM"
+)
+
+
+def _c26_precheck_clean() -> str | None:
+    schema = load_schema(DEFAULT_SCHEMA)
+    text = _synthetic_report(schema["example"])
+    for exemplar in (False, True):
+        findings = check_report(text, exemplar=exemplar, schema=schema)
+        if findings:
+            return f"unmutated synthetic report (exemplar={exemplar}): expected [], got {findings!r}"
+    if _C2_PRECHECK_LITERAL not in text.split("\n"):
+        return f"C2's pre-check line (a Cn on a section 4 head) is not {_C2_PRECHECK_LITERAL!r}"
+    r = precheck_reading(text)
+    if (r["compared"], r["confidence_lines"], r["chains"]) != (3, 3, 2):
+        return f"precheck_reading: expected compared 3, confidence_lines 3, chains 2, got {r!r}"
+    return None
+
+
+def _c27_mutants() -> list[tuple[str, str, str]]:
+    """(case, mutant text, the one SB-PRECHECK code it must fire)."""
+    schema = load_schema(DEFAULT_SCHEMA)
+    text = _synthetic_report(schema["example"])
+    m = _mutate_precheck_line
+    conf_marker = "**Confidence:** MEDIUM"
+    cut = text.rfind(conf_marker)
+    band_text = text[:cut] + "**Confidence:** HIGH" + text[cut + len(conf_marker) :]
+    return [
+        ("a wrong head id", m(text, 0, "head GT-1 ·", "head GT-9 ·"), "SB-PRECHECK-HEAD"),
+        (
+            "b wrong head order",
+            m(text, 1, "head GT-2?, C1 (HIGH)", "head C1 (HIGH), GT-2?"),
+            "SB-PRECHECK-HEAD",
+        ),
+        ("c wrong ?-marked", m(text, 1, "?-marked: GT-2?", "?-marked: none"), "SB-PRECHECK-QMARK"),
+        (
+            "d wrong lowest cited",
+            m(text, 1, "lowest cited: HIGH", "lowest cited: none"),
+            "SB-PRECHECK-LOWEST",
+        ),
+        (
+            "e wrong ceiling",
+            m(text, 1, "Inputs ceiling: MEDIUM", "Inputs ceiling: HIGH"),
+            "SB-PRECHECK-CEILING",
+        ),
+        ("f label above ceiling", band_text, "SB-PRECHECK-BAND"),
+        (
+            "g cited band disagrees with section 4",
+            m(text, -1, "C2 (MEDIUM)", "C2 (HIGH)"),
+            "SB-PRECHECK-CITED-BAND",
+        ),
+        (
+            "h cited Cn is not a section 4 chain",
+            m(text, -1, "C1 (HIGH)", "C7 (HIGH)"),
+            "SB-PRECHECK-CITED-BAND",
+        ),
+        ("i wrong separator", m(text, 0, " · ", " ; "), "SB-PRECHECK-SHAPE"),
+    ]
+
+
+def _c27_precheck_field_mutations() -> str | None:
+    schema = load_schema(DEFAULT_SCHEMA)
+    mutants = _c27_mutants()
+    if mutants[5][1] == _synthetic_report(schema["example"]):
+        return "case f did not mutate the section 6 label"
+    for case, mutant, code in mutants:
+        got = _precheck_codes(check_report(mutant, schema=schema))
+        if got != {code}:
+            return f"C27 ({case}): expected exactly {{{code!r}}}, got {got!r}"
+    return None
+
+
+def _c28_precheck_decoys() -> str | None:
+    got = _chain_head_ids("### Conclusion C1: x\nGT-1 (see GT-9 for the list) + GT-2 → x → y\n")
+    if got != ["GT-1", "GT-2"]:
+        return f"(a) parenthetical decoy: expected ['GT-1', 'GT-2'], got {got!r}"
+    got = _chain_head_ids(
+        "### Conclusion C2: x\n"
+        "This chain combines GT-3 with the prior result.\n"
+        "C1 (MEDIUM) + GT-4 → x → y\n"
+    )
+    if got != ["C1", "GT-4"]:
+        return f"(b) intro-sentence head: expected ['C1', 'GT-4'], got {got!r}"
+    got = _chain_head_ids("### Conclusion C1: x\nGT-1 + C2's threshold → x → y\n")
+    if got is not None:
+        return f"(c) a term with no leading identifier: expected None, got {got!r}"
+    schema = load_schema(DEFAULT_SCHEMA)
+    text = _synthetic_report(schema["example"])
+    old_head = "GT-1 → synthetic intermediate reasoning"
+    if text.count(old_head) != 1:
+        return f"(c) expected C1's head {old_head!r} exactly once"
+    unlocated = text.replace(old_head, "GT-1 + C2's threshold → synthetic intermediate reasoning")
+    findings = [
+        f for f in check_report(unlocated, schema=schema) if f.code.startswith("SB-PRECHECK-")
+    ]
+    if {f.code for f in findings} != {"SB-PRECHECK-HEAD"} or not any(
+        "head line not located" in f.message for f in findings
+    ):
+        return f"(c) unlocated head: expected SB-PRECHECK-HEAD 'head line not located', got {findings!r}"
+    # The decoy's Confidence word matches C1's real band on purpose: the
+    # chain band source, `qh._chain_confidence_label`, searches the whole
+    # block without fence awareness (as SB-CHAIN-CONFIDENCE does), so a
+    # different word would test that reader, not this one. A fenced C9
+    # pre-check that was read would still fire CITED-BAND or count as an
+    # orphan.
+    decoy = (
+        "```\n"
+        "**Pre-check:** head C9 (LOW) · ?-marked: none · lowest cited: LOW · Inputs ceiling: LOW\n"
+        "**Confidence:** HIGH — fenced illustration.\n"
+        "```\n"
+    )
+    first = "**Pre-check:** head GT-1 ·"
+    if text.count(first) != 1:
+        return f"(d) expected C1's pre-check {first!r} exactly once"
+    fenced = text.replace(first, decoy + first, 1)
+    for exemplar in (False, True):
+        got_codes = _precheck_codes(check_report(fenced, exemplar=exemplar, schema=schema))
+        if got_codes:
+            return f"(d) fenced decoy (exemplar={exemplar}): expected no SB-PRECHECK code, got {got_codes!r}"
+    r = precheck_reading(fenced)
+    if (r["compared"], r["orphans"], r["confidence_lines"]) != (3, 0, 3):
+        return f"(d) fenced decoy: expected compared 3, orphans 0, confidence_lines 3, got {r!r}"
+    return None
+
+
+def _c29_precheck_missing() -> str | None:
+    global PRECHECK_MISSING_FAILS
+    schema = load_schema(DEFAULT_SCHEMA)
+    example = schema["example"]
+    omitted = _synthetic_report(example, omit_chain_prechecks=True)
+    full = _synthetic_report(example)
+    first = "**Pre-check:** head GT-1 ·"
+    pos = full.find(first)
+    eol = full.find("\n", pos)
+    blank = full[:eol] + "\n" + full[eol:]
+    saved = PRECHECK_MISSING_FAILS
+    try:
+        PRECHECK_MISSING_FAILS = True
+        got = [f for f in check_report(omitted, exemplar=True, schema=schema)]
+        missing = [f for f in got if f.code == "SB-PRECHECK-MISSING"]
+        if not missing or not all(
+            any(f.message.startswith(f"{cid}:") for f in missing) for cid in ("C1", "C2")
+        ):
+            return f"(a) omitted chain pre-checks, exemplar mode: expected SB-PRECHECK-MISSING naming C1 and C2, got {got!r}"
+        codes = _precheck_codes(check_report(blank, exemplar=True, schema=schema))
+        if codes != {"SB-PRECHECK-MISSING"}:
+            return f"(b) blank line between pre-check and Confidence: expected {{'SB-PRECHECK-MISSING'}}, got {codes!r}"
+        for label, t in (("omitted", omitted), ("blank-line", blank)):
+            codes = {f.code for f in check_report(t, exemplar=False, schema=schema)}
+            if "SB-PRECHECK-MISSING" in codes:
+                return f"(c) {label}, live mode: SB-PRECHECK-MISSING must never fire live"
+    finally:
+        PRECHECK_MISSING_FAILS = saved
+    if PRECHECK_MISSING_FAILS:
+        return None
+    codes = {f.code for f in check_report(omitted, exemplar=True, schema=schema)}
+    if "SB-PRECHECK-MISSING" in codes:
+        return "shipped report-only: SB-PRECHECK-MISSING fired in exemplar mode with the flag off"
+    r = precheck_reading(omitted)
+    if r["missing"] != 2:
+        return f"report-only reading: expected missing 2, got {r!r}"
+    return None
+
+
+def _p5_precheck_real_fixtures() -> str | None:
+    for name in FIXTURES:
+        text = _fixture(name)
+        r = precheck_reading(text)
+        if not (r["compared"] == r["confidence_lines"] > 0):
+            return f"{name}: expected compared == confidence_lines > 0, got {r!r}"
+        if r["field_findings"]:
+            return f"{name}: expected 0 field findings, got {r!r}"
+        codes = _precheck_codes(check_report(text, exemplar=False))
+        if codes:
+            return f"{name} live mode: unexpected {codes!r}"
+    return None
+
+
+_M10_BEFORE = "head C1 (MEDIUM), C2 (MEDIUM), C3 (MEDIUM), C4 (MEDIUM), C5 (MEDIUM), GT-9 ·"
+_M10_AFTER = "head C2 (MEDIUM), C1 (MEDIUM), C3 (MEDIUM), C4 (MEDIUM), C5 (MEDIUM), GT-9 ·"
+
+
+def _m10_precheck_real_fixture_mutation() -> str | None:
+    """software-systems C6: a Cn-led head after an intro paragraph (the
+    999.183 shape). Swapping its first two pre-check head items must fire
+    SB-PRECHECK-HEAD alone."""
+    text = _fixture("software-systems.md")
+    if text.count(_M10_BEFORE) != 1:
+        return f"expected C6's pre-check head {_M10_BEFORE!r} exactly once in the fixture"
+    mutant = text.replace(_M10_BEFORE, _M10_AFTER)
+    got = _precheck_codes(check_report(mutant, exemplar=False))
+    if got != {"SB-PRECHECK-HEAD"}:
+        return f"expected exactly {{'SB-PRECHECK-HEAD'}}, got {got!r}"
+    return None
+
+
+def _x3_precheck_comparator_stub() -> str | None:
+    """Anti-masking: with `_precheck_field_findings` stubbed to return [],
+    C27 and M10 must both fail. A stub that leaves either green means the
+    controls are not reaching the comparator."""
+    global _precheck_field_findings
+    original = _precheck_field_findings
+    try:
+        _precheck_field_findings = lambda *a, **k: []  # noqa: E731
+        c27 = _c27_precheck_field_mutations()
+        m10 = _m10_precheck_real_fixture_mutation()
+    finally:
+        _precheck_field_findings = original
+    if not c27 or not m10:
+        return f"stubbed comparator left a control green (C27 -> {c27!r}, M10 -> {m10!r})"
+    return None
+
+
+# ---------------------------------------------------------------------------
 # X2: every registered cross-check must be load-bearing (an ablation)
 # ---------------------------------------------------------------------------
 
@@ -3825,7 +4070,12 @@ def _x2_cross_check_ablation() -> str | None:
     exercised = [
         (cid, fn)
         for cid, fn in _CONTROLS
-        if cid not in ("X1-extraction-floor", "X2-cross-check-ablation")
+        if cid
+        not in (
+            "X1-extraction-floor",
+            "X2-cross-check-ablation",
+            "X3-precheck-comparator-stub",
+        )
     ]
     dead: list[str] = []
     try:
@@ -3877,10 +4127,15 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("C23", _c23_reentry_decoys_outside_scope_are_invisible),
     ("C24", _c24_exemplar_gate_reentry_null_iff_absent),
     ("C25", _c25_conclusion_rests_on_null_and_absence),
+    ("C26-precheck-clean", _c26_precheck_clean),
+    ("C27-precheck-field-mutations", _c27_precheck_field_mutations),
+    ("C28-precheck-decoys", _c28_precheck_decoys),
+    ("C29-precheck-missing", _c29_precheck_missing),
     ("P1-personal-general", _p1_personal_general),
     ("P2-software-systems", _p2_software_systems),
     ("P3-science-engineering", _p3_science_engineering),
     ("P4-tb-01", _p4_tb_01),
+    ("P5-precheck-real-fixtures", _p5_precheck_real_fixtures),
     ("M1-missing-block", _m1_missing_block),
     ("M2-two-blocks", _m2_two_blocks),
     ("M3-malformed-json", _m3_malformed_json),
@@ -3890,8 +4145,10 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("M7-single-pass-before-fix", _m7_single_pass_before_fix),
     ("M8-conclusion-cut", _m8_conclusion_cut),
     ("M9-two-hand-wavy-cleared", _m9_two_hand_wavy_cleared),
+    ("M10-precheck-real-fixture-mutation", _m10_precheck_real_fixture_mutation),
     ("X1-extraction-floor", _x1_extraction_floor),
     ("X2-cross-check-ablation", _x2_cross_check_ablation),
+    ("X3-precheck-comparator-stub", _x3_precheck_comparator_stub),
 )
 
 
@@ -3947,6 +4204,10 @@ def describe() -> dict:
                 "recommendation-bold-markers-ignored",
                 "reentry-read-from-gate-span-and-disclosure-only",
                 "second-order-and-input-reopen-edges-need-a-disclosed-paragraph",
+                "precheck-missing-report-only-until-sweep",
+                "precheck-band-raised-to-ceiling-undetectable",
+                "precheck-section6-head-completeness-not-checked",
+                "precheck-overlaps-qual01-precheck-defects",
             ]
         ),
     }
