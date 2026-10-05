@@ -827,6 +827,18 @@ REGISTRY: tuple[RetractedClaim, ...] = (
             "attributed to the agent body alone."
         ),
     ),
+    RetractedClaim(
+        literal="textually identical across every version these corpora ran",
+        retracted_by="Phase 92 (92-REVIEW WR-03)",
+        corrected=(
+            "The template's roll-up clause is unchanged from v8.24.0 to v9.14.0, "
+            "but the agent body's Phase 3 exit criterion changed at a841cebd "
+            "(first released in v9.10.0), HIGH-confidence -> load-bearing in its "
+            "read-at-source clause. emission-stage-a-v9.14 and the w4-paired new "
+            "arm (v9.12.0) ran after it; the other corpora and the w4-paired old "
+            "arm (v9.0.0) ran before it."
+        ),
+    ),
 )
 
 

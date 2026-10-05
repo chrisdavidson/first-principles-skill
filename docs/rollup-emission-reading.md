@@ -151,10 +151,16 @@ backtick form covers, is `tests/confidence-transitivity-v9.4/CT-A5.md:174`:
 
 ## What is not claimed
 
-- **No version effect.** The line-format rate differs between corpora, but the template clause
-  and the body's exit criterion are textually identical across every version these corpora ran,
-  and the corpora differ in prompt set. A difference between them is not attributable to either
-  text, so no rate is given by version.
+- **No version effect.** The line-format rate differs between corpora. The template's roll-up
+  clause is unchanged across every release these corpora ran (v8.24.0 to v9.14.0), and so is the
+  enumeration sentence of the body's Phase 3 exit criterion. The exit criterion's read-at-source
+  clause is not: commit `a841cebd` (first released in v9.10.0) changed "feeds a HIGH-confidence
+  derivation chain" to "feeds a load-bearing derivation chain". Eight corpora and the w4-paired
+  old arm (v9.0.0) ran before that commit; emission-stage-a-v9.14 and the w4-paired new arm
+  (v9.12.0) ran after it, so the w4-paired arms straddle it. The changed words concern the
+  read-at-source half, which this page does not audit, not the enumeration or the line format.
+  The corpora and the two w4-paired arms also differ in prompt set and N, so a difference
+  between them is not attributed to either text, and no rate is given by version.
 - **Nothing about live documents.** Live documents stay report-only in PROV-ROLLUP; this page
   reads frozen captures only.
 - **Nothing about Read-at-source, and so nothing about the requirement as a whole.** See
