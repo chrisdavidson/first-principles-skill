@@ -197,11 +197,15 @@ population-arithmetic sentence in `CLAUDE.md` and `docs/ARCHITECTURE.md`). `CLAU
 3. **claim-surface generator self-test** (`scripts/gen-gate-docs.py --self-test`) — same WR-05
    discipline as gate 2.
 
-The two drift checks no longer fire at commit time (Phase 89); both run in the offline battery.
-The conformance-baseline drift check (`scripts/report-conformance.py --check`) is the inline
-battery check CONF-DRIFT, with no CI job: it fails if `docs/conformance-baseline.md` or
-`docs/data/conformance.json` no longer match a fresh run, and, regardless of regeneration, on
-`TARGET CAUGHT-SET DRIFT` or a corpus or live-conformance floor. The claim-surface drift check
+The conformance-baseline drift check no longer runs at commit time (Phase 89); it runs in the
+offline battery. The claim-surface drift comparison still runs at commit time, inside gate 3: the
+self-test's controls `check-dispatch-wired` and `nondeterminism-exit-2` drive `main(["--check"])`
+against the working tree, so stale generated surfaces block a commit even under
+`SKIP_DRIFT_CHECK=1`. The conformance-baseline drift check
+(`scripts/report-conformance.py --check`) is the inline battery check CONF-DRIFT, with no CI job:
+it fails if `docs/conformance-baseline.md` or `docs/data/conformance.json` no longer match a fresh
+run, and, regardless of regeneration, on `TARGET CAUGHT-SET DRIFT` or a corpus or
+live-conformance floor. The standalone claim-surface drift check
 (`scripts/gen-gate-docs.py --check`) is CONF-SURFACE, a battery gate and a CI job: it fails if the
 generated gate tables in `CLAUDE.md` / `docs/ARCHITECTURE.md`, `docs/TESTING.md`'s generated
 index, or any `docs/gates/<ID>.md` page no longer match a fresh `--write` run.

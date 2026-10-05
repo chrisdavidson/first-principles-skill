@@ -1,8 +1,13 @@
 #!/bin/sh
 # Three gates for shared/ <-> generated trees and generator correctness.
-# Gates 3 (conformance-baseline drift) and 5 (claim-surface drift) moved out of
-# the hooks (D-01, D-02), allowing commits when output naturally changes; both
-# run in the offline battery (CONF-DRIFT inline, CONF-SURFACE).
+# The standalone gates 3 (conformance-baseline drift, report-conformance.py
+# --check) and 5 (claim-surface drift, gen-gate-docs.py --check) moved out of
+# the hooks (D-01, D-02). Conformance drift therefore no longer blocks a commit;
+# it runs only in the offline battery (inline CONF-DRIFT). Claim-surface drift
+# STILL blocks a commit: gen-gate-docs.py --self-test (below) drives
+# main(["--check"]) against the working tree (controls check-dispatch-wired and
+# nondeterminism-exit-2), in both modes, including SKIP_DRIFT_CHECK=1. Its
+# standalone --check also runs in the battery and CI as CONF-SURFACE.
 # Installed by scripts/install-hooks.sh as .git/hooks/pre-commit (symlink).
 #
 # Mirrors .githooks/pre-commit verbatim (module logic; header prose
@@ -25,7 +30,8 @@
 # scripts/gen-gate-docs.py --self-test fails. Same WR-05 ordering rationale
 # as Gate 2 -- a broken generator's own controls must be caught before any
 # comparison against committed output is attempted.
-# Gate 5 (REMOVED, D-02) -- claim-surface drift gate: now battery-only.
+# Gate 5 (REMOVED, D-02) -- standalone claim-surface drift gate: runs in the
+# battery and CI as CONF-SURFACE; its comparison still runs here inside Gate 4.
 #
 # POSIX sh only -- no bashisms. Quote all expansions.
 
@@ -63,12 +69,13 @@ else
 fi
 
 # --- Fast-path: SKIP_DRIFT_CHECK for regeneration workflows --------
-# When developers run generators (--write), drift checks are expected to fail
-# because the output changed. Set SKIP_DRIFT_CHECK=1 to bypass pre-commit
-# drift checks and run only self-tests (which verify generators are not broken):
+# SKIP_DRIFT_CHECK=1 skips exactly one gate: the sync-drift gate
+# (sync-content.py --check). Both self-tests still run, and the claim-surface
+# self-test still compares the generated surfaces against the working tree, so
+# stale gen-gate-docs.py output blocks the commit in this mode too:
 #   SKIP_DRIFT_CHECK=1 git commit
 #
-# This skips only pre-commit drift checks; CI and battery still run them.
+# This skips only the sync-drift gate; CI (DUAL-04) and the battery still run it.
 # Use only when intentionally regenerating outputs. Safe because CI gates
 # always run on every PR, regardless of pre-commit bypass.
 # ---------------------------------------------------------------------

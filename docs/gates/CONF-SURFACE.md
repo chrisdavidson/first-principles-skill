@@ -270,7 +270,10 @@ outright, so no replacement hits are needed — the rewrite introduced no
 new non-conforming digit. Phase 90 lowered it once more, 165 → 161,
 removing the permits for the pre-commit gate count on `CLAUDE.md`,
 `CONTRIBUTING.md`, `docs/TESTING.md` and `docs/README.md`, false once
-the hooks stopped running either drift check; those sentences were reworded count-free,
+Phase 89 (D-01/D-02) removed the standalone `report-conformance.py --check` and
+`gen-gate-docs.py --check` gates from the hooks (the claim-surface comparison still runs at
+commit time, inside `gen-gate-docs.py --self-test`); those sentences
+were reworded count-free,
 so no replacement hits are needed.
 Phase 85 plan 03 and Phase 114 made further reductions by removing
 `docs/ARCHITECTURE.md` permits for sentences comparing the launcher's

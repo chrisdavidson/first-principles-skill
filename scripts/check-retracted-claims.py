@@ -770,6 +770,36 @@ REGISTRY: tuple[RetractedClaim, ...] = (
         ),
         exemptions=(("scripts/report-conformance.py", 1),),
     ),
+    # Phase 90's own rewrite (commits 885422eb, 2a22a17f) said neither drift
+    # check runs at commit time; 90-REVIEW CR-01 showed the claim-surface half
+    # false. Both capitalisations shipped (sentence-initial and mid-sentence),
+    # and the match is case-sensitive, so each is registered.
+    RetractedClaim(
+        literal="Neither drift check fires at commit time",
+        retracted_by="Phase 90 (90-REVIEW CR-01)",
+        corrected=(
+            "Only the conformance-baseline drift check left commit time: the "
+            "hooks never run `report-conformance.py --check`, which runs in the "
+            "offline battery as inline CONF-DRIFT. The claim-surface drift "
+            "comparison still runs at commit time, in both hook modes including "
+            "SKIP_DRIFT_CHECK=1: gate 3's `gen-gate-docs.py --self-test` drives "
+            "`main([\"--check\"])` against the working tree (controls "
+            "check-dispatch-wired, nondeterminism-exit-2)."
+        ),
+    ),
+    RetractedClaim(
+        literal="neither drift check fires at commit time",
+        retracted_by="Phase 90 (90-REVIEW CR-01)",
+        corrected=(
+            "Only the conformance-baseline drift check left commit time: the "
+            "hooks never run `report-conformance.py --check`, which runs in the "
+            "offline battery as inline CONF-DRIFT. The claim-surface drift "
+            "comparison still runs at commit time, in both hook modes including "
+            "SKIP_DRIFT_CHECK=1: gate 3's `gen-gate-docs.py --self-test` drives "
+            "`main([\"--check\"])` against the working tree (controls "
+            "check-dispatch-wired, nondeterminism-exit-2)."
+        ),
+    ),
 )
 
 

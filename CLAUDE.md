@@ -97,7 +97,7 @@ Skip pre-commit drift checks when intentionally regenerating outputs:
 SKIP_DRIFT_CHECK=1 git commit
 ```
 
-Skips only pre-commit sync-drift; generator self-tests still run. CI and battery verify all drifts on PR.
+Skips only the pre-commit sync-drift gate; both generator self-tests still run. It does not skip claim-surface drift: the `gen-gate-docs.py --self-test` the hooks run in both modes compares the generated surfaces against the working tree, so regenerate with `python3 scripts/gen-gate-docs.py --write` before committing. CI and battery verify all drifts on PR.
 
 ### Bypass patterns
 
@@ -217,7 +217,7 @@ These gates fire on `git commit` (the count is in the generated sentence above),
 2. **Conformance generator self-test** — `scripts/report-conformance.py --self-test`
 3. **Claim-surface generator self-test** — `scripts/gen-gate-docs.py --self-test`
 
-With `SKIP_DRIFT_CHECK=1` only the two self-tests run. Neither drift check fires at commit time since Phase 89: the conformance-baseline drift check (`scripts/report-conformance.py --check`) runs in the offline battery as inline check CONF-DRIFT, and the claim-surface drift check (`scripts/gen-gate-docs.py --check`) runs in the battery and in CI as CONF-SURFACE.
+With `SKIP_DRIFT_CHECK=1` the sync-drift gate is skipped and only the two self-tests run. The conformance-baseline drift check (`scripts/report-conformance.py --check`) does not run at commit time: the hooks never call it, and it runs in the offline battery as inline check CONF-DRIFT. The claim-surface drift comparison does run at commit time, in both modes: the claim-surface generator self-test's controls `check-dispatch-wired` and `nondeterminism-exit-2` drive `main(["--check"])` against the working tree, so stale generated surfaces block the commit even under `SKIP_DRIFT_CHECK=1`. Its standalone form (`scripts/gen-gate-docs.py --check`) also runs in the battery and in CI as CONF-SURFACE.
 
 Bypass: `git commit --no-verify`
 
