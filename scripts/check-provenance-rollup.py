@@ -10,9 +10,11 @@ end of section 3:
     ?-marked: GT-2, GT-5, GT-9, GT-14 (4 of 22)
     Read-at-source: GT-3 — 45 CFR 164.514(b)(2)(i), subsections (A)/(B)/(R) quoted verbatim
 
-That form is measured **template-only** -- 0 occurrences in
-`shared/spine/SKILL-body.md`, 0 across all `shared/references/*.md`, 0 across
-all `shared/examples/*.md`, 1 in the template. This tool looks for it.
+That form is measured absent from `shared/spine/SKILL-body.md` and from every
+`shared/references/*.md`, and present in the template. The worked exemplars
+were deliberately removed from that roster in Phase 91 so that they can carry
+a conforming roll-up: an exemplar must show every required form. This tool
+looks for the form.
 
 Whether a run opened `output-template.md` at all is read directly from that
 run's transcript by the harness's `_reference_reads_census`, and control group
@@ -25,10 +27,10 @@ documents reproduces. Backlog 999.173's "twelve of fifteen" reading from quick
 task `260924-tcv` cannot be re-taken, because its captures were not kept, and
 it is not carried forward.
 
-That template-only claim is a factual claim about this tree, so it ships with a
-falsifier rather than with prose: `template_only_problems()` re-derives the
-four counts above from the working tree on every `--self-test` and FAILS if any
-of them has moved. It is a deliberate tripwire, not an incidental control. If a
+That claim is a factual claim about this tree, so it ships with a falsifier
+rather than with prose: `template_only_problems()` re-derives the remaining
+three counts above from the working tree on every `--self-test` and FAILS if
+any of them has moved. It is a deliberate tripwire, not an incidental control. If a
 later change prescribes the roll-up in the agent body, this checker stops
 measuring what it claims to measure, and the self-test must say so loudly
 instead of continuing to pass. That is exactly the mechanism that destroyed
@@ -38,7 +40,8 @@ template-only form, and its candidate silently stopped proving anything.
 
 **Nothing here prescribes the roll-up anywhere.** A detector reads output. This
 module adds not one word to `shared/`, to the agent body, or to any shipped
-surface, and its own `--self-test` fails if someone else does.
+surface, and its own `--self-test` fails if someone else prescribes it in the
+agent body or a companion reference.
 
 Why this is not a presence check
 --------------------------------
@@ -1538,10 +1541,19 @@ _BODY_PATH = Path("shared/spine/SKILL-body.md")
 # (label, paths, expected number of files carrying the roll-up form). Measured
 # 2026-09-24 at HEAD 02005fd0 by quick task `260924-prv`; the same counts the
 # ROADMAP's Phase 999.90 FALSIFIED note tabulates.
+#
+# 2026-10-05 (Phase 91, D-02): the worked-exemplar row
+# (`shared/examples/*.md`, expected 0) was retired once control group
+# `[template-read]` began reading template reads directly from the frozen
+# transcripts. The exemplars must show every required form, so a row that
+# demands the roll-up be scarce among them cannot coexist with conforming
+# exemplars. The agent-body and companion-reference rows still guard 999.90's
+# trap (a form absorbed into the body stops being evidence of anything) and are
+# Phase 92's to revisit. `retirement_guard_problems()` fails if the exemplar row
+# is gone without its replacement, or if any of the three remaining rows goes.
 _TEMPLATE_ONLY_SURFACES: tuple[tuple[str, str, int], ...] = (
     ("the agent body", "shared/spine/SKILL-body.md", 0),
     ("the companion references", "shared/references/*.md", 0),
-    ("the worked exemplars", "shared/examples/*.md", 0),
     ("the output template", "shared/spine/references/output-template.md", 1),
 )
 
@@ -1563,13 +1575,17 @@ def _files_with_rollup(paths: list[Path]) -> list[str]:
 
 
 def template_only_problems() -> list[str]:
-    """FAIL if the roll-up is no longer template-only.
+    """FAIL if the roll-up is prescribed outside the template.
 
-    This module's central factual claim about the tree is that the roll-up form
-    is prescribed in `output-template.md` and NOWHERE else on a shipped
-    surface, which is what makes emitting it evidence that the template was
-    read. `CLAUDE.md` § "Claims and falsifiers" requires a claim about this tree
-    to ship with a command that exits non-zero if the claim is FALSE, not with a
+    This module's factual claim about the tree is that the roll-up form is
+    prescribed in `output-template.md` and in no agent-body or
+    companion-reference file. That keeps the roll-up from becoming
+    body-prescribed (999.90's trap). Whether a run read the template is no
+    longer inferred from the form's scarcity: control group `[template-read]`
+    reads it directly from the run's transcript. The worked exemplars are
+    deliberately outside this roster, since they must show the form.
+    `CLAUDE.md` § "Claims and falsifiers" requires a claim about this tree to
+    ship with a command that exits non-zero if the claim is FALSE, not with a
     check that the sentence is present. This is that command.
 
     It is a deliberate tripwire. If a later change prescribes the roll-up in the
@@ -1602,6 +1618,52 @@ def template_only_problems() -> list[str]:
             f"{_TEMPLATE_PATH.as_posix()} no longer states the enumeration-governs rule "
             "that check 2 rests on"
         )
+    return problems
+
+
+# The rows of `_TEMPLATE_ONLY_SURFACES` that must stay, whatever else changes.
+_KEPT_TEMPLATE_ONLY_PATTERNS: tuple[str, ...] = (
+    "shared/spine/SKILL-body.md",
+    "shared/references/*.md",
+    "shared/spine/references/output-template.md",
+)
+_RETIRED_EXEMPLAR_PATTERN = "shared/examples/*.md"
+
+
+def retirement_guard_problems() -> list[str]:
+    """FAIL if the exemplar row's retirement stands without its replacement.
+
+    The worked-exemplar row of `_TEMPLATE_ONLY_SURFACES` was retired because
+    the question it answered by inference -- did the run read the template --
+    is now answered directly by `[template-read]`. That retirement is only
+    sound while the direct reading exists, so with the row absent this requires
+    the pinned corpora, the two harness names the census is read through, and
+    both census injections. Independently of the exemplar row, the three kept
+    rows must all still be present: they guard 999.90's trap.
+    """
+    problems: list[str] = []
+    patterns = {pattern for _label, pattern, _expected in _TEMPLATE_ONLY_SURFACES}
+    if _RETIRED_EXEMPLAR_PATTERN not in patterns:
+        if not _TEMPLATE_READ_CORPORA:
+            problems.append(
+                "exemplar row retired without its replacement: "
+                "_TEMPLATE_READ_CORPORA is empty"
+            )
+        for name in ("_reference_reads_census", "_reference_reads_capture_ids"):
+            if name not in _REQUIRED_HARNESS_NAMES:
+                problems.append(
+                    "exemplar row retired without its replacement: harness name "
+                    f"{name!r} is not in _REQUIRED_HARNESS_NAMES"
+                )
+        for name in ("census-always-true", "census-no-reads"):
+            if name not in INJECTIONS:
+                problems.append(
+                    "exemplar row retired without its replacement: injection "
+                    f"{name!r} is not in INJECTIONS"
+                )
+    for pattern in _KEPT_TEMPLATE_ONLY_PATTERNS:
+        if pattern not in patterns:
+            problems.append(f"template-only row removed: {pattern}")
     return problems
 
 
@@ -1642,13 +1704,13 @@ def structure_problems() -> list[str]:
 
 
 def exemplar_problems() -> list[str]:
-    """The 14 shipped exemplars read without a wall of failures.
+    """The shipped exemplars read without a wall of failures.
 
-    The plan's own verification: `shared/examples/*.md` is a runtime-artifact-free
-    surface, so every exemplar must read as presence ABSENT with check 2 n/a.
-    Should an exemplar ever grow a roll-up, this control stops asserting absence
-    and instead requires check 2 to have genuinely evaluated it -- which is the
-    behaviour the plan asks for, not a frozen count.
+    An exemplar's roll-up, where present, must have been genuinely evaluated:
+    a roll-up over a section 3 that read empty, with check 2 still passing, is
+    a vacuous agreement and fails here. Exemplars without a roll-up are not
+    failed by this control; plan 05 of Phase 91 turns it into a floor requiring
+    every exemplar to carry one, once the sweep has given them one.
     """
     problems: list[str] = []
     examples = sorted((REPO_ROOT / "shared" / "examples").glob("*.md"))
@@ -1756,6 +1818,7 @@ def _run_controls(injection: str | None) -> list[str]:
         problems += [f"[template-read] {p}" for p in template_read_problems()]
         problems += [f"[structure] {p}" for p in structure_problems()]
         problems += [f"[template-only] {p}" for p in template_only_problems()]
+        problems += [f"[retirement] {p}" for p in retirement_guard_problems()]
         problems += [f"[section3] {p}" for p in section3_parser_problems()]
         problems += [f"[locator] {p}" for p in roll_up_locator_problems()]
         problems += [f"[located] {p}" for p in located_read_problems()]
@@ -1883,11 +1946,11 @@ def describe() -> dict:
             # The registered live arm's subject count, published rather than left
             # implicit. Check 2 is this gate's only FAILING check and it fires only
             # where a roll-up exists, so an arm with zero subjects passes vacuously
-            # and says nothing. Measured 2026-09-27: 0 of the 14 shipped exemplars
-            # carry a roll-up, so the live arm currently asserts nothing about them
-            # -- and no live corpus carries one either (backlog 999.181, 0 of 18).
-            # Publishing the number is what stops a vacuous PASS reading as a clean
-            # bill of health; the day an exemplar grows a roll-up this moves off 0.
+            # and says nothing. The value is derived, never typed, and moves as the
+            # exemplars are swept to carry a conforming roll-up. On the two corpora
+            # pinned by `[template-read]`, one document of eighteen carries a roll-up
+            # (`tests/live-conformance-v9.0/PR-P2.md`). Publishing the number is
+            # what stops a vacuous PASS reading as a clean bill of health.
             "live_arm_rollup_subjects": _live_arm_subject_count(),
             # The direct template-read census over the two pinned frozen corpora,
             # re-read through the seam at call time and never typed here.
