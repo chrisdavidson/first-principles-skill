@@ -148,6 +148,11 @@ unverified-but-load-bearing entry per the spine's Phase 3 discipline.
   this entry is load-bearing for the first-order conclusion and is the highest-priority
   verification step.
 
+```text
+?-marked: GT-5? (1 of 5)
+Read-at-source: none — no chain is rated HIGH
+```
+
 ---
 
 ## 4. Derivation Chains

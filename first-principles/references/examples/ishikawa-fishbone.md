@@ -160,6 +160,13 @@ intervention set that addresses the verified ones?"
   approximately 40% below the benchmark figure used in sales demos — source: unverified;
   preliminary estimate from 4 accounts, not a statistically valid sample
 
+```text
+?-marked: GT-5? (1 of 5)
+Read-at-source: GT-2 — CS team exit-interview log (raw verbatims, Q2–Q3), reviewed and confirmed by the CS Director
+Read-at-source: GT-3 — CS Director debrief, with headcount and customer-count figures from HR and CRM records
+Read-at-source: GT-4 — CS Director debrief, and the absence of any mid-year capacity-review procedure in CS operations documentation
+```
+
 ---
 
 ## 4. Derivation Chains

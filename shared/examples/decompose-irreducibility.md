@@ -309,6 +309,13 @@ assumptions table.
   and maintenance costs) for the LCOS comparison: unverified — requires the
   project financial model.
 
+```text
+?-marked: GT-7?, GT-8? (2 of 8)
+Read-at-source: GT-1 — physical law (P = I²R / Ohm's law), confirmed by equipment specifications for commercial resistive heaters
+Read-at-source: GT-2 — physical law (Fourier's law: heat flux proportional to conductivity × temperature gradient)
+Read-at-source: GT-3 — physical law (second law of thermodynamics / Carnot's theorem), confirmed by published operational data for commercial steam turbines at these inlet conditions
+```
+
 ---
 
 ## 4. Derivation Chains

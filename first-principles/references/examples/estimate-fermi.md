@@ -375,6 +375,11 @@ duration rather than a single verdict. GT-8's reference plant is 115 MWe and thi
   exchanger that `system_factor` already includes, and counting it twice would bias the comparison
   against molten-salt.
 
+```text
+?-marked: GT-7? (1 of 5)
+Read-at-source: none — no chain is rated HIGH
+```
+
 ---
 
 ## 4. Derivation Chains
