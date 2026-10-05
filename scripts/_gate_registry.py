@@ -130,6 +130,15 @@ class GateEntry:
 
 _ANTICIPATORY_KEYS: frozenset[str] = frozenset()
 
+# The `mechanism` value that marks a battery check run INLINE in
+# scripts/check-firewall-battery.sh -- a bare TOTAL increment, never a
+# `gate "<ID>"` call, so `battery_gate_ids()` cannot see it. Inline status is
+# derived from this value everywhere (the D-01 exclusion set below and
+# gen-gate-docs.py's population counts), never from a hand-typed id list and
+# never from `script is None`: an inline check may still shell out to a script
+# (CONF-DRIFT runs `report-conformance.py --check`).
+_INLINE_MECHANISM: str = "battery only (inline)"
+
 
 def _ci(job_key: str) -> str:
     """Render the `Job / Mechanism` column's CI-job form, matching the
@@ -398,18 +407,23 @@ ENTRIES: tuple[GateEntry, ...] = (
         ),
     ),
     GateEntry(
-        key="conformance-baseline-drift",
-        gate_id=None,
+        key="CONF-DRIFT",
+        gate_id="CONF-DRIFT",
         extra_ids=(),
-        mechanism="battery only (pre-commit moved to battery in D-01)",
+        mechanism=_INLINE_MECHANISM,
         ci_job=None,
         script="scripts/report-conformance.py",
         run_command="python3 scripts/report-conformance.py --check",
         summary=(
             "`docs/conformance-baseline.md` and `docs/data/conformance.json` "
-            "reproduce byte-for-byte a fresh `report-conformance.py` run (D-06); "
-            "moved to battery-only from pre-commit by decision D-01. Deliberately "
-            "not registered in CI."
+            "reproduce byte-for-byte a fresh `report-conformance.py` run. "
+            "Regardless of regeneration it also fails when the caught "
+            "adversarial-corpus set moves against `_CORPUS_TARGET_CAUGHT_LOCK` "
+            "(`TARGET CAUGHT-SET DRIFT`) or when a corpus or live-conformance "
+            "floor fails, so regenerating the two artifacts does not clear it. "
+            "Run inline by the offline battery — no CI job, and no pre-commit "
+            "hook since Phase 89 D-01; registered in the battery at Phase 90 "
+            "(backlog 999.38), after a stretch in which it ran nowhere."
         ),
         consumes=(
             "registered_surfaces",
@@ -603,7 +617,7 @@ ENTRIES: tuple[GateEntry, ...] = (
         key="INVARIANT-CHECK",
         gate_id="INVARIANT-CHECK",
         extra_ids=(),
-        mechanism="battery only (inline)",
+        mechanism=_INLINE_MECHANISM,
         ci_job=None,
         script=None,
         run_command=(
@@ -631,7 +645,7 @@ ENTRIES: tuple[GateEntry, ...] = (
         key="FROZEN-EVIDENCE",
         gate_id="FROZEN-EVIDENCE",
         extra_ids=(),
-        mechanism="battery only (inline)",
+        mechanism=_INLINE_MECHANISM,
         ci_job=None,
         script=None,
         run_command=(
@@ -1113,12 +1127,13 @@ def registry_id_problems(
     `entry_ids` unfiltered would make it look like a battery id the battery
     never registers.
 
-    `precommit_ids` also carries the two truly-inline battery checks
-    (`INVARIANT-CHECK`, `FROZEN-EVIDENCE`) alongside the five pre-commit
-    mechanism rows — all seven increment a battery/pre-commit tally directly
-    rather than through a `gate "<ID>"` / `gate_prereq "<ID>"` call
-    `battery_gate_ids()` can see, so all seven must be excluded from this
-    comparison by construction, not merely by convention.
+    `precommit_ids` also carries the truly-inline battery checks — every
+    entry whose mechanism is `_INLINE_MECHANISM`, derived rather than
+    hand-typed — alongside the pre-commit mechanism rows. All of them
+    increment a battery/pre-commit tally directly rather than through a
+    `gate "<ID>"` / `gate_prereq "<ID>"` call `battery_gate_ids()` can see,
+    so all of them must be excluded from this comparison by construction,
+    not merely by convention.
 
     Pure: does no I/O. Reports `missing=` (battery has it, registry lacks
     it) and `extra=` (registry has it, battery lacks it) in the SAME run, so
@@ -1157,18 +1172,23 @@ def _registry_entry_ids() -> frozenset[str]:
 
 
 def _registry_precommit_ids() -> frozenset[str]:
-    """Ids excluded from the D-01 battery-gate-id equality floor: the five
+    """Ids excluded from the D-01 battery-gate-id equality floor: the
     pre-commit mechanism rows' synthetic keys (no gate id, no battery
-    registration to compare against at all) AND the two truly-inline
-    battery checks, `INVARIANT-CHECK` and `FROZEN-EVIDENCE`, which increment
-    the battery's PASS/FAIL/TOTAL tally directly rather than through a
-    `gate "<ID>"` / `gate_prereq "<ID>"` call — `battery_gate_ids()`
-    structurally cannot see either, so leaving them in the comparison set
-    would report both as a phantom `extra=` forever."""
+    registration to compare against at all) AND the truly-inline battery
+    checks, derived as every entry whose mechanism is `_INLINE_MECHANISM`.
+    Those increment the battery's PASS/FAIL/TOTAL tally directly rather than
+    through a `gate "<ID>"` / `gate_prereq "<ID>"` call — `battery_gate_ids()`
+    structurally cannot see them, so leaving them in the comparison set
+    would report each as a phantom `extra=` forever."""
     precommit_keys = frozenset(
         e.key for e in ENTRIES if e.gate_id is None and e.key.startswith("PRECOMMIT:")
     )
-    return precommit_keys | frozenset({"INVARIANT-CHECK", "FROZEN-EVIDENCE"})
+    inline_ids = frozenset(
+        e.gate_id
+        for e in ENTRIES
+        if e.mechanism == _INLINE_MECHANISM and e.gate_id is not None
+    )
+    return precommit_keys | inline_ids
 
 
 # ---------------------------------------------------------------------------

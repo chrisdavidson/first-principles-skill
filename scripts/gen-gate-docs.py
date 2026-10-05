@@ -669,8 +669,8 @@ def _battery_only_lead_in_clause(entries) -> str:
     PROV-GUARD) is a battery-only-by-design gate eligible for CI-job
     registration but deliberately exempt — the same population
     `check-registration.py`'s `BATTERY_ONLY_GATE_IDS` names by hand.
-    Excludes `mechanism=\"battery only (inline)\"` entries (INVARIANT-CHECK,
-    FROZEN-EVIDENCE): those are inline `printf` checks with no `gate()`
+    Excludes entries whose mechanism is `_gate_registry._INLINE_MECHANISM`
+    (`\"battery only (inline)\"`): those are inline `printf` checks with no `gate()`
     registration at all, so `extract_battery_gate_ids()` never yields them
     and REG-GUARD's CI-job axis never considers them — including them here
     would name gates this sentence's own subject (gates that RUN in CI) was
@@ -864,13 +864,13 @@ def _population_counts(entries) -> dict[str, int]:
     documented = [e for e in entries if e.key not in _gate_registry._ANTICIPATORY_KEYS]
     ci_count = sum(1 for e in documented if e.ci_job is not None)
     precommit_count = sum(1 for e in documented if e.key.startswith("PRECOMMIT:"))
+    # Inline status is keyed on mechanism, never on `script is None`: an
+    # inline check may still shell out to a script (CONF-DRIFT runs
+    # `report-conformance.py --check`) and is still inline.
     inline_count = sum(
         1
         for e in documented
-        if e.script is None
-        and e.gate_id is not None
-        and e.ci_job is None
-        and not e.key.startswith("PRECOMMIT:")
+        if e.mechanism == _gate_registry._INLINE_MECHANISM and e.gate_id is not None
     )
     tallied_count = sum(1 for e in documented if e.gate_id is not None)
     battery_only_count = tallied_count - ci_count - inline_count
@@ -6754,6 +6754,36 @@ def _control_population_arithmetic_derived() -> None:
     assert str(after_precommit["precommit_count"]) in sentence_precommit_after, (
         sentence_precommit_after
     )
+
+    # An inline battery check that shells out to a script (CONF-DRIFT's
+    # shape) must count as INLINE, not battery-only: inline status is keyed
+    # on mechanism, so a non-None `script` must not move it into the
+    # battery-only population. Under a `script is None` predicate this arm
+    # fails -- inline_count stays put and battery_only_count rises instead.
+    synthetic_inline = _gate_registry.GateEntry(
+        key="SYN-INLINE",
+        gate_id="SYN-INLINE",
+        extra_ids=(),
+        mechanism=_gate_registry._INLINE_MECHANISM,
+        ci_job=None,
+        script="scripts/syn.py",
+        run_command="python3 scripts/syn.py --check",
+        summary="Synthetic inline entry for the population-arithmetic control.",
+    )
+    after_inline = _population_counts(base + [synthetic_inline])
+    assert after_inline["inline_count"] == before["inline_count"] + 1, (
+        before,
+        after_inline,
+    )
+    assert after_inline["tallied_count"] == before["tallied_count"] + 1, (
+        before,
+        after_inline,
+    )
+    assert after_inline["battery_only_count"] == before["battery_only_count"], (
+        before,
+        after_inline,
+    )
+    assert after_inline["ci_count"] == before["ci_count"], (before, after_inline)
 
 
 def _control_arithmetic_sentence_names_gates_not_hooks() -> None:

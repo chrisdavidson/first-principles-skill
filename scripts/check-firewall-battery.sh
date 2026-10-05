@@ -238,6 +238,16 @@
 # check-provenance job is deleted); PROV-GUARD joins QUAL-01 in
 # BATTERY_ONLY_GATE_IDS, so battery-only-by-design rises from 1 to 2.
 #
+# Composition change (CONF-DRIFT, Phase 90, backlog 999.38): Phase 89 D-01
+# removed `report-conformance.py --check` from both pre-commit hooks, and the
+# gate registry recorded it as "battery only" -- but no line in this file ran
+# it, so between Phase 89 and Phase 90 the check ran nowhere. Phase 90
+# registers it here as a third INLINE check (CONF-DRIFT), the shape of
+# INVARIANT-CHECK and FROZEN-EVIDENCE: a bare TOTAL increment, never a `gate`
+# call, so REG-GUARD's _BATTERY_GATE_RE does not parse it and it needs neither
+# a CI job nor a widened BATTERY_ONLY_GATE_IDS. Battery composition moves
+# 32 -> 33.
+#
 # Composition NON-change, recorded deliberately (WR-05, Phase 20 20-REVIEW):
 # scripts/report-conformance.py is NOT registered here, and its ~98-control
 # --self-test battery is NOT a gate in this file. That was already the standing
@@ -265,6 +275,12 @@
 # their gate 2, ahead of the existing --check as gate 3. A gate that appears
 # silently is indistinguishable from a gate that was always there -- and so is a
 # gate that was deliberately never added.
+#
+# Superseded for the --check leg only (Phase 90, backlog 999.38): once Phase 89
+# D-01 took --check out of both hooks, keeping it out of this file left it
+# running nowhere, so --check now runs here as the inline CONF-DRIFT check
+# (see the composition-change paragraph above). The --self-test leg remains
+# unregistered here and stays in both pre-commit hooks as their gate 2.
 #
 # NOTE: set -u is active; set -e is intentionally ABSENT — every gate must run
 # and be tallied even if an earlier gate fails (no early abort).
@@ -803,6 +819,32 @@ if [ "$_inv_exit" -eq 0 ]; then
 else
     printf "[FAIL] %-14s  %s\n" "INVARIANT-CHECK" \
         "marker count or threshold mismatch in _battery_core.py — see constants above"
+    FAIL=$((FAIL + 1))
+fi
+
+# ---------------------------------------------------------------------------
+# Conformance-drift check (CONF-DRIFT, Phase 90, backlog 999.38).
+#
+# Runs `report-conformance.py --check` ONLY. The generator's --self-test is NOT
+# added here: it stays in both pre-commit hooks as their gate 2. --check fails
+# when docs/conformance-baseline.md or docs/data/conformance.json no longer
+# reproduce a fresh run byte-for-byte, AND, regardless of regeneration, on
+# TARGET CAUGHT-SET DRIFT against _CORPUS_TARGET_CAUGHT_LOCK and on the corpus
+# and live-conformance floors. Inline (a bare TOTAL increment), never a `gate`
+# call, so REG-GUARD's _BATTERY_GATE_RE does not parse it.
+# ---------------------------------------------------------------------------
+_confdrift_err=$(python3 scripts/report-conformance.py --check 2>&1 >/dev/null)
+_confdrift_exit=$?
+_confdrift_first=$(printf '%s\n' "$_confdrift_err" | head -n 1)
+
+TOTAL=$((TOTAL + 1))
+if [ "$_confdrift_exit" -eq 0 ]; then
+    printf "[PASS] %-14s  %s\n" "CONF-DRIFT" \
+        "report-conformance.py --check: baseline reproduces; caught-set lock and corpus/live floors hold"
+    PASS=$((PASS + 1))
+else
+    printf "[FAIL] %-14s  %s\n" "CONF-DRIFT" \
+        "report-conformance.py --check exited $_confdrift_exit: $_confdrift_first"
     FAIL=$((FAIL + 1))
 fi
 

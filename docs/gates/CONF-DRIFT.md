@@ -1,4 +1,4 @@
-# PRECOMMIT:conformance-baseline-drift-gate: `docs/conformance-baseline.md` and `docs/data/conformance.json` reproduce byte-for-byte a fresh `report-conformance.py` run (D-06); fires before commit.
+# CONF-DRIFT: `docs/conformance-baseline.md` and `docs/data/conformance.json` reproduce byte-for-byte a fresh `report-conformance.py` run.
 
 <!-- GENERATED:FACTS -->
 ## Facts

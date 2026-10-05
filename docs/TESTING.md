@@ -24,7 +24,7 @@ For the full at-a-glance gate inventory — every gate mapped to its owning scri
 | STEP0-08 | [`docs/gates/STEP0-08.md`](gates/STEP0-08.md) | `python3 scripts/check-step0-emulator.py --self-test` |
 | STEP0-06 | [`docs/gates/STEP0-06.md`](gates/STEP0-06.md) | `python3 scripts/check-step0-live.py --self-test` |
 | TRACE-03 | [`docs/gates/TRACE-03.md`](gates/TRACE-03.md) | `python3 scripts/check-traceability.py --self-test` |
-| — | [`docs/gates/conformance-baseline-drift.md`](gates/conformance-baseline-drift.md) | `python3 scripts/report-conformance.py --check` |
+| CONF-DRIFT | [`docs/gates/CONF-DRIFT.md`](gates/CONF-DRIFT.md) | `python3 scripts/report-conformance.py --check` |
 | QUAL-01 | [`docs/gates/QUAL-01.md`](gates/QUAL-01.md) | `python3 scripts/check-quality-harness.py --self-test` |
 | PROV-GUARD | [`docs/gates/PROV-GUARD.md`](gates/PROV-GUARD.md) | `python3 scripts/check-provenance.py --self-test` |
 | HARN-01 | [`docs/gates/HARN-01.md`](gates/HARN-01.md) | `python3 scripts/check-act-limb.py --self-test` |
