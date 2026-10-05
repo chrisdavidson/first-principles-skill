@@ -1578,12 +1578,18 @@ def _files_with_rollup(paths: list[Path]) -> list[str]:
 
 
 def template_only_problems() -> list[str]:
-    """FAIL if the roll-up is prescribed outside the template.
+    """FAIL if the roll-up's line-anchored form appears outside the template.
 
-    This module's factual claim about the tree is that the roll-up form is
-    prescribed in `output-template.md` and in no agent-body or
-    companion-reference file. That keeps the roll-up from becoming
-    body-prescribed (999.90's trap). Whether a run read the template is no
+    This module's factual claim about the tree is that the roll-up's
+    line-anchored form -- a `?-marked:` line at line start, the only form
+    `_ROLLUP_MARKED_RE` reads -- appears in `output-template.md` and in no
+    agent-body or companion-reference file. It is a claim about line form, not
+    about content: the agent body DOES prescribe the roll-up's content, at the
+    Phase 3 exit criterion of `shared/spine/SKILL-body.md`, as a mid-line
+    quotation this tripwire does not match. So 999.90's trap has already been
+    sprung at the content level; this tripwire reads line form only, and Phase
+    92 owns whether that distinction still carries the 999.90 argument.
+    Whether a run read the template is no
     longer inferred from the form's scarcity: control group `[template-read]`
     reads it directly from the run's transcript. The worked exemplars are
     deliberately outside this roster, since they must show the form.
@@ -1591,8 +1597,8 @@ def template_only_problems() -> list[str]:
     ship with a command that exits non-zero if the claim is FALSE, not with a
     check that the sentence is present. This is that command.
 
-    It is a deliberate tripwire. If a later change prescribes the roll-up in the
-    agent body -- the mechanism that destroyed backlog 999.90, where
+    It is a deliberate tripwire. If a later change writes the roll-up's
+    line-anchored form into the agent body -- the mechanism that destroyed backlog 999.90, where
     `**Confidence:**` and the unverified-input rule were both absorbed into
     `SKILL-body.md` after 999.90 nominated `**Confidence:**` -- then this
     checker stops measuring template reading, and the right outcome is a loud
