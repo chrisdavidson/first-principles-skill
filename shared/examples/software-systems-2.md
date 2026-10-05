@@ -130,10 +130,15 @@ GT-4 (4–8 weeks initial build + 0.1–0.3 FTE ongoing maintenance) + GT-3 (man
 → The build path's economic case rests on GT-4's lower-bound 0.1 FTE estimate holding, which is itself conditional on the team being able to build and operate auth to the security floor — the load-bearing assumption flagged as `untested belief — economic-hinge` in Section 2. If the team requires 0.3 FTE rather than 0.1 FTE because they hit unfamiliar territory (MFA flow edge cases, account-takeover protections, audit-log correctness for a future compliance audit), the build path's ongoing cost is ~$4,500–$7,500/month and the buy path dominates on cost alone at every tier the 24-month projection crosses.
 
 **Confidence:** MEDIUM — downgraded because the chain consumes GT-4's lower-bound and
-  the unverified team-capability hinge. Raising to HIGH requires either (a) a 4-week
-  spike on the build path that demonstrates the team is operating at the lower-bound
-  FTE estimate, or (b) a measured incident in production that disambiguates which
-  estimate the team is actually at.
+  the unverified team-capability hinge, and because its comparison "through the 24-month
+  horizon" carries GT-3's list prices forward, which is GT-7? (pricing trajectory), not
+  GT-3. The hinge would be removed as a cause by either (a) a 4-week spike on the build
+  path that demonstrates the team is operating at the lower-bound FTE estimate, or (b) a
+  measured incident in production that disambiguates which estimate the team is
+  actually at. GT-7? would be removed by a signed contract with the chosen managed
+  provider pinning the pricing trajectory through the 24-month horizon. Both causes must
+  go — D-07 bars a HIGH line while any GT-N? input stands, so settling the hinge alone
+  leaves this chain at MEDIUM.
 
 ---
 
@@ -340,14 +345,18 @@ to own).
   a different path. The methodology, not the specific verdict, is the transferable
   output.
 
-**Confidence:** (chains C2 and C3) MEDIUM — the hybrid-path chain itself is HIGH confidence, but the
-overall recommendation inherits the MEDIUM rating from the chain on reversibility
-(which depends on the projection in GT-2 of the first enterprise customer's timing).
-Raising to HIGH requires a signed enterprise customer with stated SSO/SAML
-requirements, which would resolve GT-2's projection into a fact and either confirm or
-close the 9-month reversal window. The pricing trajectory in GT-7? does not cap C2:
-that chain's lock-in holds however the trajectory resolves, so pinning it would not
-move C2 or the Conclusion.
+**Confidence:** (chains C1, C2 and C3) MEDIUM — the hybrid-path chain itself is HIGH confidence, but the
+overall recommendation inherits the MEDIUM rating from two chains: the chain on
+reversibility (which depends on the projection in GT-2 of the first enterprise
+customer's timing) and the cost chain C1 (which depends on GT-4's lower-bound FTE
+estimate and on GT-7?, the pricing trajectory). Raising to HIGH requires all three
+resolved: (a) a signed enterprise customer with stated SSO/SAML requirements, which
+would resolve GT-2's projection into a fact and either confirm or close the 9-month
+reversal window; (b) a build spike or production measurement that settles the FTE
+estimate; and (c) a signed contract with the chosen managed provider that pins the
+pricing trajectory through the 24-month horizon, which would resolve GT-7?. GT-7? caps
+C1 but not C2: the reversibility chain's lock-in holds however the trajectory
+resolves.
 
 ---
 
