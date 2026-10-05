@@ -395,7 +395,6 @@ GT-4 (Solar Salt stable 290–565 °C; c_p ≈ 1.52 kJ/(kg·°C) — direct meas
 → Molten-salt TES is not cost-competitive with lithium-ion at a four-hour duration, and becomes competitive only at long durations; the large-plant power-block cost and the unpriced charging heater both favour molten-salt, so neither can reverse this [Assumes: A-8 four-hour duration]
 
 **Pre-check:** head GT-4, GT-5, GT-6, GT-7?, GT-8 · ?-marked: GT-7? · lowest cited: none · Inputs ceiling: MEDIUM
-
 **Confidence:** MEDIUM — GT-7? (the thermal-to-electric conversion factor, ≈ 0.412) is carried
 rather than read at source here, and a `?`-marked input on the head caps the chain at MEDIUM.
 It no longer decides the verdict: once GT-8's power block is priced the four-hour conclusion holds
@@ -442,7 +441,6 @@ the store's installed cost, which the unit-factor rebuild explains and which was
   factor derives from.
 
 **Pre-check:** head C1 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
-
 **Confidence:** MEDIUM — matches chain C1, which is capped at MEDIUM by GT-7? (the carried-not-read
 thermal-to-electric conversion factor), although the verdict no longer depends on it. The input
 that decides the answer is the discharge duration (A-8): the recommendation is stated for four

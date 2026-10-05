@@ -328,6 +328,7 @@ GT-1 (Joule heating law anchors electricity-to-heat conversion at ~97% — physi
 → Round-trip efficiency is the product of the three physical-law-anchored conversion efficiencies: C1a × C1b × C1c ≈ 0.97 × 0.99 × 0.40 ≈ 38%
 → An 85% electricity round-trip efficiency is inconsistent with the Carnot limit at these temperatures; the claim, as stated, is refuted by the physical law that terminates C1c
 
+**Pre-check:** head GT-1, GT-2, GT-3 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
 **Confidence:** HIGH — C1a and C1c are each anchored in physical law and confirmed by
 direct or published measurement; the Carnot limit is not typical operating experience
 that better engineering could improve on, it is a hard upper bound C1c cannot exceed,
@@ -357,6 +358,7 @@ discarded.
 
 **Trade-offs acknowledged:** Accepting the Carnot-bounded ~38% round-trip figure (chain C1) instead of the claimed 85% changes the economic case for the system: a lower usable round-trip efficiency means more installed capacity is needed to deliver the same net electricity output, which raises the effective cost per kWh delivered relative to the capital-cost comparison in C3.
 
+**Pre-check:** head C1 (HIGH), GT-7?, GT-8? · ?-marked: GT-7?, GT-8? · lowest cited: HIGH · Inputs ceiling: MEDIUM
 **Confidence:** MEDIUM — HIGH on the refutation itself (chain C1); MEDIUM overall because the claim's second half, cost-competitiveness (C3), is not settled by this drill: its direction is resolved against the claim by the estimate worked example, and the project-specific inputs GT-7? and GT-8? that would size the gap remain unverified.
 
 ---
@@ -422,7 +424,11 @@ discarded.
   "conclusion": {
     "recommendation": "Treat the 85% electricity round-trip efficiency claim as refuted (chain C1) and do not proceed with a design predicated on it; use the Carnot-anchored ~38% round-trip figure as the physically realistic basis for any further cost-competitiveness comparison, whose size rests directly on GT-7? and GT-8?, both unverified, which reach this section through the cost-competitiveness sub-claim and not through any derivation chain.",
     "confidence": "MEDIUM",
-    "rests_on": null
+    "rests_on": [
+      "C1",
+      "GT-7?",
+      "GT-8?"
+    ]
   }
 }
 ```

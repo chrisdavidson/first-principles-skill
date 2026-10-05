@@ -136,6 +136,7 @@ GT-4 (4–8 weeks initial build + 0.1–0.3 FTE ongoing maintenance) + GT-3 (man
 → At the current ~120 tenants and an immediate launch budget, the buy path costs approximately $0–$300/month (the lowest tier of most providers covers a small MAU count) and the build path costs 4–8 weeks of engineering time once plus ~0.1–0.3 FTE ongoing; converted at typical fully-loaded engineering cost ($15K–$25K/month per FTE), the build path's ongoing cost is approximately $1,500–$7,500/month — strictly higher than the buy path at every tier through the 24-month horizon's midpoint; the build path's apparent advantage exists only at the initial-implementation one-time cost line, not in the steady-state operating cost; this inverts the common "buy is more expensive" intuition
 → The build path's economic case rests on GT-4's lower-bound 0.1 FTE estimate holding, which is itself conditional on the team being able to build and operate auth to the security floor — the load-bearing assumption flagged as `untested belief — economic-hinge` in Section 2. If the team requires 0.3 FTE rather than 0.1 FTE because they hit unfamiliar territory (MFA flow edge cases, account-takeover protections, audit-log correctness for a future compliance audit), the build path's ongoing cost is ~$4,500–$7,500/month and the buy path dominates on cost alone at every tier the 24-month projection crosses.
 
+**Pre-check:** head GT-4, GT-3, GT-7? · ?-marked: GT-7? · lowest cited: none · Inputs ceiling: MEDIUM
 **Confidence:** MEDIUM — downgraded because the chain consumes GT-4's lower-bound and
   the unverified team-capability hinge, and because its comparison "through the 24-month
   horizon" carries GT-3's list prices forward, which is GT-7? (pricing trajectory), not
@@ -155,6 +156,7 @@ GT-5 (provider data exports are partial — user records yes, MFA enrollment see
 → Migrating off a managed provider before the first enterprise customer lands is cheap — the team re-issues credentials to ~120 tenants, walks each through an MFA re-enrollment, and accepts the social-login linkage loss as a one-time cost; migrating AFTER the first enterprise customer's identity records (potentially including SAML federation configuration, SCIM provisioning state, and audited access logs the customer has retention requirements on) are stored in the vendor is materially harder — the migration is no longer "re-issue credentials" but "preserve the customer's federation configuration and audit-log continuity through the migration"
 → The buy path is reversible at low cost for ≈9 months, becomes a one-way door once the first enterprise customer is onboarded onto the vendor's SSO surface, and stays a one-way door for the rest of the 24-month horizon. The reversal window is the observable, decision-relevant quantity, not the binary "can we migrate?" question. Any future re-evaluation of the buy path must happen inside the 9-month window — after that, the decision is locked in regardless of how the cost trajectory in GT-7? resolves.
 
+**Pre-check:** head GT-5, GT-2 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
 **Confidence:** MEDIUM — downgraded because the chain consumes the conditional in GT-2
   (first enterprise customer timing is a projection, not a signed contract), and the
   ≈9-month window is read directly off that projection. The conditional would be
@@ -172,6 +174,7 @@ GT-6 (no secrets manager, no SOC2, no IR runbook — the security floor must be 
 → The highest-blast-radius surfaces in any auth implementation are password storage, MFA enrollment, and account-recovery flow — the surfaces where a defect leaks credentials or enables account takeover; these are also the surfaces where the team's inexperience (GT-1) is most expensive: a CVE-class defect here is a company-existential event, not a fixable bug; the lowest-blast-radius surfaces are the tenant model, the audit log, the session policy, and the in-app authorization layer — defects here are recoverable, and these surfaces are also where vendor lock-in concentrates (the tenant model and audit log are exactly the data the vendor "owns" once committed)
 → A hybrid path — adopt the managed provider for the credential, MFA, and account-recovery surfaces (where the buy-side capability gap is largest and the lock-in concentration is lowest) while owning the tenant model, audit log, session policy, and in-app authorization in-house (where the build-side risk is lowest and the lock-in cost of buying is highest) — dominates both poles on the joint capability-cost-risk metric. It clears the security floor by delegating the surfaces the team cannot safely build, retains the surfaces the team can safely build and where lock-in would be most expensive, and preserves the migration option at lower cost than the full-buy path because the lock-in-prone surfaces are not stored in the vendor.
 
+**Pre-check:** head GT-6, GT-1, GT-5 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
 **Confidence:** HIGH — the chain rests on GT-1, GT-5, and GT-6, all directly observed
   rather than projected. The hybrid path's existence collapses the `false-dichotomy`
   assumption in Section 2 and reduces the dependence on the two economic-hinge
@@ -352,6 +355,7 @@ to own).
   a different path. The methodology, not the specific verdict, is the transferable
   output.
 
+**Pre-check:** head C1 (MEDIUM), C2 (MEDIUM), C3 (HIGH) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
 **Confidence:** (chains C1, C2 and C3) MEDIUM — the hybrid-path chain itself is HIGH confidence, but the
 overall recommendation inherits the MEDIUM rating from two chains: the chain on
 reversibility (which depends on the projection in GT-2 of the first enterprise
@@ -475,7 +479,11 @@ resolves.
   "conclusion": {
     "recommendation": "(chains C1, C2 and C3) Adopt the **hybrid path** — use a managed identity provider for\npassword storage, MFA enrollment, and account-recovery flows; own the tenant model, audit\nlog, session policy, and in-app authorization in-house. Specifically:\n\n1. (chains C1 and C2) Within 2 weeks, select a managed provider whose published pricing tier covers the\n   projected 24-month MAU range without crossing a tier that materially exceeds the\n   $400/month budget criterion, and whose data-export surface covers user records\n   AND audit-log export (the two surfaces the team must be able to round-trip if the\n   migration-cost hinge later resolves against the buy decision).\n\n2. (chain C3) Within 6 weeks, ship the gated feature with provider-backed login + MFA + account\n   recovery, and in-house tenant model + audit log + session policy + authorization\n   layer. The gated-feature ship deadline (8 weeks) is achievable on the hybrid path\n   because the high-risk surfaces (credential storage, MFA) are delegated and the\n   in-house surfaces are the ones the team can build safely.\n\n3. (chain C2) Within 9 months, BEFORE the first enterprise customer's onboarding closes the\n   reversal window from the Section 4 chain on reversibility, re-evaluate the\n   migration-cost hinge: rehearse a buy→build migration of the credential surfaces (in a\n   staging environment, not production) against the chosen provider's data-export\n   surface, and decide whether the build path is now feasible enough that the team\n   wants to migrate before the enterprise customer locks in the buy decision.\n\n4. (chain C3) Concurrent with steps 1–3 and independent of the build-vs-buy choice: address the\n   GT-6 gaps (secrets manager, IR runbook, eventual SOC2 path). These are required\n   regardless of the auth path and represent shared cost the build-vs-buy decision\n   does not change.",
     "confidence": "MEDIUM",
-    "rests_on": null
+    "rests_on": [
+      "C1",
+      "C2",
+      "C3"
+    ]
   }
 }
 ```

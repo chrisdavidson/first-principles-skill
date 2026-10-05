@@ -187,6 +187,7 @@ GT-7 (META-Q4 records the budget as "stays under ~500 lines" with no independent
 → The budget exists in the requirements register and is treated as a constraint by the project workflow, but the consequence it is sized to prevent is not recorded; a skeptic reading META-Q4 cannot tell whether 878 lines breaks something measurable or merely exceeds a number authored from general intuition; the shipped regression gates encode the *real* properties the project depends on (self-test correctness, trigger-phrase preservation, sync lockstep, routing PASS verdict) and none of them references line count
 → The ~500-line budget is best classified as a convention — a defensible heuristic adopted from the wider Claude Code skill-authoring literature (SKILL.md guidance recommends <500 lines for optimal performance) — not as a verified constraint binding this specific agent. Treating it as binding when its underlying property has not been measured is treating a heuristic as a ground truth.
 
+**Pre-check:** head GT-7, GT-8, GT-9? · ?-marked: GT-9? · lowest cited: none · Inputs ceiling: MEDIUM
 **Confidence:** MEDIUM — GT-9? is the unverified input. The chain establishes
 that the budget is *currently* a convention as recorded; it does not establish
 that no measurable cost exists. Verification that would raise confidence to
@@ -203,6 +204,7 @@ GT-1 (current body: 878 lines) + GT-2 (Phase 1–5 procedural blocks: ~96 lines)
 → The 878 lines decompose into roughly four structural segments: front-matter + input contract (~44 lines), methodology procedure (~96 lines), interstitial content + companion-tool prefaces + reference-doc nav (~99 lines), companion-tool procedures (~175 lines), and appendices (~464 lines); each of these would have to be extracted independently to drop the body under 500 lines from where it stands, *unless* the largest segment is removed — in which case the body lands near or below the target without further extractions
 → The 464 lines of inlined appendix content (53% of the body) is the segment that drives the budget overage. Extracting only the Phase 1–5 procedural blocks (the path D-04 sketched in Phase 32 CONTEXT as the anchor candidate for Abandoned Reasoning) saves ~96 lines and leaves the body at approximately 782 lines — still 282 lines over the recorded target. Any extraction that targets methodology before appendices is targeting a segment that cannot, by arithmetic, deliver the claimed outcome.
 
+**Pre-check:** head GT-1, GT-2, GT-3, GT-5 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
 **Confidence:** HIGH — GT-2 and GT-5 are direct line-range measurements of the
 shipped artifact. The arithmetic does not depend on any unverified input.
 
@@ -214,6 +216,7 @@ GT-4 (Output Template and Validation Rubric already exist as separate files unde
 → The appendix inlining is a content duplication: the same Layer-3 reference material exists in two places in the source tree (`shared/spine/references/*` and the inlined appendix region of the agent body); removing the appendix region from the agent body and replacing it with the same one-level-deep reference link the agent already uses at line 92 drops the body from 878 lines to approximately 414 lines — under the META-Q4 budget by a wide margin — and preserves the agent's access to the appendix content via the same delegation pattern Phase 31 proved out
 → The intervention is configuration-level, not architectural: the body's `#first-principles-analysis-output-template` and `#validation-rubric` anchors get replaced with relative-path links to the existing reference files; the sync pipeline (`scripts/sync-content.py`) already propagates `shared/spine/references/*` to `first-principles/agents/references/`; no new content is authored and no shipped artifact is deleted. Reversibility: the inlining can be restored by reverting the body edit if reasoning-quality measurement (the GT-9? verification step) shows the de-inlining harmed agent performance.
 
+**Pre-check:** head GT-4, GT-5, GT-6, GT-8, C1 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
 **Confidence:** MEDIUM — the chain's structure is HIGH; the *recommendation to
 act* inherits the MEDIUM rating from Chain 1's GT-9? dependency. If the budget
 is a convention without a measured property (Chain 1), then the intervention
@@ -420,6 +423,7 @@ extraction problem.
   Section 2 is discharged by the existence of the de-inlining
   intermediate.
 
+**Pre-check:** head C1 (MEDIUM), C2 (HIGH), C3 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
 **Confidence:** MEDIUM — chain C2 (where the budget overage actually lives)
 is HIGH confidence; chain C3 (the intervention removes it) is HIGH
 confidence on arithmetic and configuration; chain C1 (the budget's
@@ -589,7 +593,11 @@ is unchanged by this postscript.
   "conclusion": {
     "recommendation": "(chains C1, C2 and C3) Execute one configuration-level intervention and\ncommission one measurement, in parallel.\n\n1. **De-inline the Output Template and Validation Rubric appendices** (chain C3) from\n   `first-principles/agents/first-principles.md`. Replace the appendix region\n   (currently lines 415–878) with two one-line external references in the\n   `### Reference docs` block that already exists at line 226: a link to\n   `references/output-template.md` and a link to `references/validation-rubric.md`.\n   These reference files already exist in `shared/spine/references/` and already\n   propagate to the agent surface via `scripts/sync-content.py`. The intervention\n   is authored in `shared/` (the body source) and synced; no hand-edit of the\n   agent surface occurs. Expected body size after the change: approximately\n   414 lines, comfortably under the META-Q4 budget of ~500. The intervention is\n   fully reversible by reverting the body edit.\n\n2. **Commission the GT-9? measurement** (chain C1) that would settle whether body-size\n   reduction *matters* for agent reasoning quality. The minimum form is a\n   small A/B: run the EVAL-01 climbing-gym fixture (or an equivalent rigor\n   probe) against both the pre-intervention 878-line body and the\n   post-intervention ~414-line body, holding model and prompt fixed. If the\n   measurement shows no rigor difference, META-Q4 should be re-recorded as a\n   heuristic with the measurement attached; if it shows a rigor improvement,\n   META-Q4's binding force is verified and the intervention is doubly\n   justified; if it shows a regression, the intervention is reverted before\n   it ships.\n\nThe intervention is justified independently of the measurement's outcome\nbecause it deduplicates content that the source tree already contains in\ntwo places (the inlined appendix region of the agent body, and the\nauthored Layer-3 reference files under `shared/spine/references/`). The\nmeasurement is justified independently of the intervention because META-Q4\nwill continue to fire on every future content addition and the gate's\nbinding force should be settled rather than inherited from convention.",
     "confidence": "MEDIUM",
-    "rests_on": null
+    "rests_on": [
+      "C1",
+      "C2",
+      "C3"
+    ]
   }
 }
 ```
