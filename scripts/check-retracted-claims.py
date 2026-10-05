@@ -738,6 +738,38 @@ REGISTRY: tuple[RetractedClaim, ...] = (
         # would turn this gate red.
         exemptions=(("docs/trackb-transport-erratum.md", 2),),
     ),
+    # Disclosed Bound 5 of docs/conformance-baseline.md (and the line-9 sentence
+    # above it) said the conformance-drift check fails only on staleness. Each
+    # literal is exempted at exactly 1 in scripts/report-conformance.py: its
+    # _RETRACTED_BOUND5_LITERALS tuple must keep each literal, on one physical
+    # line, for the render-bound5-retracted-text-absent control to assert the
+    # rendered baseline no longer carries it.
+    RetractedClaim(
+        literal="fails on staleness, not on a lost catch",
+        retracted_by="Phase 90 (backlog 999.38; 19-REVIEW CR-03)",
+        corrected=(
+            "`scripts/report-conformance.py --check` fails on staleness AND, "
+            "regardless of regeneration, on TARGET CAUGHT-SET DRIFT against "
+            "the source-literal `_CORPUS_TARGET_CAUGHT_LOCK` and on the corpus "
+            "and live-conformance floors; it runs in the offline battery as the "
+            "inline CONF-DRIFT check (no CI job, no pre-commit hook since Phase "
+            "89 D-01)."
+        ),
+        exemptions=(("scripts/report-conformance.py", 1),),
+    ),
+    RetractedClaim(
+        literal="only ever fails on staleness",
+        retracted_by="Phase 90 (backlog 999.38; 19-REVIEW CR-03)",
+        corrected=(
+            "`scripts/report-conformance.py --check` fails on staleness AND, "
+            "regardless of regeneration, on TARGET CAUGHT-SET DRIFT against "
+            "the source-literal `_CORPUS_TARGET_CAUGHT_LOCK` and on the corpus "
+            "and live-conformance floors; it runs in the offline battery as the "
+            "inline CONF-DRIFT check (no CI job, no pre-commit hook since Phase "
+            "89 D-01)."
+        ),
+        exemptions=(("scripts/report-conformance.py", 1),),
+    ),
 )
 
 

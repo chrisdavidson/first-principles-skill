@@ -6,7 +6,7 @@
 
 Measurement date: 2026-09-18
 
-This file is a measurement, not a contract: no figure below defines what the codebase is required to become, and no count in it gates a conformance check. Regenerating this file only ever fails on staleness -- committed bytes that no longer match a fresh run of `scripts/report-conformance.py` -- never on a count read here being high.
+This file is a measurement, not a contract: no figure below defines what the codebase is required to become, and no count in it gates a conformance check. `scripts/report-conformance.py --check` fails when committed bytes no longer match a fresh run, and also on the corpus and live-conformance floors named in Disclosed Bound 5, whatever is regenerated -- never on a count read here being high.
 
 ## Headline
 
@@ -40,7 +40,7 @@ This phase publishes four disclosures in the same voice R7/R9/R10 use on the age
 
 **4. The closure-ledger route has zero shipped exemplars.** `output-template.md` §6 blesses two citation routes; the exemplars use one -- the inline `(chain Cn)` form the template itself calls "the mechanically checkable form" (decision D-01). After this phase no shipped worked example demonstrates the `- "quoted claim" → chain Cn` closure-ledger row, because of backlog 999.24 (an unfenced in-section-6 ledger row counts itself as a claim) and `_slice_sections`'s section-6 rule, which ends §6 at the first ATX heading of any depth.
 
-**5. The pre-commit conformance-drift gate fails on staleness, not on a lost catch (D-07).** `scripts/report-conformance.py --check` fails when the committed bytes of this file or `docs/data/conformance.json` no longer match a fresh run -- never when a count read here, including the adversarial-corpus false-negative rate below, is high. A detector change that moves a corpus reading fails `--check` as drift; regenerating the two artifacts makes it pass again. Nothing here raises an alarm that the *meaning* of a reading changed -- only that the committed bytes are out of date.
+**5. The conformance-drift check runs in the offline battery and fails on more than staleness (D-07).** `scripts/report-conformance.py --check` runs as the inline `CONF-DRIFT` check in `scripts/check-firewall-battery.sh` -- no CI job runs it, and since Phase 89 no pre-commit hook does. It fails when the committed bytes of this file or `docs/data/conformance.json` no longer match a fresh run. It also fails, regardless of regeneration, when the set of caught adversarial-corpus targets moves in either direction against the source-literal `_CORPUS_TARGET_CAUGHT_LOCK` (`TARGET CAUGHT-SET DRIFT`), and when any corpus floor (roster, disposition, target, population, perturbation) or live-conformance floor (roster, disposition, population) fails -- regenerating the two artifacts clears none of these. No count read here being high, including the adversarial-corpus false-negative rate below, fails it. Residual: nothing mechanical judges whether a catalogued target is the *right* target for its item's wrongness.
 
 ## shared-examples
 

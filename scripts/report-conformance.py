@@ -84,19 +84,19 @@ MIN_CONTRACT_SURFACES: int = 1
 # CONF-07's floor (Phase 19): fewer than this many corpus items and
 # discover_artifacts raises DiscoveryFloorError rather than returning a short
 # list -- D-02's "never return a short list silently" idiom, reused verbatim
-# from the three surfaces above. Raising this blocks EVERY commit in the
-# repository through the pre-commit conformance-drift gate (`--check` on
-# every commit, not just commits touching this surface), which is exactly
-# why the thirteen-item corpus is authored and committed BEFORE this
-# constant goes live, never after.
+# from the three surfaces above. Raising this past the committed corpus turns
+# the offline battery's CONF-DRIFT check red (and `--check` wherever it is
+# run), which is exactly why the thirteen-item corpus is authored and
+# committed BEFORE this constant goes live, never after.
 MIN_CORPUS_ITEMS: int = 12
 
 # CONF-09's floor (Phase 20): fewer than this many landed live captures and
 # discover_artifacts raises DiscoveryFloorError rather than returning a short list --
 # the same "author fixtures before raising the floor" sequencing MIN_CORPUS_ITEMS' own
-# comment states, reused verbatim: raising this blocks EVERY commit in the repository
-# through the pre-commit conformance-drift gate, which is why the eight captures are
-# authored and committed BEFORE this constant goes live, never after.
+# comment states, reused verbatim: raising this past the committed captures turns the
+# offline battery's CONF-DRIFT check red (and `--check` wherever it is run), which is
+# why the eight captures are authored and committed BEFORE this constant goes live,
+# never after.
 MIN_LIVE_CONFORMANCE_RUNS: int = 8
 
 # Phase 27 (REL-08): the sixth labelled surface. Its six declared record slots are frozen
@@ -2955,9 +2955,10 @@ def render_markdown(
     lines.append(
         "This file is a measurement, not a contract: no figure below defines what the "
         "codebase is required to become, and no count in it gates a conformance check. "
-        "Regenerating this file only ever fails on staleness -- committed bytes that no "
-        "longer match a fresh run of `scripts/report-conformance.py` -- never on a count "
-        "read here being high."
+        "`scripts/report-conformance.py --check` fails when committed bytes no longer "
+        "match a fresh run, and also on the corpus and live-conformance floors named in "
+        "Disclosed Bound 5, whatever is regenerated -- never on a count read here being "
+        "high."
     )
     lines.append("")
     lines.append("## Headline")
@@ -3126,14 +3127,20 @@ def render_markdown(
     )
     lines.append("")
     lines.append(
-        "**5. The pre-commit conformance-drift gate fails on staleness, not on a lost "
-        "catch (D-07).** `scripts/report-conformance.py --check` fails when the committed "
-        "bytes of this file or `docs/data/conformance.json` no longer match a fresh run -- "
-        "never when a count read here, including the adversarial-corpus false-negative "
-        "rate below, is high. A detector change that moves a corpus reading fails `--check` "
-        "as drift; regenerating the two artifacts makes it pass again. Nothing here raises "
-        "an alarm that the *meaning* of a reading changed -- only that the committed bytes "
-        "are out of date."
+        "**5. The conformance-drift check runs in the offline battery and fails on more "
+        "than staleness (D-07).** `scripts/report-conformance.py --check` runs as the "
+        "inline `CONF-DRIFT` check in `scripts/check-firewall-battery.sh` -- no CI job "
+        "runs it, and since Phase 89 no pre-commit hook does. It fails when the committed "
+        "bytes of this file or `docs/data/conformance.json` no longer match a fresh run. "
+        "It also fails, regardless of regeneration, when the set of caught "
+        "adversarial-corpus targets moves in either direction against the source-literal "
+        "`_CORPUS_TARGET_CAUGHT_LOCK` (`TARGET CAUGHT-SET DRIFT`), and when any corpus "
+        "floor (roster, disposition, target, population, perturbation) or live-conformance "
+        "floor (roster, disposition, population) fails -- regenerating the two artifacts "
+        "clears none of these. No count read here being high, including the "
+        "adversarial-corpus false-negative rate below, fails it. Residual: nothing "
+        "mechanical judges whether a catalogued target is the *right* target for its "
+        "item's wrongness."
     )
     lines.append("")
 
@@ -5229,6 +5236,37 @@ def _control_render_vocabulary_scoped_and_derived() -> None:
     )
 
 
+# Disclosed Bound 5 once claimed the conformance-drift check fails only on staleness;
+# `_corpus_target_problems` (TARGET CAUGHT-SET DRIFT) and the corpus and live floors
+# falsified that. These are the retracted literals, each kept here on ONE physical line:
+# RETRACT-01 bars them everywhere else and exempts exactly one occurrence in this file.
+_RETRACTED_BOUND5_LITERALS: tuple[str, ...] = (
+    "fails on staleness, not on a lost catch",
+    "only ever fails on staleness",
+)
+
+
+def _control_render_bound5_retracted_text_absent() -> None:
+    """Backlog 999.38 (19-REVIEW CR-03): the rendered baseline must not say the drift
+    check fails only on staleness, and must name what else fails it and where it runs.
+
+    Negative arm: no retracted literal appears in the rendered document. Positive arm:
+    the TARGET CAUGHT-SET DRIFT failure, the source-literal lock it compares against,
+    the battery check's id and the battery script are all named.
+    """
+    base = _synthetic_rows_for_render()
+    rendered = render_markdown(base, pair_agreement(base))
+    for literal in _RETRACTED_BOUND5_LITERALS:
+        assert literal not in rendered, f"retracted Bound 5 text is back: {literal!r}"
+    for required in (
+        "TARGET CAUGHT-SET DRIFT",
+        "_CORPUS_TARGET_CAUGHT_LOCK",
+        "CONF-DRIFT",
+        "scripts/check-firewall-battery.sh",
+    ):
+        assert required in rendered, f"rendered Bound 5 does not name {required!r}"
+
+
 def _control_json_count_scopes_agree() -> None:
     """WR-02 (20-REVIEW): the two count keys describe different populations, and both
     relationships must hold BY CONSTRUCTION. Before Phase 20 they agreed by accident
@@ -6430,6 +6468,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         "recurrence-no-exit-code-conditioned-on-count",
         _control_recurrence_no_exit_code_conditioned_on_count,
     ),
+    (
+        "render-bound5-retracted-text-absent",
+        _control_render_bound5_retracted_text_absent,
+    ),
 )
 
 # Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape, backlog 999.30/999.31): a second,
@@ -6547,6 +6589,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "recurrence-readers-never-averaged",
     "recurrence-timing-delta-joins-on-content",
     "recurrence-no-exit-code-conditioned-on-count",
+    "render-bound5-retracted-text-absent",
 )
 
 
