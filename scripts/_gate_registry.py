@@ -682,11 +682,12 @@ ENTRIES: tuple[GateEntry, ...] = (
         script="scripts/report-conformance.py",
         run_command="python3 scripts/report-conformance.py --self-test",
         summary=(
-            "Blocks if `scripts/report-conformance.py --self-test` fails. Runs "
-            "the generator's own falsifiability controls before its output is "
-            "compared to anything (WR-05) — ordered before `--check` because a "
-            "generator whose own controls are failing makes that comparison "
-            "meaningless."
+            "Blocks if `scripts/report-conformance.py --self-test` fails: runs "
+            "the generator's own falsifiability controls at commit time "
+            "(WR-05). It does not compare the committed baseline against a "
+            "fresh run; that comparison (`report-conformance.py --check`) no "
+            "longer runs in the hooks and runs in the offline battery as "
+            "inline check CONF-DRIFT."
         ),
     ),
     GateEntry(
@@ -698,11 +699,14 @@ ENTRIES: tuple[GateEntry, ...] = (
         script="scripts/gen-gate-docs.py",
         run_command="python3 scripts/gen-gate-docs.py --self-test",
         summary=(
-            "Blocks if `scripts/gen-gate-docs.py --self-test` fails. Same WR-05 "
-            "ordering discipline as the conformance generator self-test — a "
-            "broken generator's own controls must be caught before its "
-            "comparison against committed output (the claim-surface drift "
-            "gate) is even attempted."
+            "Blocks if `scripts/gen-gate-docs.py --self-test` fails: runs the "
+            "generator's own controls at commit time (WR-05). Two of them "
+            "(`check-dispatch-wired`, `nondeterminism-exit-2`) drive "
+            "`main([\"--check\"])` against the working tree, so the "
+            "claim-surface drift comparison runs inside this self-test, not "
+            "after it, and stale generated surfaces block a commit even under "
+            "the `SKIP_DRIFT_CHECK` fast path. The standalone `--check` runs "
+            "in the battery and CI as CONF-SURFACE."
         ),
     ),
     # --- CONF-SURFACE (D-21-C) ---------------------------------------------

@@ -192,10 +192,10 @@ population-arithmetic sentence in `CLAUDE.md` and `docs/ARCHITECTURE.md`). `CLAU
 1. **sync-drift gate** (`scripts/sync-content.py --check`) — blocks if `shared/` and the generated
    tree have diverged.
 2. **conformance generator self-test** (`scripts/report-conformance.py --self-test`) — the
-   generator's own falsifiability controls (WR-05 ordering: a generator whose controls are
-   failing makes any comparison of its output meaningless).
-3. **claim-surface generator self-test** (`scripts/gen-gate-docs.py --self-test`) — same WR-05
-   discipline as gate 2.
+   generator's own falsifiability controls (WR-05); no baseline comparison runs in the hooks.
+3. **claim-surface generator self-test** (`scripts/gen-gate-docs.py --self-test`) — the
+   generator's own controls (WR-05), which include the claim-surface drift comparison against
+   the working tree (see below).
 
 The conformance-baseline drift check no longer runs at commit time (Phase 89); it runs in the
 offline battery. The claim-surface drift comparison still runs at commit time, inside gate 3: the

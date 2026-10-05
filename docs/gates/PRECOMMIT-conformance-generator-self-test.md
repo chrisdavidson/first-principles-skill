@@ -1,4 +1,4 @@
-# PRECOMMIT:conformance-generator-self-test: Blocks if `scripts/report-conformance.py --self-test` fails.
+# PRECOMMIT:conformance-generator-self-test: Blocks if `scripts/report-conformance.py --self-test` fails: runs the generator's own falsifiability controls at commit time (WR-05).
 
 <!-- GENERATED:FACTS -->
 ## Facts

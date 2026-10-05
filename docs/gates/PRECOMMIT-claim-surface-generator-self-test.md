@@ -1,4 +1,4 @@
-# PRECOMMIT:claim-surface-generator-self-test: Blocks if `scripts/gen-gate-docs.py --self-test` fails.
+# PRECOMMIT:claim-surface-generator-self-test: Blocks if `scripts/gen-gate-docs.py --self-test` fails: runs the generator's own controls at commit time (WR-05).
 
 <!-- GENERATED:FACTS -->
 ## Facts
