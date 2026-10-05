@@ -1,8 +1,11 @@
 # The section-3 provenance roll-up — the emission reading
 
-**A recorded observation over frozen, git-tracked captures. It is never a gate, and it may not
-become one:** [`docs/v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md) §2 item 3 bars
-K-of-N live readings from gating. **Measured at:** `2f52f9e1`, 2026-10-05. **Inputs:** the ten frozen
+**A recorded observation over frozen, git-tracked captures. As an emission rate it is never a
+gate, and it may not become one:** [`docs/v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md) §2 item 3 bars
+K-of-N live readings from gating. The line-format figures are pinned in PROV-ROLLUP's
+`--self-test` (R12) as a regression pin on these frozen bytes: the pin fails if the instrument's
+reading of unchanged captures moves. It is not a gate on any live emission rate, and the content
+figure is pinned by nothing. **Measured at:** `2f52f9e1`, 2026-10-05. **Inputs:** the ten frozen
 corpora under `tests/` that PROV-ROLLUP's `--emission-reading` pairs with a transcript.
 
 This page corrects the premise of backlog 999.181, that agents do not emit the roll-up. They do
@@ -246,7 +249,10 @@ python3 scripts/check-provenance-rollup.py --emission-reading | awk -F'\t' 'NR>1
 awk '/<!-- content-list:start -->/,/<!-- content-list:end -->/' docs/rollup-emission-reading.md | /usr/bin/grep -oE 'tests/[A-Za-z0-9._/-]+\.md:[0-9]+' | sort -u | /usr/bin/grep -E '^tests/(emission-stage-a-v9.14|live-conformance-v9.0)/' | wc -l
 ```
 
-**R12** — the line-format reading is pinned capture by capture (`[line-format-pin]`):
+**R12** — the line-format reading is pinned capture by capture (`[line-format-pin]`). This is a
+regression pin of the instrument on frozen bytes: it fails if the locator's or the census's
+reading of these unchanged captures moves. It is not a gate on any live emission rate, which
+stays report-only:
 
 ```sh
 python3 scripts/check-provenance-rollup.py --self-test
