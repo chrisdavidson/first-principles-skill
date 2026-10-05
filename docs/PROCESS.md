@@ -98,7 +98,10 @@ Plan 22-04 restores 16 of the 17 rows verbatim. Row 17 — `docs/README.md`'s TE
 is deliberately NOT a verbatim restore: the pre-hedge text stated a pre-commit gate count that
 CONF-SURFACE (plan 21-11) made false, so the live count was written instead of the original. That
 single judgement call is recorded per-entry in `scripts/gen-gate-docs.py`'s ledger under the key
-`('docs/README.md', 'gate and the five')`, adjudicated NOT-A-RESTORE.
+`('docs/README.md', 'gate and the five')`, adjudicated NOT-A-RESTORE. Phase 90 (2026-10-05,
+backlog 999.38) later made that cell count-free and removed that ledger entry (commit
+`885422eb`), so neither the key nor the live count described above exists in the working tree any
+more; the NOT-A-RESTORE adjudication survives in git at `37e678de:scripts/gen-gate-docs.py`.
 
 ## 2. Product and apparatus
 
