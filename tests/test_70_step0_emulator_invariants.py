@@ -17,6 +17,7 @@ Run from repo root:
 
 from __future__ import annotations
 
+import ast
 import subprocess
 import sys
 from pathlib import Path
@@ -42,16 +43,32 @@ def test_emulator_contains_known_techniques_constant() -> None:
     Phase 111 removed "decompose" from the tuple.
 
     This is a cheap structural anti-drift pin: if the constant is accidentally
-    removed or renamed, this test surfaces the breakage immediately.
+    removed or renamed, this test surfaces the breakage immediately. The value
+    is parsed, not text-matched, so a reformat (ecff2e55 wrapped the tuple one
+    name per line) cannot fail it while the techniques are unchanged.
     """
-    text = EMULATOR.read_text(encoding="utf-8")
+    tree = ast.parse(EMULATOR.read_text(encoding="utf-8"))
+    values = [
+        ast.literal_eval(node.value)
+        for node in tree.body
+        if isinstance(node, ast.Assign)
+        and any(
+            isinstance(t, ast.Name) and t.id == "KNOWN_TECHNIQUES" for t in node.targets
+        )
+    ]
     expected = (
-        'KNOWN_TECHNIQUES = ("pre-mortem", "inversion", "fishbone", '
-        '"five-whys", "trade-off", "second-order", "estimate", "theoretical-limit")'
+        "pre-mortem",
+        "inversion",
+        "fishbone",
+        "five-whys",
+        "trade-off",
+        "second-order",
+        "estimate",
+        "theoretical-limit",
     )
-    assert expected in text, (
-        f"check-step0-emulator.py does not contain the expected KNOWN_TECHNIQUES "
-        f"eight-name tuple. Expected to find:\n  {expected!r}"
+    assert values == [expected], (
+        f"check-step0-emulator.py must assign KNOWN_TECHNIQUES exactly once, to "
+        f"the eight-name tuple {expected!r}; found {values!r}"
     )
 
 
