@@ -143,14 +143,14 @@ GT-5 (provider data exports are partial — user records yes, MFA enrollment see
 → Migrating off a managed provider before the first enterprise customer lands is cheap — the team re-issues credentials to ~120 tenants, walks each through an MFA re-enrollment, and accepts the social-login linkage loss as a one-time cost; migrating AFTER the first enterprise customer's identity records (potentially including SAML federation configuration, SCIM provisioning state, and audited access logs the customer has retention requirements on) are stored in the vendor is materially harder — the migration is no longer "re-issue credentials" but "preserve the customer's federation configuration and audit-log continuity through the migration"
 → The buy path is reversible at low cost for ≈9 months, becomes a one-way door once the first enterprise customer is onboarded onto the vendor's SSO surface, and stays a one-way door for the rest of the 24-month horizon. The reversal window is the observable, decision-relevant quantity, not the binary "can we migrate?" question. Any future re-evaluation of the buy path must happen inside the 9-month window — after that, the decision is locked in regardless of how the cost trajectory in GT-7? resolves.
 
-**Confidence:** MEDIUM — downgraded because the chain consumes GT-7? (pricing trajectory)
-  and the conditional in GT-2 (first enterprise customer timing is a projection, not a
-  signed contract). GT-7? would be removed as a cause by a signed contract with the
-  chosen managed provider pinning the pricing trajectory through the 24-month horizon;
-  GT-2's conditional would be removed by a signed enterprise customer with stated
-  SSO/SAML requirements, at which point the reversal window has already closed and the
-  decision is effectively committed. Both are required, not either — D-07 bars a HIGH
-  line while any GT-N? input stands, so resolving GT-2 alone leaves this chain at MEDIUM.
+**Confidence:** MEDIUM — downgraded because the chain consumes the conditional in GT-2
+  (first enterprise customer timing is a projection, not a signed contract), and the
+  ≈9-month window is read directly off that projection. The conditional would be
+  removed by a signed enterprise customer with stated SSO/SAML requirements, at which
+  point the reversal window has already closed and the decision is effectively
+  committed. GT-7? (pricing trajectory) is not a cause: the chain names it only to rule
+  it out — the window's length and the migration cost come from GT-2 and GT-5, and the
+  lock-in holds however the provider's pricing resolves.
 
 ---
 
@@ -342,13 +342,12 @@ to own).
 
 **Confidence:** (chains C2 and C3) MEDIUM — the hybrid-path chain itself is HIGH confidence, but the
 overall recommendation inherits the MEDIUM rating from the chain on reversibility
-(which depends on GT-7? — the pricing trajectory — and the projection in GT-2 of the
-first enterprise customer's timing). Raising to HIGH requires both (a) a signed
-enterprise customer with stated SSO/SAML requirements, which would resolve GT-2's
-projection into a fact and either confirm or close the 9-month reversal window, and
-(b) a signed contract with the chosen managed provider that pins the pricing
-trajectory through the 24-month horizon, which would resolve GT-7?. Either alone
-leaves C2 at MEDIUM and caps the Conclusion there with it.
+(which depends on the projection in GT-2 of the first enterprise customer's timing).
+Raising to HIGH requires a signed enterprise customer with stated SSO/SAML
+requirements, which would resolve GT-2's projection into a fact and either confirm or
+close the 9-month reversal window. The pricing trajectory in GT-7? does not cap C2:
+that chain's lock-in holds however the trajectory resolves, so pinning it would not
+move C2 or the Conclusion.
 
 ---
 
