@@ -11,7 +11,10 @@ corpora under `tests/` that PROV-ROLLUP's `--emission-reading` pairs with a tran
 This page corrects the premise of backlog 999.181, that agents do not emit the roll-up. They do
 emit its enumeration half, the `?`-marked ids with their `(N of M)` count, in every readable
 capture. Its read-at-source half was not audited (see [What "(required)" binds](#what-required-binds)).
-What they rarely emit is the template's exact line format, and that is all the old count measured.
+What 999.181's two named corpora rarely carry (1 of 18 captures) is the template's exact line
+format. Across all ten corpora that line format appears in 30 of 73 readable captures (30 of 77
+paired), ranging from 0 of 9 readable in emission-stage-a-v9.14 to 10 of 11 in
+confidence-transitivity-v9.4, and that line format is all the old count measured.
 
 ---
 
