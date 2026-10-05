@@ -1164,30 +1164,40 @@ def _section6_precheck_head_ids(section6: str) -> list[str] | str | None:
     id list: each Cn with its (BAND) dropped and upper-cased (mirroring
     `_xc_chain_rests_on`'s chain-ref upper-casing), each bare GT-N/GT-N? kept
     as written. None when section6 carries no unfenced **Pre-check:** line at
-    all. The sentinel string "UNREADABLE" when the first matching line's body
-    has no readable `head ` field."""
+    all. The sentinel string "UNREADABLE" when the line read has no readable
+    `head ` field.
+
+    The line read is the one `_xc_prechecks` field-compares: the pre-check
+    directly above section 6's **Confidence:** line, through the same
+    `_confidence_and_precheck` (WR-02). Reading the FIRST pre-check instead
+    let a stray earlier line shadow a paired line that dropped a chain, in
+    live mode with no finding at all. Only when no pre-check is paired does
+    this fall back to the first unfenced one, so a present-but-misplaced
+    line still counts as present for the null-iff-absent pairing."""
     qh = _load_qh()
     lines = section6.splitlines()
     fenced = qh._fenced_code_flags(lines)
-    for raw_line, in_fence in zip(lines, fenced):
-        if in_fence:
-            continue
-        m = qh._PRECHECK_LINE_RE.match(raw_line)
-        if m is None:
-            continue
-        parts = m.group("body").split(qh._PRECHECK_SEP)
-        if len(parts) != 4 or not parts[0].startswith("head "):
-            return "UNREADABLE"
-        head_str = parts[0][len("head ") :].strip()
-        ids: list[str] = []
-        for item in (h.strip() for h in head_str.split(",") if h.strip()):
-            im = qh._PRECHECK_HEAD_ITEM_RE.fullmatch(item) if "(" in item else None
-            rid = im.group("id") if im else item
-            if _PRECHECK_CHAIN_ID_RE.match(rid):
-                rid = rid.upper()
-            ids.append(rid)
-        return ids
-    return None
+    _idx, _band, body = _confidence_and_precheck(lines, fenced)
+    if body is None:
+        for raw_line, in_fence in zip(lines, fenced):
+            m = None if in_fence else qh._PRECHECK_LINE_RE.match(raw_line)
+            if m is not None:
+                body = m.group("body")
+                break
+    if body is None:
+        return None
+    parts = body.split(qh._PRECHECK_SEP)
+    if len(parts) != 4 or not parts[0].startswith("head "):
+        return "UNREADABLE"
+    head_str = parts[0][len("head ") :].strip()
+    ids: list[str] = []
+    for item in (h.strip() for h in head_str.split(",") if h.strip()):
+        im = qh._PRECHECK_HEAD_ITEM_RE.fullmatch(item) if "(" in item else None
+        rid = im.group("id") if im else item
+        if _PRECHECK_CHAIN_ID_RE.match(rid):
+            rid = rid.upper()
+        ids.append(rid)
+    return ids
 
 
 def _xc_conclusion_rests_on(text, sections, block, exemplar) -> list[Finding]:
@@ -4159,6 +4169,61 @@ def _c30_head_shapes() -> str | None:
     return None
 
 
+# C31: WR-02. Section 6's rests_on reader and its field comparator must read
+# the same line -- the pre-check directly above section 6's Confidence line.
+# Built from the review's ishikawa-fishbone reproduction: a stray pre-check
+# placed before Key insight must not shadow the paired one.
+
+_C31_PAIRED = (
+    "**Pre-check:** head C1 (HIGH), C2 (HIGH), C3 (MEDIUM) · ?-marked: none · "
+    "lowest cited: MEDIUM · Inputs ceiling: MEDIUM"
+)
+_C31_DROPPED = (
+    "**Pre-check:** head C1 (HIGH), C2 (HIGH) · ?-marked: none · "
+    "lowest cited: HIGH · Inputs ceiling: HIGH"
+)
+_C31_KEY_INSIGHT = "**Key insight:** (chains C1 and C2)"
+
+
+def _c31_section6_same_line() -> str | None:
+    text = _C30_EXEMPLAR.read_text()
+    for literal in (_C31_PAIRED, _C31_KEY_INSIGHT):
+        if text.count(literal) != 1:
+            return f"expected {literal!r} exactly once in {_relpath(_C30_EXEMPLAR)}"
+
+    def stray(line: str) -> str:
+        return text.replace(_C31_KEY_INSIGHT, line + "\n\n" + _C31_KEY_INSIGHT, 1)
+
+    # Live mode reads an exemplar's legacy nulls as SB-NULL, so live findings
+    # are compared with the unmutated exemplar's own, never with [].
+    base_live = check_report(text, exemplar=False)
+    if {f.code for f in base_live} != {"SB-NULL"}:
+        return f"unmutated exemplar, live mode: expected SB-NULL only, got {base_live!r}"
+
+    def live_extra(t: str) -> set[str]:
+        return {f.code for f in check_report(t, exemplar=False) if f not in base_live}
+
+    # (a) the review's case: a correct stray line earlier in section 6, the
+    # paired line drops C3. Live mode must see it.
+    paired_at = _C31_PAIRED + "\n**Confidence:**"
+    dropped = stray(_C31_PAIRED).replace(paired_at, _C31_DROPPED + "\n**Confidence:**", 1)
+    if dropped.count(_C31_DROPPED) != 1:
+        return "(a) the paired section 6 pre-check was not mutated"
+    codes = live_extra(dropped)
+    if codes != {"SB-CONCLUSION-RESTS-ON"}:
+        return f"(a) paired line drops C3 behind a correct stray line, live mode: expected {{'SB-CONCLUSION-RESTS-ON'}}, got {codes!r}"
+    codes = {f.code for f in check_report(dropped, exemplar=True)}
+    if codes != {"SB-CONCLUSION-RESTS-ON", "SB-PRECHECK-MISSING"}:
+        return f"(a) exemplar mode: expected the rests_on finding plus the stray line's orphan, got {codes!r}"
+    # (b) the inverse: a wrong stray line, a correct paired line. The paired
+    # line is the one read, so live mode stays clean.
+    wrong_stray = stray(_C31_DROPPED)
+    codes = live_extra(wrong_stray)
+    if codes:
+        return f"(b) wrong stray line, correct paired line, live mode: expected no new finding, got {codes!r}"
+    return None
+
+
 def _c29_precheck_missing() -> str | None:
     schema = load_schema(DEFAULT_SCHEMA)
     example = schema["example"]
@@ -4367,6 +4432,7 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("C28-precheck-decoys", _c28_precheck_decoys),
     ("C29-precheck-missing", _c29_precheck_missing),
     ("C30-precheck-head-shapes", _c30_head_shapes),
+    ("C31-section6-same-line", _c31_section6_same_line),
     ("P1-personal-general", _p1_personal_general),
     ("P2-software-systems", _p2_software_systems),
     ("P3-science-engineering", _p3_science_engineering),
