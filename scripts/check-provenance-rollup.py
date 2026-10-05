@@ -3,17 +3,27 @@
 
 What this reads, and why that artifact
 --------------------------------------
-`shared/spine/references/output-template.md:129-134` prescribes a two-line
-provenance roll-up at the end of section 3:
+`shared/spine/references/output-template.md`, in the template's **Provenance
+summary (required)** clause, prescribes a two-line provenance roll-up at the
+end of section 3:
 
     ?-marked: GT-2, GT-5, GT-9, GT-14 (4 of 22)
     Read-at-source: GT-3 — 45 CFR 164.514(b)(2)(i), subsections (A)/(B)/(R) quoted verbatim
 
 That form is measured **template-only** -- 0 occurrences in
 `shared/spine/SKILL-body.md`, 0 across all `shared/references/*.md`, 0 across
-all `shared/examples/*.md`, 1 in the template -- and emitted in 12 of 15 live
-captures read at quick task `260924-tcv`. So an emitted artifact traceable to
-the template alone exists; nothing looked for it. This tool looks for it.
+all `shared/examples/*.md`, 1 in the template. This tool looks for it.
+
+Whether a run opened `output-template.md` at all is read directly from that
+run's transcript by the harness's `_reference_reads_census`, and control group
+`[template-read]` pins that reading capture by capture on two frozen corpora,
+`tests/emission-stage-a-v9.14/raw/` and `tests/live-conformance-v9.0/`. It is
+10 of the 17 captures that dispatched the agent, out of 18; TB-08 never
+dispatched it. Roll-up presence on the same 18 documents is 1
+(`tests/live-conformance-v9.0/PR-P2.md`), which `--analysis` over those
+documents reproduces. Backlog 999.173's "twelve of fifteen" reading from quick
+task `260924-tcv` cannot be re-taken, because its captures were not kept, and
+it is not carried forward.
 
 That template-only claim is a factual claim about this tree, so it ships with a
 falsifier rather than with prose: `template_only_problems()` re-derives the
@@ -34,8 +44,8 @@ Why this is not a presence check
 --------------------------------
 `CLAUDE.md` § "Claims and falsifiers" bars the shape this repository shipped
 seven blocking defects behind: `grep -c '<literal>' <file> == N`, which asks
-only whether a string appears. The template itself names the difference, at
-`:136`:
+only whether a string appears. The template itself names the difference, in
+its enumeration-governs rule:
 
 > A stated integer does not satisfy this -- an integer cannot be checked
 > against the list it summarizes, and an enumeration can. Where a count and
@@ -49,7 +59,8 @@ cannot be satisfied by emitting the label, and it fails for a real reason.
 The checks, and which of them can fail
 --------------------------------------
 1. **Presence** -- is the roll-up emitted at all? **REPORT ONLY. Never fails,
-   on any input.** Emission rate is an N=15 observation, and
+   on any input.** Emission rate is a K-of-N live reading (1 of 18 documents on
+   the two pinned corpora), and
    `docs/v8.7-constraint-teardown.md` §2 item 3 bars a K-of-N live reading from
    gating anything -- measured on the S-P04 vector swinging 2/5 -> 0/5 -> 2/5
    with no source change between readings.
@@ -66,7 +77,7 @@ Per the template's rule, check 2 resolves a count/enumeration disagreement by
 believing the enumeration: the section-3 comparison always runs against the
 enumerated ids, never against the integer. The integer disagreeing with the
 list it summarises is reported as its own finding, because a disagreement is
-the very thing `:136` legislates about.
+the very thing the template's enumeration-governs rule legislates about.
 
 The anti-masking case that matters
 ----------------------------------
@@ -103,7 +114,8 @@ passes:
 | add unsuffixed `GT-8` to the enumeration | enumerated but not `?`-marked in section 3: gt-8 |
 | replace the list with a prose integer | every marked id absent from the enumeration; a stated N against an enumeration of none |
 
-The final table row above is what `output-template.md:136` legislates about, and
+The final table row above is what the template's enumeration-governs rule
+legislates about, and
 fixture `integer-not-a-list` pins it offline.
 
 Why check 3 is report-only
@@ -128,13 +140,15 @@ itself:
     is NOT safe for a gate: it invents findings.
 
 (c) **The decisive one, and it is about the prescription, not the parse.** The
-    template at `:129` asks the ROLL-UP to name the location. Every ground-truth
-    ENTRY already carries its own `read-at-source:` field (`:114`), and the
+    template's **Provenance summary (required)** clause asks the ROLL-UP to
+    name the location. Every ground-truth ENTRY already carries its own
+    `read-at-source:` field, and the
     corpus overwhelmingly names the location there and does not repeat it on the
     roll-up line. Measured over the same 45 documents: 3 documents produce
     check-3 observations, 19 observations in total, and **17 of those 19 name a
     read-at-source location in the ground truth's own section-3 entry.** So a
-    strict reading of `:129` would fail those documents over where the location
+    strict reading of the template's **Provenance summary (required)** clause
+    would fail those documents over where the location
     is written, not over whether it exists. Whether the per-entry field
     discharges the roll-up's naming duty is a reading of the prescription that
     the template does not settle and this tool has no standing to settle.
@@ -191,8 +205,9 @@ Disclosed bounds
 
 Nothing in `check-quality-harness.py` is modified. Every function used from it
 is called: `_slice_sections`, `_chain_head_refs`, `_chain_ids`, `_chain_blocks`,
-`_chain_confidence_label`, `_normalize_chain_id` and `_fenced_code_flags`. The
-first two are frozen under CONTRACT-06.
+`_chain_confidence_label`, `_normalize_chain_id`, `_fenced_code_flags`,
+`_reference_reads_census` and `_reference_reads_capture_ids`. The first two are
+frozen under CONTRACT-06.
 
 Usage:
     python3 scripts/check-provenance-rollup.py --analysis FILE [FILE ...]
@@ -260,6 +275,8 @@ _REQUIRED_HARNESS_NAMES: tuple[str, ...] = (
     "_normalize_chain_id",
     "_fenced_code_flags",
     "SectionResolutionError",
+    "_reference_reads_census",
+    "_reference_reads_capture_ids",
 )
 
 
@@ -462,7 +479,7 @@ def enumeration_problems(rollup: Rollup, population: list[GroundTruth]) -> list[
        (d)). Reported in both directions: enumerated-but-not-marked, and
        marked-but-not-enumerated.
     3. **`M` equals the population size, and `N` equals the length of the
-       enumeration.** Per `output-template.md:136` the enumeration governs, so
+       enumeration.** Per the template's enumeration-governs rule the enumeration governs, so
        comparison 2 above is never decided by an integer; a disagreeing integer
        is its own finding, because a stated integer that disagrees with the list
        it summarises is precisely what that line legislates about. A missing
@@ -507,7 +524,7 @@ def enumeration_problems(rollup: Rollup, population: list[GroundTruth]) -> list[
             problems.append(
                 f"stated N is {rollup.stated_n}, the enumeration beside it names "
                 f"{len(enumerated)} id(s) -- the enumeration governs "
-                "(output-template.md:136)"
+                "(the template's enumeration-governs rule)"
             )
 
     return problems
@@ -705,8 +722,8 @@ def render_report(readings: list[DocReading]) -> str:
     )
     out.append("")
     out.append(
-        "Presence is REPORT-ONLY and fails nothing (emission rate is an N=15 "
-        "observation; docs/v8.7-constraint-teardown.md §2 item 3). Check 2 "
+        "Presence is REPORT-ONLY and fails nothing (emission rate is a K-of-N "
+        "live reading; docs/v8.7-constraint-teardown.md §2 item 3). Check 2 "
         "(enumeration agreement) is the failing check. Check 3 (read-at-source "
         "coverage) is REPORT-ONLY -- see the module docstring for the measured "
         "reason."
@@ -1054,7 +1071,7 @@ _F10 = Fixture(
     0,
 )
 
-# F11 -- the form `output-template.md:136` exists to bar: a stated INTEGER in
+# F11 -- the form the template's enumeration-governs rule exists to bar: a stated INTEGER in
 # place of the list. Population 4; marked {gt-2, gt-3}. The line writes
 # `?-marked: 2 of 4 ground truths are unverified (2 of 4)` -- an integer that is
 # arithmetically CORRECT and still fails, because it enumerates nothing and so
@@ -1077,7 +1094,7 @@ _F11 = Fixture(
     ),
     "an arithmetically correct integer in place of the list still fails -- an "
     "integer cannot be checked against the list it summarises "
-    "(output-template.md:136)",
+    "(the template's enumeration-governs rule)",
     True,
     4,
     ("gt-2", "gt-3"),
@@ -1392,6 +1409,123 @@ def harness_surface_problems() -> list[str]:
     return problems
 
 
+# --- the direct template-read reading (Phase 91, D-01) ----------------------
+#
+# Whether a run opened `output-template.md` is read straight from that run's
+# transcript by the harness's own `_reference_reads_census` (QUAL-01's census),
+# never re-implemented here. This group pins that reading, capture by capture,
+# on two frozen corpora, so a census that degrades -- stubbed to report no
+# reads, or a read for everything -- fails this self-test rather than changing
+# a published number silently.
+
+TemplateReadCensus = Callable[[str, Path], dict]
+
+# Swappable seam, rebound by `_run_controls` under the census injections and
+# looked up at call time, as `read_document` does with `_CHECK2`.
+_TEMPLATE_READ_CENSUS: TemplateReadCensus = QH._reference_reads_census
+
+# HAND-TRANSCRIBED from the `--reference-reads` TSV of 2026-10-05
+# (`python3 scripts/check-quality-harness.py --reference-reads <corpus>`), never
+# computed by the code under test: a pin derived from the census would agree
+# with any census, including a broken one. The input transcripts are frozen
+# under FROZEN-EVIDENCE, so a disagreement here means the census moved, not the
+# evidence. Values are the census's own strings, not bools.
+_TEMPLATE_READ_CORPORA: tuple[tuple[str, dict[str, tuple[str, str]]], ...] = (
+    (
+        "tests/emission-stage-a-v9.14/raw",
+        {
+            "TB-01": ("ok", "true"),
+            "TB-02": ("ok", "true"),
+            "TB-03": ("ok", "true"),
+            "TB-04": ("ok", "true"),
+            "TB-05": ("ok", "true"),
+            "TB-06": ("ok", "true"),
+            "TB-07": ("ok", "true"),
+            "TB-08": ("never_dispatched", "n/a"),
+            "TB-09": ("ok", "true"),
+            "TB-10": ("ok", "true"),
+        },
+    ),
+    (
+        "tests/live-conformance-v9.0",
+        {
+            "PR-N1": ("ok", "false"),
+            "PR-N2": ("ok", "false"),
+            "PR-P1": ("ok", "false"),
+            "PR-P1-R2": ("ok", "false"),
+            "PR-P2": ("ok", "true"),
+            "Q-P1": ("ok", "false"),
+            "Q-P2": ("ok", "false"),
+            "Q-P3": ("ok", "false"),
+        },
+    ),
+)
+
+
+def template_read_reading() -> list[tuple[str, str, str, str]]:
+    """The census, re-read from the frozen transcripts through the seam.
+
+    Returns `(corpus, capture_id, capture_state, read_output_template)` per
+    discovered capture. Capture ids come from the harness's own discovery,
+    not from the pin, so an unexpected capture is seen rather than skipped.
+    """
+    rows: list[tuple[str, str, str, str]] = []
+    for corpus, _expected in _TEMPLATE_READ_CORPORA:
+        root = REPO_ROOT / corpus
+        if not root.is_dir():
+            continue
+        for cid in QH._reference_reads_capture_ids(root):
+            row = _TEMPLATE_READ_CENSUS(cid, root / f"{cid}.jsonl")
+            rows.append(
+                (corpus, cid, row["capture_state"], row["read_output_template"])
+            )
+    return rows
+
+
+def template_read_problems() -> list[str]:
+    """The pinned census reading still holds, capture by capture.
+
+    (a) The pin is non-vacuous: it carries an ok/true, an ok/false and a non-ok
+        capture, or no stubbed census could be told apart from the real one.
+    (b) Per corpus, the discovered capture ids equal the pinned ids. An absent
+        corpus directory is a problem, never a skip.
+    (c) Per capture, the observed (state, read_output_template) equals the pin.
+    """
+    problems: list[str] = []
+    expectations = [v for _c, exp in _TEMPLATE_READ_CORPORA for v in exp.values()]
+    if not (
+        ("ok", "true") in expectations
+        and ("ok", "false") in expectations
+        and any(state != "ok" for state, _read in expectations)
+    ):
+        problems.append(
+            "the pinned expectation lacks an ok/true, an ok/false or a non-ok "
+            "capture, so the pin cannot tell a stubbed census apart from the real one"
+        )
+
+    observed: dict[str, dict[str, tuple[str, str]]] = {}
+    for corpus, cid, state, read in template_read_reading():
+        observed.setdefault(corpus, {})[cid] = (state, read)
+
+    for corpus, expected in _TEMPLATE_READ_CORPORA:
+        if not (REPO_ROOT / corpus).is_dir():
+            problems.append(f"{corpus}: corpus directory is absent")
+            continue
+        seen = observed.get(corpus, {})
+        missing = sorted(set(expected) - set(seen))
+        extra = sorted(set(seen) - set(expected))
+        if missing:
+            problems.append(f"{corpus}: pinned but not discovered: {missing}")
+        if extra:
+            problems.append(f"{corpus}: discovered but not pinned: {extra}")
+        for cid in sorted(set(expected) & set(seen)):
+            if seen[cid] != expected[cid]:
+                problems.append(
+                    f"{corpus}/{cid}: expected {expected[cid]}, census reads {seen[cid]}"
+                )
+    return problems
+
+
 # --- the template-only tripwire (a falsifier, not a promise) ----------------
 
 # The roll-up form, as the four plan-time falsifiers F1-F3 match it: a
@@ -1544,6 +1678,8 @@ INJECTIONS: tuple[str, ...] = (
     "always-pass",
     "presence-is-agreement",
     "empty-ground-truths",
+    "census-always-true",
+    "census-no-reads",
 )
 
 
@@ -1574,10 +1710,32 @@ def _inject_empty_ground_truths(section3: str) -> list[GroundTruth]:
     return []
 
 
+def _inject_census_always_true(capture_id: str, jsonl_path: Path) -> dict:
+    """The census stubbed to report a dispatched run that read the template, always."""
+    return {
+        "capture_id": capture_id,
+        "capture_state": "ok",
+        "read_output_template": "true",
+    }
+
+
+def _inject_census_no_reads(capture_id: str, jsonl_path: Path) -> dict:
+    """The census stubbed to report no template read, ever."""
+    return {
+        "capture_id": capture_id,
+        "capture_state": "ok",
+        "read_output_template": "false",
+    }
+
+
 def _run_controls(injection: str | None) -> list[str]:
     """Run every control group, with `injection` (if any) active."""
-    global _SECTION3_PARSER, _CHECK2
-    saved_parser, saved_check2 = _SECTION3_PARSER, _CHECK2
+    global _SECTION3_PARSER, _CHECK2, _TEMPLATE_READ_CENSUS
+    saved_parser, saved_check2, saved_census = (
+        _SECTION3_PARSER,
+        _CHECK2,
+        _TEMPLATE_READ_CENSUS,
+    )
 
     if injection == "always-pass":
         _CHECK2 = _inject_always_pass
@@ -1585,12 +1743,17 @@ def _run_controls(injection: str | None) -> list[str]:
         _CHECK2 = _inject_presence_is_agreement
     elif injection == "empty-ground-truths":
         _SECTION3_PARSER = _inject_empty_ground_truths
+    elif injection == "census-always-true":
+        _TEMPLATE_READ_CENSUS = _inject_census_always_true
+    elif injection == "census-no-reads":
+        _TEMPLATE_READ_CENSUS = _inject_census_no_reads
     elif injection is not None:
         raise SystemExit(f"error: unknown injection {injection!r}; one of {INJECTIONS}")
 
     try:
         problems: list[str] = []
         problems += [f"[harness] {p}" for p in harness_surface_problems()]
+        problems += [f"[template-read] {p}" for p in template_read_problems()]
         problems += [f"[structure] {p}" for p in structure_problems()]
         problems += [f"[template-only] {p}" for p in template_only_problems()]
         problems += [f"[section3] {p}" for p in section3_parser_problems()]
@@ -1602,7 +1765,11 @@ def _run_controls(injection: str | None) -> list[str]:
         problems += [f"[exemplar] {p}" for p in exemplar_problems()]
         return problems
     finally:
-        _SECTION3_PARSER, _CHECK2 = saved_parser, saved_check2
+        _SECTION3_PARSER, _CHECK2, _TEMPLATE_READ_CENSUS = (
+            saved_parser,
+            saved_check2,
+            saved_census,
+        )
 
 
 def self_test(injection: str | None = None) -> int:
@@ -1627,7 +1794,9 @@ def self_test(injection: str | None = None) -> int:
 
     print(
         f"fixtures: {len(FIXTURES)}; injections: {len(INJECTIONS)}; "
-        f"template-only surfaces: {len(_TEMPLATE_ONLY_SURFACES)}"
+        f"template-only surfaces: {len(_TEMPLATE_ONLY_SURFACES)}; "
+        f"template-read captures: "
+        f"{sum(len(exp) for _c, exp in _TEMPLATE_READ_CORPORA)}"
     )
     if problems:
         for p in problems:
@@ -1690,6 +1859,7 @@ def describe() -> dict:
     lists they summarise.
     """
     control_ids = sorted([f.fid for f in FIXTURES] + list(INJECTIONS))
+    reading = template_read_reading()
     return {
         "control_ids": control_ids,
         "control_count": len(control_ids),
@@ -1719,6 +1889,11 @@ def describe() -> dict:
             # Publishing the number is what stops a vacuous PASS reading as a clean
             # bill of health; the day an exemplar grows a roll-up this moves off 0.
             "live_arm_rollup_subjects": _live_arm_subject_count(),
+            # The direct template-read census over the two pinned frozen corpora,
+            # re-read through the seam at call time and never typed here.
+            "template_read_captures": len(reading),
+            "template_read_dispatched": sum(1 for r in reading if r[2] == "ok"),
+            "template_read_true": sum(1 for r in reading if r[3] == "true"),
         },
         "disclosed_bounds_anchors": sorted(
             [
@@ -1731,6 +1906,7 @@ def describe() -> dict:
                 "unreadable-document-is-named-not-failed",
                 "chain-head-window-is-head-line-only",
                 "read-at-source-grammar-unprescribed",
+                "template-read-pinned-on-frozen-captures-only",
             ]
         ),
     }
