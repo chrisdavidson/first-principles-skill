@@ -48,7 +48,7 @@ use: 41 of the 73 audited lines that R6 prints carry it, against 30 in the templ
 
 | Reading | What it finds | Instrument |
 |---|---|---|
-| **Line format** | A line in section 3 that starts `?-marked:` and carries an `(N of M)` tail — the template's literal form | PROV-ROLLUP's locator, reproducible with `python3 scripts/check-provenance-rollup.py --emission-reading` |
+| **Line format** | A line in section 3 that starts `?-marked:`, after up to three spaces and an optional backtick — the template's literal form. The template's form also carries an `(N of M)` tail; the locator does not require one, but every one of the 30 lines it locates here carries it | PROV-ROLLUP's locator, reproducible with `python3 scripts/check-provenance-rollup.py --emission-reading` |
 | **Content** | An enumerated `?`-marked set with `(N of M)`, in section 3, in any glyph form or lead-in | A hand audit, listed capture by capture at the end of this page |
 
 The content reading covers the body's backticked form, `**Provenance summary:**` and
