@@ -154,6 +154,20 @@ Ruff lint and format checks (`uv run ruff check`, `uv run ruff format --check`) 
 convention and are not part of the battery or CI; see
 [DEVELOPMENT.md](DEVELOPMENT.md#lint-and-format-ruff).
 
+## Mutation probes and the bytecode cache
+
+CPython reuses a `__pycache__` entry when the source's mtime (whole seconds) and size
+match the ones the entry recorded. A same-size edit made within a second of the previous
+one, such as a mutate-run-restore probe swapping a digit, can therefore be served stale
+bytecode in either direction. The mutation can go unexecuted and the run report green, or a
+restored file can still be read as mutated. Turning off bytecode writes does not help on its
+own, because an existing stale entry is still read.
+
+The battery, both pre-commit hooks and `tests/conftest.py` turn writes off and redirect the
+cache to an empty per-run directory, and every child process they spawn inherits both
+settings. A probe that runs a single script by hand is not covered: export the same two
+variables first, exactly as the top of `scripts/check-firewall-battery.sh` does.
+
 ## See also
 
 - [docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory) — full gate inventory (canonical source)

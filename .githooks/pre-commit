@@ -29,6 +29,13 @@ set -eu
 
 cd "$(git rev-parse --show-toplevel)"
 
+# Read source, never a cached .pyc: a same-size edit within the same second can
+# be served stale bytecode (see scripts/check-firewall-battery.sh). Writes off
+# and the cache redirected to an empty per-run directory, children included.
+PYCACHE_DIR=$(mktemp -d "${TMPDIR:-/tmp}/fp-hook-pycache.XXXXXX")
+trap 'rm -rf "$PYCACHE_DIR"' EXIT
+export PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX="$PYCACHE_DIR"
+
 # --- Interpreter resolution --------------------------------------------------
 
 if command -v uv >/dev/null 2>&1; then
