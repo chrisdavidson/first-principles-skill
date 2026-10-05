@@ -10,38 +10,50 @@ end of section 3:
     ?-marked: GT-2, GT-5, GT-9, GT-14 (4 of 22)
     Read-at-source: GT-3 — 45 CFR 164.514(b)(2)(i), subsections (A)/(B)/(R) quoted verbatim
 
-That form is measured absent from `shared/spine/SKILL-body.md` and from every
-`shared/references/*.md`, and present in the template. The worked exemplars
-were deliberately removed from that roster in Phase 91 so that they can carry
-a conforming roll-up: an exemplar must show every required form. This tool
-looks for the form.
+That LINE FORMAT -- a `?-marked:` at line start with an `(N of M)` tail -- is
+measured absent from `shared/spine/SKILL-body.md` and from every
+`shared/references/*.md`, and present in the template. The roll-up's CONTENT
+is a different matter: the agent body prescribes it, mid-paragraph in its
+Phase 3 exit criterion, with a backtick between the `?` and `-marked`, and has
+done so since 8.17.0, before this tool existed. The worked exemplars were
+deliberately removed from that roster in Phase 91 so that they can carry a
+conforming roll-up: an exemplar must show every required form. This tool
+looks for the line format, and only the line format.
 
 Whether a run opened `output-template.md` at all is read directly from that
 run's transcript by the harness's `_reference_reads_census`, and control group
 `[template-read]` pins that reading capture by capture on two frozen corpora,
 `tests/emission-stage-a-v9.14/raw/` and `tests/live-conformance-v9.0/`. It is
 10 of the 17 captures that dispatched the agent, out of 18; TB-08 never
-dispatched it. Roll-up presence on the same 18 documents is 1
+dispatched it. Line-format presence on the same 18 documents is 1
 (`tests/live-conformance-v9.0/PR-P2.md`), which `--analysis` over those
-documents reproduces. Backlog 999.173's "twelve of fifteen" reading from quick
+documents reproduces. That is a line-format count, not a content count: the
+roll-up's content (an enumerated `?`-marked set with its count, in section 3)
+is present in every readable document of those corpora, as a hand-audited
+reading published outside this module. Backlog 999.173's "twelve of fifteen" reading from quick
 task `260924-tcv` cannot be re-taken, because its captures were not kept, and
 it is not carried forward.
 
 That claim is a factual claim about this tree, so it ships with a falsifier
 rather than with prose: `template_only_problems()` re-derives the remaining
 three counts above from the working tree on every `--self-test` and FAILS if
-any of them has moved. It is a deliberate tripwire, not an incidental control. If a
-later change prescribes the roll-up in the agent body, this checker stops
-measuring what it claims to measure, and the self-test must say so loudly
-instead of continuing to pass. That is exactly the mechanism that destroyed
+any of them has moved. It is a deliberate tripwire, not an incidental control,
+and it concerns the template's LINE FORMAT. If a later change writes that line
+format into the agent body or a companion reference, the self-test must say
+so loudly instead of continuing to pass. That is the mechanism that destroyed
 backlog 999.90: `**Confidence:**` and the unverified-input rule were both
 absorbed into `SKILL-body.md` after 999.90 nominated `**Confidence:**` as a
-template-only form, and its candidate silently stopped proving anything.
+template-only form, and its candidate silently stopped proving anything. The
+body's own prescription of the roll-up's CONTENT is known, predates this tool,
+and does not trip the line-start anchor, because it is written mid-paragraph.
+Phase 92 kept the agent-body and companion-reference rows of the tripwire
+anyway: they still assert a true fact about the line format, and they stop
+that fact drifting silently.
 
 **Nothing here prescribes the roll-up anywhere.** A detector reads output. This
 module adds not one word to `shared/`, to the agent body, or to any shipped
-surface, and its own `--self-test` fails if someone else prescribes it in the
-agent body or a companion reference.
+surface, and its own `--self-test` fails if someone else writes the
+template's line format into the agent body or a companion reference.
 
 Why this is not a presence check
 --------------------------------
@@ -61,9 +73,11 @@ cannot be satisfied by emitting the label, and it fails for a real reason.
 
 The checks, and which of them can fail
 --------------------------------------
-1. **Presence** -- is the roll-up emitted at all? **REPORT ONLY. Never fails,
-   on any input.** Emission rate is a K-of-N live reading (1 of 18 documents on
-   the two pinned corpora), and
+1. **Line-format presence** -- does the template's line format occur in
+   section 3? **REPORT ONLY. Never fails, on any input.** The rate it reports
+   is a line-format rate (1 of 18 documents on the two pinned corpora) and a
+   lower bound on content emission, since a roll-up written in another form is
+   not located (disclosed bound (g)). It is a K-of-N live reading, and
    `docs/v8.7-constraint-teardown.md` §2 item 3 bars a K-of-N live reading from
    gating anything -- measured on the S-P04 vector swinging 2/5 -> 0/5 -> 2/5
    with no source change between readings. The single exception is the
@@ -208,6 +222,24 @@ Disclosed bounds
     clean.** `_slice_sections` raises rather than returning a partial slice, and
     that exception is surfaced per document. An unreadable document fails no
     check -- it is counted and named.
+(g) **Presence reads the template's line format only.** The locator finds a
+    line-start `?-marked:` in section 3 and nothing else. It does not find the
+    agent body's own prescribed form, which puts a backtick between the `?` and
+    `-marked`; it does not find a `**Provenance summary:**` lead-in; and it
+    does not find a plain-language rewording (one frozen capture writes
+    `**Unverified (`?`) entries:**`). So the presence count is a LOWER BOUND
+    on content emission, never a measure of it. Widening the locator is
+    backlog 999.187, not this module's to decide; `_ROLLUP_MARKED_RE` is
+    unchanged.
+(h) **The line-format reading is pinned on frozen captures only.** Control
+    group `[line-format-pin]` re-reads every transcript-paired capture in ten
+    frozen corpora under `tests/` (a document is paired when `<stem>.jsonl`
+    sits beside it or in `../raw/`) and compares the captures that carry the
+    line format, the unreadable ones and the template-read cross-tab against
+    hand-transcribed sets. It pins this tool's behaviour on frozen bytes and
+    is not a live gate. The content figure is not pinned: a reviewable content
+    detector read all but one readable capture, and catching the last needs
+    free-text widening that bound (g) leaves to 999.187.
 
 Nothing in `check-quality-harness.py` is modified. Every function used from it
 is called: `_slice_sections`, `_chain_head_refs`, `_chain_ids`, `_chain_blocks`,
@@ -723,7 +755,7 @@ def read_document(name: str, text: str) -> DocReading:
 
 
 def render_report(readings: list[DocReading]) -> str:
-    """Render the reading. Presence is a rate; check 2 is a verdict."""
+    """Render the reading. Line-format presence is a rate; check 2 is a verdict."""
     out: list[str] = []
     readable = [r for r in readings if r.unreadable is None]
     present = [r for r in readable if r.present]
@@ -733,12 +765,15 @@ def render_report(readings: list[DocReading]) -> str:
     out.append("")
     out.append(
         f"documents: {len(readings)}; readable: {len(readable)}; "
-        f"roll-up present: {len(present)}; check-2 failures: {len(failing)}"
+        f"line-format roll-up present: {len(present)}; "
+        f"check-2 failures: {len(failing)}"
     )
     out.append("")
     out.append(
-        "Presence is REPORT-ONLY and fails nothing (emission rate is a K-of-N "
-        "live reading; docs/v8.7-constraint-teardown.md §2 item 3). Check 2 "
+        "Line-format presence is REPORT-ONLY and fails nothing: it reads the "
+        "template's line format only, so it is a lower bound on content "
+        "emission, and it is a K-of-N live reading "
+        "(docs/v8.7-constraint-teardown.md §2 item 3). Check 2 "
         "(enumeration agreement) is the failing check. Check 3 (read-at-source "
         "coverage) is REPORT-ONLY -- see the module docstring for the measured "
         "reason."
@@ -751,7 +786,10 @@ def render_report(readings: list[DocReading]) -> str:
             out.append(f"- unreadable: {r.unreadable}")
             out.append("")
             continue
-        out.append(f"- presence: {'PRESENT' if r.present else 'ABSENT'} (report-only)")
+        out.append(
+            f"- line-format presence: {'PRESENT' if r.present else 'ABSENT'} "
+            "(report-only)"
+        )
         out.append(
             f"- section 3: {r.population} ground truth(s), {r.marked} `?`-marked"
         )
@@ -1765,9 +1803,15 @@ _BODY_PATH = Path("shared/spine/SKILL-body.md")
 # transcripts. The exemplars must show every required form, so a row that
 # demands the roll-up be scarce among them cannot coexist with conforming
 # exemplars. The agent-body and companion-reference rows still guard 999.90's
-# trap (a form absorbed into the body stops being evidence of anything) and are
-# Phase 92's to revisit. `retirement_guard_problems()` fails if the exemplar row
-# is gone without its replacement, or if any of the three remaining rows goes.
+# trap (a form absorbed into the body stops being evidence of anything).
+#
+# 2026-10-05 (Phase 92, D-06): those two rows were kept. They count files
+# carrying the template's LINE FORMAT, not the roll-up's content. The agent
+# body has prescribed the content since 8.17.0, mid-paragraph in its Phase 3
+# exit criterion, and that prescription does not match the line-start anchor;
+# the rows still assert a true fact about the line format and stop it drifting
+# silently. `retirement_guard_problems()` fails if the exemplar row is gone
+# without its replacement, or if any of the three remaining rows goes.
 _TEMPLATE_ONLY_SURFACES: tuple[tuple[str, str, int], ...] = (
     ("the agent body", "shared/spine/SKILL-body.md", 0),
     ("the companion references", "shared/references/*.md", 0),
@@ -1802,7 +1846,9 @@ def template_only_problems() -> list[str]:
     Phase 3 exit criterion of `shared/spine/SKILL-body.md`, as a mid-line
     quotation this tripwire does not match. So 999.90's trap has already been
     sprung at the content level; this tripwire reads line form only, and Phase
-    92 owns whether that distinction still carries the 999.90 argument.
+    92 settled that it does: the rows stay, because the line-format claim is
+    still true and still worth a falsifier, and the body's mid-line content
+    prescription is known, predates this tool, and does not trip it.
     Whether a run read the template is no
     longer inferred from the form's scarcity: control group `[template-read]`
     reads it directly from the run's transcript. The worked exemplars are
@@ -1814,8 +1860,8 @@ def template_only_problems() -> list[str]:
     It is a deliberate tripwire. If a later change writes the roll-up's
     line-anchored form into the agent body -- the mechanism that destroyed backlog 999.90, where
     `**Confidence:**` and the unverified-input rule were both absorbed into
-    `SKILL-body.md` after 999.90 nominated `**Confidence:**` -- then this
-    checker stops measuring template reading, and the right outcome is a loud
+    `SKILL-body.md` after 999.90 nominated `**Confidence:**` -- then the line
+    format stops being template-only, and the right outcome is a loud
     failure here, not a quiet pass. Do not relax it to a warning; retire the
     checker instead, and say why.
     """
@@ -2231,7 +2277,7 @@ def _collect_inputs(args: argparse.Namespace) -> list[Path]:
 
 
 def _live_arm_subject_count() -> int:
-    """How many documents on the registered live arm actually carry a roll-up.
+    """How many documents on the registered live arm carry the roll-up's line format.
 
     Delegates to `_files_with_rollup`, this module's OWN locator, rather than
     re-scanning with a second regex. A first version of this helper did re-scan and
@@ -2241,7 +2287,9 @@ def _live_arm_subject_count() -> int:
     oversight"). Two grammars for one form is the defect this repository keeps
     paying for; there is one locator and this uses it.
 
-    Zero means check 2 -- the only failing check -- has nothing to check on that arm,
+    It counts the template's line format, as `_files_with_rollup` reads it,
+    not the roll-up's content. Zero means check 2 -- the only failing check --
+    has nothing to check on that arm,
     so its PASS is vacuous. That is published rather than hidden.
     """
     target = REPO_ROOT / "shared" / "examples"
@@ -2315,6 +2363,7 @@ def describe() -> dict:
                 "template-read-pinned-on-frozen-captures-only",
                 "exemplar-floor-gates-shipped-files-not-live-readings",
                 "line-format-pinned-on-frozen-captures-only",
+                "presence-reads-template-line-format-only",
             ]
         ),
     }
@@ -2324,7 +2373,8 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         description=(
             "Cross-check an analysis's provenance roll-up against its own section 3. "
-            "Presence and read-at-source coverage are report-only; enumeration "
+            "Line-format presence and read-at-source coverage are report-only; "
+            "enumeration "
             "agreement is the failing check. Registered as PROV-ROLLUP in the "
             "offline battery and in CI."
         )

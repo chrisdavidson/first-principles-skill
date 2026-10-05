@@ -660,9 +660,11 @@ gate "RETRACT-01" \
 #               alone; the checker shipped at 260924-prv registered nowhere,
 #               so its reading gated nothing and 999.176 could ship green.
 #               This is that registration residual.
-#               Check 1 (presence) and check 3 (read-at-source coverage) are
-#               report-only BY DESIGN and cannot fail — emission rate is a
-#               K-of-N live reading, which docs/v8.7-constraint-teardown.md
+#               Check 1 (line-format presence) and check 3 (read-at-source
+#               coverage) are report-only BY DESIGN and cannot fail. Check 1
+#               reads the template's line format only, so its rate is a lower
+#               bound on content emission, and it is a K-of-N live reading,
+#               which docs/v8.7-constraint-teardown.md
 #               §2 item 3 bars from gating anything. Check 2 is the failing
 #               check, and it is not a presence check: it compares the
 #               enumerated ids against the document's own section 3, so an
