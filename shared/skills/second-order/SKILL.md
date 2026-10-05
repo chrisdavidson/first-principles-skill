@@ -3,7 +3,7 @@ name: second-order
 description: Runs a focused second-order only — 2nd/3rd-order effects. Invoke via /second-order only.
 disable-model-invocation: true
 metadata:
-  version: "9.18.2"
+  version: "9.18.3"
 license: MIT
 ---
 # Focused Second-Order Mode

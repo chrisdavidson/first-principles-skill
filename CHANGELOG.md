@@ -13,6 +13,37 @@ installed session.
 
 ## [Unreleased]
 
+## [9.18.3] — 2026-10-04
+
+Patch release: **the `tests/` suite is green again.** At 9.18.2, `uv run pytest tests/` failed
+2 of 132 tests. Both failures were stale pins, not product defects. The shipped plugin is
+unchanged apart from its version stamps: no agent or skill body was edited.
+
+### Changed
+
+- `tests/test_65_doc_invariants.py` no longer requires `CLAUDE.md` to spell out
+  `--focused-p-threshold 4` / `--focused-n-threshold 1`. That prose was removed when
+  `CLAUDE.md` was condensed, and its presence never proved the value the battery applies. A new
+  `test_battery_focused_thresholds_default_4_1` reads the defaults directly from
+  `scripts/check-routing-battery.py`, from both its `--help` text and `build_parser()`. The
+  thresholds stay documented in `docs/MEASUREMENT-MAP.md`.
+- The battery-defaults tests load the script from a fresh compile of its source in a `-B`
+  child process. An in-process import could reuse a stale `scripts/__pycache__` entry, and a
+  mutation check read a 4 -> 3 edit back as the old value.
+- `test_battery_boundary_p_threshold_default_is_2` now reads its own flag's default. Before,
+  it matched a bare `default: 2`, which `--boundary-n-threshold` also prints, so a 2 -> 3
+  change to the boundary-p default still passed.
+
+### Fixed
+
+- `tests/test_70_step0_emulator_invariants.py` pins `KNOWN_TECHNIQUES` by its parsed value.
+  The 9.18.2 Ruff format pass wrapped the tuple one name per line, so the one-line text match
+  failed while the eight techniques were unchanged.
+
+Each pin was checked by mutation: changing any pinned default or technique name fails its own
+assertion. `tests/`: 132 passed. `tests/` is still run by hand only. It is not registered in
+CI or the battery.
+
 ## [9.18.2] — 2026-10-04
 
 Patch release: **Ruff for the Python tooling**. The validation scripts now share one pinned
