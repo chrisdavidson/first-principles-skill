@@ -87,7 +87,7 @@ fi
 if [ "${SKIP_DRIFT_CHECK:-0}" = "1" ]; then
     # Fast-path: run only self-tests (which verify generators are not broken),
     # skip drift checks (which fail when outputs naturally change).
-    printf "pre-commit: SKIP_DRIFT_CHECK=1 — skipping drift checks, running self-tests only\n" >&2
+    printf "pre-commit: SKIP_DRIFT_CHECK=1 — skipping the sync-drift check; generator self-tests still run (gen-gate-docs --self-test still compares claim surfaces)\n" >&2
 
     # Gate 2: conformance generator self-test
     $PY scripts/report-conformance.py --self-test || exit $?
@@ -98,7 +98,7 @@ else
     # Normal mode: run all gates (drift checks + self-tests)
 
     # --- Gate 1: sync-drift gate (preserved verbatim from prior version) --------
-    # Not exec'd -- four more gates follow, so its exit status is propagated
+    # Not exec'd -- two more gates follow, so its exit status is propagated
     # explicitly with "|| exit $?" rather than replacing the shell process with
     # it. A failing sync check must not be silently replaced by a passing
     # conformance check, or the reverse.
@@ -113,13 +113,14 @@ else
     # missing positive arm (CR-02) shipped able to hide the deletion of an entire
     # enforcement floor with --self-test and --check both green.
     #
-    # Ordered BEFORE --check on purpose: --check compares the committed baseline
-    # against a fresh run of this same generator, so a generator whose own controls
-    # are failing makes that comparison meaningless. Costs ~0.1s. Not exec'd --
-    # three more gates follow.
+    # --check no longer runs in this hook (Phase 89 D-01); it runs in the battery
+    # as inline CONF-DRIFT (Phase 90). Costs ~0.1s. Not exec'd -- one more gate
+    # follows.
     #
-    # Deliberately NOT registered in scripts/check-firewall-battery.sh; that
+    # This --self-test is deliberately NOT registered in
+    # scripts/check-firewall-battery.sh (only --check is, as CONF-DRIFT); that
     # decision, and why, is recorded in that file's header.
+    #
 
     $PY scripts/report-conformance.py --self-test || exit $?
 
