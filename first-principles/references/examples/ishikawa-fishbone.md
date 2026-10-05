@@ -177,6 +177,7 @@ GT-2 (11 of 23 churned accounts cite "felt unsupported") + GT-3 (CSM-to-account 
 → The "felt unsupported" signal maps onto the structurally uncovered account segment — the specific tier where no dedicated CSM exists; the ratio drift quantifies the structural cause, explaining why the signal concentrates in this tier rather than spreading uniformly
 → The CSM coverage gap is a verified contributor, supported by both qualitative exit data and quantitative capacity data.
 
+**Pre-check:** head GT-2, GT-3 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
 **Confidence:** HIGH
 
 ---
@@ -187,6 +188,7 @@ GT-3 (ratio drifted to 1:67, 68% above the 1:40 threshold) + GT-4 (ratios review
 → The ratio drifted 68% beyond its design threshold without correction — the predicted outcome of a review cadence too infrequent for the company's growth rate
 → Adding headcount alone without a recurring capacity review will reproduce the same gap at the next growth inflection; the structural fix is the review process, not a one-time hire.
 
+**Pre-check:** head GT-3, GT-4 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
 **Confidence:** HIGH
 
 ---
@@ -197,6 +199,7 @@ GT-1 (churn rose 124%) + GT-5? (productivity-outcome gap ~40% below demo benchma
 → The CSM coverage gap explains 11 of 23 churned accounts; 12 remain unaccounted for; the productivity-outcome gap is a plausible additional contributor — customers not achieving the promised outcome have a weaker economic case for renewal
 → The full causal picture is not yet established; remaining churned accounts likely represent a second causal cluster requiring further evidence gathering.
 
+**Pre-check:** head GT-1, GT-5? · ?-marked: GT-5? · lowest cited: none · Inputs ceiling: MEDIUM
 **Confidence:** MEDIUM — GT-5? is unverified (4 accounts). Raising to HIGH requires a
 statistically valid workflow-automation survey (minimum n=40 accounts).
 
@@ -274,6 +277,7 @@ higher-value-tier coverage; the quarterly capacity review makes that trade-off g
 Deferring the UI refresh accepts the risk that a second verified contributor emerges
 requiring longer-lead-time product investment.
 
+**Pre-check:** head C1 (HIGH), C2 (HIGH), C3 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
 **Confidence:** MEDIUM — Stage 1 is HIGH confidence (GT-1 through GT-4, all verified; chains C1 and C2).
 Overall is MEDIUM because the full causal picture depends on GT-5? (unverified). Raising
 to HIGH requires the Stage 2 productivity-outcome survey with a statistically valid sample.
@@ -493,7 +497,11 @@ Hand-wavy criteria).
   "conclusion": {
     "recommendation": "(chains C1, C2 and C3) Execute in two ordered stages.\n\nStage 1 — fix the verified structural cause (4–8 weeks): establish a quarterly CS capacity\nreview with a ratio trigger (CSM-to-account ratio exceeds 1:45 → coverage model reviewed\nbefore next quarter begins), addressing GT-4; reassign or add CSM coverage for the $18K–$25K\ntier to bring the ratio below the 1:40 design threshold (GT-3), addressing the verified\ncause of the \"felt unsupported\" signal (GT-2).\n\nStage 2 — verify remaining hypotheses (6–10 weeks) before any intervention commitment: run\na productivity-outcome survey (n=40 accounts) to test GT-5?; pull CRM data to test whether\ndecisions are made 90–120 days before expiry; segment adoption scores by churn outcome.\n\nDo not commit to a product overhaul, UI refresh, or all-8P programme until Stage 2 is done.",
     "confidence": "MEDIUM",
-    "rests_on": null
+    "rests_on": [
+      "C1",
+      "C2",
+      "C3"
+    ]
   }
 }
 ```

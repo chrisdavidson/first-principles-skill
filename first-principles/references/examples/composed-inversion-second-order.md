@@ -165,6 +165,7 @@ GT-1 (listings endpoint is the dominant Postgres read-QPS contributor at peak) +
 → A read-side cache placed in front of the dominant read contributor reduces the read-QPS the binding-constraint resource sees, because the upgrade's binding constraint is read-QPS on the same resource — the same axis the upgrade was scheduled to relieve
 → The defer-the-upgrade outcome therefore depends on whether the cache's steady-state hit rate is large enough to cross the named QPS-reduction threshold — exactly the unverified load-bearing input GT-5? names.
 
+**Pre-check:** head GT-1, GT-2, GT-5? · ?-marked: GT-5? · lowest cited: none · Inputs ceiling: MEDIUM
 **Confidence:** MEDIUM — the chain consumes GT-5? as a load-bearing input. Raising to HIGH
 requires running the scoped shadow-read simulation against the recorded production trace and
 confirming the measured steady-state hit rate clears the named threshold.
@@ -263,6 +264,7 @@ budget — not TTL-only — before the cache is taken as load-bearing for the up
 decision. If either acceptance criterion fails, execute the scheduled Postgres upgrade as
 originally planned.
 
+**Pre-check:** head C1 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
 **Confidence:** MEDIUM — matches the weakest link, chain C1, which consumes GT-5? as a
 load-bearing input. Raising to HIGH requires GT-5? resolved and the staleness-budget
 acceptance criterion documented and signed off by the team owning downstream consumers.
@@ -461,7 +463,9 @@ No criterion is at Hand-wavy or Absent. Gate cleared; hand-wavy cap cleared.
   "conclusion": {
     "recommendation": "Approve the two-engineer-week cache rollout (chain C1) conditional\non (a) running the scoped shadow-read simulation to resolve GT-5? and confirming the\nmeasured steady-state hit rate clears the named threshold, and (b) committing to\nevent-driven invalidation against the existing event bus (GT-4) with a documented staleness\nbudget — not TTL-only — before the cache is taken as load-bearing for the upgrade-deferral\ndecision. If either acceptance criterion fails, execute the scheduled Postgres upgrade as\noriginally planned.",
     "confidence": "MEDIUM",
-    "rests_on": null
+    "rests_on": [
+      "C1"
+    ]
   }
 }
 ```
