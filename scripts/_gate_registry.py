@@ -1196,6 +1196,117 @@ def _registry_precommit_ids() -> frozenset[str]:
 
 
 # ---------------------------------------------------------------------------
+# Inline-label floor (90-REVIEW AP-WR-01, backlog 999.38's recurrence guard).
+#
+# `_registry_precommit_ids()` removes every `_INLINE_MECHANISM` id from the
+# D-01 comparison by construction, so before this floor nothing checked that
+# the battery actually runs an inline check the registry says it runs. That
+# was 999.38's defect: the registry claimed "battery" for a conformance-drift
+# check the battery did not contain. This floor compares, by set equality,
+# the registry's inline ids against the inline labels the battery prints
+# with a LITERAL id (a `gate()`-helper label prints `"$gate_id"`, which this
+# pattern skips), and requires each inline id to carry both a `[PASS]` and a
+# `[FAIL]` arm. It also requires the battery's column-0
+# `TOTAL=$((TOTAL + 1))` increments (inline checks increment at top level;
+# the `gate()` helpers increment indented, inside their function bodies) to
+# number exactly as many as the inline ids, so a label left behind after its
+# tally increment was deleted still fails.
+# ---------------------------------------------------------------------------
+
+_INLINE_LABEL_RE = re.compile(
+    r'^[ \t]*printf[ \t]+"\[(PASS|FAIL)\][^"]*"[ \t]+"([^"$]+)"', re.MULTILINE
+)
+_TOPLEVEL_TALLY_RE = re.compile(r"^TOTAL=\$\(\(TOTAL \+ 1\)\)[ \t]*$", re.MULTILINE)
+
+
+def inline_label_problems(
+    registry_inline_ids: frozenset[str], battery_src: str
+) -> list[str]:
+    """Pure: registry inline ids vs the battery's literal-id inline labels.
+
+    Reports, in one run: an inline id the registry names but the battery
+    never labels (`inline missing=`), a literal-id label the battery prints
+    with no inline registry entry (`inline extra=`), an id with only one of
+    its PASS/FAIL arms (`inline one-arm=`), and a column-0 tally count that
+    differs from the inline-id count (`inline tally=`).
+    """
+    arms: dict[str, set[str]] = {}
+    for verdict, label in _INLINE_LABEL_RE.findall(battery_src):
+        arms.setdefault(label, set()).add(verdict)
+    labelled = frozenset(arms)
+    problems: list[str] = []
+    missing = registry_inline_ids - labelled
+    extra = labelled - registry_inline_ids
+    one_arm = sorted(
+        label for label, verdicts in arms.items() if verdicts != {"PASS", "FAIL"}
+    )
+    if missing:
+        problems.append(
+            "inline missing=: registry names inline battery check(s) the "
+            f"battery never labels: {sorted(missing)}"
+        )
+    if extra:
+        problems.append(
+            "inline extra=: battery labels inline check(s) with no "
+            f"`{_INLINE_MECHANISM}` registry entry: {sorted(extra)}"
+        )
+    if one_arm:
+        problems.append(
+            f"inline one-arm=: inline label(s) lacking a [PASS] or [FAIL] arm: {one_arm}"
+        )
+    tallies = len(_TOPLEVEL_TALLY_RE.findall(battery_src))
+    if tallies != len(registry_inline_ids):
+        problems.append(
+            f"inline tally=: battery has {tallies} top-level TOTAL increment(s) "
+            f"but the registry names {len(registry_inline_ids)} inline check(s)"
+        )
+    return problems
+
+
+def _registry_inline_ids() -> frozenset[str]:
+    """Every registry entry whose mechanism is `_INLINE_MECHANISM`."""
+    return frozenset(
+        e.gate_id
+        for e in ENTRIES
+        if e.mechanism == _INLINE_MECHANISM and e.gate_id is not None
+    )
+
+
+_TALLY_LINE = "TOTAL=$((TOTAL + 1))\n"
+
+
+def _strip_inline_labels_only(battery_src: str, label: str) -> str:
+    """Remove every `[PASS]`/`[FAIL]` printf line labelling `label`, with
+    its backslash-continued message line(s)."""
+    label_re = re.compile(
+        rf'^[ \t]*printf[ \t]+"\[(?:PASS|FAIL)\][^"]*"[ \t]+"{re.escape(label)}"'
+    )
+    out: list[str] = []
+    skip_next = False
+    for line in battery_src.splitlines(keepends=True):
+        if skip_next:
+            skip_next = line.rstrip().endswith("\\")
+            continue
+        if label_re.match(line):
+            skip_next = line.rstrip().endswith("\\")
+            continue
+        out.append(line)
+    return "".join(out)
+
+
+def _strip_inline_block(battery_src: str, label: str) -> str:
+    """Synthetic deletion of one inline battery block, for the must-fail
+    control: drops the column-0 tally increment nearest before the block's
+    first label, then every printf line labelling it."""
+    first = battery_src.find(f'"{label}"')
+    assert first != -1, f"label {label!r} not present in battery source"
+    idx = battery_src.rfind("\n" + _TALLY_LINE, 0, first)
+    assert idx != -1, f"no top-level tally increment precedes {label!r}"
+    without_tally = battery_src[: idx + 1] + battery_src[idx + 1 + len(_TALLY_LINE) :]
+    return _strip_inline_labels_only(without_tally, label)
+
+
+# ---------------------------------------------------------------------------
 # CR-04: pre-commit hook-roster floor — derives the five `PRECOMMIT:` rows'
 # `run_command` set from both hook scripts' own source text, rather than
 # trusting the registry to have transcribed them correctly.
@@ -1624,6 +1735,71 @@ def _control_d01_live_battery_equality() -> None:
     assert problems == [], problems
 
 
+def _control_inline_label_live_equality() -> None:
+    """AP-WR-01 positive arm: every `_INLINE_MECHANISM` registry entry has a
+    PASS and a FAIL label in the real battery, the battery labels no inline
+    check the registry lacks, and the column-0 tally count agrees."""
+    battery_src = BATTERY_PATH.read_text(encoding="utf-8")
+    inline_ids = _registry_inline_ids()
+    assert "CONF-DRIFT" in inline_ids, sorted(inline_ids)
+    problems = inline_label_problems(inline_ids, battery_src)
+    assert problems == [], problems
+
+
+def _control_inline_label_block_deleted_fires() -> None:
+    """AP-WR-01 must-fail arm, over the REAL battery text: deleting the
+    CONF-DRIFT block (its labels and its tally increment) -- 999.38's exact
+    "registry says battery, battery runs nothing" state -- must fail, naming
+    CONF-DRIFT, for the missing label and the short tally and nothing else."""
+    battery_src = BATTERY_PATH.read_text(encoding="utf-8")
+    mutated = _strip_inline_block(battery_src, "CONF-DRIFT")
+    assert mutated != battery_src, "mutation removed nothing"
+    assert '"CONF-DRIFT"' not in mutated, "CONF-DRIFT label survived the mutation"
+    problems = inline_label_problems(_registry_inline_ids(), mutated)
+    assert len(problems) == 2, problems
+    assert problems[0].startswith("inline missing=") and "CONF-DRIFT" in problems[0], problems
+    assert problems[1].startswith("inline tally="), problems
+
+
+def _control_inline_label_tally_deleted_fires() -> None:
+    """A label left behind after its tally increment is deleted still fails:
+    only the column-0 increment before CONF-DRIFT is removed."""
+    battery_src = BATTERY_PATH.read_text(encoding="utf-8")
+    first = battery_src.find('"CONF-DRIFT"')
+    idx = battery_src.rfind("\n" + _TALLY_LINE, 0, first)
+    assert idx != -1, "no top-level tally increment precedes CONF-DRIFT"
+    mutated = battery_src[: idx + 1] + battery_src[idx + 1 + len(_TALLY_LINE) :]
+    problems = inline_label_problems(_registry_inline_ids(), mutated)
+    assert len(problems) == 1 and problems[0].startswith("inline tally="), problems
+
+
+def _control_inline_label_extra_and_one_arm_fire() -> None:
+    """Synthetic battery: a literal-id label the registry lacks, printed on
+    one arm only, fires `extra=` and `one-arm=`; a `gate()`-helper label
+    (`"$gate_id"`) is never read as an inline label."""
+    battery_src = (
+        'gate() {\n'
+        '    TOTAL=$((TOTAL + 1))\n'
+        '    printf "[PASS] %-14s  %s\\n" "$gate_id" "$display_cmd"\n'
+        '}\n'
+        'TOTAL=$((TOTAL + 1))\n'
+        'printf "[PASS] %-14s  %s\\n" "REAL" "x"\n'
+        'printf "[FAIL] %-14s  %s\\n" "REAL" "x"\n'
+        'TOTAL=$((TOTAL + 1))\n'
+        'printf "[PASS] %-14s  %s\\n" "ROGUE" "x"\n'
+    )
+    problems = inline_label_problems(frozenset({"REAL"}), battery_src)
+    assert len(problems) == 3, problems
+    assert problems[0].startswith("inline extra=") and "ROGUE" in problems[0], problems
+    assert problems[1].startswith("inline one-arm=") and "ROGUE" in problems[1], problems
+    assert problems[2].startswith("inline tally="), problems
+    clean = inline_label_problems(frozenset({"REAL", "ROGUE"}), battery_src.replace(
+        'printf "[PASS] %-14s  %s\\n" "ROGUE" "x"\n',
+        'printf "[PASS] %-14s  %s\\n" "ROGUE" "x"\nprintf "[FAIL] %-14s  %s\\n" "ROGUE" "x"\n',
+    ))
+    assert clean == [], clean
+
+
 def _control_cr04_hook_roster_live_positive() -> None:
     """CR-04's positive arm, over the REAL hook text: both hook scripts
     derive exactly five invocations each, the two sequences agree, and they
@@ -1993,6 +2169,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("d01-gate-prereq-recognised", _control_d01_gate_prereq_recognised),
     ("d01-precommit-excluded", _control_d01_precommit_excluded),
     ("d01-live-battery-equality", _control_d01_live_battery_equality),
+    ("inline-label-live-equality", _control_inline_label_live_equality),
+    ("inline-label-block-deleted-fires", _control_inline_label_block_deleted_fires),
+    ("inline-label-tally-deleted-fires", _control_inline_label_tally_deleted_fires),
+    ("inline-label-extra-and-one-arm-fire", _control_inline_label_extra_and_one_arm_fire),
     ("cr04-hook-roster-live-positive", _control_cr04_hook_roster_live_positive),
     ("cr04-hook-roster-missing-fires", _control_cr04_hook_roster_missing_fires),
     ("cr04-hook-roster-extra-fires", _control_cr04_hook_roster_extra_fires),
@@ -2026,6 +2206,10 @@ _CONTROL_IDS: tuple[str, ...] = (
     "d01-gate-prereq-recognised",
     "d01-precommit-excluded",
     "d01-live-battery-equality",
+    "inline-label-live-equality",
+    "inline-label-block-deleted-fires",
+    "inline-label-tally-deleted-fires",
+    "inline-label-extra-and-one-arm-fire",
     "cr04-hook-roster-live-positive",
     "cr04-hook-roster-missing-fires",
     "cr04-hook-roster-extra-fires",
