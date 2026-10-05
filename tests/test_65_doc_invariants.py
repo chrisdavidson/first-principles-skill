@@ -21,6 +21,8 @@ Run from repo root:
 
 from __future__ import annotations
 
+import importlib.util
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -194,22 +196,6 @@ def test_claude_md_mentions_fu21() -> None:
     assert "FU-21" in text, "CLAUDE.md does not mention FU-21"
 
 
-def test_claude_md_documents_namespaced_focused_thresholds() -> None:
-    """CLAUDE.md must document the focused-output thresholds as 4 / 1.
-
-    Was: '--p-threshold 4 --n-threshold 1' appearing exactly twice — the
-    un-namespaced flags of the retired check-focused-output.py shim. The
-    threshold values are the invariant; the flag spelling was the shim's.
-    """
-    text = CLAUDE_MD.read_text(encoding="utf-8")
-    assert "--focused-p-threshold 4" in text, (
-        "CLAUDE.md does not document --focused-p-threshold 4"
-    )
-    assert "--focused-n-threshold 1" in text, (
-        "CLAUDE.md does not document --focused-n-threshold 1"
-    )
-
-
 def test_claude_md_has_zero_p_threshold_0() -> None:
     """CLAUDE.md must contain zero occurrences of '--p-threshold 0'."""
     text = CLAUDE_MD.read_text(encoding="utf-8")
@@ -319,6 +305,41 @@ def test_battery_boundary_p_threshold_default_is_2() -> None:
     assert "default: 2" in output or "default=2" in output, (
         f"--help does not show a default of 2; got:\n{output}"
     )
+
+
+def test_battery_focused_thresholds_default_4_1() -> None:
+    """check-routing-battery.py must default the focused thresholds to P>=4, N>=1.
+
+    The retired check-focused-output.py shim owned these as --p-threshold 4
+    --n-threshold 1; the merged battery carries them forward under namespaced
+    flags. Both the --help text and the parser's real defaults are read: the
+    help string types its default by hand, so it alone could disagree with
+    the value argparse actually applies.
+    """
+    result = subprocess.run(
+        [sys.executable, str(CHECK_BATTERY), "--help"],
+        capture_output=True,
+        text=True,
+        timeout=15,
+        check=False,
+    )
+    output = " ".join((result.stdout + result.stderr).split())
+    for flag, value in (("--focused-p-threshold", 4), ("--focused-n-threshold", 1)):
+        match = re.search(rf"{re.escape(flag)} [A-Z_]+ .*?\(default: (\d+)", output)
+        assert match, f"--help does not document a default for {flag}; got:\n{output}"
+        assert int(match.group(1)) == value, (
+            f"--help shows {flag} default {match.group(1)}, expected {value}"
+        )
+
+    spec = importlib.util.spec_from_file_location(
+        "check_routing_battery", CHECK_BATTERY
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    parser = module.build_parser()
+    for dest, value in (("focused_p_threshold", 4), ("focused_n_threshold", 1)):
+        actual = parser.get_default(dest)
+        assert actual == value, f"parser default {dest} is {actual}, expected {value}"
 
 
 def test_battery_source_has_no_p_threshold_0() -> None:
