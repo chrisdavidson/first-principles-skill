@@ -3,7 +3,7 @@ name: inversion
 description: Runs a focused inversion only — enumerates failure preconditions. Invoke via /inversion only.
 disable-model-invocation: true
 metadata:
-  version: "9.18.4"
+  version: "9.19.0"
 license: MIT
 ---
 <!-- DO NOT EDIT — generated from shared/skills/inversion/SKILL.md by sync-content.py -->

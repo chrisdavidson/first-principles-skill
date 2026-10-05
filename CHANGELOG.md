@@ -13,6 +13,65 @@ installed session.
 
 ## [Unreleased]
 
+## [9.19.0] — 2026-10-05
+
+Minor release: **every worked example now models the provenance roll-up and the pre-check
+line, and both are checked.** It closes backlog items 999.38, 999.179, 999.180 and 999.181
+(Phases 90-93). No agent or skill body was edited. The shipped change is in the worked
+examples under `references/examples/`.
+
+### Changed — worked examples (shipped)
+
+- All 14 worked examples now end §3 with the provenance roll-up the output template marks
+  "(required)". It enumerates the `?`-marked ground truths with `(N of M)` and gives a
+  `Read-at-source:` location for every unsuffixed ground truth feeding a HIGH chain. Where a
+  location is a hand-off or an illustrative figure rather than a quoted read, the line says so in
+  the entry's own words. Before this release, no example had one.
+- Every `**Confidence:**` line in every example now has a `**Pre-check:**` (45 pre-checks, previously 6)
+  line directly above it, covering head ids in head-line order, the `?`-marked set, lowest cited,
+  and inputs ceiling. No confidence band changed: every Confidence line and summary-block
+  `"confidence"` value is byte-identical to before the sweep.
+- Three heads now name the input their own confidence line already relied on:
+  software-systems-2 C1 (GT-7?), self-application C3 (C1) and the decompose-irreducibility §6
+  head (GT-7?, GT-8?). The §6 heads of personal-general, software-systems and product-business
+  now list every chain their Conclusion rests on. Each summary block's `rests_on` matches.
+- estimate-fermi's two existing pre-checks no longer have a blank line before their Confidence
+  line.
+- software-systems-2: C2 no longer names GT-7? as a downgrade cause, because the chain rules it
+  out. C1, which does consume it, now names it (999.177).
+
+### Added — checks
+
+- **SUMM-BLOCK pre-check comparator.** It checks each pre-check directly above a Confidence line
+  against its chain's head line, with eight `SB-PRECHECK-*` finding codes. A missing pre-check
+  fails in exemplar mode and is never gated on live documents. No new battery slot.
+- **PROV-ROLLUP** changes:
+  - It pins a direct reading of whether each of 18 frozen captures opened the output template,
+    taken from the run transcript, plus a frozen-capture line-format reading over 77 paired
+    captures.
+  - It fails if any shipped example lacks a conforming roll-up.
+  - The exemplar row of the template-only tripwire is retired. The agent-body and references
+    rows stay.
+- **CONF-DRIFT.** `report-conformance.py --check` runs in the offline battery as an inline
+  check. Phase 89 had removed it from pre-commit without adding it anywhere else, so it had been
+  running nowhere. The battery tally moves from 32 to 33.
+
+### Fixed — published claims
+
+- `docs/conformance-baseline.md` Disclosed Bound #5 said the drift check fails only on
+  staleness and never on a lost catch. It also fails, regardless of regeneration, when the adversarial-corpus
+  caught set moves or a corpus or live floor breaks. The false text is barred by RETRACT-01.
+- Pre-commit documentation across `CLAUDE.md`, `README.md` and `docs/` now names the three
+  gates the hooks run. Claim-surface drift still blocks at commit time. Conformance drift
+  runs only in the battery.
+- New page `docs/rollup-emission-reading.md` corrects backlog 999.181, which held that no agent
+  run emits the roll-up. Agents emit the `?`-marked enumeration with its count in 73 of 73
+  readable frozen captures, mostly in the agent body's backticked form. The template's exact
+  line format appears in 30 of 77. The read-at-source half of the requirement was not audited,
+  and the page says so.
+
+`FIREWALL: GREEN (33/33)`; VERSION-01 green on every stamp.
+
 ## [9.18.4] — 2026-10-05
 
 Patch release: **the check runners read source, never a stale bytecode cache.** The shipped
