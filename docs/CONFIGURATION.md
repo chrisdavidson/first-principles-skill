@@ -155,13 +155,16 @@ where the two disagree, `CLAUDE.md` wins. In order, the hooks run:
 - the **sync-drift gate** (`scripts/sync-content.py --check`), which blocks the commit if
   `shared/` and the generated tree have diverged;
 - the **conformance generator self-test** (`scripts/report-conformance.py --self-test`);
-- the **conformance-baseline drift gate** (`scripts/report-conformance.py --check`), which blocks
-  the commit if `docs/conformance-baseline.md` or `docs/data/conformance.json` no longer match a
-  fresh run. It fails on staleness of the committed baseline only, never on a conformance count
-  being too high, and is deliberately not registered in the offline battery or in CI (D-06);
-- the **claim-surface generator self-test** (`scripts/gen-gate-docs.py --self-test`);
-- the **claim-surface drift gate** (`scripts/gen-gate-docs.py --check`), the same check as
-  CONF-SURFACE.
+- the **claim-surface generator self-test** (`scripts/gen-gate-docs.py --self-test`).
+
+Since Phase 89 neither drift check fires at commit time; both run in the offline battery
+(`bash scripts/check-firewall-battery.sh`). The conformance-baseline drift check
+(`scripts/report-conformance.py --check`) runs as the inline check CONF-DRIFT: it fails when
+`docs/conformance-baseline.md` or `docs/data/conformance.json` no longer match a fresh run and,
+regardless of regeneration, on `TARGET CAUGHT-SET DRIFT` against `_CORPUS_TARGET_CAUGHT_LOCK` and on
+the corpus and live-conformance floors — never on a conformance count being high. It has no CI
+job. The claim-surface drift check (`scripts/gen-gate-docs.py --check`) runs as CONF-SURFACE,
+which is also a CI job.
 
 A body-budget gate used to run alongside these, blocking a commit that grew the
 generated agent body past a line-count budget. It was retired under TEARDOWN-01

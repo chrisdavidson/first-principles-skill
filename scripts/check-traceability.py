@@ -6690,7 +6690,7 @@ def _rows_v9() -> list[MatrixRow]:
                 "`shared/spine/references/output-template.md`, **naming files the detector "
                 "cannot read rather than skipping them**"
             ),
-            rerun_by="pre-commit-only",
+            rerun_by="battery-only",
         ),
         MatrixRow(
             "v9.0/CONF-02",
@@ -6708,7 +6708,7 @@ def _rows_v9() -> list[MatrixRow]:
                 "committed artifacts byte for byte and exits 1 on drift; it states no target, "
                 "blocks no gate, and its numbers are dated — a measurement, not a contract"
             ),
-            rerun_by="pre-commit-only",
+            rerun_by="battery-only",
         ),
         MatrixRow(
             "v9.0/CONF-03",
@@ -6822,7 +6822,7 @@ def _rows_v9() -> list[MatrixRow]:
                 "disposition — fix, accept-with-reason, or defer-with-owner. **Zero silent "
                 "passes.**"
             ),
-            rerun_by="pre-commit-only",
+            rerun_by="battery-only",
         ),
         MatrixRow(
             "v9.0/CONF-09",
@@ -6839,7 +6839,7 @@ def _rows_v9() -> list[MatrixRow]:
                 "fixture set, with each capture's full `detect_defects` reading committed under "
                 "`tests/live-conformance-v9.0/`"
             ),
-            rerun_by="pre-commit-only",
+            rerun_by="battery-only",
         ),
         MatrixRow(
             "v9.0/CONF-10",
@@ -6859,7 +6859,7 @@ def _rows_v9() -> list[MatrixRow]:
                 "Every defect the live runs expose is filed against the **artifact or the "
                 "prescription**, never closed by widening a detector"
             ),
-            rerun_by="pre-commit-only",
+            rerun_by="battery-only",
         ),
         MatrixRow(
             "v9.0/CONF-11",

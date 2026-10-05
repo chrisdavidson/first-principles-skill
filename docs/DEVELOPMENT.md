@@ -184,25 +184,27 @@ Run these locally before pushing. For the full CI gate inventory (every gate map
 
 ## Pre-commit hooks
 
-**Five** gates fire on `git commit`, in this order — both `.githooks/pre-commit` and
-`scripts/git-hooks/pre-commit` run the same five. `CLAUDE.md`'s `### Pre-commit gates` section
-holds the per-gate detail; this list exists so the count here cannot drift from it again:
+These gates fire on `git commit`, in this order — both `.githooks/pre-commit` and
+`scripts/git-hooks/pre-commit` run the same gates (the count is in the generated
+population-arithmetic sentence in `CLAUDE.md` and `docs/ARCHITECTURE.md`). `CLAUDE.md`'s
+`### Pre-commit gates` section holds the per-gate detail:
 
 1. **sync-drift gate** (`scripts/sync-content.py --check`) — blocks if `shared/` and the generated
    tree have diverged.
 2. **conformance generator self-test** (`scripts/report-conformance.py --self-test`) — the
-   generator's own falsifiability controls, run *before* gate 3 compares its output to anything
-   (WR-05 ordering: a generator whose controls are failing makes that comparison meaningless).
-3. **conformance-baseline drift gate** (`scripts/report-conformance.py --check`) — blocks if
-   `docs/conformance-baseline.md` or `docs/data/conformance.json` no longer match a fresh run.
-   It fails on staleness of the committed baseline only, never on a conformance count being too
-   high, and is deliberately absent from the battery and from CI (D-06).
-4. **claim-surface generator self-test** (`scripts/gen-gate-docs.py --self-test`) — same WR-05
-   ordering discipline as gate 2, ahead of gate 5's comparison.
-5. **claim-surface drift gate** (`scripts/gen-gate-docs.py --check`, CONF-SURFACE) — blocks if the
-   generated gate tables in `CLAUDE.md` / `docs/ARCHITECTURE.md`, `docs/TESTING.md`'s generated
-   index, or any `docs/gates/<ID>.md` page no longer match a fresh `--write` run. Unlike gates 2-3,
-   CONF-SURFACE is *also* a battery gate and a CI job.
+   generator's own falsifiability controls (WR-05 ordering: a generator whose controls are
+   failing makes any comparison of its output meaningless).
+3. **claim-surface generator self-test** (`scripts/gen-gate-docs.py --self-test`) — same WR-05
+   discipline as gate 2.
+
+The two drift checks no longer fire at commit time (Phase 89); both run in the offline battery.
+The conformance-baseline drift check (`scripts/report-conformance.py --check`) is the inline
+battery check CONF-DRIFT, with no CI job: it fails if `docs/conformance-baseline.md` or
+`docs/data/conformance.json` no longer match a fresh run, and, regardless of regeneration, on
+`TARGET CAUGHT-SET DRIFT` or a corpus or live-conformance floor. The claim-surface drift check
+(`scripts/gen-gate-docs.py --check`) is CONF-SURFACE, a battery gate and a CI job: it fails if the
+generated gate tables in `CLAUDE.md` / `docs/ARCHITECTURE.md`, `docs/TESTING.md`'s generated
+index, or any `docs/gates/<ID>.md` page no longer match a fresh `--write` run.
 
 Install either hook mechanism — **never both**, they are mutually exclusive at the Git level:
 
