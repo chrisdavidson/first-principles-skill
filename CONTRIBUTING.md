@@ -58,7 +58,7 @@ Install the hook so sync drift is caught before you push:
 ./scripts/install-hooks.sh
 ```
 
-Five gates fire on `git commit`, in a fixed order, mirrored identically across
+The pre-commit gates fire on `git commit`, in a fixed order, mirrored identically across
 `.githooks/pre-commit` and `scripts/git-hooks/pre-commit`. See
 [CLAUDE.md](CLAUDE.md#pre-commit-gates)'s `### Pre-commit gates` section and
 [docs/CONFIGURATION.md](docs/CONFIGURATION.md#pre-commit-hooks) for the enumeration — the list is

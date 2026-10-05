@@ -137,7 +137,7 @@ The narrower question, *does a gate resolve the file itself?*, is yes for exactl
 | [GETTING-STARTED.md](GETTING-STARTED.md) | Install the plugin, invoke the agent and the slash-invocable skills (thirteen companions, the launcher, and the persona reader-view companion) |
 | [METHODOLOGY-CHEATSHEET.md](METHODOLOGY-CHEATSHEET.md) | One-page quick reference: the 5-phase flow, named artifacts, assumption types, derivation-chain format, and all thirteen companion/focused skills with slash commands |
 | [PROCESS.md](PROCESS.md) | The project's stopping rule: the depth rule (a guard guards the product; a guard is not itself guarded), the product/apparatus review split, and the rework cap with its append-only exception ledger |
-| [TESTING.md](TESTING.md) | How to run every CI gate and the five pre-commit gates — VAL/DUAL/GATE/STEP0/BATT/TRACE matrix, each mapped to its script |
+| [TESTING.md](TESTING.md) | How to run every CI gate and the pre-commit gates — VAL/DUAL/GATE/STEP0/BATT/TRACE matrix, each mapped to its script |
 | [testing-agents-headlessly.md](testing-agents-headlessly.md) | Headless testing: routing battery, two-layer Step 0 harness, `stream-json` capture |
 
 ## System-connection docs

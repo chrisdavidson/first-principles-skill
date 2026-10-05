@@ -69,7 +69,7 @@ Routing outcomes vary between sessions, plugin sets, and Claude routing-model ve
 
 ## Pre-commit gates
 
-Five gates fire on every `git commit` when a hook mechanism is installed — the sync-drift gate, the conformance generator self-test, the conformance-baseline drift gate, the claim-surface generator self-test, and the claim-surface drift gate. Both `.githooks/pre-commit` and `scripts/git-hooks/pre-commit` run the same five, in the same order — see `CLAUDE.md`'s `### Pre-commit gates` section for the full per-gate detail. For how to install the hook, see [docs/DEVELOPMENT.md](DEVELOPMENT.md).
+These gates fire on every `git commit` when a hook mechanism is installed — the sync-drift gate, the conformance generator self-test, and the claim-surface generator self-test. Both `.githooks/pre-commit` and `scripts/git-hooks/pre-commit` run the same gates, in the same order — see `CLAUDE.md`'s `### Pre-commit gates` section for the full per-gate detail. For how to install the hook, see [docs/DEVELOPMENT.md](DEVELOPMENT.md). The conformance-baseline drift check and the claim-surface drift check no longer fire at commit time: Phase 89 (D-01, D-02) moved them out of the hooks, and they run in the offline battery — the conformance-baseline drift check as inline check CONF-DRIFT (registered at Phase 90), the claim-surface drift check as CONF-SURFACE, which is also a CI job.
 
 ### Agent body size (not a gate)
 
@@ -97,20 +97,16 @@ python3 scripts/sync-content.py --write    # fix drift (regenerate)
 
 **Owning script:** `scripts/report-conformance.py --check`
 
-Blocks the commit if `docs/conformance-baseline.md` or `docs/data/conformance.json` no longer match a fresh `report-conformance.py` run. Unlike the sync-drift gate above, this gate has **no CI counterpart and no battery id** — by decision D-06 it is deliberately absent from both `scripts/check-firewall-battery.sh` and `.github/workflows/validation.yml`, so it fires only at commit time. It fails on staleness of the committed baseline, never on a conformance count being too high — no count in that baseline gates anything.
+Runs in the offline battery (`bash scripts/check-firewall-battery.sh`) as the inline check CONF-DRIFT. It has no CI job, and since Phase 89 no pre-commit hook runs it. It fails when `docs/conformance-baseline.md` or `docs/data/conformance.json` no longer match a fresh `report-conformance.py` run, and — regardless of regeneration — when a catalogued target is caught or missed against `_CORPUS_TARGET_CAUGHT_LOCK` (`TARGET CAUGHT-SET DRIFT`) or when any corpus or live-conformance floor fails. It never fails on a conformance count being high.
 
-`docs/conformance-baseline.md` publishes five labelled surfaces: `shared-examples`, `generated-twin`, `adversarial-corpus`, and, as of Phase 20, `live-conformance` — the agent's own live-invoked output, captured under `tests/live-conformance-v9.0/` and scored by the same `detect_defects` (its CONTRACT-06-frozen extractors unmodified; its column set widened at backlog 999.120). `live-conformance` has **no CI job and no battery gate**; its published rate is a recorded observation stated with its N, never a pass/fail threshold, and it is subject to the same K-of-5 noise discipline documented under [Measurement layers](MEASUREMENT-MAP.md#measurement-layers) — this drift gate only keeps the published reading byte-reproducible against the committed captures, it never blocks on the rate itself. `tests/live-conformance-v9.0` and `tests/live-conformance-catalog.md` are registered `_FROZEN_PATHS` entries (see [FROZEN-EVIDENCE](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory)).
+`docs/conformance-baseline.md` publishes five labelled surfaces: `shared-examples`, `generated-twin`, `adversarial-corpus`, and, as of Phase 20, `live-conformance` — the agent's own live-invoked output, captured under `tests/live-conformance-v9.0/` and scored by the same `detect_defects` (its CONTRACT-06-frozen extractors unmodified; its column set widened at backlog 999.120). `live-conformance` has **no CI job and no battery gate**; its published rate is a recorded observation stated with its N, never a pass/fail threshold, and it is subject to the same K-of-5 noise discipline documented under [Measurement layers](MEASUREMENT-MAP.md#measurement-layers) — the CONF-DRIFT check keeps the published reading byte-reproducible against the committed captures and enforces the live-conformance roster, disposition and population floors, but it never fails on the rate itself. `tests/live-conformance-v9.0` and `tests/live-conformance-catalog.md` are registered `_FROZEN_PATHS` entries (see [FROZEN-EVIDENCE](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory)).
 
 ```sh
 python3 scripts/report-conformance.py --check    # detect drift
 python3 scripts/report-conformance.py            # fix drift (regenerate)
 ```
 
-**Bypass** for intentional in-progress work:
-
-```sh
-git commit --no-verify
-```
+There is no commit-time block to bypass: a stale baseline turns the battery's CONF-DRIFT line red until it is regenerated, and a caught-set or floor failure stays red after regeneration until the cause is fixed.
 
 ## Anti-masking measurement invariants
 

@@ -211,13 +211,13 @@ single `--self-test`-only battery `gate` call, and each is counted in the batter
 
 ### Pre-commit gates
 
-Five gates fire on `git commit`:
+These gates fire on `git commit` (the count is in the generated sentence above), in this order, in both hook mechanisms:
 
 1. **Sync-drift** — `shared/` ↔ generated tree are in sync (DUAL-04)
 2. **Conformance generator self-test** — `scripts/report-conformance.py --self-test`
-3. **Conformance-baseline drift** — `docs/conformance-baseline.md` and `docs/data/conformance.json` match fresh run
-4. **Claim-surface generator self-test** — `scripts/gen-gate-docs.py --self-test`
-5. **Claim-surface drift** — `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/gates/*.md` match fresh generated output (CONF-SURFACE)
+3. **Claim-surface generator self-test** — `scripts/gen-gate-docs.py --self-test`
+
+With `SKIP_DRIFT_CHECK=1` only the two self-tests run. Neither drift check fires at commit time since Phase 89: the conformance-baseline drift check (`scripts/report-conformance.py --check`) runs in the offline battery as inline check CONF-DRIFT, and the claim-surface drift check (`scripts/gen-gate-docs.py --check`) runs in the battery and in CI as CONF-SURFACE.
 
 Bypass: `git commit --no-verify`
 

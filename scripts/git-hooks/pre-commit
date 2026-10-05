@@ -1,7 +1,8 @@
 #!/bin/sh
 # Three gates for shared/ <-> generated trees and generator correctness.
-# Gates 3 (conformance-baseline drift) and 5 (claim-surface drift) moved to
-# battery-only (D-01, D-02), allowing commits when output naturally changes.
+# Gates 3 (conformance-baseline drift) and 5 (claim-surface drift) moved out of
+# the hooks (D-01, D-02), allowing commits when output naturally changes; both
+# run in the offline battery (CONF-DRIFT inline, CONF-SURFACE).
 # Installed by scripts/install-hooks.sh as .git/hooks/pre-commit (symlink).
 #
 # Mirrors .githooks/pre-commit verbatim (module logic; header prose
@@ -18,7 +19,8 @@
 # Gate 2 -- conformance generator self-test: blocks if
 # scripts/report-conformance.py --self-test fails. Runs the generator's own
 # falsifiability controls before its output is compared to anything (WR-05).
-# Gate 3 (REMOVED, D-01) -- conformance-baseline drift gate: now battery-only.
+# Gate 3 (REMOVED, D-01) -- conformance-baseline drift gate: now runs in the
+# offline battery as inline check CONF-DRIFT (Phase 90).
 # Gate 4 -- claim-surface generator self-test: blocks if
 # scripts/gen-gate-docs.py --self-test fails. Same WR-05 ordering rationale
 # as Gate 2 -- a broken generator's own controls must be caught before any

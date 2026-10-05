@@ -4002,16 +4002,6 @@ def _match_commonmark_heading_depth(hit: LiteralHit) -> bool:
 # transcription of exactly this shape is the defect this plan exists to
 # end.
 _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
-    ("CLAUDE.md", "Five gates"): (
-        "999.42",
-        1,
-        "Correct: 5 pre-commit gates fire on git commit (sync-drift, conformance generator self-test, conformance-baseline drift, claim-surface generator self-test, claim-surface drift) -- verified against both hook scripts in plan 21-13.",
-    ),
-    ("CONTRIBUTING.md", "Five gates"): (
-        "999.44",
-        1,
-        "Correct: the same fixed five-gate pre-commit pipeline (sync-drift, conformance generator self-test, conformance-baseline drift, claim-surface generator self-test, claim-surface drift) already ledgered for CLAUDE.md's and docs/TESTING.md's own 'Five gates' hits (999.42) -- verified again here against both hook scripts, 2026-09-08, on this newly-registered surface (plan 22-07).",
-    ),
     ("CONTRIBUTING.md", "one shot and check"): (
         "999.44",
         1,
@@ -4232,11 +4222,6 @@ _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
         1,
         "Correct: gen-01-rearch-milestone.md is deep-resolved by TRACE-03's own fixture, which carries a population of 9 -- a closed structural fact about the fixture at the time this doc-index entry was written; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had dropped the (9) count entirely.",
     ),
-    ("docs/README.md", "gate and the five"): (
-        "999.44",
-        1,
-        "NOT-A-RESTORE: plan 22-04 Task 1's judgement-call replacement for the row-17 hedge ('the pre-commit gates'). The pre-3c17833 text read 'the two pre-commit gates', now FALSE (five pre-commit gates fire as of CONF-SURFACE, plan 21-11) -- so 'two' was deliberately not restored. 'five' is the live, currently-true count, verified against docs/TESTING.md:67 ('Five gates fire on every git commit...') and CLAUDE.md's Pre-commit gates section -- a true present-tense fact, not a frozen historical measurement, whose falsifiability this entry restores.",
-    ),
     ("docs/README.md", "items each** for two"): (
         "999.44",
         1,
@@ -4256,11 +4241,6 @@ _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
         "999.44",
         1,
         "Correct: the 2026-08-27 Perceive/Reason/Act/Observe/Report review's four gaps were closed and gated by three new offline gates (HARN-01, HARN-02, HARN-03) -- a closed historical count naming exactly which gates; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had dropped the number entirely.",
-    ),
-    ("docs/TESTING.md", "Five gates"): (
-        "999.42",
-        1,
-        "Correct: 5 pre-commit gates fire on every git commit -- same verified fact as CLAUDE.md's 'Five gates' entry above.",
     ),
     ("docs/TESTING.md", "five labelled surfaces:"): (
         "999.42",
@@ -4950,7 +4930,15 @@ def _deferred_ledger_keys_digest(
 # reconciliation discipline (re-deriving every "live-verified" reason from
 # a fresh `--describe` invocation, never trusting a prior reading) for the
 # practice that actually catches this, since the ratchet itself cannot.
-_DEFERRED_LEDGER_MAX: int = 165
+#
+# Lowered 165 -> 161 in the same commit that reworded the pre-commit lists
+# count-free (backlog 999.38): the four keys ('CLAUDE.md', 'Five gates'),
+# ('CONTRIBUTING.md', 'Five gates'), ('docs/TESTING.md', 'Five gates') and
+# ('docs/README.md', 'gate and the five') were removed. Their reasons
+# asserted five pre-commit gates, false since the hooks stopped running both
+# drift checks; the rewrites send the reader to the generated population
+# sentence for the count and introduce no new non-conforming digit.
+_DEFERRED_LEDGER_MAX: int = 161
 
 
 # A sha256 pin over the ledger's sorted `(relpath, text)` key set (plan
@@ -5009,8 +4997,12 @@ _DEFERRED_LEDGER_MAX: int = 165
 # shared/skills/*/SKILL.md holds 14 version stamps rather than 13.") was
 # reworded count-free once the persona skill made the historical 13-vs-14
 # split obsolete. Digest updated with frozen historical counts.
+#
+# Re-pinned in the same commit as the count-free pre-commit-list rewording
+# (backlog 999.38): four keys removed, 165 -> 161 -- see
+# `_DEFERRED_LEDGER_MAX`'s own comment for the list.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:1705d03941e472c07db928834322c6dbf5c6741fe1d88e9950850b18c3d24f58"
+    "sha256:9402e806952fda377de41856281df331b7b787c2ffe623019b158570de7a03a0"
 )
 
 
@@ -7098,6 +7090,12 @@ def _control_delta_chain_hops_confsurface_corrected() -> None:
     a live-text control tracks whatever the live text says. See
     `_control_chain_terminus_pre_fix_synthetic_fixture` for the control that
     stays provable in perpetuity after this correction."""
+    # Revised to a chain ending at 161 when the ledger shrank 165 -> 161
+    # (backlog 999.38). The previous terminus, 173, misnarrated the Phase 89
+    # hop (the pin went 167 -> 165) and was corroborated only by the
+    # coincidence that `literal_scan_exempt_deferred-literal-ledger` also
+    # read 173; the page now narrates the net 175 -> 167 move, and the
+    # terminus is corroborated by `literal_scan_ledger_max`.
     pass1 = generate_all()
     entry = next(e for e in _gate_registry.ENTRIES if e.key == "CONF-SURFACE")
     path = DETAIL_PAGE_DIR / f"{_page_slug(entry)}.md"
@@ -7111,15 +7109,15 @@ def _control_delta_chain_hops_confsurface_corrected() -> None:
     ]
     chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
     assert len(chains) == 1, chains
-    assert len(chains[0]) == 10, chains[0]
-    assert chains[0][-1][1] == ("173",), chains[0]
+    assert len(chains[0]) == 12, chains[0]
+    assert chains[0][-1][1] == ("161",), chains[0]
     inside_numbers = _normalise_numbers(
         _strip_citation_shaped_numbers(
             "\n".join(line for line, is_in in zip(lines, inside) if is_in)
         ),
         include_spelled_out=True,
     )
-    assert "173" in inside_numbers, inside_numbers
+    assert "161" in inside_numbers, inside_numbers
 
 
 def _control_delta_chain_hops_qual01_out_of_grammar() -> None:
