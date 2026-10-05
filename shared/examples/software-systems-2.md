@@ -119,6 +119,13 @@ produced only after the assumption table is resolved against the team's measured
   cost path depends on both the provider's pricing decisions and the actual MAU
   trajectory.
 
+```text
+?-marked: GT-7? (1 of 7)
+Read-at-source: GT-1 — direct team-experience inventory taken at the start of this analysis, verified by 1:1 confirmation with each engineer
+Read-at-source: GT-5 — published provider documentation (data-export endpoints and formats), cross-referenced with engineering write-ups of documented provider migrations
+Read-at-source: GT-6 — direct observation of the team's current infrastructure (secrets in deploy-platform environment variables, no access audit log, no IR runbook)
+```
+
 ---
 
 ## 4. Derivation Chains

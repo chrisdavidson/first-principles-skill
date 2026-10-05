@@ -86,6 +86,15 @@ preventing faster deploys, and what is the cheapest intervention that removes th
   ownership of any schema table — source: observed codebase structure (direct inspection of
   database schema and ORM model relationships)
 
+```text
+?-marked: none (0 of 5)
+Read-at-source: GT-1 — CI dashboard logs, 30-day average of successful pipeline runs
+Read-at-source: GT-2 — CI pipeline configuration file, deploy stage definition
+Read-at-source: GT-3 — CI/CD deployment records, 30-day trailing count
+Read-at-source: GT-4 — microservices engineering literature (Newman, Building Microservices 2nd ed. and Monolith to Microservices, DORA State of DevOps reports)
+Read-at-source: GT-5 — direct inspection of the database schema and ORM model relationships
+```
+
 ---
 
 ## 4. Derivation Chains
