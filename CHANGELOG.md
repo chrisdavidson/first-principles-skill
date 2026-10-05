@@ -13,6 +13,45 @@ installed session.
 
 ## [Unreleased]
 
+## [9.18.2] — 2026-10-04
+
+Patch release: **Ruff for the Python tooling**. The validation scripts now share one pinned
+linter and formatter. The shipped plugin is unchanged apart from its version stamps: it is pure
+Markdown, and no agent or skill body was edited.
+
+### Added
+
+- Ruff `0.16.10`, pinned in `pyproject.toml`'s `dev` group and locked in `uv.lock`, with
+  Ruff's full default rule set (no `select`). `scripts/*.py` and `tests/test_*.py` are in
+  scope; every recorded `tests/<run-dir>/` runner is excluded, including the frozen
+  `tests/confidence-transitivity-v9.4`, so frozen evidence stays byte-identical.
+- `.git-blame-ignore-revs`, listing the mass-reformat commit
+  (`git config blame.ignoreRevsFile .git-blame-ignore-revs`).
+- A "Lint and format (Ruff)" section in `docs/DEVELOPMENT.md`, with pointers from
+  `CLAUDE.md`, `CONTRIBUTING.md` and `docs/TESTING.md`. Ruff is a local convention. It is
+  not registered as a gate in CI or the battery.
+
+### Changed
+
+- `uv run ruff check` and `uv run ruff format --check` now both pass. Every implicit string
+  concatenation inside a collection (ISC004) was read in context: none was a missing comma,
+  and each is now parenthesised so the wrap is explicit. Deliberate blind excepts in gate and
+  self-test code carry a per-site `# noqa: BLE001` with its reason. Scripts with a `__main__`
+  guard are executable, and importable helpers lost their shebang.
+- Functions whose source text is sha256-pinned or sliced by a gate are fenced with
+  `# fmt: off` / `# fmt: on` outside the pinned span, so their bytes are unchanged.
+
+### Fixed
+
+- FIG-GATE: control B01 still expected the typst-absent exit code `2` after it moved to `1`.
+- CONF-SURFACE: the gate page's deferred-ledger narrative chain is extended to its current
+  terminus after the `CLAUDE.md` condensation shrank the ledger.
+- `CLAUDE.md` again names the FU-21 gate on the routing-battery row, which the condensation
+  dropped (`tests/test_65_doc_invariants.py`).
+- The Check 5 description in `scripts/check-agent.py` was missing a space.
+
+`FIREWALL: GREEN (32/32)`; `sync-content.py --check` clean; VERSION-01 green on every stamp.
+
 ## [9.18.0] — 2026-10-02
 
 Milestone release: **v9.18.0 Reader Personas**. Beside every delivered analysis, a reader now
