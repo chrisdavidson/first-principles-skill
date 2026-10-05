@@ -5,18 +5,32 @@ become one:** [`docs/v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md) 
 K-of-N live readings from gating. **Measured at:** `2f52f9e1`, 2026-10-05. **Inputs:** the ten frozen
 corpora under `tests/` that PROV-ROLLUP's `--emission-reading` pairs with a transcript.
 
-This page corrects the premise of backlog 999.181, that agents do not emit the roll-up. They do.
+This page corrects the premise of backlog 999.181, that agents do not emit the roll-up. They do
+emit its enumeration half, the `?`-marked ids with their `(N of M)` count, in every readable
+capture. Its read-at-source half was not audited (see [What "(required)" binds](#what-required-binds)).
 What they rarely emit is the template's exact line format, and that is all the old count measured.
 
 ---
 
 ## What "(required)" binds
 
-The output template marks the section-3 provenance roll-up "(required)". That word binds the
-roll-up's **content**: an enumerated set of `?`-marked ground-truth ids with its `(N of M)` count,
-written in section 3. It does not bind the template's exact line format. Read that way the
-requirement is met in every readable capture below, so no template, agent-body or exemplar text
+The output template marks the section-3 provenance roll-up "(required)", and the one sentence
+after that word binds two things (`shared/spine/references/output-template.md`): an enumerated
+set of `?`-marked ground-truth ids with its `(N of M)` count, and, for every unsuffixed ground
+truth feeding a HIGH-confidence chain, a named read-at-source location. The template adds that
+"the named locations are the auditable part", and the agent body's exit criterion says the same.
+Neither half binds the template's exact line format: the phase decision recorded here reads
+"(required)" as binding the content, not the form, so no template, agent-body or exemplar text
 changes.
+
+**This page audits the first half only.** The enumeration with its count is present in every
+readable capture below. The read-at-source half was **not** audited, and it is not met
+everywhere: `tests/live-conformance-v9.0/Q-P1.md:90` reads `` **`?`-marked: GT-7, GT-14 (2 of 14).** ``
+and is followed directly by section 4, whose chain C1 is HIGH, with no read-at-source location
+on the roll-up. That document's ground-truth entries carry their own per-entry sources; whether
+that satisfies the clause is a question the template does not settle, and PROV-ROLLUP's check 3
+records the same ambiguity. This page therefore does not claim the requirement as a whole is
+met in any capture.
 
 The agent body prescribes the same content in its own words. Its Phase 3 exit criterion says
 "Enumerate the `?`-marked ground truths by ID", and it has done so since commit `eb9d5e3e`
@@ -55,9 +69,11 @@ no such line occurs in this population.
 **What this count does not audit.** The template says of the roll-up, "Neither an empty
 enumeration nor a count of zero satisfies this on its own" (`shared/spine/references/output-template.md`).
 That sentence concerns the roll-up as a whole, including its Read-at-source locations for every
-unsuffixed ground truth feeding a load-bearing chain. This count audits the enumeration half
-only. A capture counted here has the enumerated set and its count. That is not a finding that
-its roll-up fully satisfies the template clause.
+unsuffixed ground truth feeding a HIGH-confidence chain (the body's wording since v9.10.0 is
+"load-bearing"). This count audits the enumeration half only. A capture counted here has the
+enumerated set and its count. That is not a finding that its roll-up fully satisfies the
+template clause, and at least one counted capture (`tests/live-conformance-v9.0/Q-P1.md:90`,
+above) does not carry the locations on its roll-up.
 
 ## Population
 
@@ -132,7 +148,8 @@ backtick form covers, is `tests/confidence-transitivity-v9.4/CT-A5.md:174`:
   text, so no rate is given by version.
 - **Nothing about live documents.** Live documents stay report-only in PROV-ROLLUP; this page
   reads frozen captures only.
-- **Nothing about Read-at-source.** See [the inclusion rule](#the-inclusion-rule).
+- **Nothing about Read-at-source, and so nothing about the requirement as a whole.** See
+  [What "(required)" binds](#what-required-binds) and [the inclusion rule](#the-inclusion-rule).
 
 ## Reproduction
 

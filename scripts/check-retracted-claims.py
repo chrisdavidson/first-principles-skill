@@ -800,6 +800,22 @@ REGISTRY: tuple[RetractedClaim, ...] = (
             "check-dispatch-wired, nondeterminism-exit-2)."
         ),
     ),
+    # Phase 92's emission reading said the roll-up requirement was met in every
+    # readable capture; 92-REVIEW CR-01 showed it audited only the enumeration
+    # half of a clause that also binds read-at-source locations.
+    RetractedClaim(
+        literal="requirement is met in every readable capture",
+        retracted_by="Phase 92 (92-REVIEW CR-01)",
+        corrected=(
+            "The output template's \"(required)\" roll-up clause binds two "
+            "things: the `?`-marked enumeration with its (N of M) count, and a "
+            "read-at-source location for every unsuffixed ground truth feeding "
+            "a HIGH-confidence chain. docs/rollup-emission-reading.md audited "
+            "only the first (present in 73 of 73 readable captures). The second "
+            "was not audited and is not met on the roll-up of "
+            "tests/live-conformance-v9.0/Q-P1.md:90, whose C1 is HIGH."
+        ),
+    ),
 )
 
 

@@ -28,9 +28,11 @@ run's transcript by the harness's `_reference_reads_census`, and control group
 dispatched it. Line-format presence on the same 18 documents is 1
 (`tests/live-conformance-v9.0/PR-P2.md`), which `--analysis` over those
 documents reproduces. That is a line-format count, not a content count: the
-roll-up's content (an enumerated `?`-marked set with its count, in section 3)
-is present in every readable document of those corpora, as a hand-audited
-reading published in `docs/rollup-emission-reading.md`. Backlog 999.173's "twelve of fifteen" reading from quick
+roll-up's enumeration half (an enumerated `?`-marked set with its count, in
+section 3) is present in every readable document of those corpora, as a
+hand-audited reading published in `docs/rollup-emission-reading.md`. Its
+read-at-source half, which the template's "(required)" clause also binds, was
+not audited, so that reading is not a finding that the clause is met. Backlog 999.173's "twelve of fifteen" reading from quick
 task `260924-tcv` cannot be re-taken, because its captures were not kept, and
 it is not carried forward.
 
