@@ -13,6 +13,38 @@ installed session.
 
 ## [Unreleased]
 
+## [9.19.1] — 2026-10-06
+
+Patch release: **reader-report PDFs render again, and a gate now compiles the page
+template.** It closes backlog 999.195. It also ships the worked-example and output-template
+corrections from 999.178, 999.186, 999.189, 999.190, 999.191 and 999.192, listed below.
+
+### Fixed — PDF page template (shipped)
+
+- **The PDF page template compiles under typst 0.15 again** (backlog 999.195). The cover page
+  and table of contents added in `45f6244a` (shipped in 9.19.0) passed a content value to
+  `document(author:)` and built the two page styles as `page(...)` values with no body, which
+  `#set page(content-page)` then tried to apply. typst rejects both, so every reader-report,
+  memo, reading-guide and index PDF failed from 9.19.0 on: pandoc exited 43 with `expected
+  string or array, found content`. The agent disclosed each failure in its final message, as
+  its contract requires, but the delivered folder looked complete. The template now sets the
+  author as a string, uses one `#set page(...)` for content pages, and draws the cover with a
+  `#page(...)[...]` call of its own. The design is unchanged: cover page, contents page, and a
+  running header from page 3.
+
+### Added — checks
+
+- **FIG-GATE compiles the PDF page template** (999.195). Three new controls: L01 renders a worked
+  example and the reading guide through the shipped template with the agent's own pandoc and
+  typst invocation, and requires a real PDF from each. L02 must fail on the template frozen from
+  `45f6244a` (`tests/report-layout-v9.20/`). L03 must fail when a content-valued
+  `document(author:)` is injected into the shipped template. New finding code `FIG-LAYOUT`. With
+  the 9.19.0 template, FIG-GATE fails at L01. The gate proves the template compiles, not that the
+  page looks right. pandoc absent means BLOCKED, never PASS; the battery's prerequisite branch
+  now checks for pandoc too.
+- The `check-report-figures (FIG-GATE)` CI job installs pandoc 3.10.2 from the pinned,
+  sha256-verified release tarball.
+
 ### Changed — output template and worked examples (shipped)
 
 - **The provenance roll-up's read-at-source clause now covers every load-bearing chain, not

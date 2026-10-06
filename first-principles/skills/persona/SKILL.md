@@ -3,7 +3,7 @@ name: persona
 description: Writes a role-specific reader view of a delivered first-principles analysis to a sibling file, using only what the analysis already states; slash-only, never run automatically.
 disable-model-invocation: true
 metadata:
-  version: "9.19.0"
+  version: "9.19.1"
 license: MIT
 ---
 <!-- DO NOT EDIT — generated from shared/skills/persona/SKILL.md by sync-content.py -->
