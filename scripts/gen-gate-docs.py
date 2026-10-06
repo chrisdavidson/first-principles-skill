@@ -2722,11 +2722,6 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     # a fresh reason (see git history for the retained prior text) if this
     # page's `containment_ledger_frozen_historical` field ever drops below 5
     # again.
-    ("CLAUDE.md", "22"): (
-        "999.104",
-        2,
-        "NOT A COUNT CLAIM: \"this phase's own `/bm:code-review 22`\" -- a phase-number citation, the same shape as `CLAUDE.md`'s own '03' half-strip entry above, not a population total. Occurrence count lowered from 2 to 1 when VAL-05's retirement (Phase 40, docs/v9.4-gate-retirement.md §2.3) reworded the tally sentence off '22' entirely, onto '21' (see that key's own entry).",
-    ),
     ("CLAUDE.md", "60"): (
         "999.69",
         2,
@@ -3153,9 +3148,15 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # Re-pinned with all frozen historical structural counts restored. The live ledger
 # now contains 14 entries (11 base + 3 frozen: '16', '26', '5'). Recomputed live via
 # `_deferred_ledger_keys_digest()`, never hand-typed. Never recompute this digest to make a failing check pass.
-_CONTAINMENT_LEDGER_MAX: int = 12
+#
+# Lowered 12 -> 11 under backlog 999.191: ('CLAUDE.md', '22') removed. The
+# review-protocol sentence it permitted no longer carries the bare phase
+# number ("Phase 22's own `/bm:code-review 22`" became "the `/bm:code-review`
+# run of the phase that added it"), so the permit is retired by a prose fix,
+# not by a coincidental derived '22' covering it.
+_CONTAINMENT_LEDGER_MAX: int = 11
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:9c68ff1ccbbf2e0d4a2fe9def5b38db7030b8c394c1a50a335a40de969c1b60c"
+    "sha256:bdccc229c35b217dd2dfe3cd223b63158bfded8a17830b50832d8ac9a19a4496"
 )
 
 

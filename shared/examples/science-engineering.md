@@ -43,10 +43,12 @@ required to meet the cabin's daily electrical load reliably?
 
 ## 3. Ground Truths
 
-- **GT-1** Peak Sun Hours at the site: approximately 5.5 PSH (annual average daily
+- **GT-1?** Peak Sun Hours at the site: approximately 5.5 PSH (annual average daily
   equivalent hours of full 1,000 W/m² irradiance at 35° N high-desert New Mexico) —
   source: NREL solar radiation maps; illustrative figure verifiable via NREL PVWatts
-  for the specific site coordinates.
+  for the specific site coordinates. **Unverified in this analysis:** the figure is
+  illustrative, not read for this site, so the entry carries the `?`; a PVWatts run at
+  the site coordinates, quoted, would remove it.
 
 - **GT-2** System derating factor: 0.80 — accounts for all losses in the energy path
   from panels to delivered load in a well-designed off-grid system: temperature losses
@@ -101,8 +103,9 @@ required to meet the cabin's daily electrical load reliably?
   outputs below must be revised upward.
 
 ```text
-?-marked: GT-5? (1 of 5)
-Read-at-source: none — no chain is rated HIGH
+?-marked: GT-1?, GT-5? (2 of 5)
+Read-at-source: GT-2 — NREL and NABCEP off-grid design guidelines for the 0.80 factor; LiFePO4 round-trip efficiency from manufacturer specifications
+Read-at-source: GT-4 — current design constraint and occupant decision (a decision, not a measurement)
 ```
 
 ---
@@ -111,13 +114,15 @@ Read-at-source: none — no chain is rated HIGH
 
 ### Conclusion C1: A 400 W panel array is required to meet the estimated daily load
 
-GT-2 (0.80 derating factor — covers temperature, wiring, MPPT, inverter, and battery round-trip losses; see GT-2 for the full enumerated loss list) + GT-5? (1.5 kWh/day estimated load) + GT-1 (5.5 PSH)
+GT-2 (0.80 derating factor — covers temperature, wiring, MPPT, inverter, and battery round-trip losses; see GT-2 for the full enumerated loss list) + GT-5? (1.5 kWh/day estimated load) + GT-1? (5.5 PSH)
 → Required gross daily panel output = 1.5 kWh ÷ 0.80 = 1,875 Wh/day (Neither GT-2 nor GT-5? alone specifies how many watt-hours the panels must generate; combining them via the energy-conservation relationship yields the gross generation target. The 0.80 factor is the complete loss model — it accounts for every loss between panel output and delivered load, including battery round-trip loss, so no further derating is needed for battery inefficiency.)
-→ Applying GT-1 (5.5 PSH annual average) to 1,875 Wh/day yields panel capacity = 1,875 Wh ÷ 5.5 PSH ≈ 341 W
+→ Applying GT-1? (5.5 PSH annual average) to 1,875 Wh/day yields panel capacity = 1,875 Wh ÷ 5.5 PSH ≈ 341 W
 → Recommendation: 400 W array (e.g., 2 × 200 W panels), providing a 17% margin above the minimum 341 W to buffer winter PSH variability (winter minimum ~4.5 PSH at this site would require ~417 W; the 400 W array is slightly undersized for worst-case winter, and GT-2's 0.80 factor is itself optimistic by roughly 3–5 percentage points against the enumerated loss list, so the winter shortfall is somewhat larger than the 0.80 arithmetic shows — at 0.80 the array delivers 400 × 4.5 × 0.80 = 1,440 Wh/day against the 1,500 Wh/day load, but at the enumerated 0.75 it delivers only 1,350 Wh/day. The margin is carried by the option to reduce non-essential loads during extended low-sun periods, not by the derate).
 
-**Pre-check:** head GT-2, GT-5?, GT-1 · ?-marked: GT-5? · lowest cited: none · Inputs ceiling: MEDIUM
-**Confidence: MEDIUM** — GT-5? (daily energy load estimate of 1.5 kWh/day) is unverified.
+**Pre-check:** head GT-2, GT-5?, GT-1? · ?-marked: GT-5?, GT-1? · lowest cited: none · Inputs ceiling: MEDIUM
+**Confidence: MEDIUM** — GT-5? (daily energy load estimate of 1.5 kWh/day) is unverified,
+and so is GT-1? (5.5 PSH), an illustrative map figure not yet read for this site: a PVWatts
+run at the site coordinates would remove it, and a lower figure raises the array in proportion.
 If measured load consistently exceeds 1.76 kWh/day (400 W × 5.5 PSH × 0.80 = 1,760 Wh/day
 = 1.76 kWh/day), the required panel capacity exceeds 400 W and the array must be upsized
 (e.g., to 3 × 200 W = 600 W). Verification: install energy monitor for 30 days; confirm
@@ -172,7 +177,7 @@ energy throughput requirement.
 
 **Recommended approach:** (chains C1 and C2) Install a 400 W panel array (2 × 200 W panels) and a 6 kWh
 LiFePO4 battery bank. These sizes are derived from the site's 5.5 PSH annual average
-(GT-1), the 0.80 system derating factor (GT-2), the 80% DoD limit of LiFePO4 chemistry
+(GT-1?), the 0.80 system derating factor (GT-2), the 80% DoD limit of LiFePO4 chemistry
 (GT-3), the 3-day autonomy target (GT-4), and the estimated 1.5 kWh/day daily load
 (GT-5?). Commission a 30-day energy-monitoring period before finalizing the order; above
 approximately 1.6 kWh/day (6 kWh × 0.80 DoD ÷ 3 days) the 6 kWh bank no longer meets the
@@ -200,15 +205,18 @@ measurement and site-specific weather data.
 
 **Pre-check:** head C1 (MEDIUM), C2 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
 **Confidence: MEDIUM** — Both sizing chains depend on GT-5? (the estimated 1.5 kWh/day
-daily load), which is unverified. GT-1, GT-3 and GT-4 are well-established and do not
-introduce material uncertainty. GT-2's 0.80 derate is well-established on its own
+daily load), which is unverified. The panel chain C1 also rests on GT-1? (5.5 PSH), an
+illustrative map figure not yet read for this site; a PVWatts run at the site coordinates
+would settle it, and a lower figure raises the required array in proportion. GT-3 and
+GT-4 are well-established and do not introduce material uncertainty. GT-2's 0.80 derate is well-established on its own
 independent basis, but it is optimistic by roughly 3–5 percentage points against the
 enumerated loss list (which compounds to 0.749–0.773) — a second, bounded uncertainty
 that widens the winter shortfall rather than buffering it. The unverified load estimate
 remains the larger weak link of the two. A 30-day energy-monitoring period measuring
 actual consumption would verify or correct GT-5?, and confirming the site-specific
 equipment efficiencies against the installed hardware would close GT-2's 3–5 pp gap;
-both together would raise confidence in the sizing outputs to HIGH.
+those two together with the site PVWatts reading for GT-1? would raise confidence in the
+sizing outputs to HIGH.
 
 ---
 
@@ -265,7 +273,7 @@ both together would raise confidence in the sizing outputs to HIGH.
   "ground_truths": [
     {
       "id": "GT-1",
-      "read_at_source": true
+      "read_at_source": false
     },
     {
       "id": "GT-2",
@@ -291,7 +299,7 @@ both together would raise confidence in the sizing outputs to HIGH.
       "rests_on": [
         "GT-2",
         "GT-5?",
-        "GT-1"
+        "GT-1?"
       ]
     },
     {
@@ -310,7 +318,7 @@ both together would raise confidence in the sizing outputs to HIGH.
   "gate": null,
   "re_entry": null,
   "conclusion": {
-    "recommendation": "(chains C1 and C2) Install a 400 W panel array (2 × 200 W panels) and a 6 kWh\nLiFePO4 battery bank. These sizes are derived from the site's 5.5 PSH annual average\n(GT-1), the 0.80 system derating factor (GT-2), the 80% DoD limit of LiFePO4 chemistry\n(GT-3), the 3-day autonomy target (GT-4), and the estimated 1.5 kWh/day daily load\n(GT-5?). Commission a 30-day energy-monitoring period before finalizing the order; above\napproximately 1.6 kWh/day (6 kWh × 0.80 DoD ÷ 3 days) the 6 kWh bank no longer meets the\n3-day autonomy target and should be upsized to 7.5–8 kWh, and above approximately\n1.76 kWh/day (400 W × 5.5 PSH × 0.80) the 400 W array no longer meets the daily load and\nshould be upsized to 600 W.",
+    "recommendation": "(chains C1 and C2) Install a 400 W panel array (2 × 200 W panels) and a 6 kWh\nLiFePO4 battery bank. These sizes are derived from the site's 5.5 PSH annual average\n(GT-1?), the 0.80 system derating factor (GT-2), the 80% DoD limit of LiFePO4 chemistry\n(GT-3), the 3-day autonomy target (GT-4), and the estimated 1.5 kWh/day daily load\n(GT-5?). Commission a 30-day energy-monitoring period before finalizing the order; above\napproximately 1.6 kWh/day (6 kWh × 0.80 DoD ÷ 3 days) the 6 kWh bank no longer meets the\n3-day autonomy target and should be upsized to 7.5–8 kWh, and above approximately\n1.76 kWh/day (400 W × 5.5 PSH × 0.80) the 400 W array no longer meets the daily load and\nshould be upsized to 600 W.",
     "confidence": "MEDIUM",
     "rests_on": [
       "C1",

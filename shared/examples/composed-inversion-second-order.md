@@ -150,7 +150,8 @@ unverified-but-load-bearing entry per the spine's Phase 3 discipline.
 
 ```text
 ?-marked: GT-5? (1 of 5)
-Read-at-source: none — no chain is rated HIGH
+Read-at-source: GT-1 — the platform team's Q3 query-log analysis, reviewed in the architecture-review document
+Read-at-source: GT-2 — the capacity-planning document's upgrade-justification section, verified against the most recent monitoring dashboard for CPU, write IOPS and storage utilisation
 ```
 
 ---

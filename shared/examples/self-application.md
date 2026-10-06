@@ -172,7 +172,11 @@ question is whether the budget tracks anything the agent actually depends on.
 Read-at-source: GT-1 — direct measurement of first-principles/agents/first-principles.md on the working branch
 Read-at-source: GT-2 — heading scan of first-principles/agents/first-principles.md (## Methodology at line 45, ## Output format at line 142)
 Read-at-source: GT-3 — heading scan of the same file (six ## Procedure headings, appendix boundary at line 415)
+Read-at-source: GT-4 — direct `wc -l` of `shared/spine/references/output-template.md` and `validation-rubric.md`
 Read-at-source: GT-5 — agent body from ## How to Use This Template at line 415 to the end of the file at line 878 (approximately 464 lines); content identity from a line-level diff of agent-body lines 415–567 against shared/spine/references/output-template.md
+Read-at-source: GT-6 — `first-principles/agents/first-principles.md` line 92, the Phase 2 Assumptions Table block's link to `references/assumption-taxonomy.md`
+Read-at-source: GT-7 — `.planning/REQUIREMENTS.md` line 53 (META-Q4), quoted verbatim; that file was never tracked, so a reader of the public repository cannot check the quote
+Read-at-source: GT-8 — `scripts/check-agent.py` lines 225–298 (Checks 1–8) and `scripts/sync-content.py`
 ```
 
 ---
@@ -423,11 +427,13 @@ extraction problem.
 
 **Pre-check:** head C1 (MEDIUM), C2 (HIGH), C3 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
 **Confidence:** MEDIUM — chain C2 (where the budget overage actually lives)
-is HIGH confidence; chain C3 (the intervention removes it) is HIGH
-confidence on arithmetic and configuration; chain C1 (the budget's
-underlying property) inherits MEDIUM from GT-9?. The recommendation
-proceeds at MEDIUM because the GT-9? verification step is named, scoped,
-and executable rather than open-ended. Confidence rises to HIGH once the
+is HIGH confidence; chain C1 (the budget's underlying property) is MEDIUM,
+inheriting it from GT-9?; chain C3 (the intervention removes it) is MEDIUM —
+its arithmetic and configuration hold, but it consumes C1 and inherits C1's
+MEDIUM through it. C1 and C3 are the below-HIGH contributors, and GT-9? is
+the single input behind both. The recommendation proceeds at MEDIUM because
+the GT-9? verification step is named, scoped, and executable rather than
+open-ended. Confidence rises to HIGH once the
 A/B rigor measurement is performed and either confirms a rigor improvement
 or confirms no regression on the de-inlined body.
 

@@ -322,16 +322,18 @@ Read-at-source: GT-3 — physical law (second law of thermodynamics / Carnot's t
 
 ### Conclusion C1: The 85% round-trip electricity efficiency claim is refuted by the Carnot limit
 
-GT-1 (Joule heating law anchors electricity-to-heat conversion at ~97% — physical law) + GT-2 (Fourier's law anchors thermal storage efficiency at ~99% at these conditions — physical law) + GT-3 (Carnot / second-law limit anchors Rankine heat-to-electricity conversion at ~40% — physical law)
-→ Round-trip efficiency is the product of the three physical-law-anchored conversion efficiencies: C1a × C1b × C1c ≈ 0.97 × 0.99 × 0.40 ≈ 38%
-→ An 85% electricity round-trip efficiency is inconsistent with the Carnot limit at these temperatures; the claim, as stated, is refuted by the physical law that terminates C1c
+GT-1 (Joule heating law anchors electricity-to-heat conversion at 95–99% — physical law) + GT-2 (Fourier's law: heat flows down the temperature gradient, out of the hot tank, so thermal storage efficiency is at most 100% — physical law) + GT-3 (Carnot / second-law limit caps Rankine heat-to-electricity conversion at ≈62.3% at these temperatures, with real cycles at 35–45% — physical law)
+→ Round-trip efficiency is the product of the three conversion efficiencies, C1a × C1b × C1c. Taking every factor at its most favourable bound — C1a at 99%, C1b at 100% (no storage loss at all), C1c at the Carnot limit itself — gives at most 0.99 × 1.00 × 0.623 ≈ 62%; with C1c at the real Rankine ceiling of 45% it is at most ≈45%. The usual point estimate, 0.97 × 0.99 × 0.40 ≈ 38%, takes its 99% storage term from the tank-specific loss rate that GT-7? leaves unverified, so this chain does not rest on it
+→ An 85% electricity round-trip efficiency exceeds even the ≈62% upper bound at these temperatures; the claim, as stated, is refuted by the physical law that terminates C1c, whatever the tank's actual loss rate turns out to be
 
 **Pre-check:** head GT-1, GT-2, GT-3 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
 **Confidence:** HIGH — C1a and C1c are each anchored in physical law and confirmed by
 direct or published measurement; the Carnot limit is not typical operating experience
 that better engineering could improve on, it is a hard upper bound C1c cannot exceed,
-so no future engineering improvement closes the gap between the computed ~38%
-round-trip and the claimed 85%.
+so no future engineering improvement closes the gap between the ≈62% ceiling and the
+claimed 85%. GT-7? is not a cause: the chain names it only to rule it out — the
+refutation takes C1b at its 100% bound, which needs no tank data, and the ≈38% point
+estimate is illustrative rather than load-bearing.
 
 ---
 
@@ -350,7 +352,7 @@ discarded.
 
 **Key insight:** The 85% claim fails not because of an engineering shortfall that better design could close, but because Rankine-cycle heat-to-electricity conversion is capped by the Carnot limit (chain C1) — an irreducible physical law, not an assumption.
 
-- The computed round-trip figure (chain C1) is closer to a ceiling than a floor: the ~38% figure already uses optimistic conversion efficiencies for C1a and C1b (97% and 99%); only C1c is fundamentally bounded, so future engineering improvement in C1a or C1b cannot close the remaining gap to 85%.
+- The refutation (chain C1) does not depend on the ~38% point estimate: even at 99% heating, zero storage loss and the Carnot limit itself, the round trip is at most ≈62%. Only C1c is fundamentally bounded, so future engineering improvement in C1a or C1b cannot close the remaining gap to 85%; the ~38% figure's 99% storage term awaits GT-7?.
 - A system reporting an 85% "round-trip" efficiency for thermal storage is very likely measuring heat-in to heat-out, not electricity-in to electricity-out — no chain — flagged assumption only.
 - The cost comparison (C3) does not favour molten-salt TES at a four-hour discharge: its capital figure omits the turbine and generator a lithium-ion system's price already covers, and once they are priced molten-salt is dearer below a break-even duration of roughly 4–18 hours (the estimate worked example, Step 6b) — no chain — flagged assumption only.
 

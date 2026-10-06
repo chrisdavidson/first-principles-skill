@@ -842,6 +842,28 @@ REGISTRY: tuple[RetractedClaim, ...] = (
             "Phase 90); only CI lacks it."
         ),
     ),
+    # 91-REVIEW IN-04 (backlog 999.191): the figures Phase 91 retracted, as
+    # context-bearing literals -- a bare "12 of 15" would collide with
+    # docs/rollup-emission-reading.md's legitimate quotation of a capture's
+    # own "(12 of 15)" roll-up count. Zero occurrences when added.
+    RetractedClaim(
+        literal="emitted in 12 of 15 live",
+        retracted_by="999.191 (91-REVIEW IN-04)",
+        corrected=(
+            "999.173's quick-task reading cannot be re-taken: its captures were "
+            "not kept. The pinned template-read census is 10 of the 17 captures "
+            "the census reads as ok, out of 18."
+        ),
+    ),
+    RetractedClaim(
+        literal="no live corpus carries one either",
+        retracted_by="999.191 (91-REVIEW IN-04)",
+        corrected=(
+            "Line-format presence on the two pinned corpora is 1 of 18, and the "
+            "roll-up's enumeration half is present in every readable document "
+            "of those corpora (docs/rollup-emission-reading.md)."
+        ),
+    ),
     # Phase 92's emission reading said the roll-up requirement was met in every
     # readable capture; 92-REVIEW CR-01 showed it audited only the enumeration
     # half of a clause that also binds read-at-source locations.

@@ -24,8 +24,9 @@ Whether a run opened `output-template.md` at all is read directly from that
 run's transcript by the harness's `_reference_reads_census`, and control group
 `[template-read]` pins that reading capture by capture on two frozen corpora,
 `tests/emission-stage-a-v9.14/raw/` and `tests/live-conformance-v9.0/`. It is
-10 of the 17 captures that dispatched the agent, out of 18; TB-08 never
-dispatched it. Line-format presence on the same 18 documents is 1
+10 of the 17 captures the census reads as `ok`, out of 18 (`ok` is the census
+state, not an observed dispatch: Q-P2 reads `ok` with no subagent event in its
+stream); TB-08 never dispatched the agent. Line-format presence on the same 18 documents is 1
 (`tests/live-conformance-v9.0/PR-P2.md`), which `--analysis` over those
 documents reproduces. That is a line-format count, not a content count: the
 roll-up's enumeration half (an enumerated `?`-marked set with its count, in
@@ -97,7 +98,11 @@ The checks, and which of them can fail
 3. **Read-at-source coverage** -- when the roll-up is present: every unsuffixed
    ground truth feeding a HIGH-confidence chain is named, with a location, on a
    `Read-at-source:` line of the roll-up. **REPORT ONLY -- downgraded from a
-   failing check on measurement, see "Why check 3 is report-only" below.**
+   failing check on measurement, see "Why check 3 is report-only" below.** On
+   live documents it still reads HIGH chains only, through the frozen head-line
+   window; the template's population has been every load-bearing chain since
+   999.191, and the exemplar floor gates that wider population on the shipped
+   exemplars (bounds (j), (k)).
 
 Per the template's rule, check 2 resolves a count/enumeration disagreement by
 believing the enumeration: the section-3 comparison always runs against the
@@ -227,7 +232,9 @@ Disclosed bounds
 (f) **A document whose six sections do not resolve is reported unreadable, not
     clean.** `_slice_sections` raises rather than returning a partial slice, and
     that exception is surfaced per document. An unreadable document fails no
-    check -- it is counted and named.
+    check -- it is counted and named -- except a shipped exemplar, which fails
+    the exemplar floor (bound (j)), because its roll-up cannot be shown to
+    exist.
 (g) **Presence reads the template's line format only.** The locator finds a
     line-start `?-marked:` in section 3 and nothing else. It does not find the
     agent body's own prescribed form, which puts a backtick between the `?` and
@@ -247,6 +254,23 @@ Disclosed bounds
     is not a live gate. The content figure is not pinned: a reviewable content
     detector read all but one readable capture, and catching the last needs
     free-text widening that bound (g) leaves to 999.187.
+(i) **The template-read reading is pinned on frozen captures only.** Control
+    group `[template-read]` compares the harness's transcript census on two
+    frozen corpora against hand-transcribed per-capture states. It pins the
+    census's behaviour on fixed bytes; it never reads a live run.
+(j) **The exemplar floor gates shipped files, not live readings.** Under
+    `--self-test`, every `shared/examples/*.md` must carry a roll-up that
+    passes check 2, and must name a `Read-at-source:` location for every
+    unsuffixed ground truth feeding a load-bearing chain (999.191). A
+    `Read-at-source: none` line beside such a ground truth fails. Live
+    documents read through `--analysis` or `--dir` stay report-only on both.
+(k) **The floor's load-bearing population comes from the summary block.** It
+    is the transitive closure of `conclusion.rests_on` over
+    `chains[].rests_on` in the exemplar's structured-summary block, which
+    SUMM-BLOCK checks against each chain's head line. A ground truth a chain
+    cites only past its head line is outside it, and the location test is
+    `located_read_at_source()`'s coarse segment rule, which cannot tell which
+    of several ids on a single segment a location belongs to.
 
 Nothing in `check-quality-harness.py` is modified. Every function used from it
 is called: `_slice_sections`, `_chain_head_refs`, `_chain_ids`, `_chain_blocks`,
@@ -1991,6 +2015,94 @@ def _read_exemplar(p: Path) -> str:
 _EXEMPLAR_TEXT: Callable[[Path], str] = _read_exemplar
 
 
+# The exemplar floor's read-at-source half (999.191, 91-REVIEW WR-05). Its
+# population is the load-bearing one the agent body's Phase 3 exit criterion
+# and, since 999.191, the template's roll-up clause both name: every unsuffixed
+# ground truth feeding a chain a conclusion rests on, whatever the chain's band.
+# It is read from the exemplar's own structured-summary block -- the transitive
+# closure of `conclusion.rests_on` over `chains[].rests_on` -- because that block
+# is SUMM-BLOCK-checked against the chains' head lines, so this reading needs no
+# grammar of its own over section 4. A ground truth a chain cites only past its
+# head line is therefore outside it (disclosed bound (j)).
+_SUMMARY_JSON_RE = re.compile(r"^```json\n(\{.*?\})\n```", re.DOTALL | re.MULTILINE)
+# Matched against `Rollup.read_lines`, which hold each line with its
+# `Read-at-source:` prefix already removed.
+_READ_NONE_RE = re.compile(r"^[ \t]*none\b", re.IGNORECASE)
+
+
+def load_bearing_gt_keys(text: str) -> tuple[set[str], str | None]:
+    """Keys of every GT a load-bearing chain rests on, per the summary block.
+
+    Returns `(keys, None)`, or `(set(), reason)` when the block cannot be read.
+    `?`-suffixes are dropped here; section 3 decides which keys are unsuffixed.
+    """
+    blocks = [
+        m for m in _SUMMARY_JSON_RE.finditer(text) if '"schema_version"' in m.group(1)
+    ]
+    if len(blocks) != 1:
+        return set(), f"{len(blocks)} structured-summary blocks found, expected 1"
+    try:
+        block = json.loads(blocks[0].group(1))
+    except json.JSONDecodeError as exc:
+        return set(), f"structured-summary block does not parse: {exc}"
+    conclusion = block.get("conclusion") or {}
+    chains = {c["id"]: c.get("rests_on") or [] for c in block.get("chains") or []}
+    stack = list(conclusion.get("rests_on") or [])
+    seen: set[str] = set()
+    keys: set[str] = set()
+    while stack:
+        ref = stack.pop()
+        if ref in seen:
+            continue
+        seen.add(ref)
+        if ref in chains:
+            stack.extend(chains[ref])
+        elif ref.startswith("GT-"):
+            keys.add(gt_key(ref))
+    return keys, None
+
+
+def read_at_source_floor_problems(name: str, text: str) -> list[str]:
+    """Every unsuffixed load-bearing GT is named, with a location, on the roll-up.
+
+    Exemplar arm only: shipped exemplars are fixed files, so check 3's reasons
+    for staying report-only on live documents (module docstring) do not carry
+    over -- the exemplars are written to one per-id line grammar, and the
+    population comes from the summary block, not a head-line parse.
+    """
+    try:
+        section3 = QH._slice_sections(text)[3]
+    except QH.SectionResolutionError as exc:
+        return [f"{name}: section 3 does not resolve: {exc}"]
+    rollup = _ROLLUP_LOCATOR(section3)
+    if rollup is None:
+        return []  # absence is the presence floor's finding, not this one's
+    keys, err = load_bearing_gt_keys(text)
+    if err is not None:
+        return [f"{name}: load-bearing population unreadable: {err}"]
+    by_key = {g.key: g for g in _SECTION3_PARSER(section3)}
+    problems: list[str] = []
+    for key in sorted(keys - set(by_key)):
+        problems.append(
+            f"{name}: the summary block rests a load-bearing chain on {key.upper()}, "
+            "which section 3 does not declare"
+        )
+    needed = sorted(k for k in keys if k in by_key and not by_key[k].marked)
+    located = located_read_at_source(rollup.read_lines)
+    for key in needed:
+        if key not in located:
+            problems.append(
+                f"{name}: unsuffixed {by_key[key].written} feeds a load-bearing chain, "
+                "but no `Read-at-source:` line of the roll-up names it with a location"
+            )
+    if needed and any(_READ_NONE_RE.match(ln) for ln in rollup.read_lines):
+        problems.append(
+            f"{name}: a `Read-at-source: none` line stands beside "
+            f"{len(needed)} unsuffixed load-bearing ground truth(s)"
+        )
+    return problems
+
+
 def exemplar_problems() -> list[str]:
     """Every shipped exemplar carries a roll-up that passes check 2.
 
@@ -2036,6 +2148,7 @@ def exemplar_problems() -> list[str]:
                 f"{p.name}: a roll-up was found but section 3 read empty, and check 2 "
                 "still passed"
             )
+        problems += read_at_source_floor_problems(p.name, _EXEMPLAR_TEXT(p))
     return problems
 
 
@@ -2052,6 +2165,8 @@ INJECTIONS: tuple[str, ...] = (
     "census-always-true",
     "census-no-reads",
     "exemplar-rollup-dropped",
+    "exemplar-read-lines-dropped",
+    "exemplar-read-lines-none",
     "kept-row-dropped",
     "locator-never",
     "locator-everywhere",
@@ -2069,6 +2184,8 @@ _INJECTION_GROUP: dict[str, str] = {
     "census-always-true": "template-read",
     "census-no-reads": "template-read",
     "exemplar-rollup-dropped": "exemplar",
+    "exemplar-read-lines-dropped": "exemplar",
+    "exemplar-read-lines-none": "exemplar",
     "kept-row-dropped": "retirement",
     "locator-never": "line-format-pin",
     "locator-everywhere": "line-format-pin",
@@ -2131,6 +2248,25 @@ def _inject_exemplar_rollup_dropped(p: Path) -> str:
     return "\n".join(kept) + "\n"
 
 
+def _inject_exemplar_read_lines_dropped(p: Path) -> str:
+    """Every exemplar read with every `Read-at-source:` line deleted (WR-05 probe P4)."""
+    text = p.read_text(encoding="utf-8")
+    kept = [ln for ln in text.splitlines() if not ln.startswith("Read-at-source:")]
+    return "\n".join(kept) + "\n"
+
+
+def _inject_exemplar_read_lines_none(p: Path) -> str:
+    """Every exemplar's `Read-at-source:` lines replaced by one `none` line (probe P3)."""
+    out: list[str] = []
+    for ln in p.read_text(encoding="utf-8").splitlines():
+        if ln.startswith("Read-at-source:"):
+            if not out or not out[-1].startswith("Read-at-source:"):
+                out.append("Read-at-source: none — no chain is rated HIGH")
+            continue
+        out.append(ln)
+    return "\n".join(out) + "\n"
+
+
 def _inject_kept_row_dropped() -> tuple[tuple[str, str, int], ...]:
     """The template-only roster with its agent-body row removed.
 
@@ -2176,6 +2312,10 @@ def _run_controls(injection: str | None) -> list[str]:
         _TEMPLATE_READ_CENSUS = _inject_census_no_reads
     elif injection == "exemplar-rollup-dropped":
         _EXEMPLAR_TEXT = _inject_exemplar_rollup_dropped
+    elif injection == "exemplar-read-lines-dropped":
+        _EXEMPLAR_TEXT = _inject_exemplar_read_lines_dropped
+    elif injection == "exemplar-read-lines-none":
+        _EXEMPLAR_TEXT = _inject_exemplar_read_lines_none
     elif injection == "kept-row-dropped":
         _TEMPLATE_ONLY_SURFACES = _inject_kept_row_dropped()
     elif injection == "locator-never":
@@ -2373,6 +2513,7 @@ def describe() -> dict:
                 "exemplar-floor-gates-shipped-files-not-live-readings",
                 "line-format-pinned-on-frozen-captures-only",
                 "presence-reads-template-line-format-only",
+                "exemplar-read-at-source-population-from-summary-block",
             ]
         ),
     }

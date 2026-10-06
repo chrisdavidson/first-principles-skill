@@ -53,9 +53,9 @@ produced only after the assumption table is resolved against the team's measured
 
 | Assumption | Type | Treatment | Verdict | Verification |
 |------------|------|-----------|---------|--------------|
-| The team can build, harden, and operate session-based auth + MFA + audit log to a security floor acceptable for B2B SaaS without prior in-production auth experience on this team | untested belief — economic-hinge | If false, the entire build-side economic case collapses regardless of headline implementation cost — the team will either ship an under-secured product or absorb a much larger ongoing cost than estimated. Do not enter the decision with this flagged | Challenge — unverified; no engineer on the team has operated production auth before, and this is the load-bearing build-side hinge | Unverified — flagged; nobody on the current team has shipped and operated production auth at this team's previous companies; the assumption is the load-bearing hinge for the build-side TCO |
+| The team can build, harden, and operate session-based auth + MFA + audit log to a security floor acceptable for B2B SaaS without prior in-production auth experience on this team | untested belief — capability-hinge | If false, the build path is not a safe option at any cost — the team will either ship an under-secured product or absorb a much larger ongoing cost than estimated. It does not decide the cost comparison, which build already loses across GT-4's whole FTE range (chain C1); it decides whether the build path is viable at all on the security surfaces. Do not enter the decision with this flagged | Challenge — unverified; no engineer on the team has operated production auth before, and this is the load-bearing build-side hinge | Unverified — flagged; nobody on the current team has shipped and operated production auth at this team's previous companies; the assumption is the load-bearing hinge for whether the build path can clear the security floor |
 | A managed identity provider's published pricing remains within budget at the team's projected tenant count over a 24-month horizon | untested belief | Verify by walking each candidate provider's published pricing tier against the company's tenant growth projection; flag the specific tier crossings where monthly cost jumps materially | Challenge — partially verifiable via a tier-crossing calculation against published pricing, not a vendor claim | Partially verifiable — Auth0 / Clerk / WorkOS pricing pages and the company's 24-month tenant projection are both available; the verification is a tier-crossing calculation, not a vendor claim |
-| Migrating off a managed identity provider 18–36 months from now (if pricing trajectory or vendor terms change) is feasible at acceptable cost | untested belief — economic-hinge | If false, the buy path is a one-way door at the moment the first enterprise customer's identity records are stored in the vendor; expiry probability and migration cost must be characterised before signing | Challenge — unverified; export formats are only partially round-trippable, so this is the second economic hinge | Unverified — flagged; user-record export formats are typically supported by the major providers, but social-login linkage, MFA enrollment state, and tenant-specific provider configuration are not always round-trippable; the realistic migration cost is the second economic hinge |
+| Migrating off a managed identity provider 18–36 months from now (if pricing trajectory or vendor terms change) is feasible at acceptable cost | untested belief — economic-hinge | If false, the buy path is a one-way door at the moment the first enterprise customer's identity records are stored in the vendor; expiry probability and migration cost must be characterised before signing | Challenge — unverified; export formats are only partially round-trippable, so this is the economic hinge of the buy path | Unverified — flagged; user-record export formats are typically supported by the major providers, but social-login linkage, MFA enrollment state, and tenant-specific provider configuration are not always round-trippable; the realistic migration cost is the buy path's economic hinge |
 | The team's current security posture (no prior CVEs to inherit, no compliance audit yet, no production secrets manager in place) is the floor the auth implementation has to clear | current constraint | Record the floor explicitly; the floor moves up when the first enterprise customer requires SOC2 or signs a DPA with security clauses; the build path then absorbs the cost of meeting the new floor, the buy path inherits the provider's existing posture | Accept — directly observed; the floor and its expiry condition are both documented | Observed: no current compliance audit, no auth-related CVE inheritance, no secrets manager; the floor is documented and the expiry condition (first enterprise customer's security review) is named |
 | "Roll your own auth" is irresponsible in 2026; reputable engineering practice is to adopt a managed provider | convention — analogy-as-evidence | The claim circulates as a community default but is not grounded in a named ground truth about this team's situation; treat as discarded unless re-expressed as a chain anchored in named GTs | Discard — an analogy-as-evidence move with no named ground truth anchoring it to this team's situation | The claim is an analogy-as-evidence move per `assumption-taxonomy.md`; it may not anchor a chain; the actual question is whether THIS team's specific risk profile clears the security floor for THIS product surface, which the build-vs-buy chains evaluate from named GTs rather than from the convention |
 | The build-vs-buy decision is binary — adopt one provider fully or build from scratch | untested belief — false-dichotomy | Challenge the binary framing; enumerate intermediate options (e.g., adopt the provider only for login + MFA while owning session, audit log, and tenant model in-house) and check whether any of them dominates either pole on cost, risk, or reversibility | Challenge — a documented hybrid path dominates both poles, discarding the binary framing (chain C3) | The hybrid path — adopt the provider for the high-blast-radius surfaces (password storage, MFA, social login) while owning the lower-risk, vendor-lock-in-prone surfaces (tenant model, audit log, session policy) in-house — is documented in vendor integration guides and is not captured by either of the two original poles |
@@ -122,6 +122,9 @@ produced only after the assumption table is resolved against the team's measured
 ```text
 ?-marked: GT-7? (1 of 7)
 Read-at-source: GT-1 — direct team-experience inventory taken at the start of this analysis, verified by 1:1 confirmation with each engineer
+Read-at-source: GT-2 — company finance and pipeline records (CRM-tracked enterprise leads; board capacity-planning model)
+Read-at-source: GT-3 — provider pricing pages (Auth0 / Okta CIAM, Clerk, WorkOS), retrieved at the analysis date
+Read-at-source: GT-4 — published engineering retrospectives from similar-stage SaaS companies that have shipped both paths, cross-referenced against GT-1; the entry names no specific retrospective, page or section
 Read-at-source: GT-5 — published provider documentation (data-export endpoints and formats), cross-referenced with engineering write-ups of documented provider migrations
 Read-at-source: GT-6 — direct observation of the team's current infrastructure (secrets in deploy-platform environment variables, no access audit log, no IR runbook)
 ```
@@ -130,23 +133,20 @@ Read-at-source: GT-6 — direct observation of the team's current infrastructure
 
 ## 4. Derivation Chains
 
-### Conclusion C1: The build path's headline cost is lower than the buy path at the current MAU, but only if the build-side economic hinge holds
+### Conclusion C1: Through the 24-month projection's midpoint, the buy path costs less than the build path at every FTE level in GT-4's range
 
 GT-4 (4–8 weeks initial build + 0.1–0.3 FTE ongoing maintenance) + GT-3 (managed provider list prices ≈ $200–$800/month at the projected 1,000-MAU midpoint) + GT-7? (the provider's pricing trajectory beyond today's list prices, unverified)
-→ At the current ~120 tenants and an immediate launch budget, the buy path costs approximately $0–$300/month (the lowest tier of most providers covers a small MAU count) and the build path costs 4–8 weeks of engineering time once plus ~0.1–0.3 FTE ongoing; converted at typical fully-loaded engineering cost ($15K–$25K/month per FTE), the build path's ongoing cost is approximately $1,500–$7,500/month — strictly higher than the buy path at every tier through the 24-month horizon's midpoint; the build path's apparent advantage exists only at the initial-implementation one-time cost line, not in the steady-state operating cost; this inverts the common "buy is more expensive" intuition
-→ The build path's economic case rests on GT-4's lower-bound 0.1 FTE estimate holding, which is itself conditional on the team being able to build and operate auth to the security floor — the load-bearing assumption flagged as `untested belief — economic-hinge` in Section 2. If the team requires 0.3 FTE rather than 0.1 FTE because they hit unfamiliar territory (MFA flow edge cases, account-takeover protections, audit-log correctness for a future compliance audit), the build path's ongoing cost is ~$4,500–$7,500/month and the buy path dominates on cost alone at every tier the 24-month projection crosses.
+→ At the current ~120 tenants and an immediate launch budget, the buy path costs approximately $0–$300/month (the lowest tier of most providers covers a small MAU count) and the build path costs 4–8 weeks of engineering time once plus ~0.1–0.3 FTE ongoing; converted at typical fully-loaded engineering cost ($15K–$25K/month per FTE), the build path's ongoing cost is approximately $1,500–$7,500/month — strictly higher than the buy path at every tier through the 24-month horizon's midpoint. The one-time line does not reverse this: the 4–8 week initial build is a further cost of roughly $14K–$46K at the same rates, which the buy path does not carry, so there is no cost line on which the build path is cheaper; this inverts the common "buy is more expensive" intuition
+→ The comparison does not turn on GT-4's FTE estimate. At the lower bound (0.1 FTE) the build path's ongoing cost is still ~$1,500–$2,500/month, about two to three times the buy path's highest midpoint figure of $800/month; at the upper bound (0.3 FTE), which a team hitting unfamiliar territory (MFA flow edge cases, account-takeover protections, audit-log correctness for a future compliance audit) is more likely to reach, it is ~$4,500–$7,500/month. The team-capability assumption flagged as `untested belief — capability-hinge` in Section 2 therefore moves the size of the gap, not its sign: if it fails, the build path only costs more. The buy path would lose on cost only if its price at the midpoint rose to nearly twice the top of today's list range, which is the pricing-trajectory question GT-7? leaves open.
 
 **Pre-check:** head GT-4, GT-3, GT-7? · ?-marked: GT-7? · lowest cited: none · Inputs ceiling: MEDIUM
-**Confidence:** MEDIUM — downgraded because the chain consumes GT-4's lower-bound and
-  the unverified team-capability hinge, and because its comparison "through the 24-month
+**Confidence:** MEDIUM — downgraded because the comparison "through the 24-month
   horizon" carries GT-3's list prices forward, which is GT-7? (pricing trajectory), not
-  GT-3. The hinge would be removed as a cause by either (a) a 4-week spike on the build
-  path that demonstrates the team is operating at the lower-bound FTE estimate, or (b) a
-  measured incident in production that disambiguates which estimate the team is
-  actually at. GT-7? would be removed by a signed contract with the chosen managed
-  provider pinning the pricing trajectory through the 24-month horizon. Both causes must
-  go — D-07 bars a HIGH line while any GT-N? input stands, so settling the hinge alone
-  leaves this chain at MEDIUM.
+  GT-3. GT-7? would be removed by a signed contract with the chosen managed provider
+  pinning the pricing trajectory through the 24-month horizon; D-07 bars a HIGH line
+  while it stands. The FTE estimate in GT-4 and the team-capability hinge are not
+  causes: the chain names them only to rule them out — the buy path is cheaper at both
+  ends of GT-4's range, and a failed hinge only widens the gap.
 
 ---
 
@@ -177,8 +177,8 @@ GT-6 (no secrets manager, no SOC2, no IR runbook — the security floor must be 
 **Pre-check:** head GT-6, GT-1, GT-5 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
 **Confidence:** HIGH — the chain rests on GT-1, GT-5, and GT-6, all directly observed
   rather than projected. The hybrid path's existence collapses the `false-dichotomy`
-  assumption in Section 2 and reduces the dependence on the two economic-hinge
-  assumptions.
+  assumption in Section 2 and reduces the dependence on the capability hinge and the
+  migration-cost hinge.
 
 ---
 
@@ -196,7 +196,8 @@ of build-vs-buy decision via TCO comparison, and the input data (GT-3 on provide
 pricing tiers, GT-4 on build effort and maintenance burden) is partially available.
 
 The TCO model was constructed: at the lower-bound build estimate (0.1 FTE) the build
-path's 3-year cost is ≈$54K–$90K; at the upper-bound (0.3 FTE) it is ≈$162K–$270K. The
+path's 3-year maintenance cost is ≈$54K–$90K; at the upper-bound (0.3 FTE) it is
+≈$162K–$270K; the one-time 4–8 week build adds roughly $14K–$46K to either. The
 buy path's 3-year cost at projected MAU growth is ≈$15K–$40K cumulative at the lower
 tier crossings and $40K–$100K if the team crosses into the next tier (typically at
 1,000+ MAUs or when enterprise SSO is enabled).
@@ -221,7 +222,7 @@ surfaces as decision-relevant:
    whose realized cost can be a company-existential event for an early-stage SaaS. A
    TCO model that puts $0 in that line is implicitly assuming the build-side capability
    hinge holds, which is exactly the assumption flagged as `untested belief —
-   economic-hinge` in Section 2.
+   capability-hinge` in Section 2.
 
 The TCO answer is therefore a function of two assumptions the TCO model itself does not
 expose. Abandoned because answering build-vs-buy via TCO alone collapses the analysis
@@ -276,7 +277,7 @@ move that the taxonomy prescribes Discarding.
 **What it ruled out:** This dead end establishes that "we have someone who has done it
 before" is not a sufficient anchor for the build path on this decision. Individual
 prior experience can be a useful input — it lowers the cost of the build-side spike
-that would verify the economic hinge — but it cannot SUBSTITUTE for the team-capability
+that would verify the capability hinge — but it cannot SUBSTITUTE for the team-capability
 GT. Any future analysis that attempts to anchor a build-vs-buy decision on an individual
 engineer's prior work must first re-verify the experience against the actual capability
 the new context requires, AND must check whether the maintenance burden remains on the
@@ -359,13 +360,13 @@ to own).
 **Confidence:** (chains C1, C2 and C3) MEDIUM — the hybrid-path chain itself is HIGH confidence, but the
 overall recommendation inherits the MEDIUM rating from two chains: the chain on
 reversibility (which depends on the projection in GT-2 of the first enterprise
-customer's timing) and the cost chain C1 (which depends on GT-4's lower-bound FTE
-estimate and on GT-7?, the pricing trajectory). Raising to HIGH requires all three
+customer's timing) and the cost chain C1 (which carries today's list prices across
+the 24-month horizon, GT-7?, the pricing trajectory). Raising to HIGH requires both
 resolved: (a) a signed enterprise customer with stated SSO/SAML requirements, which
 would resolve GT-2's projection into a fact and either confirm or close the 9-month
-reversal window; (b) a build spike or production measurement that settles the FTE
-estimate; and (c) a signed contract with the chosen managed provider that pins the
-pricing trajectory through the 24-month horizon, which would resolve GT-7?. GT-7? caps
+reversal window; and (b) a signed contract with the chosen managed provider that pins
+the pricing trajectory through the 24-month horizon, which would resolve GT-7?. The
+FTE estimate does not cap C1: buy is cheaper across GT-4's whole range. GT-7? caps
 C1 but not C2: the reversibility chain's lock-in holds however the trajectory
 resolves.
 

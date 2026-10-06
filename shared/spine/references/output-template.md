@@ -156,7 +156,7 @@ The `?` suffix signals that this ground truth has not been read at its source �
 
 **The `?` is the default.** Drop it only when the read-at-source location can be named. A delegate report counts as read-at-source only when it quotes the source's own wording and that quote was checked — not when it merely supplies a well-formed citation.
 
-**Provenance summary (required):** enumerate the `?`-marked ground truths **by ID**, and for every unsuffixed ground truth feeding a HIGH-confidence chain, name its read-at-source location. Write the list, not a number:
+**Provenance summary (required):** enumerate the `?`-marked ground truths **by ID**, and for every unsuffixed ground truth feeding a load-bearing chain — one a conclusion this analysis presents rests on, whatever its band — name its read-at-source location. This is the same population the Phase 3 exit criterion names: scoping it to HIGH chains would let an unread figure excuse itself, because the `?` it takes caps its chain below HIGH. Write the list, not a number:
 
 ```text
 ?-marked: GT-2, GT-5, GT-9, GT-14 (4 of 22)

@@ -23,7 +23,10 @@ confidence-transitivity-v9.4, and that line format is all the old count measured
 The output template marks the section-3 provenance roll-up "(required)", and the one sentence
 after that word binds two things (`shared/spine/references/output-template.md`): an enumerated
 set of `?`-marked ground-truth ids with its `(N of M)` count, and, for every unsuffixed ground
-truth feeding a HIGH-confidence chain, a named read-at-source location. The template adds that
+truth feeding a HIGH-confidence chain, a named read-at-source location. (That was the clause's
+scope when this reading was taken. Since 2026-10-05, backlog 999.191, it reads "feeding a
+load-bearing chain", matching the agent body's exit criterion; the enumeration half audited here
+is unchanged.) The template adds that
 "the named locations are the auditable part", and the agent body's exit criterion says the same.
 Neither half binds the template's exact line format: the phase decision recorded here reads
 "(required)" as binding the content, not the form, so no template, agent-body or exemplar text
@@ -78,7 +81,7 @@ no such line occurs in this population.
 enumeration nor a count of zero satisfies this on its own" (`shared/spine/references/output-template.md`).
 That sentence concerns the roll-up as a whole, including its Read-at-source locations for every
 unsuffixed ground truth feeding a HIGH-confidence chain (the body's wording since v9.10.0 is
-"load-bearing"). This count audits the enumeration half only. A capture counted here has the
+"load-bearing", and the template's since backlog 999.191). This count audits the enumeration half only. A capture counted here has the
 enumerated set and its count. That is not a finding that its roll-up fully satisfies the
 template clause, and at least one counted capture (`tests/live-conformance-v9.0/Q-P1.md:90`,
 above) does not carry the locations on its roll-up.

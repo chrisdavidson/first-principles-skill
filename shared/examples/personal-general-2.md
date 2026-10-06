@@ -53,7 +53,10 @@ A complete first-principles analysis of the question "I have surplus cash and a 
 
 ```text
 ?-marked: GT-3? (1 of 6)
-Read-at-source: none — no chain is rated HIGH
+Read-at-source: GT-1 — mortgage note and most recent statement
+Read-at-source: GT-2 — prior-year federal return and the current standard-deduction figure for the household's filing status
+Read-at-source: GT-4 — prior-year federal and state return at the current income level (the marginal rates; the 0.4–0.6 point tax drag is the entry's estimate from those rates, not a figure read there)
+Read-at-source: GT-5 — direct verification of the household's cash position
 ```
 
 ---

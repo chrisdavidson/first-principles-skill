@@ -90,7 +90,9 @@ against?
 ```text
 ?-marked: GT-5? (1 of 5)
 Read-at-source: GT-1 — in-product feedback log and post-cancellation churn-survey instrument, both queried Q-1
+Read-at-source: GT-2 — support-ticket export tagged `reporting-limitation`, cross-referenced with the account-management ARR roll-up
 Read-at-source: GT-3 — signed LOI filed with finance and legal
+Read-at-source: GT-4 — engineering manager's capacity plan (headcount × historical sustained ship velocity over the last four quarters)
 ```
 
 ---

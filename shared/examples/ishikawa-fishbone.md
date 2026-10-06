@@ -160,6 +160,7 @@ intervention set that addresses the verified ones?"
 
 ```text
 ?-marked: GT-5? (1 of 5)
+Read-at-source: GT-1 — company subscription and CRM records, verified against the billing system by the finance team
 Read-at-source: GT-2 — CS team exit-interview log (raw verbatims, Q2–Q3), reviewed and confirmed by the CS Director
 Read-at-source: GT-3 — CS Director debrief, with headcount and customer-count figures from HR and CRM records
 Read-at-source: GT-4 — CS Director debrief, and the absence of any mid-year capacity-review procedure in CS operations documentation

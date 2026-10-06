@@ -13,6 +13,37 @@ installed session.
 
 ## [Unreleased]
 
+### Changed — output template and worked examples (shipped)
+
+- **The provenance roll-up's read-at-source clause now covers every load-bearing chain, not
+  only HIGH ones** (backlog 999.191). The output template now names the same population as the
+  agent body's Phase 3 exit criterion: every unsuffixed ground truth feeding a chain a conclusion
+  rests on, whatever its band. Every worked example now names a `Read-at-source:` location for
+  each such ground truth (26 lines added), and the "none — no chain is rated HIGH" lines are gone.
+  Where an entry names only a kind of source, the line says so.
+- **Ground truths that were never read at source now carry the `?`** (backlog 999.190 and
+  91-REVIEW IN-01). theoretical-limit-carnot GT-4 and estimate-fermi GT-4/GT-5/GT-6 are unquoted
+  hand-offs from the five-whys example. personal-general GT-2/GT-3 and science-engineering GT-1
+  are illustrative figures. theoretical-limit-carnot C1 and personal-general C1 drop from HIGH to
+  MEDIUM, and both examples' §6 drop with them. Each confidence line now names the read that
+  would remove the `?`.
+- **software-systems-2 C1 is re-derived** (backlog 999.186). On its own numbers the buy path is
+  cheaper at every FTE level in GT-4's range, and no cost line favours building. The title, the
+  third hop, the confidence line, §6 and the §2 hinge row now say so. The team-capability
+  assumption is re-typed `untested belief — capability-hinge`.
+- **decompose-irreducibility C1 no longer rests on the unverified ~99% storage figure** (backlog
+  999.189). The refutation now uses the bound (≤ ~62% even at zero storage loss and the Carnot
+  limit), so C1 stays HIGH without consuming GT-7?.
+- **self-application §6 no longer calls C3 HIGH** (backlog 999.192). It names C1 and C3 as the
+  below-HIGH contributors.
+
+### Fixed — documentation and apparatus
+
+- `docs/ARCHITECTURE.md` no longer says the companion procedures are not inlined. They are, by
+  `generate_agent()` (backlog 999.178).
+- PROV-ROLLUP's exemplar floor now requires the read-at-source half of the roll-up, with two
+  must-fail injections (91-REVIEW WR-05).
+
 ## [9.19.0] — 2026-10-05
 
 Minor release: **every worked example now models the provenance roll-up and the pre-check

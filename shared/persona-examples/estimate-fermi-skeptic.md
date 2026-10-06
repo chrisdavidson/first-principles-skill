@@ -9,7 +9,7 @@
 
 In brief: The analysis carries one chain, C1, whose verdict on molten-salt storage against lithium-ion turns on discharge duration and on what equipment each price covers (§6).
 
-The argument rests on GT-4, GT-5, GT-6, GT-7? and GT-8, with the unit-factor rebuild explaining the GT-5 installed range and the GT-8 power-block cost read at source for this revision (C1).
+The argument rests on GT-4?, GT-5?, GT-6?, GT-7? and GT-8, with the unit-factor rebuild explaining the GT-5? installed range and the GT-8 power-block cost read at source for this revision (C1).
 
 The one abandoned line, §5 "Comparing the store's cost with the battery's installed price", was set aside because it priced a store against a whole battery system that delivers electricity (§5). No chain states a rival that was ruled out (§4).
 

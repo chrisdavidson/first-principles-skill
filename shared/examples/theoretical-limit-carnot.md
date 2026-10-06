@@ -12,7 +12,7 @@ between that ceiling, what has been measured, and current design practice.
 **Target:** the thermal-to-electric conversion efficiency of the steam Rankine power block in
 a molten-salt power tower — heat delivered from the hot salt tank in, gross electricity out.
 The hot reservoir is the 565 °C hot tank established in the five-whys (reduce-to-primitives)
-example as GT-4. The cold reservoir is the power cycle's condenser, **not** the 290 °C cold
+example as its GT-4, carried here as GT-4?. The cold reservoir is the power cycle's condenser, **not** the 290 °C cold
 tank: the cold tank is the return leg of the heat *source* loop, and nothing in the plant
 rejects waste heat at 290 °C. The question: how far below the law-permitted ceiling is current
 practice, and how much of that distance is recoverable?
@@ -81,13 +81,13 @@ T_cold (both in kelvin) is:
 
     η_Carnot = 1 − T_cold / T_hot
 
-**First-principles values.** T_hot comes from GT-4. T_cold does not, and that is the whole
+**First-principles values.** T_hot comes from GT-4?. T_cold does not, and that is the whole
 point of this step.
 
 The hot reservoir is the hot salt tank. Converting to kelvin (the conversion
 definition: T [K] = T [°C] + 273.15):
 
-    T_hot = 565 °C + 273 ≈ 838 K   (hot tank / upper reservoir, GT-4)
+    T_hot = 565 °C + 273 ≈ 838 K   (hot tank / upper reservoir, GT-4?)
 
 **Why the cold tank is not the cold reservoir.** The salt gives up heat between 565 °C and
 290 °C and returns to the cold tank at 290 °C. That loop is the heat *source*: it carries
@@ -104,14 +104,14 @@ condenser pressure (GT-5):
     T_cold ≈ 43 °C + 273 ≈ 316 K   (wet-cooled, 0.087 bar condenser pressure)
     T_cold ≈ 57 °C + 273 ≈ 330 K   (air-cooled, 0.17 bar condenser pressure)
 
-Which of the two applies is a plant- and site-specific design choice that GT-4 does not
+Which of the two applies is a plant- and site-specific design choice that GT-4? does not
 settle, so it is carried as an assumption (§2) and the ceiling is stated as a range.
 
 ---
 
 ### Step 3 — Derive the law-permitted ceiling
 
-Substituting the GT-4 hot-reservoir temperature and each GT-5 heat-rejection temperature into
+Substituting the GT-4? hot-reservoir temperature and each GT-5 heat-rejection temperature into
 the Carnot formula:
 
     wet-cooled:  η_Carnot = 1 − 316 / 838 = 1 − 0.377 = 0.623
@@ -190,7 +190,7 @@ the source temperature buys efficiency; it does not buy reversibility.
 
 **Target:** the thermal-to-electric conversion efficiency of the steam Rankine power block in
 a molten-salt power tower, drawing heat from the 565 °C hot tank established in the five-whys
-(reduce-to-primitives) example as GT-4 and rejecting it to the cycle's condenser. The
+(reduce-to-primitives) example as its GT-4 (GT-4? here) and rejecting it to the cycle's condenser. The
 question: how far below the law-permitted ceiling is current practice, and how much of that
 distance is recoverable?
 
@@ -204,19 +204,22 @@ machine, and a real plant can exceed it without violating anything.
 
 | Assumption | Type | Treatment | Verdict | Verification |
 |------------|------|-----------|---------|--------------|
-| The plant rejects heat through either a wet cooling tower or an air-cooled condenser; which one is not established by GT-4 | convention | Carry both ends rather than picking one — cooling method is a siting and water-availability choice, and towers in arid siting are frequently dry-cooled; published design condenser pressures for this plant class give 0.087 bar wet-cooled and 0.17 bar dry-cooled | Accept — carried as a range, not a point; both ends are published design values and the conclusion holds at both | Verified as a range: GT-5 sources both condenser pressures, and chain C1 computes the ceiling at both ends. The ceiling-to-practice gap differs by 0.1 point between them, so nothing in the conclusion turns on the choice |
+| The plant rejects heat through either a wet cooling tower or an air-cooled condenser; which one is not established by GT-4? | convention | Carry both ends rather than picking one — cooling method is a siting and water-availability choice, and towers in arid siting are frequently dry-cooled; published design condenser pressures for this plant class give 0.087 bar wet-cooled and 0.17 bar dry-cooled | Accept — carried as a range, not a point; both ends are published design values and the conclusion holds at both | Verified as a range: GT-5 sources both condenser pressures, and chain C1 computes the ceiling at both ends. The ceiling-to-practice gap differs by 0.1 point between them, so nothing in the conclusion turns on the choice |
 | Published design-point cycle efficiency for this technology class describes what commercial plants achieve in operation | untested belief | Verify before use — no measured thermal-to-electric figure for a commercial-scale molten-salt tower was located for this drill; the only measurement at these reservoir conditions comes from a 12.8 MWe non-reheat block that its own report calls configuration-limited | Challenge — unverified; no measured commercial-plant figure located, and the one measured figure comes from a non-representative power block | Unverified — flagged; GT-6 carries the design figure and the Solar Two measurement as separate readings rather than merging them, and chain C1's conclusion is directional under this gap: a lower measured figure widens the ceiling-to-practice gap rather than narrowing it |
 
 ---
 
 ## 3. Ground Truths
 
-- **GT-4** Solar Salt (60% NaNO₃ / 40% KNO₃) is stable across the 290–565 °C commercial
+- **GT-4?** Solar Salt (60% NaNO₃ / 40% KNO₃) is stable across the 290–565 °C commercial
   operating window, giving a hot-tank temperature T_hot ≈ 838 K and a 290 °C cold-tank return
   temperature — source: published material data for Solar Salt (direct measurement),
   established in the five-whys (reduce-to-primitives) example this drill hands off from. The
   cold-tank figure is the source loop's return temperature, not the power cycle's
-  heat-rejection temperature; this drill consumes the hot-tank value only.
+  heat-rejection temperature; this drill consumes the hot-tank value only. **Unverified in
+  this drill:** the figure is a hand-off that quotes no source wording, so it is not
+  read-at-source here; quoting the stability window from a named Solar Salt data sheet table
+  would remove the `?`.
 
 - **GT-5** Design condenser pressure for a 565 °C molten-salt power tower is 0.087 bar with a
   wet-cooled condenser and 0.17 bar with a dry-cooled one, giving heat-rejection temperatures
@@ -233,7 +236,7 @@ machine, and a real plant can exceed it without violating anything.
   carried as the representative commercial power tower in NREL's Annual Technology Baseline
   (*The Role of Concentrating Solar-Thermal Technologies in a Decarbonized U.S. Grid*,
   OSTI 1820100), anchored on the Crescent Dunes plant — that source states 575 °C hot salt,
-  10 °C above GT-4's window top, for the same 41.2% dry-cooled cycle efficiency, so the two
+  10 °C above GT-4?'s window top, for the same 41.2% dry-cooled cycle efficiency, so the two
   citations agree on the figure while describing salt temperatures 10 °C apart. The only
   *measured* figure at these reservoir conditions is 34.1% thermal-to-gross-electric at full
   load at Solar Two — direct measurement, *Final Test and Evaluation Results from the Solar Two
@@ -249,8 +252,7 @@ machine, and a real plant can exceed it without violating anything.
   by any chain below.
 
 ```text
-?-marked: none (0 of 4)
-Read-at-source: GT-4 — published material data for Solar Salt (direct measurement), established in the five-whys (reduce-to-primitives) example this drill hands off from
+?-marked: GT-4? (1 of 4)
 Read-at-source: GT-5 — Sandia, An Evaluation of Possible Next-Generation High Temperature Molten-Salt Power Towers (OSTI 1035342, Table 2), temperatures from water saturation data
 Read-at-source: GT-6 — the same Sandia design characterization (OSTI 1035342, Table 2), restated in Sandia OSTI 1088078 §1.1
 ```
@@ -261,7 +263,7 @@ Read-at-source: GT-6 — the same Sandia design characterization (OSTI 1035342, 
 
 ### Conclusion C1: Current practice sits ~19 points below the Carnot ceiling for the cycle's actual reservoir pair, and most of that distance is not recoverable headroom
 
-GT-4 (Solar Salt stable 290–565 °C; hot tank T_hot ≈ 838 K — direct measurement, established in the five-whys reduce-to-primitives example) + GT-5 (design condenser pressures 0.087 bar wet-cooled and 0.17 bar dry-cooled, giving T_cold ≈ 316 K and ≈ 330 K — published design characterization) + GT-6 (design-point gross cycle efficiency 43.0% wet-cooled and 41.2% air-cooled at 565 °C salt — published design characterization)
+GT-4? (Solar Salt stable 290–565 °C; hot tank T_hot ≈ 838 K — direct measurement, established in the five-whys reduce-to-primitives example) + GT-5 (design condenser pressures 0.087 bar wet-cooled and 0.17 bar dry-cooled, giving T_cold ≈ 316 K and ≈ 330 K — published design characterization) + GT-6 (design-point gross cycle efficiency 43.0% wet-cooled and 41.2% air-cooled at 565 °C salt — published design characterization)
 → The cycle's cold reservoir is its condenser and not the 290 °C cold tank, because the salt loop carries heat into the steam generator and returns at 290 °C while the steam cycle rejects its waste heat to a condenser at near-ambient temperature
 → The Second Law's Carnot bound (η = 1 − T_cold/T_hot) applied to that reservoir pair yields a law-permitted ceiling of 62.3% wet-cooled and 60.6% air-cooled
 → Against the wet-cooled pair the gap from ceiling to current design practice is 62.3 − 43.0 = 19.3 percentage points
@@ -270,10 +272,13 @@ GT-4 (Solar Salt stable 290–565 °C; hot tank T_hot ≈ 838 K — direct measu
 → Closing the ~19-point gap at fixed T_hot would require heat transfer approaching reversibility, which needs either infinite exchanger area or infinite time, so most of it is not recoverable by better equipment
 → The demonstrated lever is therefore raising T_hot rather than perfecting the cycle at fixed T_hot, and raising it translates the whole bracket upward: a 650 °C ultra-supercritical design is rated 49.6% against its own ~66% ceiling, a gap of ~16 points rather than none.
 
-**Pre-check:** head GT-4, GT-5, GT-6 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
-**Confidence:** HIGH — the Carnot ceiling is a physical law applied to a reservoir pair whose
-hot end is GT-4 and whose cold end is a published design condenser pressure, and the chain's
-head cites no `GT-N?`. The conclusion holds at both ends of the unresolved cooling-method
+**Pre-check:** head GT-4?, GT-5, GT-6 · ?-marked: GT-4? · lowest cited: none · Inputs ceiling: MEDIUM
+**Confidence:** MEDIUM — downgraded because the reservoir pair's hot end is GT-4?, a hand-off
+from the five-whys example that this analysis did not read at source; D-07 bars a HIGH line
+while it stands. Quoting the Solar Salt stability window from a named data sheet table would
+remove it. The conclusion's size barely depends on it: 10 °C either way moves the wet-cooled
+ceiling by under half a point (1 − 316/848 ≈ 62.7% at 575 °C, 1 − 316/828 ≈ 61.8% at 555 °C).
+The cold end is a published design condenser pressure. The conclusion holds at both ends of the unresolved cooling-method
 range, and it is directional under §2's second assumption: if commercial plants measure below
 their design figure, the gap this chain reports widens rather than narrows. What this rating
 does *not* rest on is any apportionment of the gap across components, which this analysis
@@ -321,20 +326,21 @@ reframes the question from "why is practice so far below the law?" to "how much 
 19-point gap can a finite-power machine ever recover?"
 
 - Cross-technique continuity (chain C1): the five-whys reduce-to-primitives drill
-  established GT-4 — the Solar Salt temperature window — from which chain C1 consumes the
-  hot-tank temperature, the same ground truth the estimate drill's chain also anchors to; the
-  heat-rejection temperature is separately sourced here as GT-5 because GT-4 does not supply
-  it.
+  established the Solar Salt temperature window as its GT-4, carried here as GT-4?, from which
+  chain C1 consumes the hot-tank temperature, the same ground truth the estimate drill's chain
+  also anchors to; the heat-rejection temperature is separately sourced here as GT-5 because
+  GT-4? does not supply it.
 - The gap's shares are not apportioned (chain C1): the loss mechanisms are named and two of
   them carry sourced magnitudes — ~1.8 points for cooling method, ~7 points for reheat — but
   the split of the ~19 points across turbine, heat-exchanger and cycle
   irreversibilities is not measured here, and a per-component exergy balance for a specific
   plant is what would measure it.
 
-**Pre-check:** head C1 (HIGH) · ?-marked: none · lowest cited: HIGH · Inputs ceiling: HIGH
-**Confidence:** HIGH — matches chain C1. The ceiling is a physical law applied to a sourced
-reservoir pair, the ceiling-to-practice gap holds at both ends of the cooling range, and the
-one unverified belief in §2 can only widen it. The rating covers the bracket and the direction
+**Pre-check:** head C1 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
+**Confidence:** MEDIUM — matches chain C1, which is capped by GT-4?, the hot-tank temperature
+carried from the five-whys example without a read at source. The ceiling is a physical law
+applied to that reservoir pair, the ceiling-to-practice gap holds at both ends of the cooling
+range, and the one unverified belief in §2 can only widen it. The rating covers the bracket and the direction
 of the gap, not any apportionment of it across components.
 
 ---
@@ -362,7 +368,7 @@ of the gap, not any apportionment of it across components.
   "ground_truths": [
     {
       "id": "GT-4",
-      "read_at_source": true
+      "read_at_source": false
     },
     {
       "id": "GT-5",
@@ -380,9 +386,9 @@ of the gap, not any apportionment of it across components.
   "chains": [
     {
       "id": "C1",
-      "confidence": "HIGH",
+      "confidence": "MEDIUM",
       "rests_on": [
-        "GT-4",
+        "GT-4?",
         "GT-5",
         "GT-6"
       ]
@@ -397,7 +403,7 @@ of the gap, not any apportionment of it across components.
   "re_entry": null,
   "conclusion": {
     "recommendation": "Treat the ~19-point ceiling-to-practice gap (chain C1) as mostly\nirreducible rather than as recoverable headroom, and pursue efficiency by raising the source\ntemperature — supercritical and ultra-supercritical cycles at 600–650 °C salt — rather than by\nchasing component refinements at fixed T_hot.\nBefore quoting any figure in the bracket, state whether it is a power-block or a whole-plant\nnumber; the two differ by roughly a factor of two and are routinely confused.",
-    "confidence": "HIGH",
+    "confidence": "MEDIUM",
     "rests_on": [
       "C1"
     ]
