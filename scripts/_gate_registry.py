@@ -1058,7 +1058,15 @@ ENTRIES: tuple[GateEntry, ...] = (
             "shrunk node, an edge dropped from a fixture — each fail for their "
             "own finding code alone. Counts come from the library's own "
             "metadata, not SVG geometry; legibility is checked by inspection, "
-            "not by this gate. typst absent means BLOCKED, never PASS."
+            "not by this gate. It also compiles the PDF page template in "
+            "`shared/spine/references/report-layout.md` through the agent's own "
+            "pandoc and typst pipeline over a worked example and the reading "
+            "guide, and requires a real PDF from each; the template frozen from "
+            "commit 45f6244a, which typst 0.15 cannot compile and which broke "
+            "every reader-report PDF while the battery stayed green, must fail, "
+            "as must a content-valued `document(author:)`. That proves the "
+            "template compiles, not that the page looks right. typst or pandoc "
+            "absent means BLOCKED, never PASS."
         ),
         consumes=(
             "control_ids",

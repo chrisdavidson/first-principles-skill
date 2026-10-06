@@ -62,27 +62,11 @@ variables, filled from the `-M title=` and `-M date=` arguments; `$body$` is the
 // here keeps that call working while giving the rule the report's own gray stroke.
 #let divider() = line(length: 100%, stroke: 0.5pt + rule-gray)
 
-#set document(title: [$title$], author: [First-Principles Analysis])
+#set document(title: [$title$], author: "First-Principles Analysis")
 
-// Configure pages with different settings for cover page and content pages
-#let cover-page = page(
-  paper: "us-letter",
-  margin: (x: 0.75in, y: 0.75in),
-  header: none,
-  footer: none,
-  {
-    set align(center + horizon)
-    text(size: 48pt, weight: "bold", fill: navy, [$title$])
-    v(2em)
-    text(size: 16pt, fill: slate, [First-Principles Analysis])
-    v(4em)
-    text(size: 14pt, fill: slate, [$date$])
-    v(1em)
-    text(size: 11pt, fill: rule-gray, [Professional Strategic Analysis])
-  }
-)
-
-#let content-page = page(
+// Content pages. The cover (page 1) overrides margins, header and footer in its own `page` call
+// below; the running header starts after the contents page (page 2).
+#set page(
   paper: "us-letter",
   margin: (x: 0.9in, top: 0.95in, bottom: 0.9in),
   header: context {
@@ -101,8 +85,6 @@ variables, filled from the `-M title=` and `-M date=` arguments; `$body$` is the
       [Page #counter(page).display() of #counter(page).final().first()])
   },
 )
-
-#set page(content-page)
 
 #set text(font: ("Noto Sans", "Liberation Sans"), size: 9.5pt, fill: rgb("#1a202c"), lang: "en", hyphenate: false)
 #set par(justify: false, leading: 0.62em, spacing: 0.95em)
@@ -151,11 +133,19 @@ variables, filled from the `-M title=` and `-M date=` arguments; `$body$` is the
 #show quote: it => block(inset: (left: 10pt, y: 2pt), stroke: (left: 2pt + rule-gray),
   text(fill: slate, it.body))
 
-// Professional cover page
-#cover-page
+// Cover page: a page of its own, with its own margins and no header or footer.
+#page(margin: (x: 0.75in, y: 0.75in), header: none, footer: none)[
+  #set align(center + horizon)
+  #text(size: 48pt, weight: "bold", fill: navy)[$title$]
+  #v(2em)
+  #text(size: 16pt, fill: slate)[First-Principles Analysis]
+  #v(4em)
+  #text(size: 14pt, fill: slate)[$date$]
+  #v(1em)
+  #text(size: 11pt, fill: rule-gray)[Professional Strategic Analysis]
+]
 
 // Table of contents
-#pagebreak()
 #heading(level: 1, outlined: false, [Contents])
 #outline(title: none, indent: 1em)
 

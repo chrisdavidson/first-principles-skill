@@ -15,12 +15,22 @@ each figure stamps against counts independently re-derived straight from the
 fixture JSON -- never from the drawn SVG geometry. FIG-01 through FIG-05 name
 the requirements this mechanises; this module's own finding codes are
 FIG-EXTRACT, FIG-FIXTURE, FIG-COMPILE, FIG-METADATA, FIG-GTS, FIG-CHAINS,
-FIG-EDGES, FIG-CONCL-EDGES, FIG-CELLS, FIG-OVERFLOW, FIG-SVG, FIG-FONT and
-FIG-ANCHOR.
+FIG-EDGES, FIG-CONCL-EDGES, FIG-CELLS, FIG-OVERFLOW, FIG-SVG, FIG-FONT,
+FIG-ANCHOR and FIG-LAYOUT.
+
+Since backlog 999.195 it also compiles the PDF page template
+(`shared/spine/references/report-layout.md`, extracted with the same awk
+program) through the agent's own pandoc and typst pipeline, over a worked
+example and the reading guide, and asserts each one yields a real PDF. Commit
+45f6244a shipped a template typst 0.15 cannot compile and every reader-report
+PDF failed for three days with the battery GREEN, because nothing here read
+that file. Controls L02 and L03 must fail: the frozen 45f6244a template, and
+the shipped template with a content-valued `document(author:)` injected.
 
 Two-layer BLOCKED design (see Pitfall 1 in the phase research): this script's
 own `--self-test`/`--render` exit with code 1 (RED, since Phase 89 plan 01;
-previously 2) and print BLOCKED the moment typst is absent from PATH, before
+previously 2) and print BLOCKED the moment typst (or, for `--self-test`,
+pandoc) is absent from PATH, before
 any other work -- a directly self-testable contract (control B01). The battery's own [PREREQ] verdict is a SEPARATE
 bash-level decision (`command -v typst`) made by the caller, not derived from
 this exit code; `--describe` is typst-independent so it still answers when
@@ -57,6 +67,17 @@ FIXTURE_DIR = REPO_ROOT / "tests" / "report-figures-v9.17"
 FIXTURES: tuple[str, ...] = ("analysis-20261001T204943Z.json", "worst-case-labels.json")
 EXAMPLES_GLOB = str(REPO_ROOT / "shared" / "examples" / "*.md")
 MAX_WIDTH_PT = 470
+LAYOUT = REPO_ROOT / "shared" / "spine" / "references" / "report-layout.md"
+LAYOUT_TWIN = REPO_ROOT / "first-principles" / "references" / "report-layout.md"
+LAYOUT_DIR = REPO_ROOT / "tests" / "report-layout-v9.20"
+# The template commit 45f6244a shipped, frozen byte-for-byte: L02 must fail on it.
+LAYOUT_BROKEN = LAYOUT_DIR / "report-layout-45f6244a.md"
+# Markdown the page template is rendered over: a worked example (tables, code
+# blocks, `---` rules) and the reading guide the agent renders beside each report.
+LAYOUT_INPUTS: tuple[Path, ...] = (
+    REPO_ROOT / "shared" / "examples" / "product-business-2.md",
+    REPO_ROOT / "shared" / "spine" / "references" / "how-to-read.md",
+)
 FONTS: tuple[str, ...] = ("Noto Sans", "Liberation Sans")
 
 # Closed set of finding codes. FIG-EXTRACT/FIG-FIXTURE/FIG-COMPILE/FIG-FONT
@@ -79,6 +100,7 @@ FINDING_CODES: tuple[str, ...] = (
     "FIG-SVG",
     "FIG-FONT",
     "FIG-ANCHOR",
+    "FIG-LAYOUT",
 )
 
 _EXEMPT_FROM_OBSERVATION = frozenset(
@@ -156,6 +178,10 @@ def _safe_name(label: str) -> str:
 
 def require_typst() -> str | None:
     return shutil.which("typst")
+
+
+def require_pandoc() -> str | None:
+    return shutil.which("pandoc")
 
 
 # ---------------------------------------------------------------------------
@@ -852,6 +878,7 @@ def _u04_code_registry_complete() -> str | None:
         "FIG-CELLS",
         "FIG-OVERFLOW",
     }  # U05
+    observed |= {"FIG-LAYOUT"}  # L02, L03
 
     lib_text, _extract_findings = extract_library(LIBRARY)
     _mutated, anchor_findings = apply_mutation(
@@ -913,6 +940,97 @@ def _u05_single_dimension_mismatches() -> str | None:
         return f"verdicts overflow: expected {{'FIG-OVERFLOW'}}, got {codes}"
     return None
 
+# ---------------------------------------------------------------------------
+# Page template (999.195): the PDF reader report's pandoc/typst layout
+# ---------------------------------------------------------------------------
+
+_DOCUMENT_SET_RE = re.compile(r"^#set document\(.*\)$", re.MULTILINE)
+
+
+def render_layout(template_text: str, md_path: Path, workdir: Path) -> list[Finding]:
+    """Render one Markdown file through the page template the way the agent
+    does (commonmark_x in, typst PDF engine out) and report FIG-LAYOUT unless
+    a real PDF comes back."""
+    subject = _relpath(md_path)
+    if not template_text.strip():
+        return [Finding("FIG-EXTRACT", subject, "page template block is empty")]
+    template = workdir / "layout.typ"
+    template.write_text(template_text, encoding="utf-8")
+    out = workdir / f"{md_path.stem}.pdf"
+    title = ""
+    for line in md_path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("# "):
+            title = line[2:].strip()
+            break
+    result = subprocess.run(
+        [
+            "pandoc",
+            "-f",
+            "commonmark_x",
+            f"--template={template}",
+            "--pdf-engine=typst",
+            "-M",
+            f"title={title}",
+            "-M",
+            "date=1 January 2026",
+            "-o",
+            str(out),
+            str(md_path),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        cwd=workdir,
+    )
+    tail = " | ".join(result.stderr.strip().splitlines()[:3])
+    if result.returncode != 0:
+        return [Finding("FIG-LAYOUT", subject, f"pandoc exit {result.returncode}: {tail}")]
+    if "Could not fetch resource" in result.stderr:
+        return [Finding("FIG-LAYOUT", subject, f"missing resource: {tail}")]
+    if not out.is_file() or not out.read_bytes().startswith(b"%PDF-"):
+        return [Finding("FIG-LAYOUT", subject, "pandoc exited 0 but wrote no PDF")]
+    return []
+
+
+def check_layout(template_text: str, inputs: tuple[Path, ...] = LAYOUT_INPUTS) -> list[Finding]:
+    findings: list[Finding] = []
+    for md_path in inputs:
+        with tempfile.TemporaryDirectory() as td:
+            findings += render_layout(template_text, md_path, Path(td))
+    return findings
+
+
+def _l01_shipped_layout_renders() -> str | None:
+    source = _awk_extract(LAYOUT)
+    if source != _awk_extract(LAYOUT_TWIN):
+        return "generated twin's template block differs from the source's"
+    findings = check_layout(source)
+    if findings:
+        return "; ".join(f"{f.code} {f.subject}: {f.detail}" for f in findings)
+    return None
+
+
+def _l02_frozen_45f6244a_template_fails() -> str | None:
+    findings = check_layout(_awk_extract(LAYOUT_BROKEN))
+    codes = {f.code for f in findings}
+    if codes != {"FIG-LAYOUT"} or len(findings) != len(LAYOUT_INPUTS):
+        return f"expected FIG-LAYOUT on all {len(LAYOUT_INPUTS)} inputs, got {findings}"
+    return None
+
+
+def _l03_content_author_fails() -> str | None:
+    source = _awk_extract(LAYOUT)
+    if len(_DOCUMENT_SET_RE.findall(source)) != 1:
+        return "anchor: expected exactly one `#set document(...)` line in the template"
+    mutated = _DOCUMENT_SET_RE.sub(
+        "#set document(title: [$title$], author: [First-Principles Analysis])", source
+    )
+    findings = check_layout(mutated, LAYOUT_INPUTS[:1])
+    codes = {f.code for f in findings}
+    if codes != {"FIG-LAYOUT"}:
+        return f"expected {{'FIG-LAYOUT'}}, got {findings}"
+    return None
+
 
 _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     (("P01", _p01_shipped_library_all_fixtures_clean),)
@@ -929,6 +1047,9 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
         ("U03", _u03_expected_trace_null_absent),
         ("U04", _u04_code_registry_complete),
         ("U05", _u05_single_dimension_mismatches),
+        ("L01", _l01_shipped_layout_renders),
+        ("L02", _l02_frozen_45f6244a_template_fails),
+        ("L03", _l03_content_author_fails),
     )
 )
 
@@ -964,8 +1085,15 @@ def describe() -> dict:
     return {
         "control_ids": [cid for cid, _fn in _CONTROLS],
         "control_count": len(_CONTROLS),
-        "registered_surfaces": [_relpath(LIBRARY), _relpath(TWIN)],
-        "checked_files": [_relpath(FIXTURE_DIR / name) for name in FIXTURES],
+        "registered_surfaces": [
+            _relpath(LIBRARY),
+            _relpath(TWIN),
+            _relpath(LAYOUT),
+            _relpath(LAYOUT_TWIN),
+        ],
+        "checked_files": [_relpath(FIXTURE_DIR / name) for name in FIXTURES]
+        + [_relpath(LAYOUT_BROKEN)]
+        + [_relpath(path) for path in LAYOUT_INPUTS],
         "locked_constants": {
             "MAX_WIDTH_PT": MAX_WIDTH_PT,
             "FONTS": list(FONTS),
@@ -986,6 +1114,8 @@ def describe() -> dict:
                 "battery-blocked-decided-by-command-v-not-exit-code",
                 "visual-legibility-is-inspection-not-gate",
                 "requires-noto-sans-or-liberation-sans",
+                "page-template-proven-to-compile-not-to-look-right",
+                "pandoc-absent-is-blocked-not-pass",
             ]
         ),
     }
@@ -1069,6 +1199,11 @@ def main(argv: list[str] | None = None) -> int:
         return _do_render(Path(args.render))
 
     if args.self_test:
+        if require_pandoc() is None:
+            print(
+                "FIG-GATE: BLOCKED — pandoc not found on PATH; the page template was not compiled (this is not a pass)"
+            )
+            return 1
         return self_test()
 
     ap.print_help()

@@ -759,20 +759,22 @@ gate "SUMM-BLOCK" \
 #            worked example's structured-summary block, and asserts through
 #            `typst eval 'query(...)'` that drawn-edge, cell and overflow
 #            counts match the source JSON exactly, with must-fail mutation
-#            controls and a typst-absent exit-2 contract. Needs typst on
-#            PATH; when absent, the bash wrapper below — not the script's own
+#            controls and a typst-absent exit-2 contract. Since 999.195 it
+#            also compiles the PDF page template (report-layout.md) through
+#            pandoc and typst. Needs typst and pandoc on PATH; when either is
+#            absent, the bash wrapper below — not the script's own
 #            exit code — decides [PREREQ]/BLOCKED instead of [PASS]/GREEN,
 #            matching VAL-03's own command -v gated branch: gate_prereq
 #            reports any non-zero sub-command as [FAIL], so the prerequisite
 #            decision has to be made before the self-test is even attempted.
-if command -v typst >/dev/null 2>&1; then
+if command -v typst >/dev/null 2>&1 && command -v pandoc >/dev/null 2>&1; then
     gate "FIG-GATE" \
         "check-report-figures.py --self-test" \
         "python3 scripts/check-report-figures.py --self-test"
 else
     gate_prereq "FIG-GATE" \
-        "check-report-figures.py --describe (self-test SKIPPED — no typst)" \
-        "typst not found on PATH — the figure-rendering self-test did NOT run. Remedy: install typst v0.15.1 (the CI job's pinned tarball; see shared/spine/references/report-figures.md) and Noto Sans or Liberation Sans." \
+        "check-report-figures.py --describe (self-test SKIPPED — no typst or pandoc)" \
+        "typst or pandoc not found on PATH — the figure-rendering and page-template self-test did NOT run. Remedy: install typst v0.15.1 and pandoc 3.10.2 (the CI job's pinned tarballs; see shared/spine/references/report-figures.md and report-layout.md) and Noto Sans or Liberation Sans." \
         "python3 scripts/check-report-figures.py --describe"
 fi
 

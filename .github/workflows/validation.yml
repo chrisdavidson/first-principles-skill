@@ -402,6 +402,15 @@ jobs:
           tar xf typst.tar.xz
           sudo install -m 0755 typst-x86_64-unknown-linux-musl/typst /usr/local/bin/typst
           typst --version
+      - name: Install pandoc 3.10.2 (pinned, sha256-verified; page-template leg, 999.195)
+        # sha256 self-computed from the official release asset on 2026-10-06;
+        # re-derive it from a freshly downloaded asset on any version bump.
+        run: |
+          curl -fsSL -o pandoc.tar.gz https://github.com/jgm/pandoc/releases/download/3.10.2/pandoc-3.10.2-linux-amd64.tar.gz
+          echo "c7edd535941c48be6a362081a748272837de81ae11777202d9c341d3d8261c9a  pandoc.tar.gz" | sha256sum -c -
+          tar xzf pandoc.tar.gz
+          sudo install -m 0755 pandoc-3.10.2/bin/pandoc /usr/local/bin/pandoc
+          pandoc --version | head -1
       - name: Install Liberation Sans (figure-library font fallback)
         run: sudo apt-get install -y --no-install-recommends fonts-liberation
       - uses: astral-sh/setup-uv@v5
