@@ -4935,8 +4935,8 @@ def _deferred_ledger_keys_digest(
 # count-free (backlog 999.38): the four keys ('CLAUDE.md', 'Five gates'),
 # ('CONTRIBUTING.md', 'Five gates'), ('docs/TESTING.md', 'Five gates') and
 # ('docs/README.md', 'gate and the five') were removed. Their reasons
-# asserted five pre-commit gates, false since the hooks stopped running both
-# drift checks; the rewrites send the reader to the generated population
+# asserted five pre-commit gates, false since the hooks dropped from five
+# gates to three (Phase 89 D-01/D-02); the rewrites send the reader to the generated population
 # sentence for the count and introduce no new non-conforming digit.
 _DEFERRED_LEDGER_MAX: int = 161
 

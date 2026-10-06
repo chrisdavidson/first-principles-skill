@@ -425,11 +425,13 @@ ENTRIES: tuple[GateEntry, ...] = (
             "hook since Phase 89 D-01; registered in the battery at Phase 90 "
             "(backlog 999.38), after a stretch in which it ran nowhere."
         ),
+        # control_ids/control_count deliberately omitted (999.188 IN-01):
+        # they census the generator's --self-test, which runs in the
+        # pre-commit hooks, not the --check this inline entry runs; the
+        # PRECOMMIT:conformance-generator-self-test row consumes them.
         consumes=(
             "registered_surfaces",
             "checked_files",
-            "control_ids",
-            "control_count",
             "locked_constants",
         ),
     ),
@@ -688,6 +690,12 @@ ENTRIES: tuple[GateEntry, ...] = (
             "fresh run; that comparison (`report-conformance.py --check`) no "
             "longer runs in the hooks and runs in the offline battery as "
             "inline check CONF-DRIFT."
+        ),
+        # The generator's --self-test control census lives here, on the row
+        # that runs those controls, not on CONF-DRIFT (999.188 IN-01).
+        consumes=(
+            "control_ids",
+            "control_count",
         ),
     ),
     GateEntry(
@@ -1334,7 +1342,7 @@ def _strip_inline_block(battery_src: str, label: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# CR-04: pre-commit hook-roster floor — derives the five `PRECOMMIT:` rows'
+# CR-04: pre-commit hook-roster floor — derives every `PRECOMMIT:` row's
 # `run_command` set from both hook scripts' own source text, rather than
 # trusting the registry to have transcribed them correctly.
 # ---------------------------------------------------------------------------
@@ -1830,7 +1838,7 @@ def _control_inline_label_extra_and_one_arm_fire() -> None:
 def _control_cr04_hook_roster_live_positive() -> None:
     """CR-04's positive arm, over the REAL hook text: both hook scripts
     derive exactly five invocations each, the two sequences agree, and they
-    equal the five `PRECOMMIT:` registry rows' `run_command` set. Called
+    equal every `PRECOMMIT:` registry row's `run_command` set. Called
     with zero arguments — the same live-default call shape a developer or
     the pre-commit hook itself would use. Its three sibling negative arms
     below now parse `hook_roster_problems()`'s findings through

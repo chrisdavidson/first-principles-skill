@@ -9086,7 +9086,7 @@ def _rows_v95() -> list[MatrixRow]:
             _audit_pass02_anchored_read_v95,
             surfaces=("agent",),
             statement=(
-                'The prescription opens the procedure by anchored Read (${CLAUDE_PLUGIN_ROOT}/references/…), not by the {{TOOL:}} token, because that token substitutes "the inlined pre-mortem procedure" and the procedure is not inlined — instructing the agent to apply an inlined procedure that does not exist is an instruction to work from recollection, which is the defect being fixed.'
+                'The prescription opens the procedure by anchored Read (${CLAUDE_PLUGIN_ROOT}/references/…), not by the {{TOOL:}} token, so the agent opens the full reference file rather than relying on a name. Corrected 2026-10-05 (backlog 999.178): this statement first justified the Read by saying the token names an inlined procedure the body does not hold; that premise was false, since `generate_agent()` inlines the ## Procedure block of every companion technique, pre-mortem included.'
             ),
             rerun_by="none",
         ),

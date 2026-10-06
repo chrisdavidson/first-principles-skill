@@ -2954,11 +2954,12 @@ def render_markdown(
     lines.append("")
     lines.append(
         "This file is a measurement, not a contract: no figure below defines what the "
-        "codebase is required to become, and no count in it gates a conformance check. "
-        "`scripts/report-conformance.py --check` fails when committed bytes no longer "
-        "match a fresh run, and also on the corpus and live-conformance floors named in "
-        "Disclosed Bound 5, whatever is regenerated -- never on a count read here being "
-        "high."
+        "codebase is required to become, and no count in it gates a conformance check "
+        "from above. `scripts/report-conformance.py --check` fails when committed bytes "
+        "no longer match a fresh run, and also on the caught-set lock and the corpus and "
+        "live-conformance floors named in Disclosed Bound 5 (some of them minimum "
+        "populations, so a low count read here can fail it), whatever is regenerated -- "
+        "never on a count read here being high."
     )
     lines.append("")
     lines.append("## Headline")

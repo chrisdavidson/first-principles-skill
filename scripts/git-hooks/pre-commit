@@ -1,7 +1,7 @@
 #!/bin/sh
 # Three gates for shared/ <-> generated trees and generator correctness.
-# The standalone gates 3 (conformance-baseline drift, report-conformance.py
-# --check) and 5 (claim-surface drift, gen-gate-docs.py --check) moved out of
+# The former standalone gates (conformance-baseline drift, report-conformance.py
+# --check, and claim-surface drift, gen-gate-docs.py --check) moved out of
 # the hooks (D-01, D-02). Conformance drift therefore no longer blocks a commit;
 # it runs only in the offline battery (inline CONF-DRIFT). Claim-surface drift
 # STILL blocks a commit: gen-gate-docs.py --self-test (below) drives
@@ -24,14 +24,14 @@
 # Gate 2 -- conformance generator self-test: blocks if
 # scripts/report-conformance.py --self-test fails. Runs the generator's own
 # falsifiability controls before its output is compared to anything (WR-05).
-# Gate 3 (REMOVED, D-01) -- conformance-baseline drift gate: now runs in the
-# offline battery as inline check CONF-DRIFT (Phase 90).
-# Gate 4 -- claim-surface generator self-test: blocks if
+# Gate 3 -- claim-surface generator self-test: blocks if
 # scripts/gen-gate-docs.py --self-test fails. Same WR-05 ordering rationale
 # as Gate 2 -- a broken generator's own controls must be caught before any
 # comparison against committed output is attempted.
-# Gate 5 (REMOVED, D-02) -- standalone claim-surface drift gate: runs in the
-# battery and CI as CONF-SURFACE; its comparison still runs here inside Gate 4.
+# REMOVED (D-01) -- conformance-baseline drift gate: now runs in the offline
+# battery as inline check CONF-DRIFT (Phase 90).
+# REMOVED (D-02) -- standalone claim-surface drift gate: runs in the battery
+# and CI as CONF-SURFACE; its comparison still runs here inside Gate 3.
 #
 # POSIX sh only -- no bashisms. Quote all expansions.
 
@@ -52,7 +52,7 @@ if command -v uv >/dev/null 2>&1; then
     # "uv run python3", not "uv run" (bare script path): the bare form makes
     # uv build a fresh per-script PEP-723-isolated environment that ignores
     # uv.lock and the project's declared dev dependencies -- documented in
-    # CLAUDE.md and already followed by every CI job. Gate 4's
+    # CLAUDE.md and already followed by every CI job. Gate 3's
     # scripts/gen-gate-docs.py subprocess-invokes several sibling scripts via
     # sys.executable (D-21-A); under bare "uv run scripts/gen-gate-docs.py"
     # that interpreter has none of PyYAML those siblings need, and harvest()
@@ -85,8 +85,8 @@ fi
 # --- Gate execution: SKIP_DRIFT_CHECK conditional wrapper --------
 
 if [ "${SKIP_DRIFT_CHECK:-0}" = "1" ]; then
-    # Fast-path: run only self-tests (which verify generators are not broken),
-    # skip drift checks (which fail when outputs naturally change).
+    # Fast-path: skip only the sync-drift check; both self-tests still run, and
+    # gen-gate-docs.py --self-test still compares the claim surfaces.
     printf "pre-commit: SKIP_DRIFT_CHECK=1 — skipping the sync-drift check; generator self-tests still run (gen-gate-docs --self-test still compares claim surfaces)\n" >&2
 
     # Gate 2: conformance generator self-test

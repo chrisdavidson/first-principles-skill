@@ -268,6 +268,30 @@ REGISTRY: tuple[RetractedClaim, ...] = (
         # resurfacing in a second place under a reworded form (58-CR-01).
     ),
     RetractedClaim(
+        literal="procedures are therefore not inlined into the agent body",
+        retracted_by="999.178",
+        corrected=(
+            "A third wording of the same retracted claim, left in "
+            "docs/ARCHITECTURE.md's token-substitution section after the two "
+            "entries above were fixed. The token substitutes a name; the "
+            "procedures reach the body through generate_agent()'s Companion "
+            "Techniques append, not through the token."
+        ),
+    ),
+    RetractedClaim(
+        literal="and the procedure is not inlined",
+        retracted_by="999.178",
+        corrected=(
+            "The v9.5 PASS-02 requirement statement's premise, carried into "
+            "docs/requirements-matrix.md and docs/data/matrix.json. The "
+            "pre-mortem ## Procedure block is inlined in the body like every "
+            "other technique's; the statement now carries a dated correction."
+        ),
+        # The one exempted occurrence is the v9.5.0 CHANGELOG entry, a
+        # historical record of what that release said.
+        exemptions=(("CHANGELOG.md", 1),),
+    ),
+    RetractedClaim(
         literal="feeding only a MEDIUM- or LOW-confidence chain",
         retracted_by="999.164",
         corrected=(
@@ -798,6 +822,24 @@ REGISTRY: tuple[RetractedClaim, ...] = (
             "SKIP_DRIFT_CHECK=1: gate 3's `gen-gate-docs.py --self-test` drives "
             "`main([\"--check\"])` against the working tree (controls "
             "check-dispatch-wired, nondeterminism-exit-2)."
+        ),
+    ),
+    # 90-REVIEW AP-IN-03: two more sentences Phase 90 deleted as false, left
+    # unregistered at the time (backlog 999.188). Zero occurrences when added.
+    RetractedClaim(
+        literal="fires only at commit time",
+        retracted_by="999.188 (90-REVIEW AP-IN-03)",
+        corrected=(
+            "`report-conformance.py --check` does not run at commit time at "
+            "all; it runs in the offline battery as inline CONF-DRIFT."
+        ),
+    ),
+    RetractedClaim(
+        literal="absent from the battery and from CI",
+        retracted_by="999.188 (90-REVIEW AP-IN-03)",
+        corrected=(
+            "CONF-DRIFT runs inline in the offline battery (registered at "
+            "Phase 90); only CI lacks it."
         ),
     ),
     # Phase 92's emission reading said the roll-up requirement was met in every
