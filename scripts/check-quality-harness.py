@@ -5768,6 +5768,7 @@ def _claim_is_traced(
 # ROLL-UP FAMILY (Section 6 conclusion confidence composition, Phase 52):
 #   "rollups_checked" — count of §6 roll-up inversions examined
 #   "rollup_inversions" — count of roll-ups where component confidence > conclusion
+#   "rollup_unpaired" — roll-ups not scored (unparsed, unpairable, cited-but-unlabelled)
 #
 # HOP-ARITHMETIC FAMILY (Chain step logical soundness, Phase 53):
 #   "hop_arithmetic_checked" — count of chain hops with parseable step counts
@@ -5843,6 +5844,13 @@ _DEFECT_RECORD_FIELDS = (
     "hop_arithmetic_checked",
     "hop_arithmetic_unparsed",
     "hop_arithmetic_mismatches",
+    # Backlog 999.154 (WR-06): one more appended, same discipline —
+    # `read_defect_incidence` maps by header name, so every committed
+    # narrower file keeps parsing. `rollup_unpaired` is accounting, not a
+    # defect: the §6 roll-ups the reader could not score (unparsed,
+    # unpairable, cited-but-unlabelled), so that rollups_checked +
+    # rollup_unpaired equals the roll-up Confidence lines found.
+    "rollup_unpaired",
 )
 
 
@@ -6363,6 +6371,78 @@ def _precheck_defects(section_texts: dict[int, str]) -> dict:
 # N=32 reading in docs/v9.6-baseline-reading.md §3.2 must stay comparable).
 
 
+_ROLLUP_GT_TOKEN_RE = re.compile(r"\bGT-[A-Za-z0-9]+")
+_ROLLUP_RANGE_RE = re.compile(
+    r"(?<![A-Za-z0-9])(?P<prefix>[A-Za-z]{1,3})(?P<lo>\d{1,4})[ \t]*"
+    r"(?:through|thru|to|[-\u2013\u2014])[ \t]*"
+    r"(?:(?P=prefix))?(?P<hi>\d{1,4})(?![A-Za-z0-9])",
+    re.IGNORECASE,
+)
+_ROLLUP_NAME_RE = re.compile(r"^(?P<prefix>[a-z]{1,3})(?P<num>\d+)$")
+_ROLLUP_RANGE_CAP = 50
+
+
+def _rollup_cited_ids(text: str, chain_ids: list[str]) -> list[str]:
+    """Chain ids in `chain_ids` that `text` cites, for the roll-up reader only.
+
+    Reader-local sibling of `_cites_chain` (which stays unchanged for its
+    other callers): GT tokens are blanked first so `GT-C1` never reads as
+    `C1`; an id matches only with non-alphanumeric characters on both sides,
+    so `C1` is not read inside `C10`; the stored form and the normalized
+    loose form `_cites_chain` accepts are both tried; and `Cn through Cm`,
+    `Cn to Cm`, `Cn-Cm` (hyphen, en dash, em dash) cites every chain in
+    `chain_ids` numbered from n to m. Range expansion adds at most
+    `_ROLLUP_RANGE_CAP` ids and only ids present in `chain_ids`.
+    Returns raw ids in `chain_ids` order, each at most once.
+    """
+    blanked = _ROLLUP_GT_TOKEN_RE.sub(" ", text)
+    folded = blanked.casefold()
+    hit: dict[str, None] = {}
+    for cid in chain_ids:
+        if cid in hit:
+            continue
+        exact = re.compile(r"(?<![A-Za-z0-9])" + re.escape(cid) + r"(?![A-Za-z0-9])")
+        if exact.search(blanked):
+            hit[cid] = None
+            continue
+        normalized = _normalize_chain_id(cid)
+        if _normalized_id_safe_for_loose_match(normalized) and re.search(
+            r"(?<![a-z0-9])" + re.escape(normalized) + r"(?![a-z0-9])", folded
+        ):
+            hit[cid] = None
+
+    added = 0
+    for rm in _ROLLUP_RANGE_RE.finditer(blanked):
+        lo, hi = int(rm.group("lo")), int(rm.group("hi"))
+        if lo >= hi:
+            continue
+        prefix = rm.group("prefix").casefold()
+        for cid in chain_ids:
+            if cid in hit or added >= _ROLLUP_RANGE_CAP:
+                continue
+            nm = _ROLLUP_NAME_RE.match(_normalize_chain_id(cid))
+            if nm and nm.group("prefix") == prefix and lo <= int(nm.group("num")) <= hi:
+                hit[cid] = None
+                added += 1
+    return [cid for cid in chain_ids if cid in hit]
+
+
+def _rollup_precheck_head_ids(line: str, chain_ids: list[str]) -> list[str]:
+    """Chain ids named in the `head` field of a `**Pre-check:**` line.
+
+    Applies `_PRECHECK_LINE_RE` read-only, takes the body's first
+    `_PRECHECK_SEP` field, strips a leading `head `, and returns the chain
+    ids it cites via `_rollup_cited_ids`. A line that is not a Pre-check
+    line yields no ids.
+    """
+    m = _PRECHECK_LINE_RE.match(line)
+    if m is None:
+        return []
+    first = m.group("body").split(_PRECHECK_SEP)[0].strip()
+    first = re.sub(r"^head\b", "", first, flags=re.IGNORECASE)
+    return _rollup_cited_ids(first, chain_ids)
+
+
 def _rollup_inversion_defects(
     section6: str, chain_ids: list[str], blocks: list[str]
 ) -> dict:
@@ -6372,35 +6452,52 @@ def _rollup_inversion_defects(
     (`_chain_confidence_label` per block, keyed by `_normalize_chain_id`),
     then walks every unfenced §6 line matching `_CONFIDENCE_LINE_RE`. The
     roll-up label is the matched word, upper-cased; a word outside
-    `_CONFIDENCE_RANK` is `unparsed`. The roll-up's cited chains are every
-    id in `chain_ids` that `_cites_chain(paragraph, [cid])` finds in the
-    paragraph running from that Confidence line through the line before the
-    next blank line (a `**Pre-check:**` line sitting directly above it is
-    not itself a Confidence line and is never part of the paragraph, since
-    the paragraph starts at the Confidence line's own index, not the line
-    above it). A cited chain whose §4 label is `None` is dropped from the
-    minimum by never entering the `cited` map in the first place; no cited
-    chain with a parsable label at all is `unpairable` rather than silently
-    scored clean.
+    `_CONFIDENCE_RANK` is `unparsed`.
 
-    Disclosed bound: the cited set is every chain the Confidence paragraph
-    names; a paragraph naming a chain only to set it aside would
-    over-constrain the minimum.
+    The cited chains are the UNION of (1) the chains named in the `head`
+    field of an unfenced `**Pre-check:**` line directly above the Confidence
+    line and (2) the chains named in the paragraph running from the
+    Confidence line through the line before the next blank line; so the
+    reading is never less strict than the paragraph-only one. Matching uses
+    `_rollup_cited_ids` (word-boundary ids, `Cn through Cm` ranges).
+
+    A section 4 whose ids and blocks cannot be paired one to one, or whose
+    normalized ids repeat, builds no labels map: every parsable roll-up is
+    `unpairable` with reason "section 4 unpairable". A roll-up citing no
+    chain is `unpairable` with reason "no chain cited". A roll-up citing
+    chains but none carrying a parsable §4 label is `cited_unlabelled`,
+    never silently scored clean. A cited chain without a label alongside a
+    labelled one is dropped from the minimum and listed in the checked
+    entry's `unlabelled`.
+
+    Disclosed bound: the cited set is every chain the Confidence paragraph or
+    its Pre-check head names; a line naming a chain only to set it aside
+    would over-constrain the minimum.
 
     Returns `{"checked": [...], "inversions": [...], "unpairable": [...],
-    "unparsed": [...]}`, each a list of dicts, in document order. `checked`
-    and `inversions` entries carry `{"line", "label", "cited", "min_cited"}`
-    (`cited` maps normalized chain id -> its own §4 label).
+    "unparsed": [...], "cited_unlabelled": [...]}`, each a list of dicts, in
+    document order. `checked` and `inversions` entries carry `{"line",
+    "label", "cited", "min_cited", "unlabelled"}` (`cited` maps normalized
+    chain id -> its own §4 label). Every parsable-or-not roll-up lands in
+    exactly one of checked, unpairable, unparsed, cited_unlabelled.
     """
     names = [_normalize_chain_id(i) for i in chain_ids]
-    labels: dict[str, str | None] = {
-        name: _chain_confidence_label(block) for name, block in zip(names, blocks)
-    }
+    pairable = (
+        bool(chain_ids)
+        and len(chain_ids) == len(blocks)
+        and len(set(names)) == len(names)
+    )
+    labels: dict[str, str | None] = (
+        {name: _chain_confidence_label(block) for name, block in zip(names, blocks)}
+        if pairable
+        else {}
+    )
 
     checked: list[dict] = []
     inversions: list[dict] = []
     unpairable: list[dict] = []
     unparsed: list[dict] = []
+    cited_unlabelled: list[dict] = []
 
     lines = section6.split("\n")
     fenced = _fenced_code_flags(lines)
@@ -6413,26 +6510,51 @@ def _rollup_inversion_defects(
         stripped_line = raw_line.strip()
         word = m.group("word").upper()
 
+        if word not in _CONFIDENCE_RANK:
+            unparsed.append({"line": stripped_line, "reason": "band vocabulary"})
+            continue
+
+        if not pairable:
+            unpairable.append(
+                {
+                    "line": stripped_line,
+                    "label": word,
+                    "reason": "section 4 unpairable",
+                }
+            )
+            continue
+
         j = i + 1
         while j < len(lines) and lines[j].strip() != "":
             j += 1
         paragraph = "\n".join(lines[i:j])
 
+        cited_raw = set(_rollup_cited_ids(paragraph, chain_ids))
+        if i > 0 and not fenced[i - 1]:
+            cited_raw.update(_rollup_precheck_head_ids(lines[i - 1], chain_ids))
+
         cited: dict[str, str] = {}
+        unlabelled: list[str] = []
         for cid in chain_ids:
-            name = _normalize_chain_id(cid)
-            if name in cited or not _cites_chain(paragraph, [cid]):
+            if cid not in cited_raw:
                 continue
+            name = _normalize_chain_id(cid)
             label = labels.get(name)
-            if label is not None:
+            if label is None:
+                unlabelled.append(name)
+            else:
                 cited[name] = label
 
-        if word not in _CONFIDENCE_RANK:
-            unparsed.append({"line": stripped_line, "reason": "band vocabulary"})
+        if not cited_raw:
+            unpairable.append(
+                {"line": stripped_line, "label": word, "reason": "no chain cited"}
+            )
             continue
 
         if not cited:
-            unpairable.append({"line": stripped_line, "label": word})
+            cited_unlabelled.append(
+                {"line": stripped_line, "label": word, "cited_ids": unlabelled}
+            )
             continue
 
         min_cited = min(cited.values(), key=lambda b: _CONFIDENCE_RANK[b])
@@ -6441,6 +6563,7 @@ def _rollup_inversion_defects(
             "label": word,
             "cited": cited,
             "min_cited": min_cited,
+            "unlabelled": unlabelled,
         }
         checked.append(entry)
         if _CONFIDENCE_RANK[word] > _CONFIDENCE_RANK[min_cited]:
@@ -6451,6 +6574,7 @@ def _rollup_inversion_defects(
         "inversions": inversions,
         "unpairable": unpairable,
         "unparsed": unparsed,
+        "cited_unlabelled": cited_unlabelled,
     }
 
 
@@ -7689,6 +7813,10 @@ def detect_defects(
             "_rollup_inversions": rollup["inversions"],
             "_rollup_unpairable": rollup["unpairable"],
             "_rollup_unparsed": rollup["unparsed"],
+            "_rollup_cited_unlabelled": rollup["cited_unlabelled"],
+            "rollup_unpaired": len(rollup["unpairable"])
+            + len(rollup["unparsed"])
+            + len(rollup["cited_unlabelled"]),
         }
     )
     # Phase 53 (OBS-03, D-01/D-02): the hop-arithmetic dimension, computed
@@ -7744,6 +7872,57 @@ def run_detect_defects(analyses_dir: Path, out_path: Path) -> None:
         )
         lines.append("\t".join(str(record[field]) for field in _DEFECT_RECORD_FIELDS))
     Path(out_path).write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def run_rollup_reading(paths: list[Path]) -> None:
+    """`--rollup-reading` CLI body: characterise §6 roll-up readings, print.
+
+    Runs `detect_defects` over every given .md file (directories recurse),
+    prints one summary line, then one line per roll-up that was not checked.
+    Fully offline. A file whose sections do not resolve is reported and
+    skipped.
+    """
+    files: list[Path] = []
+    for raw in paths:
+        pth = Path(raw)
+        files.extend(sorted(pth.rglob("*.md")) if pth.is_dir() else [pth])
+    totals = {"checked": 0, "inversions": 0, "unpairable": 0, "unparsed": 0}
+    totals["cited_unlabelled"] = 0
+    detail: list[str] = []
+    skipped: list[str] = []
+    for f in files:
+        try:
+            rec = detect_defects(f.read_text(encoding="utf-8"), f.stem)
+        except SectionResolutionError:
+            skipped.append(f"{f}\tSKIPPED\tsections do not resolve")
+            continue
+        totals["checked"] += rec["rollups_checked"]
+        totals["inversions"] += rec["rollup_inversions"]
+        totals["unpairable"] += len(rec["_rollup_unpairable"])
+        totals["unparsed"] += len(rec["_rollup_unparsed"])
+        totals["cited_unlabelled"] += len(rec["_rollup_cited_unlabelled"])
+        try:
+            rel = f.resolve().relative_to(REPO_ROOT)
+        except ValueError:
+            rel = f
+        for u in rec["_rollup_unpairable"]:
+            detail.append(f"{rel}\tunpairable\t{u.get('reason')}\t{u['line']}")
+        for u in rec["_rollup_unparsed"]:
+            detail.append(f"{rel}\tunparsed\t{u.get('reason')}\t{u['line']}")
+        for u in rec["_rollup_cited_unlabelled"]:
+            detail.append(
+                f"{rel}\tcited_unlabelled\t{','.join(u['cited_ids'])}\t{u['line']}"
+            )
+    unpaired = totals["unpairable"] + totals["unparsed"] + totals["cited_unlabelled"]
+    print(
+        f"files={len(files) - len(skipped)} "
+        f"rollup_lines={totals['checked'] + unpaired} "
+        f"checked={totals['checked']} inversions={totals['inversions']} "
+        f"unpairable={totals['unpairable']} unparsed={totals['unparsed']} "
+        f"cited_unlabelled={totals['cited_unlabelled']} rollup_unpaired={unpaired}"
+    )
+    for line in detail + skipped:
+        print(line)
 
 
 def run_reference_reads(captures_dir: Path) -> None:
@@ -7803,6 +7982,7 @@ _EXPECTED_CONFORMANT_RECORD = {
     "precheck_disagreements": 0,
     "rollups_checked": 0,
     "rollup_inversions": 0,
+    "rollup_unpaired": 0,
     "hop_arithmetic_checked": 0,
     "hop_arithmetic_unparsed": 0,
     "hop_arithmetic_mismatches": 0,
@@ -7831,6 +8011,7 @@ _EXPECTED_DEFECTIVE_RECORD = {
     "precheck_disagreements": 0,
     "rollups_checked": 0,
     "rollup_inversions": 0,
+    "rollup_unpaired": 0,
     "hop_arithmetic_checked": 0,
     "hop_arithmetic_unparsed": 0,
     "hop_arithmetic_mismatches": 0,
@@ -9411,6 +9592,174 @@ Nothing material here.
             f"len(_rollups_checked)={len(p20_rec['_rollups_checked'])}, or "
             f"rollup_inversions={p20_rec['rollup_inversions']!r} disagrees "
             f"with len(_rollup_inversions)={len(p20_rec['_rollup_inversions'])}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # Backlog 999.154 (a)-(e): controls (P31)-(P35) for the widened
+    # `_rollup_inversion_defects`. (P30) is the hop-validity fixture below.
+    def _r154_chain(n: int, label: str) -> str:
+        return (
+            f"### Chain C{n} — chain {n}\n\n"
+            f"GT-1 → intermediate → conclusion {n}.\n\n"
+            f"**Confidence: {label}**"
+        )
+
+    # (P31) (a): the chains are named only on the paired Pre-check head
+    # directly above a bare Confidence line.
+    p31_doc = _confidence_test_doc_s6(
+        _r154_chain(1, "LOW") + "\n\n" + _r154_chain(2, "HIGH"),
+        "**Recommended approach:** the roll-up conclusion.\n\n"
+        "**Pre-check:** head C1 (LOW), C2 (HIGH) · ?-marked: none · "
+        "lowest cited: LOW · Inputs ceiling: HIGH\n"
+        "**Confidence:** HIGH",
+    )
+    p31_rec = detect_defects(p31_doc, "rollup-p31")
+    if p31_rec["rollup_inversions"] != 1 or p31_rec["rollups_checked"] != 1:
+        print(
+            f"self-test FAIL: defects rollup (P31) a roll-up whose chains are "
+            f"named only on its paired Pre-check head expected "
+            f"rollup_inversions=1, rollups_checked=1, got rollup_inversions="
+            f"{p31_rec['rollup_inversions']!r}, rollups_checked="
+            f"{p31_rec['rollups_checked']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P32) (b): section 4 restates C1, so ids and blocks cannot be keyed
+    # one to one; the roll-up must be counted unpaired, never read clean.
+    p32_doc = _confidence_test_doc_s6(
+        _r154_chain(1, "LOW") + "\n\n" + _r154_chain(1, "HIGH"),
+        "**Recommended approach:** the roll-up conclusion.\n\n"
+        "**Confidence:** (chain C1) HIGH",
+    )
+    p32_rec = detect_defects(p32_doc, "rollup-p32")
+    if (
+        p32_rec["rollups_checked"] != 0
+        or p32_rec["rollup_inversions"] != 0
+        or p32_rec["rollup_unpaired"] != 1
+        or [u.get("reason") for u in p32_rec["_rollup_unpairable"]]
+        != ["section 4 unpairable"]
+    ):
+        print(
+            f"self-test FAIL: defects rollup (P32) a restated section 4 chain "
+            f"id expected rollups_checked=0, rollup_inversions=0, "
+            f"rollup_unpaired=1 (reason 'section 4 unpairable'), got "
+            f"rollups_checked={p32_rec['rollups_checked']!r}, "
+            f"rollup_inversions={p32_rec['rollup_inversions']!r}, "
+            f"rollup_unpaired={p32_rec['rollup_unpaired']!r}, "
+            f"_rollup_unpairable={p32_rec['_rollup_unpairable']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P32) second leg: two headings that differ only by case ("Chain C1",
+    # "Chain c1") have equal id and block counts but one normalized key.
+    p32b_doc = _confidence_test_doc_s6(
+        _r154_chain(1, "LOW") + "\n\n**Chain c1** — restated\n\n"
+        "GT-1 → intermediate → conclusion again.\n\n"
+        "**Confidence: HIGH**",
+        "**Recommended approach:** the roll-up conclusion.\n\n"
+        "**Confidence:** (chain C1) HIGH",
+    )
+    p32b_rec = detect_defects(p32b_doc, "rollup-p32b")
+    if (
+        p32b_rec["rollups_checked"] != 0
+        or p32b_rec["rollup_unpaired"] != 1
+        or [u.get("reason") for u in p32b_rec["_rollup_unpairable"]]
+        != ["section 4 unpairable"]
+    ):
+        print(
+            f"self-test FAIL: defects rollup (P32) case-variant restated "
+            f"chain ids expected rollups_checked=0, rollup_unpaired=1, got "
+            f"rollups_checked={p32b_rec['rollups_checked']!r}, "
+            f"rollup_unpaired={p32b_rec['rollup_unpaired']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P33) (c, boundary): C1 is not read as cited when only C10 appears.
+    p33_doc = _confidence_test_doc_s6(
+        _r154_chain(1, "LOW") + "\n\n" + _r154_chain(10, "HIGH"),
+        "**Recommended approach:** the roll-up conclusion.\n\n"
+        "**Confidence:** (chain C10) HIGH",
+    )
+    p33_rec = detect_defects(p33_doc, "rollup-p33")
+    if (
+        p33_rec["rollup_inversions"] != 0
+        or p33_rec["rollups_checked"] != 1
+        or set(p33_rec["_rollups_checked"][0]["cited"]) != {"c10"}
+    ):
+        print(
+            f"self-test FAIL: defects rollup (P33) a roll-up citing only C10 "
+            f"expected rollup_inversions=0 and cited keys {{'c10'}}, got "
+            f"rollup_inversions={p33_rec['rollup_inversions']!r}, "
+            f"_rollups_checked={p33_rec['_rollups_checked']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P34) (c, ranges): "C1 through C5", "C1–C5" and "C1-C5" credit every
+    # chain in the range; an absent endpoint expands only to present ids.
+    def _p34_doc(phrase: str) -> str:
+        return _confidence_test_doc_s6(
+            "\n\n".join(
+                _r154_chain(n, "LOW" if n == 3 else "HIGH") for n in range(1, 6)
+            ),
+            "**Recommended approach:** the roll-up conclusion.\n\n"
+            f"**Confidence:** (chains {phrase}) HIGH",
+        )
+
+    for p34_phrase in ("C1 through C5", "C1\u2013C5", "C1-C5", "C1 through C99"):
+        p34_rec = detect_defects(_p34_doc(p34_phrase), "rollup-p34")
+        p34_entries = p34_rec["_rollups_checked"]
+        if (
+            p34_rec["rollup_inversions"] != 1
+            or len(p34_entries) != 1
+            or p34_entries[0]["min_cited"] != "LOW"
+            or set(p34_entries[0]["cited"]) != {"c1", "c2", "c3", "c4", "c5"}
+        ):
+            print(
+                f"self-test FAIL: defects rollup (P34) a range {p34_phrase!r} "
+                f"expected rollup_inversions=1, min_cited LOW over c1..c5, "
+                f"got rollup_inversions={p34_rec['rollup_inversions']!r}, "
+                f"_rollups_checked={p34_entries!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+    # (P35) (d)/(e): cited-but-unlabelled is its own bucket and
+    # rollups_checked + rollup_unpaired equals the roll-up lines found.
+    p35_doc = _confidence_test_doc_s6(
+        _r154_chain(1, "MEDIUM")
+        + "\n\n### Chain C2 — chain 2\n\nGT-1 → intermediate → conclusion 2.",
+        "**Recommended approach:** one.\n\n"
+        "**Confidence:** (chain C1) MEDIUM\n\n"
+        "**Recommended approach:** two.\n\n"
+        "**Confidence:** HIGH\n\n"
+        "**Recommended approach:** three.\n\n"
+        "**Confidence:** (chain C1) SURE\n\n"
+        "**Recommended approach:** four.\n\n"
+        "**Confidence:** (chain C2) HIGH",
+    )
+    p35_rec = detect_defects(p35_doc, "rollup-p35")
+    if (
+        p35_rec["rollups_checked"] != 1
+        or len(p35_rec["_rollup_cited_unlabelled"]) != 1
+        or len(p35_rec["_rollup_unpairable"]) != 1
+        or len(p35_rec["_rollup_unparsed"]) != 1
+        or p35_rec["rollup_unpaired"] != 3
+        or p35_rec["rollups_checked"] + p35_rec["rollup_unpaired"] != 4
+    ):
+        print(
+            f"self-test FAIL: defects rollup (P35) expected rollups_checked=1, "
+            f"one each of cited-unlabelled / unpairable / unparsed, "
+            f"rollup_unpaired=3, got rollups_checked="
+            f"{p35_rec['rollups_checked']!r}, rollup_unpaired="
+            f"{p35_rec['rollup_unpaired']!r}, cited_unlabelled="
+            f"{p35_rec['_rollup_cited_unlabelled']!r}, unpairable="
+            f"{p35_rec['_rollup_unpairable']!r}, unparsed="
+            f"{p35_rec['_rollup_unparsed']!r}",
             file=sys.stderr,
         )
         ok = False
@@ -22674,6 +23023,19 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     p.add_argument(
+        "--rollup-reading",
+        dest="rollup_reading",
+        type=Path,
+        nargs="+",
+        default=None,
+        metavar="PATH",
+        help=(
+            "Characterise how the §6 roll-up reader reads the given analysis "
+            ".md files (directories recurse): one summary line, then one "
+            "line per roll-up that was not checked. Fully offline."
+        ),
+    )
+    p.add_argument(
         "--reference-reads",
         dest="reference_reads",
         type=Path,
@@ -22914,6 +23276,10 @@ def main(argv: list[str] | None = None) -> int:
             parser.error("--out is required with --detect-defects")
         run_detect_defects(args.detect_defects, args.out)
         print(f"Defect-detection TSV written: {args.out}")
+        return 0
+
+    if args.rollup_reading is not None:
+        run_rollup_reading(args.rollup_reading)
         return 0
 
     parser.error(
