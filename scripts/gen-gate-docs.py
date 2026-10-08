@@ -5929,13 +5929,49 @@ def _replace_region(
 # ---------------------------------------------------------------------------
 
 
+_WRITE_MAX_PASSES = 3
+
+
 def cmd_write() -> int:
+    """Write every generated target, repeating until the tree is a fixpoint.
+
+    A run's `--describe` harvest reflects the tree at the start of the run, so
+    a region rewritten in the same run (the coverage headline, a control
+    count) can move a derived count that a single pass already wrote
+    (999.87). After each write pass this regenerates and compares against
+    disk; it stops when every target matches, and after `_WRITE_MAX_PASSES`
+    writes without convergence it exits 1 naming each still-differing file.
+    """
     targets = generate_all()
-    for path, content in targets.items():
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(content, encoding="utf-8", newline="\n")
-    print(f"wrote {len(targets)} file(s)")
-    return 0
+    written: set[Path] = set()
+    for pass_no in range(1, _WRITE_MAX_PASSES + 1):
+        for path, content in targets.items():
+            if path.exists() and path.read_text(encoding="utf-8") == content:
+                continue
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(content, encoding="utf-8", newline="\n")
+            written.add(path)
+        fresh = generate_all()
+        differing = [
+            k
+            for k, v in fresh.items()
+            if not k.exists() or k.read_text(encoding="utf-8") != v
+        ]
+        if not differing:
+            print(f"wrote {len(written)} file(s) in {pass_no} pass(es)")
+            return 0
+        targets = fresh
+    sys.stderr.write(
+        f"NON-CONVERGENT: --write did not reach a fixpoint in "
+        f"{_WRITE_MAX_PASSES} passes\n"
+    )
+    for k in differing:
+        try:
+            rel = k.relative_to(REPO_ROOT)
+        except ValueError:
+            rel = k
+        sys.stderr.write(f"  differs: {rel}\n")
+    return 1
 
 
 def cmd_check() -> int:
@@ -8915,6 +8951,53 @@ def _control_narrative_marker_context_wired_into_cmd_check() -> None:
         _this_module.narrative_region_marker_context_problems = original
 
 
+def _control_write_fixpoint_converges() -> None:
+    """One `cmd_write()` leaves every target equal to a fresh generation even
+    when the output depends on what is already on disk (999.87)."""
+    original = _this_module.generate_all
+    with tempfile.TemporaryDirectory() as td:
+        target = Path(td) / "t.md"
+
+        def _stub() -> dict[Path, str]:
+            return {target: "stable\n" if target.exists() else "seed\n"}
+
+        try:
+            _this_module.generate_all = _stub
+            out, err = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                rc = cmd_write()
+            assert rc == 0, f"cmd_write() returned {rc}: {err.getvalue()}"
+            assert target.read_text(encoding="utf-8") == "stable\n", (
+                f"target holds {target.read_text(encoding='utf-8')!r}, "
+                "expected the fixpoint 'stable'"
+            )
+            assert _stub()[target] == target.read_text(encoding="utf-8")
+        finally:
+            _this_module.generate_all = original
+
+
+def _control_write_fixpoint_nonconvergence_exits_nonzero() -> None:
+    """An oscillating generator makes `cmd_write()` exit 1 and name the file."""
+    original = _this_module.generate_all
+    with tempfile.TemporaryDirectory() as td:
+        target = Path(td) / "osc.md"
+
+        def _stub() -> dict[Path, str]:
+            on_a = target.exists() and "A" in target.read_text(encoding="utf-8")
+            return {target: "B\n" if on_a else "A\n"}
+
+        try:
+            _this_module.generate_all = _stub
+            out, err = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                rc = cmd_write()
+            assert rc != 0, "cmd_write() returned 0 on a non-converging generator"
+            assert "NON-CONVERGENT" in err.getvalue(), err.getvalue()
+            assert str(target) in err.getvalue(), err.getvalue()
+        finally:
+            _this_module.generate_all = original
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("harvest-nonzero-exit-named", _control_harvest_nonzero_exit_named),
     ("harvest-malformed-json-named", _control_harvest_malformed_json_named),
@@ -9189,6 +9272,11 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         "narrative-marker-context-wired-into-cmd-check",
         _control_narrative_marker_context_wired_into_cmd_check,
     ),
+    ("write-fixpoint-converges", _control_write_fixpoint_converges),
+    (
+        "write-fixpoint-nonconvergence-exits-nonzero",
+        _control_write_fixpoint_nonconvergence_exits_nonzero,
+    ),
 )
 
 # Second, independently-typed transcription of every control id above (the
@@ -9312,6 +9400,8 @@ _CONTROL_IDS: tuple[str, ...] = (
     "containment-gates-row-spelled-out-unread",
     "narrative-marker-context-live-tree-clean",
     "narrative-marker-context-wired-into-cmd-check",
+    "write-fixpoint-converges",
+    "write-fixpoint-nonconvergence-exits-nonzero",
 )
 
 
