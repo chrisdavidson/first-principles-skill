@@ -2111,9 +2111,9 @@ def narrative_restatement_counts(
     regions: tuple[_NarrativeRegion, ...] = _NARRATIVE_REGIONS,
     surface_texts: dict[str, str] | None = None,
 ) -> dict[str, int]:
-    """Per-class tallies over `_narrative_restatement_findings` -- for later
-    publication as generated `derived_counts` (not wired to `describe()` in
-    this plan; landed inert alongside the rest of the mechanism)."""
+    """Per-class tallies over `_narrative_restatement_findings`, published by
+    `describe()` as the `narrative_restatement_<kind>` derived_counts
+    (hyphens in the kind become underscores)."""
     counts = {"finding": 0, "in-region": 0, "fenced": 0, "chain-hop": 0}
     for kind, *_rest in _narrative_restatement_findings(regions, surface_texts):
         counts[kind] += 1
