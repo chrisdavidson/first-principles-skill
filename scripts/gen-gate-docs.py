@@ -1441,6 +1441,27 @@ def _spelled_number_value(word: str) -> int | None:
     return None
 
 
+def _spelled_out_number_values(text: str) -> list[str]:
+    """The digit string of every spelled-out number in `text`, in order and
+    with repeats. Words are matched by `_WORD_RE` and valued by
+    `_spelled_number_value`; a number word followed by "hundred" is
+    scaled to hundreds and consumes that next word. This is the single walk
+    `_normalise_numbers` (presence) and `_containment_missing_number_counts`
+    (occurrence counts) both share."""
+    words = _WORD_RE.findall(text)
+    values: list[str] = []
+    i = 0
+    while i < len(words):
+        value = _spelled_number_value(words[i])
+        if value is not None:
+            if i + 1 < len(words) and words[i + 1].lower() == "hundred":
+                value *= 100
+                i += 1
+            values.append(str(value))
+        i += 1
+    return values
+
+
 def _normalise_numbers(text: str, include_spelled_out: bool = True) -> set[str]:
     """Every digit-form number literal in `text`, plus — when
     `include_spelled_out` — every spelled-out number word/compound
@@ -1473,16 +1494,7 @@ def _normalise_numbers(text: str, include_spelled_out: bool = True) -> set[str]:
     found: set[str] = {m.group(0).replace(",", "") for m in _NUMBER_RE.finditer(text)}
     if not include_spelled_out:
         return found
-    words = _WORD_RE.findall(text)
-    i = 0
-    while i < len(words):
-        value = _spelled_number_value(words[i])
-        if value is not None:
-            if i + 1 < len(words) and words[i + 1].lower() == "hundred":
-                value *= 100
-                i += 1
-            found.add(str(value))
-        i += 1
+    found.update(_spelled_out_number_values(text))
     return found
 
 
@@ -1524,9 +1536,12 @@ class _ContainmentSurface(NamedTuple):
     surface -- `False` for the named narrative surfaces CLAUDE.md,
     docs/ARCHITECTURE.md and docs/TESTING.md (D-05: dense hand-written
     technical prose is exactly the population `_normalise_numbers()`'s
-    second disclosed bound was written for), and the existing per-page
-    `path.stem not in NARRATIVE_ENTRIES` derivation is preserved unchanged
-    for the `docs/gates/*.md` class.
+    second disclosed bound was written for). The `docs/gates/*.md` row
+    carries `None`: that class's polarity is derived per page from
+    `path.stem not in NARRATIVE_ENTRIES` and is never read off the row, and
+    the containment helpers raise `TypeError` on a non-bool polarity, so a
+    read of the row's value fails loudly instead of silently turning
+    spelled-out matching off for every non-narrative gate page.
 
     `terminus_policy` (CONTAIN-02) is the chain-terminus arm's own
     three-outcome discriminator for this surface class, a STRUCTURAL
@@ -1546,7 +1561,7 @@ class _ContainmentSurface(NamedTuple):
     measured live tally."""
 
     key: str
-    check_spelled_out: bool
+    check_spelled_out: bool | None
     terminus_policy: str
 
 
@@ -1554,7 +1569,7 @@ _CONTAINMENT_SURFACES: tuple[_ContainmentSurface, ...] = (
     _ContainmentSurface("CLAUDE.md", False, "fence-silent"),
     _ContainmentSurface("docs/ARCHITECTURE.md", False, "fence-silent"),
     _ContainmentSurface("docs/TESTING.md", False, "fence-silent"),
-    _ContainmentSurface("docs/gates/*.md", False, "fence-authoritative"),
+    _ContainmentSurface("docs/gates/*.md", None, "fence-authoritative"),
 )
 
 # A SECOND, independently typed transcription of the four keys above --
@@ -2161,10 +2176,29 @@ def narrative_restatement_problems(
     return problems
 
 
+def _skips_title_line(surface_key: str) -> bool:
+    """Whether a containment surface's line 0 is exempt from the outside
+    scan. Only `docs/gates/*.md` pages qualify: line 0 there is an H1 naming
+    the gate id, an identifier whose suffix trips the digit regex. CLAUDE.md,
+    docs/ARCHITECTURE.md and docs/TESTING.md are scanned from line 0."""
+    return surface_key == "docs/gates/*.md"
+
+
+def _require_bool_polarity(check_spelled_out: object) -> None:
+    if not isinstance(check_spelled_out, bool):
+        raise TypeError(
+            "check_spelled_out must be a bool, got "
+            f"{check_spelled_out!r} -- the docs/gates/*.md row carries None "
+            "because its polarity is derived per page, never read off the row"
+        )
+
+
 def _containment_missing_numbers(
     text: str,
     marker_pairs=_ALL_DETAIL_MARKER_PAIRS,
     check_spelled_out: bool = True,
+    *,
+    skip_title_line: bool = True,
 ) -> list[str]:
     """The raw, pre-ledger sorted list of normalised number strings stated
     outside a generated fence with no matching literal inside the fence --
@@ -2172,12 +2206,13 @@ def _containment_missing_numbers(
     containment-ledger machinery below (`_containment_live_finding_counts()`,
     `emit_containment_ledger()`) can derive the SAME finding population it
     scores, rather than a second, independently-drifting extraction."""
+    _require_bool_polarity(check_spelled_out)
     lines = text.splitlines()
     inside = _generated_line_flags(lines, marker_pairs)
     outside_lines = [
         line
         for idx, (line, is_in) in enumerate(zip(lines, inside))
-        if not is_in and idx != 0
+        if not is_in and (idx != 0 or not skip_title_line)
     ]
     inside_lines = [line for line, is_in in zip(lines, inside) if is_in]
     outside_numbers = _normalise_numbers(
@@ -2195,6 +2230,8 @@ def _containment_missing_number_counts(
     text: str,
     marker_pairs=_ALL_DETAIL_MARKER_PAIRS,
     check_spelled_out: bool = True,
+    *,
+    skip_title_line: bool = True,
 ) -> Counter[str]:
     """Occurrence COUNTS (not just presence) of every number stated outside
     a generated fence, over the same citation-stripped outside-text
@@ -2203,12 +2240,13 @@ def _containment_missing_number_counts(
     whose LIVE count exceeds its pinned count is itself a finding
     (mirroring `_DEFERRED_LITERAL_HITS`'s identical discipline), which a
     bare set membership test cannot see."""
+    _require_bool_polarity(check_spelled_out)
     lines = text.splitlines()
     inside = _generated_line_flags(lines, marker_pairs)
     outside_lines = [
         line
         for idx, (line, is_in) in enumerate(zip(lines, inside))
-        if not is_in and idx != 0
+        if not is_in and (idx != 0 or not skip_title_line)
     ]
     stripped_outside = _strip_citation_shaped_numbers("\n".join(outside_lines))
     counts: Counter[str] = Counter(
@@ -2216,16 +2254,7 @@ def _containment_missing_number_counts(
     )
     if not check_spelled_out:
         return counts
-    words = _WORD_RE.findall(stripped_outside)
-    i = 0
-    while i < len(words):
-        value = _spelled_number_value(words[i])
-        if value is not None:
-            if i + 1 < len(words) and words[i + 1].lower() == "hundred":
-                value *= 100
-                i += 1
-            counts[str(value)] += 1
-        i += 1
+    counts.update(_spelled_out_number_values(stripped_outside))
     return counts
 
 
@@ -2236,11 +2265,15 @@ def detail_page_containment_problems(
     check_spelled_out: bool = True,
     *,
     ledger: dict[tuple[str, str], tuple[str, int, str]] | None = None,
+    skip_title_line: bool = True,
 ) -> list[str]:
-    """D-06's containment floor for one page's text. The page's own H1
-    title (line 0) is excluded from the 'outside' scan — it names the gate
-    id, an identifier, not a count claim, and gate ids like `VAL-01` or
+    """D-06's containment floor for one page's text. On a `docs/gates/*.md`
+    page the H1 title (line 0) is excluded from the 'outside' scan
+    (`skip_title_line=True`, the default) — it names the gate id, an
+    identifier, not a count claim, and gate ids like `VAL-01` or
     `GATE-02-v8.5` otherwise trip the digit regex on their own suffix.
+    CLAUDE.md, docs/ARCHITECTURE.md and docs/TESTING.md are scanned from
+    line 0 (`_skips_title_line`).
     Citation/identifier/transition-vector shapes (plan numbers,
     phase-adjacent identifiers, version stamps, backlog refs, measured
     transitions) are stripped before counting — see `_CITATION_SHAPE_RES`.
@@ -2259,7 +2292,9 @@ def detail_page_containment_problems(
     is empty until a later task in this same plan populates it."""
     if ledger is None:
         ledger = _DEFERRED_CONTAINMENT_HITS
-    missing = _containment_missing_numbers(text, marker_pairs, check_spelled_out)
+    missing = _containment_missing_numbers(
+        text, marker_pairs, check_spelled_out, skip_title_line=skip_title_line
+    )
     if not missing:
         return []
     if not ledger:
@@ -2268,7 +2303,9 @@ def detail_page_containment_problems(
             "with no matching literal inside one (D-06)"
             for number in missing
         ]
-    counts = _containment_missing_number_counts(text, marker_pairs, check_spelled_out)
+    counts = _containment_missing_number_counts(
+        text, marker_pairs, check_spelled_out, skip_title_line=skip_title_line
+    )
     problems: list[str] = []
     for number in missing:
         key = (display_name, number)
@@ -2521,10 +2558,14 @@ def _link_delta_chains(
     return [chain for chain in open_chains if len(chain) >= 2]
 
 
-def _split_inside_outside_lines(text: str, marker_pairs) -> tuple[list[str], list[str]]:
+def _split_inside_outside_lines(
+    text: str, marker_pairs, *, skip_title_line: bool = True
+) -> tuple[list[str], list[str]]:
     """(outside_lines, inside_lines) for one page's text and marker pairs --
-    the H1 title line (index 0) is always excluded from the OUTSIDE scan,
-    matching `detail_page_containment_problems`'s own convention. Shared by
+    the H1 title line (index 0) is excluded from the OUTSIDE scan when
+    `skip_title_line` (a `docs/gates/*.md` page only; see
+    `_skips_title_line`), matching `detail_page_containment_problems`'s own
+    convention. Shared by
     `chain_terminus_problems` and its own self-test controls so the fence
     primitive (`_generated_line_flags`) is reused rather than
     re-implemented a further time."""
@@ -2533,7 +2574,7 @@ def _split_inside_outside_lines(text: str, marker_pairs) -> tuple[list[str], lis
     outside_lines = [
         line
         for idx, (line, is_in) in enumerate(zip(lines, inside))
-        if not is_in and idx != 0
+        if not is_in and (idx != 0 or not skip_title_line)
     ]
     inside_lines = [line for line, is_in in zip(lines, inside) if is_in]
     return outside_lines, inside_lines
@@ -2543,6 +2584,8 @@ def _chain_terminus_surface_verdicts(
     text: str,
     marker_pairs,
     terminus_policy: str,
+    *,
+    skip_title_line: bool = True,
 ) -> list[tuple[str, tuple[str, ...], list[str]]]:
     """One `(verdict, terminus_tuple, hop_span_list)` entry per growth chain
     `_link_delta_chains` assembles from `text`'s outside lines (D-03's
@@ -2567,7 +2610,9 @@ def _chain_terminus_surface_verdicts(
     The inside-fence number set is computed with spelled-out extraction ON
     (a spelled-out corroborator inside a fence still matches), citation-
     shape-stripped exactly as `_containment_missing_numbers` already does."""
-    outside_lines, inside_lines = _split_inside_outside_lines(text, marker_pairs)
+    outside_lines, inside_lines = _split_inside_outside_lines(
+        text, marker_pairs, skip_title_line=skip_title_line
+    )
     inside_numbers = _normalise_numbers(
         _strip_citation_shaped_numbers("\n".join(inside_lines)),
         include_spelled_out=True,
@@ -2592,6 +2637,8 @@ def chain_terminus_problems(
     text: str,
     marker_pairs=_ALL_DETAIL_MARKER_PAIRS,
     terminus_policy: str = "fence-authoritative",
+    *,
+    skip_title_line: bool = True,
 ) -> list[str]:
     """CONTAIN-02's chain-terminus arm: a growth chain's LAST hop's right
     operand tuple (D-01: "the last value of the whole chain, not every
@@ -2607,7 +2654,7 @@ def chain_terminus_problems(
     here."""
     problems: list[str] = []
     for verdict, terminus, spans in _chain_terminus_surface_verdicts(
-        text, marker_pairs, terminus_policy
+        text, marker_pairs, terminus_policy, skip_title_line=skip_title_line
     ):
         if verdict != "stale":
             continue
@@ -2652,7 +2699,10 @@ def _chain_terminus_live_tallies() -> tuple[int, int, int]:
                 rel = str(path.relative_to(REPO_ROOT))
                 marker_pairs = _generated_marker_pairs_for(rel)
                 for verdict, _terminus, _spans in _chain_terminus_surface_verdicts(
-                    generated, marker_pairs, surface.terminus_policy
+                    generated,
+                    marker_pairs,
+                    surface.terminus_policy,
+                    skip_title_line=_skips_title_line(surface.key),
                 ):
                     if verdict == "stale":
                         stale += 1
@@ -2667,7 +2717,10 @@ def _chain_terminus_live_tallies() -> tuple[int, int, int]:
         generated = path.read_text(encoding="utf-8")
         marker_pairs = _generated_marker_pairs_for(surface.key)
         for verdict, _terminus, _spans in _chain_terminus_surface_verdicts(
-            generated, marker_pairs, surface.terminus_policy
+            generated,
+            marker_pairs,
+            surface.terminus_policy,
+            skip_title_line=_skips_title_line(surface.key),
         ):
             if verdict == "stale":
                 stale += 1
@@ -3251,9 +3304,8 @@ def _containment_live_finding_counts() -> dict[tuple[str, str], int]:
     surface's findings regardless of the widened loop's own reach. The
     `docs/gates/*.md` class uses the existing per-page
     `path.stem not in NARRATIVE_ENTRIES` derivation, matching
-    `cmd_check()`'s own containment loop rather than the placeholder
-    `check_spelled_out` value `_CONTAINMENT_SURFACES` carries for that one
-    entry."""
+    `cmd_check()`'s own containment loop rather than the `None` that
+    `_CONTAINMENT_SURFACES` carries for that entry."""
     pass1 = generate_all()
     named_paths: dict[str, Path] = {
         "CLAUDE.md": CLAUDE_MD,
@@ -3269,10 +3321,12 @@ def _containment_live_finding_counts() -> dict[tuple[str, str], int]:
                 rel = str(path.relative_to(REPO_ROOT))
                 check_spelled_out = path.stem not in NARRATIVE_ENTRIES
                 marker_pairs = _generated_marker_pairs_for(rel)
+                skip_title = _skips_title_line(surface.key)
                 missing = _containment_missing_numbers(
                     generated,
                     marker_pairs=marker_pairs,
                     check_spelled_out=check_spelled_out,
+                    skip_title_line=skip_title,
                 )
                 if not missing:
                     continue
@@ -3280,6 +3334,7 @@ def _containment_live_finding_counts() -> dict[tuple[str, str], int]:
                     generated,
                     marker_pairs=marker_pairs,
                     check_spelled_out=check_spelled_out,
+                    skip_title_line=skip_title,
                 )
                 for number in missing:
                     counts[(rel, number)] = occ[number]
@@ -3287,10 +3342,12 @@ def _containment_live_finding_counts() -> dict[tuple[str, str], int]:
         path = named_paths[surface.key]
         generated = pass1[path]
         marker_pairs = _generated_marker_pairs_for(surface.key)
+        skip_title = _skips_title_line(surface.key)
         missing = _containment_missing_numbers(
             generated,
             marker_pairs=marker_pairs,
             check_spelled_out=surface.check_spelled_out,
+            skip_title_line=skip_title,
         )
         if not missing:
             continue
@@ -3298,6 +3355,7 @@ def _containment_live_finding_counts() -> dict[tuple[str, str], int]:
             generated,
             marker_pairs=marker_pairs,
             check_spelled_out=surface.check_spelled_out,
+            skip_title_line=skip_title,
         )
         for number in missing:
             counts[(surface.key, number)] = occ[number]
@@ -5957,7 +6015,9 @@ def cmd_check() -> int:
         TESTING_MD: "docs/TESTING.md",
     }
     _surface_check_spelled_out: dict[str, bool] = {
-        s.key: s.check_spelled_out for s in _CONTAINMENT_SURFACES
+        s.key: s.check_spelled_out
+        for s in _CONTAINMENT_SURFACES
+        if s.check_spelled_out is not None
     }
     _surface_terminus_policy: dict[str, str] = {
         s.key: s.terminus_policy for s in _CONTAINMENT_SURFACES
@@ -5990,18 +6050,20 @@ def cmd_check() -> int:
             # `_normalise_numbers`'s second disclosed bound for why
             # spelled-out matching is off for these four pages only. The
             # `docs/gates/*.md` entry's own `check_spelled_out` field in
-            # `_CONTAINMENT_SURFACES` is a placeholder, deliberately unused
-            # here — this per-page derivation is preserved unchanged.
+            # `_CONTAINMENT_SURFACES` is `None` (never read); the polarity
+            # is derived per page here.
             check_spelled_out = path.stem not in NARRATIVE_ENTRIES
         else:
             continue
         reached.add(surface_key)
         marker_pairs = _generated_marker_pairs_for(rel)
+        skip_title = _skips_title_line(surface_key)
         problems += detail_page_containment_problems(
             rel,
             generated,
             marker_pairs=marker_pairs,
             check_spelled_out=check_spelled_out,
+            skip_title_line=skip_title,
         )
         # CONTAIN-02, D-01/D-02/D-03: the chain-terminus arm, run over the
         # same surface loop and the same per-surface `terminus_policy`
@@ -6013,15 +6075,20 @@ def cmd_check() -> int:
             generated,
             marker_pairs=marker_pairs,
             terminus_policy=_surface_terminus_policy[surface_key],
+            skip_title_line=skip_title,
         )
         missing = _containment_missing_numbers(
-            generated, marker_pairs=marker_pairs, check_spelled_out=check_spelled_out
+            generated,
+            marker_pairs=marker_pairs,
+            check_spelled_out=check_spelled_out,
+            skip_title_line=skip_title,
         )
         if missing:
             occ = _containment_missing_number_counts(
                 generated,
                 marker_pairs=marker_pairs,
                 check_spelled_out=check_spelled_out,
+                skip_title_line=skip_title,
             )
             for number in missing:
                 live_containment_findings[(rel, number)] = occ[number]
@@ -7198,7 +7265,7 @@ def _control_delta_chain_hops_claude_row_count_recovered() -> None:
     outside_lines = [
         line
         for idx, (line, is_in) in enumerate(zip(lines, inside))
-        if not is_in and idx != 0
+        if not is_in
     ]
     chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
     assert chains == [], chains
@@ -8742,6 +8809,57 @@ def _control_narrative_marker_context_interior_lines() -> None:
     assert _run(lst, ["  X 1 Y", "", "  Z 2"]) == []
 
 
+def _control_containment_title_skip_gates_only() -> None:
+    """The line-0 title exemption is scoped to `docs/gates/*.md` pages:
+    `_skips_title_line` is True for exactly that surface key and False for
+    the named narrative surfaces, and a digit on line 0 of a page
+    scanned with `skip_title_line=False` is reported (the must-fail leg)
+    while the default still exempts it. In memory only."""
+    keys = [row.key for row in _CONTAINMENT_SURFACES]
+    skipping = {k for k in keys if _skips_title_line(k)}
+    assert skipping == {"docs/gates/*.md"}, skipping
+    not_skipping = {k for k in keys if not _skips_title_line(k)}
+    assert not_skipping == {
+        "CLAUDE.md",
+        "docs/ARCHITECTURE.md",
+        "docs/TESTING.md",
+    }, not_skipping
+
+    text = "<!-- generated-by: tool 7 -->\n\nplain prose\n"
+    assert _containment_missing_numbers(
+        text, (), check_spelled_out=False, skip_title_line=False
+    ) == ["7"]
+    assert (
+        _containment_missing_numbers(
+            text, (), check_spelled_out=False, skip_title_line=True
+        )
+        == []
+    )
+    outside, _inside = _split_inside_outside_lines(text, (), skip_title_line=False)
+    assert text.splitlines()[0] in outside, outside
+    outside_skipped, _ = _split_inside_outside_lines(text, (), skip_title_line=True)
+    assert text.splitlines()[0] not in outside_skipped, outside_skipped
+
+
+def _control_containment_gates_row_spelled_out_unread() -> None:
+    """The `docs/gates/*.md` row of `_CONTAINMENT_SURFACES` carries
+    `check_spelled_out=None` (its polarity is derived per page), every other
+    row carries a bool, and passing a non-bool polarity into either
+    containment helper raises `TypeError` rather than silently turning
+    spelled-out matching off."""
+    for row in _CONTAINMENT_SURFACES:
+        if row.key == "docs/gates/*.md":
+            assert row.check_spelled_out is None, row
+        else:
+            assert isinstance(row.check_spelled_out, bool), row
+    for fn in (_containment_missing_numbers, _containment_missing_number_counts):
+        try:
+            fn("x 1", (), check_spelled_out=None)  # type: ignore[arg-type]
+        except TypeError:
+            continue
+        raise AssertionError(f"{fn.__name__} accepted check_spelled_out=None")
+
+
 def _control_narrative_marker_context_live_tree_clean() -> None:
     """The real, currently-registered three narrative regions
     (docs/README.md, docs/MEASUREMENT-MAP.md, CLAUDE.md) all pass
@@ -9056,6 +9174,14 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_narrative_marker_context_interior_lines,
     ),
     (
+        "containment-title-skip-gates-only",
+        _control_containment_title_skip_gates_only,
+    ),
+    (
+        "containment-gates-row-spelled-out-unread",
+        _control_containment_gates_row_spelled_out_unread,
+    ),
+    (
         "narrative-marker-context-live-tree-clean",
         _control_narrative_marker_context_live_tree_clean,
     ),
@@ -9182,6 +9308,8 @@ _CONTROL_IDS: tuple[str, ...] = (
     "narrative-restatement-wired-into-cmd-check",
     "narrative-marker-context-legs",
     "narrative-marker-context-interior-lines",
+    "containment-title-skip-gates-only",
+    "containment-gates-row-spelled-out-unread",
     "narrative-marker-context-live-tree-clean",
     "narrative-marker-context-wired-into-cmd-check",
 )
