@@ -22,7 +22,7 @@ created it.
 
 | Tier | Files | Size | Definition |
 |---|---|---|---|
-| **gate-pinned** | **105** (17.3 %) | 0.82 MB | Opened at runtime by an offline gate's `--self-test`, or named as a matrix `artifact_link` — which TRACE-03 deep-resolves, so the file must exist. Deleting one turns the battery RED. |
+| **gate-pinned** | **105** (17.3 %) | 0.82 MB | Opened at runtime by an offline gate's `--self-test`, or named as the `artifact_link` of a matrix row whose `rerun_by` is `ci` or `battery-only` — a row nothing re-runs is not a pin, whatever file it names. Deleting one turns the battery RED. |
 | **live-unwired** | **8** (1.3 %) | 0.11 MB | Executed by `pytest`, and **by no CI job**. Real assertions, no automation behind them. |
 | **archive** | **493** (81.4 %) | 5.82 MB | No executable relationship. Tracked, often cited in prose, never read by anything that runs. |
 
@@ -34,6 +34,11 @@ audit-only with an empty `artifact_link` (34-BREAK-TESTS.md, TIER-02), which mov
 `test_69_merged_baseline_invariants.py` out of `gate-pinned` and into `live-unwired`. Most of the
 rest is re-derivation drift — `tests/` directories and gate reads added between the two dates —
 not that re-tier.
+
+Definition change (999.113): an `artifact_link` counts as a pin only when its row's `rerun_by`
+is `ci` or `battery-only`. Measured effect on the current tree: one file leaves `gate-pinned`
+(`step0-baseline-v7.13.md`, 112 to 111). The counts above are the v9.3.0 Phase 34 snapshot and
+have not been re-derived here; run the tracer for current figures.
 
 The two-way split this replaces (pinned / archival) is what let the second tier hide inside the
 third.

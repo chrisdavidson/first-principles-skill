@@ -8,8 +8,9 @@ because it reads as proof.
 
 Three tiers, in the order they are checked:
 
-  gate-pinned      opened at runtime by an offline gate's self-test, OR named as a matrix
-                   `artifact_link` (which TRACE-03 deep-resolves, so the file must exist).
+  gate-pinned      opened at runtime by an offline gate's self-test, OR named as the
+                   `artifact_link` of a matrix row whose `rerun_by` is `ci` or `battery-only`
+                   (a row that is never re-run is not a pin, whatever it names).
   live-unwired     executed by pytest, but not by any CI job.
   archive          no executable relationship. Tracked, referenced in prose, never read.
 
@@ -157,14 +158,23 @@ def gate_opened_paths() -> tuple[set[str], list[str]]:
     return opened, failures
 
 
+# The two `rerun_by` values `check-traceability.py`'s `_row_field_problems()` treats as a
+# row that something actually re-runs. A row merely naming a file (`none`, `pre-commit-only`,
+# `live-manual`) is not a pin: a gate that excludes is not a gate that pins (999.113).
+PIN_RERUN_BY = frozenset({"ci", "battery-only"})
+
+
 def artifact_link_paths() -> set[str]:
-    """tests/ paths named as `artifact_link` — the only matrix field TRACE-03 deep-resolves."""
+    """tests/ paths named as the `artifact_link` of a row whose `rerun_by` is in
+    `PIN_RERUN_BY`. TRACE-03 deep-resolves `artifact_link`, so the file must exist, but
+    only a re-run row means deleting it turns something red."""
     matrix = json.loads((REPO_ROOT / "docs" / "data" / "matrix.json").read_text())
     rows = matrix["rows"] if isinstance(matrix, dict) else matrix
     return {
         link
         for row in rows
-        if (link := (row.get("artifact_link") or "").strip()).startswith("tests/")
+        if (row.get("rerun_by") or "").strip() in PIN_RERUN_BY
+        and (link := (row.get("artifact_link") or "").strip()).startswith("tests/")
     }
 
 
