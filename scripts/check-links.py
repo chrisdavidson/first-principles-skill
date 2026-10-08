@@ -212,6 +212,20 @@ DOCS_CHECK_GLOBS = [
     "docs/gates/*.md",
 ]
 
+# Root-level Markdown (999.46): README.md, CONTRIBUTING.md and CLAUDE.md link
+# into docs/ and are read first by a newcomer, yet no scan family reached
+# them. Checked with docs_check semantics (file existence + anchor validation
+# of .md targets; non-.md and ../ targets skipped, as there) except that a
+# `docs/X.md` target is legitimate from the repo root, so the CF-04
+# docs/-prefix rule is off. CHANGELOG.md is deliberately NOT listed: its ~19
+# broken links are intentionally historical (they name files and anchors that
+# later milestones removed).
+ROOT_CHECK_GLOBS = [
+    "README.md",
+    "CONTRIBUTING.md",
+    "CLAUDE.md",
+]
+
 # Markdown link pattern: [label](target)
 LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 
@@ -408,6 +422,7 @@ def _check_docs_file(
     broken: list[tuple[Path, int, str, str]],
     total_links: list[int],
     total_refs: list[int],
+    forbid_docs_prefix: bool = True,
 ) -> None:
     """Check one docs/ file for broken relative cross-doc links (D-04, DOCTOOL-01).
 
@@ -422,6 +437,10 @@ def _check_docs_file(
       3. A pure '#anchor' link (no file component) validates against the source
          file's own headings.
       4. URL links (http://, https://, mailto:) and links to ../ paths are skipped.
+
+    `forbid_docs_prefix=False` turns rule 1 off for root-level files
+    (ROOT_CHECK_GLOBS), which legitimately link `docs/X.md`; such targets then
+    take the normal resolve-against-parent path with anchor validation.
     """
     try:
         full_text = source_file.read_text(encoding="utf-8")
@@ -452,7 +471,7 @@ def _check_docs_file(
         line_in_file = line_in_body + fm_offset
 
         # --- Rule 1: docs/-prefixed link (CF-04 violation) ---
-        if raw_target.startswith("docs/"):
+        if forbid_docs_prefix and raw_target.startswith("docs/"):
             total_links[0] += 1
             broken.append(
                 (
@@ -591,6 +610,7 @@ def describe() -> dict:
             "full_check": list(FULL_CHECK_GLOBS),
             "namespace_only": list(NAMESPACE_ONLY_GLOBS),
             "docs_check": list(DOCS_CHECK_GLOBS),
+            "root_check": list(ROOT_CHECK_GLOBS),
         },
         "locked_constants": {
             "plugin_root_token": PLUGIN_ROOT_TOKEN,
@@ -968,6 +988,100 @@ def _run_self_test() -> int:
                 "the axis this control exists to prove"
             )
 
+    # --- 10. root-level files (999.46): README.md / CONTRIBUTING.md / CLAUDE.md ---
+    # Production ROOT_CHECK_GLOBS against a tempdir root: a broken file link and
+    # a broken anchor are flagged, a valid root file (including its legitimate
+    # docs/-prefixed link) is not, main() is wired to the family, and
+    # narrowing the glob makes the same broken file go unreported.
+    if "CHANGELOG.md" in ROOT_CHECK_GLOBS:
+        wrong.append(
+            "root axis: CHANGELOG.md is in ROOT_CHECK_GLOBS — its ~19 historical "
+            "broken links are intentional and must not be scanned"
+        )
+    with tempfile.TemporaryDirectory() as root_tmp:
+        root_tmp_root = Path(root_tmp)
+        (root_tmp_root / "docs").mkdir()
+        (root_tmp_root / "docs" / "REAL.md").write_text("# Real\n", encoding="utf-8")
+        (root_tmp_root / "README.md").write_text(
+            "# R\n\nSee [x](docs/missing.md).\n", encoding="utf-8"
+        )
+        (root_tmp_root / "CONTRIBUTING.md").write_text(
+            "# C\n\nSee [y](docs/REAL.md#no-such-heading).\n", encoding="utf-8"
+        )
+        (root_tmp_root / "CLAUDE.md").write_text(
+            "# CL\n\n## Own heading\n\nSee [z](docs/REAL.md#real) and "
+            "[w](#own-heading).\n",
+            encoding="utf-8",
+        )
+
+        root_matched = _collect_files(ROOT_CHECK_GLOBS, root=root_tmp_root)
+        if len(root_matched) != 3:
+            wrong.append(
+                "non-vacuity (root axis): ROOT_CHECK_GLOBS matched "
+                f"{len(root_matched)} file(s) in the fixture, expected 3"
+            )
+
+        root_broken: list[tuple[Path, int, str, str]] = []
+        for source_file in root_matched:
+            _check_docs_file(
+                source_file,
+                root_tmp_root,
+                root_broken,
+                [0],
+                [0],
+                forbid_docs_prefix=False,
+            )
+        if not any(
+            e[0].name == "README.md" and e[3] == "file not found" for e in root_broken
+        ):
+            wrong.append(
+                "positive detection (root axis): README.md's broken link to "
+                f"docs/missing.md was not flagged 'file not found': {root_broken!r}"
+            )
+        if not any(
+            e[0].name == "CONTRIBUTING.md"
+            and e[3].startswith("anchor #no-such-heading not found")
+            for e in root_broken
+        ):
+            wrong.append(
+                "positive detection (root axis): CONTRIBUTING.md's broken anchor "
+                f"was not flagged: {root_broken!r}"
+            )
+        if any(e[0].name == "CLAUDE.md" for e in root_broken):
+            wrong.append(
+                "negative control (root axis): the valid CLAUDE.md was flagged: "
+                f"{[e for e in root_broken if e[0].name == 'CLAUDE.md']!r}"
+            )
+
+        quiet_out, quiet_err = io.StringIO(), io.StringIO()
+        with (
+            contextlib.redirect_stdout(quiet_out),
+            contextlib.redirect_stderr(quiet_err),
+        ):
+            root_rc = main(argv=[], root=root_tmp_root)
+        if root_rc != 1:
+            wrong.append(
+                f"main() wiring (root axis): main(argv=[], root=<fixture>) returned "
+                f"{root_rc}, expected 1 — the root loop is not reached from main()"
+            )
+
+        _orig_root_globs = sys.modules[__name__].ROOT_CHECK_GLOBS
+        try:
+            sys.modules[__name__].ROOT_CHECK_GLOBS = []
+            with (
+                contextlib.redirect_stdout(io.StringIO()),
+                contextlib.redirect_stderr(io.StringIO()),
+            ):
+                narrowed_rc = main(argv=[], root=root_tmp_root)
+        finally:
+            sys.modules[__name__].ROOT_CHECK_GLOBS = _orig_root_globs
+        if narrowed_rc != 0:
+            wrong.append(
+                "glob-narrowing control (root axis): with ROOT_CHECK_GLOBS=[] "
+                f"main() returned {narrowed_rc}, expected 0 — the glob is not "
+                "what makes the broken root files fail"
+            )
+
     # --- describe() consistency (Phase 21, D-03): mutate a copy of
     # FULL_CHECK_GLOBS and confirm the emitted scan_globs.full_check moves
     # with it — proving the field is a real derivation, not a hand-typed
@@ -998,7 +1112,9 @@ def _run_self_test() -> int:
         "first-principles/skills/*/SKILL.md, D-05) proven load-bearing on a "
         "synthetic fixture (non-vacuity, intended glob overlap + dedup, "
         "positive detection + negative controls on both axes, run-to-run "
-        "determinism, and end-to-end main() dispatch wiring). Live-finding "
+        "determinism, root-level README/CONTRIBUTING/CLAUDE scan with "
+        "broken-link and broken-anchor detection, and end-to-end main() "
+        "dispatch wiring). Live-finding "
         "status (supersedes D-06's 'both vacuous' note): "
         "skills/*/references/*.md matches 4 real files and "
         "skills/*/SKILL.md is now FULL-checked as of v8.17.5, contributing "
@@ -1090,6 +1206,7 @@ def main(argv: list[str] | None = None, root: Path = REPO_ROOT) -> int:
     full_check_files = _collect_files(FULL_CHECK_GLOBS, root=root)
     namespace_only_files = _collect_files(NAMESPACE_ONLY_GLOBS, root=root)
     docs_files = _collect_files(DOCS_CHECK_GLOBS, root=root)
+    root_files = _collect_files(ROOT_CHECK_GLOBS, root=root)
 
     # Deduplicate: files in full_check_files should not also appear in namespace_only_files.
     full_check_set = set(full_check_files)
@@ -1111,7 +1228,22 @@ def main(argv: list[str] | None = None, root: Path = REPO_ROOT) -> int:
     for source_file in docs_files:
         _check_docs_file(source_file, docs_dir, broken, total_links, total_refs)
 
-    total_files = len(full_check_files) + len(namespace_only_files) + len(docs_files)
+    for source_file in root_files:
+        _check_docs_file(
+            source_file,
+            root,
+            broken,
+            total_links,
+            total_refs,
+            forbid_docs_prefix=False,
+        )
+
+    total_files = (
+        len(full_check_files)
+        + len(namespace_only_files)
+        + len(docs_files)
+        + len(root_files)
+    )
 
     # --- Report ---
     if broken:

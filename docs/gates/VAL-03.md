@@ -3,7 +3,7 @@
 <!-- GENERATED:FACTS -->
 ## Facts
 
-- `scan_globs` (3 entries): `docs_check`, `full_check`, `namespace_only`
+- `scan_globs` (4 entries): `docs_check`, `full_check`, `namespace_only`, `root_check`
 - `locked_constants` (2 entries): `plugin_root_token`='${CLAUDE_PLUGIN_ROOT}', `plugin_root_token_target`='first-principles'
 <!-- END GENERATED:FACTS -->
 

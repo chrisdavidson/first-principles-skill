@@ -201,8 +201,9 @@ ENTRIES: tuple[GateEntry, ...] = (
             "# or any pytest-capable interpreter"
         ),
         summary=(
-            "Relative Markdown link validity across the plugin, `shared/`, and `docs/` "
-            "trees; `docs/` anchors validated with a github-slugger rule. Three legs: "
+            "Relative Markdown link validity across the plugin, `shared/`, `docs/` and "
+            "root-level `README.md`/`CONTRIBUTING.md`/`CLAUDE.md`; `docs/` and root "
+            "anchors validated with a github-slugger rule. Three legs: "
             "self-test, a live scan, and a pytest run of "
             "`check-links_anchors_test.py`. The third leg needs a pytest-capable "
             "interpreter — when none is found the battery still runs legs 1-2 through "
