@@ -6639,7 +6639,7 @@ def _rows_v9() -> list[MatrixRow]:
       - REL-04: the exact analog of SHIP-04/SHIP-05 (v8.18/v8.24/v8.26 precedent, repeated
         below) — no gate re-runs to check a CHANGELOG entry's prose content.
     The remaining 16 rows are reproducible, each tiered against live evidence recorded in
-    23-01-SUMMARY.md's "Nine Requirements — Evidence Table" (for CONF-03..06, CONF-11..15) or
+    23-01-SUMMARY.md's "Nine Requirements — Evidence Table" (for CONF-03..06, CONF-11..13) or
     directly re-derived in this phase (for CONF-01/02/07..10 and REL-01..03) — none upgraded
     to make a count look better.
 
@@ -7961,10 +7961,9 @@ def _rows_v921() -> list[MatrixRow]:
     -> Methodology; harness and release apparatus -> Test-Network"): HAND-01..05 are
     Methodology — each row's own artifact is a skill-stub or agent-body prose file, verified
     by (not defined as) a Test-Network gate script, matching v9.2/SUP-01..04's own
-    artifact-vs-verifier split; REL-15 and REL-16 and REL-18 are Methodology — REL-15's
-    artifact is the release-apparatus scripts themselves so it is tiered Test-Network instead
-    (its claim is about the apparatus, not a prose record); REL-14 and REL-17 are
-    Test-Network — each is gate or release apparatus code.
+    artifact-vs-verifier split; REL-16 and REL-18 are Methodology (CHANGELOG
+    records); REL-14, REL-15 and REL-17 are Test-Network — each is gate or release apparatus
+    code, REL-15's claim being about the apparatus itself rather than a prose record.
 
     DISCLOSED BOUNDARY (updated at v9.3.0 Phase 34, ANCH-01, D-12/D-13 — supersedes this
     paragraph's original "only REL-17" reading). HAND-05 now also carries a `#_self_test_*`
@@ -9086,7 +9085,7 @@ def _rows_v95() -> list[MatrixRow]:
             _audit_pass02_anchored_read_v95,
             surfaces=("agent",),
             statement=(
-                'The prescription opens the procedure by anchored Read (${CLAUDE_PLUGIN_ROOT}/references/…), not by the {{TOOL:}} token, so the agent opens the full reference file rather than relying on a name. Corrected 2026-10-05 (backlog 999.178): this statement first justified the Read by saying the token names an inlined procedure the body does not hold; that premise was false, since `generate_agent()` inlines the ## Procedure block of every companion technique, pre-mortem included.'
+                "The prescription opens the procedure by anchored Read (${CLAUDE_PLUGIN_ROOT}/references/…), not by the {{TOOL:}} token, so the agent opens the full reference file rather than relying on a name. Corrected 2026-10-05 (backlog 999.178): this statement first justified the Read by saying the token names an inlined procedure the body does not hold; that premise was false, since `generate_agent()` inlines the ## Procedure block of every companion technique, pre-mortem included."
             ),
             rerun_by="none",
         ),
@@ -14711,12 +14710,12 @@ def _self_test_v79_rows_sentinel(wrong_results: list[str]) -> None:
       (g) capability lock: every row's capability is in VALID_CAPABILITIES (the same
           TRACE-01 whitelist check_consistency enforces; not re-run by --self-test).
 
-    Called from _rows_v79() live — never hardcodes a MatrixRow literal (Pitfall 4).
+    Reads _rows_v79() live — never hardcodes a MatrixRow literal (Pitfall 4).
     Honesty-not-score (D-01): asserts the documented reproducible/audit-only
     registration, not a live pass-rate. Any deletion, tier drift, or dangling
     artifact_link fails CI.
     """
-    # (a) Drift guard: read live, assert exactly 8 rows.
+    # (a) Drift guard: read live, assert row count == len(_EXPECTED_V79_IDS).
     _v79_rows = _rows_v79()
     _v79_count = len(_v79_rows)
     _EXPECTED_V79_IDS = {
@@ -14729,12 +14728,14 @@ def _self_test_v79_rows_sentinel(wrong_results: list[str]) -> None:
         "COLLIDE-02",
         "RECON-01",
     }
-    if _v79_count != 8:
+    if _v79_count != len(_EXPECTED_V79_IDS):
         print(
-            f"  V79-ROWS FAIL: expected exactly 8 rows in _rows_v79(), "
+            f"  V79-ROWS FAIL: expected exactly {len(_EXPECTED_V79_IDS)} rows in _rows_v79(), "
             f"got {_v79_count} — drift guard failed."
         )
-        wrong_results.append("V79-ROWS: row count drift (expected 8)")
+        wrong_results.append(
+            f"V79-ROWS: row count drift (expected {len(_EXPECTED_V79_IDS)})"
+        )
 
     # (b) bare_id set assertion.
     _v79_ids = {r.bare_id for r in _v79_rows}
@@ -14875,12 +14876,12 @@ def _self_test_v818_rows_sentinel(wrong_results: list[str]) -> None:
       (g) capability lock: every row's capability is in VALID_CAPABILITIES (the same
           TRACE-01 whitelist check_consistency enforces; not re-run by --self-test).
 
-    Called from _rows_v818() live — never hardcodes a MatrixRow literal (Pitfall 4).
+    Reads _rows_v818() live — never hardcodes a MatrixRow literal (Pitfall 4).
     Honesty-not-score (D-01 idiom): asserts the documented reproducible/audit-only
     registration, not a live pass-rate. Any deletion, tier swap, or dangling
     artifact_link fails CI.
     """
-    # (a) Drift guard: read live, assert exactly 23 rows.
+    # (a) Drift guard: read live, assert row count == len(_EXPECTED_V818_IDS).
     _v818_rows = _rows_v818()
     _v818_count = len(_v818_rows)
     _EXPECTED_V818_IDS = {
@@ -14910,14 +14911,16 @@ def _self_test_v818_rows_sentinel(wrong_results: list[str]) -> None:
     }
     _EXPECTED_V818_AUDIT_ONLY_IDS = {"SHIP-04", "SHIP-05"}
     _EXPECTED_V818_REPRODUCIBLE_IDS = _EXPECTED_V818_IDS - _EXPECTED_V818_AUDIT_ONLY_IDS
-    if _v818_count != 23:
+    if _v818_count != len(_EXPECTED_V818_IDS):
         print(
-            f"  V818-ROWS FAIL: expected exactly 23 rows in _rows_v818(), "
+            f"  V818-ROWS FAIL: expected exactly {len(_EXPECTED_V818_IDS)} rows in _rows_v818(), "
             f"got {_v818_count} — drift guard failed."
         )
-        wrong_results.append("V818-ROWS: row count drift (expected 23)")
+        wrong_results.append(
+            f"V818-ROWS: row count drift (expected {len(_EXPECTED_V818_IDS)})"
+        )
     else:
-        print("  V818-ROWS PASS: row count == 23")
+        print(f"  V818-ROWS PASS: row count == {_v818_count}")
 
     # (b) bare_id set assertion.
     _v818_ids = {r.bare_id for r in _v818_rows}
@@ -15050,12 +15053,12 @@ def _self_test_v824_rows_sentinel(wrong_results: list[str]) -> None:
       (g) capability lock: every row's capability is in VALID_CAPABILITIES (the same
           TRACE-01 whitelist check_consistency enforces; not re-run by --self-test).
 
-    Called from _rows_v824() live — never hardcodes a MatrixRow literal (Pitfall 4).
+    Reads _rows_v824() live — never hardcodes a MatrixRow literal (Pitfall 4).
     Honesty-not-score (D-01 idiom): asserts the documented reproducible/audit-only
     registration, not a live pass-rate. Any deletion, tier swap, or dangling
     artifact_link fails CI.
     """
-    # (a) Drift guard: read live, assert exactly 15 rows.
+    # (a) Drift guard: read live, assert row count == len(_EXPECTED_V824_IDS).
     _v824_rows = _rows_v824()
     _v824_count = len(_v824_rows)
     _EXPECTED_V824_IDS = {
@@ -15083,14 +15086,16 @@ def _self_test_v824_rows_sentinel(wrong_results: list[str]) -> None:
         "PROV-04",
     }
     _EXPECTED_V824_REPRODUCIBLE_IDS = _EXPECTED_V824_IDS - _EXPECTED_V824_AUDIT_ONLY_IDS
-    if _v824_count != 15:
+    if _v824_count != len(_EXPECTED_V824_IDS):
         print(
-            f"  V824-ROWS FAIL: expected exactly 15 rows in _rows_v824(), "
+            f"  V824-ROWS FAIL: expected exactly {len(_EXPECTED_V824_IDS)} rows in _rows_v824(), "
             f"got {_v824_count} — drift guard failed."
         )
-        wrong_results.append("V824-ROWS: row count drift (expected 15)")
+        wrong_results.append(
+            f"V824-ROWS: row count drift (expected {len(_EXPECTED_V824_IDS)})"
+        )
     else:
-        print("  V824-ROWS PASS: row count == 15")
+        print(f"  V824-ROWS PASS: row count == {_v824_count}")
 
     # (b) bare_id set assertion.
     _v824_ids = {r.bare_id for r in _v824_rows}
@@ -15252,12 +15257,12 @@ def _self_test_v825_rows_sentinel(wrong_results: list[str]) -> None:
           also left open by decision (see `_selftest_dispatch_problems`'s own
           DISCLOSED LIMITATION paragraph for the full statement).
 
-    Called from _rows_v825() live — never hardcodes a MatrixRow literal (Pitfall 4).
+    Reads _rows_v825() live — never hardcodes a MatrixRow literal (Pitfall 4).
     Honesty-not-score (D-01 idiom): asserts the documented reproducible/audit-only
     registration, not a live pass-rate. Any deletion, tier swap, or dangling
     artifact_link fails CI.
     """
-    # (a) Drift guard: read live, assert exactly 14 rows.
+    # (a) Drift guard: read live, assert row count == len(_EXPECTED_V825_IDS).
     _v825_rows = _rows_v825()
     _v825_count = len(_v825_rows)
     _EXPECTED_V825_IDS = {
@@ -15278,14 +15283,16 @@ def _self_test_v825_rows_sentinel(wrong_results: list[str]) -> None:
     }
     _EXPECTED_V825_AUDIT_ONLY_IDS = set()
     _EXPECTED_V825_REPRODUCIBLE_IDS = _EXPECTED_V825_IDS - _EXPECTED_V825_AUDIT_ONLY_IDS
-    if _v825_count != 14:
+    if _v825_count != len(_EXPECTED_V825_IDS):
         print(
-            f"  V825-ROWS FAIL: expected exactly 14 rows in _rows_v825(), "
+            f"  V825-ROWS FAIL: expected exactly {len(_EXPECTED_V825_IDS)} rows in _rows_v825(), "
             f"got {_v825_count} — drift guard failed."
         )
-        wrong_results.append("V825-ROWS: row count drift (expected 14)")
+        wrong_results.append(
+            f"V825-ROWS: row count drift (expected {len(_EXPECTED_V825_IDS)})"
+        )
     else:
-        print("  V825-ROWS PASS: row count == 14")
+        print(f"  V825-ROWS PASS: row count == {_v825_count}")
 
     # (b) bare_id set assertion.
     _v825_ids = {r.bare_id for r in _v825_rows}
@@ -15760,12 +15767,12 @@ def _self_test_v826_rows_sentinel(wrong_results: list[str]) -> None:
           failures are discarded before reaching the reporter, and a mention inside a
           string literal or comment counts as a call site.
 
-    Called from _rows_v826() live — never hardcodes a MatrixRow literal (Pitfall 4).
+    Reads _rows_v826() live — never hardcodes a MatrixRow literal (Pitfall 4).
     Honesty-not-score (D-01 idiom): asserts the documented reproducible/audit-only
     registration, not a live pass-rate. Any deletion, tier swap, or dangling
     artifact_link fails CI.
     """
-    # (a) Drift guard: read live, assert exactly 20 rows.
+    # (a) Drift guard: read live, assert row count == len(_EXPECTED_V826_IDS).
     _v826_rows = _rows_v826()
     _v826_count = len(_v826_rows)
     _EXPECTED_V826_IDS = {
@@ -15792,14 +15799,16 @@ def _self_test_v826_rows_sentinel(wrong_results: list[str]) -> None:
     }
     _EXPECTED_V826_AUDIT_ONLY_IDS = {"SCAN-04", "SHIP-04", "SHIP-05"}
     _EXPECTED_V826_REPRODUCIBLE_IDS = _EXPECTED_V826_IDS - _EXPECTED_V826_AUDIT_ONLY_IDS
-    if _v826_count != 20:
+    if _v826_count != len(_EXPECTED_V826_IDS):
         print(
-            f"  V826-ROWS FAIL: expected exactly 20 rows in _rows_v826(), "
+            f"  V826-ROWS FAIL: expected exactly {len(_EXPECTED_V826_IDS)} rows in _rows_v826(), "
             f"got {_v826_count} — drift guard failed."
         )
-        wrong_results.append("V826-ROWS: row count drift (expected 20)")
+        wrong_results.append(
+            f"V826-ROWS: row count drift (expected {len(_EXPECTED_V826_IDS)})"
+        )
     else:
-        print("  V826-ROWS PASS: row count == 20")
+        print(f"  V826-ROWS PASS: row count == {_v826_count}")
 
     # (b) bare_id set assertion.
     _v826_ids = {r.bare_id for r in _v826_rows}
@@ -16100,12 +16109,12 @@ def _self_test_v9_rows_sentinel(wrong_results: list[str]) -> None:
     DISCLOSED BOUNDARY), so their only floor here is (d)'s file-existence resolution; this
     sentinel does not claim (h)'s dispatch guarantee extends to them.
 
-    Called from _rows_v9() live — never hardcodes a MatrixRow literal.
+    Reads _rows_v9() live — never hardcodes a MatrixRow literal.
     Honesty-not-score (D-01 idiom): asserts the documented reproducible/audit-only
     registration, not a live pass-rate. Any deletion, tier swap, or dangling artifact_link
     fails CI.
     """
-    # (a) Drift guard: read live, assert exactly 19 rows.
+    # (a) Drift guard: read live, assert row count == len(_EXPECTED_V9_IDS).
     _v9_rows = _rows_v9()
     _v9_count = len(_v9_rows)
     _EXPECTED_V9_IDS = {
@@ -16131,14 +16140,16 @@ def _self_test_v9_rows_sentinel(wrong_results: list[str]) -> None:
     }
     _EXPECTED_V9_AUDIT_ONLY_IDS = {"CONF-14", "CONF-15", "REL-04"}
     _EXPECTED_V9_REPRODUCIBLE_IDS = _EXPECTED_V9_IDS - _EXPECTED_V9_AUDIT_ONLY_IDS
-    if _v9_count != 19:
+    if _v9_count != len(_EXPECTED_V9_IDS):
         print(
-            f"  V9-ROWS FAIL: expected exactly 19 rows in _rows_v9(), "
+            f"  V9-ROWS FAIL: expected exactly {len(_EXPECTED_V9_IDS)} rows in _rows_v9(), "
             f"got {_v9_count} — drift guard failed."
         )
-        wrong_results.append("V9-ROWS: row count drift (expected 19)")
+        wrong_results.append(
+            f"V9-ROWS: row count drift (expected {len(_EXPECTED_V9_IDS)})"
+        )
     else:
-        print("  V9-ROWS PASS: row count == 19")
+        print(f"  V9-ROWS PASS: row count == {_v9_count}")
 
     # (b) bare_id set assertion — equality, not subset.
     _v9_ids = {r.bare_id for r in _v9_rows}
@@ -16320,12 +16331,12 @@ def _self_test_v91_rows_sentinel(wrong_results: list[str]) -> None:
     DISCLOSED BOUNDARY), so their only floor here is (d)'s file-existence resolution; this
     sentinel does not claim (h)'s dispatch guarantee extends to them.
 
-    Called from _rows_v91() live — never hardcodes a MatrixRow literal.
+    Reads _rows_v91() live — never hardcodes a MatrixRow literal.
     Honesty-not-score (D-01 idiom): asserts the documented reproducible/audit-only
     registration, not a live pass-rate. Any deletion, tier swap, or dangling artifact_link
     fails CI.
     """
-    # (a) Drift guard: read live, assert exactly 18 rows.
+    # (a) Drift guard: read live, assert row count == len(_EXPECTED_V91_IDS).
     _v91_rows = _rows_v91()
     _v91_count = len(_v91_rows)
     _EXPECTED_V91_IDS = {
@@ -16360,14 +16371,16 @@ def _self_test_v91_rows_sentinel(wrong_results: list[str]) -> None:
         "REL-08",
     }
     _EXPECTED_V91_REPRODUCIBLE_IDS = _EXPECTED_V91_IDS - _EXPECTED_V91_AUDIT_ONLY_IDS
-    if _v91_count != 18:
+    if _v91_count != len(_EXPECTED_V91_IDS):
         print(
-            f"  V91-ROWS FAIL: expected exactly 18 rows in _rows_v91(), "
+            f"  V91-ROWS FAIL: expected exactly {len(_EXPECTED_V91_IDS)} rows in _rows_v91(), "
             f"got {_v91_count} — drift guard failed."
         )
-        wrong_results.append("V91-ROWS: row count drift (expected 18)")
+        wrong_results.append(
+            f"V91-ROWS: row count drift (expected {len(_EXPECTED_V91_IDS)})"
+        )
     else:
-        print("  V91-ROWS PASS: row count == 18")
+        print(f"  V91-ROWS PASS: row count == {_v91_count}")
 
     # (b) bare_id set assertion — equality, not subset.
     _v91_ids = {r.bare_id for r in _v91_rows}
@@ -16554,12 +16567,12 @@ def _self_test_v92_rows_sentinel(wrong_results: list[str]) -> None:
     so their only floor here is (d)'s file/directory existence resolution; this sentinel
     does not claim (h)'s dispatch guarantee extends to them.
 
-    Called from _rows_v92() live — never hardcodes a MatrixRow literal.
+    Reads _rows_v92() live — never hardcodes a MatrixRow literal.
     Honesty-not-score (D-01 idiom): asserts the documented reproducible/audit-only
     registration, not a live pass-rate. Any deletion, tier swap, or dangling artifact_link
     fails CI.
     """
-    # (a) Drift guard: read live, assert exactly 12 rows.
+    # (a) Drift guard: read live, assert row count == len(_EXPECTED_V92_IDS).
     _v92_rows = _rows_v92()
     _v92_count = len(_v92_rows)
     _EXPECTED_V92_IDS = {
@@ -16583,14 +16596,16 @@ def _self_test_v92_rows_sentinel(wrong_results: list[str]) -> None:
         "REL-13",
     }
     _EXPECTED_V92_REPRODUCIBLE_IDS = _EXPECTED_V92_IDS - _EXPECTED_V92_AUDIT_ONLY_IDS
-    if _v92_count != 12:
+    if _v92_count != len(_EXPECTED_V92_IDS):
         print(
-            f"  V92-ROWS FAIL: expected exactly 12 rows in _rows_v92(), "
+            f"  V92-ROWS FAIL: expected exactly {len(_EXPECTED_V92_IDS)} rows in _rows_v92(), "
             f"got {_v92_count} — drift guard failed."
         )
-        wrong_results.append("V92-ROWS: row count drift (expected 12)")
+        wrong_results.append(
+            f"V92-ROWS: row count drift (expected {len(_EXPECTED_V92_IDS)})"
+        )
     else:
-        print("  V92-ROWS PASS: row count == 12")
+        print(f"  V92-ROWS PASS: row count == {_v92_count}")
 
     # (b) bare_id set assertion — equality, not subset.
     _v92_ids = {r.bare_id for r in _v92_rows}
@@ -16806,12 +16821,12 @@ def _self_test_v921_rows_sentinel(wrong_results: list[str]) -> None:
     DISCLOSED BOUNDARY), so their only floor here is (d)'s file/directory existence
     resolution; this sentinel does not claim (h)'s dispatch guarantee extends to them.
 
-    Called from _rows_v921() live — never hardcodes a MatrixRow literal.
+    Reads _rows_v921() live — never hardcodes a MatrixRow literal.
     Honesty-not-score (D-01 idiom): asserts the documented reproducible/audit-only
     registration, not a live pass-rate. Any deletion, tier swap, or dangling artifact_link
     fails CI.
     """
-    # (a) Drift guard: read live, assert exactly 10 rows.
+    # (a) Drift guard: read live, assert row count == len(_EXPECTED_V921_IDS).
     _v921_rows = _rows_v921()
     _v921_count = len(_v921_rows)
     _EXPECTED_V921_IDS = {
@@ -16835,14 +16850,16 @@ def _self_test_v921_rows_sentinel(wrong_results: list[str]) -> None:
         "REL-18",
     }
     _EXPECTED_V921_REPRODUCIBLE_IDS = _EXPECTED_V921_IDS - _EXPECTED_V921_AUDIT_ONLY_IDS
-    if _v921_count != 10:
+    if _v921_count != len(_EXPECTED_V921_IDS):
         print(
-            f"  V921-ROWS FAIL: expected exactly 10 rows in _rows_v921(), "
+            f"  V921-ROWS FAIL: expected exactly {len(_EXPECTED_V921_IDS)} rows in _rows_v921(), "
             f"got {_v921_count} — drift guard failed."
         )
-        wrong_results.append("V921-ROWS: row count drift (expected 10)")
+        wrong_results.append(
+            f"V921-ROWS: row count drift (expected {len(_EXPECTED_V921_IDS)})"
+        )
     else:
-        print("  V921-ROWS PASS: row count == 10")
+        print(f"  V921-ROWS PASS: row count == {_v921_count}")
 
     # (b) bare_id set assertion — equality, not subset.
     _v921_ids = {r.bare_id for r in _v921_rows}
