@@ -236,7 +236,7 @@
     "re_entry": {
       "type": "object",
       "nullable": true,
-      "null_when": "The document records no Self-Audit Gate section and no re-entry disclosure (a legacy worked example). An agent report never writes null. A focused-mode run writes an object (its not_applied may be empty), never null.",
+      "null_when": "The document records no Self-Audit Gate section and no re-entry disclosure (a legacy worked example). An agent report never writes null.",
       "fields": {
         "fired": {
           "type": "boolean",
