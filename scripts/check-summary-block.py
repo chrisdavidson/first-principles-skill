@@ -843,7 +843,9 @@ def _xc_chain_confidence(text, sections, block, exemplar) -> list[Finding]:
 def _xc_chain_rests_on(text, sections, block, exemplar) -> list[Finding]:
     """SB-CHAIN-RESTS-ON: block rests_on vs the chain head's own refs (GT
     tokens union upper-cased chain refs), compared as a SET (disclosed
-    bound: rests_on-order-not-compared)."""
+    bound: rests_on-order-not-compared -- order is not compared and
+    duplicate entries are untested, a duplicated id collapsing in the set
+    and never being reported)."""
     qh = _load_qh()
     findings: list[Finding] = []
     items = block.get("chains")
@@ -1205,7 +1207,8 @@ def _xc_conclusion_rests_on(text, sections, block, exemplar) -> list[Finding]:
     **Pre-check:** head field, compared as a SET here. Order is compared
     separately, by `_xc_prechecks` as SB-PRECHECK-HEAD, and only when the two
     sets agree, so one defect never reports under both codes; the
-    rests_on-order-not-compared bound still holds for `chains[].rests_on`.
+    rests_on-order-not-compared bound still holds for `chains[].rests_on`
+    (order not compared, duplicates untested).
     SB-NULL (exemplar mode only -- live mode's SB-NULL already comes from
     validate()) fires when rests_on is null but section 6 carries a
     Pre-check line."""
@@ -1955,8 +1958,36 @@ def _gate_result_matches(span: str) -> list[re.Match]:
 _RE_ENTRY_EDGE_ENUM = _SCHEMA_FOR_CONSTANTS["fields"]["re_entry"]["fields"]["edges"][
     "items"
 ]["fields"]["edge"]["enum"]
+_RE_ENTRY_EDGE_PATH = "re_entry.edges.items.fields.edge.enum"
+_RE_ENTRY_EDGE_VALUES = (
+    "the second-order pass's return to Phase 2 for re-challenging",
+    "the Self-Audit Gate's Fix/Repeat loop",
+    "the Criterion 1 Absent verdict's return to Phase 1",
+    "the mid-run input re-open",
+)
+
+
+def _bind_re_entry_edges(enum: list[str]) -> tuple[str, str, str, str]:
+    """Bind the four re_entry edge constants by VALUE, never by position.
+
+    Order in the schema enum is irrelevant. A missing expected value, or a
+    value the checker does not bind, raises SchemaError naming it, so a
+    renamed or added edge fails at import rather than mis-binding."""
+    missing = [v for v in _RE_ENTRY_EDGE_VALUES if v not in enum]
+    extra = [v for v in enum if v not in _RE_ENTRY_EDGE_VALUES]
+    if missing or extra:
+        parts = []
+        if missing:
+            parts.append(f"missing {missing!r}")
+        if extra:
+            parts.append(f"unbound extra {extra!r}")
+        raise SchemaError(f"{_RE_ENTRY_EDGE_PATH}: " + "; ".join(parts))
+    a, b, c, d = _RE_ENTRY_EDGE_VALUES
+    return a, b, c, d
+
+
 _EDGE_SECOND_ORDER, _EDGE_FIX_REPEAT, _EDGE_CRITERION1, _EDGE_MIDRUN = (
-    _RE_ENTRY_EDGE_ENUM
+    _bind_re_entry_edges(_RE_ENTRY_EDGE_ENUM)
 )
 
 
@@ -3497,7 +3528,8 @@ def _c25_conclusion_rests_on_null_and_absence() -> str | None:
 
     # reversed order: section 6's order is now compared, by SB-PRECHECK-HEAD
     # alone (SB-CONCLUSION-RESTS-ON still compares sets, so it stays silent).
-    # The rests_on-order-not-compared bound still holds for chains[].rests_on.
+    # The rests_on-order-not-compared bound still holds for chains[].rests_on
+    # (order not compared, duplicates untested).
     reversed_rests_on = copy.deepcopy(example)
     reversed_rests_on["conclusion"]["rests_on"] = list(
         reversed(reversed_rests_on["conclusion"]["rests_on"])
@@ -4374,6 +4406,31 @@ def _x4_exemplar_precheck_floor() -> str | None:
     return None
 
 
+def _c32_edge_binding_by_value() -> str | None:
+    """The edge constants bind by value. A reordered enum is harmless by
+    design; the old positional unpack mis-bound it silently. A renamed edge
+    fails by name."""
+    enum = list(_RE_ENTRY_EDGE_VALUES)
+    got = _bind_re_entry_edges(list(reversed(enum)))
+    if got != _RE_ENTRY_EDGE_VALUES:
+        return f"reordered enum mis-bound by value: {got!r}"
+    old_first, *_ = tuple(reversed(enum))  # what the old positional unpack bound
+    if old_first != "the mid-run input re-open":
+        return "old positional unpack demonstration no longer mis-binds"
+    renamed = [
+        "the mid-run input reopened" if v == "the mid-run input re-open" else v
+        for v in enum
+    ]
+    try:
+        _bind_re_entry_edges(renamed)
+    except SchemaError as exc:
+        if "the mid-run input re-open" not in str(exc):
+            return f"rename failure does not name the missing value: {exc}"
+    else:
+        return "renamed edge value did not fail"
+    return None
+
+
 # ---------------------------------------------------------------------------
 # X2: every registered cross-check must be load-bearing (an ablation)
 # ---------------------------------------------------------------------------
@@ -4460,6 +4517,7 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("C29-precheck-missing", _c29_precheck_missing),
     ("C30-precheck-head-shapes", _c30_head_shapes),
     ("C31-section6-same-line", _c31_section6_same_line),
+    ("C32-edge-binding-by-value", _c32_edge_binding_by_value),
     ("P1-personal-general", _p1_personal_general),
     ("P2-software-systems", _p2_software_systems),
     ("P3-science-engineering", _p3_science_engineering),

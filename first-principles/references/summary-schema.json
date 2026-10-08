@@ -134,7 +134,7 @@
     "techniques": {
       "type": "object",
       "nullable": true,
-      "null_when": "The document has no Techniques not applied: block (a legacy worked example, which may still apply a technique in its prose). An agent report never writes null.",
+      "null_when": "The document has no Techniques not applied: block (a legacy worked example, which may still apply a technique in its prose). An agent report never writes null. A focused-mode run writes an object (its not_applied may be empty), never null.",
       "fields": {
         "applied": {
           "type": "array",
@@ -236,7 +236,7 @@
     "re_entry": {
       "type": "object",
       "nullable": true,
-      "null_when": "The document records no Self-Audit Gate section and no re-entry disclosure (a legacy worked example). An agent report never writes null.",
+      "null_when": "The document records no Self-Audit Gate section and no re-entry disclosure (a legacy worked example). An agent report never writes null. A focused-mode run writes an object (its not_applied may be empty), never null.",
       "fields": {
         "fired": {
           "type": "boolean",
