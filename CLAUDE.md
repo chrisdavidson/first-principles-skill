@@ -229,6 +229,10 @@ Bypass: `git commit --no-verify`
 - Plan-checker must re-derive falsifiers independently (never reuse planner's)
 - Derive falsifiers from observed text, not model assumptions
 - On claim retraction: add literal to `REGISTRY` in `scripts/check-retracted-claims.py` (RETRACT-01)
+- Sweep on the concept, not the sentence: when a claim is corrected, search for its idea with
+  loose patterns (key terms, co-occurrence) and judge each hit on its own line. An exact-literal
+  grep only confirms that the edited sentence changed; it is blind to a reworded restatement
+  (measured twice: backlog 999.125 and 999.129 RF-01)
 - **Literal counts:** Some gates pin literal counts (INVARIANT-CHECK: `pre-mortem=9 fishbone=7 inversion=13 trade-off=10 MIN_HEADER_HITS=2`). These are locked because they measure intrinsic agent design (technique marker counts, detection parameters), not generated output. Other counts (coverage headlines, control counts) should be auto-derived from source when safe to reduce cascading edits. See `scripts/_battery_core.py` for locked-count justification and `scripts/check-firewall-battery.sh` for validation.
 
 ### Review protocol

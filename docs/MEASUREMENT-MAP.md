@@ -24,6 +24,20 @@ Two layers are **not** in `.github/workflows/validation.yml`: `check-routing.py`
 tool, and QUAL-01 runs only in the offline battery. The conformance-surfaces layer is not in CI
 either (pre-commit only, D-06). Every other layer above is a CI job.
 
+**Why QUAL-01 stays, and what it cannot see.** The Self-Audit Gate's bands, gate rule,
+hand-wavy cap and confidence tiers are designer-fixed, and every re-entry edge routes back into
+them, so a run cannot detect that the instrument scoring it is miscalibrated for its class of
+problem. The one measurement the project holds of that miscalibration is the
+[correctness spot-check](v8.7-correctness-spot-check.md), which found that rubric conformance does
+not predict correctness. The controls that can see it are therefore the ones that compare a
+verdict with something outside the rubric: a hand re-derivation of load-bearing claims, the
+adversarial corpus's false-negative rate, and the [use-journal](use-journal.md) read-back. QUAL-01
+is not one of those, because its judge scores against a byte-identical copy of the same rubric.
+It is, however, the only instrument that detects the agent's output drifting under that fixed
+rubric between releases, and its Goodhart flag is the only cross-check between band movement and
+defect incidence. No CI job serves either role, so retiring QUAL-01 on cost per run would remove
+both without replacing either.
+
 **A K-of-5 result from the live layers is a recorded observation, not a gate** (governing record
 §2 item 3, [`v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md)). The evidence: the S-P04
 five-whys vector swung 2/5 → 0/5 → 2/5 across v7.11, v8.5 and v8.6 with no source change to the
