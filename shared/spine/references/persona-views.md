@@ -35,7 +35,7 @@ Every persona view file carries this exact nine-line header, then a body:
 ```
 
 - Line 1 is `# <Title> memo — <analysis title>` (em dash), where `<Title>` is the roster's Title
-  column and `<analysis title>` is the analysis's own title.
+  column and `<analysis title>` is the source analysis's own title: the text of its first `# ` heading (its H1), copied as written.
 - Line 2 is blank.
 - Line 3 is `> **To:** <Title>\`, ending in a hard-break backslash; `<Title>` equals the roster's
   Title column exactly, the same value as line 1's.

@@ -420,6 +420,36 @@ _MEMO_FIELDS: tuple[tuple[str, re.Pattern, str], ...] = (
 )
 
 
+def source_h1(analysis_text: str) -> str | None:
+    """The text after `# ` of the first line that starts with exactly one
+    hash and a space, outside a fenced code block (``` or ~~~ toggles), or
+    None when the analysis has no such heading."""
+    fence: str | None = None
+    for line in analysis_text.split("\n"):
+        stripped = line.lstrip()
+        marker = stripped[:3]
+        if marker in ("```", "~~~"):
+            if fence is None:
+                fence = marker
+            elif fence == marker:
+                fence = None
+            continue
+        if fence is None and line.startswith("# "):
+            return line[2:].strip()
+    return None
+
+
+def normalise_title(s: str) -> str:
+    """Normalisation applied to both sides of the analysis-title comparison:
+    strip markdown emphasis and code markers (`**`, `*`, backtick), collapse
+    whitespace runs to one space, strip the ends. Underscores are kept
+    (titles may carry snake_case identifiers) and case is not folded (a case
+    change is a real difference)."""
+    for mark in ("**", "*", "`"):
+        s = s.replace(mark, "")
+    return " ".join(s.split())
+
+
 def basis_value(analysis_name: str) -> str:
     """D-12 (plan 87-11): the Basis field links the analysis, its reader
     report and the folder index -- the three files beside the view. The
@@ -436,6 +466,7 @@ class HeaderResult:
     band: str | None
     body: str
     findings: list[Finding] = field(default_factory=list)
+    atitle: str | None = None
 
 
 def split_header(
@@ -554,7 +585,9 @@ def split_header(
     while body_lines and body_lines[0].strip() == "":
         body_lines.pop(0)
     body = "\n".join(body_lines)
-    return HeaderResult(role=role, band=band, body=body, findings=findings)
+    return HeaderResult(
+        role=role, band=band, body=body, findings=findings, atitle=atitle
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -938,6 +971,23 @@ def check_view(
     header = split_header(persona_text, analysis_name, roster)
     findings: list[Finding] = list(header.findings)
 
+    if header.atitle is not None:
+        h1 = source_h1(analysis_text)
+        if h1 is None:
+            findings.append(
+                Finding(
+                    "PV-HEADER",
+                    "source analysis has no H1 to compare line 1's analysis title with",
+                )
+            )
+        elif normalise_title(header.atitle) != normalise_title(h1):
+            findings.append(
+                Finding(
+                    "PV-HEADER",
+                    f"line 1's analysis title {header.atitle!r} disagrees with the source analysis's H1 {h1!r}",
+                )
+            )
+
     units = body_units(header.body)
     for u in units:
         if u.kind == "violation":
@@ -1300,6 +1350,16 @@ _MUTATIONS: tuple[tuple[str, str, str, Callable[[str], str], frozenset[str]], ..
         frozenset({"PV-HEADER"}),
     ),
     (
+        "M-ATITLE",
+        "product-business-2-decision-owner.md",
+        "shared/examples/product-business-2.md",
+        lambda t: t.replace(
+            "Worked Example: Product and Business (Feature Prioritization)",
+            "Worked Example: Something Else",
+        ),
+        frozenset({"PV-HEADER"}),
+    ),
+    (
         "M-OVER",
         "product-business-2-decision-owner.md",
         "shared/examples/product-business-2.md",
@@ -1576,6 +1636,31 @@ _U05_NEGATIVE_SENTENCES: tuple[str, ...] = (
 )
 
 
+def _u06_title_normalisation() -> str | None:
+    h1 = source_h1("# **Worked  Example:** `X`\n\nbody\n")
+    if h1 is None or normalise_title(h1) != normalise_title("Worked Example: X"):
+        return f"emphasis/whitespace normalisation failed: {h1!r}"
+    if normalise_title("Case_Id") == normalise_title("case_id"):
+        return "normaliser folded case or underscores"
+    fenced = "```\n# not a title\n```\n\n# Real Title\n"
+    if source_h1(fenced) != "Real Title":
+        return f"H1 inside a code fence was not ignored: {source_h1(fenced)!r}"
+    if source_h1("```\n# only in fence\n```\n## sub\n") is not None:
+        return "fence-only H1 was returned"
+    roster = _load_roster_from_contract()
+    name, src = FIXTURES[0]
+    persona = (FIXTURE_DIR / name).read_text()
+    nosrc = "\n".join(
+        ln
+        for ln in (REPO_ROOT / src).read_text().split("\n")
+        if not ln.startswith("# ")
+    )
+    found = check_view(persona, nosrc, name, roster)
+    if not any(f.code == "PV-HEADER" and "no H1" in f.detail for f in found):
+        return f"missing source H1 did not yield a PV-HEADER naming it: {found!r}"
+    return None
+
+
 def _u05_directive_lexicon() -> str | None:
     facts = SourceFacts(frozenset(), {}, 0, frozenset(), "MEDIUM", frozenset(), "")
     for text in _U05_POSITIVE_SENTENCES:
@@ -1838,6 +1923,7 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
         ("U03", _u03_band_reader),
         ("U04", _u04_code_registry_complete),
         ("U05", _u05_directive_lexicon),
+        ("U06-title-normalisation", _u06_title_normalisation),
         ("D-PRE87", _d_pre87_directive),
         ("EX-REACH", _ex_reach),
         ("EX-REACH-ID", _ex_reach_id_mutation),
@@ -1928,6 +2014,7 @@ def describe() -> dict:
                 "imperative-check-is-sentence-initial-only",
                 "verbatim-run-checked-against-section6-recommended-approach-only",
                 "memo-structure-counts-paragraphs-not-answers",
+                "title-compared-after-emphasis-and-whitespace-normalisation",
             ]
         ),
     }
