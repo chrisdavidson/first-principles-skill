@@ -7299,9 +7299,7 @@ def _control_delta_chain_hops_claude_row_count_recovered() -> None:
     lines = text.splitlines()
     inside = _generated_line_flags(lines, marker_pairs)
     outside_lines = [
-        line
-        for idx, (line, is_in) in enumerate(zip(lines, inside))
-        if not is_in
+        line for idx, (line, is_in) in enumerate(zip(lines, inside)) if not is_in
     ]
     chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
     assert chains == [], chains
