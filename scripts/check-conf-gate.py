@@ -49,7 +49,7 @@ Exit codes:
        by name alongside the other two arms rather than silently skipped or killing the process.
     2  environment error (module import failure)
 
-`--self-test` additionally floors the seven enforcement symbols named by `_LIVE_CALL_SITES` /
+`--self-test` additionally floors the eight enforcement symbols named by `_LIVE_CALL_SITES` /
 `_LIVE_CALL_FORMS` by a set-equality lock (`_LIVE_CALL_SITES_LOCK`, BL-02) over both tables,
 and each is counted and form-matched in `run_live()`'s comment-stripped source (CR-01, BL-01)
 via `_strip_line_comments(inspect.getsource(run_live))`: this counts and matches SOURCE TEXT
@@ -90,7 +90,14 @@ _rc = importlib.util.module_from_spec(_rc_spec)
 sys.modules["_report_conformance"] = (
     _rc  # assignment must precede exec_module (3.13/3.14 dataclasses._is_type)
 )
-_rc_spec.loader.exec_module(_rc)
+try:
+    _rc_spec.loader.exec_module(_rc)
+except Exception as _exc:  # noqa: BLE001 -- any import failure is an environment failure
+    sys.stderr.write(
+        f"check-conf-gate: ENV FAIL — import of {_RC_PATH} raised "
+        f"{type(_exc).__name__}: {_exc}\n"
+    )
+    sys.exit(2)
 
 detect_defects = _rc.detect_defects
 build_rows = _rc.build_rows
@@ -292,8 +299,9 @@ _D08_CELL_REPLACEMENT = "Discard"
 _D08_CITE_NEEDLE = "3. (chain C1) Use the rent-adjusted compensation figure"
 _D08_CITE_REPLACEMENT = "3. Use the rent-adjusted compensation figure"
 
-# CR-01 (18-VERIFICATION.md blocking gap): `run_live()`'s seven `problems +=`
-# enforcement call sites (widened from six by plan 18-12's BL-03 floor) are
+# CR-01 (18-VERIFICATION.md blocking gap): `run_live()`'s enforcement call sites
+# (eight symbols; widened from six by plan 18-12's BL-03 floor, and by the
+# `_d03_rule_problems` / `_live_exit_code` extraction) are
 # floored by a source-text census, in the same shape
 # `check-selfaudit-scan.py`'s `(validate-census)` and `(roster-entry-source)`
 # blocks already use for themselves. Every entry maps to expected count 1 —
@@ -303,9 +311,10 @@ _LIVE_CALL_SITES: dict[str, int] = {
     "_claim_floor_roster_problems": 1,
     "_claim_floor_problems": 1,
     "_population_floor_problems": 1,
-    "_d03_rule_problems_from_text": 1,
+    "_d03_rule_problems": 1,
     "_ratchet_problems": 1,
     "_run_d08_arm": 1,
+    "_live_exit_code": 1,
 }
 
 # The whitespace-normalized call-form fragment each symbol above must appear
@@ -326,16 +335,16 @@ _LIVE_CALL_FORMS: dict[str, str] = {
     ),
     "_claim_floor_problems": "problems += " + "_claim_floor_problems(rows)",
     "_population_floor_problems": "problems += " + "_population_floor_problems(rows)",
-    "_d03_rule_problems_from_text": (
-        "problems += "
-        + '_d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])'
+    "_d03_rule_problems": (
+        "problems += " + "_d03_rule_problems(rows, _read_repo_text)"
     ),
     "_ratchet_problems": "problems += " + "_ratchet_problems(rows)",
     "_run_d08_arm": "d08_problems, mutation_lines = " + "_run_d08_arm(rows)",
+    "_live_exit_code": "exit_code = " + "_live_exit_code(problems, d08_problems)",
 }
 
 # BL-02 (18-VERIFICATION.md blocking gap): a SECOND, independently
-# transcribed roster of the same seven enforcement symbol names (widened from
+# transcribed roster of the same eight enforcement symbol names (widened from
 # six by plan 18-12's BL-03 floor) — deliberately NOT derived from
 # _LIVE_CALL_SITES or _LIVE_CALL_FORMS by any expression, the same discipline
 # _CLAIM_FLOORS_LOCK already applies to _CLAIM_FLOORS. Before this lock, four
@@ -350,9 +359,10 @@ _LIVE_CALL_SITES_LOCK: tuple[str, ...] = (
     "_claim_floor_roster_problems",
     "_claim_floor_problems",
     "_population_floor_problems",
-    "_d03_rule_problems_from_text",
+    "_d03_rule_problems",
     "_ratchet_problems",
     "_run_d08_arm",
+    "_live_exit_code",
 )
 
 
@@ -366,11 +376,15 @@ def _strip_line_comments(source: str) -> str:
     so `_call_site_census_problems` still counts it and the form lock still
     finds it — a commented-out call satisfies both checks.
 
-    DISCLOSED BOUND, same conservative direction as the sibling site: this
-    over-strips a `#` that appears inside a string literal, which can only
-    make the census see LESS text, never more. It cannot manufacture a false
-    PASS by hiding a real call site behind an in-string `#` — the worst case
-    is an unrelated false positive from a call site that never existed.
+    DISCLOSED BOUND: this over-strips a `#` that appears inside a string
+    literal, so it can hide text that is a REAL call site. The census tests
+    equality with the expected count, so a contrived source that hides one
+    real call behind an in-string `#` while carrying a second textual
+    occurrence of the same call form (for example inside a string or a
+    docstring) could PASS. That is an accepted, contrived residual: this is
+    a source-text census, not a parser, and run_live's real source carries no
+    such construct. It is NOT true that over-stripping can only ever produce
+    a false failure.
     """
     return "\n".join(line.split("#", 1)[0] for line in source.splitlines())
 
@@ -409,7 +423,7 @@ def _call_site_census_problems(
     `check-selfaudit-scan.py`'s `validate-census` state for themselves.
     (iii) A call form rebound to an expression of EQUAL VALUE remains
     invisible to it by construction. Closes CR-01 and the blocking gap
-    18-VERIFICATION.md records against `run_live()`'s six enforcement call
+    18-VERIFICATION.md records against `run_live()`'s enforcement call
     sites.
     """
     source = _strip_line_comments(source)
@@ -835,6 +849,32 @@ def _run_d08_arm(rows: list[dict]) -> tuple[list[str], list[str]]:
 # ---------------------------------------------------------------------------
 
 
+def _read_repo_text(relpath: str) -> str:
+    return (REPO_ROOT / relpath).read_text(encoding="utf-8")
+
+
+def _d03_rule_problems(rows: list[dict], read_text) -> list[str]:
+    """The D-03 live loop, pure over its inputs: for every row on a gated surface
+    whose section resolved OK, read its text through the injected *read_text*
+    (relpath -> str) and collect `_d03_rule_problems_from_text`. Rows on other
+    surfaces or with any other section_resolution are skipped without reading."""
+    problems: list[str] = []
+    for r in rows:
+        if r["surface"] not in _GATED_SURFACES or r["section_resolution"] != "OK":
+            continue
+        text = read_text(r["relpath"])
+        problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])
+    return problems
+
+
+def _live_exit_code(problems: list[str], d08_problems: list[str]) -> int:
+    """The live verdict: write one `check-conf-gate: FAIL — <problem>` stderr line per
+    problem in either list and return 1 if either is non-empty, else 0."""
+    for p in list(problems) + list(d08_problems):
+        sys.stderr.write(f"check-conf-gate: FAIL — {p}\n")
+    return 1 if (problems or d08_problems) else 0
+
+
 def run_live() -> int:
     try:
         rows = build_rows(REPO_ROOT)
@@ -853,24 +893,18 @@ def run_live() -> int:
     problems += _claim_floor_problems(rows)
     problems += _population_floor_problems(rows)
 
-    for r in rows:
-        if r["surface"] not in _GATED_SURFACES or r["section_resolution"] != "OK":
-            continue
-        text = (REPO_ROOT / r["relpath"]).read_text(encoding="utf-8")
-        problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])
+    problems += _d03_rule_problems(rows, _read_repo_text)
 
     problems += _ratchet_problems(rows)
 
-    if problems:
-        for p in problems:
-            sys.stderr.write(f"check-conf-gate: FAIL — {p}\n")
-        return 1
-
-    d08_problems, mutation_lines = _run_d08_arm(rows)
-    if d08_problems:
-        for p in d08_problems:
-            sys.stderr.write(f"check-conf-gate: FAIL — {p}\n")
-        return 1
+    # The D-08 arm runs only when the comparators above are clean.
+    d08_problems: list[str] = []
+    mutation_lines: list[str] = []
+    if not problems:
+        d08_problems, mutation_lines = _run_d08_arm(rows)
+    exit_code = _live_exit_code(problems, d08_problems)
+    if exit_code:
+        return exit_code
 
     gated_count = sum(1 for r in rows if r["surface"] in _GATED_SURFACES)
     print(
@@ -1355,9 +1389,10 @@ _CENSUS_X1_CLEAN_SOURCE = (
     "    problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)\n"
     "    problems += _claim_floor_problems(rows)\n"
     "    problems += _population_floor_problems(rows)\n"
-    '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
+    "    problems += _d03_rule_problems(rows, _read_repo_text)\n"
     "    problems += _ratchet_problems(rows)\n"
     "    d08_problems, mutation_lines = _run_d08_arm(rows)\n"
+    "    exit_code = _live_exit_code(problems, d08_problems)\n"
 )
 
 _CENSUS_X2_MISSING_SOURCE = (
@@ -1366,9 +1401,10 @@ _CENSUS_X2_MISSING_SOURCE = (
     "    problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)\n"
     "    problems += _claim_floor_problems(rows)\n"
     "    problems += _population_floor_problems(rows)\n"
-    '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
+    "    problems += _d03_rule_problems(rows, _read_repo_text)\n"
     "    problems += _ratchet_problems(rows)\n"
     "    d08_problems, mutation_lines = _run_d08_arm(rows)\n"
+    "    exit_code = _live_exit_code(problems, d08_problems)\n"
 )
 
 _CENSUS_X3_DUPLICATED_SOURCE = (
@@ -1378,10 +1414,11 @@ _CENSUS_X3_DUPLICATED_SOURCE = (
     "    problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)\n"
     "    problems += _claim_floor_problems(rows)\n"
     "    problems += _population_floor_problems(rows)\n"
-    '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
+    "    problems += _d03_rule_problems(rows, _read_repo_text)\n"
     "    problems += _ratchet_problems(rows)\n"
     "    problems += _ratchet_problems(rows)\n"
     "    d08_problems, mutation_lines = _run_d08_arm(rows)\n"
+    "    exit_code = _live_exit_code(problems, d08_problems)\n"
 )
 
 _FORM_LOCK_X2_REWRITTEN_SOURCE = (
@@ -1391,9 +1428,10 @@ _FORM_LOCK_X2_REWRITTEN_SOURCE = (
     "    problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)\n"
     "    problems += _claim_floor_problems(rows)\n"
     "    problems += _population_floor_problems(rows)\n"
-    '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
+    "    problems += _d03_rule_problems(rows, _read_repo_text)\n"
     "    problems += _ratchet_problems(rows)\n"
     "    d08_problems, mutation_lines = _run_d08_arm(rows)\n"
+    "    exit_code = _live_exit_code(problems, d08_problems)\n"
 )
 
 # BL-01 (18-VERIFICATION.md): derived from _CENSUS_X1_CLEAN_SOURCE by
@@ -1488,6 +1526,77 @@ def _control_live_call_site_roster_locked() -> None:
     assert not wrong_counts, (
         f"CALL-SITE ROSTER DRIFT: expected-count != 1 for {wrong_counts}"
     )
+
+
+def _control_live_exit_code_truth() -> None:
+    """The live verdict helper returns 1 for a non-empty problems list, 1 for a
+    non-empty D-08 list, 0 for two empty lists, and writes one FAIL line per
+    problem. Isolates the verdict from run_live so a helper hard-wired to 0 fails."""
+    import contextlib
+    import io
+
+    def _call(problems: list[str], d08: list[str]) -> tuple[int, str]:
+        buf = io.StringIO()
+        with contextlib.redirect_stderr(buf):
+            rc = _live_exit_code(problems, d08)
+        return rc, buf.getvalue()
+
+    rc, err = _call(["x"], [])
+    assert rc == 1, rc
+    assert err == "check-conf-gate: FAIL — x\n", err
+    rc, err = _call([], ["y"])
+    assert rc == 1, rc
+    assert err == "check-conf-gate: FAIL — y\n", err
+    rc, err = _call([], [])
+    assert rc == 0, rc
+    assert err == "", err
+
+
+def _control_d03_rule_problems_loop() -> None:
+    """The D-03 live loop, driven with an injected reader: a gated OK row whose text
+    plants a violation yields >= 1 problem, clean text yields [], and rows on a
+    non-gated surface or with an unresolved section are never read."""
+    gated = _GATED_SURFACES[0]
+    texts = {"fire.md": _D03_FIRE_TEXT, "pass.md": _D03_PASS_TEXT}
+    reads: list[str] = []
+
+    def _reader(relpath: str) -> str:
+        reads.append(relpath)
+        return texts.get(relpath, _D03_FIRE_TEXT)
+
+    fire = _rc._synthetic_row(gated, "fire.md", "fire")
+    clean = _rc._synthetic_row(gated, "pass.md", "pass")
+    assert len(_d03_rule_problems([fire], _reader)) >= 1
+    assert _d03_rule_problems([clean], _reader) == []
+    assert reads == ["fire.md", "pass.md"], reads
+
+    reads.clear()
+    other_surface = _rc._synthetic_row("contract-surface", "skip-a.md", "a")
+    assert other_surface["surface"] not in _GATED_SURFACES
+    unresolved = _rc._synthetic_row(
+        gated, "skip-b.md", "b", section_resolution="SectionResolutionError: x"
+    )
+    assert _d03_rule_problems([other_surface, unresolved], _reader) == []
+    assert reads == [], reads
+
+
+def _control_main_dispatch() -> None:
+    """main() routes no-arg to run_live and --self-test to self_test, proved by
+    swapping both for distinct sentinels. Originals are restored in finally.
+
+    DISCLOSED BOUND: if the `--self-test` branch itself is mis-routed, the
+    command line never reaches this control (it runs the live leg instead), so
+    that direction is visible only as a self-test that quietly runs the live
+    gate; this control proves the routing it can observe, not that one."""
+    orig_run_live, orig_self_test = globals()["run_live"], globals()["self_test"]
+    try:
+        globals()["run_live"] = lambda: 101
+        globals()["self_test"] = lambda: 202
+        assert main([]) == 101, main([])
+        assert main(["--self-test"]) == 202, main(["--self-test"])
+    finally:
+        globals()["run_live"] = orig_run_live
+        globals()["self_test"] = orig_self_test
 
 
 # BL-04/WR-06 (18-REVIEW.md): four controls driving the D-08 arm's four
@@ -1685,6 +1794,9 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("form-lock-x2-rewritten", _control_form_lock_x2_rewritten),
     ("census-x4-commented", _control_census_x4_commented),
     ("live-call-site-roster-locked", _control_live_call_site_roster_locked),
+    ("live-exit-code-truth", _control_live_exit_code_truth),
+    ("d03-rule-problems-loop", _control_d03_rule_problems_loop),
+    ("main-dispatch", _control_main_dispatch),
     ("d08-missing-target-row-reported", _control_d08_missing_target_row_reported),
     ("d08-missing-sites-reported", _control_d08_missing_sites_reported),
     (
@@ -1740,6 +1852,9 @@ _CONTROL_IDS: tuple[str, ...] = (
     "form-lock-x2-rewritten",
     "census-x4-commented",
     "live-call-site-roster-locked",
+    "live-exit-code-truth",
+    "d03-rule-problems-loop",
+    "main-dispatch",
     "d08-missing-target-row-reported",
     "d08-missing-sites-reported",
     "d08-increments-not-produced-reported",
