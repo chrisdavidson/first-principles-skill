@@ -271,6 +271,26 @@ _HANDOFF_ROUTED_SLUGS: frozenset[str] = frozenset(
     {"identify-essence", "reason-upward", "validate"}
 )
 
+# 999.79: the unclassified-facts population Stub-13's candidate-tail loop
+# runs over, equality-locked. Typed out literally and NOT computed from
+# `_HANDOFF_ROUTED_SLUGS`: a derived lock moves with the thing it guards, so
+# routing every stub would shrink the loop to nothing and stay green. The
+# CONF-GATE equality-floor pattern.
+_EXPECTED_UNROUTED_SLUGS: frozenset[str] = frozenset(
+    {
+        "challenge-assumptions",
+        "estimate",
+        "fishbone",
+        "five-whys",
+        "ground-truths",
+        "inversion",
+        "pre-mortem",
+        "second-order",
+        "theoretical-limit",
+        "trade-off",
+    }
+)
+
 # SUP-03, D-28-P3: the exempt slot name, asserted absent from every stub
 # INCLUDING the launcher — the same coexistence shape as HARN-02's
 # `_SUPERSEDED_EXEMPTION` in `scripts/check-loop-closure.py`, so a presence
@@ -721,7 +741,10 @@ def _load_real_stubs() -> dict[str, str]:
 
 
 def _check_stub_surface(
-    stubs: dict[str, str], *, non_technique: frozenset[str] = NON_TECHNIQUE_SLUGS
+    stubs: dict[str, str],
+    *,
+    non_technique: frozenset[str] = NON_TECHNIQUE_SLUGS,
+    routed: frozenset[str] = _HANDOFF_ROUTED_SLUGS,
 ) -> list[str]:
     """Validate the stub-surface assertions (`Stub-0` through `Stub-14`)
     against *stubs*.
@@ -735,6 +758,10 @@ def _check_stub_surface(
     *non_technique* (default `NON_TECHNIQUE_SLUGS`) names every emitted slug
     that is NOT a technique and so is exempt from Stub-1..13 — Stub-14
     polices the set itself (see `NON_TECHNIQUE_SLUGS`'s own comment).
+
+    *routed* (default `_HANDOFF_ROUTED_SLUGS`) names the technique slugs whose
+    output routes elsewhere; injectable only so controls can drive the
+    population floor.
 
     Returns a list of failure strings, each beginning with a stable
     `Stub-N (<REQ-ID>, <label>): <detail>` check ID — the leading token
@@ -963,10 +990,22 @@ def _check_stub_surface(
     # carry this literal now — the three routed slugs route their output
     # elsewhere and are excluded from this population.
     unclassified_facts = {
-        slug: body
-        for slug, body in techniques.items()
-        if slug not in _HANDOFF_ROUTED_SLUGS
+        slug: body for slug, body in techniques.items() if slug not in routed
     }
+    if not unclassified_facts:
+        failures.append(
+            "Stub-13 (999.79, population floor): the unclassified-facts "
+            "population is empty — every technique stub is routed, so the "
+            "candidate-tail loop checks nothing"
+        )
+    elif set(unclassified_facts) != _EXPECTED_UNROUTED_SLUGS:
+        unexpected = sorted(set(unclassified_facts) - _EXPECTED_UNROUTED_SLUGS)
+        missing = sorted(_EXPECTED_UNROUTED_SLUGS - set(unclassified_facts))
+        failures.append(
+            "Stub-13 (999.79, population floor): the unclassified-facts "
+            "population differs from the equality-locked expected set — "
+            f"unexpected: {unexpected}, missing: {missing}"
+        )
     for slug, body in sorted(unclassified_facts.items()):
         count = _count_flex(body, _HANDOFF_CANDIDATE_TAIL)
         if count != 1:
@@ -2322,13 +2361,41 @@ def _run_self_test_body() -> int:
     # HAND-01..04 / D-29-P2: proves the narrowed loop still reaches an
     # unclassified-facts stub. Target slug is derived, not hand-picked, so it
     # tracks `_HANDOFF_ROUTED_SLUGS` automatically if the roster ever changes.
-    g8_target_slug = min(set(real_stubs) - {LAUNCHER_SLUG} - _HANDOFF_ROUTED_SLUGS)
-    g8_stubs = _mutate_one(real_stubs, g8_target_slug, _HANDOFF_CANDIDATE_TAIL)
+    g8_candidates = set(real_stubs) - NON_TECHNIQUE_SLUGS - _HANDOFF_ROUTED_SLUGS
+    if not g8_candidates:
+        _problems.append(
+            "g8: no unrouted technique stub to target — Stub-13 "
+            "candidate-tail control has no population"
+        )
+    else:
+        g8_target_slug = min(g8_candidates)
+        g8_stubs = _mutate_one(real_stubs, g8_target_slug, _HANDOFF_CANDIDATE_TAIL)
+        _check_negative(
+            "g8",
+            _check_stub_surface(g8_stubs),
+            "Stub-13",
+            f"{g8_target_slug} carries the candidate-input handoff tail",
+        )
+
+    # (g9) 999.79 population floor: routing one extra slug shrinks the
+    # candidate-tail loop's population without any stub text changing.
+    g9_slug = min(_EXPECTED_UNROUTED_SLUGS)
     _check_negative(
-        "g8",
-        _check_stub_surface(g8_stubs),
+        "g9",
+        _check_stub_surface(real_stubs, routed=_HANDOFF_ROUTED_SLUGS | {g9_slug}),
         "Stub-13",
-        f"{g8_target_slug} carries the candidate-input handoff tail",
+        f"missing: ['{g9_slug}']",
+    )
+
+    # (g10) 999.79 population floor: routing every technique leaves the loop
+    # with nothing to check; this must be a named failure, not a pass.
+    _check_negative(
+        "g10",
+        _check_stub_surface(
+            real_stubs, routed=frozenset(set(real_stubs) - NON_TECHNIQUE_SLUGS)
+        ),
+        "Stub-13",
+        "population is empty",
     )
 
     # (l) Stub-8 completion-condition control: strip validate's Exit-criterion
