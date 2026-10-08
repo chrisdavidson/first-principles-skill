@@ -1963,8 +1963,13 @@ def narrative_region_marker_context_problems(
     surface_texts: dict[str, str] | None = None,
 ) -> list[str]:
     """For every registered region: the START marker's own line-prefix must
-    equal its body's first line's prefix, and the END marker's own line-
-    prefix must equal its body's last line's prefix. A mismatch means the
+    equal its body's first line's prefix, the END marker's own line-prefix
+    must equal its body's last line's prefix, and every interior body line
+    must carry the start marker's prefix. A blank or whitespace-only
+    interior line is a mismatch inside a blockquote (it ends the quote under
+    CommonMark; a bare `>` line passes) and is accepted in a list-item or
+    plain-paragraph region, where a blank line does not change the
+    container. A mismatch means the
     marker sits in a different blockquote/list-item container than the text
     it brackets -- exactly the T-26-13 regression (docs/README.md's split
     blockquote, CLAUDE.md's severed list item), caught here BEFORE `--check`
@@ -2030,6 +2035,21 @@ def narrative_region_marker_context_problems(
                 f"{body_last_prefix!r} -- the marker sits in a different blockquote/"
                 "list-item container than its body (NARR-02/T-26-13)"
             )
+        for k in range(1, len(body_lines) - 1):
+            line = body_lines[k]
+            if not line.strip() and ">" not in start_prefix:
+                # A blank line neither ends a list item nor changes a plain
+                # paragraph's container; only a blockquote is ended by one.
+                continue
+            line_prefix = _line_container_prefix(line)
+            if line_prefix != start_prefix:
+                problems.append(
+                    f"narrative-marker-context: {region.surface} body line "
+                    f"{start_idx + 2 + k} carries prefix {line_prefix!r}, but its "
+                    f"region's start marker {start_marker!r} carries "
+                    f"{start_prefix!r} -- an interior line leaves the marker's "
+                    "blockquote/list-item container (NARR-02/T-26-13)"
+                )
     return problems
 
 
@@ -8680,6 +8700,48 @@ def _control_narrative_marker_context_legs() -> None:
     )
 
 
+def _control_narrative_marker_context_interior_lines() -> None:
+    """`narrative_region_marker_context_problems` inspects every body line,
+    not only the first and last: a blockquote region with an empty or plain
+    unprefixed interior line fails (one problem per line); a bare `>`
+    interior line passes; an empty interior line in a list-indented region
+    passes. In memory only."""
+    bq = _NarrativeRegion(
+        surface="fixtures/marker-interior.md",
+        markers=(
+            "> <!-- GENERATED:CTX-INT -->",
+            "> <!-- END GENERATED:CTX-INT -->",
+        ),
+        source_script="scripts/check-traceability.py",
+        field_path="coverage_headline.prose",
+        template="X {value} Y",
+    )
+
+    def _run(region: _NarrativeRegion, body: list[str]) -> list[str]:
+        start, end = region.markers
+        text = "# Fixture\n\n" + "\n".join([start, *body, end]) + "\n"
+        return narrative_region_marker_context_problems(
+            (region,), {region.surface: text}
+        )
+
+    p1 = _run(bq, ["> X 1 Y", "", "> Z 2"])
+    assert len(p1) == 1 and "body line" in p1[0] and bq.surface in p1[0], p1
+    p2 = _run(bq, ["> X 1 Y", "Z 2", "> W 3"])
+    assert len(p2) == 1 and "body line" in p2[0] and bq.surface in p2[0], p2
+    assert _run(bq, ["> X 1 Y", ">", "> Z 2"]) == []
+    lst = _NarrativeRegion(
+        surface="fixtures/marker-interior-list.md",
+        markers=(
+            "  <!-- GENERATED:CTX-INT-L -->",
+            "  <!-- END GENERATED:CTX-INT-L -->",
+        ),
+        source_script="scripts/check-traceability.py",
+        field_path="coverage_headline.prose",
+        template="X {value} Y",
+    )
+    assert _run(lst, ["  X 1 Y", "", "  Z 2"]) == []
+
+
 def _control_narrative_marker_context_live_tree_clean() -> None:
     """The real, currently-registered three narrative regions
     (docs/README.md, docs/MEASUREMENT-MAP.md, CLAUDE.md) all pass
@@ -8990,6 +9052,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ),
     ("narrative-marker-context-legs", _control_narrative_marker_context_legs),
     (
+        "narrative-marker-context-interior-lines",
+        _control_narrative_marker_context_interior_lines,
+    ),
+    (
         "narrative-marker-context-live-tree-clean",
         _control_narrative_marker_context_live_tree_clean,
     ),
@@ -9115,6 +9181,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "narrative-roster-accumulated-not-table-derived",
     "narrative-restatement-wired-into-cmd-check",
     "narrative-marker-context-legs",
+    "narrative-marker-context-interior-lines",
     "narrative-marker-context-live-tree-clean",
     "narrative-marker-context-wired-into-cmd-check",
 )
