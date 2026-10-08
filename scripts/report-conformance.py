@@ -3731,16 +3731,48 @@ def _control_render_determinism() -> None:
 
 
 def _control_render_provenance_sentinel() -> None:
+    """Parses every provenance cell back out of the string render_markdown() produced
+    and asserts each reads "n/a". Two negative arms run the identical parse on a render
+    post-processed to (A) coerce "| n/a |" cells to "| 0 |" and (B) drop every data row
+    of the section; both must be rejected. A render with zero data rows can never pass:
+    the row-locating step raises and the located-row count is asserted >= 1."""
+    header_fields = ["relpath"] + list(REPORT_FIELDS) + list(_DEFECT_RECORD_FIELDS)
+    prov_idx = [header_fields.index(f) for f in PROVENANCE_FIELDS]
+    assert prov_idx, "PROVENANCE_FIELDS is empty"
+
+    def _parsed_prov_cells(md: str) -> list[str]:
+        lines = md.splitlines()
+        section_start = lines.index("## shared-examples")
+        data_lines = [
+            line
+            for line in lines[section_start:]
+            if line.startswith("| ") and "synth.md" in line
+        ]
+        assert len(data_lines) >= 1, "rendered section has no synthetic data row"
+        cells = [c.strip() for c in data_lines[0].strip("|").split("|")]
+        return [cells[i] for i in prov_idx]
+
     rows = _synthetic_rows_for_render()
-    agreement = pair_agreement(rows)
-    md = render_markdown(rows, agreement)
-    assert "n/a" in md
-    # Every provenance field on every synthetic row is "n/a" by construction
-    # (_synthetic_row); this asserts the invariant survives rendering rather
-    # than being silently coerced to a bare "0" string along the way.
-    for row in rows:
-        for field in PROVENANCE_FIELDS:
-            assert row[field] == "n/a", (field, row[field])
+    md = render_markdown(rows, pair_agreement(rows))
+    parsed = _parsed_prov_cells(md)
+    for field, cell in zip(PROVENANCE_FIELDS, parsed):
+        assert cell == "n/a", (field, cell)
+
+    def _must_be_rejected(bad_md: str, what: str) -> None:
+        try:
+            for field, cell in zip(PROVENANCE_FIELDS, _parsed_prov_cells(bad_md)):
+                assert cell == "n/a", (field, cell)
+        except (AssertionError, StopIteration, ValueError):
+            return
+        raise AssertionError(f"{what} was not caught")
+
+    _must_be_rejected(
+        md.replace("| n/a |", "| 0 |"), "a rendering coercing n/a provenance cells to 0"
+    )
+    _must_be_rejected(
+        "\n".join(line for line in md.splitlines() if "synth.md" not in line),
+        "a rendering emitting zero data rows",
+    )
 
 
 def _control_check_detects_drift() -> None:
