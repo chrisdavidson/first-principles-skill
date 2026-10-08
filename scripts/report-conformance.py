@@ -3179,11 +3179,7 @@ def render_markdown(
         + "."
     )
     lines.append("")
-    lines.append(
-        "Excluded (ten, foreordained equal on both surfaces): "
-        + ", ".join(f"`{f}`" for f in _EXCLUDED_AGREEMENT_FIELDS)
-        + "."
-    )
+    lines.append(_render_excluded_sentence(_EXCLUDED_AGREEMENT_FIELDS))
     lines.append("")
     lines.append(f"Result: {agreeing} of {total} pairs agree.")
     if divergences:
@@ -3561,12 +3557,68 @@ def _control_partial_row_not_dropped() -> None:
         assert len(rows) == 2, len(rows)
 
 
+_COUNT_WORDS = (
+    "zero",
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten",
+    "eleven",
+    "twelve",
+    "thirteen",
+    "fourteen",
+    "fifteen",
+    "sixteen",
+    "seventeen",
+    "eighteen",
+    "nineteen",
+    "twenty",
+)
+
+
+def _render_excluded_sentence(fields: tuple[str, ...]) -> str:
+    """The baseline's "Excluded" sentence, its count derived from `fields`.
+
+    The count is spelled as a word up to twenty and printed as digits past
+    that, so a field appended to `_EXCLUDED_AGREEMENT_FIELDS` moves the
+    sentence with it instead of leaving a stale literal behind.
+    """
+    n = len(fields)
+    count = _COUNT_WORDS[n] if n < len(_COUNT_WORDS) else str(n)
+    return (
+        f"Excluded ({count}, foreordained equal on both surfaces): "
+        + ", ".join(f"`{f}`" for f in fields)
+        + "."
+    )
+
+
+def _control_excluded_count_derived() -> None:
+    # Backlog 999.122 (IN-04): the Excluded sentence's count is derived from
+    # the field tuple, so lengthening the tuple changes the sentence.
+    live = _render_excluded_sentence(_EXCLUDED_AGREEMENT_FIELDS)
+    expected_word = _COUNT_WORDS[len(_EXCLUDED_AGREEMENT_FIELDS)]
+    assert live.startswith(f"Excluded ({expected_word}, "), live
+    longer = _render_excluded_sentence(_EXCLUDED_AGREEMENT_FIELDS + ("extra_field",))
+    assert longer != live, longer
+    assert longer.startswith(
+        f"Excluded ({_COUNT_WORDS[len(_EXCLUDED_AGREEMENT_FIELDS) + 1]}, "
+    ), longer
+    assert "`extra_field`" in longer, longer
+
+
 def _control_agreement_field_scope() -> None:
     # D-06a widened this from 15 to 17; Phase 41 (999.120) H1 widened it again, 17 to 21;
     # H3 widens it a third time, 21 to 23; Phase 52 (OBS-02, D-04) widens it a fourth time,
     # 23 to 26; Phase 52 residue R-52-01 (D-03) widens it a fifth time, 26 to 28; Phase 53
     # (OBS-03, D-01/D-02) widens it a sixth time, 28 to 31; backlog 999.154 widens it a seventh
-    # time, 31 to 32 (rollup_unpaired): confirming (not assuming) that
+    # time, 31 to 32 (rollup_unpaired), and backlog 999.122 an eighth, 32 to 33
+    # (confidence_unpairable): confirming (not assuming) that
     # appending the four H1 confidence columns, then the two H3 band-census columns, then
     # the three Phase 52 pre-check columns, then the two Phase 52 residue R-52-01 roll-up
     # columns, then the three Phase 53 hop-arithmetic columns, after `provenance_flag`
@@ -3574,8 +3626,9 @@ def _control_agreement_field_scope() -> None:
     # silently excluded or folded into PROVENANCE_FIELDS. The arithmetic is 12
     # (pre-existing measured schema fields) + 4 (H1 columns) + 2 (H3 columns) + 3 (Phase 52
     # OBS-02 pre-check columns) + 2 (Phase 52 residue R-52-01 roll-up columns) + 3 (Phase 53
-    # OBS-03 hop-arithmetic columns) + 1 (999.154 rollup_unpaired) + 5 (report-added columns) = 32.
-    assert len(AGREEMENT_FIELDS) == 32, len(AGREEMENT_FIELDS)
+    # OBS-03 hop-arithmetic columns) + 1 (999.154 rollup_unpaired) + 1 (999.122 confidence_unpairable) + 5 (report-added
+    # columns) = 33.
+    assert len(AGREEMENT_FIELDS) == 33, len(AGREEMENT_FIELDS)
     assert "analysis_id" not in AGREEMENT_FIELDS
     for field in PROVENANCE_FIELDS:
         assert field not in AGREEMENT_FIELDS, field
@@ -3607,6 +3660,7 @@ def _control_agreement_field_scope() -> None:
         "rollups_checked",
         "rollup_inversions",
         "rollup_unpaired",
+        "confidence_unpairable",
         "hop_arithmetic_checked",
         "hop_arithmetic_unparsed",
         "hop_arithmetic_mismatches",
@@ -6210,6 +6264,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("partial-row-records-heading-census", _control_partial_row_records_heading_census),
     ("partial-row-not-dropped", _control_partial_row_not_dropped),
     ("agreement-field-scope", _control_agreement_field_scope),
+    ("excluded-count-derived", _control_excluded_count_derived),
     (
         "agreement-detects-measured-divergence",
         _control_agreement_detects_measured_divergence,
@@ -6490,6 +6545,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "partial-row-records-heading-census",
     "partial-row-not-dropped",
     "agreement-field-scope",
+    "excluded-count-derived",
     "agreement-detects-measured-divergence",
     "agreement-vacuity-guard",
     "agreement-unpaired-is-divergence",

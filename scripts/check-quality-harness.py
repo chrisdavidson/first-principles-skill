@@ -5770,6 +5770,10 @@ def _claim_is_traced(
 #   "rollup_inversions" — count of roll-ups where component confidence > conclusion
 #   "rollup_unpaired" — roll-ups not scored (unparsed, unpairable, cited-but-unlabelled)
 #
+# CONFIDENCE-PAIRING ACCOUNTING (backlog 999.122):
+#   "confidence_unpairable" — 1 when section 4's chain ids and blocks cannot be
+#     paired, so confidence_inversions is 0 by construction, not by measurement
+#
 # HOP-ARITHMETIC FAMILY (Chain step logical soundness, Phase 53):
 #   "hop_arithmetic_checked" — count of chain hops with parseable step counts
 #   "hop_arithmetic_unparsed" — count of chain hops with invalid step syntax
@@ -5851,6 +5855,12 @@ _DEFECT_RECORD_FIELDS = (
     # unpairable, cited-but-unlabelled), so that rollups_checked +
     # rollup_unpaired equals the roll-up Confidence lines found.
     "rollup_unpaired",
+    # Backlog 999.122 (WR-07): one more appended, same discipline. 1 when
+    # section 4's chain ids and blocks could not be paired one to one, in
+    # which case `confidence_inversions` is 0 by construction, not by
+    # measurement; 0 when they paired. Accounting, not a defect, and so
+    # not in `_SELFAUDIT_CONTRADICTIONS`.
+    "confidence_unpairable",
 )
 
 
@@ -6037,6 +6047,36 @@ _CONFIDENCE_LINE_RE = re.compile(
 )
 
 
+# Backlog 999.122 (WR-02 residual): marker-line shapes `_CONFIDENCE_LINE_RE`
+# does not read, used ONLY by `_chain_confidence_label` as an extra
+# candidate after it. `_CONFIDENCE_LINE_RE` itself stays byte-unchanged
+# because the pre-check pairing, the roll-up reader and check-summary-block
+# `.match` it line by line, and widening it would move those readers.
+# Reads a blockquoted (`> **Confidence:** HIGH`), list-item
+# (`- **Confidence:** HIGH`, `1. ...`) and bare-label (`Confidence: **HIGH**`,
+# `Confidence: HIGH`) marker line. `Confidence caveat:` does not match: a
+# word sits between "Confidence" and the colon.
+_CONFIDENCE_MARKER_WIDE_RE = re.compile(
+    r"^[ \t]*(?:>[ \t]*)*(?:(?:[-*+]|\d+\.)[ \t]+)?(?:\*\*)?Confidence[ \t]*:"
+    r"(?:\*\*)?[ \t]*(?:\([^)\n]*\)[ \t]*)?(?:\*\*)?(?P<word>[A-Za-z]+)\b",
+    re.MULTILINE,
+)
+
+
+def _confidence_word_is_complete(text: str, m: re.Match[str]) -> bool:
+    """Backlog 999.122 (WR-03): is the captured word the whole label?
+
+    False when the word is the head of a hyphenated compound (`Medium-high`,
+    which is neither MEDIUM nor HIGH) or is followed by `/` (the unfilled
+    template placeholder `HIGH / MEDIUM / LOW`). Either is unparsed, never a
+    guess at the first word.
+    """
+    tail = text[m.end("word") :]
+    if re.match(r"-[A-Za-z]", tail):
+        return False
+    return not re.match(r"[ \t*]*/", tail)
+
+
 def _chain_confidence_label(block: str) -> str | None:
     """D-02/D-03: the chain's own confidence label, canonicalised upper case.
 
@@ -6045,22 +6085,30 @@ def _chain_confidence_label(block: str) -> str | None:
     closure: CR-01/WR-02): the heading-line parenthetical
     (`_CONFIDENCE_PAREN_RE`, line 0 only), then the line-0 inline label
     (`_CONFIDENCE_INLINE_RE`, line 0 only), then the trailing
-    `**Confidence:**` marker line (`_CONFIDENCE_LINE_RE`, whole block). The
-    first candidate whose captured word upper-cases into HIGH/MEDIUM/LOW
-    wins. Any other word on every candidate — including the unfilled
-    template placeholder `[HIGH / MEDIUM / LOW]`, a caveat gloss with no
-    marker line, or a "Confidence caveat:" near-miss — is unparsable and
-    returns `None` rather than a guess (D-04); this is a scoped widening,
-    not an unbounded one.
+    `**Confidence:**` marker line (`_CONFIDENCE_LINE_RE`, whole block), then
+    (999.122) the wider marker-line shapes of `_CONFIDENCE_MARKER_WIDE_RE`
+    (blockquoted, list-item, bare label). The first candidate whose captured
+    word upper-cases into HIGH/MEDIUM/LOW wins. Any other word on every
+    candidate — including the unfilled template placeholder
+    `[HIGH / MEDIUM / LOW]`, a hyphenated compound such as `Medium-high`
+    (`_confidence_word_is_complete`), a caveat gloss with no marker line,
+    or a "Confidence caveat:" near-miss — is unparsable and returns `None`
+    rather than a guess (D-04); this is a scoped widening, not an unbounded
+    one.
     """
     lines = block.splitlines()
     line0 = lines[0] if lines else block
-    for m in (
-        _CONFIDENCE_PAREN_RE.search(line0),
-        _CONFIDENCE_INLINE_RE.search(line0),
-        _CONFIDENCE_LINE_RE.search(block),
+    candidates: list[tuple[str, re.Match[str]]] = []
+    for text, m in (
+        (line0, _CONFIDENCE_PAREN_RE.search(line0)),
+        (line0, _CONFIDENCE_INLINE_RE.search(line0)),
+        (block, _CONFIDENCE_LINE_RE.search(block)),
     ):
-        if m is None:
+        if m is not None:
+            candidates.append((text, m))
+    candidates.extend((block, m) for m in _CONFIDENCE_MARKER_WIDE_RE.finditer(block))
+    for text, m in candidates:
+        if not _confidence_word_is_complete(text, m):
             continue
         word = m.group("word").upper()
         if word in _CONFIDENCE_RANK:
@@ -7096,8 +7144,11 @@ def _selfaudit_band_census(
 
     A criterion block runs from its wide head's end to the next wide head's
     start (or end of text). Within a block, the first reading wins, in this
-    order: the strict `Band:` line, the wide `Band:` line, the embedded
-    verdict at the head, the trailing verdict at the head. A word matching
+    order: the embedded verdict at the head, the trailing verdict at the
+    head, the strict `Band:` line, the wide `Band:` line (999.122 WR-06: a
+    verdict the head itself carries is not overridden by a later `Band:`
+    line in its block; the legacy colon head carries none, so its reading
+    is unchanged). A word matching
     `_BAND_VOCAB` (case-insensitively, canonicalised) is a parsed band; any
     other word is out of vocabulary — a claim was made and read, but the
     reconciliation cannot score it, which is a distinct finding from no
@@ -7125,14 +7176,6 @@ def _selfaudit_band_census(
         end = heads[i + 1].start() if i + 1 < len(heads) else len(analysis_text)
         block = analysis_text[m.end() : end]
 
-        bm = _SELFAUDIT_BAND_RE.search(block)
-        if bm:
-            _claim(num, bm.group("band"))
-            continue
-        wbm = _SELFAUDIT_BAND_WIDE_RE.search(block)
-        if wbm:
-            _claim(num, wbm.group("word"))
-            continue
         em = _SELFAUDIT_EMBEDDED_VERDICT_RE.match(analysis_text, m.start())
         if em:
             _claim(num, em.group("word"))
@@ -7141,6 +7184,20 @@ def _selfaudit_band_census(
         if tm:
             _claim(num, tm.group("word"))
             continue
+        bm = _SELFAUDIT_BAND_RE.search(block)
+        if bm:
+            _claim(num, bm.group("band"))
+            continue
+        wbm = _SELFAUDIT_BAND_WIDE_RE.search(block)
+        if wbm:
+            _claim(num, wbm.group("word"))
+            continue
+
+    # A criterion audited twice (an out-of-vocabulary block and an
+    # in-vocabulary one, in either order) is a parsed band, never also an
+    # out-of-vocabulary one.
+    for num in bands:
+        offvocab.pop(num, None)
 
     return bands, offvocab
 
@@ -7785,6 +7842,7 @@ def detect_defects(
             "_confidence_unparsed": confidence["unparsed"],
             "_confidence_inversions_partial": confidence["inversions_partial"],
             "_confidence_unpairable": confidence["unpairable"],
+            "confidence_unpairable": 1 if confidence["unpairable"] else 0,
         }
     )
     # Phase 52 (OBS-02, D-04/D-05): the pre-check dimension, computed above
@@ -7983,6 +8041,7 @@ _EXPECTED_CONFORMANT_RECORD = {
     "rollups_checked": 0,
     "rollup_inversions": 0,
     "rollup_unpaired": 0,
+    "confidence_unpairable": 0,
     "hop_arithmetic_checked": 0,
     "hop_arithmetic_unparsed": 0,
     "hop_arithmetic_mismatches": 0,
@@ -8012,6 +8071,7 @@ _EXPECTED_DEFECTIVE_RECORD = {
     "rollups_checked": 0,
     "rollup_inversions": 0,
     "rollup_unpaired": 0,
+    "confidence_unpairable": 0,
     "hop_arithmetic_checked": 0,
     "hop_arithmetic_unparsed": 0,
     "hop_arithmetic_mismatches": 0,
@@ -9760,6 +9820,95 @@ Nothing material here.
             f"{p35_rec['_rollup_cited_unlabelled']!r}, unpairable="
             f"{p35_rec['_rollup_unpairable']!r}, unparsed="
             f"{p35_rec['_rollup_unparsed']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P36) WR-02 (backlog 999.122): `_chain_confidence_label` reads a
+    # blockquoted, list-item and trailing-bare-label marker line, and still
+    # refuses a "Confidence caveat:" near-miss.
+    for p36_shape in (
+        "> **Confidence:** HIGH",
+        "- **Confidence:** HIGH",
+        "Confidence: **HIGH**",
+    ):
+        p36_got = _chain_confidence_label(f"**C1 \u2014 t**\n{p36_shape}")
+        if p36_got != "HIGH":
+            print(
+                f"self-test FAIL: defects confidence (P36) marker shape "
+                f"{p36_shape!r} expected 'HIGH', got {p36_got!r}",
+                file=sys.stderr,
+            )
+            ok = False
+    p36_caveat = _chain_confidence_label(
+        "**C1 \u2014 t**\n**Confidence caveat:** rated HIGH"
+    )
+    if p36_caveat is not None:
+        print(
+            f"self-test FAIL: defects confidence (P36) ANTI-OVERREACH a "
+            f"'Confidence caveat:' line expected None, got {p36_caveat!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (P37) WR-03: a hyphenated compound and the unfilled template
+    # placeholder are unparsed, never guessed; the legitimate readings stay.
+    for p37_block in (
+        "**C1 \u2014 t** *(Medium-high)*",
+        "**C1 \u2014 t**\n**Confidence:** Medium-high",
+        "**C1 \u2014 t** *(HIGH / MEDIUM / LOW)*",
+        "**C1 \u2014 t** *(Confidence: HIGH / MEDIUM / LOW)*",
+    ):
+        p37_got = _chain_confidence_label(p37_block)
+        if p37_got is not None:
+            print(
+                f"self-test FAIL: defects confidence (P37) {p37_block!r} "
+                f"expected None (unparsed), got {p37_got!r}",
+                file=sys.stderr,
+            )
+            ok = False
+    for p37_block, p37_want in (
+        ("**C1 \u2014 t** *(MEDIUM \u2014 rests on GT-3?)*", "MEDIUM"),
+        ("**C1 \u2014 t** *(HIGH)*", "HIGH"),
+    ):
+        p37_got = _chain_confidence_label(p37_block)
+        if p37_got != p37_want:
+            print(
+                f"self-test FAIL: defects confidence (P37) ANTI-OVERREACH "
+                f"{p37_block!r} expected {p37_want!r}, got {p37_got!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+    # (P38) WR-07: an unpairable section 4 is distinguishable from a
+    # pairable one with zero inversions.
+    p38_unpairable = detect_defects(
+        _confidence_test_doc_s6(
+            _r154_chain(1, "LOW") + "\n\n" + _r154_chain(1, "HIGH"),
+            "**Recommended approach:** one.\n\n**Confidence:** (chain C1) HIGH",
+        ),
+        "conf-p38-unpairable",
+    )
+    p38_pairable = detect_defects(
+        _confidence_test_doc_s6(
+            _r154_chain(1, "HIGH"),
+            "**Recommended approach:** one.\n\n**Confidence:** (chain C1) HIGH",
+        ),
+        "conf-p38-pairable",
+    )
+    if (
+        p38_unpairable.get("confidence_unpairable") != 1
+        or p38_unpairable["confidence_inversions"] != 0
+        or p38_pairable.get("confidence_unpairable") != 0
+        or p38_pairable["confidence_inversions"] != 0
+        or "confidence_unpairable" not in _DEFECT_RECORD_FIELDS
+    ):
+        print(
+            f"self-test FAIL: defects confidence (P38) expected "
+            f"confidence_unpairable=1 for a restated chain id and 0 for a "
+            f"pairable chain (both confidence_inversions=0), got "
+            f"{p38_unpairable.get('confidence_unpairable')!r} and "
+            f"{p38_pairable.get('confidence_unpairable')!r}",
             file=sys.stderr,
         )
         ok = False
@@ -19113,7 +19262,7 @@ def _selftest_selfaudit_calibration() -> bool:
         names = {
             2: "Challenge Assumptions",
             4: "Reason Upward",
-            5: "Conclusion",
+            5: "Validate",
             6: "Conclusion-to-Ground-Truth Traceability",
         }
         return "\n\n".join(
@@ -19324,6 +19473,55 @@ def _selftest_selfaudit_calibration() -> bool:
             f"(q-4) whole-word ALL-CAPS HAND-WAVY misread: "
             f"bands={bands!r} offvocab={offvocab!r}"
         )
+
+    # (q-5) WR-06 (backlog 999.122): a head carrying its own embedded
+    # verdict keeps it even when a later `Band:` line sits in its block; the
+    # legacy colon head still reads its `Band:` line.
+    bands, offvocab = _selfaudit_band_census(
+        "**Criterion 5 \u2014 Validate: Sound.**\nprose\nBand: **Rigorous**\n"
+    )
+    if bands != {5: "Sound"} or offvocab:
+        _fail(
+            f"(q-5) embedded head verdict overridden by a later Band line: "
+            f"bands={bands!r} offvocab={offvocab!r}"
+        )
+    bands, offvocab = _selfaudit_band_census(
+        "**Criterion 5: Validate**\nBand: **Rigorous**\n"
+    )
+    if bands != {5: "Rigorous"} or offvocab:
+        _fail(
+            f"(q-5) legacy colon head Band line misread: "
+            f"bands={bands!r} offvocab={offvocab!r}"
+        )
+
+    # (q-6) WR-05: a criterion audited twice (out-of-vocabulary then in
+    # vocabulary, or the reverse) is counted in bands only.
+    for q6_first, q6_second in (("PRESENT", "Rigorous"), ("Rigorous", "PRESENT")):
+        bands, offvocab = _selfaudit_band_census(
+            f"**Criterion 5: Validate**\nBand: **{q6_first}**\n\n"
+            f"**Criterion 5: Validate**\nBand: **{q6_second}**\n"
+        )
+        if bands != {5: "Rigorous"} or offvocab:
+            _fail(
+                f"(q-6) a criterion audited twice ({q6_first}, {q6_second}) "
+                f"counted in both halves: bands={bands!r} offvocab={offvocab!r}"
+            )
+
+    # (q-7) IN-02: what the legacy colon head accepts after the wide-pattern
+    # widening. A colon head may carry a second colon in its title; a
+    # criterion number outside 1-6 and a head with no separator are not heads.
+    for q7_text, q7_parsed in (
+        ("**Criterion 3: Evidence**\nBand: **Sound**\n", True),
+        ("**Criterion 3: Evidence: x**\nBand: **Sound**\n", True),
+        ("**Criterion 7: X**\nBand: **Sound**\n", False),
+        ("**Criterion3 Evidence**\nBand: **Sound**\n", False),
+    ):
+        bands, offvocab = _selfaudit_band_census(q7_text)
+        if (bands == {3: "Sound"}) != q7_parsed or (not q7_parsed and bands):
+            _fail(
+                f"(q-7) legacy colon head acceptance pin: {q7_text!r} "
+                f"expected parsed={q7_parsed}, got bands={bands!r}"
+            )
 
     # (r) legacy `Band: **PRESENT**` under a colon-separated head — an
     # out-of-vocabulary word read via the wide band line, not the strict one.

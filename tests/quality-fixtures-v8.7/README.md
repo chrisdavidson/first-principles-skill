@@ -279,6 +279,21 @@ original three plus three confidence-dimension additions).
 | `high_conf_unverified_head` | 0 |
 | `confidence_inversions` | 0 |
 | `confidence_unparsed` | 0 |
+| `dependency_cycles` | 0 |
+| `ungrounded_chains` | 0 |
+| `selfaudit_disagreements` | 0 |
+| `selfaudit_bands_parsed` | 0 |
+| `selfaudit_offvocab_bands` | 0 |
+| `prechecks_parsed` | 0 |
+| `precheck_unparsed` | 0 |
+| `precheck_disagreements` | 0 |
+| `rollups_checked` | 0 |
+| `rollup_inversions` | 0 |
+| `rollup_unpaired` | 0 |
+| `confidence_unpairable` | 0 |
+| `hop_arithmetic_checked` | 0 |
+| `hop_arithmetic_unparsed` | 0 |
+| `hop_arithmetic_mismatches` | 0 |
 
 **`analyses-defective.md` — expected record (every numeric field pinned):**
 
@@ -297,6 +312,21 @@ original three plus three confidence-dimension additions).
 | `high_conf_unverified_head` | 1 | `Chain C1` is HIGH and its head cites the unverified `GT-3?` |
 | `confidence_inversions` | 1 | `Chain C3` is HIGH over `Chain C2`, which is labelled MEDIUM |
 | `confidence_unparsed` | 1 | `Chain C4`'s marker line reads the unfilled template placeholder `**Confidence:** [HIGH / MEDIUM / LOW]`, which parses as no label |
+| `dependency_cycles` | 0 | — |
+| `ungrounded_chains` | 0 | — |
+| `selfaudit_disagreements` | 0 | — |
+| `selfaudit_bands_parsed` | 0 | — |
+| `selfaudit_offvocab_bands` | 0 | — |
+| `prechecks_parsed` | 0 | — |
+| `precheck_unparsed` | 0 | — |
+| `precheck_disagreements` | 0 | — |
+| `rollups_checked` | 0 | — |
+| `rollup_inversions` | 0 | — |
+| `rollup_unpaired` | 0 | — |
+| `confidence_unpairable` | 0 | — |
+| `hop_arithmetic_checked` | 0 | — |
+| `hop_arithmetic_unparsed` | 0 | — |
+| `hop_arithmetic_mismatches` | 0 | — |
 
 Both expected records are asserted field-by-field (not just the flags) in `_selftest_defects` —
 a flags-only assertion would pass while the per-claim counts D-20 depends on drifted silently.
