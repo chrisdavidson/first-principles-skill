@@ -28,6 +28,8 @@ This file is a measurement, not a contract: no figure below defines what the cod
 
 Three kinds of value appear in the per-artifact tables below. A number means the detector read the document and counted. The literal `n/a` means no `.jsonl` generation capture exists for this artifact -- true of all 42 artifacts on the four surfaces above, for the nine provenance columns, unconditionally. On `live-conformance` a capture DOES exist and those columns still read `n/a`, because no join is performed this phase -- see that section's Provenance departure (D-06). The literal `unreadable` means `_slice_sections` rejected the document, so the twelve measured schema fields were never computed. The nine provenance columns are emitted in full precisely so `n/a` and `0` are never printed as the same thing.
 
+A non-zero `hop_arithmetic_unparsed` count reflects the narrow parser's reach, not an arithmetic error: it counts the hop candidates the parser could not reduce to a single `NUM OP NUM` form (for example two values on one hop line, a chained expression or a percentage). Only `hop_arithmetic_mismatches` reports arithmetic that does not recompute.
+
 ## Disclosed bounds
 
 This phase publishes four disclosures in the same voice R7/R9/R10 use on the agent surface to state their own measured bounds, rather than leaving them to be discovered.

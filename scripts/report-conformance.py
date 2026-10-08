@@ -3066,6 +3066,14 @@ def render_markdown(
         "`n/a` and `0` are never printed as the same thing."
     )
     lines.append("")
+    lines.append(
+        "A non-zero `hop_arithmetic_unparsed` count reflects the narrow parser's reach, "
+        "not an arithmetic error: it counts the hop candidates the parser could not reduce "
+        "to a single `NUM OP NUM` form (for example two values on one hop line, a chained "
+        "expression or a percentage). Only `hop_arithmetic_mismatches` reports arithmetic "
+        "that does not recompute."
+    )
+    lines.append("")
 
     lines.append("## Disclosed bounds")
     lines.append("")
@@ -5279,6 +5287,12 @@ def _control_render_vocabulary_scoped_and_derived() -> None:
     assert "true of all 29 artifacts" not in rendered, "stale hardcoded count is back"
     # The four non-live rows above are what the scoped claim covers.
     assert "true of all 4 artifacts on the four surfaces above" in rendered, rendered
+    # Backlog 999.162: the published bound on `hop_arithmetic_unparsed`.
+    assert (
+        "A non-zero `hop_arithmetic_unparsed` count reflects the narrow parser's reach, "
+        "not an arithmetic error" in rendered
+    ), "the hop_arithmetic_unparsed parser-reach sentence is missing"
+    assert "Only `hop_arithmetic_mismatches` reports arithmetic" in rendered, rendered
 
     plus_live = base + [_synthetic_live_row("x02.md", "x02")]
     rendered_live = render_markdown(plus_live, pair_agreement(plus_live))

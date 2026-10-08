@@ -5775,9 +5775,15 @@ def _claim_is_traced(
 #     paired, so confidence_inversions is 0 by construction, not by measurement
 #
 # HOP-ARITHMETIC FAMILY (Chain step logical soundness, Phase 53):
-#   "hop_arithmetic_checked" — count of chain hops with parseable step counts
-#   "hop_arithmetic_unparsed" — count of chain hops with invalid step syntax
-#   "hop_arithmetic_mismatches" — count of hops where stated steps ≠ actual steps
+#   "hop_arithmetic_checked" — count of section 4 hop candidates (a `=`/`≈` with
+#     an operator on its left) the narrow parser reduced to `NUM [UNIT] OP NUM
+#     [UNIT]` and recomputed, passing and failing alike
+#   "hop_arithmetic_unparsed" — count of candidates the narrow parser could NOT
+#     reduce to that form (chained or multi-operator, multi-valued, percentage,
+#     unspaced hyphen/slash, unparsed number, negative operand, unit scale); a
+#     parser-reach count, NOT an arithmetic error
+#   "hop_arithmetic_mismatches" — count of reduced candidates whose stated result
+#     does not recompute (the defect column; a subset of the checked count)
 #
 _DEFECT_RECORD_FIELDS = (
     "analysis_id",
