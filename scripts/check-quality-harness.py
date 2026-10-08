@@ -1503,7 +1503,7 @@ JUDGE_PROMPT = (
     "`analysis.md`, found in your current working directory, against the "
     "rubric in `validation-rubric.md`, also in your current working "
     "directory. Read both files in full, then apply every criterion in the "
-    'rubric exactly as its own "How to Apply This Rubric" section '
+    'rubric exactly as its own "How to Apply This Gate" section '
     "instructs: complete the Assumption Audit first, then produce one "
     "verdict block per criterion using the rubric's prescribed Verdict "
     "Block Format.\n\n"

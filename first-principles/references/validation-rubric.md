@@ -281,7 +281,7 @@ four-type classification quality and unverified-flag discipline (D-07).
   "unverified — flagged"; the Assumption Audit performed at the end of Phase 4 (`SKILL.md`,
   "End-of-phase Assumption Audit") visited every named derivation chain step in section 4 and
   surfaced any assumption not already in the Assumptions Table, recording it there; the
-  Assumption Audit artifact produced before scoring (per "How to Apply This Rubric") confirms
+  Assumption Audit artifact produced before scoring (per "How to Apply This Gate") confirms
   this scan was exhaustive over named derivation chain steps, not an open-ended survey of the
   universe of conceivable assumptions.
 

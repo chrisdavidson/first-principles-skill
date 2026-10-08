@@ -913,6 +913,25 @@ REGISTRY: tuple[RetractedClaim, ...] = (
             "bound (h))."
         ),
     ),
+    RetractedClaim(
+        literal="How to Apply This Rubric",
+        retracted_by="999.112 (quick 261007-v94)",
+        corrected=(
+            "validation-rubric.md's application section was renamed "
+            "'## How to Apply This Gate' (the old name collided with "
+            "subject-matter rubrics). Criterion 2's cross-reference and the "
+            "QUAL-01 judge prompt still named the retired heading, pointing "
+            "readers and the judge at a section that does not exist; filed by "
+            "Phase 34 Plan 02's TIER-01 break-test sweep."
+        ),
+        # Both exemptions are historical records explaining the RIGOR-07
+        # re-point from the retired name, kept rather than rewritten. Either
+        # count falling means that explanation was deleted.
+        exemptions=(
+            ("docs/requirements-traceability.md", 1),
+            ("scripts/check-traceability.py", 1),
+        ),
+    ),
 )
 
 

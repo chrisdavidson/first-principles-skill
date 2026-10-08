@@ -612,7 +612,7 @@ _ADMISSION_SCOPE_C46 = "the self-audit scan for Criteria 4 and 6"
 _ADMISSION_SCOPE_C2 = "the Assumption Audit scan for Criterion 2"
 _RUBRIC_C2_AA_ARTIFACT = (
     'Assumption Audit artifact produced before scoring (per "How to '
-    'Apply This Rubric") confirms this scan was exhaustive over named '
+    'Apply This Gate") confirms this scan was exhaustive over named '
     "derivation chain steps, not an open-ended survey of the universe "
     "of conceivable assumptions."
 )
