@@ -5435,7 +5435,7 @@ def _label_has_any_citation(text: str, chain_ids: list[str]) -> bool:
 # The structural closure-ledger row shape output-template.md prescribes
 # and shows as its conforming example: optional leading whitespace, a `-`
 # or `*` list marker, a quoted span of at least 8 characters (straight or
-# curly quotes, matching `_LEDGER_QUOTE_RE`'s own quote-character set), an
+# curly quotes), an
 # arrow (Unicode `→` or ASCII `->` — the capture emits `→`, the existing
 # self-test fixture emits `->`), then an optional literal `chain `
 # followed by a `C<digits>` identifier. Anchored at the start of the
@@ -5445,10 +5445,6 @@ _STRUCTURAL_LEDGER_ROW_RE = re.compile(
     r'^[-*]\s*["“]([^"”\n]{8,})["”]\s*(?:→|->)\s*(?:chain\s+)?(C\d+)',
     re.IGNORECASE,
 )
-
-# A ledger entry pairs a quoted claim fragment with a named chain on one
-# line:  - "Lambda is 2.10x more expensive per unit of compute"  -> chain C1
-_LEDGER_QUOTE_RE = re.compile(r"[\"\u201c]([^\"\u201d\n]{8,})[\"\u201d]")
 
 _TOKEN_RE = re.compile(r"[a-z0-9]+(?:\.[0-9]+)?")
 
@@ -5534,15 +5530,20 @@ def _closure_ledger_fragments(section6: str, chain_ids: list[str]) -> list[str]:
     authority. Both halves remain load-bearing: a quote citing nothing
     traces nothing, and a chain citation with no quote names which chain
     but not which claim.
+
+    One structural row yields exactly one fragment: the row's own quoted
+    group (999.22). A further quoted span later on the same line is trailing
+    prose, not a second claim the row discharges.
     """
     fragments: list[str] = []
     for line in section6.splitlines():
         stripped = line.strip()
-        if not _STRUCTURAL_LEDGER_ROW_RE.match(stripped):
+        m = _STRUCTURAL_LEDGER_ROW_RE.match(stripped)
+        if not m:
             continue
         if not _cites_chain(stripped, chain_ids):
             continue
-        fragments.extend(m.group(1) for m in _LEDGER_QUOTE_RE.finditer(stripped))
+        fragments.append(m.group(1))
     return fragments
 
 
@@ -19732,6 +19733,19 @@ def _selftest_ledger_traceability() -> bool:
         _fail(
             "(h) unfenced ledger rows were excluded by something other "
             "than the fence rule"
+        )
+
+    # (h2) ONE ROW, ONE CLAIM (999.22): a structural row quoting two spans
+    #      yields exactly one fragment, the structural row's own quote — the
+    #      second span is trailing prose and discharges nothing.
+    two_quote = _closure_ledger_fragments(
+        '- "first quoted span here" -> chain C1 and "second quoted span here"\n',
+        chain_ids,
+    )
+    if two_quote != ["first quoted span here"]:
+        _fail(
+            "(h2) two-quote ledger row did not yield exactly its own "
+            f"quote: {two_quote!r}"
         )
 
     # (i) The frozen calibration corpus does not move. The saturated
