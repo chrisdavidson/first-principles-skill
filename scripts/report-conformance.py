@@ -459,8 +459,15 @@ def parse_corpus_catalog(repo_root: Path) -> tuple[dict[str, dict], list[str]]:
     function's own *problems* list, prefixed `CATALOG TARGET PARSE FAIL — <file>: <reason>`
     so `_corpus_roster_problems` reports it alongside the existing `CATALOG PARSE FAIL`
     strings, never as a second, separately-consumed channel.
+
+    A catalog that cannot be read (missing, unreadable, a directory) raises
+    `DiscoveryFloorError` naming the path, never a raw `OSError` (999.37).
     """
-    text = (repo_root / ADVERSARIAL_CORPUS_CATALOG).read_text(encoding="utf-8")
+    path = repo_root / ADVERSARIAL_CORPUS_CATALOG
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise DiscoveryFloorError(f"CORPUS CATALOG MISSING — {path}: {exc}") from exc
     lines = text.splitlines()
 
     header_idx: int | None = None
@@ -539,6 +546,9 @@ def _read_live_catalog(repo_root: Path) -> tuple[dict[str, dict], list[str]]:
     `disposition` is the substring after the FIRST occurrence of the literal
     `"disposition: "` in the row's Notes cell, or the literal `"MISSING"` when that
     marker is absent -- never re-derived, never guessed.
+
+    A catalog file that cannot be read raises `DiscoveryFloorError` naming the path
+    (999.37); a parse failure stays a returned problem.
     """
     path = repo_root / LIVE_CONFORMANCE_CATALOG
     entries: dict[str, dict] = {}
@@ -548,6 +558,8 @@ def _read_live_catalog(repo_root: Path) -> tuple[dict[str, dict], list[str]]:
     except ValueError as exc:
         problems.append(f"LIVE CATALOG PARSE FAIL — {exc}")
         return entries, problems
+    except OSError as exc:
+        raise DiscoveryFloorError(f"LIVE CATALOG MISSING — {path}: {exc}") from exc
 
     marker = "disposition: "
     for prompt in prompts:
@@ -6301,8 +6313,37 @@ def _control_recurrence_no_exit_code_conditioned_on_count() -> None:
     assert synthetic_violations, "control failed to catch its own synthetic violation"
 
 
+def _control_missing_catalog_named() -> None:
+    """A repo root carrying neither catalog must fail by name: both readers raise
+    `DiscoveryFloorError` whose message contains the missing path (999.37). A raw
+    `FileNotFoundError` escaping, or any other exception, is a control failure."""
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        for reader, rel in (
+            (parse_corpus_catalog, ADVERSARIAL_CORPUS_CATALOG),
+            (_read_live_catalog, LIVE_CONFORMANCE_CATALOG),
+        ):
+            try:
+                reader(root)
+            except DiscoveryFloorError as exc:
+                assert rel in str(exc), (
+                    f"{reader.__name__}: DiscoveryFloorError does not name the "
+                    f"missing path {rel!r}: {exc}"
+                )
+            except BaseException as exc:
+                raise AssertionError(
+                    f"{reader.__name__}: missing catalog raised "
+                    f"{type(exc).__name__}, not DiscoveryFloorError: {exc}"
+                ) from exc
+            else:
+                raise AssertionError(
+                    f"{reader.__name__}: missing catalog raised nothing"
+                )
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("floor-shared-short", _control_floor_shared_short),
+    ("missing-catalog-named", _control_missing_catalog_named),
     ("floor-twin-short", _control_floor_twin_short),
     ("floor-contract-missing", _control_floor_contract_missing),
     ("floor-glob-empty", _control_floor_glob_empty),
@@ -6584,6 +6625,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
 # silently narrowing coverage.
 _CONTROL_IDS: tuple[str, ...] = (
     "floor-shared-short",
+    "missing-catalog-named",
     "floor-twin-short",
     "floor-contract-missing",
     "floor-glob-empty",
