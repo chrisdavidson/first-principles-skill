@@ -2404,10 +2404,17 @@ def _run_self_test(real_body: str | None = None, real_rubric: str | None = None)
     # (by) Positive control — Case B idempotence (PRE-1, CR-01,
     # 37-VERIFICATION.md gap 1): proves `(bw)`'s property holds on a body the
     # split has ALREADY landed in, not just on today's unsplit tree.
-    # `by_once` is byte-identical to the frozen canonical Case B emitted twin
-    # (sha256 a931ac9a64b751cce2b10a355d826a4e976f21be88d4496bcf7e873298274ef1,
-    # tests/pin-conversion-v9.4/README.md "## PRE-1"), so this runs against a
-    # genuinely split body, not a no-op.
+    # `by_once` is the split body `_apply_case_b_split` builds from the current
+    # agent body; it is NOT byte-identical to the frozen README's Case B emitted
+    # twin (sha256 a931ac9a64b751cce2b10a355d826a4e976f21be88d4496bcf7e873298274ef1,
+    # tests/pin-conversion-v9.4/README.md "## PRE-1"). That hash was the
+    # pre-`_flex_replace` emission over the agent body of that day (999.127
+    # WR-01 attributes the divergence to `_flex_replace` dropping edge
+    # whitespace); the builder now produces a different byte string, and its
+    # hash moves with every edit to the agent body. Read 2026-10-08 at commit
+    # 1d148fed: sha256 c2ff5e5ba4bb079a13faf04e45cd5808a647977eb6b34e693995d0f7a7ce8cb4.
+    # The control's claim is only that the Phase 3 step paragraph is split, so
+    # the second application runs against a genuinely split body, not a no-op.
     executed.append("by")
     try:
         by_once = _apply_case_b_split(real_body)
@@ -2612,19 +2619,46 @@ def _run_self_test(real_body: str | None = None, real_rubric: str | None = None)
     )
 
     # (ca) Negative, WR-05 regression guard (37-07): the not-found state
-    # trigger's ADJACENT-NEGATION variant must still fail by name. The D-01
+    # trigger's ADJACENT-NEGATION variants must still fail by name. The D-01
     # trim this literal once carried (37-04, reverted 37-07) admitted "has
     # never been opened" / "has not been opened" — the exact defect class
     # (01-04/01-05, a branch keyed on the wrong state) this anchor exists to
-    # hold. The negated form is derived from the constant, never transcribed:
-    # "never " is inserted after its first word.
-    ca_negated = _B12C_NOT_FOUND_STATE.replace(" ", " never ", 1)
+    # hold. The two negated literals below are TRANSCRIBED INDEPENDENTLY, not
+    # derived from _B12C_NOT_FOUND_STATE: a derivation from the constant
+    # follows the constant, so with the D-01 trim restored (constant starting
+    # "been opened") it would build "been never opened" — a string the real
+    # regression never produces — and the regression would pass unguarded.
+    ca_never = (
+        "has never been opened — by this step or earlier in this analysis "
+        "— and the asserted figure or wording was not located in it"
+    )
+    ca_not = (
+        "has not been opened — by this step or earlier in this analysis "
+        "— and the asserted figure or wording was not located in it"
+    )
     ca_body = _mutate_body_substituting_in_block(
-        real_body, _B12C_NOT_FOUND_STATE, _B12C_NOT_FOUND_STATE, ca_negated
+        real_body, _B12C_NOT_FOUND_STATE, _B12C_NOT_FOUND_STATE, ca_never
     )
     _check_negative(
         "ca", _check_body_text(ca_body), "Body-6", "not-found state trigger"
     )
+    # Second variant, checked inline so the control keeps one roster id and one
+    # `executed` entry.
+    ca_not_body = _mutate_body_substituting_in_block(
+        real_body, _B12C_NOT_FOUND_STATE, _B12C_NOT_FOUND_STATE, ca_not
+    )
+    ca_not_failures = [
+        f
+        for f in _check_body_text(ca_not_body)
+        if f.startswith("Body-6") and "not-found state trigger" in f
+    ]
+    if ca_not_failures:
+        print(
+            f"(ca) 'has not been opened' variant correctly failed ({len(ca_not_failures)})"
+        )
+    else:
+        print("(ca) 'has not been opened' variant WRONGLY PASSED (expected failure)")
+        problems.append("ca: 'has not been opened' variant produced no Body-6 failure")
 
     # (ad) Negative, WR-12: the generalized reason phrase stripped from the
     # Named artifact block, so the artifact's own definition no longer admits
