@@ -271,6 +271,12 @@ _HANDOFF_ROUTED_SLUGS: frozenset[str] = frozenset(
     {"identify-essence", "reason-upward", "validate"}
 )
 
+# 999.80: the routing prefix of the candidate-input tail, asserted ABSENT from
+# the routed stubs. Deliberately the prefix, not `_HANDOFF_CANDIDATE_TAIL`:
+# routed stubs legitimately carry the no-cited-source half, so an appended
+# routing sentence alone would not match the full tail.
+_HANDOFF_ROUTED_TAIL_ABSENT = "as candidate inputs for Phase 2"
+
 # 999.79: the unclassified-facts population Stub-13's candidate-tail loop
 # runs over, equality-locked. Typed out literally and NOT computed from
 # `_HANDOFF_ROUTED_SLUGS`: a derived lock moves with the thing it guards, so
@@ -1013,6 +1019,15 @@ def _check_stub_surface(
                 f"Stub-13 (SUP-03/SUP-04, candidate handoff): {slug} carries "
                 f"the candidate-input handoff tail {count} time(s), expected "
                 "exactly 1"
+            )
+    for slug in sorted(slug for slug in techniques if slug in routed):
+        n = _count_flex(techniques[slug], _HANDOFF_ROUTED_TAIL_ABSENT)
+        if n != 0:
+            failures.append(
+                f"Stub-13 (999.80, routed-stub tail absence): {slug} carries "
+                f"the Phase-2 candidate-input routing {n} time(s), expected 0 "
+                "— a routed stub's output goes to its own phase, not the "
+                "unclassified-facts slot"
             )
     # --- Stub-13 (SUP-04, no-cited-source clause) ----------------------------
     # HAND-04, D-29-P2: this clause is asserted on all non-launcher stubs,
@@ -2396,6 +2411,20 @@ def _run_self_test_body() -> int:
         ),
         "Stub-13",
         "population is empty",
+    )
+
+    # (g11) 999.80: a routed stub must not carry the Phase-2 candidate-input
+    # routing; the unclassified-facts loop never visits it.
+    g11_stubs = _append_to(
+        real_stubs,
+        "validate",
+        f"Hand the facts back to the main analysis {_HANDOFF_ROUTED_TAIL_ABSENT}.",
+    )
+    _check_negative(
+        "g11",
+        _check_stub_surface(g11_stubs),
+        "Stub-13",
+        "validate carries the Phase-2 candidate-input routing",
     )
 
     # (l) Stub-8 completion-condition control: strip validate's Exit-criterion
