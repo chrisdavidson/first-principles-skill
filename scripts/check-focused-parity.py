@@ -508,7 +508,8 @@ def _check_anchor_control_coverage(
     the message interpolates the anchor's name, which reads as a third
     "reference" with no control behind it. When *require_control_region* is
     True, references are additionally split into two regions at the
-    `def _run_self_test` boundary: every non-exempt, non-pending anchor
+    line-start `def _run_self_test(` boundary (the real definition, never a
+    docstring or string-literal mention of it): every non-exempt, non-pending anchor
     reaching the >=3 threshold must have at least one reference AT OR AFTER
     that boundary (the control-battery region), not merely >=3 references
     anywhere in the file. A boundary that cannot be found is a ratchet-
@@ -571,7 +572,11 @@ def _check_anchor_control_coverage(
 
     control_boundary = -1
     if require_control_region:
-        control_boundary = counting_source.find("def _run_self_test")
+        boundary_match = re.search(
+            r"^def _run_self_test\(", counting_source, re.MULTILINE
+        )
+        if boundary_match is not None:
+            control_boundary = boundary_match.start()
         if control_boundary == -1:
             failures.append(
                 "Coverage (D-12, ratchet integrity): required a control-battery "
@@ -3009,6 +3014,36 @@ def _run_self_test_body() -> int:
         )
         _problems.append(
             "q15: missing-boundary ratchet-integrity control did not fire correctly"
+        )
+
+    # (q16) 999.81: a docstring mention of the boundary text sits before the
+    # real definition. A first-textual-occurrence boundary lands on the
+    # mention and credits the anchor's references that sit between the two;
+    # the line-start definition match must not.
+    q16_source = (
+        markers
+        + '_FOO = "bar"\n_FOO\n"""\nthe `def _run_self_test` boundary\n"""\n_FOO\n'
+        + "def _run_self_test():\n    pass\n"
+    )
+    q16_real = re.search(r"^def _run_self_test\(", q16_source, re.MULTILINE)
+    if q16_real is None or q16_source.find("def _run_self_test") >= q16_real.start():
+        _problems.append(
+            "q16: fixture no longer discriminates — a docstring mention must "
+            "precede the real definition"
+        )
+    q16_failures = _check_anchor_control_coverage(
+        q16_source, exempt={}, pending={}, require_control_region=True
+    )
+    if any("zero of them are in the control battery" in f for f in q16_failures):
+        print(
+            "(q16) anchor referenced only between a docstring mention and the real def: correctly failed"
+        )
+    else:
+        print(
+            f"(q16) docstring-mention boundary control: WRONGLY PASSED OR WRONG REASON: {q16_failures}"
+        )
+        _problems.append(
+            "q16: docstring-mention boundary control did not fire correctly"
         )
 
     _this_module = sys.modules[__name__]
