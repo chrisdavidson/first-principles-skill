@@ -13,6 +13,60 @@ installed session.
 
 ## [Unreleased]
 
+## [9.19.2] — 2026-10-09
+
+Patch release: **the final message's file paths now come from the shell**, and every worked
+example is corrected where a re-run on the current agent found a verified defect.
+
+### Fixed — delivery pointer (shipped agent body)
+
+- **The final message's file paths now come from the shell.** The final pointer could name
+  the reports at a location the shell never wrote: the agent rewrote the relative
+  `.first-principles/…` paths its delivery commands printed into absolute paths it built
+  itself, taking the directory from the working directory's *name* when that name encoded
+  another path. It happened in 3 of 9 runs on 9.19.1's body and 0 of 9 on 9.13.0's
+  (`docs/skip-paired-reading.md`); one run then abandoned the file handoff. Step 9 of *Deliver
+  the analysis as a file* now has one Bash call print `"$(pwd -P)/<path>"` for every path the
+  steps printed, requires the message to copy those lines verbatim, and forbids writing a path
+  no command printed. Verified on all 14 worked examples, run in the same scratch directory
+  whose name triggered the defect: 0 of 14 file-delivering runs named a wrong location
+  (4 of 23 before the fix), and 13 of 14 gave every path absolute and correct
+  (`docs/pointer-fix-preregistration.md`, `docs/pointer-fix-reading.md`).
+
+### Fixed — worked examples (shipped)
+
+- **Every worked example re-run on the current agent and corrected where the re-run found a
+  verified defect** (`docs/example-rerun-2-reading.md`). 13 examples change; no recommendation
+  reverses. Seven carried an error in their own text: `estimate-fermi` still argued the
+  pre-`ceb16c52` framing in six places; `composed-inversion-second-order`'s estimate did not
+  cover what it recommended and it was the last example on the old assumptions-table header;
+  `ishikawa-fishbone` rated C1 HIGH on an unsupported tier link and called 11 of 23 "the
+  majority"; `personal-general-2` compared a real return with a nominal rate;
+  `science-engineering`'s binding-constraint claim failed at its own winter figure;
+  `science-engineering-2` cited a gear and a ball standard for a roller bearing;
+  `software-systems` was rated HIGH without meeting the HIGH rule and credited schema
+  decomposition with independent deploys. Four catches left open since the v9.13.0 re-run are
+  closed: the equity vesting cliff (`personal-general`), free-tier cannibalisation
+  (`product-business`), the backwards cold-oil premise (`science-engineering-2`) and
+  worst-month sizing (`science-engineering`, now 600 W). Bands lowered to MEDIUM:
+  `software-systems` C2/C3/§6, `ishikawa-fishbone` C1, `software-systems-2` C3,
+  `science-engineering-2` C2.
+
+### Changed — checks
+
+- SUMM-BLOCK control C31 re-pinned to `ishikawa-fishbone`'s new section 6 pre-check line.
+- RETRACT-01 registers seven literals the example corrections retracted.
+- `tests/example-rerun-2/`, `tests/skip-paired/` and `tests/pointer-fix/` registered under
+  FROZEN-EVIDENCE.
+
+### Known issue
+
+- **The agent sometimes skips its procedure** — about 3 to 4 runs in 14 on the worked
+  examples, on 9.19.1's body and this one alike. Two modes recur: it invokes a skill (the
+  slash-only launcher, an unrelated user-level skill, or one that does not exist) and loses
+  the procedure, or it answers with no tool call at all. A re-run delivers. Not fixed in this
+  release (`docs/pointer-fix-reading.md`).
+
 ## [9.19.1] — 2026-10-06
 
 Patch release: **reader-report PDFs render again, and a gate now compiles the page

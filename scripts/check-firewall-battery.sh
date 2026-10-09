@@ -1095,6 +1095,10 @@ _FROZEN_PATHS=(
     # prompts (docs/skip-paired-reading.md): 0/9 vs 1/9 skips, and the current body's wrong
     # delivery pointer in 3 of 9. Frozen because both readings are falsifiable only here.
     'tests/skip-paired'
+    # pointer-fix (2026-10-09) -- the 14 examples (plus 4 Amendment-1 re-runs) on the body with
+    # the shell-sourced delivery pointer (docs/pointer-fix-reading.md): 0 of 14 wrong pointers,
+    # 13 of 14 all-absolute-correct. Frozen because the 9.19.2 fix is verified only here.
+    'tests/pointer-fix'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null

@@ -456,6 +456,15 @@ then the six sections, then the process-output appendix.
    and confidence in one or two sentences. Do not paste the document into it, and do not paste
    the structured summary into it either. If assembly did not complete, name whichever of
    `"<path>.answer"` or `"<path>.process"` is still present, and skip steps 6 to 8.
+   **Every path in this message comes from the shell, never from you.** First turn the paths
+   steps 1 and 5–8 printed into absolute ones with one Bash call, listing each printed path in
+   place of the placeholder:
+   `for p in <each path printed above>; do printf '%s/%s\n' "$(pwd -P)" "$p"; done`. Copy each
+   line it prints into the message character for character. Do not shorten, rewrite or
+   "correct" a printed path, and never write a path that no command printed. In particular, do
+   not derive a directory from the session's environment, from a directory's name or from a
+   project you believe the analysis concerns: the working directory may be a scratch or
+   sandbox directory, and the files are where the shell wrote them.
 
 If the file cannot be created or written, emit the `## Answer` block, then the six-section
 document, as your final message instead, and say that the file handoff failed and why.

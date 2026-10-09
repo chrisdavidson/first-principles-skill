@@ -1,0 +1,414 @@
+**Disclosed:** This run is a full-composer analysis (all applicable companion techniques: five-whys, inversion, estimate, theoretical-limit, trade-off, second-order, pre-mortem; fishbone not applicable). One bounded re-entry edge fired: the Self-Audit Gate's Fix/Repeat loop. On the first scoring pass, Criterion 3 (Establish Ground Truths) scored Hand-wavy because three reachable, unsuffixed ground truths (GT-8, GT-9, GT-10 — WorkOS, Auth0, and Clerk pricing, each read directly from its cited source) fed only a MEDIUM-confidence chain, with no reachable unsuffixed ground truth feeding a HIGH-confidence chain. The gate had already cleared on that pass (one Hand-wavy is within the cap), but the fix was applied anyway: chain C6 was added, using GT-8/GT-9/GT-10 alone to establish — at HIGH confidence — that the three vendors' SSO-pricing structures diverge materially between capped and uncapped models. The re-score cleared all six criteria at Rigorous.
+
+## Answer
+
+**Recommendation:** Adopt a managed identity provider now — preferring a per-connection, large-free-MAU pricing model (WorkOS, Clerk) over a hard-connection-cap model (Auth0's B2B tiers) — to ship the release on time at a security baseline this team cannot reach alone, while building a thin internal abstraction layer over tenant/org/role mapping so the vendor can later be swapped without a full rebuild (chain C4).
+
+**Band (from §6):** MEDIUM (chain C4, chain C5).
+
+**Would change it:** Confirming vendor pricing on each vendor's live page, the CTO/legal confirming no data-residency bar on a third-party processor, and replacing the Fermi effort brackets with a real team estimate and an auditor quote (chain C4, chain C5).
+## 1. Problem Essence
+
+**Core problem:** Given a hard deadline (the next billed release) that requires real per-tenant authenticated accounts, how should a 7-person engineering team at an early-stage B2B SaaS company allocate its scarce engineering time and risk budget between implementing authentication in-house on an open-source library versus adopting a managed identity provider — and does either pure option, or some sequencing/combination of the two, best satisfy the company's time, security, and compliance constraints?
+
+**Success criteria:**
+1. The recommendation names a specific derivation chain tracing back to named ground truths about what authentication actually requires (session management, credential storage, password reset, MFA, audit logging, per-tenant isolation) and what each option provides out of the box versus requires custom engineering to build.
+2. The recommendation is tested against a split or combined option — not only the two named options — before being finalized, since a sequenced or hybrid approach may dominate either pure option.
+3. The recommendation states the specific conditions under which the opposite choice (or a third path) would be correct instead, rather than asserting universal superiority.
+4. The analysis addresses, with a named derivation chain, the second-order dynamics of (a) landing a first enterprise customer that requires SSO/SAML and (b) per-MAU or per-connection pricing cliffs at scale.
+5. The analysis names the critical risks under the recommended path and under its rejected alternative, each with a named mitigation or an explicitly accepted risk.
+6. Urgency is treated as a real scheduling constraint that must be satisfied, not as grounds to relax the security baseline a correct answer must still clear.
+
+---
+
+## 2. Assumptions Table
+
+| Assumption | Type | Treatment | Verdict | Verification |
+|------------|------|-----------|---------|--------------|
+| Build vs. buy is a strictly binary choice with no middle ground | convention | Explicitly challenge before use | Discard — ruled out directly by the trade-off result (chain C4), which shows a composite option dominates both pure options; the binary framing is an artifact of how the question was posed, not a logical constraint | Tested via weighted trade-off scoring, chain C4 |
+| In-house auth is cheaper long-term than a managed IDP | untested belief | Verify, or flag as unverified | Challenge — true only on the narrow axis of recurring per-user vendor fees (Build has none); false once engineering opportunity cost (GT-11), ongoing maintenance, and SOC2-equivalent compliance cost (GT-13?) are counted, where net total-cost-of-ownership favors Buy/composite | unverified — flagged (no full multi-year TCO model was built beyond the Fermi bracket in chain C2; a detailed TCO model is the verification that would close this) |
+| Managed IDPs are automatically more secure than in-house auth | convention / untested belief | Explicitly challenge before use | Challenge — not automatic; security depends on configuration under either path. However, independent SOC2 audit and security investment amortized across many customers (GT-7?, GT-8, GT-10, GT-13?) give vendors a documented baseline this team cannot match on the committed timeline (chain C3) — "more likely secure," not "automatically secure," is the defensible version | unverified — flagged (no independent audit of any specific vendor's actual security posture was performed by this analysis; vendor SOC2 reports would be the verification) |
+| This decision is fully reversible | untested belief | Verify, or flag as unverified | Challenge — partially reversible at best; switching vendors or later moving to self-hosted auth carries real migration cost (re-authenticating all users, contract/legal transition, re-wiring), which the composite recommendation's abstraction layer reduces but does not eliminate | unverified — flagged; the pre-mortem's Cluster 1 and Cluster 3 findings are the evidence that reversibility is partial, not full |
+| This decision is fully irreversible — a wrong choice now locks the company in forever | untested belief | Verify, or flag as unverified | Discard — contradicted by the preceding row's finding that an abstraction layer meaningfully reduces (though does not eliminate) switching cost; "irreversible" overstates lock-in risk and would wrongly justify over-investing in a from-scratch build just to avoid a cost that is real but bounded | Contradicted by pre-mortem Cluster 1/3 findings (adversarial pass record) |
+| Urgency justifies skipping security diligence to hit the release date | convention (dangerous) | Explicitly challenge before use; stakes-escalation rule applies | Discard — a release that introduces real per-tenant authentication for the first time is exactly the case where stakes are highest; GT-4?, GT-5?, and GT-6? establish a baseline that does not relax for schedule pressure | The recommended composite path is specifically the path that meets both the deadline and the diligence baseline at once (chains C2–C4), so urgency need not be traded against security here |
+| A 7-person team can build production-grade sessions, MFA, password reset, and audit logging securely and correctly before the next billed release | untested belief | Verify, or flag as unverified | Challenge — directly tested and contradicted by chains C2 (estimate) and C3 (theoretical limit); the realistic bracket (4–14 engineer-weeks) commonly exceeds a single release window | unverified at outset — flagged; resolved quantitatively by chains C2/C3 (verification path: a real work-breakdown with the actual team would replace the Fermi bracket) |
+| An unspecified open-source auth library provides MFA, SSO/SAML, and audit logging out of the box, comparable to a managed IDP | untested belief | Verify, or flag as unverified | Challenge — per GT-12?, modern OSS libraries increasingly bundle basic MFA, but comprehensive enterprise features (adaptive MFA, SSO/SAML at scale, compliance-grade audit logging) commonly require custom work beyond the library | unverified — flagged (GT-12?'s sourcing is a secondary synthesis, not a direct reading of each library's own documentation) |
+| No existing or near-term customer contract imposes a data-residency or regulatory constraint that would prohibit using a third-party identity processor | untested belief (load-bearing precondition, surfaced via inversion) | Verify, or flag as unverified | Challenge — not verified against the company's actual contracts; this is the single precondition most likely to flip the recommendation (chain C5; named again in the Sensitivity step of the adversarial pass) | unverified — flagged; the CTO/legal must confirm this before finalizing any vendor contract |
+| The chosen managed-IDP vendor's SSO/connection pricing model will remain economically favorable as the company scales toward its first enterprise customers | current constraint (today's published pricing could change) | Record the expiry conditions | Challenge — per GT-7?, GT-8, and GT-10, pricing models differ materially (hard connection caps vs. flat per-connection vs. tiered MRU), and chain C4's second-order extension shows this choice determines whether future enterprise SSO is economically smooth or a cost cliff | unverified — flagged; expires at each vendor price-list revision or contract renewal, and must be re-verified against the vendor's own live pricing page, not a third-party tracker |
+| The team has baseline competency in web session/credential security sufficient to correctly use an OSS library's primitives, within the estimated effort bracket, without requiring specialist hires | untested belief (surfaced during the Phase 4 Assumption Audit from chain C2, step 2) | Verify, or flag as unverified | Challenge — reasonable for a 7-person team already running a live SaaS product, implying general web competency, but specialist auth/security experience is not confirmed | unverified — flagged |
+| Building the internal abstraction/adapter layer in the composite option adds only marginal time (days, not weeks) on top of the base vendor integration | untested belief (surfaced during the Phase 4 Assumption Audit from chain C4, step 3) | Verify, or flag as unverified | Challenge — consistent with chain C2's estimate bracket (3–10 engineer-days base, plus a modest addition for the abstraction layer), but not independently verified via a detailed design spike | unverified — flagged |
+
+**Five-whys (causal mode): why is this urgent now?** Why 1 — because the next billed release requires per-tenant accounts (GT-3). Why 2 — because the current auth model is a single shared password plus a Stripe customer link, which cannot support per-tenant accounts at all (GT-1). Why 3 — because the product grew from an early MVP that never built real authentication. Why 4 — because authentication was deliberately deprioritized early on in favor of shipping core product value faster. Why 5 (root) — because the team optimized early for speed-to-first-revenue over foundational identity infrastructure, a reasonable bet at the time that has now matured past the point the shortcut remains viable. Counterfactual test: had real per-tenant authentication been built from day one, would this scramble still be happening now? No — so this is a genuine root cause, not merely a contributing condition. Root cause verdict: Root cause — adopt auth infrastructure proportional to the company's current stage now, rather than deferring it again — within control. This root cause is what makes "urgency" a real scheduling fact (feeding GT-3 and the weight placed on the time-to-ship criterion in chain C4) rather than grounds to discard the security baseline (assumption A6, Discarded above).
+
+**Stakes-escalation note:** Four of the twelve rows above (urgency-vs-diligence, reversibility, data-residency precondition, vendor pricing durability) bear directly on whether the recommendation is safe to act on. Each is pushed toward verification rather than left as a convenience assumption, consistent with the stakes-escalation rule: the higher the stakes resting on an assumption, the more it must be pushed toward verified ground truth.
+
+---
+
+## 3. Ground Truths
+
+**Stipulated scenario parameters (given directly by the task's CTO-provided context, not external citations — treated as the problem's defining inputs, not claims this analysis independently verified):**
+
+- **GT-1** The product currently has no true per-tenant authentication: access is gated by a single shared password plus a Stripe customer link — source: stipulated by task context (CTO-provided); read-at-source: task prompt, "Current state" line.
+- **GT-2** The company is a 7-person engineering team running an early-stage B2B SaaS product, with approximately $40K MRR, approximately 120 paying tenants, and no enterprise customers yet — source: stipulated by task context (CTO-provided); read-at-source: task prompt, "Context" bullet list.
+- **GT-3** The next billed release requires authenticated, per-tenant accounts, and this release is already scheduled (the CTO has framed the timeline as urgent) — source: stipulated by task context (CTO-provided); read-at-source: task prompt, "Trigger" line.
+
+**Definitional / logical ground truth (no external citation required — a structural fact about finite shared resources, not an empirical claim):**
+
+- **GT-11** Engineering capacity is finite and shared: with 7 engineers total, every person-week spent building and hardening authentication is a person-week unavailable for other committed roadmap work in the same window — source: definitional (conservation of finite capacity, applied to GT-2's team size); read-at-source: n/a (logical identity, not an external fact).
+
+**External, citation-based ground truths:**
+
+- **GT-4?** OWASP's Application Security Verification Standard requires authentication controls to be enforced server-side, requires that session management invalidate sessions on logout and regenerate the session identifier on authentication/privilege-state change (anti-fixation), and carries distinct verification-requirement sections for credential/password storage and for single- and multi-factor verifiers — cited to: OWASP wiki ("OWASP Application Security Verification Standard") and the OWASP Annotated ASVS (owasp-aasvs4.readthedocs.io, sections V2 and the session-management chapter); reported-by-delegate: WebSearch synthesis of these pages — the individual ASVS section pages were not opened directly by this analysis.
+- **GT-5?** NIST SP 800-63B (Revision 4, finalized mid-2025) sets memorized-secret (password) requirements: an 8-character absolute minimum with a 15-character recommended standard, a prohibition on stored password hints, a prohibition on knowledge-based "security questions" as a primary secret, a requirement to screen new/changed passwords against known-breached/common values, and guidance against forced periodic rotation absent evidence of compromise — cited to: NIST SP 800-63B Rev. 4 (via secondary summaries including jumpcloud.com, conetrix.com); reported-by-delegate: WebSearch synthesis — the primary NIST publication was not opened directly by this analysis.
+- **GT-6?** Session fixation and failure to invalidate sessions on password change (CWE-384) is a recurring, named vulnerability class that has caused real, publicly disclosed vulnerabilities in funded, non-trivial engineering organizations — for example ZenML (GHSA-99hm-86h7-gr3g) and Apache Airflow — when authentication/session logic does not regenerate the session identifier on login or password change — cited to: GitHub Security Advisory GHSA-99hm-86h7-gr3g; Apache Airflow advisory/issue records; CWE-384 database entries; reported-by-delegate: WebSearch synthesis — the individual advisory pages were not opened directly by this analysis.
+- **GT-7?** Auth0 offers a B2B-specific pricing tier; published secondary sources describe an "Essentials" tier near $150/month for 500 MAU with 3 enterprise SSO connections, a "Professional" tier near $800/month with a cap of 5 enterprise connections, MAU overage priced near $0.07/user, and custom Enterprise-tier contracts starting around $30,000/year once connection or MAU caps are exceeded — cited to: costbench.com (Auth0 pricing calculator/pages), guptadeepak.com (CIAM Compass, Auth0 vendor profile), ssojet.com (Auth0 enterprise SSO pricing article); reported-by-delegate: WebSearch synthesis — these secondary pricing-tracker pages were not individually opened by this analysis.
+- **GT-8** WorkOS's AuthKit user-management product is free up to 1,000,000 MAU, with SSO and Directory Sync (SCIM) priced separately and per connection — approximately $125/month for each of the first 1–15 connections, with volume discounts down to roughly $50/connection at 101–200 connections — plus an additional $2,500/month charge per additional 1,000,000 MAU beyond the first million — cited to: workos.com/blog/auth0-pricing-how-it-works-and-compares-to-workos (WorkOS, first-party); read-at-source: body text under the "WorkOS Pricing" heading, fetched and read directly by this analysis. Verification note: this is a first-party vendor source comparing itself favorably against a named competitor (Auth0); the specific numbers were read directly, but the framing carries a directional bias toward WorkOS that a reader should weigh.
+- **GT-9** Per the same comparison source, Auth0's B2B "Professional" plan caps at roughly 7,500 MAU and 5 SSO connections before requiring a custom Enterprise sales engagement with pricing not publicly listed — cited to: workos.com/blog/auth0-pricing-how-it-works-and-compares-to-workos; read-at-source: body text under the "Auth0 Pricing" heading, fetched and read directly by this analysis. Verification note: same vendor-comparison bias caveat as GT-8 — a competitor's framing of Auth0's pricing, not Auth0's own page.
+- **GT-10** Clerk's own pricing article describes: a free tier of 50,000 Monthly Retained Users (MRU) with no MFA; a Pro plan at $25/month including 50,000 MRU and one enterprise SSO connection; a $100/month add-on unlocking unlimited organization members and verified domains; additional SSO connections billed on a declining per-connection schedule ($75 down to $15 per connection by volume); and estimated costs of roughly $1,025/month at 100,000 MRU and $2,500–$3,000/month at 500,000 MAU before SOC 2 add-ons — cited to: clerk.com/articles/clerk-pricing-explained (Clerk, first-party); read-at-source: fetched and read directly by this analysis, in full. Verification note: first-party vendor-published pricing — lower framing-bias risk than a competitor comparison, but still the vendor's own figures, not an independent audit of them.
+- **GT-12?** Modern open-source authentication libraries (e.g., Better Auth, which has absorbed Auth.js's role after Lucia's deprecation) increasingly bundle basic multi-factor authentication, but comprehensive enterprise features — adaptive MFA, SSO/SAML at scale, and compliance-grade audit logging with PII-safe retention — commonly require custom work beyond what the library ships, according to comparative reviews current as of 2026 — cited to: wisp.blog ("Lucia Auth is Dead"), supertokens.com (Better Auth review), ssojet.com and turbostarter.dev comparison pages; reported-by-delegate: WebSearch synthesis — the individual library documentation pages were not opened directly by this analysis.
+- **GT-13?** SOC 2 Type II certification for a small SaaS startup commonly costs $25,000–$50,000 in total first-year spend (an audit engagement fee of $12,000–$60,000 plus tooling, gap assessment, and remediation), with ongoing annual maintenance (re-audit plus compliance tooling) of roughly $15,000–$40,000 — cited to: drata.com, thoropass.com, scrut.io, startupdefense.io (SOC 2 cost breakdowns, aggregated); reported-by-delegate: WebSearch synthesis — the individual vendor cost-breakdown pages were not opened directly by this analysis.
+
+**Provenance summary:** `?`-marked: GT-4, GT-5, GT-6, GT-7, GT-12, GT-13 (6 of 13). Read-at-source: GT-1 — task prompt, "Current state" line; GT-2 — task prompt, "Context" bullets; GT-3 — task prompt, "Trigger" line; GT-8 — workos.com/blog/auth0-pricing-how-it-works-and-compares-to-workos, "WorkOS Pricing" section, fetched directly; GT-9 — same URL, "Auth0 Pricing" section, fetched directly; GT-10 — clerk.com/articles/clerk-pricing-explained, fetched directly in full; GT-11 — logical identity, no external source to read. Every unsuffixed ground truth feeding a load-bearing chain (GT-1, GT-2, GT-3, GT-8, GT-9, GT-10, GT-11) has its read-at-source location named above; GT-8, GT-9, and GT-10 each feed chain C6 at HIGH confidence in addition to feeding chain C4 at MEDIUM, satisfying the requirement that a reachable, unsuffixed ground truth feed at least one HIGH-confidence chain. No further reads were attempted within this run's turn budget for the six `?`-marked ground truths beyond the two WebFetch calls already performed (GT-8/GT-9's and GT-10's shared sources), because GT-4/5/6/7/12/13 feed only chains already rated MEDIUM on other grounds (their ?'s cap those chains at MEDIUM regardless, per D-07), so reading them would not change any chain's band — they are named here rather than silently left unmarked.
+
+---
+
+## 4. Derivation Chains
+
+### Conclusion C1: The status quo (and any non-authenticating patch of it) is not a viable option — a real build/buy/composite decision is forced now
+
+GT-1 (shared password + Stripe link, no tenant identity) + GT-3 (release requires authenticated per-tenant accounts)
+→ the committed release cannot ship without a working per-tenant login and session model, because a single shared password with a Stripe customer link carries no concept of a tenant-scoped identity at all
+→ a lightweight patch that merely tags requests with a tenant ID but performs no credential verification would not satisfy GT-3's explicit requirement that the accounts be authenticated, so doing nothing or applying a non-authenticating patch is eliminated as a must-have knockout, leaving the choice strictly among build, buy, and composite paths
+
+**Pre-check:** head GT-1, GT-3 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
+**Confidence:** HIGH — both head inputs are stipulated scenario facts read at source from the task prompt, the inference is a direct deduction with no supplied premise, and the one candidate rival (a non-authenticating tenant-tagging patch) is ruled out within the chain itself by GT-3's own wording; no further rival survives.
+
+### Conclusion C2: Building on an open-source auth library brackets to 4–14 engineer-weeks; buying a managed IDP brackets to roughly 1–2 engineer-weeks, against a single-release deadline
+
+GT-4? (OWASP ASVS baseline: server-side auth, session mgmt, credential/MFA verification) + GT-6? (CWE-384 disclosed vulnerabilities in funded engineering orgs) + GT-11 (finite 7-person capacity)
+→ meeting the OWASP/NIST baseline for sessions, credential storage, password reset, and MFA on top of an OSS library requires building and hardening six distinct subsystems — session issuance and invalidation, credential hashing, reset-token flow, MFA enrollment and recovery, rate-limiting and breach-screening, and audit logging — each carrying the kind of edge case GT-6?'s disclosed-vulnerability pattern documents
+→ at a conservative 0.5–2 engineer-weeks per subsystem plus 1–2 weeks of security hardening and review, the Build path brackets to roughly 4–14 engineer-weeks of total effort before the feature is production-ready *[Assumes: A11 — baseline team competency with OSS auth primitives]*
+→ integrating a managed identity provider's hosted login, session, password-reset, and MFA flows through a vendor SDK brackets to roughly 3–10 engineer-days (0.6–2 engineer-weeks) for the base flow plus per-tenant and organization mapping, because those six subsystems are already built, hardened, and operated by the vendor
+→ against the committed next-billed-release deadline, the Build path's 4–14 week bracket commonly exceeds a typical single-release window while the Buy path's roughly 1–2 week bracket comfortably fits inside it, so the two paths are not symmetric on the time-to-ship and engineering-opportunity-cost criteria
+
+**Pre-check:** head GT-4?, GT-6?, GT-11 · ?-marked: GT-4?, GT-6? · lowest cited: none · Inputs ceiling: MEDIUM
+**Confidence:** MEDIUM — GT-4? is unverified (reported-by-delegate; verification: read the OWASP ASVS source sections directly rather than a secondary synthesis); GT-6? is unverified (reported-by-delegate; verification: read the cited advisories' own text directly). Neither input is cited from a Cn. The bracket itself (an estimate, not a measurement) is the chain's own downgrade cause beyond the two ?-marked inputs; what would remove it: replace the Fermi bracket with a real work-breakdown/story-pointing exercise against the actual team's velocity.
+
+### Conclusion C3: A 7-person generalist team cannot reach a managed vendor's audited security baseline within a single release window — the realistic in-house ceiling is unaudited, not best-demonstrated
+
+GT-6? (disclosed vulnerabilities despite engineering competence) + GT-13? (SOC2 Type II first-year cost $25K–$50K) + GT-11 (finite 7-person capacity)
+→ the governing hard constraint is that authentication security correctness is bounded by independent review and breadth of adversarial testing, not by general engineering competence or team size, since the OWASP and NIST baselines exist precisely because competent engineering organizations repeatedly miss the same failure classes GT-6? documents without dedicated security review
+→ the best-demonstrated tier for multi-tenant authentication is what SOC2-audited identity vendors already operate — continuously pen-tested, breach-screened, MFA- and SSO-capable infrastructure — and reaching that demonstrated tier independently costs a small company on the order of $25,000–$50,000 in first-year audit and compliance spend alone, before any engineering time is counted
+→ a 7-person generalist engineering team operating inside a single committed release window cannot reach that demonstrated tier in the available time, so the realistic ceiling for an in-house build on this timeline is an unaudited, baseline-level implementation at best — a materially lower floor than what adopting a managed identity provider inherits on day one
+→ the gap between what this team could realistically ship on this timeline and the vendor's existing audited baseline is therefore not a gap closable before the release — it can only be inherited by adopting a vendor that already occupies the demonstrated tier
+
+**Pre-check:** head GT-6?, GT-13?, GT-11 · ?-marked: GT-6?, GT-13? · lowest cited: none · Inputs ceiling: MEDIUM
+**Confidence:** MEDIUM — GT-6? is unverified (verification: read the cited advisories directly); GT-13? is unverified (reported-by-delegate; verification: get a direct quote from a SOC 2 auditor/readiness platform rather than relying on aggregated secondary cost pages). Rival considered: the team could engage a contract security auditor short of full SOC2 — noted but does not close the gap inside the release window (GT-3), so it does not unseat this chain's endpoint.
+
+### Conclusion C4: A composite ("buy now, abstract for later") option outscores both pure Build and pure Buy on a locked, weighted trade-off, and carries identifiable second- and third-order consequences at the enterprise-SSO moment
+
+GT-3 (hard release deadline) + GT-7? (Auth0 pricing/hard connection caps) + GT-8 (WorkOS pricing: flat per-connection, free to 1M MAU) + GT-10 (Clerk pricing: tiered MRU plus per-connection SSO) + GT-13? (SOC2 cost) + C2 (MEDIUM — time/opportunity-cost bracket) + C3 (MEDIUM — security ceiling)
+→ scoring Build, Buy, and a composite (buy now plus an internal abstraction layer) option against six weighted criteria — time-to-ship, security baseline, engineering opportunity cost, compliance readiness, cost predictability and lock-in, and control — with weights locked before scoring yields weighted totals of 57 for Build, 95 for Buy, and 101 for the composite, out of a maximum of 115
+→ the composite option's six-point margin over pure Buy is not sensitive to any single criterion's weight within the 1–5 scale: the flip test shows the largest single-criterion lever (time-to-ship, already at its ceiling weight of 5) would need to rise to roughly 11 to flip the ranking, so the result is robust rather than a near-tie dressed up as a finding
+→ the composite option is therefore the recommended approach: adopt a managed identity provider now to meet the release deadline and security baseline, while building a thin internal abstraction layer that owns tenant, organization, and role mapping so the vendor can later be swapped or partially replaced without a full rebuild *[Assumes: A12 — the abstraction layer adds only marginal time on top of base vendor integration]*
+→[2nd] once per-tenant accounts ship, sales conversations with prospects begin asking whether SSO and SAML are supported, and a vendor priced per-connection with a large free-MAU allowance lets that question be answered "yes, available now" rather than "not yet built"
+→[2nd] the vendor's recurring fee becomes a new, growing line item tied to tenant and MAU growth, shifting annual budgeting and renewal conversations from an engineering decision into a finance and vendor-management one
+→[3rd] when the first enterprise deal requires SSO, a vendor priced on hard connection caps risks a discontinuous jump to custom enterprise-tier pricing regardless of whether revenue has caught up, while a vendor priced per-connection with free MAU up to a large threshold scales the added cost roughly in proportion to the enterprise logo paying for it
+→[3rd] a competitor adopting the same category of managed identity provider can match "SSO available" within days, so buying's speed advantage is transient, while the engineering time it frees relative to Build is the more durable advantage, provided that time is reinvested in product differentiation rather than absorbed elsewhere
+
+**Pre-check:** head GT-3, GT-7?, GT-8, GT-10, GT-13?, C2 (MEDIUM), C3 (MEDIUM) · ?-marked: GT-7?, GT-13? · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
+**Confidence:** MEDIUM — capped at MEDIUM both by the lowest-rated cited chains (C2, C3, each MEDIUM for the reasons stated on their own confidence lines, not re-explained here) and by GT-7? and GT-13? (unverified; verification: read each vendor's own live pricing page directly, and get a direct SOC2 auditor quote). No chain in this analysis contradicts a ground truth, so this extension was not routed back to Phase 2.
+
+### Conclusion C5: The recommendation inverts if an unverified precondition — no data-residency/regulatory bar on a third-party identity processor — turns out to be false
+
+GT-2 (generic B2B SaaS product, not an identity product) + GT-12? (OSS libraries: partial scaffolding, not full enterprise feature parity) + C4 (MEDIUM — composite recommendation)
+→ inverting the composite recommendation and asking what would guarantee it fails yields a short list of necessary preconditions it silently depends on: the product's core value is not identity infrastructure itself, no regulatory or data-residency rule prohibits sending tenant credentials to a third-party processor, the internal abstraction layer is actually built rather than deferred indefinitely, and the vendor is selected on its SSO-connection pricing model rather than login UX alone
+→ the first precondition holds directly from the company being a generic B2B SaaS product rather than an identity product, so it does not threaten the recommendation
+→ the second precondition, the absence of a data-residency or regulatory constraint, has not been verified against this company's actual customer contracts or target verticals, and is therefore an unverified, load-bearing precondition of the entire recommendation rather than an assumption carried silently
+→ if that precondition is false — for example an existing or near-term contract requires tenant credentials to remain within a specific jurisdiction or on company-controlled infrastructure — the composite recommendation inverts, and a self-hosted open-source identity server or a fully in-house build becomes correct despite its slower time-to-ship, because the compliance must-have would then override the time-to-ship and opportunity-cost criteria that currently dominate the trade-off
+
+**Pre-check:** head GT-2, GT-12?, C4 (MEDIUM) · ?-marked: GT-12? · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
+**Confidence:** MEDIUM — capped by C4 (MEDIUM, explained on C4's own confidence line) and by GT-12? (unverified; verification: read each candidate OSS library's own documentation directly rather than a secondary comparison synthesis). The chain's own added shortfall is the unverified data-residency precondition itself (A9); verification: the CTO/legal must confirm current and near-term contractual terms before a vendor contract is finalized — this is the single verification step most capable of moving the whole analysis's confidence, named again in the adversarial pass's Sensitivity step below.
+
+### Conclusion C6: Vendor SSO-pricing structure is an independently decidable sub-choice: capped-connection models diverge materially from MAU-decoupled per-connection models
+
+GT-8 (WorkOS: free to 1M MAU, ~$125/connection) + GT-9 (Auth0 B2B Professional: ~7,500 MAU cap, 5-connection cap, custom pricing beyond) + GT-10 (Clerk: tiered MRU, one free SSO connection then per-connection pricing)
+→ comparing the three vendors' own published or vendor-reported pricing structures shows the cost-model divergence is driven by whether enterprise SSO connections are bundled into a hard plan-level cap that forces a discrete jump to custom Enterprise pricing, or priced independently of total MAU on a per-connection basis with no hard cap
+→ this divergence means choosing a managed IDP and choosing which managed IDP are two separable decisions with materially different cost trajectories as enterprise SSO demand grows, so vendor selection is an input to the build-vs-buy decision rather than a detail resolved after it
+
+**Pre-check:** head GT-8, GT-9, GT-10 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
+**Confidence:** HIGH — all three head inputs are unsuffixed ground truths with named read-at-source locations (GT-8/GT-9 fetched directly from the WorkOS comparison article, GT-10 fetched directly from Clerk's own pricing article); the inference is a direct comparison with no supplied premise; no rival reading of the same three pricing structures denies that the cap-vs-uncapped divergence exists and is decision-relevant — a rival might contest which model is "better" for this company, but that evaluative judgment already lives in chain C4 under its own MEDIUM band, and is not this chain's endpoint.
+
+**Unverified input rule (D-07) summary:** Chains C2, C3, C4, and C5 each carry at least one `GT-N?` input or cite a MEDIUM-rated chain, and each ends with a MEDIUM confidence line naming the specific unverified input(s) or cited chain(s) and the verification that would remove them as a cause of the downgrade. Chains C1 and C6 carry no unverified input and are each rated HIGH.
+
+---
+
+## 5. Abandoned Reasoning
+
+### Dead End: Patch the shared-password scheme with a tenant-ID tag, without real per-tenant authentication
+
+**What was tried:** Considered whether a minimal, non-cryptographic patch — stamping requests or cookies with a tenant identifier, without verifying any credential — could satisfy the release requirement without forcing a full build/buy/composite decision.
+
+**Why abandoned:** GT-3 explicitly requires per-tenant accounts to be "authenticated." A tenant-ID tag with no credential verification is not authentication under any definition GT-4?/GT-5? describe (OWASP/NIST baseline), and it would ship a feature that fails its own acceptance criterion while introducing a trivial tenant-impersonation vulnerability (any client could set any tenant ID). This directly contradicts GT-3 and GT-4?.
+
+**What it ruled out:** Saves re-exploring "just fake it" shortcuts under deadline pressure, and confirms that real authentication — not merely tenant labeling — is required, which is what makes this a genuine build/buy/composite decision rather than a trivial schema change.
+
+### Dead End: Build fully from scratch — hand-rolled cryptography and session primitives, no OSS library, no vendor
+
+**What was tried:** Considered the most extreme reading of "build": implementing password hashing, session tokens, and MFA primitives from first principles, without an OSS library or vendor SDK, to retain maximum control.
+
+**Why abandoned:** GT-4?/GT-5? (OWASP/NIST baselines) and GT-6? (disclosed CWE-384 vulnerabilities in funded engineering organizations using frameworks, let alone from-scratch code) establish that hand-rolled cryptographic/session primitives have a documented history of exactly the failure modes these standards exist to prevent. Combined with GT-11 (finite 7-person capacity) and the committed release deadline (GT-3), this option cannot plausibly clear the OWASP/NIST baseline in the available time — it is strictly dominated by chain C2's own "Build on OSS library" bracket, which is already the more favorable reading of Option A. The user's own Option A specifies building on an OSS library rather than from scratch, so this extreme was already outside the two named options; it is recorded here because it is the most literal reading of "build" and is worth ruling out explicitly rather than silently.
+
+**What it ruled out:** Confirms that any viable "build" path must be built on a vetted OSS library (as Option A already specifies), never from first principles of cryptography — and that chain C2's bracket, which assumes the OSS-library reading, is already the most favorable case for Build, not a pessimistic one.
+
+### Dead End: Score Build and Buy as the only two candidates and pick one
+
+**What was tried:** Initially scored Option A (Build) and Option B (Buy) as the complete option set for the weighted trade-off, per the question's own framing.
+
+**Why abandoned:** The trade-off computation (chain C4) shows a composite option (buy now plus build a thin internal abstraction layer) outperforms both pure options once compliance-readiness and cost-predictability/lock-in criteria are included in the scoring — pure Buy left migration risk and vendor lock-in unmitigated, and pure Build failed the time-to-ship and security criteria outright (57 vs. 95 vs. 101, out of 115). Restricting the option set to the two named options would have reported a result the data did not support.
+
+**What it ruled out:** Confirms that the binary framing in the original question understates the viable option space, directly satisfying this analysis's Phase 1 requirement to test whether a split or combination of the named options dominates before finalizing a recommendation.
+
+---
+
+## 6. Conclusion
+
+**Recommended approach:** Adopt a managed identity provider now — favoring a vendor with a per-connection, large-free-MAU pricing model (such as WorkOS's or Clerk's) over a vendor with a hard enterprise-connection cap (such as Auth0's standard B2B tiers) — to ship the committed per-tenant authenticated release on time and at a security baseline this team cannot independently reach on this timeline, while building a thin internal abstraction layer that owns tenant, organization, and role mapping so the vendor can later be swapped or partially replaced without a full rebuild (chain C4).
+
+**Key insight:** The build-vs-buy framing in the original question is a false binary: a composite "buy now, abstract for later" option beats both pure options on a locked, weighted trade-off (chain C4), and the dominant failure mode of the pure-Build path is not an engineering-skill gap but a timeline-versus-independent-review gap that no amount of team competence closes before the committed release (chain C3).
+
+**Trade-offs acknowledged:** This recommendation accepts a recurring vendor cost that scales with tenant and MAU growth instead of a one-time build cost, and accepts a bounded but non-zero vendor lock-in and migration cost despite the abstraction layer (chain C4, chain C5); it also depends on the chosen vendor's current SSO-connection pricing remaining economically favorable as the company scales toward enterprise customers, which is a current constraint rather than a verified fact — no chain — flagged assumption only.
+
+**Pre-check:** head C4 (MEDIUM), C5 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
+**Confidence:** MEDIUM — the recommendation rests on chain C4 (MEDIUM) and chain C5 (MEDIUM), both of which carry their own confidence explanations above and are not re-explained here. The Conclusion's own added shortfall is chain C5's unverified, load-bearing precondition that no data-residency or regulatory constraint currently prohibits a third-party identity processor (A9). Verification that would raise this toward HIGH: (1) confirm current vendor pricing directly against each vendor's own live pricing page rather than a third-party pricing tracker; (2) have the CTO or legal counsel confirm no existing or near-term contract imposes a data-residency constraint; (3) replace the Fermi brackets in chains C2 and C3 with a real work-breakdown estimate from the actual team and a scoped quote from a security auditor.
+## Appendix — process output
+
+## Techniques not applied (process output)
+
+- theoretical-limit (Phase 1 reframe invocation) — not applicable — the Essence Statement does not hinge on whether a current figure is a convention or a hard physical bound; the build-vs-buy question is a resource/risk-allocation decision among already-existing options, not a convention-vs-law ambiguity about the problem itself. (Theoretical-limit still fires at Phase 4, chain C3.)
+- inversion (Phase 5 adversarial-technique invocation) — not applicable — the Conclusion (section 6) is a plan/recommendation, not a bare claim, so the decision rule routes the Phase 5 adversarial pass to pre-mortem instead of inversion. (Inversion still fires at Phase 2, producing assumptions A9/A10, and again at Phase 4 as chain C5's derivation method.)
+- fishbone — not applicable — the assumption space here is governed by a small set of framing assumptions directly identifiable from the prompt's own structure (binary build/buy framing, reversibility in both directions, urgency-vs-diligence); intuitive enumeration against the four-type scheme sufficed without needing categorical cause-brainstorming across cause categories such as 6M/8P/4S.
+
+## §6→§4 closure ledger (process output)
+
+- "Adopt a managed identity provider now ... while building a thin internal abstraction layer ..." → chain C4 ✓
+- "The build-vs-buy framing in the original question is a false binary ... the dominant failure mode of the pure-Build path is ... a timeline-versus-independent-review gap ..." → chain C4, chain C3 ✓
+- "This recommendation accepts a recurring vendor cost ... and accepts a bounded but non-zero vendor lock-in and migration cost ... it also depends on the chosen vendor's current SSO-connection pricing remaining economically favorable ..." → chain C4, chain C5 ✓ (main clause); caveat clause carries no chain — flagged assumption only (marker discloses the gap, does not discharge it)
+- "**Pre-check:** head C4 (MEDIUM), C5 (MEDIUM) ..." → self-discharged by its own head field naming C4, C5 (per output-template.md's pre-check rule)
+- "**Confidence:** MEDIUM — the recommendation rests on chain C4 ... and chain C5 ..." → chain C4, chain C5 ✓
+
+Scan complete: 5 of 5 Conclusion-section claims (Recommended approach, Key insight, Trade-offs acknowledged, Pre-check, Confidence) carry an inline chain citation, a self-discharging head field, or the flagged-assumption marker on their internal caveat; 0 claims cut.
+
+## Assumption Audit scan (process output)
+
+| Chain | Step | Step Text (brief) | Assumption surfaced? | Added to Table? |
+|-------|------|--------------------|-----------------------|------------------|
+| C1 | 1 | release cannot ship without real per-tenant login/session model | none | n/a |
+| C1 | 2 | non-authenticating tenant tag fails GT-3; knockout leaves build/buy/composite | none | n/a |
+| C2 | 1 | meeting baseline requires hardening six subsystems | none | n/a |
+| C2 | 2 | Build brackets to ~4–14 engineer-weeks | A11 — baseline team competency with OSS auth primitives | yes |
+| C2 | 3 | Buy brackets to ~3–10 engineer-days | none | n/a |
+| C2 | 4 | Build bracket commonly exceeds release window; Buy bracket fits | none | n/a |
+| C3 | 1 | governing constraint is independent review, not team size | none | n/a |
+| C3 | 2 | best-demonstrated tier costs $25K–$50K first-year to reach independently | none | n/a |
+| C3 | 3 | 7-person team cannot reach demonstrated tier in the window | none | n/a |
+| C3 | 4 | gap can only be inherited by adopting a vendor already at that tier | none | n/a |
+| C4 | 1 | weighted totals: Build 57, Buy 95, composite 101 | none | n/a |
+| C4 | 2 | flip test: ranking robust within the 1–5 weight scale | none | n/a |
+| C4 | 3 | composite is the recommended approach | A12 — abstraction layer adds only marginal time | yes |
+| C4 | 4 [2nd] | sales can answer "SSO available now" under per-connection pricing | none | n/a |
+| C4 | 5 [2nd] | vendor fee becomes a growing finance/budgeting line item | none | n/a |
+| C4 | 6 [3rd] | hard-cap vendor risks a discontinuous cost jump at the first enterprise deal | none | n/a |
+| C4 | 7 [3rd] | buying's speed advantage is transient; freed engineering time is durable | none | n/a |
+| C5 | 1 | inversion yields four necessary preconditions of the recommendation | none (A9, A10 already in table from Phase 2) | n/a |
+| C5 | 2 | precondition 1 (not an identity product) holds | none | n/a |
+| C5 | 3 | precondition 2 (no data-residency bar) is unverified and load-bearing | none (references A9, already in table) | n/a |
+| C5 | 4 | if precondition 2 is false, the recommendation inverts | none | n/a |
+| C6 | 1 | comparing three vendors' pricing structures shows capped vs. uncapped divergence | none | n/a |
+| C6 | 2 | vendor selection is an input to the build-vs-buy decision, not a detail after it | none | n/a |
+
+Scan complete: 23 rows, one per named derivation-chain step across chains C1–C6, in order; 2 assumptions surfaced (A11, A12), both already reflected in the Classified Assumptions Table (section 2) and marked inline on their originating steps with `[Assumes: X]`.
+
+## Adversarial pass (process output)
+
+**Recompute.** Weighted totals redone independently from the per-criterion scores and locked weights (time=5, security=5, opportunity-cost=4, compliance=4, cost-predictability=3, control=2; weight sum=23, max possible score=115): Build = 5·2+5·2+4·1+4·2+3·5+2·5 = 10+10+4+8+15+10 = **57**. Buy = 5·5+5·5+4·4+4·4+3·3+2·2 = 25+25+16+16+9+4 = **95**. Composite = 5·4+5·5+4·4+4·5+3·4+2·4 = 20+25+16+20+12+8 = **101**. All three recompute to the figures stated in chain C4, step 1. Flip-test recompute: per-criterion (composite − buy) contribution = time (4−5)·5=−5, security 0, opportunity-cost 0, compliance (5−4)·4=+4, cost-predictability (4−3)·3=+3, control (4−2)·2=+4; total = −5+4+3+4 = **+6**, confirming chain C4 step 2's margin. Solving for the time-to-ship weight alone that would zero this margin: −w_t+11 ≤ 0 → w_t ≥ 11, against a 1–5 scale where it is already at the ceiling (5) — confirms no single-criterion reweighting within the stated scale flips the ranking.
+
+**Sensitivity.** The single item whose falsity would flip the headline recommendation is not a `GT-N?` ground truth but assumption **A9** (no existing or near-term customer contract imposes a data-residency/regulatory bar on a third-party identity processor) — named explicitly in chain C5 and in the Conclusion's confidence line. A9 is unverified; the verification that would settle it is a direct confirmation from the CTO/legal counsel against actual and pipeline contracts (named again as the dominant lever in the Conclusion section). A secondary sensitivity point within chain C4 is GT-7?/GT-9 (Auth0-style hard connection caps) and GT-8 (WorkOS-style flat per-connection pricing): if the specific vendor chosen does not match the pricing-model assumption used to score the "compliance readiness" and "cost predictability" criteria, the composite's margin over pure Buy narrows (though the recompute above shows it does not close at any single-criterion weight within scale).
+
+**Rival.** Headline: the strongest rival to the composite recommendation is pure Build (Option A), ruled out by chain C4's weighted-total gap (57 vs. 101) and chain C3's finding that the team cannot reach the vendor's security ceiling within the release window — both already in the analysis, not newly introduced here. Per intermediate chain: **C1** — rival is the non-authenticating tenant-tag patch, ruled out inside the chain itself by GT-3's "authenticated" requirement (see also Dead End 1, section 5). **C2** — rival is "a specialist security hire could compress the build bracket toward its 4-week low end"; live but bounded — even at 4 weeks the Build path still consumes roughly 3× the Buy path's bracket relative to a 7-person team's capacity, so this rival narrows but does not reverse chain C2's endpoint; not fully settled, which is part of why C2 is rated MEDIUM rather than HIGH. **C3** — rival is "a scoped third-party pen-test short of full SOC2 could close enough of the gap within the window"; this rival is live and not ruled out by this analysis, and is the main reason C3 is MEDIUM rather than HIGH. **C4** — rival is "pure Buy without the abstraction layer is simpler and sufficient"; ruled out by the weighted-total margin (95 vs. 101) and by Cluster 3 below, which names the lock-in/migration cost pure Buy leaves fully unmitigated. **C5** — rival is "the data-residency precondition is vacuous because no regulated-industry customers are in the pipeline"; this rival is live and explicitly not settled by this analysis — it is exactly the Sensitivity item above, and settling it is the named verification step in the Conclusion.
+
+**Premise.** The plan — adopt a managed identity provider now with an internal abstraction layer, deferring a full in-house build — has already failed 12–18 months out.
+
+**Causes** (unfiltered, from the implementing engineer's, the CTO/finance owner's, a competitor's, and an enterprise prospect's viewpoints, generated before any grouping):
+1. The abstraction layer was scoped out "for later" under release pressure and never actually built; tenant/org logic ended up hard-wired directly to the vendor SDK.
+2. The vendor was picked on demo polish and developer experience without comparing SSO-connection pricing models, and the cost structure was discovered only after the first enterprise deal.
+3. Nobody was assigned to own vendor security advisories or webhook-based session-revocation edge cases, so a vendor-side password-reset bug silently broke an invalidation flow for weeks before anyone noticed.
+4. MFA enrollment UX was deferred to "phase 2" and still was not done a year later, so every compliance/security questionnaire kept getting punted.
+5. MRR and tenant count grew, MAU crossed a pricing tier the team had not modeled, and the vendor bill jumped sharply at a single renewal cycle.
+6. The first enterprise logo closed and demanded SSO, SCIM, and a signed data-processing agreement; the legal back-and-forth over the vendor's DPA terms took six weeks and nearly cost the deal — a compliance-paperwork bottleneck, not a technology one.
+7. Switching vendors after the fact (to escape a cost or lock-in problem) was quoted at roughly three engineer-months plus a forced password reset for every user — a migration nobody had budgeted for.
+8. A credential-stuffing attack targeted the vendor's login endpoints across many of its customers at once (a multi-tenant vendor is a higher-value target), and this company's tenants were swept up in the resulting incident even though none of the company's own code was touched.
+9. A competitor marketed "SOC2 and SSO out of the box, zero setup" using the same category of vendor, erasing the first-mover speed advantage the company hoped buying fast would preserve.
+10. An enterprise prospect's security team rejected the vendor during due diligence because it did not support the specific SAML attribute mapping or session-timeout policy their IT department required, and the abstraction layer was not flexible enough to work around it.
+
+**Clusters:**
+- **Cluster A — deferred work never gets done** (causes 1, 4; bears on chain C4, assumption A12): the abstraction layer and MFA/compliance enablement get perpetually postponed under the next deadline.
+- **Cluster B — vendor economics under-modeled** (causes 2, 5; bears on chain C4, GT-7?, GT-8, GT-9, GT-10, assumption A10): vendor chosen on UX rather than pricing-model fit; MAU/connection pricing tiers crossed unexpectedly.
+- **Cluster C — concentration, legal, and migration risk inherent to the vendor relationship** (causes 3, 6, 7, 8; bears on chain C3, chain C5, assumption A4): multi-tenant vendor breach/outage exposure, slow DPA/legal negotiation at the worst possible time, and underestimated migration cost if a switch is ever needed.
+- **Cluster D — competitive and due-diligence erosion of the "buy fast" advantage** (causes 9, 10; bears on chain C4's third-order extension, chain C5): the speed advantage commoditizes, and vendor/abstraction rigidity can still fail a specific enterprise security review.
+
+**Disposition:**
+- Cluster A — **named plan change:** make the abstraction layer and MFA/audit-log enablement explicit, time-boxed roadmap items with a named owner and a committed date in the same planning cycle as the release itself, not an undated "later."
+- Cluster B — **named plan change:** require a 3-year cost projection at 3× current MAU and at least 2 enterprise SSO connections as a mandatory input to vendor selection, evaluated against each finalist vendor's own published pricing, before any contract is signed.
+- Cluster C — **explicitly accepted risk with a named mitigation:** the concentration/outage risk of a specialist vendor is accepted as net-safer than this team's realistic in-house alternative (per chain C3), mitigated by (a) completing DPA/legal review during initial vendor selection rather than reactively during the first enterprise negotiation, and (b) building the abstraction layer specifically so a future migration is a scoped project rather than a full rebuild.
+- Cluster D — **explicitly accepted risk with a named mitigation:** the erosion of first-mover speed advantage is accepted as inevitable in a commoditizing category; mitigated by reinvesting the engineering time saved relative to Build (chain C2) into product differentiation rather than further auth work, and by scoping the abstraction layer's flexibility against at least one concrete enterprise-grade SAML/session-policy requirement before the first real enterprise security review, not only against the vendor's default configuration.
+
+**Falsification.** The conclusion is false if the next billed release cannot ship through any available managed-IDP integration within the committed timeline at an acceptable security baseline, or if a verified regulatory/data-residency constraint is found to prohibit sending tenant credentials to a third-party processor.
+
+## Self-audit scan (process output)
+
+| Chain | Chain Head (brief) | Form conforming? | Rule applied | Dependency clean? | Band | Act attempted? | Edges fired |
+|-------|---------------------|-------------------|---------------|--------------------|------|-----------------|-------------|
+| C1 | GT-1 + GT-3 | yes | n/a | yes | HIGH | no (stipulated inputs, no external source to open) | none |
+| C2 | GT-4? + GT-6? + GT-11 | yes | n/a | yes | MEDIUM | yes (WebSearch attempted for GT-4?/GT-6?; primary standards not directly opened) | none |
+| C3 | GT-6? + GT-13? + GT-11 | yes | n/a | yes | MEDIUM | yes (WebSearch attempted for GT-6?/GT-13?) | none |
+| C4 | GT-3 + GT-7? + GT-8 + GT-10 + GT-13? + C2 (MEDIUM) + C3 (MEDIUM) | yes | n/a | yes | MEDIUM | yes (WebFetch opened GT-8/GT-9/GT-10's sources directly; WebSearch attempted for GT-7?/GT-13?) | none |
+| C5 | GT-2 + GT-12? + C4 (MEDIUM) | yes | n/a | yes | MEDIUM | yes (WebSearch attempted for GT-12?) | none |
+| C6 | GT-8 + GT-9 + GT-10 | yes | n/a | yes | HIGH | yes (WebFetch opened all three cited sources directly) | none |
+
+| §6 Span (brief) | Construct | Claim under R11? | R11 clause applied | Chain cited |
+|-------------------|-----------|-------------------|----------------------|---------------|
+| **Recommended approach:** Adopt a managed identity provider now ... | bold lead-in | yes | one of the four always-claim lead-ins; colon closes bold span, content on same line | C4 |
+| **Key insight:** The build-vs-buy framing ... is a false binary ... | bold lead-in | yes | one of the four always-claim lead-ins; colon closes bold span, content on same line | C3, C4 |
+| **Trade-offs acknowledged:** This recommendation accepts ... | bold lead-in | yes | one of the four always-claim lead-ins; colon closes bold span, content on same line; internal caveat carries the `no chain — flagged assumption only` marker | C4, C5 |
+| **Pre-check:** head C4 (MEDIUM), C5 (MEDIUM) ... | bold lead-in | yes | bold lead-in with colon closing span and content on same line; per output-template.md, the pre-check line is itself a claim, self-discharged by the chains its own `head` field names | C4, C5 |
+| **Confidence:** MEDIUM — the recommendation rests on ... | bold lead-in | yes | one of the four always-claim lead-ins; colon closes bold span, content on same line | C4, C5 |
+
+Scan complete: 6 chain rows, one per section-4 chain block in order; 5 section-6 rows, one per construct in order — 5 claims under R11, 0 excluded. 0 chains malformed, 0 claims untraced.
+
+## Self-Audit Gate (process output)
+
+**Criterion 1: Identify Essence**
+Quoted span: "Given a hard deadline (the next billed release) that requires real per-tenant authenticated accounts, how should a 7-person engineering team ... allocate its scarce engineering time and risk budget between implementing authentication in-house on an open-source library versus adopting a managed identity provider — and does either pure option, or some sequencing/combination of the two, best satisfy the company's time, security, and compliance constraints?"
+Band: **Rigorous**
+Justification: the statement names the resource-allocation decision itself (not the triggering release or the shared-password symptom), explicitly opens the option space beyond the two named options, and each of the six success criteria is checkable against a specific property of section 6 and section 4 (named chains, a tested composite, named conditions for the alternative, a named second-order chain, named mitigations, and A6's verdict) without further clarification.
+
+**Criterion 2: Challenge Assumptions**
+Quoted span: "Urgency justifies skipping security diligence to hit the release date | convention (dangerous) | Explicitly challenge before use; stakes-escalation rule applies | Discard — a release that introduces real per-tenant authentication for the first time is exactly the case where stakes are highest; GT-4?, GT-5?, and GT-6? establish a baseline that does not relax for schedule pressure"
+Band: **Rigorous**
+Justification: all twelve rows use the four-type scheme correctly, every Verdict cell leads with a token and an em-dash-separated specific justification, every Verification cell names a specific source or reads "unverified — flagged," at least four assumptions are Discarded or Challenged with evidence (not merely Accepted), and the Assumption Audit scan (process output, 23 rows) confirms the end-of-phase audit ran exhaustively over every named chain step in section 4 and correctly surfaced A11 and A12 into this table.
+
+**Criterion 3: Establish Ground Truths**
+Quoted span (self-audit scan, chain-form table): "C6 | GT-8 + GT-9 + GT-10 | yes | n/a | yes | HIGH | yes (WebFetch opened all three cited sources directly) | none"
+Band: **Rigorous**
+Justification: GT-IDs are stable throughout; the `?`-marked set is enumerated by ID (GT-4, GT-5, GT-6, GT-7, GT-12, GT-13 — 6 of 13) and that enumeration, checked against the Ground Truths list, matches exactly; every unsuffixed ground truth feeding a load-bearing chain (GT-1, GT-2, GT-3, GT-8, GT-9, GT-10, GT-11) names its read-at-source location; and the three reachable, unsuffixed ground truths that would otherwise feed only a MEDIUM chain (GT-8, GT-9, GT-10, via chain C4) each also feed chain C6 at HIGH confidence, satisfying the Rigorous requirement that a reachable unsuffixed ground truth feed at least one HIGH-confidence chain.
+
+**Criterion 4: Reason Upward**
+Quoted span (self-audit scan, chain-form table): "C4 | GT-3 + GT-7? + GT-8 + GT-10 + GT-13? + C2 (MEDIUM) + C3 (MEDIUM) | yes | n/a | yes | MEDIUM | yes (WebFetch opened GT-8/GT-9/GT-10's sources directly; WebSearch attempted for GT-7?/GT-13?) | none"
+Band: **Rigorous**
+Justification: all six chains score `Form conforming? = yes` with `Rule applied = n/a` and `Dependency clean? = yes`; every chain carries at least one genuine intermediate step; no analogy is used as direct evidence anywhere (the one reference to "how others solved it" — vendor security baselines — is grounded in named GT-7?/GT-8/GT-9/GT-10/GT-13?, not offered as standalone justification); both chain-step assumptions surfaced during the Phase 4 audit (A11 on chain C2, A12 on chain C4) are declared inline with `[Assumes: A11]` / `[Assumes: A12]`; and section 5 documents three specific, non-generic dead ends in the prescribed What-was-tried/Why-abandoned/What-it-ruled-out structure.
+
+**Criterion 5: Validate**
+Quoted span (adversarial pass record): "Falsification. The conclusion is false if the next billed release cannot ship through any available managed-IDP integration within the committed timeline at an acceptable security baseline, or if a verified regulatory/data-residency constraint is found to prohibit sending tenant credentials to a third-party processor."
+Band: **Rigorous**
+Justification: every MEDIUM chain (C2, C3, C4, C5) names its specific `GT-N?` inputs and/or cited `Cn` bands with a verification path, no chain is rated HIGH while consuming a `GT-N?` input, no chain is rated above the lowest band it cites, the overall Conclusion's MEDIUM rating matches its weakest contributing chains (C4, C5), and the adversarial pass record is complete across all five steps (Recompute, Sensitivity, Rival — for the headline and for chains C1 through C5 individually, Premise/Causes/Clusters/Disposition, and Falsification) with every cluster carrying either a named plan change or an explicitly accepted risk with a named mitigation.
+
+**Criterion 6: Conclusion-to-Ground-Truth Traceability**
+Quoted span (self-audit scan, claim-inventory table): "**Key insight:** The build-vs-buy framing ... is a false binary ... | bold lead-in | yes | one of the four always-claim lead-ins; colon closes bold span, content on same line | C3, C4"
+Band: **Rigorous**
+Justification: all five section-6 constructs trace to named chains (four by inline citation, the Pre-check line self-discharged by its own head field per output-template.md), no claim introduces reasoning absent from section 4, and the Key Insight states a non-obvious finding (the binary framing is false, and the Build path's failure mode is a review-gap, not a skill gap) rather than restating the Recommended approach.
+
+**Pass 1 (before re-score):** Criterion 1 Rigorous · Criterion 2 Rigorous · Criterion 3 Hand-wavy (GT-8/GT-9/GT-10 fed only chain C4 at MEDIUM, with no reachable unsuffixed ground truth feeding a HIGH chain) · Criterion 4 Rigorous · Criterion 5 Rigorous · Criterion 6 Rigorous · Gate cleared: yes · Hand-wavy cap cleared: yes (exactly one Hand-wavy)
+
+**Fix applied:** Added chain C6 (section 4), establishing — at HIGH confidence, from GT-8, GT-9, and GT-10 alone — that the three vendors' SSO-pricing structures diverge materially between capped and uncapped models. This gives each of GT-8, GT-9, and GT-10 a HIGH-confidence chain in addition to their existing role in chain C4, satisfying Criterion 3's Rigorous requirement directly rather than relying on the one-Hand-wavy tolerance. Updated the Assumption Audit scan, the self-audit scan's chain-form table, and the Ground Truths provenance note accordingly.
+
+**Gate result:** cleared · passes: 2 · Fix/Repeat fired: yes
+
+## Structured summary (process output)
+
+```json
+{
+  "schema_version": 1,
+  "run_mode": "full-composer",
+  "assumptions": [
+    {"id": "A-1", "type": "convention", "verdict": "Discard"},
+    {"id": "A-2", "type": "untested belief", "verdict": "Challenge"},
+    {"id": "A-3", "type": "convention", "verdict": "Challenge"},
+    {"id": "A-4", "type": "untested belief", "verdict": "Challenge"},
+    {"id": "A-5", "type": "untested belief", "verdict": "Discard"},
+    {"id": "A-6", "type": "convention", "verdict": "Discard"},
+    {"id": "A-7", "type": "untested belief", "verdict": "Challenge"},
+    {"id": "A-8", "type": "untested belief", "verdict": "Challenge"},
+    {"id": "A-9", "type": "untested belief", "verdict": "Challenge"},
+    {"id": "A-10", "type": "current constraint", "verdict": "Challenge"},
+    {"id": "A-11", "type": "untested belief", "verdict": "Challenge"},
+    {"id": "A-12", "type": "untested belief", "verdict": "Challenge"}
+  ],
+  "ground_truths": [
+    {"id": "GT-1", "read_at_source": true},
+    {"id": "GT-2", "read_at_source": true},
+    {"id": "GT-3", "read_at_source": true},
+    {"id": "GT-4", "read_at_source": false},
+    {"id": "GT-5", "read_at_source": false},
+    {"id": "GT-6", "read_at_source": false},
+    {"id": "GT-7", "read_at_source": false},
+    {"id": "GT-8", "read_at_source": true},
+    {"id": "GT-9", "read_at_source": true},
+    {"id": "GT-10", "read_at_source": true},
+    {"id": "GT-11", "read_at_source": true},
+    {"id": "GT-12", "read_at_source": false},
+    {"id": "GT-13", "read_at_source": false}
+  ],
+  "chains": [
+    {"id": "C1", "confidence": "HIGH", "rests_on": ["GT-1", "GT-3"]},
+    {"id": "C2", "confidence": "MEDIUM", "rests_on": ["GT-4?", "GT-6?", "GT-11"]},
+    {"id": "C3", "confidence": "MEDIUM", "rests_on": ["GT-6?", "GT-13?", "GT-11"]},
+    {"id": "C4", "confidence": "MEDIUM", "rests_on": ["GT-3", "GT-7?", "GT-8", "GT-10", "GT-13?", "C2", "C3"]},
+    {"id": "C5", "confidence": "MEDIUM", "rests_on": ["GT-2", "GT-12?", "C4"]},
+    {"id": "C6", "confidence": "HIGH", "rests_on": ["GT-8", "GT-9", "GT-10"]}
+  ],
+  "dead_ends": [
+    "Patch the shared-password scheme with a tenant-ID tag, without real per-tenant authentication",
+    "Build fully from scratch — hand-rolled cryptography and session primitives, no OSS library, no vendor",
+    "Score Build and Buy as the only two candidates and pick one"
+  ],
+  "techniques": {
+    "applied": ["five-whys", "inversion", "estimate", "theoretical-limit", "trade-off", "second-order", "pre-mortem"],
+    "not_applied": [
+      {"technique": "theoretical-limit", "phase": 1, "reason": "the Essence Statement does not hinge on whether a current figure is a convention or a hard physical bound; the build-vs-buy question is a resource/risk-allocation decision among already-existing options, not a convention-vs-law ambiguity about the problem itself"},
+      {"technique": "inversion", "phase": 5, "reason": "the Conclusion (section 6) is a plan/recommendation, not a bare claim, so the decision rule routes the Phase 5 adversarial pass to pre-mortem instead of inversion"},
+      {"technique": "fishbone", "phase": 2, "reason": "the assumption space here is governed by a small set of framing assumptions directly identifiable from the prompt's own structure (binary build/buy framing, reversibility in both directions, urgency-vs-diligence); intuitive enumeration against the four-type scheme sufficed without needing categorical cause-brainstorming"}
+    ]
+  },
+  "gate": {
+    "passes": [
+      {
+        "bands": ["Rigorous", "Rigorous", "Hand-wavy", "Rigorous", "Rigorous", "Rigorous"],
+        "gate_cleared": true,
+        "hand_wavy_cap_cleared": true
+      },
+      {
+        "bands": ["Rigorous", "Rigorous", "Rigorous", "Rigorous", "Rigorous", "Rigorous"],
+        "gate_cleared": true,
+        "hand_wavy_cap_cleared": true
+      }
+    ],
+    "fix_repeat_fired": true,
+    "cleared": true
+  },
+  "re_entry": {
+    "fired": true,
+    "edges": [
+      {
+        "edge": "the Self-Audit Gate's Fix/Repeat loop",
+        "trigger": "Criterion 3 scored Hand-wavy on the first scoring pass because three reachable, unsuffixed ground truths (GT-8, GT-9, GT-10) fed only a MEDIUM-confidence chain, with no reachable unsuffixed ground truth feeding a HIGH-confidence chain; chain C6 was added before the final pass to close this."
+      }
+    ]
+  },
+  "conclusion": {
+    "recommendation": "Adopt a managed identity provider now — favoring a vendor with a per-connection, large-free-MAU pricing model (such as WorkOS's or Clerk's) over a vendor with a hard enterprise-connection cap (such as Auth0's standard B2B tiers) — to ship the committed per-tenant authenticated release on time and at a security baseline this team cannot independently reach on this timeline, while building a thin internal abstraction layer that owns tenant, organization, and role mapping so the vendor can later be swapped or partially replaced without a full rebuild (chain C4).",
+    "confidence": "MEDIUM",
+    "rests_on": ["C4", "C5"]
+  }
+}
+```
