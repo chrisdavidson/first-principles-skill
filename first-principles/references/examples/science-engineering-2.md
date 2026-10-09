@@ -53,9 +53,9 @@ prescribe a counter-intervention different from the operator's first hypothesis
 |------------|------|-----------|---------|--------------|
 | Hertzian contact theory predicts subsurface shear-stress maximum at depth ~0.78·a (half-contact-width) for line contact in cylindrical roller bearings | physical law | Accept as ground-truth candidate; promote to GT | Accept — classical contact mechanics (Hertz 1882); standard tribology-text derivation, independent of failure mode | Classical contact mechanics; Hertz (1882); standard derivation in any tribology text. Independent of failure mode. |
 | Rolling-contact fatigue (RCF) life follows the Lundberg-Palmgren / ISO 281 L10 model: life ∝ (C/P)^p with p = 10/3 for roller bearings, valid for clean, well-lubricated, properly mounted bearings under load below the C_u fatigue limit | physical law (derived) | Accept as ground-truth candidate; record constituent assumptions (clean lube, p = 10/3 for roller geometry, P below C_u) as expiry conditions | Accept — ISO 281:2007; valid for classical RCF only, does not model WEC failures | ISO 281:2007; derived from Weibull statistics of subsurface crack initiation. Validity range: classical RCF only — does not model WEC failures, which are a separate mechanism. |
-| A 9× life shortfall against the ISO 281 L10 baseline (observed ~14,000 h vs calculated ~130,000 h L10) is too large to be attributed to load-spectrum estimation uncertainty or material-cleanliness variance within the classical RCF Weibull model — a non-classical mechanism is required | untested belief (quantitative threshold) | Accept with verification — the Chain 2 inference that a non-classical mechanism is required depends on this threshold claim; the magnitude (9×) must be compared against documented Weibull scatter in classical RCF studies to confirm it falls outside the scatter envelope | Accept — 9× shortfall is far outside classical RCF's ~2–3× Weibull scatter band and falls inside Stadler & Stubenrauch's published EIBD range | A 9× shortfall is far outside the ~2–3× scatter band documented in classical RCF Weibull analysis; Stadler & Stubenrauch 2013 (Table 2) documents WEC failures at 5–20% of L10 life — the ~11% observed here (14,000 / 130,000) falls inside that published EIBD range and outside the classical RCF scatter range, confirming the threshold claim. |
+| A 9× life shortfall against the ISO 281 L10 baseline (observed ~14,000 h vs calculated ~130,000 h L10) is too large to be attributed to load-spectrum estimation uncertainty or material-cleanliness variance within the classical RCF Weibull model — a classical-RCF-only explanation is strongly disfavoured (≈0.1–0.2% probability under ISO 281's reliability factor), and the white-etching microstructure (GT-3) is what discriminates | untested belief (quantitative threshold) | Accept with verification — the Chain 2 inference that a non-classical mechanism is strongly indicated depends on this threshold claim; the magnitude (9×) must be compared against ISO 281's reliability-factor table to establish how improbable it is under classical RCF | Accept — 9× shortfall (0.108 × L10) sits between ISO 281's a1 = 0.12 (99.8% reliability) and a1 = 0.093 (99.9%), and falls inside Stadler & Stubenrauch's published EIBD range | The observed life is 14,000 / 130,000 = 0.108 × L10, which on ISO 281's reliability-factor table lies between 99.8% reliability (a1 = 0.12) and 99.9% (a1 = 0.093): only ~0.1–0.2% of classically fatiguing bearings would fail this early, so a classical-RCF-only explanation is strongly disfavoured though not impossible. Stadler & Stubenrauch 2013 (Table 2) documents WEC failures at 5–20% of L10 life — the ~11% observed here falls inside that published EIBD range; the white-etching microstructure (GT-3) is what discriminates. |
 | The bearing's operating-condition history is captured by the SCADA log: HSS torque trace, generator-converter switching events, grid faults, cold-start transients | current constraint (quantifiable-cost) | Quantify what the log captures vs misses: 10-minute averaging window means sub-second transients are invisible; switching-event counts and grid-fault codes are logged at event resolution | Accept — SCADA log verified against the turbine archive for the full 14,000-hour service period | SCADA log retained at 10-min averages for trend variables and event-resolution for faults; verified against turbine SCADA archive for the 14,000 operating hours preceding removal. |
-| The bearing is manufactured to ISO 6336 / DIN 5401 with steel of certified composition (100Cr6 / SAE 52100, vacuum-degassed) and inclusion rating per ISO 4967 method A | current constraint | Record expiry: certification is fixed by procurement; the certificate either documents conformance or it does not | Accept — verified against retained mill certificate; cleanliness rating within DIN spec | Verified against mill certificate retained in the wind-farm asset-management system; cleanliness rating within DIN spec. |
+| The bearing is manufactured to ISO 683-17 with steel of certified composition (100Cr6 / SAE 52100, vacuum-degassed) and inclusion rating per ISO 4967 method A | current constraint | Record expiry: certification is fixed by procurement; the certificate either documents conformance or it does not | Accept — verified against retained mill certificate; cleanliness rating within the ISO 4967 limits the certificate states | Verified against mill certificate retained in the wind-farm asset-management system; cleanliness rating within the ISO 4967 limits the certificate states. |
 | White-etching cracks (WEC) and butterfly microstructure are caused by stray electrical currents through the rolling contact (electrically-induced bearing damage, EIBD) — i.e. a `convention — design-practice (codified)` belief grounded in IEC TS 60034-25 and the published WEC literature for wind-turbine generator bearings | convention (design-practice (codified)) | Accept tentatively if traceable; record expiry: WEC has multiple proposed mechanisms in the literature (hydrogen embrittlement from lubricant additive breakdown, transient overload, electrical current). Domain of validity for the EIBD attribution: doubly-fed induction generator (DFIG) drivetrains with IGBT inverter switching and inadequate shaft-to-ground bonding | Accept — IEC TS 60034-25 §8 and Stadler & Stubenrauch 2013 establish the WEC-EIBD link and prescribe shaft-grounding rings | Source: IEC TS 60034-25:2014 §8; Stadler & Stubenrauch 2013 "Premature Bearing Failures in Wind Gearboxes" — establishes the WEC-EIBD link in DFIG drivetrains and prescribes shaft-grounding rings as the codified counter-measure. |
 | The operator's first hypothesis — "low-viscosity lubricant in cold-snap months drove a boundary-lubrication regime and wore the race through" | untested belief (diagnostic) | Challenge by ruling out with differential evidence: the wear morphology predicted by boundary lubrication (adhesive scuffing, smearing, polishing of the contact band) differs from the observed morphology (subsurface-origin spalling, WEC, butterfly) | Discard — ruled out (§5); predicts surface-origin damage but observed damage is subsurface with WEC | Ruled out — see §5 Abandoned Reasoning. Cited mechanism would predict surface-origin damage; observed damage initiates subsurface and is accompanied by WEC, which lubricant viscosity alone cannot produce. |
 | The shaft-to-ground bonding ring on the generator-end of the HSS was either absent at commissioning or had degraded below effective conductance | untested belief (diagnostic) | Verify by physical inspection of the bonding-ring assembly and conductance measurement; this is the load-bearing diagnostic claim for the EIBD attribution | Challenge — verified degraded: conductance measured 2 orders of magnitude below the IEC TS 60034-25 threshold | Verified: bonding ring was installed at commissioning per design but on-removal inspection shows brush-block carbon dust accumulated to a depth that interrupts brush-to-slipring contact; measured conductance 2 orders of magnitude below the IEC TS 60034-25 threshold. |
@@ -102,8 +102,10 @@ prescribe a counter-intervention different from the operator's first hypothesis
 - **GT-4** L10 design life for this bearing under the certified load spectrum: ~130,000
   hours; observed life to spall: ~14,000 hours, a factor of ~9 below L10 — source:
   bearing manufacturer's life calculation per ISO 281; SCADA-derived load spectrum.
-  **A 9× shortfall against ISO 281 is not consistent with classical RCF (which
-  the L10 model already covers); a non-classical mechanism is required.**
+  **A 9× shortfall (0.108 × L10) is a ≈0.1–0.2% event under ISO 281's reliability
+  factor (between a1 = 0.12 at 99.8% and a1 = 0.093 at 99.9%), so classical RCF alone
+  (which the L10 model already covers) is strongly disfavoured; the white-etching
+  microstructure (GT-3) is what discriminates.**
 
 - **GT-5** Shaft-to-ground bonding-ring conductance at the time of removal: measured
   ~10⁻⁴ S, vs the IEC TS 60034-25 prescribed minimum of ~10⁻² S — source: on-removal
@@ -160,13 +162,16 @@ length and race radius against it.
 ### Conclusion C2: The subsurface mechanism is electrically-induced bearing damage (EIBD) producing WEC, not classical rolling-contact fatigue
 
 GT-3 (WEC + butterfly microstructure in the subsurface shear-stress band) + GT-4 (9× life shortfall vs ISO 281 L10) + GT-5 (bonding ring conductance ~100× below the IEC TS 60034-25 threshold) + GT-6 (DFIG drivetrain with IGBT switching — within the IEC TS 60034-25 EIBD domain of applicability)
-→ Classical RCF is already modelled by ISO 281 and its L10 figure. A 9× shortfall inside that envelope (GT-4) demands a *non-classical* mechanism — i.e., a degradation pathway that ISO 281 does not capture. [Assumes: a 9× L10 shortfall exceeds classical RCF Weibull variance — see Assumptions Table row.] WEC morphology (GT-3) is the published fingerprint of that non-classical pathway in wind-turbine HSS bearings. GT-5 supplies the proximate physical cause (open bonding path → rotor voltage discharges through the bearing rolling contact) and GT-6 confirms the drivetrain falls inside the IEC-defined domain where this mechanism is known to apply. None of these GTs alone fixes the mechanism: WEC has multiple published candidate causes; bonding-ring failure alone need not produce WEC if voltage is below threshold; L10 shortfall alone could be misload or material defect. Combined, they trace a single causal chain
+→ Classical RCF is already modelled by ISO 281 and its L10 figure. A 9× shortfall (GT-4; 0.108 × L10) is a ≈0.1–0.2% event under ISO 281's reliability factor, which strongly disfavours a classical-only explanation and points to a *non-classical* mechanism — i.e., a degradation pathway that ISO 281 does not capture — without by itself excluding a classical one. [Assumes: a 9× L10 shortfall is only a ≈0.1–0.2% event under classical RCF — see Assumptions Table row.] WEC morphology (GT-3) is the published fingerprint of that non-classical pathway in wind-turbine HSS bearings. GT-5 supplies the proximate physical cause (open bonding path → rotor voltage discharges through the bearing rolling contact) and GT-6 confirms the drivetrain falls inside the IEC-defined domain where this mechanism is known to apply. None of these GTs alone fixes the mechanism: WEC has multiple published candidate causes; bonding-ring failure alone need not produce WEC if voltage is below threshold; L10 shortfall alone could be misload or material defect. The hydrogen-from-lubricant-additive-breakdown route to WEC, the strongest rival, is not excluded by any ground truth here: GT-5 shows the electrical path was open, not that the lubricant was sound. Combined, the ground truths trace a single causal chain
 → The root cause is electrically-induced bearing damage from a degraded shaft-to-ground bonding path, producing WEC-mediated subsurface degradation that drives premature spalling at the Hertz-stress depth.
 
 **Pre-check:** head GT-3, GT-4, GT-5, GT-6 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
-**Confidence: HIGH** — all four inputs are verified GTs; the chain is co-supported by
+**Confidence: MEDIUM** — all four inputs are verified GTs and the chain is co-supported by
 the codified mechanism in IEC TS 60034-25, which prescribes exactly the failure
-fingerprint observed here.
+fingerprint observed here, but the strongest rival WEC route (hydrogen from lubricant
+additive breakdown) is not ruled out by any ground truth, so the chain is held below HIGH.
+Verification path to raise it to HIGH: an oil-chemistry check on the retained gearbox oil
+(water content, acid number, additive depletion) showing the lubricant within specification.
 
 ---
 
@@ -184,7 +189,14 @@ gearbox bearing failures. The walk: assume the cold-snap drove the elastohydrody
 boundary-lubrication regime; expect surface-origin wear (scuffing, micropitting,
 polishing of the running track) to result.
 
-**Why abandoned:** Two independent contradictions with verified ground truths.
+**Why abandoned:** The premise fails first on its own terms: it is physically backwards.
+Cooling raises lubricant viscosity (the walk's own first clause says so), and higher
+viscosity *thickens* the EHD film, so a cold snap cannot drive the film below the
+composite roughness; the operator's wording ("viscosity too low") has the wrong sign for
+a cold snap as well. The only coherent cold-weather lubrication risk is starvation at cold
+start, from oil too viscous to circulate to the contact; that story also predicts
+surface-origin damage, and is likewise excluded by the subsurface initiation evidence.
+Beyond that, two independent contradictions with verified ground truths.
 
 First and dispositive: GT-1 places the crack origin ~0.4 mm *below* the raceway surface,
 inside the Hertz subsurface-stress band (GT-2?, whose geometry is fitted to that same
@@ -202,8 +214,9 @@ hydrogen-driven embrittlement from lubricant additive decomposition under transi
 overload (Stadler & Stubenrauch 2013). The boundary-lubrication hypothesis has no
 explanatory pathway to the observed microstructure; the EIBD hypothesis does.
 
-Counter to the corrective intervention the operator's hypothesis would prescribe
-(switch to a lower-viscosity-grade oil or add a pour-point depressant): GT-5 plus GT-6
+Counter to the corrective intervention the starvation version of the operator's
+hypothesis would prescribe (switch to a lower-viscosity-grade oil or add a pour-point
+depressant, which is the fix for cold-start oil starvation, not for a thin EHD film): GT-5 plus GT-6
 show the bonding-ring conductance was two orders of magnitude below the IEC threshold
 in a DFIG drivetrain known to be EIBD-prone. Changing lubricant grade would not address
 the open electrical path; the bearing would continue to discharge rotor voltage and the
@@ -225,7 +238,10 @@ from a different observation set.
 specification AND simultaneously restore the shaft-to-ground bonding path — clean and
 re-seat the brush-block, restore conductance to the IEC TS 60034-25 prescribed range
 (≥10⁻² S), and add to the turbine's preventive-maintenance schedule a quarterly
-bonding-ring conductance check. Do NOT change the lubricant specification on the basis
+bonding-ring conductance check. Before the new bearing is fitted, run an oil-chemistry
+check on the retained gearbox oil (water content, acid number, additive depletion); if it
+implicates the lubricant, fit a WEC-resistant bearing (black-oxide-treated or insulated)
+instead of the same specification as the hedge. Do NOT change the lubricant specification on the basis
 of the operator's initial hypothesis — that intervention would not address the
 verified root cause and would consume maintenance budget on a non-causal lever.
 
@@ -247,17 +263,18 @@ GT-2?'s band edges.
 
 **Trade-offs acknowledged:** (chain C2) The recommended bonding-ring restoration adds quarterly
 inspection labour the operator was not previously budgeting; the alternative (continue
-without restoration) accepts a near-certain repeat failure on the replacement bearing
+without restoration) accepts a likely repeat failure on the replacement bearing
 within a comparable ~10⁴-hour horizon, at materially higher cost (crane time, gearbox
 risk, lost generation). The analysis also accepts that GT-7? (boundary-lubrication
 wear-morphology mapping) is supported by textbook reference rather than in-house
 controlled test — which is acceptable because GT-1 alone is dispositive against the
 boundary-lubrication attribution; GT-7? is corroborative, not load-bearing.
 
-**Pre-check:** head C1 (MEDIUM), C2 (HIGH) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
+**Pre-check:** head C1 (MEDIUM), C2 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
 **Confidence: MEDIUM** — the section's rating is bound by the lower of the chains its
-Recommended approach names: chain C2 is HIGH, but chain C1 is MEDIUM because its head
-cites GT-2?, so this section cannot be rated above MEDIUM. Neither Criterion 5 EXCEPT
+Recommended approach names: chain C1 is MEDIUM because its head cites GT-2?, and chain
+C2 is MEDIUM because the hydrogen rival WEC route is not yet ruled out, so this section
+cannot be rated above MEDIUM. Neither Criterion 5 EXCEPT
 clause applies — C1 is not marked `[Speculative]` and it is not an absent-fails
 derivation. The primary causal chain rests on GT-1 through GT-6, most of
 which are verified independently. Two items carry a `?`: GT-2? (chain C1's Hertz
@@ -365,7 +382,7 @@ conductance survey before the next scheduled gearbox inspection cycle.
     },
     {
       "id": "C2",
-      "confidence": "HIGH",
+      "confidence": "MEDIUM",
       "rests_on": [
         "GT-3",
         "GT-4",
@@ -381,7 +398,7 @@ conductance survey before the next scheduled gearbox inspection cycle.
   "gate": null,
   "re_entry": null,
   "conclusion": {
-    "recommendation": "(chains C1 and C2) Replace the failed HSS bearing with a new bearing of the same\nspecification AND simultaneously restore the shaft-to-ground bonding path — clean and\nre-seat the brush-block, restore conductance to the IEC TS 60034-25 prescribed range\n(≥10⁻² S), and add to the turbine's preventive-maintenance schedule a quarterly\nbonding-ring conductance check. Do NOT change the lubricant specification on the basis\nof the operator's initial hypothesis — that intervention would not address the\nverified root cause and would consume maintenance budget on a non-causal lever.",
+    "recommendation": "(chains C1 and C2) Replace the failed HSS bearing with a new bearing of the same\nspecification AND simultaneously restore the shaft-to-ground bonding path — clean and\nre-seat the brush-block, restore conductance to the IEC TS 60034-25 prescribed range\n(≥10⁻² S), and add to the turbine's preventive-maintenance schedule a quarterly\nbonding-ring conductance check. Before the new bearing is fitted, run an oil-chemistry\ncheck on the retained gearbox oil (water content, acid number, additive depletion); if it\nimplicates the lubricant, fit a WEC-resistant bearing (black-oxide-treated or insulated)\ninstead of the same specification as the hedge. Do NOT change the lubricant specification on the basis\nof the operator's initial hypothesis — that intervention would not address the\nverified root cause and would consume maintenance budget on a non-causal lever.",
     "confidence": "MEDIUM",
     "rests_on": [
       "C1",

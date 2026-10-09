@@ -126,8 +126,8 @@ Round-trip = C1a × C1b × C1c ≈ 0.97 × 0.99 × 0.40 ≈ 38%.
 **The 85% claim fails the irreducibility drill.** The constituent C1c (Rankine
 cycle efficiency ≈ 35–45%) is anchored at a physical law and confirmed by direct
 measurement, and it prevents the product from reaching 85%. An 85% round-trip
-efficiency for a heat-storage-to-electricity system is inconsistent with the
-Carnot limit at these temperatures. The claim, as stated, is refuted by the
+efficiency for a resistively charged heat-storage-to-electricity system is inconsistent with
+the Carnot limit at these temperatures. The claim, as stated, is refuted by the
 physical law that terminates C1c.
 
 *(Clarification: systems that store and return heat — not electricity — can
@@ -183,8 +183,8 @@ Each factor decomposes further:
 stated.** The molten-salt figure is the cost of a thermal store per kWh of *heat*; the
 lithium-ion figure is the installed price of a whole battery system per kWh of *electricity*.
 Put on one basis and one scope — convert the heat to electricity and add the turbine and
-generator that make it — and molten-salt TES is dearer than lithium-ion at a four-hour discharge,
-cheaper only at long durations (the estimate worked example does this in its Steps 6a–6b). Mark
+generator that make it — and molten-salt TES is dearer than lithium-ion at a four-hour discharge in all but the most
+favourable pairing, cheaper only at long durations (the estimate worked example does this in its Steps 6a–6b). Mark
 as `Assumed — not supported as stated`; the LCOS inputs below would refine the magnitude, not
 restore the direction.
 
@@ -202,8 +202,8 @@ restore the direction.
 | C3 — LCOS vs. lithium-ion | Direct measurement (cost surveys); the two figures cover different equipment and bases | Not supported as stated |
 
 **Key finding:** The claim's 85% round-trip electricity efficiency is physically
-impossible at these operating temperatures — it is refuted by the Carnot limit,
-which is irreducible. The cost-competitiveness comparison (C3) is not supported as stated: it
+impossible at these operating temperatures with resistive (COP ≤ 1) charging — it is refuted by
+the Carnot limit, which is irreducible. The cost-competitiveness comparison (C3) is not supported as stated: it
 set a thermal store's cost against a whole battery system's price.
 
 ---
@@ -326,7 +326,7 @@ Read-at-source: GT-3 — physical law (second law of thermodynamics / Carnot's t
 
 GT-1 (Joule heating law anchors electricity-to-heat conversion at 95–99% — physical law) + GT-2 (Fourier's law: heat flows down the temperature gradient, out of the hot tank, so thermal storage efficiency is at most 100% — physical law) + GT-3 (Carnot / second-law limit caps Rankine heat-to-electricity conversion at ≈62.3% at these temperatures, with real cycles at 35–45% — physical law)
 → Round-trip efficiency is the product of the three conversion efficiencies, C1a × C1b × C1c. Taking every factor at its most favourable bound — C1a at 99%, C1b at 100% (no storage loss at all), C1c at the Carnot limit itself — gives at most 0.99 × 1.00 × 0.623 ≈ 62%; with C1c at the real Rankine ceiling of 45% it is at most ≈45%. The usual point estimate, 0.97 × 0.99 × 0.40 ≈ 38%, takes its 99% storage term from the tank-specific loss rate that GT-7? leaves unverified, so this chain does not rest on it
-→ An 85% electricity round-trip efficiency exceeds even the ≈62% upper bound at these temperatures; the claim, as stated, is refuted by the physical law that terminates C1c, whatever the tank's actual loss rate turns out to be
+→ An 85% electricity round-trip efficiency exceeds even the ≈62% upper bound at these temperatures; with resistive (COP ≤ 1) charging the claim, as stated, is refuted by the physical law that terminates C1c, whatever the tank's actual loss rate turns out to be
 
 **Pre-check:** head GT-1, GT-2, GT-3 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
 **Confidence:** HIGH — C1a and C1c are each anchored in physical law and confirmed by
@@ -350,15 +350,15 @@ discarded.
 
 ## 6. Conclusion
 
-**Recommended approach:** Treat the 85% electricity round-trip efficiency claim as refuted (chain C1) and do not proceed with a design predicated on it; use the Carnot-anchored ~38% round-trip figure as the physically realistic basis for any further cost-competitiveness comparison, whose size rests directly on GT-7? and GT-8?, both unverified, which reach this section through the cost-competitiveness sub-claim and not through any derivation chain.
+**Recommended approach:** Treat the 85% electricity round-trip efficiency claim as refuted (chain C1) and do not proceed with a design predicated on it; use the realistic ~38% round-trip point estimate as the physically realistic basis for any further cost-competitiveness comparison, whose size rests directly on GT-7? and GT-8?, both unverified, which reach this section through the cost-competitiveness sub-claim and not through any derivation chain.
 
-**Key insight:** The 85% claim fails not because of an engineering shortfall that better design could close, but because Rankine-cycle heat-to-electricity conversion is capped by the Carnot limit (chain C1) — an irreducible physical law, not an assumption.
+**Key insight:** For a resistively charged store (COP ≤ 1), the 85% claim fails not because of an engineering shortfall that better design could close, but because Rankine-cycle heat-to-electricity conversion is capped by the Carnot limit (chain C1) — an irreducible physical law, not an assumption.
 
-- The refutation (chain C1) does not depend on the ~38% point estimate: even at 99% heating, zero storage loss and the Carnot limit itself, the round trip is at most ≈62%. Only C1c is fundamentally bounded, so future engineering improvement in C1a or C1b cannot close the remaining gap to 85%; the ~38% figure's 99% storage term awaits GT-7?.
+- The refutation (chain C1) does not depend on the ~38% point estimate: even at 99% heating, zero storage loss and the Carnot limit itself, the round trip is at most ≈62%. Only C1c is fundamentally bounded, so future engineering improvement in C1a or C1b cannot close the remaining gap to 85%. Heat-pump-charged designs (a "Carnot battery") are not bounded by physics at this level — the ideal heat-pump COP times the ideal engine efficiency is 1, so the second law caps their round trip at 100%, not 62% — but no documented system approaches 85% electricity-to-electricity; the ~38% figure's 99% storage term awaits GT-7?.
 - A system reporting an 85% "round-trip" efficiency for thermal storage is very likely measuring heat-in to heat-out, not electricity-in to electricity-out — no chain — flagged assumption only.
-- The cost comparison (C3) does not favour molten-salt TES at a four-hour discharge: its capital figure omits the turbine and generator a lithium-ion system's price already covers, and once they are priced molten-salt is dearer below a break-even duration of roughly 4–18 hours (the estimate worked example, Step 6b) — no chain — flagged assumption only.
+- The cost comparison (C3) does not favour molten-salt TES at a four-hour discharge: its capital figure omits the turbine and generator a lithium-ion system's price already covers, and once they are priced molten-salt is dearer below a break-even duration of roughly 3.7–18 hours (the estimate worked example, Step 6b) — no chain — flagged assumption only.
 
-**Trade-offs acknowledged:** Accepting the Carnot-bounded ~38% round-trip figure (chain C1) instead of the claimed 85% changes the economic case for the system: a lower usable round-trip efficiency means more installed capacity is needed to deliver the same net electricity output, which raises the effective cost per kWh delivered relative to the capital-cost comparison in C3.
+**Trade-offs acknowledged:** Accepting the ~38% round-trip point estimate (chain C1) instead of the claimed 85% changes the economic case for the system: a lower usable round-trip efficiency means more installed capacity is needed to deliver the same net electricity output, which raises the effective cost per kWh delivered relative to the capital-cost comparison in C3.
 
 **Pre-check:** head C1 (HIGH), GT-7?, GT-8? · ?-marked: GT-7?, GT-8? · lowest cited: HIGH · Inputs ceiling: MEDIUM
 **Confidence:** MEDIUM — HIGH on the refutation itself (chain C1); MEDIUM overall because the claim's second half, cost-competitiveness (C3), is not settled by this drill: its direction is resolved against the claim by the estimate worked example, and the project-specific inputs GT-7? and GT-8? that would size the gap remain unverified.
@@ -424,7 +424,7 @@ discarded.
   "gate": null,
   "re_entry": null,
   "conclusion": {
-    "recommendation": "Treat the 85% electricity round-trip efficiency claim as refuted (chain C1) and do not proceed with a design predicated on it; use the Carnot-anchored ~38% round-trip figure as the physically realistic basis for any further cost-competitiveness comparison, whose size rests directly on GT-7? and GT-8?, both unverified, which reach this section through the cost-competitiveness sub-claim and not through any derivation chain.",
+    "recommendation": "Treat the 85% electricity round-trip efficiency claim as refuted (chain C1) and do not proceed with a design predicated on it; use the realistic ~38% round-trip point estimate as the physically realistic basis for any further cost-competitiveness comparison, whose size rests directly on GT-7? and GT-8?, both unverified, which reach this section through the cost-competitiveness sub-claim and not through any derivation chain.",
     "confidence": "MEDIUM",
     "rests_on": [
       "C1",

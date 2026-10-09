@@ -46,8 +46,8 @@ preventing faster deploys, and what is the cheapest intervention that removes th
 |------------|------|-----------|---------|--------------|
 | Microservices enable faster deploys | convention | Challenge before use — this is a widely-held claim but depends on team maturity, pipeline design, inter-service dependency topology, and the nature of the coupling; it is not a physical or logical necessity | Challenge — unverified for this team; synchronous dependencies and shared infrastructure can deploy slower than a well-configured monolith | Unverified for this team and codebase — flagged; microservices with synchronous dependencies and shared infrastructure can deploy more slowly than a well-configured monolith |
 | The deploy bottleneck is architectural coupling in the monolith | untested belief | Verify before use — the test suite runtime and pipeline structure have not been profiled to determine their contribution; alternative non-architectural causes exist and must be ruled out | Challenge — no pipeline profiling data collected; the runtime is consistent with non-architectural causes too | Unverified — flagged; no pipeline profiling data has been collected; the 45-minute runtime is consistent with both architectural and non-architectural bottleneck causes |
-| A 12-person team can operate a microservices estate at acceptable overhead | untested belief | Verify — distributed systems require per-service monitoring, independent CI pipelines, inter-service communication contracts, and distributed tracing; the ops burden scales with service count and is well-documented to exceed small-team capacity below a threshold | Challenge — no evidence the team has run distributed services; DORA data shows headwinds below ~50 engineers / ~10 services | Unverified — flagged; no evidence the team has operated distributed services; DORA research documents that teams below ~50 engineers operating more than ~10 services face significant reliability and velocity headwinds |
-| Slow deploys are causing meaningful, ongoing business harm | current constraint | Record expiry conditions — this constraint holds as long as the business requires more than ~2 deploys per day; it expires if product velocity requirements decrease or if the team ships features whose release cadence is compatible with the current ceiling | Accept — measured ~2/day ceiling; business impact is real even without a quantified dollar value | Observed: ~2 deploys/day maximum is the measured ceiling; business impact is real (engineering velocity is blocked; hotfixes require manual bypass procedures) even if the precise dollar value of the constraint is not quantified |
+| A 12-person team can operate a microservices estate at acceptable overhead | untested belief | Verify — distributed systems require per-service monitoring, independent CI pipelines, inter-service communication contracts, and distributed tracing; the ops burden scales with service count and falls on the engineers who build the product | Challenge — no evidence the team has run distributed services; GT-4 documents per-service overhead that grows with service count, and the 12-engineer team would absorb it | Unverified — flagged; no evidence the team has operated distributed services; GT-4 documents that each additional service multiplies the operational overhead, which a 12-engineer team would have to absorb alongside feature work |
+| Slow deploys are causing meaningful, ongoing business harm | untested belief | Verify before use — the ~2/day ceiling is measured (GT-3), but no ground truth names the outcome it blocks or the deploy rate the business requires; the harm lapses if product velocity requirements decrease or if the features shipped have a release cadence compatible with the current ceiling | Challenge — the ~2/day ceiling is measured, but the blocked outcome and the target deploy rate are not named | Unverified — flagged; ~2 deploys/day is the measured ceiling (GT-3), but no ground truth names the outcome it blocks or the deploy rate the business needs |
 | A full rewrite or big-bang migration is required to change the architecture | untested belief | Discard — the strangler fig pattern enables incremental extraction of services from a monolith while the monolith continues to handle remaining traffic; no big-bang rewrite is required; this assumption frames the decision as binary when it is not | Discard — the strangler fig pattern enables incremental extraction; no big-bang rewrite is required | Contradicted by published incremental migration patterns; the strangler fig approach is the documented industry mechanism for this exact scenario (Newman "Building Microservices", chapter on the strangler fig application) |
 | Schema-level coupling is equivalent to application-level deploy coupling — a shared relational schema blocks truly independent releases in the same way a shared application binary does | untested belief | Accept with verification — the inference in Chain 2 ("splitting the application while retaining the shared schema produces a distributed monolith") requires this to hold; the specific coupling mechanism is that any service performing a schema migration must either apply it to the shared schema (affecting all co-tenant services) or coordinate migration timing with all services that read those tables | Accept — a shared schema forces coordinated migration windows; deploy-independence is negated without decomposition | Verified by technical analysis: a shared schema forces coordinated migration windows across all services; the deploy-independence that microservices nominally provide is negated at the data layer if schema ownership is not decomposed first — this is the documented definition of a distributed monolith (Newman "Building Microservices", 2nd ed., Chapter 4) |
 
@@ -112,21 +112,21 @@ GT-1 (45-minute full pipeline runtime) + GT-2 (every deploy requires a full pipe
 
 GT-5 (single shared relational database schema with no service-boundary ownership) + GT-4 (microservices require per-service independent deployment pipelines and inter-service contracts)
 → Splitting the application layer into separate services while retaining the shared schema produces a distributed monolith: services that deploy independently in theory but cannot actually execute schema migrations or release independently because all services share the same database state; true independent deploys require that each service owns its schema boundaries exclusively; this means schema decomposition is a prerequisite of, not a consequence of, a microservices migration
-→ Schema decomposition can be executed incrementally on the monolith — by establishing bounded contexts, identifying which modules own which tables, and progressively enforcing that only the owning module accesses those tables — without splitting the application into separately-deployed services. The coupling reduction that enables independent deploys is separable from the service-boundary split. The two problems can be addressed in sequence rather than as a single large migration.
+→ Schema decomposition can be executed incrementally on the monolith — by establishing bounded contexts, identifying which modules own which tables, and progressively enforcing that only the owning module accesses those tables — without splitting the application into separately-deployed services. The coupling reduction is separable from the service-boundary split: it is groundwork that lowers the cost of any later extraction, not a deploy-speed fix in itself, since the monolith still deploys as one unit. The two problems can be addressed in sequence rather than as a single large migration.
 
 **Pre-check:** head GT-5, GT-4 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
-**Confidence:** HIGH
+**Confidence:** MEDIUM — the Inference axis is short: the first hop rests on A-6, an `untested belief` accepted on technical analysis, that schema-level coupling blocks independent releases the way a shared binary does, and the chain does not price what becomes of the endpoint if A-6 fails. It would close by tracing, on this schema, one recent migration that forced coordinated timing across modules. The recommendation to defer extraction and profile first does not depend on it.
 
 ---
 
 ### Conclusion C3: The minimum viable intervention is to profile the bottleneck and apply the lowest-cost fix
 
 GT-1 (45-minute pipeline, per-stage split unmeasured) + GT-3 (2 deploys/day ceiling, not explained by the 45-minute pipeline alone) + GT-4 (microservices estate multiplies per-service ops overhead that a 12-engineer team must absorb)
-→ The cost-risk profile of available interventions varies by orders of magnitude; the pipeline has four measurable stages: test suite execution, artifact build, deployment and restart, and health-check wait; profiling these stages, together with the gap between one pipeline completion and the next deploy start (readable from the same CI/CD deployment records GT-3 is measured from, and where the approval gates, deploy windows or release batching that GT-3 leaves unexplained would show up), is a configuration-level instrumentation taking approximately 1 day that identifies which stage or gap is the dominant cost without requiring any code change; pipeline parallelization (splitting the test suite across concurrent CI workers) is a configuration-level change achievable in days to 2 weeks with no architectural risk and is fully reversible; schema decomposition along bounded-context lines is weeks-to-months of careful migration work with moderate risk and is largely reversible; a full monolith-to-microservices migration is months-to-years of architectural work with high risk and is not easily reversible, and it introduces the full GT-4 operational overhead before delivering any deploy-speed benefit; committing to the highest-cost option before ruling out lower-cost options is not consistent with minimum viable intervention principles
+→ The cost-risk profile of available interventions varies by orders of magnitude; the pipeline has four measurable stages: test suite execution, artifact build, deployment and restart, and health-check wait; profiling these stages, together with the gap between one pipeline completion and the next deploy start (readable from the same CI/CD deployment records GT-3 is measured from, and where the approval gates, deploy windows or release batching that GT-3 leaves unexplained would show up), is a configuration-level instrumentation taking approximately 1 day that identifies which stage or gap is the dominant cost without requiring any code change; pipeline parallelization (splitting the test suite across concurrent CI workers) is a configuration-level change achievable in days to 2 weeks with low architectural risk once order-dependent and flaky tests are isolated, and is fully reversible; schema decomposition along bounded-context lines is weeks-to-months of careful migration work with moderate risk and is largely reversible; a full monolith-to-microservices migration is months-to-years of architectural work with high risk and is not easily reversible, and it introduces the full GT-4 operational overhead before delivering any deploy-speed benefit; committing to the highest-cost option before ruling out lower-cost options is not consistent with minimum viable intervention principles
 → The rational sequencing is: profile the deploy cycle to identify the specific bottleneck, apply the lowest-cost intervention that removes it (parallelization first if profiling identifies a pipeline stage as binding; a release-process change first if the binding factor is an approval gate, deploy window or batching policy), and revisit microservices only after profiling demonstrates that the bottleneck is architectural and schema decoupling alone is insufficient.
 
 **Pre-check:** head GT-1, GT-3, GT-4 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
-**Confidence:** HIGH
+**Confidence:** MEDIUM — the Inference axis is short: the cost-risk ordering rests on unsourced engineering judgement — "approximately 1 day" for profiling, "days to 2 weeks" for parallelization, "varies by orders of magnitude" across interventions — and none of these is read from a ground truth. It would close by running the profiling step itself, whose measured duration and per-stage split replace the first two estimates. The sequencing "profile first, then take the cheapest intervention" holds at any plausible values of these estimates.
 
 ---
 
@@ -282,7 +282,8 @@ pipeline to measure the wall-clock contribution of each stage — test suite exe
 build, deployment and restart, health-check wait — and read, from the deployment records GT-3 is
 measured from, the gap between one pipeline completion and the next deploy start, where an approval
 gate, deploy window or batching policy would show. Identify which stage or gap binds the 2/day
-ceiling. Within the pipeline, test suite runtime is usually the dominant stage for a
+ceiling. Also name the outcome the ceiling blocks and the target deploy rate that "stopping
+when deploy frequency reaches the target" refers to. Within the pipeline, test suite runtime is usually the dominant stage for a
 codebase of this profile — an expectation, not something GT-1 measures; profiling confirms
 or refutes this. This step is unconditional — it is
 the precondition for choosing between the branches below, not one of them.
@@ -294,16 +295,23 @@ Then take exactly one of:
 
 2. **If profiling identifies a pipeline stage as binding, parallelize the test suite and decouple the restart** (chain C3; days to 2 weeks): split the test suite into shards and run them
    concurrently across multiple CI workers; introduce a blue-green or rolling deploy strategy
-   to eliminate the coordinated-restart requirement from GT-2. These are CI configuration
-   changes with no changes to application code and no architectural risk. After this step,
+   to eliminate the coordinated-restart requirement from GT-2. These are mostly CI
+   configuration changes, but each has a precondition and a cost: blue-green or rolling deploys
+   run old and new application versions against the single shared schema (GT-5), so migrations
+   must be written expand/contract so that both versions tolerate them; and sharding a 6-year-old
+   Rails suite will meet order-dependent and flaky tests and shared database state that must be
+   isolated or fixed first. After this step,
    measure deploy frequency. If the target is met, stop.
 
-3. **If profiling identifies schema coupling as a bottleneck** (chain C2): begin incremental schema
+3. **If profiling finds neither a pipeline stage nor a release-process gap binding** (chain C2), and
+   the cost of coordinating schema changes across modules is what remains — schema coupling is a
+   candidate here by elimination, since the stage and gap measurements do not observe it: begin incremental schema
    decomposition along bounded-context lines, guided by the module boundaries already present in
    the monolith. This is weeks-to-months of careful migration work (establishing exclusive table
    ownership per module, eliminating cross-module schema access, introducing service-level schema
-   boundaries). This step delivers the coupling reduction that enables genuinely independent
-   deploys — and it does not require splitting the application into separately-deployed services.
+   boundaries). This step is groundwork that lowers the cost of any later service extraction; it is
+   not a deploy-speed fix, because the monolith still deploys as one unit — and it does not
+   require splitting the application into separately-deployed services.
 
 Revisit the microservices question as a separate analysis once the branch profiling selected has
 completed. If,
@@ -340,7 +348,7 @@ before the team sees any benefit, whichever constraint turns out to bind.
   enforcing module-level table ownership across a 6-year-old codebase where cross-module schema
   access is likely widespread. This is careful, high-attention work that carries risk of
   introducing data-consistency regressions if not executed with discipline. The recommendation
-  is to pursue it only after profiling confirms it is the bottleneck, not preemptively.
+  is to pursue it only after profiling has ruled out the pipeline and the release process, not preemptively.
 
 - (chains C1 and C3) The recommendation defers the microservices decision explicitly. Engineering leadership's
   stated position is "we need microservices." This analysis does not validate that position —
@@ -348,8 +356,8 @@ before the team sees any benefit, whichever constraint turns out to bind.
   bottleneck is measured. If there is organizational pressure to begin a migration regardless
   of the analysis, that pressure should be surfaced as a constraint and addressed separately.
 
-**Pre-check:** head C1 (HIGH), C2 (HIGH), C3 (HIGH) · ?-marked: none · lowest cited: HIGH · Inputs ceiling: HIGH
-**Confidence:** HIGH
+**Pre-check:** head C1 (HIGH), C2 (MEDIUM), C3 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
+**Confidence:** MEDIUM — matches the weakest links, chains C2 and C3, each rated MEDIUM on its own Inference axis (their confidence lines carry the reasons). The "do not migrate now; profile first" recommendation does not depend on the figures those chains estimate.
 
 ---
 
@@ -379,8 +387,8 @@ before the team sees any benefit, whichever constraint turns out to bind.
     },
     {
       "id": "A-4",
-      "type": "current constraint",
-      "verdict": "Accept"
+      "type": "untested belief",
+      "verdict": "Challenge"
     },
     {
       "id": "A-5",
@@ -427,7 +435,7 @@ before the team sees any benefit, whichever constraint turns out to bind.
     },
     {
       "id": "C2",
-      "confidence": "HIGH",
+      "confidence": "MEDIUM",
       "rests_on": [
         "GT-5",
         "GT-4"
@@ -435,7 +443,7 @@ before the team sees any benefit, whichever constraint turns out to bind.
     },
     {
       "id": "C3",
-      "confidence": "HIGH",
+      "confidence": "MEDIUM",
       "rests_on": [
         "GT-1",
         "GT-3",
@@ -451,8 +459,8 @@ before the team sees any benefit, whichever constraint turns out to bind.
   "gate": null,
   "re_entry": null,
   "conclusion": {
-    "recommendation": "(chains C1 and C3) Profile first, then take whichever branch profiling\nindicates, stopping when deploy frequency reaches the target.\n\n**Step 0 — profile the pipeline and the release process** (chain C3; approximately 1 day):\ninstrument the CI/CD\npipeline to measure the wall-clock contribution of each stage — test suite execution, artifact\nbuild, deployment and restart, health-check wait — and read, from the deployment records GT-3 is\nmeasured from, the gap between one pipeline completion and the next deploy start, where an approval\ngate, deploy window or batching policy would show. Identify which stage or gap binds the 2/day\nceiling. Within the pipeline, test suite runtime is usually the dominant stage for a\ncodebase of this profile — an expectation, not something GT-1 measures; profiling confirms\nor refutes this. This step is unconditional — it is\nthe precondition for choosing between the branches below, not one of them.\n\nThen take exactly one of:\n\n1. **If the binding factor lies outside the pipeline** (chain C3) — an approval gate, deploy window\n   or batching policy: change that release process. It is cheaper than either branch below.\n\n2. **If profiling identifies a pipeline stage as binding, parallelize the test suite and decouple the restart** (chain C3; days to 2 weeks): split the test suite into shards and run them\n   concurrently across multiple CI workers; introduce a blue-green or rolling deploy strategy\n   to eliminate the coordinated-restart requirement from GT-2. These are CI configuration\n   changes with no changes to application code and no architectural risk. After this step,\n   measure deploy frequency. If the target is met, stop.\n\n3. **If profiling identifies schema coupling as a bottleneck** (chain C2): begin incremental schema\n   decomposition along bounded-context lines, guided by the module boundaries already present in\n   the monolith. This is weeks-to-months of careful migration work (establishing exclusive table\n   ownership per module, eliminating cross-module schema access, introducing service-level schema\n   boundaries). This step delivers the coupling reduction that enables genuinely independent\n   deploys — and it does not require splitting the application into separately-deployed services.\n\nRevisit the microservices question as a separate analysis once the branch profiling selected has\ncompleted. If,\nafter removing whatever constraint profiling identified as binding and decoupling the schema, the team's deploy frequency\nstill does not meet business needs — or if the team's real goal is independent team ownership\nand feature velocity rather than deploy speed — that is a different problem and warrants a\nfresh first-principles analysis with the real goal stated in the Essence Statement (Section 1,\nProblem Essence).",
-    "confidence": "HIGH",
+    "recommendation": "(chains C1 and C3) Profile first, then take whichever branch profiling\nindicates, stopping when deploy frequency reaches the target.\n\n**Step 0 — profile the pipeline and the release process** (chain C3; approximately 1 day):\ninstrument the CI/CD\npipeline to measure the wall-clock contribution of each stage — test suite execution, artifact\nbuild, deployment and restart, health-check wait — and read, from the deployment records GT-3 is\nmeasured from, the gap between one pipeline completion and the next deploy start, where an approval\ngate, deploy window or batching policy would show. Identify which stage or gap binds the 2/day\nceiling. Also name the outcome the ceiling blocks and the target deploy rate that \"stopping\nwhen deploy frequency reaches the target\" refers to. Within the pipeline, test suite runtime is usually the dominant stage for a\ncodebase of this profile — an expectation, not something GT-1 measures; profiling confirms\nor refutes this. This step is unconditional — it is\nthe precondition for choosing between the branches below, not one of them.\n\nThen take exactly one of:\n\n1. **If the binding factor lies outside the pipeline** (chain C3) — an approval gate, deploy window\n   or batching policy: change that release process. It is cheaper than either branch below.\n\n2. **If profiling identifies a pipeline stage as binding, parallelize the test suite and decouple the restart** (chain C3; days to 2 weeks): split the test suite into shards and run them\n   concurrently across multiple CI workers; introduce a blue-green or rolling deploy strategy\n   to eliminate the coordinated-restart requirement from GT-2. These are mostly CI\n   configuration changes, but each has a precondition and a cost: blue-green or rolling deploys\n   run old and new application versions against the single shared schema (GT-5), so migrations\n   must be written expand/contract so that both versions tolerate them; and sharding a 6-year-old\n   Rails suite will meet order-dependent and flaky tests and shared database state that must be\n   isolated or fixed first. After this step,\n   measure deploy frequency. If the target is met, stop.\n\n3. **If profiling finds neither a pipeline stage nor a release-process gap binding** (chain C2), and\n   the cost of coordinating schema changes across modules is what remains — schema coupling is a\n   candidate here by elimination, since the stage and gap measurements do not observe it: begin incremental schema\n   decomposition along bounded-context lines, guided by the module boundaries already present in\n   the monolith. This is weeks-to-months of careful migration work (establishing exclusive table\n   ownership per module, eliminating cross-module schema access, introducing service-level schema\n   boundaries). This step is groundwork that lowers the cost of any later service extraction; it is\n   not a deploy-speed fix, because the monolith still deploys as one unit — and it does not\n   require splitting the application into separately-deployed services.\n\nRevisit the microservices question as a separate analysis once the branch profiling selected has\ncompleted. If,\nafter removing whatever constraint profiling identified as binding and decoupling the schema, the team's deploy frequency\nstill does not meet business needs — or if the team's real goal is independent team ownership\nand feature velocity rather than deploy speed — that is a different problem and warrants a\nfresh first-principles analysis with the real goal stated in the Essence Statement (Section 1,\nProblem Essence).",
+    "confidence": "MEDIUM",
     "rests_on": [
       "C1",
       "C2",

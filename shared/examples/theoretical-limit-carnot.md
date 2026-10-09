@@ -162,8 +162,8 @@ The loss mechanisms standing between the ~61–62% ceiling and ~41–43% design 
 named in Step 1 and each is real: finite heat-exchanger ΔT (the salt is at 565 °C and the live
 steam at 537 °C), turbine irreversibility, and the condensation and boiling irreversibilities
 of a real steam cycle. Two of these carry sourced magnitudes: the cooling-method choice is
-worth ~1.8 points (43.0% versus 41.2%), and reheat versus no reheat is worth ~7 points (34%
-versus >41% gross, in the same measuring report).
+worth ~1.8 points (43.0% versus 41.2%), and reheat and unit scale together account for ~7 points
+(34% versus >41% gross, in the same measuring report, which does not separate them).
 
 **The relative shares of the remaining loss mechanisms are not measured here, and this drill
 does not assert a split.** Apportioning ~19 points across turbine, heat exchanger and cycle
@@ -178,7 +178,7 @@ exchange, so it cannot approach the ceiling however good the equipment gets. The
 mostly the price of operating at all, not a design defect.
 
 **Constraint-relaxation conclusion:** At fixed T_hot the remaining headroom is modest and
-expensive, so the demonstrated lever in this technology is **raising T_hot**. A 650 °C salt
+expensive, so the projected lever in this technology is **raising T_hot**. A 650 °C salt
 design with an ultra-supercritical cycle is designed for 49.6% wet-cooled — but that is a
 different reservoir pair, with its own Carnot ceiling of ~66% (1 − 316/923), so the bracket
 translates upward rather than closing: the gap narrows only from ~19 to ~16 points. Raising
@@ -270,7 +270,7 @@ GT-4? (Solar Salt stable 290–565 °C; hot tank T_hot ≈ 838 K — direct meas
 → Against the air-cooled pair that gap is 60.6 − 41.2 = 19.4 percentage points
 → The two cooling cases agree to within 0.1 point, so the unresolved cooling-method assumption in §2 does not bear on this conclusion
 → Closing the ~19-point gap at fixed T_hot would require heat transfer approaching reversibility, which needs either infinite exchanger area or infinite time, so most of it is not recoverable by better equipment
-→ The demonstrated lever is therefore raising T_hot rather than perfecting the cycle at fixed T_hot, and raising it translates the whole bracket upward: a 650 °C ultra-supercritical design is rated 49.6% against its own ~66% ceiling, a gap of ~16 points rather than none.
+→ The projected lever is therefore raising T_hot rather than perfecting the cycle at fixed T_hot, and raising it translates the whole bracket upward: a 650 °C ultra-supercritical design is rated 49.6% against its own ~66% ceiling, a gap of ~16 points rather than none.
 
 **Pre-check:** head GT-4?, GT-5, GT-6 · ?-marked: GT-4? · lowest cited: none · Inputs ceiling: MEDIUM
 **Confidence:** MEDIUM — downgraded because the reservoir pair's hot end is GT-4?, a hand-off
@@ -311,9 +311,11 @@ equipment, which is the one thing a law-permitted ceiling cannot be.
 ## 6. Conclusion
 
 **Recommended approach:** Treat the ~19-point ceiling-to-practice gap (chain C1) as mostly
-irreducible rather than as recoverable headroom, and pursue efficiency by raising the source
-temperature — supercritical and ultra-supercritical cycles at 600–650 °C salt — rather than by
-chasing component refinements at fixed T_hot.
+irreducible rather than as recoverable headroom, and pursue efficiency through cycle architecture and a higher source
+temperature — supercritical pressure, which the cited source (OSTI 1088078) evaluated at 566 °C
+salt as well as 600 °C and so is available at today's ~565 °C, and then ultra-supercritical
+cycles at 600–650 °C salt, a further step that raises the salt temperature — rather than by
+chasing component refinements of the subcritical cycle at fixed T_hot.
 Before quoting any figure in the bracket, state whether it is a power-block or a whole-plant
 number; the two differ by roughly a factor of two and are routinely confused.
 
@@ -331,7 +333,7 @@ reframes the question from "why is practice so far below the law?" to "how much 
   also anchors to; the heat-rejection temperature is separately sourced here as GT-5 because
   GT-4? does not supply it.
 - The gap's shares are not apportioned (chain C1): the loss mechanisms are named and two of
-  them carry sourced magnitudes — ~1.8 points for cooling method, ~7 points for reheat — but
+  them carry sourced magnitudes — ~1.8 points for cooling method, ~7 points for reheat and unit scale together, which the source does not separate — but
   the split of the ~19 points across turbine, heat-exchanger and cycle
   irreversibilities is not measured here, and a per-component exergy balance for a specific
   plant is what would measure it.
@@ -402,7 +404,7 @@ of the gap, not any apportionment of it across components.
   "gate": null,
   "re_entry": null,
   "conclusion": {
-    "recommendation": "Treat the ~19-point ceiling-to-practice gap (chain C1) as mostly\nirreducible rather than as recoverable headroom, and pursue efficiency by raising the source\ntemperature — supercritical and ultra-supercritical cycles at 600–650 °C salt — rather than by\nchasing component refinements at fixed T_hot.\nBefore quoting any figure in the bracket, state whether it is a power-block or a whole-plant\nnumber; the two differ by roughly a factor of two and are routinely confused.",
+    "recommendation": "Treat the ~19-point ceiling-to-practice gap (chain C1) as mostly\nirreducible rather than as recoverable headroom, and pursue efficiency through cycle architecture and a higher source\ntemperature — supercritical pressure, which the cited source (OSTI 1088078) evaluated at 566 °C\nsalt as well as 600 °C and so is available at today's ~565 °C, and then ultra-supercritical\ncycles at 600–650 °C salt, a further step that raises the salt temperature — rather than by\nchasing component refinements of the subcritical cycle at fixed T_hot.\nBefore quoting any figure in the bracket, state whether it is a power-block or a whole-plant\nnumber; the two differ by roughly a factor of two and are routinely confused.",
     "confidence": "MEDIUM",
     "rests_on": [
       "C1"

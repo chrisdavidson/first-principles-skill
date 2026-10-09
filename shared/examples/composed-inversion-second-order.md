@@ -85,35 +85,40 @@ precondition whose absence would cause it:
   personalisation axis without exploding key cardinality.
 - The Postgres upgrade is being driven by the read side and not by writes, WAL, or storage.
 
-**Step 5 — check each precondition's status.** None of the five preconditions are currently
-verified against measurement data; all five are `untested belief` on entry to Phase 2.
+**Step 5 — check each precondition's status.** Four of the five preconditions are not
+verified against measurement data and are `untested belief` on entry to Phase 2. The fifth —
+the upgrade being driven by the read side — is already confirmed by GT-2 (the capacity-planning
+document's upgrade-justification section, checked against the monitoring dashboard), so it
+enters as a `current constraint` accepted on that ground truth.
 
-**Step 6 — record as `untested belief` rows.** The Classified Assumptions Table below carries
-each precondition as a row attributed to the inversion pass.
+**Step 6 — record as rows.** The Classified Assumptions Table below carries each precondition
+as a row attributed to the inversion pass: the four open ones as `untested belief`, the
+confirmed one as an Accept resting on GT-2.
 
 ---
 
 ## 2. Assumptions Table
 
-Each row carries a Type drawn from the four-type scheme (factual / definitional / inferential
-/ value, with the spine's `untested belief` class folded under inferential per the Phase 2
-guidance). The **Source** column attributes each row to either `direct` (drawn from the
-claim's surface text) or `inversion pass` (surfaced by the negative-direction procedure
-above).
+Each row carries a Type drawn from the spine's four types (`physical law` / `current
+constraint` / `convention` / `untested belief`). The Treatment cell attributes each row to either
+the claim's surface text (`direct`) or the negative-direction procedure above (`inversion
+pass`); the Verification cell records what is confirmed, or flags the row `unverified — flagged`
+with the step that would lift it.
 
-| Assumption | Type | Source | Treatment | Verdict |
-|------------|------|--------|-----------|---------|
-| The listings endpoint is the dominant contributor to Postgres read-QPS at peak | factual | direct | Verify against the existing query-log sample. | Accept — confirmed against the Q3 query-log sample; the listings endpoint is the highest read-QPS contributor at peak |
-| Redis-in-front-of-Postgres is a viable read-through pattern at our scale | convention | direct | Explicitly challenge — convention is correct in general but says nothing about whether our specific read shape benefits. | Challenge — pattern viability is not pattern fit |
-| Cache hit rate at steady state is high enough to cross the read-QPS upgrade-threshold | untested belief | inversion pass | Verify — run a shadow-read simulation against a recorded production trace, measure simulated hit rate, compare against the named QPS threshold. | Challenge — unverified; requires the scoped shadow-read simulation before this precondition can be accepted |
-| The cached working set fits in the Redis memory budget at the cached-payload size | untested belief | inversion pass | Verify — measure unique listing-keys seen per hour and multiply by mean cached payload size; compare against the proposed Redis instance memory. | Challenge — unverified; requires the working-set-size measurement against the proposed instance memory |
-| A correct invalidation path exists from listing-write to cache-invalidate with a known maximum staleness window | untested belief | inversion pass | Verify — name the invalidation mechanism (event-bus, write-through wrapper, or TTL-only) and the staleness window it guarantees. | Challenge — unverified; requires naming the invalidation mechanism and confirming its staleness window |
-| Listing reads are predominantly non-personalised at the key-cardinality level | untested belief | inversion pass | Verify — segment the recorded trace by request shape; compute the share of reads that are cacheable at the listing-id key alone. | Challenge — unverified; requires the request-shape segmentation of the recorded trace |
-| The scheduled Postgres upgrade is driven by read-side QPS and not by writes, WAL, or storage | untested belief | inversion pass | Verify — read the upgrade-justification document and confirm the binding constraint is read-side. | Challenge — unverified; requires confirming the binding constraint against the upgrade-justification document |
-| A two-engineer-week cache rollout is the lowest-cost intervention to defer the upgrade | value | direct | Explicitly challenge — challenge the framing that "defer the upgrade" is the right outcome to optimise for if the upgrade addresses a different constraint. | Challenge — outcome-framing dependent on the upgrade-driver row above |
+| Assumption | Type | Treatment | Verdict | Verification |
+|------------|------|-----------|---------|--------------|
+| The listings endpoint is the dominant contributor to Postgres read-QPS at peak | current constraint | Direct. Verify against the existing query-log sample. | Accept — confirmed against the Q3 query-log sample; the listings endpoint is the highest read-QPS contributor at peak | Confirmed by GT-1 (Q3 query-log analysis). |
+| Redis-in-front-of-Postgres is a viable read-through pattern at our scale | convention | Direct. Explicitly challenge — convention is correct in general but says nothing about whether our specific read shape benefits. | Challenge — pattern viability is not pattern fit | unverified — flagged; pattern fit for this read shape is what the inversion-pass rows below test |
+| Cache hit rate at steady state is high enough to cross the read-QPS upgrade-threshold | untested belief | Inversion pass. Verify — run a shadow-read simulation against a recorded production trace, measure simulated hit rate, compare against the named QPS threshold. | Challenge — unverified; requires the scoped shadow-read simulation before this precondition can be accepted | unverified — flagged; the shadow-read simulation is scoped but not run (GT-5?) |
+| The cached working set fits in the Redis memory budget at the cached-payload size | untested belief | Inversion pass. Verify — measure unique listing-keys seen per hour and multiply by mean cached payload size; compare against the proposed Redis instance memory. | Challenge — unverified; requires the working-set-size measurement against the proposed instance memory | unverified — flagged; the working-set-size measurement has not been run |
+| A correct invalidation path exists from listing-write to cache-invalidate with a known maximum staleness window | untested belief | Inversion pass. Verify — name the invalidation mechanism (event-bus, write-through wrapper, or TTL-only) and the staleness window it guarantees. | Challenge — unverified; requires naming the invalidation mechanism and confirming its staleness window | unverified — flagged; no mechanism or staleness window is named yet (GT-4 shows event-driven invalidation is feasible, not chosen) |
+| Listing reads are predominantly non-personalised at the key-cardinality level | untested belief | Inversion pass. Verify — segment the recorded trace by request shape; compute the share of reads that are cacheable at the listing-id key alone. | Challenge — unverified; requires the request-shape segmentation of the recorded trace | unverified — flagged; the request-shape segmentation has not been run |
+| The scheduled Postgres upgrade is driven by read-side QPS and not by writes, WAL, or storage | current constraint | Inversion pass. Verify — read the upgrade-justification document and confirm the binding constraint is read-side. | Accept — confirmed by GT-2; the upgrade-justification section, checked against the CPU, write-IOPS and storage dashboard, shows the binding constraint is read-side CPU saturation | Confirmed by GT-2 (capacity-planning document's upgrade-justification section, verified against the monitoring dashboard). |
+| A two-engineer-week cache rollout is the lowest-cost intervention to defer the upgrade | convention | Direct. Explicitly challenge — challenge the framing that "defer the upgrade" is the right outcome to optimise for if the upgrade addresses a different constraint. | Challenge — outcome-framing; the upgrade-driver row above is now confirmed read-side, so the open question is whether the cache is the lowest-cost route, not whether it addresses the right constraint | unverified — flagged; no cost comparison against the upgrade has been made, and the two-week estimate (GT-3) covers TTL invalidation only |
 
-The inversion pass contributes five rows of type `untested belief`, attributed in the
-**Source** column to `inversion pass`. Each carries a specific Treatment naming the
+The inversion pass contributes five rows. Four are of type `untested belief`, attributed in the
+Treatment column to `inversion pass`; the fifth (the upgrade-driver precondition) is a
+`current constraint` that GT-2 confirms. Each open row carries a specific Treatment naming the
 verification step that would lift it.
 
 ---
@@ -235,7 +240,7 @@ accept the claim on convention grounds — Redis read-through caching is a textb
 with abundant prior art — and recommend approval of the two-engineer-week effort directly.
 
 **Why abandoned.** Convention says the pattern is viable at scale; it does not say the
-pattern fits this specific read shape. Without the inversion pass, the five `untested
+pattern fits this specific read shape. Without the inversion pass, the four open `untested
 belief` rows would not have entered the Assumptions Table, GT-5? would not have been
 identified as the load-bearing unverified input, and the first-order conclusion would not
 have been gated on a measurable hit-rate threshold. Convention is not pattern fit.
@@ -255,13 +260,17 @@ not sufficient. Second-order surfaced a customer-facing staleness consequence th
 appear in the original claim and that the first-order chain did not name. The revised
 conclusion adds a documented staleness budget as a second acceptance criterion.
 
-**Recommended approach:** Approve the two-engineer-week cache rollout (chain C1) conditional
+**Recommended approach:** Approve the cache rollout (chain C1) conditional
 on (a) running the scoped shadow-read simulation to resolve GT-5? and confirming the
 measured steady-state hit rate clears the named threshold, and (b) committing to
 event-driven invalidation against the existing event bus (GT-4) with a documented staleness
 budget — not TTL-only — before the cache is taken as load-bearing for the upgrade-deferral
-decision. If either acceptance criterion fails, execute the scheduled Postgres upgrade as
-originally planned.
+decision. GT-3's two-engineer-week estimate covers a cache with TTL-based invalidation; the
+event-bus subscription and invalidation work in (b) lies outside it, so the approval
+carries a revised estimate that includes that work as a further condition. Keep the
+upgrade's procurement live until both acceptance criteria are met, with a decision date
+set before procurement's last cancellable point. If either acceptance criterion fails,
+execute the scheduled Postgres upgrade as originally planned.
 
 **Pre-check:** head C1 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
 **Confidence:** MEDIUM — matches the weakest link, chain C1, which consumes GT-5? as a
@@ -289,12 +298,13 @@ different analysis without alteration.
 
 **Criterion 2: Challenge Assumptions**
 Band: **Rigorous**
-> The inversion pass contributes five rows of type `untested belief`, attributed in the
+> The inversion pass contributes five rows. Four are of type `untested belief`, attributed in the
 
-Justification: Every row in the Classified Assumptions Table carries a Type, a Source
-attribution, a specific Treatment, and a Verdict; every row used as a load-bearing
-precondition is marked `unverified — flagged`; the inversion-attributed rows carry the
-verification step that would lift each one.
+Justification: Every row in the Classified Assumptions Table carries a Type, a specific
+Treatment (attributing the row to the claim or the inversion pass), a Verdict and a
+Verification cell; every open row used as a load-bearing precondition is marked
+`unverified — flagged` in its Verification cell; the inversion-attributed rows carry the
+verification step that would lift each one, and the one confirmed by GT-2 says so.
 
 ---
 
@@ -361,7 +371,7 @@ No criterion is at Hand-wavy or Absent. Gate cleared; hand-wavy cap cleared.
   "assumptions": [
     {
       "id": "A-1",
-      "type": null,
+      "type": "current constraint",
       "verdict": "Accept"
     },
     {
@@ -391,12 +401,12 @@ No criterion is at Hand-wavy or Absent. Gate cleared; hand-wavy cap cleared.
     },
     {
       "id": "A-7",
-      "type": "untested belief",
-      "verdict": "Challenge"
+      "type": "current constraint",
+      "verdict": "Accept"
     },
     {
       "id": "A-8",
-      "type": null,
+      "type": "convention",
       "verdict": "Challenge"
     }
   ],
@@ -460,7 +470,7 @@ No criterion is at Hand-wavy or Absent. Gate cleared; hand-wavy cap cleared.
     "edges": []
   },
   "conclusion": {
-    "recommendation": "Approve the two-engineer-week cache rollout (chain C1) conditional\non (a) running the scoped shadow-read simulation to resolve GT-5? and confirming the\nmeasured steady-state hit rate clears the named threshold, and (b) committing to\nevent-driven invalidation against the existing event bus (GT-4) with a documented staleness\nbudget — not TTL-only — before the cache is taken as load-bearing for the upgrade-deferral\ndecision. If either acceptance criterion fails, execute the scheduled Postgres upgrade as\noriginally planned.",
+    "recommendation": "Approve the cache rollout (chain C1) conditional\non (a) running the scoped shadow-read simulation to resolve GT-5? and confirming the\nmeasured steady-state hit rate clears the named threshold, and (b) committing to\nevent-driven invalidation against the existing event bus (GT-4) with a documented staleness\nbudget — not TTL-only — before the cache is taken as load-bearing for the upgrade-deferral\ndecision. GT-3's two-engineer-week estimate covers a cache with TTL-based invalidation; the\nevent-bus subscription and invalidation work in (b) lies outside it, so the approval\ncarries a revised estimate that includes that work as a further condition. Keep the\nupgrade's procurement live until both acceptance criteria are met, with a decision date\nset before procurement's last cancellable point. If either acceptance criterion fails,\nexecute the scheduled Postgres upgrade as originally planned.",
     "confidence": "MEDIUM",
     "rests_on": [
       "C1"

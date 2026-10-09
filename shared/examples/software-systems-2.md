@@ -171,14 +171,17 @@ GT-5 (provider data exports are partial — user records yes, MFA enrollment see
 ### Conclusion C3: The hybrid path dominates the binary framing on the load-bearing security surfaces while preserving optionality on the lock-in surfaces
 
 GT-6 (no secrets manager, no SOC2, no IR runbook — the security floor must be cleared regardless) + GT-1 (no engineer on the team has shipped production auth before) + GT-5 (vendor exports are partial; lock-in concentrates where the vendor owns the most state)
-→ The highest-blast-radius surfaces in any auth implementation are password storage, MFA enrollment, and account-recovery flow — the surfaces where a defect leaks credentials or enables account takeover; these are also the surfaces where the team's inexperience (GT-1) is most expensive: a CVE-class defect here is a company-existential event, not a fixable bug; the lowest-blast-radius surfaces are the tenant model, the audit log, the session policy, and the in-app authorization layer — defects here are recoverable, and these surfaces are also where vendor lock-in concentrates (the tenant model and audit log are exactly the data the vendor "owns" once committed)
-→ A hybrid path — adopt the managed provider for the credential, MFA, and account-recovery surfaces (where the buy-side capability gap is largest and the lock-in concentration is lowest) while owning the tenant model, audit log, session policy, and in-app authorization in-house (where the build-side risk is lowest and the lock-in cost of buying is highest) — dominates both poles on the joint capability-cost-risk metric. It clears the security floor by delegating the surfaces the team cannot safely build, retains the surfaces the team can safely build and where lock-in would be most expensive, and preserves the migration option at lower cost than the full-buy path because the lock-in-prone surfaces are not stored in the vendor.
+→ The highest-blast-radius surfaces in any auth implementation are password storage, MFA enrollment, and account-recovery flow — the surfaces where a defect leaks credentials or enables account takeover; these are also the surfaces where the team's inexperience (GT-1) is most expensive: a CVE-class defect here is a company-existential event, not a fixable bug; the remaining surfaces — the tenant model, the audit log, the session policy, and the in-app authorization layer — are app-specific: they encode this product's own tenant and permission semantics and cannot be delegated whole to a vendor, and the tenant model and audit log are also exactly the data the vendor "owns" once committed
+→ A hybrid path — adopt the managed provider for the credential, MFA, and account-recovery surfaces (where the buy-side capability gap is largest; the MFA enrollment seeds are the part of the buy decision that cannot be fully undone, since GT-5 finds their round-trippability partial and C2 makes MFA re-enrolment the migration cost) while owning the tenant model, audit log, session policy, and in-app authorization in-house (app-specific work that every path must build, and where the lock-in cost of buying is highest) — dominates both poles on the joint capability-cost-risk metric. It clears the security floor by delegating the surfaces the team cannot safely build, retains the app-specific surfaces every path must build and where lock-in would be most expensive, and preserves the migration option at lower cost than the full-buy path because the lock-in-prone surfaces are not stored in the vendor.
 
 **Pre-check:** head GT-6, GT-1, GT-5 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
-**Confidence:** HIGH — the chain rests on GT-1, GT-5, and GT-6, all directly observed
-  rather than projected. The hybrid path's existence collapses the `false-dichotomy`
-  assumption in Section 2 and reduces the dependence on the capability hinge and the
-  migration-cost hinge.
+**Confidence:** MEDIUM — the Inference axis is short: the chain rests on GT-1, GT-5, and GT-6,
+  all directly observed, but its blast-radius ranking of the auth surfaces and its claim that
+  the hybrid "dominates both poles" are judgements no ground truth supplies, and the in-house
+  tenant and authorization layer is itself a high-blast-radius surface in B2B SaaS. It would
+  close by a security review of that layer and of the provider seam, and a per-surface cost
+  comparison. The hybrid path's existence still collapses the `false-dichotomy` assumption in
+  Section 2 and reduces the dependence on the capability hinge and the migration-cost hinge.
 
 ---
 
@@ -301,7 +304,7 @@ log, session policy, and in-app authorization in-house. Specifically:
    recovery, and in-house tenant model + audit log + session policy + authorization
    layer. The gated-feature ship deadline (8 weeks) is achievable on the hybrid path
    because the high-risk surfaces (credential storage, MFA) are delegated and the
-   in-house surfaces are the ones the team can build safely.
+   in-house surfaces are app-specific work every path must build.
 
 3. (chain C2) Within 9 months, BEFORE the first enterprise customer's onboarding closes the
    reversal window from the Section 4 chain on reversibility, re-evaluate the
@@ -324,7 +327,7 @@ surfaces favor buy, the high-lock-in surfaces favor build — and the hybrid pat
 only path that does not pay the wrong cost on at least some surfaces. The community
 convention "roll your own auth is irresponsible" is correct about the credential
 surfaces (where the team's capability gap is largest) and incorrect about the tenant and
-session surfaces (where the team can safely build and where lock-in would be most
+session surfaces (which are app-specific and not delegable, and where lock-in would be most
 expensive). Conflating the two leads to either over-building (incurring the
 inexperienced-team security risk on the credential surfaces) or over-buying (incurring
 the lock-in cost on the tenant and session surfaces that the team would have paid less
@@ -338,7 +341,10 @@ to own).
   in-house tenant model; the provider's MFA enrollment state must be synchronized with
   the in-house audit log; session expiry policy must be coordinated between the
   provider's session and the in-house session). This is genuine ongoing complexity that
-  the pure-build and pure-buy paths do not carry.
+  the pure-build and pure-buy paths do not carry. The in-house tenant model and
+  authorization layer, and the provider seam (the tenant identifier must be taken only from
+  verified token claims), are high-blast-radius in B2B SaaS — a cross-tenant isolation or
+  authorization defect is not recoverable cheaply — and each needs its own security review.
 
 - (chain C2) The recommendation defers a hard re-evaluation step to month 9 (before the first
   enterprise customer onboards). This defers the binding decision but does not
@@ -356,13 +362,13 @@ to own).
   a different path. The methodology, not the specific verdict, is the transferable
   output.
 
-**Pre-check:** head C1 (MEDIUM), C2 (MEDIUM), C3 (HIGH) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
-**Confidence:** (chains C1, C2 and C3) MEDIUM — the hybrid-path chain itself is HIGH confidence, but the
-overall recommendation inherits the MEDIUM rating from two chains: the chain on
+**Pre-check:** head C1 (MEDIUM), C2 (MEDIUM), C3 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
+**Confidence:** (chains C1, C2 and C3) MEDIUM — the hybrid-path chain is MEDIUM too (its confidence line
+carries the reason), and the overall recommendation also inherits the MEDIUM rating from two chains: the chain on
 reversibility (which depends on the projection in GT-2 of the first enterprise
 customer's timing) and the cost chain C1 (which carries today's list prices across
-the 24-month horizon, GT-7?, the pricing trajectory). Raising to HIGH requires both
-resolved: (a) a signed enterprise customer with stated SSO/SAML requirements, which
+the 24-month horizon, GT-7?, the pricing trajectory). Raising to HIGH requires all three
+resolved: (c) C3 re-rated HIGH on the security review its confidence line names; (a) a signed enterprise customer with stated SSO/SAML requirements, which
 would resolve GT-2's projection into a fact and either confirm or close the 9-month
 reversal window; and (b) a signed contract with the chosen managed provider that pins
 the pricing trajectory through the 24-month horizon, which would resolve GT-7?. The
@@ -462,7 +468,7 @@ resolves.
     },
     {
       "id": "C3",
-      "confidence": "HIGH",
+      "confidence": "MEDIUM",
       "rests_on": [
         "GT-6",
         "GT-1",
@@ -478,7 +484,7 @@ resolves.
   "gate": null,
   "re_entry": null,
   "conclusion": {
-    "recommendation": "(chains C1, C2 and C3) Adopt the **hybrid path** — use a managed identity provider for\npassword storage, MFA enrollment, and account-recovery flows; own the tenant model, audit\nlog, session policy, and in-app authorization in-house. Specifically:\n\n1. (chains C1 and C2) Within 2 weeks, select a managed provider whose published pricing tier covers the\n   projected 24-month MAU range without crossing a tier that materially exceeds the\n   $400/month budget criterion, and whose data-export surface covers user records\n   AND audit-log export (the two surfaces the team must be able to round-trip if the\n   migration-cost hinge later resolves against the buy decision).\n\n2. (chain C3) Within 6 weeks, ship the gated feature with provider-backed login + MFA + account\n   recovery, and in-house tenant model + audit log + session policy + authorization\n   layer. The gated-feature ship deadline (8 weeks) is achievable on the hybrid path\n   because the high-risk surfaces (credential storage, MFA) are delegated and the\n   in-house surfaces are the ones the team can build safely.\n\n3. (chain C2) Within 9 months, BEFORE the first enterprise customer's onboarding closes the\n   reversal window from the Section 4 chain on reversibility, re-evaluate the\n   migration-cost hinge: rehearse a buy→build migration of the credential surfaces (in a\n   staging environment, not production) against the chosen provider's data-export\n   surface, and decide whether the build path is now feasible enough that the team\n   wants to migrate before the enterprise customer locks in the buy decision.\n\n4. (chain C3) Concurrent with steps 1–3 and independent of the build-vs-buy choice: address the\n   GT-6 gaps (secrets manager, IR runbook, eventual SOC2 path). These are required\n   regardless of the auth path and represent shared cost the build-vs-buy decision\n   does not change.",
+    "recommendation": "(chains C1, C2 and C3) Adopt the **hybrid path** — use a managed identity provider for\npassword storage, MFA enrollment, and account-recovery flows; own the tenant model, audit\nlog, session policy, and in-app authorization in-house. Specifically:\n\n1. (chains C1 and C2) Within 2 weeks, select a managed provider whose published pricing tier covers the\n   projected 24-month MAU range without crossing a tier that materially exceeds the\n   $400/month budget criterion, and whose data-export surface covers user records\n   AND audit-log export (the two surfaces the team must be able to round-trip if the\n   migration-cost hinge later resolves against the buy decision).\n\n2. (chain C3) Within 6 weeks, ship the gated feature with provider-backed login + MFA + account\n   recovery, and in-house tenant model + audit log + session policy + authorization\n   layer. The gated-feature ship deadline (8 weeks) is achievable on the hybrid path\n   because the high-risk surfaces (credential storage, MFA) are delegated and the\n   in-house surfaces are app-specific work every path must build.\n\n3. (chain C2) Within 9 months, BEFORE the first enterprise customer's onboarding closes the\n   reversal window from the Section 4 chain on reversibility, re-evaluate the\n   migration-cost hinge: rehearse a buy→build migration of the credential surfaces (in a\n   staging environment, not production) against the chosen provider's data-export\n   surface, and decide whether the build path is now feasible enough that the team\n   wants to migrate before the enterprise customer locks in the buy decision.\n\n4. (chain C3) Concurrent with steps 1–3 and independent of the build-vs-buy choice: address the\n   GT-6 gaps (secrets manager, IR runbook, eventual SOC2 path). These are required\n   regardless of the auth path and represent shared cost the build-vs-buy decision\n   does not change.",
     "confidence": "MEDIUM",
     "rests_on": [
       "C1",

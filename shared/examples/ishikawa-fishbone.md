@@ -72,11 +72,12 @@ support access, account-management touchpoints).
 **Selected branch: "Account management coverage gaps" (Place category)**
 
 **Evidence reasoning:** Exit-interview data from 11 of 23 churned accounts in Q2–Q3
-explicitly cites "felt unsupported" or "no one checked in" — the highest-frequency explicit
-signal in available qualitative data.
+explicitly cites "felt unsupported" or "no one checked in" as a primary or secondary reason —
+the highest-frequency explicit signal in available qualitative data (n = 23 is small).
 
-**Symptom:** Northbrook Analytics customers in the $18K–$25K tier are churning at a
-disproportionately high rate relative to higher-value tiers.
+**Symptom:** Northbrook Analytics customers in the $18K–$25K tier are suspected of churning at a
+disproportionately high rate relative to higher-value tiers; the tier-segmented churn cut that
+would confirm it has not been run (A-4).
 
 - Why? → Accounts in this tier have no dedicated Customer Success Manager.
   - Why? → CSM headcount growth (10%) has not kept pace with customer-base growth (40%),
@@ -170,14 +171,14 @@ Read-at-source: GT-4 — CS Director debrief, and the absence of any mid-year ca
 
 ## 4. Derivation Chains
 
-### Conclusion C1: The primary verified contributor to churn is the CSM coverage gap in the $18K–$25K tier
+### Conclusion C1: The CSM coverage gap is the largest single churn signal; its concentration in the $18K–$25K tier is unverified
 
 GT-2 (11 of 23 churned accounts cite "felt unsupported") + GT-3 (CSM-to-account ratio 1:67 vs. design threshold 1:40 in the uncovered tier)
-→ The "felt unsupported" signal maps onto the structurally uncovered account segment — the specific tier where no dedicated CSM exists; the ratio drift quantifies the structural cause, explaining why the signal concentrates in this tier rather than spreading uniformly
-→ The CSM coverage gap is a verified contributor, supported by both qualitative exit data and quantitative capacity data.
+→ The "felt unsupported" signal is what the structural coverage gap would predict — the ratio drift quantifies the structural cause in the tier where no dedicated CSM exists — but no ground truth places the 11 accounts in that tier, so their concentration there is a premise (A-4), not a finding
+→ The CSM coverage gap is a probable contributor, supported by qualitative exit data (11 of 23 churned accounts, as a primary or secondary reason) and quantitative capacity data; that it operates in the $18K–$25K tier is the unverified link.
 
 **Pre-check:** head GT-2, GT-3 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
-**Confidence:** HIGH
+**Confidence:** MEDIUM — the Inference axis is short: GT-2 and GT-3 are verified, but no ground truth places the 11 accounts in the $18K–$25K tier, and A-4 (accounts without a dedicated CSM churn at a higher rate) is unverified because the cohort comparison has not been run. It would close by segmenting the churned accounts and the retained base by tier and CSM-coverage status and comparing churn rates against the covered tiers.
 
 ---
 
@@ -195,7 +196,7 @@ GT-3 (ratio drifted to 1:67, 68% above the 1:40 threshold) + GT-4 (ratios review
 ### Conclusion C3: Additional causal contributors likely exist but remain unverified hypotheses
 
 GT-1 (churn rose 124%) + GT-5? (productivity-outcome gap ~40% below demo benchmark, preliminary estimate from 4 accounts)
-→ The CSM coverage gap explains 11 of 23 churned accounts; 12 remain unaccounted for; the productivity-outcome gap is a plausible additional contributor — customers not achieving the promised outcome have a weaker economic case for renewal
+→ The "felt unsupported" signal, which is plausibly a coverage-gap effect, is cited by 11 of 23 churned accounts as a primary or secondary reason; the other 12 are unattributed; the productivity-outcome gap is a plausible additional contributor — customers not achieving the promised outcome have a weaker economic case for renewal
 → The full causal picture is not yet established; remaining churned accounts likely represent a second causal cluster requiring further evidence gathering.
 
 **Pre-check:** head GT-1, GT-5? · ?-marked: GT-5? · lowest cited: none · Inputs ceiling: MEDIUM
@@ -231,12 +232,13 @@ via the Assumptions Table before committing resources.
 accounts cite UI quality → competitors have more modern interfaces → a UI refresh is the
 primary churn intervention.
 
-**Why abandoned:** The UI assumption stayed at Verdict `Challenge` — the `untested belief`
+**Why abandoned:** The product-overhaul assumption (A-8, under which a UI refresh falls) stayed at Verdict `Challenge` — the `untested belief`
 classification could not be lifted to Accept because the evidence does not meet the
 verification standard. The signal count (5 of 23 = 22%) is lower than the "felt unsupported"
 signal (11 of 23 = 48%); all five accounts citing UI also cited at least one other factor;
-none cited UI as the sole reason. GT-2 and GT-3 together explain the majority of the churn
-signal at far lower intervention cost; investing ~8 sprints in a UI refresh before verifying
+none cited UI as the sole reason. GT-2 and GT-3 together point to the largest single signal
+(11 of 23 cite feeling unsupported as a primary or secondary reason; the other 12 are
+unattributed, and n = 23 is small) at far lower intervention cost; investing ~8 sprints in a UI refresh before verifying
 it is a standalone contributor inverts the cost-benefit ordering.
 
 **What it ruled out:** UI-citation frequency is insufficient to anchor a high-confidence
@@ -250,11 +252,13 @@ would address more cheaply.
 
 **Recommended approach:** (chains C1, C2 and C3) Execute in two ordered stages.
 
-Stage 1 — fix the verified structural cause (4–8 weeks): establish a quarterly CS capacity
-review with a ratio trigger (CSM-to-account ratio exceeds 1:45 → coverage model reviewed
+Stage 1 — fix the verified structural cause (4–8 weeks): first run the tier-segmented churn
+cut (A-4) — churn rate by tier and CSM-coverage status for the churned accounts and the
+retained base — to confirm the coverage gap sits in the $18K–$25K tier; then establish a
+quarterly CS capacity review with a ratio trigger (CSM-to-account ratio exceeds 1:45 → coverage model reviewed
 before next quarter begins), addressing GT-4; reassign or add CSM coverage for the $18K–$25K
-tier to bring the ratio below the 1:40 design threshold (GT-3), addressing the verified
-cause of the "felt unsupported" signal (GT-2).
+tier to bring the ratio below the 1:40 design threshold (GT-3), addressing the coverage gap
+behind the "felt unsupported" signal (GT-2).
 
 Stage 2 — verify remaining hypotheses (6–10 weeks) before any intervention commitment: run
 a productivity-outcome survey (n=40 accounts) to test GT-5?; pull CRM data to test whether
@@ -269,17 +273,20 @@ intervention set is narrow, cheap, and fast relative to the 14-sprint programme 
 appeared to demand. The Phase 2 challenge step is the mechanism that separates the two
 outcomes.
 
-**Trade-offs acknowledged:** (chains C1 and C3) Stage 1 addresses the verified cause of ~48% of the churn
-signal; the remaining ~52% represent an unresolved causal cluster Stage 2 is designed to
+**Trade-offs acknowledged:** (chains C1 and C3) Stage 1 addresses the largest single churn signal
+(11 of 23 cite feeling unsupported as a primary or secondary reason, ~48%; n = 23 is small);
+the other 12 are unattributed and form an unresolved causal cluster Stage 2 is designed to
 illuminate. Adding CSM coverage has an immediate cost and may require trade-offs in
 higher-value-tier coverage; the quarterly capacity review makes that trade-off governed.
 Deferring the UI refresh accepts the risk that a second verified contributor emerges
 requiring longer-lead-time product investment.
 
-**Pre-check:** head C1 (HIGH), C2 (HIGH), C3 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
-**Confidence:** MEDIUM — Stage 1 is HIGH confidence (GT-1 through GT-4, all verified; chains C1 and C2).
-Overall is MEDIUM because the full causal picture depends on GT-5? (unverified). Raising
-to HIGH requires the Stage 2 productivity-outcome survey with a statistically valid sample.
+**Pre-check:** head C1 (MEDIUM), C2 (HIGH), C3 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
+**Confidence:** MEDIUM — Stage 1's structural fix is HIGH confidence (chain C2: GT-3 and GT-4, both
+verified), but its tier targeting rests on chain C1, MEDIUM until the tier-segmented churn cut
+(A-4) is run. Overall is MEDIUM because that tier link and the full causal picture (chain C3,
+GT-5? unverified) are open. Raising to HIGH requires the tier-segmented churn cut and the
+Stage 2 productivity-outcome survey with a statistically valid sample.
 
 ---
 
@@ -315,11 +322,12 @@ row is challenged with specific counter-evidence rather than dismissed generical
 **Criterion 3: Establish Ground Truths**
 Quoted span: "GT-1 (churn rose 124%) + GT-5? (productivity-outcome gap ~40% below demo
 benchmark, preliminary estimate from 4 accounts)"
-Band: **Sound**
-Justification: GT-1 is unsuffixed and its source is reachable (no Phase 3 failure record
-marks it unreachable), but GT-1 feeds only the third derivation chain, which is rated
-MEDIUM — GT-1 does not feed a HIGH-confidence chain; GT-2, GT-3, and GT-4 each feed at
-least one of the two HIGH-confidence chains, so this is a single-GT shortfall.
+Band: **Hand-wavy**
+Justification: GT-1 and GT-2 are unsuffixed and their sources are reachable (no Phase 3
+failure record marks either unreachable), but GT-1 feeds only the third derivation chain and
+GT-2 feeds only the first, both rated MEDIUM — neither feeds a HIGH-confidence chain; GT-3
+and GT-4 each feed chain C2, the one HIGH-confidence chain. The shortfall spans two GTs, which
+the tightened descriptor bands Hand-wavy.
 
 ---
 
@@ -340,12 +348,13 @@ abandonment reasons; no analogy is used as direct evidence.
 Quoted span: "Confidence: MEDIUM — GT-5? is unverified (4 accounts). Raising to HIGH requires
 a statistically valid workflow-automation survey (minimum n=40 accounts)."
 Band: **Rigorous**
-Justification: Every derivation chain carries an explicit Confidence rating; the two HIGH
-chains consume only verified GTs; the MEDIUM chain names the specific unverified input (GT-5?),
-explains the downgrade, and states the exact verification that would raise confidence to HIGH;
+Justification: Every derivation chain carries an explicit Confidence rating; the one HIGH
+chain (C2) consumes only verified GTs; each MEDIUM chain names its short axis — the unverified
+tier link (A-4) for C1, the unverified input (GT-5?) for C3 — explains the downgrade, and
+states the verification that would raise confidence to HIGH;
 the overall Conclusion's MEDIUM rating matches the weakest chain; no chain consuming GT-5? is
-rated HIGH. The same GT-5?-driven MEDIUM chain that leaves GT-1 without a HIGH-confidence
-chain is named by Criterion 3 and banded there; it is noted here without independently
+rated HIGH. The MEDIUM chains that leave GT-1 and GT-2 without a HIGH-confidence
+chain are named by Criterion 3 and banded there; it is noted here without independently
 lowering this criterion's band, per the rubric's precedence rule.
 
 ---
@@ -364,9 +373,9 @@ narrow verified set — which conventional reasoning would have missed.
 
 **Overall verdict: PASS**
 
-Five criteria score Rigorous; Criterion 3 scores Sound (GT-1 feeds only a MEDIUM chain). No
-criterion is at Hand-wavy or Absent. Gate cleared (no Absent); hand-wavy cap cleared (zero
-Hand-wavy criteria).
+Five criteria score Rigorous; Criterion 3 scores Hand-wavy (GT-1 and GT-2 each feed only a
+MEDIUM chain). No criterion is at Absent. Gate cleared (no Absent); hand-wavy cap cleared (one
+Hand-wavy criterion, the tolerated maximum).
 
 **Gate result:** cleared · passes: 1 · Fix/Repeat fired: no
 
@@ -443,7 +452,7 @@ Hand-wavy criteria).
   "chains": [
     {
       "id": "C1",
-      "confidence": "HIGH",
+      "confidence": "MEDIUM",
       "rests_on": [
         "GT-2",
         "GT-3"
@@ -477,7 +486,7 @@ Hand-wavy criteria).
         "bands": [
           "Rigorous",
           "Rigorous",
-          "Sound",
+          "Hand-wavy",
           "Rigorous",
           "Rigorous",
           "Rigorous"
@@ -494,7 +503,7 @@ Hand-wavy criteria).
     "edges": []
   },
   "conclusion": {
-    "recommendation": "(chains C1, C2 and C3) Execute in two ordered stages.\n\nStage 1 — fix the verified structural cause (4–8 weeks): establish a quarterly CS capacity\nreview with a ratio trigger (CSM-to-account ratio exceeds 1:45 → coverage model reviewed\nbefore next quarter begins), addressing GT-4; reassign or add CSM coverage for the $18K–$25K\ntier to bring the ratio below the 1:40 design threshold (GT-3), addressing the verified\ncause of the \"felt unsupported\" signal (GT-2).\n\nStage 2 — verify remaining hypotheses (6–10 weeks) before any intervention commitment: run\na productivity-outcome survey (n=40 accounts) to test GT-5?; pull CRM data to test whether\ndecisions are made 90–120 days before expiry; segment adoption scores by churn outcome.\n\nDo not commit to a product overhaul, UI refresh, or all-8P programme until Stage 2 is done.",
+    "recommendation": "(chains C1, C2 and C3) Execute in two ordered stages.\n\nStage 1 — fix the verified structural cause (4–8 weeks): first run the tier-segmented churn\ncut (A-4) — churn rate by tier and CSM-coverage status for the churned accounts and the\nretained base — to confirm the coverage gap sits in the $18K–$25K tier; then establish a\nquarterly CS capacity review with a ratio trigger (CSM-to-account ratio exceeds 1:45 → coverage model reviewed\nbefore next quarter begins), addressing GT-4; reassign or add CSM coverage for the $18K–$25K\ntier to bring the ratio below the 1:40 design threshold (GT-3), addressing the coverage gap\nbehind the \"felt unsupported\" signal (GT-2).\n\nStage 2 — verify remaining hypotheses (6–10 weeks) before any intervention commitment: run\na productivity-outcome survey (n=40 accounts) to test GT-5?; pull CRM data to test whether\ndecisions are made 90–120 days before expiry; segment adoption scores by churn outcome.\n\nDo not commit to a product overhaul, UI refresh, or all-8P programme until Stage 2 is done.",
     "confidence": "MEDIUM",
     "rests_on": [
       "C1",

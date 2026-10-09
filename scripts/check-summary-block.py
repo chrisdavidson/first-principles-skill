@@ -4216,13 +4216,15 @@ def _c30_head_shapes() -> str | None:
 # Built from the review's ishikawa-fishbone reproduction: a stray pre-check
 # placed before Key insight must not shadow the paired one.
 
+# Re-pinned 2026-10-08 (example-rerun-2): the exemplar's C1 was lowered to MEDIUM,
+# so both literals carry C1 (MEDIUM); the dropped line stays internally consistent.
 _C31_PAIRED = (
-    "**Pre-check:** head C1 (HIGH), C2 (HIGH), C3 (MEDIUM) · ?-marked: none · "
+    "**Pre-check:** head C1 (MEDIUM), C2 (HIGH), C3 (MEDIUM) · ?-marked: none · "
     "lowest cited: MEDIUM · Inputs ceiling: MEDIUM"
 )
 _C31_DROPPED = (
-    "**Pre-check:** head C1 (HIGH), C2 (HIGH) · ?-marked: none · "
-    "lowest cited: HIGH · Inputs ceiling: HIGH"
+    "**Pre-check:** head C1 (MEDIUM), C2 (HIGH) · ?-marked: none · "
+    "lowest cited: MEDIUM · Inputs ceiling: MEDIUM"
 )
 _C31_KEY_INSIGHT = "**Key insight:** (chains C1 and C2)"
 
