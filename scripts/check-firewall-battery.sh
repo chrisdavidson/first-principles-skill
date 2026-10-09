@@ -1086,6 +1086,15 @@ _FROZEN_PATHS=(
     # linked Basis header (D-12). Frozen because the shipped examples' sha256 equality with
     # their runs is falsifiable only against this manifest, checks.tsv and out/.
     'tests/persona-live-v9.18d'
+    # example-rerun-2 (2026-10-08) -- every worked example re-run on 2628e725 and judged
+    # against the shipped one (docs/example-rerun-2-reading.md), plus the supplementary runs
+    # of the three that skipped the procedure. Frozen because the verified example updates
+    # and the 3-of-14 skip record are checkable only against these runs.
+    'tests/example-rerun-2'
+    # skip-paired (2026-10-08) -- 18 paired runs, v9.13.0 vs 2628e725, on the three skipping
+    # prompts (docs/skip-paired-reading.md): 0/9 vs 1/9 skips, and the current body's wrong
+    # delivery pointer in 3 of 9. Frozen because both readings are falsifiable only here.
+    'tests/skip-paired'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null

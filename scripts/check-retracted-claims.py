@@ -932,6 +932,77 @@ REGISTRY: tuple[RetractedClaim, ...] = (
             ("scripts/check-traceability.py", 1),
         ),
     ),
+    # 2026-10-08 example-rerun-2 (docs/example-rerun-2-reading.md): seven claims in
+    # shipped worked examples, each verified false against the example's own text or
+    # the named source and corrected in shared/examples/.
+    RetractedClaim(
+        literal="teams below ~50 engineers operating more than ~10 services",
+        retracted_by="2026-10-08 example-rerun-2, software-systems A-3",
+        corrected=(
+            "No DORA finding states those team-size and service-count thresholds. "
+            "shared/examples/software-systems.md A-3 now rests the overhead claim "
+            "qualitatively on GT-4's per-service operating cost."
+        ),
+    ),
+    RetractedClaim(
+        literal="no changes to application code and no architectural risk",
+        retracted_by="2026-10-08 example-rerun-2, software-systems branch 2",
+        corrected=(
+            "Blue-green or rolling deploys against one shared schema need "
+            "expand/contract migrations both versions tolerate, and sharding a "
+            "long-lived test suite meets order-dependent tests and shared database "
+            "state; shared/examples/software-systems.md now names both as "
+            "preconditions and costs."
+        ),
+    ),
+    RetractedClaim(
+        literal="the coupling reduction that enables genuinely independent",
+        retracted_by="2026-10-08 example-rerun-2, software-systems branch 3",
+        corrected=(
+            "Schema decomposition inside a monolith cannot make deploys independent: "
+            "the monolith still deploys as one unit. It is groundwork that lowers the "
+            "cost of a later extraction (shared/examples/software-systems.md, C2 and "
+            "branch 3)."
+        ),
+    ),
+    RetractedClaim(
+        literal="a non-classical mechanism is required",
+        retracted_by="2026-10-08 example-rerun-2, science-engineering-2 A-3 and GT-4",
+        corrected=(
+            "A failure at 0.108 x L10 is a ~0.1-0.2% event under ISO 281's reliability "
+            "factor, so a classical-only explanation is strongly disfavoured, not "
+            "excluded; the white-etching microstructure (GT-3) is what discriminates."
+        ),
+        # The reading quotes the retracted sentence once, in the row that records it.
+        exemptions=(("docs/example-rerun-2-reading.md", 1),),
+    ),
+    RetractedClaim(
+        literal="ISO 6336 / DIN 5401",
+        retracted_by="2026-10-08 example-rerun-2, science-engineering-2 A-row",
+        corrected=(
+            "ISO 6336 is gear load capacity and DIN 5401 covers rolling-bearing balls; "
+            "neither specifies a cylindrical roller bearing's steel. The example now "
+            "cites ISO 683-17."
+        ),
+    ),
+    RetractedClaim(
+        literal="the lock-in concentration is lowest",
+        retracted_by="2026-10-08 example-rerun-2, software-systems-2 C3",
+        corrected=(
+            "GT-5 records MFA enrollment seeds as only partially exportable, so the "
+            "credential/MFA purchase is the part of the buy decision that cannot be "
+            "fully undone (shared/examples/software-systems-2.md C3)."
+        ),
+    ),
+    RetractedClaim(
+        literal="together explain the majority of the churn",
+        retracted_by="2026-10-08 example-rerun-2, ishikawa-fishbone dead end",
+        corrected=(
+            "11 of 23 churned accounts (48%) cite feeling unsupported as a primary or "
+            "secondary reason; that is the largest single signal, not a majority, and "
+            "the other 12 are unattributed."
+        ),
+    ),
 )
 
 

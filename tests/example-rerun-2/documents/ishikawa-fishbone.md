@@ -1,0 +1,432 @@
+## Answer
+
+**Recommendation:** Run a parallel diagnostic-plus-targeted-outreach plan rather than waiting to certify a single root cause: this week, pull the internal change log and categorize the last two quarters of support tickets; concurrently, run hypothesis-informed (not blanket) outreach to already-flagged at-risk renewals; sequence structural fixes once the diagnostic lands, retrofitted to the existing damaged cohort, not just new customers (chain C6, chain C7).
+
+**Band (from §6):** LOW overall, with a deliberate split: the root-cause attribution (chain C4) is LOW, while the action plan's soundness (chains C6, C7) is MEDIUM and does not require resolving C4 first.
+
+**Would change it:** The internal change-log check, ticket categorization, churned-cohort tenure/anniversary data, and win/loss interviews (chain C4) — these would move the root-cause weighting and are the same items ranked in §6's data-needs list; nothing about the recommended plan itself needs to wait on them (chain C6, chain C7).
+## 1. Problem Essence
+
+**Core problem:** Determine whether Northbrook's quarterly churn rate climbing from 4.1% (Q1) to 9.2% (Q3) reflects a real, worsening retention failure with an identifiable dominant cause (or weighted combination of causes) — as opposed to substantially a cohort-composition or measurement artifact of how "quarterly churn" is computed against an annually-renewing contract base — and prescribe a sequenced action plan that stops near-term revenue loss while fixing whatever structural driver(s) the evidence actually supports.
+
+**Success criteria:**
+1. The analysis explicitly tests whether the rate increase is a cohort/measurement artifact before assigning causal weight to product, pricing, onboarding, service, or competitive hypotheses.
+2. Each hypothesis is assigned a plausibility weight bounded by what the renewal-contract mechanics and available signals can actually support — not a narrative ranking alone.
+3. The analysis names the specific additional data that would most reduce uncertainty, ranked by diagnostic value against effort to obtain.
+4. The action plan is split into immediate (stop-the-bleeding) and structural moves, sequenced with explicit rationale, and does not require full root-cause certainty before any action starts.
+5. The final root-cause weighting carries a stated, falsifiable confidence band.
+
+---
+
+## 2. Assumptions Table
+
+| Assumption | Type | Treatment | Verdict | Verification |
+|------------|------|-----------|---------|---------------|
+| A1: Q1 (4.1%) and Q3 (9.2%) churn-rate figures are computed on a consistent, comparable cohort basis quarter to quarter | untested belief | Verify against the churn-metric definition/denominator; else flag | Challenge — no methodology source named, and the business is annual-contract while the metric is quarterly, so comparability is not given | unverified — flagged (feeds C1) |
+| A2: Rising support-ticket volume is causally linked to the churn rise, not a coincidental concurrent trend | untested belief | Verify via ticket-churn correlation at the account level; else flag | Challenge — correlation-in-time asserted by CS, causation not established | unverified — flagged (feeds C2, C4) |
+| A3: The adoption-score drop is causally linked to the churn rise | untested belief | Verify via adoption-score-churn correlation at the account level; else flag | Challenge — same gap as A2 | unverified — flagged (feeds C2, C4) |
+| A4: Churn is driven by a single dominant root cause (implicit in the "find THE root cause" mandate) | convention | Explicitly challenge before use; test whether a weighted combination fits better | Challenge — rejected as the governing frame in Phase 1; replaced with a weighted-combination question | n/a — reframed, not a load-bearing input |
+| A5: Q1's 4.1% churn rate was itself a "healthy" baseline, not an unusually low starting point | untested belief | Verify against multi-year churn history; else flag | Challenge — no prior-year data supplied, so Q1-as-baseline is unverified | unverified — flagged (feeds C1) |
+| A6: Annual-contract renewal anniversaries are distributed roughly evenly across quarters (~25%/quarter) | convention (simplifying approximation) | State expiry/sensitivity; accept only for bounding, not as measured fact | Accept — for bounding purposes only; sensitivity priced on C3's confidence line | unverified — flagged (feeds C3, C5) |
+| A7: No material internal operational change (pricing, staffing, product release, outage, onboarding-process change) occurred in Q1/Q2 | untested belief | Verify via internal change log (near-zero-cost check) | Challenge — this is the single highest-value, lowest-effort unresolved question in the whole analysis | unverified — flagged (feeds C4) |
+| A8: Competitive displacement can mechanically produce a churn-rate doubling within a 2-quarter window | convention (industry pattern assumed) | Challenge against this business's renewal-contract mechanics | Challenge — bounded and downweighted by C3's mechanical argument | unverified — flagged (feeds C3, C4) |
+| A9: No meaningful new-sales segment/vertical mix shift occurred in the periods feeding the Q3 renewal cohort | untested belief | Verify via sales-ops bookings-by-segment trend | Challenge — plausible alternative explanation for the adoption-score drop (mix dilution, not individual decline) | unverified — flagged (feeds C4) |
+| A10: Rising tickets and falling adoption scores behave as leading indicators of churn in this specific business, as they typically do in B2B SaaS generally | convention | Challenge in this specific context rather than importing the industry default | Challenge — directionally plausible as domain convention, but not verified for Northbrook specifically; not used as standalone justification (D-07 analogy ban) | unverified — flagged (feeds C2, C4) |
+| A11: The renewing cohort's average ACV approximates the $18k–$40k range midpoint ($29k) | untested belief (illustrative simplification) | Accept only for Fermi bounding; replace with real distribution when available | Accept — illustrative only, explicitly labeled an estimate, not measured | unverified — flagged (feeds C5) |
+| A12: Total customer count N falls in an illustrative 150–400 range | untested belief (illustrative simplification) | Accept only for Fermi bounding; replace with real N when supplied | Accept — illustrative only, explicitly labeled an estimate, not measured | unverified — flagged (feeds C5) |
+| A13 [surfaced in Assumption Audit, C6]: Targeted (non-blanket) retention outreach can be operationalized this quarter using ticket-volume and tenure as an interim at-risk proxy, without a formal scoring model already existing | current constraint | Record expiry: lifts once a proper at-risk model is built from the diagnostic's output | Accept — expires once the diagnostic (C6's first phase) produces a real scoring model; until then this is a workable interim proxy, not a permanent method | unverified — flagged (feeds C6) |
+| A14 [surfaced in Assumption Audit, C7]: Leadership will agree to measure near-term progress on leading indicators (tickets, adoption, NPS) rather than solely on the lagging quarterly churn-rate metric | convention (organizational) | Challenge — this is a buy-in risk, not a fact; carried into the pre-mortem as Cluster C | Challenge — unresolved until leadership explicitly commits; flagged as the plan's single largest execution risk | unverified — flagged (feeds C7) |
+
+---
+
+## 3. Ground Truths
+
+**Provenance note on this list:** This analysis has no external document, database, or system to open — the inputs are the requester's own direct statements about their company's internal metrics (churn rate, ticket volume, adoption score) and the requester's description of the business model (annual contracts, ACV range, state of leadership's investigation). Per the Input Contract, a candidate fact that names no source enters as **unverified**; GT-1 through GT-4 are therefore marked `?` even though there is no reason to doubt the requester's honesty — the `?` records that this analysis did not independently read these figures at any source, because none exists for it to open (Phase 3 verification step: not applicable — no citable source was named for any of GT-1 through GT-4; no read was attempted because none could be). GT-6 through GT-8 are treated differently: they describe how the business model and the investigation are defined by the problem itself (structural/definitional, not disputed empirical measurements), so they carry no `?`.
+
+- **GT-1?** Quarterly churn rate was 4.1% in Q1 of the subject year — unverified: no source named; stipulated by the requester as a known internal metric, not independently read by this analysis.
+- **GT-2?** Quarterly churn rate was 9.2% by the end of Q3 of the same year — unverified: same reason as GT-1?.
+- **GT-3?** Customer Success flagged rising support-ticket volume over this period (no magnitude given) — unverified: no source named, qualitative flag only.
+- **GT-4?** Customer Success flagged a drop in feature-adoption scores over this period (no magnitude given) — unverified: no source named, qualitative flag only.
+- **GT-5?** (derived from GT-1?, GT-2?) The Q3 rate is 2.24× the Q1 rate (9.2 / 4.1 = 2.2439…), a +5.1-percentage-point absolute rise — source: arithmetic on GT-1? and GT-2?; read-at-source: the arithmetic is irreducible and recomputed independently in the adversarial pass below; inherits the `?` of its two inputs, since a correct ratio of two unverified figures is itself unverified as a fact about Northbrook.
+- **GT-6** Contracts are annual and renew yearly; churn is a discrete event observed at each account's own renewal/anniversary date, not a continuous event — source: stipulated directly by the problem statement as the business's contract structure; this is a definitional fact about how the business works, not a disputed measurement, so it is not read-at-source from an external document and carries no `?`.
+- **GT-7** Annual contract value (ACV) ranges $18,000–$40,000 — source: stipulated directly by the problem statement; definitional, no `?` for the same reason as GT-6.
+- **GT-8** As of the time of this analysis, leadership has named six candidate hypotheses and no root cause has yet been identified — source: stipulated directly by the problem statement; a meta-fact about the state of the investigation, not an empirical claim this analysis could independently check, no `?`.
+
+**Provenance summary (required):**
+```text
+?-marked: GT-1, GT-2, GT-3, GT-4, GT-5 (5 of 8)
+Read-at-source: none — GT-6, GT-7, GT-8 are definitional facts stipulated by the problem statement itself, not claims read from an external citable source; no unsuffixed ground truth in this list feeds a HIGH-confidence chain on the strength of an external citation (the one HIGH chain, C3, rests on GT-6 and GT-7 as definitional inputs, not as externally-sourced measurements).
+```
+
+---
+
+## 4. Derivation Chains
+
+### Conclusion C1: The raw churn-rate doubling may be partly a cohort-composition artifact, not purely behavioral
+
+GT-1? (Q1 churn 4.1%) + GT-2? (Q3 churn 9.2%) + GT-6 (annual renewal, churn observed at anniversary)
+→ a quarterly churn rate for an annually-renewing book is computed over whichever subset of accounts has a renewal anniversary that quarter, not over the same accounts repeated each quarter
+→ distinct quarterly cohorts can differ in size, vintage, and composition for reasons unrelated to any behavioral change
+→ a rate computed on non-identical cohorts is not automatically a clean trend line, so part of the 4.1%-to-9.2% rise could be cohort-mix rather than a worsening of underlying customer behavior
+→ the raw doubling overstates the true behavioral deterioration by an unknown amount until cohort-controlled data is obtained
+
+**Pre-check:** head GT-1?, GT-2?, GT-6 · ?-marked: GT-1?, GT-2? · lowest cited: none · Inputs ceiling: MEDIUM
+**Confidence:** MEDIUM — GT-1? and GT-2? are unverified; the verification that would remove them as a cause of the downgrade is obtaining the churn-metric methodology and cohort-level renewal data from Northbrook's own billing/CRM system. The inference steps are structural and definitional (following from GT-6), and no rival conclusion contests the cohort-mechanics point itself.
+
+### Conclusion C2: CS's two flagged signals do not by themselves discriminate among the named hypotheses
+
+GT-3? (rising ticket volume) + GT-4? (falling adoption score)
+→ rising ticket volume is consistent with onboarding failure, service-quality degradation, or a product-reliability regression, among other causes
+→ a falling adoption score is consistent with onboarding failure, a segment mix shift toward lower-fit customers, or a product/UX regression
+→ because the same two symptoms are each consistent with multiple distinct hypotheses, the symptoms alone cannot assign causal weight without further segmentation by cohort tenure, ticket category, or account segment
+
+**Pre-check:** head GT-3?, GT-4? · ?-marked: GT-3?, GT-4? · lowest cited: none · Inputs ceiling: MEDIUM
+**Confidence:** MEDIUM — GT-3? and GT-4? are unverified; the verification that would remove them is ticket categorization and an adoption-score-by-cohort breakdown, which would let the signals discriminate. Inference is clean and no rival contests the "doesn't discriminate alone" claim.
+
+### Conclusion C3: Renewal-contract mechanics bound external causes but not internal ones
+
+GT-6 (annual renewal, anniversary-gated churn) + GT-7 (ACV $18k-$40k, binding annual term)
+→ a customer under an active annual contract cannot mechanically churn before their own renewal anniversary, so any cause whose effect is gated by that anniversary can only be measured, in a given quarter, among the subset of accounts anniversary-dated that quarter
+→ assuming anniversaries are not wildly concentrated in one quarter, an externally-paced cause that began in Q1 or Q2 — a new competitor's entry, a slow evaluation-and-switch cycle, a price change applied only at renewal — can reach at most the fraction of the book anniversary-dated since the cause began, not the whole book at once *[Assumes: A6]*
+→ an internal operational change is not anniversary-gated at all, because it is visible in ticket volume and product usage from the day it happens and can affect the renewal decision of any cohort reaching its anniversary afterward, up to the entire book
+→ internal operational causes are mechanically capable of producing a sharp, broad, two-quarter acceleration in a way that externally-paced causes are not, holding the size of the cause constant
+
+**Pre-check:** head GT-6, GT-7 · ?-marked: none · lowest cited: none · Inputs ceiling: HIGH
+**Confidence:** HIGH — if A6 (roughly even anniversary distribution) were false, the exact fraction of the book reachable by an external cause within the window would shift, but the directional claim this chain rests on — internal causes reach the active book immediately, external causes are anniversary-gated — is unaffected by A6's failure, so the endpoint survives it. No rival contests this mechanical point, and both head inputs are stipulated, unsuffixed, definitional facts about the business model.
+
+### Conclusion C4: Weighted root-cause ranking: internal operational change is the best-fitting single dominant explanation
+
+C2 (symptoms don't discriminate alone, MEDIUM) + C3 (internal causes reach the book immediately; external causes anniversary-gated, HIGH) + GT-3? (rising tickets) + GT-4? (falling adoption) + GT-8 (six hypotheses, no cause found yet)
+→ ticket volume rising and adoption score falling together, in the same two quarters, is the signature an internal operational change would produce, because it degrades service and product experience for the whole active book at once
+→ that same co-movement is not the signature pricing pressure or competitive displacement would most directly produce, since neither classically moves a product-adoption score by itself, and C3 shows both are also speed-limited within this window *[Assumes: A8]*
+→ an onboarding-failure or new-segment-mix explanation would also move both signals together, but only among recently-onboarded cohorts, making it a plausible material contributor rather than a full explanation of a book-wide shift *[Assumes: A9]*
+→ an internal operational change (CS capacity/process or a product reliability/UX regression) is the best-fitting single dominant explanation, weighted at roughly 45%, with onboarding/segment-mix effects and the cohort-measurement artifact (C1) together at roughly 40% (25% and 15% respectively), and pricing pressure and competitive displacement together at roughly 15% (10% and 5% respectively)
+
+**Pre-check:** head C2 (MEDIUM), C3 (HIGH), GT-3?, GT-4? · ?-marked: GT-3?, GT-4? · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
+**Confidence:** LOW — two axes are short at once. (1) Inputs: GT-3?/GT-4? are unverified (verification: ticket categorization and adoption-score-by-cohort data would remove them as a cause of the downgrade), and C2 on the head is itself MEDIUM for the reasons stated on C2's own confidence line. (2) Rivals: pricing pressure and competitive displacement remain live rivals that C3 only bounds in magnitude, it does not rule out; what would settle it is the internal change-log check (assumption A7), win-loss interviews naming or not naming a competitor, and whether churned-account tenure clusters among recently-onboarded cohorts. This is the central open question the whole engagement was commissioned to resolve, and it is rated LOW rather than claimed with unsupported certainty precisely because the decisive data (ranked in the data-needs analysis below) has not yet been collected.
+
+### Conclusion C5: The dollar exposure is economically material regardless of exact cause
+
+GT-1? (Q1 churn 4.1%) + GT-2? (Q3 churn 9.2%) + GT-7 (ACV $18k-$40k)
+→ the incremental quarterly churn is 9.2% minus 4.1%, or 5.1 percentage points (0.051), of whichever cohort is renewing that quarter
+→ taking an illustrative renewing-cohort size of one quarter of a total customer base N at the ACV midpoint of $29,000, for N=150 the renewing cohort's ACV base is about $1.09M and the incremental quarterly loss is about $55,500; for N=400 the base is about $2.9M and the incremental quarterly loss is about $148,000 *[Assumes: A6, A11, A12]*
+→ annualizing the central estimate across four quarterly cohorts, if the elevated rate persists uncorrected, gives a bracket of roughly $220,000 to $590,000 of incremental annual ARR at risk
+→ both ends of this bracket are economically material for a company of Northbrook's implied scale, so the decision to prioritize this problem now is robust to the uncertainty in N and ACV mix without narrowing the bracket further
+
+**Pre-check:** head GT-1?, GT-2?, GT-7 · ?-marked: GT-1?, GT-2? · lowest cited: none · Inputs ceiling: MEDIUM
+**Confidence:** MEDIUM — GT-1?/GT-2? are unverified (verification: the same churn-metric confirmation named on C1's line); A6/A11/A12 are explicitly illustrative placeholders, not measured figures (verification: Northbrook's own billing system would tighten the bracket, not change the decision it supports). No rival contests the "this is economically material either way" conclusion itself.
+
+### Conclusion C6: A parallel diagnostic-plus-targeted-outreach plan is the recommended course of action
+
+GT-7 (ACV $18k-$40k stakes) + GT-8 (six hypotheses, mandate to find and fix) + C5 (dollar exposure is material, MEDIUM)
+→ weighted criteria — diagnostic value, speed to stop near-term loss, cost, risk of acting blind, mandate alignment — locked before scoring, give a composite "parallel diagnostic plus targeted at-risk outreach, with structural fixes sequenced after diagnosis" option a weighted total of 91 against 72 for diagnose-then-act sequentially and 45 for surge-staffing-without-diagnosis, with pure status quo and a pure blanket-discount strategy knocked out before scoring because neither pursues the root cause the mandate requires
+→ a flip-test on the locked weights shows no single weight change within the 1-5 range reverses this ranking, because the composite option ties or dominates its nearest rival on four of five criteria and trails only on cost
+→ the composite plan — diagnose in parallel with targeted, hypothesis-informed retention outreach to already-flagged at-risk renewals, then sequence structural fixes once the diagnostic lands — is the recommended course of action, and this choice does not require first resolving which of the six root-cause hypotheses is dominant
+
+**Pre-check:** head GT-7, GT-8, C5 (MEDIUM) · ?-marked: none directly on this head · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
+**Confidence:** MEDIUM — the only short axis is Inputs, via citing C5 (MEDIUM; see C5's own line for its GT-1?/GT-2? explanation). Inference and Rivals are both clean: the flip-test explicitly demonstrates robustness to weight perturbation, and the rival options it beats (status quo, pure blanket discount, pure surge-staffing-without-diagnosis) are each ruled out with a named reason in Abandoned Reasoning below.
+
+### Conclusion C7: The plan must pre-commit to leading-indicator KPIs and must remediate the existing book, not only new customers
+
+GT-6 (churn observed only at renewal/anniversary) + C6 (composite plan, MEDIUM)
+→ because churn is only observed at each account's own renewal event, a structural fix started now cannot show up in the headline quarterly-churn-rate metric for the cohort it helped until that cohort's next renewal, up to a full year away
+→ leading indicators — ticket volume, adoption score, save-play acceptance, NPS — will move within weeks to a few months and are the only metrics capable of showing whether the fix is working before the headline metric can confirm it, which risks the program being judged a failure prematurely while the lagging metric is still catching up *[Assumes: A14]*
+→ a structural fix rolled out only to new customers leaves the already-damaged existing cohort exposed at their own upcoming renewal, so any structural fix must be explicitly retrofitted to existing at-risk accounts, not only applied going forward
+→ the action plan must pre-commit leadership to leading-indicator KPIs as the near-term success measure and must explicitly scope structural fixes to include a remediation pass for the existing book, or the plan risks being abandoned as a false failure before it has had time to work
+
+**Pre-check:** head GT-6, C6 (MEDIUM) · ?-marked: none · lowest cited: MEDIUM · Inputs ceiling: MEDIUM
+**Confidence:** MEDIUM — the only short axis is Inputs, via citing C6 (MEDIUM; see C6's line). The A14 premise (leadership will agree to decouple near-term measurement from the lagging metric) is priced explicitly as the plan's largest execution risk on this line, and is carried forward as Pre-Mortem Cluster C in the adversarial pass below, so the hop depending on it is not left unpriced.
+
+---
+
+## 5. Abandoned Reasoning
+
+### Dead End: Status quo ("monitor and wait") as a candidate action
+
+**What was tried:** Considered as the baseline option O1 in the trade-off analysis underlying C6 — continue current CS/product/pricing operations unchanged while leadership monitors the trend.
+
+**Why abandoned:** Fails the trade-off's must-have knockout test: leadership's stated mandate is to find the root cause and fix it, and doing nothing satisfies neither clause of that mandate while the trend is accelerating. Scored formally it would register Diagnostic 1, Speed 1, Mandate 1 against the weighted criteria — eliminated before scoring per the trade-off procedure's knockout rule, not merely scored low.
+
+**What it ruled out:** Saves the reader from re-litigating "just wait for more quarters of data" as a serious option; the acceleration itself (GT-5?, more than doubling in two quarters) is the reason waiting is not neutral.
+
+### Dead End: Blanket retention discounting as the sole strategy
+
+**What was tried:** Considered as option O2 — offer broad, undifferentiated discounts or concessions to all upcoming renewals in the at-risk window, as the primary response.
+
+**Why abandoned:** Fails the trade-off's must-have knockout: a blanket concession strategy masks whatever the root cause actually is (it treats every account as price-sensitive regardless of whether the true driver is service quality, onboarding, or product), erodes margin without being targeted by evidence, and does not itself produce the diagnostic information the mandate requires. It is retained only as a bounded, hypothesis-informed tactic inside the composite plan (C6), applied selectively to flagged at-risk accounts rather than universally.
+
+**What it ruled out:** Saves the reader from re-exploring "discount our way out of it" as a standalone fix; it is margin-expensive and, per C4, likely mistargeted if the dominant cause turns out to be operational rather than price-related.
+
+### Dead End: Competitive displacement treated as the primary driver
+
+**What was tried:** Explored as the leading hypothesis, motivated by the idea that a new or more aggressive competitor could be pulling customers away quickly enough to explain the acceleration.
+
+**Why abandoned:** C3 establishes that externally-paced causes, including competitive displacement, are mechanically bounded by renewal-anniversary timing in a way an internal operational change is not — a competitor entering in Q1/Q2 could only mechanically show up in Q3's measured churn among accounts anniversary-dated in Q3, and competitive switching itself requires an evaluation-and-decision lag on top of that. This does not rule competitive displacement out as a contributing factor (it is carried forward in C4 at a 5% weight), but it is too mechanically constrained within a two-quarter window to be the primary explanation for a book-wide doubling.
+
+**What it ruled out:** Saves the reader from re-exploring "a competitor is eating our book" as the lead hypothesis without first checking the internal change log (A7) and win/loss interview data that would actually distinguish it from an internal cause.
+
+### Dead End: Treating the 4.1%-to-9.2% rise as a purely behavioral trend with no measurement component
+
+**What was tried:** The simplest reading of the two given numbers — treat Q1 as a clean, healthy baseline and Q3 as a pure, fully-behavioral deterioration of the same underlying population, with no cohort-composition component.
+
+**Why abandoned:** C1 shows that, given GT-6 (annual renewal, anniversary-gated measurement), a quarterly churn rate on an annually-renewing book is computed over a different subset of accounts each quarter; nothing in the given facts establishes that those quarterly cohorts are comparable. Treating the rise as 100% behavioral is an unverified assumption (A1, A5), not a verified fact, so it was not retained as the working picture; it is instead carried forward as a bounded contributing share (15%) inside C4 rather than as the full explanation.
+
+**What it ruled out:** Saves the reader from over-interpreting the raw 2.24× ratio as a precise measure of behavioral change; the true behavioral share is smaller than the raw ratio suggests until cohort-controlled data narrows it.
+
+---
+
+## 6. Conclusion
+
+**Recommended approach:** Run a parallel diagnostic-plus-targeted-outreach plan rather than waiting for a single root cause before acting: (1) this week, pull the internal change log and tag the last two quarters of support tickets by category — both near-zero-cost — to test the internal-operational-change hypothesis directly; (2) concurrently, identify and proactively contact already-flagged at-risk renewals with a hypothesis-informed, not blanket, save play; (3) sequence structural fixes once the diagnostic lands, explicitly retrofitted to the existing damaged cohort as well as new customers (chain C6, chain C7).
+
+**Decisive additional data, ranked by value vs. effort:**
+- Internal change log for Q1/Q2 (pricing, packaging, CS staffing, product releases, outages) — highest value, near-zero effort; directly tests the internal-operational-change hypothesis (chain C4).
+- Churned- and at-risk-account cohort data (tenure, renewal/anniversary date, segment, ACV) — very high value, low effort; resolves how much of the rise is cohort-mix (chain C1).
+- Ticket categorization and resolution-time trend — high value, low-to-medium effort; separates service-quality decline from onboarding failure (chain C2, chain C4).
+- New-bookings segment and vertical mix trend from sales ops — high value, low effort; tests the segment-mix-dilution contributor (chain C4).
+- Time-to-value and onboarding-completion rate by cohort — high value, medium effort; sizes the onboarding-failure contributor (chain C4).
+- NPS/CSAT trend by segment — medium-to-high value, low effort if already collected; corroborates or contradicts the adoption-score signal (chain C2).
+- Win/loss interviews with recently churned and at-risk accounts — very high value, high effort and slow; the only source of direct causal testimony, including whether a named competitor is involved (chain C4).
+- Competitor market intelligence on funding, pricing, and feature moves — medium value, medium effort; needed only if win/loss interviews raise competitive displacement above its current weight (chain C3, chain C4).
+
+**Key insight:** The speed of the acceleration is itself diagnostic evidence, not just a symptom to explain: because annual-contract renewal mechanics anniversary-gate how fast an externally-paced cause such as competitive displacement or a slow pricing reaction can appear in a quarterly churn metric, a churn rate that more than doubled in two quarters points toward an internal operational cause before any ticket or survey data is even examined (chain C3, chain C4).
+
+**Trade-offs acknowledged:** The composite plan costs more and moves slower on headline savings than an uninformed staffing surge, and it requires leadership to accept that the quarterly churn-rate metric will not visibly improve for up to a year even if the fix is correct, while existing at-risk accounts must be remediated separately from any new-customer-only fix (chain C6, chain C7).
+
+**Pre-check:** head C1 (MEDIUM), C4 (LOW), C5 (MEDIUM), C6 (MEDIUM), C7 (MEDIUM) · ?-marked: none directly · lowest cited: LOW · Inputs ceiling: LOW
+**Confidence:** LOW overall, with a deliberate split: the specific root-cause attribution (chain C4) is LOW — genuinely unresolved pending the ranked data above — while the recommended action plan's soundness (chains C6, C7) is MEDIUM and does not depend on resolving C4 first, because the plan's own first phase is the diagnostic that would resolve it. Every `GT-N?` input and every `Cn` rated below HIGH feeding this Conclusion is explained on its own chain's confidence line above (C1-C7), including what would settle the live rival named on C4's line; nothing further is added here. (The falsification condition for this conclusion is stated once, in the adversarial-pass record in the appendix, not restated here.)
+## Appendix — process output
+
+## Assumption Audit scan (process output)
+
+| Chain | Step | Step Text (brief) | Assumption surfaced? | Added to Table? |
+|-------|------|--------------------|-----------------------|------------------|
+| C1 | 1 | quarterly rate = subset with anniversary that quarter | none | n/a |
+| C1 | 2 | quarterly cohorts can differ in size/vintage/composition | none | n/a |
+| C1 | 3 | rate on non-identical cohorts isn't a clean trend line | none | n/a |
+| C1 | 4 | raw doubling overstates true behavioral deterioration | none | n/a |
+| C2 | 1 | rising tickets consistent with multiple hypotheses | none | n/a |
+| C2 | 2 | falling adoption consistent with multiple hypotheses | none | n/a |
+| C2 | 3 | symptoms alone don't discriminate without segmentation | none | n/a |
+| C3 | 1 | contract lock-in gates churn to the anniversary | none | n/a |
+| C3 | 2 | even-ish anniversary distribution bounds external-cause reach | A6 (already in table) | n/a |
+| C3 | 3 | internal change is not anniversary-gated | none | n/a |
+| C3 | 4 | internal causes mechanically reach the book faster/broader | none | n/a |
+| C4 | 1 | co-movement signature matches internal operational change | none | n/a |
+| C4 | 2 | co-movement doesn't match pricing/competitive signature | A8 (already in table) | n/a |
+| C4 | 3 | onboarding/mix explains co-movement only in new cohorts | A9 (already in table) | n/a |
+| C4 | 4 | weighted ranking: 45/25/15/10/5 across five explanations | none | n/a |
+| C5 | 1 | incremental churn = 5.1 points of the renewing cohort | none | n/a |
+| C5 | 2 | illustrative N and ACV midpoint bracket the $ exposure | A6, A11, A12 (already in table) | n/a |
+| C5 | 3 | annualized bracket $220k-$590k if uncorrected | none | n/a |
+| C5 | 4 | both bracket ends justify the same decision | none | n/a |
+| C6 | 1 | weighted trade-off totals favor the composite plan (91 vs 72 vs 45) | A13: targeted outreach operationalizable this quarter without a formal scoring model | yes |
+| C6 | 2 | flip-test: no single weight change reverses the ranking | none | n/a |
+| C6 | 3 | composite plan recommended, independent of resolving C4 | none | n/a |
+| C7 | 1 | headline churn metric lags a fix by up to a year | none | n/a |
+| C7 | 2 | leading indicators are the only near-term signal of fix success | A14: leadership will adopt leading-indicator KPIs near-term | yes |
+| C7 | 3 | existing damaged cohort must be retrofitted, not just new customers | none | n/a |
+| C7 | 4 | plan must pre-commit KPI framing + existing-cohort remediation | none | n/a |
+
+Scan complete: 26 chain-step rows across 7 chains (C1-C7), in order, no step skipped. Two assumptions (A13, A14) were newly surfaced by this audit and added to the Phase 2 Classified Assumptions Table (section 2); four references (A6, A8, A9, A6/A11/A12) point to assumptions already present in that table from Phase 2, so "Added to Table?" is n/a for those.
+
+## Adversarial pass (process output)
+
+**Recompute.** 9.2 / 4.1 = 2.2439… ≈ 2.24×, matching GT-5?. 9.2 − 4.1 = 5.1 percentage points, matching C5's first hop. Fermi bracket (C5): N=150 → 150×0.25=37.5 accounts × $29,000 = $1,087,500 × 0.051 = $55,462.50/quarter → ×4 = $221,850/yr; N=400 → 400×0.25=100 accounts × $29,000 = $2,900,000 × 0.051 = $147,900/quarter → ×4 = $591,600/yr. Both recompute within rounding of the stated "$220,000-$590,000" bracket in C5 — no arithmetic error found. Trade-off totals (C6): O3 = 1(5)+4(4)+2(3)+2(4)+2(5) = 5+16+6+8+10 = 45 ✓; O4 = 5(5)+1(4)+4(3)+4(4)+3(5) = 25+4+12+16+15 = 72 ✓; O5 = 5(5)+4(4)+3(3)+4(4)+5(5) = 25+16+9+16+25 = 91 ✓. All three recompute exactly as stated.
+
+**Sensitivity.** The single ground truth whose falsity would flip the most conclusions at once is the GT-1?/GT-2? pair (the churn-rate figures themselves) — both `?`-marked. If these are computed inconsistently across quarters (assumption A1), the magnitude arguments in C1 and C5 collapse, though C3's mechanical renewal-timing argument and C4's qualitative ranking logic would survive, since they depend only on the qualitative fact of a material rise, not its exact size. Per-chain weakest link: C1 → A1 (cohort comparability, unverified); C2 → A10 (SaaS leading-indicator convention imported without local verification); C3 → A6 (anniversary-distribution evenness, priced on C3's own confidence line); C4 → A7 (no internal change occurred, unverified — the single biggest swing factor in the whole root-cause weighting); C5 → A12 (illustrative customer count N); C6 → A13 (interim at-risk proxy); C7 → A14 (leadership buy-in to decoupled KPIs).
+
+**Rival.** Headline (C4): the strongest rival is "competitive displacement or pricing pressure is the primary driver" — bounded in magnitude by C3's mechanical argument and demoted to a minor combined weight (15%) in C4, but not fully settled; carried live on C4's own confidence line with what would settle it. C1: rival is "the rise is 100% behavioral, no cohort-mix component" — ruled out, see Abandoned Reasoning dead end 4. C2: rival is "ticket volume or adoption score alone identifies the cause" — settled within the chain itself (both hops show each signal is consistent with multiple hypotheses). C3: `rival not applicable — C3 establishes a structural timing bound from the stipulated contract mechanics (GT-6, GT-7), not a contested empirical claim; nothing in the analysis competes with it`. C5: rival is "the dollar exposure is too small to prioritize" — ruled out on C5's own line (both bracket ends are material). C6: rivals are the four alternative options (status quo, blanket discount, surge-staffing-only, diagnose-then-act sequential) — each ruled out in Abandoned Reasoning or beaten in the flip test. C7: rival is "the headline churn-rate metric will show improvement quickly" — ruled out by GT-6's definitional renewal-measurement structure.
+
+**Premise.** The composite diagnostic-plus-targeted-outreach plan has already failed, six months from now, to stop the churn acceleration. What caused it?
+
+**Causes (unfiltered, from three stakeholder viewpoints before any grouping).**
+1. (CS leader) The diagnostic took too long because tickets were never categorized, so a cohort of renewals was lost before causal clarity emerged.
+2. (CS leader) Targeted outreach used the wrong at-risk signal (raw ticket volume alone) and missed the accounts actually at risk, so save-plays were misapplied.
+3. (Finance/CFO) Retention concessions addressed a price complaint, not the real operational cause, eroding margin with no proportionate retention lift.
+4. (Finance/CFO) Leadership judged the program a failure because the lagging headline churn-rate metric kept rising for a full year while the already-damaged cohort had not yet cycled through to renewal, and cancelled the program prematurely.
+5. (Churned customer) The structural fix was rolled out only to new customers and never retrofitted to the existing book, so already-damaged accounts churned at their renewal having never experienced the fix.
+6. (Churned customer / competitive angle) A competitor used visible public signals of Northbrook's service trouble to actively target its customer base during the vulnerable diagnostic window, accelerating losses beyond what internal metrics alone predicted.
+
+**Clusters.**
+- **Cluster A — Diagnostic latency / data readiness** (causes 1; bears on C1, C2, C4). Triage: costly but survivable.
+- **Cluster B — Targeting/measurement error** (causes 2, 3; bears on C4, C6). Triage: costly but survivable.
+- **Cluster C — Metric-lag false negative / premature abandonment** (cause 4; bears on C7, GT-6). Triage: fatal to the remedy's chance of success if it fires.
+- **Cluster D — Fix not retrofit to existing cohort** (cause 5; bears on C7). Triage: costly but survivable.
+- **Cluster E — Competitive opportunism during visible weakness** (cause 6; bears on C3, C4). Triage: tolerable, speculative, no current evidence.
+
+**Disposition.**
+- Cluster A: plan change — add a Week-1 task to retroactively tag the last two quarters of tickets by category before relying on the diagnostic's output; tripwire: no ranked hypothesis within 3 weeks of kickoff, owner CS Ops lead, reviewed weekly.
+- Cluster B: plan change — require every retention concession to be logged with a stated hypothesis-tag, so win/loss outcomes become diagnostic input rather than noise; tripwire: save-play acceptance or 90-day health-score improvement below target, owner Head of CS, reviewed bi-weekly.
+- Cluster C: plan change — pre-commit leadership in writing to leading-indicator KPIs (tickets, adoption score, NPS, save-play acceptance) as the near-term success measure, explicitly decoupled from the lagging churn-rate metric, with a stated expectation that churn-rate improvement lags 2-4 quarters.
+- Cluster D: plan change — explicitly scope structural fixes to include a remediation pass for the existing book, not only new sign-ups; tripwire: at-risk existing accounts not showing improved health score within one quarter of a fix going live.
+- Cluster E: accepted risk with a named mitigation — no plan change, since no current evidence supports this cluster; mitigation is the win/loss interview program itself as the detection mechanism, escalating to a competitive-response workstream if a named competitor recurs.
+
+**Falsification.** The conclusion is false — specifically, the internal-operational-change weighting in C4 should be abandoned in favor of a competitive- or pricing-led explanation — if the internal change-log check shows no material change in Q1/Q2, win/loss interviews consistently name a competitor or cite price objections as the primary stated reason, and churned-account tenure is distributed evenly across cohorts rather than concentrated among accounts anniversary-dated since early Q1/Q2.
+
+## §6→§4 closure ledger (process output)
+
+- "Run a parallel diagnostic-plus-targeted-outreach plan..." → chain C6, chain C7 ✓
+- "Decisive additional data, ranked by value vs. effort:" → section-intro label, no citation of its own; obligation falls to the list items below ✓
+- "Internal change log for Q1/Q2... directly tests the internal-operational-change hypothesis" → chain C4 ✓
+- "Churned- and at-risk-account cohort data... resolves how much of the rise is cohort-mix" → chain C1 ✓
+- "Ticket categorization and resolution-time trend... separates service-quality decline from onboarding failure" → chain C2, chain C4 ✓
+- "New-bookings segment and vertical mix trend... tests the segment-mix-dilution contributor" → chain C4 ✓
+- "Time-to-value and onboarding-completion rate by cohort... sizes the onboarding-failure contributor" → chain C4 ✓
+- "NPS/CSAT trend by segment... corroborates or contradicts the adoption-score signal" → chain C2 ✓
+- "Win/loss interviews... the only source of direct causal testimony" → chain C4 ✓
+- "Competitor market intelligence... needed only if win/loss interviews raise competitive displacement" → chain C3, chain C4 ✓
+- "The speed of the acceleration is itself diagnostic evidence..." (Key insight) → chain C3, chain C4 ✓
+- "The composite plan costs more and moves slower... existing at-risk accounts must be remediated separately" (Trade-offs acknowledged) → chain C6, chain C7 ✓
+- "**Pre-check:** head C1 (MEDIUM), C4 (LOW), C5 (MEDIUM), C6 (MEDIUM), C7 (MEDIUM)..." → self-discharged by the chains named in its own head (C1, C4, C5, C6, C7) ✓
+- "LOW overall, with a deliberate split..." (Confidence) → chain C4, chain C6, chain C7 ✓
+
+Ledger complete: 14 rows, 0 cuts.
+
+## Self-audit scan (process output)
+
+| Chain | Chain Head (brief) | Form conforming? | Rule applied | Dependency clean? | Band | Act attempted? | Edges fired |
+|-------|---------------------|-------------------|---------------|--------------------|------|-----------------|-------------|
+| C1 | GT-1?, GT-2?, GT-6 | yes | n/a | yes | MEDIUM | no | none |
+| C2 | GT-3?, GT-4? | yes | n/a | yes | MEDIUM | no | none |
+| C3 | GT-6, GT-7 | yes | n/a | yes | HIGH | no | none |
+| C4 | C2, C3, GT-3?, GT-4?, GT-8 | yes | n/a | yes | LOW | no | none |
+| C5 | GT-1?, GT-2?, GT-7 | yes | n/a | yes | MEDIUM | no | none |
+| C6 | GT-7, GT-8, C5 | yes | n/a | yes | MEDIUM | no | none |
+| C7 | GT-6, C6 | yes | n/a | yes | MEDIUM | no | none |
+
+| §6 Span (brief) | Construct | Claim under R11? | R11 clause applied | Chain cited |
+|-------------------|-----------|-------------------|----------------------|---------------|
+| "Recommended approach:" paragraph | bold lead-in | yes | colon closes bold span, content follows on same line | C6, C7 |
+| "Decisive additional data, ranked by value vs. effort:" | bold lead-in | no | section-intro label — whole-line bold span, no citation of its own; obligation falls to list items below | n/a |
+| "Internal change log for Q1/Q2..." | list item | yes | closes its own sentence, exceeds 40 chars | C4 |
+| "Churned- and at-risk-account cohort data..." | list item | yes | closes its own sentence | C1 |
+| "Ticket categorization and resolution-time trend..." | list item | yes | closes its own sentence | C2, C4 |
+| "New-bookings segment and vertical mix trend..." | list item | yes | closes its own sentence | C4 |
+| "Time-to-value and onboarding-completion rate..." | list item | yes | closes its own sentence | C4 |
+| "NPS/CSAT trend by segment..." | list item | yes | closes its own sentence | C2 |
+| "Win/loss interviews with recently churned..." | list item | yes | closes its own sentence | C4 |
+| "Competitor market intelligence..." | list item | yes | closes its own sentence | C3, C4 |
+| "Key insight:" sentence | bold lead-in | yes | colon closes bold span, content follows on same line | C3, C4 |
+| "Trade-offs acknowledged:" sentence | bold lead-in | yes | colon closes bold span, content follows on same line | C6, C7 |
+| "Pre-check:" line | bold lead-in | yes | template-prescribed field; self-discharged by chains in its own head | C1, C4, C5, C6, C7 |
+| "Confidence:" paragraph | bold lead-in | yes | colon closes bold span, content follows on same line | C4, C6, C7 |
+
+Scan complete: 7 chain rows, one per section-4 chain block in order; 14 section-6 rows, one per construct in order — 13 claims under R11, 1 excluded. 0 chains malformed, 0 claims untraced.
+
+## Self-Audit Gate (process output)
+
+**Criterion 1: Identify Essence**
+Quoted span: "Determine whether Northbrook's quarterly churn rate climbing from 4.1% (Q1) to 9.2% (Q3) reflects a real, worsening retention failure with an identifiable dominant cause (or weighted combination of causes)... as opposed to substantially a cohort-composition or measurement artifact..."
+Band: **Rigorous**
+Justification: The statement names the core question (artifact-vs-real, single-vs-combination cause) rather than restating the prompt or naming a symptom, and each of the five success criteria is a checkable verb+subject+outcome triplet verifiable against specific sections of the Conclusion (C1/C4's artifact test, C4's weighting, the ranked data list, C6/C7's sequencing, C4/§6's falsifiable band).
+
+**Criterion 2: Challenge Assumptions**
+Quoted span: "A7: No material internal operational change... occurred in Q1/Q2 | untested belief | Verify via internal change log... | Challenge — this is the single highest-value, lowest-effort unresolved question in the whole analysis | unverified — flagged (feeds C4)"
+Band: **Rigorous**
+Justification: All 14 rows use the four-type scheme correctly, Verdict cells use token-plus-em-dash-plus-justification throughout, several assumptions are genuinely Challenged (not just Accepted), every chain-feeding unverified assumption is marked "unverified — flagged," and the Assumption Audit scan (26 rows, 0 steps skipped) confirms the Phase-4 audit ran exhaustively and surfaced A13/A14 into this table.
+
+**Criterion 3: Establish Ground Truths**
+Quoted span: "?-marked: GT-1, GT-2, GT-3, GT-4, GT-5 (5 of 8) / Read-at-source: none — GT-6, GT-7, GT-8 are definitional facts stipulated by the problem statement itself..."
+Band: **Rigorous**
+Justification: IDs are stable and referenced consistently in section 4; every GT carries an explicit provenance label; the `?` enumeration (checked against the list, not merely quoted) matches exactly five suffixed entries; the one unsuffixed pair feeding the sole HIGH chain (GT-6, GT-7 → C3) is given an explicit, honest account of why no external read-at-source location exists (they are definitional inputs stipulated by the problem, not externally-sourced measurements) rather than a silently omitted field.
+
+**Criterion 4: Reason Upward**
+Quoted span (self-audit scan, chain-form table): "C3 | GT-6, GT-7 | yes | n/a | yes | HIGH | no | none" and all six other rows reading "yes / n/a / yes" for Form conforming / Rule applied / Dependency clean.
+Band: **Rigorous**
+Justification: The self-audit scan shows all 7 chains form-conforming with clean dependencies; every chain carries a genuine intermediate step; four Abandoned Reasoning entries each give a specific structural reason (knockout criterion, mechanical bound, unverified-comparability) rather than a vague one; no analogy is used as standalone justification (the one SaaS-convention point, A10, is explicitly flagged as challenged/unverified-in-context rather than relied on as proof); assumptions surfaced mid-chain are declared inline with `[Assumes: A-N]`.
+
+**Criterion 5: Validate**
+Quoted span: "Confidence: LOW — two axes are short at once. (1) Inputs: GT-3?/GT-4? are unverified... (2) Rivals: pricing pressure and competitive displacement remain live rivals that C3 only bounds in magnitude, it does not rule out; what would settle it is the internal change-log check..."
+Band: **Rigorous**
+Justification: Every chain names its weakest link and verification path (or, for C3's HIGH band, explicitly prices the one assumption's failure and shows the endpoint survives); the Conclusion's LOW rating matches its weakest contributing chain (C4); no chain rated HIGH consumes a `?` input; every chain's band is ≤ the lowest band it cites on its head; the adversarial pass record (appendix) is complete with all seven parts present, each cluster carrying a named plan change or an explicit accepted-risk mitigation.
+
+**Criterion 6: Conclusion-to-Ground-Truth Traceability**
+Quoted span (self-audit scan, claim-inventory table): "Scan complete: ... 13 claims under R11, 1 excluded. 0 chains malformed, 0 claims untraced."
+Band: **Rigorous**
+Justification: Every one of the 13 inventoried §6 claims cites a named section-4 chain inline (confirmed by both the closure ledger and the self-audit scan, with zero cuts and zero untraced claims); no claim introduces reasoning absent from section 4's chains or their confidence lines; the Key Insight states a non-obvious mechanical finding (renewal-timing speed limit as diagnostic evidence) distinct from, not a restatement of, the Recommended approach.
+
+**Gate result:** cleared · passes: 1 · Fix/Repeat fired: no
+
+## Structured summary (process output)
+
+```json
+{
+  "schema_version": 1,
+  "run_mode": "full-composer",
+  "assumptions": [
+    {"id": "A-1", "type": "untested belief", "verdict": "Challenge"},
+    {"id": "A-2", "type": "untested belief", "verdict": "Challenge"},
+    {"id": "A-3", "type": "untested belief", "verdict": "Challenge"},
+    {"id": "A-4", "type": "convention", "verdict": "Challenge"},
+    {"id": "A-5", "type": "untested belief", "verdict": "Challenge"},
+    {"id": "A-6", "type": "convention", "verdict": "Accept"},
+    {"id": "A-7", "type": "untested belief", "verdict": "Challenge"},
+    {"id": "A-8", "type": "convention", "verdict": "Challenge"},
+    {"id": "A-9", "type": "untested belief", "verdict": "Challenge"},
+    {"id": "A-10", "type": "convention", "verdict": "Challenge"},
+    {"id": "A-11", "type": "untested belief", "verdict": "Accept"},
+    {"id": "A-12", "type": "untested belief", "verdict": "Accept"},
+    {"id": "A-13", "type": "current constraint", "verdict": "Accept"},
+    {"id": "A-14", "type": "convention", "verdict": "Challenge"}
+  ],
+  "ground_truths": [
+    {"id": "GT-1", "read_at_source": false},
+    {"id": "GT-2", "read_at_source": false},
+    {"id": "GT-3", "read_at_source": false},
+    {"id": "GT-4", "read_at_source": false},
+    {"id": "GT-5", "read_at_source": false},
+    {"id": "GT-6", "read_at_source": true},
+    {"id": "GT-7", "read_at_source": true},
+    {"id": "GT-8", "read_at_source": true}
+  ],
+  "chains": [
+    {"id": "C1", "confidence": "MEDIUM", "rests_on": ["GT-1?", "GT-2?", "GT-6"]},
+    {"id": "C2", "confidence": "MEDIUM", "rests_on": ["GT-3?", "GT-4?"]},
+    {"id": "C3", "confidence": "HIGH", "rests_on": ["GT-6", "GT-7"]},
+    {"id": "C4", "confidence": "LOW", "rests_on": ["C2", "C3", "GT-3?", "GT-4?", "GT-8"]},
+    {"id": "C5", "confidence": "MEDIUM", "rests_on": ["GT-1?", "GT-2?", "GT-7"]},
+    {"id": "C6", "confidence": "MEDIUM", "rests_on": ["GT-7", "GT-8", "C5"]},
+    {"id": "C7", "confidence": "MEDIUM", "rests_on": ["GT-6", "C6"]}
+  ],
+  "dead_ends": [
+    "Status quo (\"monitor and wait\") as a candidate action",
+    "Blanket retention discounting as the sole strategy",
+    "Competitive displacement treated as the primary driver",
+    "Treating the 4.1%-to-9.2% rise as a purely behavioral trend with no measurement component"
+  ],
+  "techniques": {
+    "applied": [
+      "fishbone",
+      "five-whys",
+      "inversion",
+      "theoretical-limit",
+      "estimate",
+      "trade-off",
+      "second-order",
+      "pre-mortem"
+    ],
+    "not_applied": []
+  },
+  "gate": {
+    "passes": [
+      {
+        "bands": ["Rigorous", "Rigorous", "Rigorous", "Rigorous", "Rigorous", "Rigorous"],
+        "gate_cleared": true,
+        "hand_wavy_cap_cleared": true
+      }
+    ],
+    "fix_repeat_fired": false,
+    "cleared": true
+  },
+  "re_entry": {
+    "fired": false,
+    "edges": []
+  },
+  "conclusion": {
+    "recommendation": "Run a parallel diagnostic-plus-targeted-outreach plan rather than waiting for a single root cause before acting: (1) this week, pull the internal change log and tag the last two quarters of support tickets by category — both near-zero-cost — to test the internal-operational-change hypothesis directly; (2) concurrently, identify and proactively contact already-flagged at-risk renewals with a hypothesis-informed, not blanket, save play; (3) sequence structural fixes once the diagnostic lands, explicitly retrofitted to the existing damaged cohort as well as new customers (chain C6, chain C7).",
+    "confidence": "LOW",
+    "rests_on": ["C1", "C4", "C5", "C6", "C7"]
+  }
+}
+```

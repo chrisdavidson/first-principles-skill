@@ -1,0 +1,110 @@
+{
+  "decompose-irreducibility.old.r1": {
+    "outcome": "file",
+    "attempts": [
+      "decompose-irreducibility.old.r1.a1.jsonl"
+    ]
+  },
+  "decompose-irreducibility.new.r1": {
+    "outcome": "file",
+    "attempts": [
+      "decompose-irreducibility.new.r1.a1.jsonl"
+    ]
+  },
+  "personal-general-2.new.r1": {
+    "outcome": "file",
+    "attempts": [
+      "personal-general-2.new.r1.a1.jsonl"
+    ]
+  },
+  "personal-general-2.old.r1": {
+    "outcome": "file",
+    "attempts": [
+      "personal-general-2.old.r1.a1.jsonl"
+    ]
+  },
+  "product-business.old.r1": {
+    "outcome": "file",
+    "attempts": [
+      "product-business.old.r1.a1.jsonl"
+    ]
+  },
+  "product-business.new.r1": {
+    "outcome": "file",
+    "attempts": [
+      "product-business.new.r1.a1.jsonl"
+    ]
+  },
+  "decompose-irreducibility.new.r2": {
+    "outcome": "file",
+    "attempts": [
+      "decompose-irreducibility.new.r2.a1.jsonl"
+    ]
+  },
+  "decompose-irreducibility.old.r2": {
+    "outcome": "file",
+    "attempts": [
+      "decompose-irreducibility.old.r2.a1.jsonl"
+    ]
+  },
+  "personal-general-2.old.r2": {
+    "outcome": "file",
+    "attempts": [
+      "personal-general-2.old.r2.a1.jsonl"
+    ]
+  },
+  "personal-general-2.new.r2": {
+    "outcome": "file",
+    "attempts": [
+      "personal-general-2.new.r2.a1.jsonl"
+    ]
+  },
+  "product-business.new.r2": {
+    "outcome": "file",
+    "attempts": [
+      "product-business.new.r2.a1.jsonl"
+    ]
+  },
+  "product-business.old.r2": {
+    "outcome": "file",
+    "attempts": [
+      "product-business.old.r2.a1.jsonl"
+    ]
+  },
+  "decompose-irreducibility.old.r3": {
+    "outcome": "file",
+    "attempts": [
+      "decompose-irreducibility.old.r3.a1.jsonl"
+    ]
+  },
+  "decompose-irreducibility.new.r3": {
+    "outcome": "file",
+    "attempts": [
+      "decompose-irreducibility.new.r3.a1.jsonl"
+    ]
+  },
+  "personal-general-2.new.r3": {
+    "outcome": "file",
+    "attempts": [
+      "personal-general-2.new.r3.a1.jsonl"
+    ]
+  },
+  "personal-general-2.old.r3": {
+    "outcome": "file",
+    "attempts": [
+      "personal-general-2.old.r3.a1.jsonl"
+    ]
+  },
+  "product-business.old.r3": {
+    "outcome": "file",
+    "attempts": [
+      "product-business.old.r3.a1.jsonl"
+    ]
+  },
+  "product-business.new.r3": {
+    "outcome": "file",
+    "attempts": [
+      "product-business.new.r3.a1.jsonl"
+    ]
+  }
+}
