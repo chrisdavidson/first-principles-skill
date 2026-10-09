@@ -1003,6 +1003,22 @@ REGISTRY: tuple[RetractedClaim, ...] = (
             "the other 12 are unattributed."
         ),
     ),
+    RetractedClaim(
+        literal="no executable code ships inside the plugin",
+        retracted_by="999.196 delivery guard (first-principles/hooks/)",
+        corrected=(
+            "The plugin is Markdown except for the SubagentStop delivery guard, "
+            "first-principles/hooks/hooks.json and delivery-guard.py."
+        ),
+    ),
+    RetractedClaim(
+        literal="The plugin is pure Markdown",
+        retracted_by="999.196 delivery guard (first-principles/hooks/)",
+        corrected=(
+            "The plugin is Markdown apart from one python3 hook, "
+            "first-principles/hooks/delivery-guard.py."
+        ),
+    ),
 )
 
 

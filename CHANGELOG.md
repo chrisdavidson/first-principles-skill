@@ -13,6 +13,39 @@ installed session.
 
 ## [Unreleased]
 
+## [9.19.3] — 2026-10-09
+
+Patch release: **an agent that tries to finish without delivering its analysis file is sent back to
+its procedure** — up to twice per run — by a `SubagentStop` delivery guard, the plugin's first
+executable code, and `Skill` joins the agent's `disallowedTools`. Closes the 9.19.2 known issue's
+mechanism; the skip rate itself is measured separately.
+
+### Fixed — the agent skipping its procedure (shipped; backlog 999.196)
+
+- **A delivery guard now refuses the agent's stop until it has delivered.** The plugin ships
+  its first executable code: `first-principles/hooks/hooks.json` runs
+  `first-principles/hooks/delivery-guard.py` on `SubagentStop` for
+  `first-principles:first-principles`. The guard reads the agent's own transcript for the
+  analysis file it created and blocks the stop — telling the agent what is missing — until
+  that file is assembled (first `## ` heading `## Answer`) and the reader report beside it
+  exists. It blocks at most twice per run, then lets the stop through, and it fails open on
+  any error or when `python3` is absent. On the recorded current-body captures it blocks all
+  7 recorded skips and both partial deliveries and passes every delivered run (DELIVERY-GUARD).
+  This retires "the entire deliverable is pure Markdown"; the claim is registered under
+  RETRACT-01.
+- **`Skill` is added to the agent's `disallowedTools`.** In 5 of 28 worked-example runs the
+  agent's first tool call was `Skill` — the slash-only launcher, an unrelated user-level skill,
+  or one that does not exist — and 3 of those 5 abandoned the procedure. GATE-01 pins the
+  widened list and gains fixture-o, a list missing `Skill`, which must fail.
+
+### Changed — checks
+
+- New gate **DELIVERY-GUARD** (`scripts/check-delivery-guard.py --self-test`, CI and battery):
+  the guard's wiring (one `SubagentStop` entry, matcher derived from the plugin and agent
+  names, the shipped command) and its verdicts on 44 current-body captures against an
+  independently transcribed table, with must-fail controls for a renamed matcher, a missing
+  guard file, a duplicated entry, and an always-allow and an always-block stub.
+
 ## [9.19.2] — 2026-10-09
 
 Patch release: **the final message's file paths now come from the shell**, and every worked

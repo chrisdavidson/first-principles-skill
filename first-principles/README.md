@@ -56,6 +56,13 @@ exceed what one message carries, and writing it once, section by section, keeps 
 opens with a short Answer, then the six sections unchanged, then the working process as a trailing
 appendix. Add `.first-principles/` to `.gitignore` if you do not want these files tracked.
 
+**The delivery guard.** The plugin ships one hook, `hooks/hooks.json`, which runs
+`hooks/delivery-guard.py` with `python3` whenever the agent tries to finish. If the agent is
+about to stop without having written and assembled its analysis file and the reader report —
+answering in chat instead, say — the hook sends it back to its procedure, at most twice per run.
+It reads only the agent's own transcript and the files it wrote. If `python3` is missing or the
+hook errors, it does nothing and the agent finishes as it would have without it.
+
 ## More
 
 - [Getting started](https://github.com/chrisdavidson/first-principles-skill/blob/master/docs/GETTING-STARTED.md)

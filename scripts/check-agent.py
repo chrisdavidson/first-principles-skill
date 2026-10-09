@@ -57,12 +57,17 @@ _EXPECTED_MAX_TURNS = 60
 # tried SendMessage/ListAgents to chase the truncated hand-back. Checking
 # only that `disallowedTools` is present (as Check 4 did before) let any
 # entry — including these three — be silently dropped with every gate green.
+# `Skill` (backlog 999.196): tests/pointer-fix/raw/ and tests/example-rerun-2/raw/
+# show 5 of 28 runs where the subagent's FIRST tool call was `Skill` — the
+# slash-only launcher, an unrelated user-level skill, or one that does not
+# exist — and 3 of those 5 abandoned the procedure.
 _EXPECTED_DISALLOWED_TOOLS: tuple[str, ...] = (
     "Write",
     "Edit",
     "Agent",
     "SendMessage",
     "ListAgents",
+    "Skill",
 )
 _REQUIRED_PHRASES = [
     "first principles",
@@ -170,6 +175,7 @@ disallowedTools:
   - Agent
   - SendMessage
   - ListAgents
+  - Skill
 maxTurns: 60
 ---
 ## Body
@@ -382,6 +388,9 @@ _FIXTURE_DISALLOWED_TOOLS_SENDMESSAGE_REMOVED = _remove_one_disallowed_tool_line
 )
 _FIXTURE_DISALLOWED_TOOLS_LISTAGENTS_REMOVED = _remove_one_disallowed_tool_line(
     _FIXTURE_VALID_CANONICAL, "ListAgents"
+)
+_FIXTURE_DISALLOWED_TOOLS_SKILL_REMOVED = _remove_one_disallowed_tool_line(
+    _FIXTURE_VALID_CANONICAL, "Skill"
 )
 
 # Self-test fixture: _FIXTURE_VALID_CANONICAL with an extra entry appended —
@@ -758,6 +767,11 @@ def _run_self_test() -> None:
         (
             "fixture-m (disallowedTools missing 'ListAgents')",
             _FIXTURE_DISALLOWED_TOOLS_LISTAGENTS_REMOVED,
+            "'disallowedTools' must be exactly",
+        ),
+        (
+            "fixture-o (disallowedTools missing 'Skill')",
+            _FIXTURE_DISALLOWED_TOOLS_SKILL_REMOVED,
             "'disallowedTools' must be exactly",
         ),
         (

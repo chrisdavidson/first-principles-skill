@@ -8,7 +8,7 @@ This guide walks you through installing the first-principles plugin and invoking
 - **Claude Code CLI** (required for all users)
 - **Python ≥ 3.12 + PyYAML** (required only for contributors editing `shared/` source)
 
-No Node.js, no build step. The plugin is pure Markdown.
+No Node.js, no build step. The plugin is Markdown apart from one small hook, `first-principles/hooks/delivery-guard.py`, which runs under the `python3` already on most systems; without `python3` the hook does nothing and the plugin still works.
 
 ## Installation
 

@@ -1122,6 +1122,39 @@ ENTRIES: tuple[GateEntry, ...] = (
             "disclosed_bounds_anchors",
         ),
     ),
+    GateEntry(
+        key="DELIVERY-GUARD",
+        gate_id="DELIVERY-GUARD",
+        extra_ids=(),
+        mechanism=_ci("check-delivery-guard"),
+        ci_job="check-delivery-guard",
+        script="scripts/check-delivery-guard.py",
+        run_command="python3 scripts/check-delivery-guard.py --self-test",
+        summary=(
+            "The plugin's one piece of executable code — the SubagentStop "
+            "delivery guard in `first-principles/hooks/` that refuses the "
+            "agent's stop, at most twice, until its analysis file is assembled "
+            "and its reader report exists (backlog 999.196) — is wired and "
+            "decides right. Wiring: exactly one SubagentStop entry, its matcher "
+            "the plugin name joined to the agent name read from "
+            "`shared/spine/SKILL.meta.yml`, its command the shipped guard, "
+            "which exists. Decisions: the guard's own `--self-test` passes, and "
+            "on every current-body capture in `tests/pointer-fix/`, "
+            "`tests/example-rerun-2/` and the `new` arm of `tests/skip-paired/` "
+            "its verdict equals an independently transcribed table — every "
+            "recorded skip blocked, every delivered run passed — above a "
+            "capture floor. Must-fail controls rename the matcher, drop the "
+            "guard file, duplicate the entry, and stub the guard to always "
+            "allow and to always block; each turns the gate red. Whether a "
+            "blocked agent then delivers is a live reading, never gated here."
+        ),
+        consumes=(
+            "control_ids",
+            "control_count",
+            "registered_surfaces",
+            "disclosed_bounds_anchors",
+        ),
+    ),
 )
 
 

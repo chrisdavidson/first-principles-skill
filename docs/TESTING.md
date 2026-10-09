@@ -48,6 +48,7 @@ For the full at-a-glance gate inventory — every gate mapped to its owning scri
 | SUMM-BLOCK | [`docs/gates/SUMM-BLOCK.md`](gates/SUMM-BLOCK.md) | `python3 scripts/check-summary-block.py --self-test && python3 scripts/check-summary-block.py --exemplar shared/examples/*.md && python3 scripts/check-summary-block.py --exemplar first-principles/references/examples/*.md` |
 | FIG-GATE | [`docs/gates/FIG-GATE.md`](gates/FIG-GATE.md) | `python3 scripts/check-report-figures.py --self-test` |
 | PERSONA-GATE | [`docs/gates/PERSONA-GATE.md`](gates/PERSONA-GATE.md) | `python3 scripts/check-persona-view.py --self-test` |
+| DELIVERY-GUARD | [`docs/gates/DELIVERY-GUARD.md`](gates/DELIVERY-GUARD.md) | `python3 scripts/check-delivery-guard.py --self-test` |
 <!-- END GENERATED -->
 
 ## Routing battery (developer tools — not in CI)

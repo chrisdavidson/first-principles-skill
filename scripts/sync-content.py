@@ -291,10 +291,10 @@ SPINE_REFERENCES = (
     "output-template",
     "validation-rubric",
     # The PDF reader report's pandoc/typst page template, carried in a fenced
-    # block so the plugin stays pure Markdown; the agent body extracts it.
+    # block so no typst source file ships; the agent body extracts it.
     "report-layout",
     # The reader report's typst figure library, carried in a fenced block so
-    # the plugin stays pure Markdown; delivery extracts it.
+    # no typst source file ships; delivery extracts it.
     "report-figures",
     # The static business-reading guide; delivery copies it beside the reader
     # reports and the agent never opens it with Read.

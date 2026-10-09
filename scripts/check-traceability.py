@@ -11177,8 +11177,8 @@ def _rows_v917() -> list[MatrixRow]:
             surfaces=("agent",),
             statement=(
                 "`shared/spine/references/report-figures.md` ships a typst figure library "
-                "in a fenced block, emitted by sync as a spine reference (no executable "
-                "script ships in the plugin)."
+                "in a fenced block, emitted by sync as a spine reference (no typst "
+                "source file ships in the plugin)."
             ),
             rerun_by="ci",
         ),

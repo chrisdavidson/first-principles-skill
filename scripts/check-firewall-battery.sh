@@ -793,6 +793,15 @@ gate "PERSONA-GATE" \
     "check-persona-view.py --self-test" \
     "python3 scripts/check-persona-view.py --self-test"
 
+# DELIVERY-GUARD — the shipped SubagentStop delivery guard
+#                  (first-principles/hooks/) is wired to the agent and its
+#                  verdicts match the recorded skip/delivered table over the
+#                  current-body captures. Stdlib Python plus PyYAML, no
+#                  claude/typst — a plain gate, never gate_prereq.
+gate "DELIVERY-GUARD" \
+    "check-delivery-guard.py --self-test" \
+    "python3 scripts/check-delivery-guard.py --self-test"
+
 # ---------------------------------------------------------------------------
 # Invariant re-confirm (D-07) — byte-frozen constants in _battery_core.py.
 #
@@ -1099,6 +1108,11 @@ _FROZEN_PATHS=(
     # the shell-sourced delivery pointer (docs/pointer-fix-reading.md): 0 of 14 wrong pointers,
     # 13 of 14 all-absolute-correct. Frozen because the 9.19.2 fix is verified only here.
     'tests/pointer-fix'
+    # delivery-guard (2026-10-09) -- the two live runs of the 9.19.3 SubagentStop guard
+    # (docs/delivery-guard-reading.md): a forced zero-tool skip blocked once then delivered, and
+    # a natural product-business run allowed on its first stop. Frozen because the guard's live
+    # behaviour is recorded only here.
+    'tests/delivery-guard'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null

@@ -1,7 +1,7 @@
 <!-- generated-by: gsd-doc-writer -->
 # Contributing
 
-Thank you for contributing to first-principles-skills. This project ships a Claude Code plugin as pure Markdown — no compiled artifacts, no build step. Contributions follow a `shared/` → sync → validate → PR loop.
+Thank you for contributing to first-principles-skills. This project ships a Claude Code plugin as Markdown plus one hand-maintained Python hook (`first-principles/hooks/`) — no compiled artifacts, no build step. Contributions follow a `shared/` → sync → validate → PR loop.
 
 ## Before you start
 

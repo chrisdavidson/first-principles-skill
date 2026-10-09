@@ -1,0 +1,17 @@
+{
+  "description": "first-principles delivery guard (backlog 999.196): refuses the first-principles agent's stop, at most twice per run, until its analysis file is assembled and its reader report exists.",
+  "hooks": {
+    "SubagentStop": [
+      {
+        "matcher": "first-principles:first-principles",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/delivery-guard.py\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

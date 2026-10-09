@@ -16,7 +16,7 @@ Its frontmatter is generated from `shared/spine/SKILL.meta.yml`. The canonical v
 | `description` | (see SKILL.meta.yml) | Third-person routing description; ≤ 1,024 chars, no XML tags |
 | `license` | `MIT` | License field emitted verbatim |
 | `metadata.version` | `"9.14.0"` | Version string; must be a double-quoted YAML string, not a bare number |
-| `disallowedTools` | `[Write, Edit, Agent, SendMessage, ListAgents]` | Tools the agent is forbidden from invoking. `Agent`, `SendMessage` and `ListAgents` block nested sub-agent dispatch, including the agent delegating to itself — observed in six of twenty Phase 1 abandonment runs, `docs/abandonment-phase1-reading.md` — and the message/listing tools used to chase a dispatched agent |
+| `disallowedTools` | `[Write, Edit, Agent, SendMessage, ListAgents, Skill]` | Tools the agent is forbidden from invoking. `Agent`, `SendMessage` and `ListAgents` block nested sub-agent dispatch, including the agent delegating to itself — observed in six of twenty Phase 1 abandonment runs, `docs/abandonment-phase1-reading.md` — and the message/listing tools used to chase a dispatched agent. `Skill` blocks the agent invoking a skill as its first move — the slash-only launcher, an unrelated user-level skill, or one that does not exist — seen in 5 of 28 worked-example runs, 3 of which abandoned the procedure (backlog 999.196) |
 | `maxTurns` | `60` | Maximum conversation turns before the agent halts. Raised from 30 at v8.15.0: a full-composer run that dispatches research sub-agents was observed to exhaust 30 turns before the Self-Audit Gate's Fix/Repeat loop could run |
 
 **To change agent frontmatter:** Edit `shared/spine/SKILL.meta.yml`, then run
