@@ -1,0 +1,194 @@
+episode	corpus	run	capped	position	turn_start	turn_end	rewrite_cmds	category	last_check_before
+0	skip-rate A (9.19.2)	A.composed-inversion-second-order.r1	0	s6-gate	13	15	2	AA	rubric-read
+1	skip-rate A (9.19.2)	A.composed-inversion-second-order.r2	0	s6-gate	17	17	1	VERDICT	rubric-read
+2	skip-rate A (9.19.2)	A.decompose-irreducibility.r2	1	pre-s6	29	29	1	AA	ledger
+3	skip-rate A (9.19.2)	A.decompose-irreducibility.r2	1	pre-s6	34	35	2	CONTENT	selfscan
+4	skip-rate A (9.19.2)	A.decompose-irreducibility.r2	1	pre-s6	40	45	4	BAND	adversarial
+5	skip-rate A (9.19.2)	A.decompose-irreducibility.r2	1	pre-s6	51	51	1	VERDICT	schema-read
+6	skip-rate A (9.19.2)	A.estimate-fermi.r2	0	pre-s6	15	15	1	HOP	rubric-read
+7	skip-rate A (9.19.2)	A.estimate-fermi.r2	0	pre-s6	19	23	3	CONTENT	adversarial
+8	skip-rate A (9.19.2)	A.ishikawa-fishbone.r1	0	pre-s6	9	9	1	AA	AAscan
+9	skip-rate A (9.19.2)	A.ishikawa-fishbone.r1	0	pre-s6	15	17	2	HOP	AAscan
+10	skip-rate A (9.19.2)	A.ishikawa-fishbone.r1	0	pre-s6	21	29	5	BAND	AAscan
+11	skip-rate A (9.19.2)	A.ishikawa-fishbone.r2	0	post-gate	22	27	3	HEAD	gate
+12	skip-rate A (9.19.2)	A.ishikawa-fishbone.r2	0	post-gate	31	31	1	PROC	gate
+13	skip-rate A (9.19.2)	A.personal-general-2.r1	0	pre-s6	21	24	3	QMARK	schema-read
+14	skip-rate A (9.19.2)	A.personal-general-2.r1	0	s6-gate	35	45	6	BAND	techniques
+15	skip-rate A (9.19.2)	A.personal-general-2.r2	0	pre-s6	24	28	3	HOP	rubric-read
+16	skip-rate A (9.19.2)	A.personal-general-2.r2	0	pre-s6	37	40	3	CONTENT	selfscan
+17	skip-rate A (9.19.2)	A.personal-general.r1	0	pre-s6	19	21	2	CONTENT	none-yet
+18	skip-rate A (9.19.2)	A.personal-general.r1	0	pre-s6	25	26	2	AA	none-yet
+19	skip-rate A (9.19.2)	A.personal-general.r1	0	pre-s6	36	36	1	VERDICT	adversarial
+20	skip-rate A (9.19.2)	A.personal-general.r1	0	pre-s6	40	40	1	QMARK	adversarial
+21	skip-rate A (9.19.2)	A.personal-general.r2	0	s6-gate	17	24	5	STRUCT	rubric-read
+22	skip-rate A (9.19.2)	A.personal-general.r2	0	s6-gate	30	38	6	AA	adversarial
+23	skip-rate A (9.19.2)	A.product-business.r2	1	s6-gate	9	12	2	AA	techniques
+24	skip-rate A (9.19.2)	A.product-business.r2	1	s6-gate	19	22	4	HOP	ledger
+25	skip-rate A (9.19.2)	A.product-business.r2	1	s6-gate	31	31	1	QMARK	template-read
+26	skip-rate A (9.19.2)	A.product-business.r2	1	s6-gate	43	45	2	PROC	template-read
+27	skip-rate A (9.19.2)	A.product-business.r2	1	s6-gate	51	51	1	AA	template-read
+28	skip-rate A (9.19.2)	A.product-business.r2	1	post-gate	55	60	4	HEADINGS	schema-read
+29	skip-rate A (9.19.2)	A.science-engineering-2.r2	0	pre-s6	16	18	2	AA	template-read
+30	skip-rate A (9.19.2)	A.science-engineering-2.r2	0	pre-s6	24	24	1	HOP	ledger
+31	skip-rate A (9.19.2)	A.science-engineering-2.r2	0	pre-s6	31	31	1	AA	rubric-read
+32	skip-rate A (9.19.2)	A.science-engineering.r1	0	s6-gate	17	24	4	AA	none-yet
+33	skip-rate A (9.19.2)	A.science-engineering.r1	0	s6-gate	32	36	3	BAND	template-read
+34	skip-rate A (9.19.2)	A.science-engineering.r1	0	post-gate	41	43	2	VERDICT	schema-read
+35	skip-rate A (9.19.2)	A.science-engineering.r2	0	s6-gate	20	21	2	AA	rubric-read
+36	skip-rate A (9.19.2)	A.science-engineering.r2	0	s6-gate	26	30	3	CONTENT	selfscan
+37	skip-rate A (9.19.2)	A.self-application.r1	0	pre-s6	12	12	1	AA	rubric-read
+38	skip-rate A (9.19.2)	A.self-application.r2	1	pre-s6	51	51	1	CONTENT	rubric-read
+39	skip-rate A (9.19.2)	A.self-application.r2	1	s6-gate	55	55	1	S6	rubric-read
+40	skip-rate A (9.19.2)	A.self-application.r2	1	s6-gate	60	60	1	HEAD	ledger
+41	skip-rate A (9.19.2)	A.self-application.r2	1	post-gate	66	70	4	HEAD	schema-read
+42	skip-rate A (9.19.2)	A.software-systems-2.r1	0	s6-gate	20	20	1	S6	adversarial
+43	skip-rate A (9.19.2)	A.software-systems-2.r1	0	s6-gate	27	27	1	PROC	selfscan
+44	skip-rate A (9.19.2)	A.software-systems-2.r2	0	pre-s6	19	21	2	HOP	ledger
+45	skip-rate A (9.19.2)	A.software-systems-2.r2	0	pre-s6	29	29	1	VERDICT	schema-read
+46	skip-rate A (9.19.2)	A.software-systems.r1	0	s6-gate	13	15	2	HOP	ledger
+47	skip-rate A (9.19.2)	A.software-systems.r2	0	s6-gate	15	15	1	CONTENT	schema-read
+48	skip-rate A (9.19.2)	A.software-systems.r2	0	post-gate	21	21	1	CONTENT	gate
+49	skip-rate A (9.19.2)	A.theoretical-limit-carnot.r1	1	pre-s6	20	23	3	AA	none-yet
+50	skip-rate A (9.19.2)	A.theoretical-limit-carnot.r1	1	pre-s6	28	30	2	S6	AAscan
+51	skip-rate A (9.19.2)	A.theoretical-limit-carnot.r1	1	pre-s6	35	49	11	HOP	template-read
+52	skip-rate A (9.19.2)	A.theoretical-limit-carnot.r2	0	s6-gate	18	18	1	QMARK	AAscan
+53	skip-rate A (9.19.2)	A.theoretical-limit-carnot.r2	0	s6-gate	23	30	6	QMARK	AAscan
+54	skip-rate A (9.19.2)	A.theoretical-limit-carnot.r2	0	s6-gate	38	43	4	QMARK	ledger
+55	skip-rate A (9.19.2)	A.theoretical-limit-carnot.r2	0	post-gate	49	49	1	VERDICT	schema-read
+56	skip-rate B (9.19.3)	B.composed-inversion-second-order.r1	0	s6-gate	12	12	1	S6	schema-read
+57	skip-rate B (9.19.3)	B.decompose-irreducibility.r1	0	s6-gate	16	16	1	AA	template-read
+58	skip-rate B (9.19.3)	B.decompose-irreducibility.r1	0	s6-gate	27	29	2	AA	ledger
+59	skip-rate B (9.19.3)	B.estimate-fermi.r1	0	pre-s6	17	17	1	AA	none-yet
+60	skip-rate B (9.19.3)	B.estimate-fermi.r1	0	s6-gate	25	25	1	HOP	rubric-read
+61	skip-rate B (9.19.3)	B.estimate-fermi.r1	0	s6-gate	30	41	6	PROC	selfscan
+62	skip-rate B (9.19.3)	B.estimate-fermi.r2	1	s6-gate	42	42	1	S6	rubric-read
+63	skip-rate B (9.19.3)	B.estimate-fermi.r2	1	s6-gate	48	56	5	HOP	adversarial
+64	skip-rate B (9.19.3)	B.ishikawa-fishbone.r1	0	s6-gate	11	12	2	HEAD	ledger
+65	skip-rate B (9.19.3)	B.ishikawa-fishbone.r2	0	s6-gate	13	18	4	AA	schema-read
+66	skip-rate B (9.19.3)	B.ishikawa-fishbone.r2	0	s6-gate	22	24	2	S6	adversarial
+67	skip-rate B (9.19.3)	B.ishikawa-fishbone.r2	0	post-gate	32	35	3	S6	summary
+68	skip-rate B (9.19.3)	B.personal-general-2.r2	0	s6-gate	18	19	2	AA	rubric-read
+69	skip-rate B (9.19.3)	B.personal-general-2.r2	0	s6-gate	24	26	2	VERDICT	selfscan
+70	skip-rate B (9.19.3)	B.personal-general.r1	0	pre-s6	20	24	3	AA	schema-read
+71	skip-rate B (9.19.3)	B.personal-general.r2	0	pre-s6	16	16	1	HOP	ledger
+72	skip-rate B (9.19.3)	B.personal-general.r2	0	pre-s6	22	24	2	VERDICT	schema-read
+73	skip-rate B (9.19.3)	B.product-business-2.r1	1	pre-s6	10	14	3	AA	template-read
+74	skip-rate B (9.19.3)	B.product-business-2.r1	1	pre-s6	18	21	2	AA	rubric-read
+75	skip-rate B (9.19.3)	B.product-business-2.r1	1	pre-s6	30	51	13	VERDICT	selfscan
+76	skip-rate B (9.19.3)	B.product-business-2.r1	1	pre-s6	56	56	1	PROC	selfscan
+77	skip-rate B (9.19.3)	B.product-business-2.r2	0	pre-s6	8	8	1	AA	rubric-read
+78	skip-rate B (9.19.3)	B.product-business-2.r2	0	post-gate	16	16	1	PROC	gate
+79	skip-rate B (9.19.3)	B.product-business-2.r2	0	post-gate	20	20	1	VERDICT	schema-read
+80	skip-rate B (9.19.3)	B.product-business.r1	0	s6-gate	10	10	1	AA	rubric-read
+81	skip-rate B (9.19.3)	B.product-business.r2	0	s6-gate	13	13	1	AA	rubric-read
+82	skip-rate B (9.19.3)	B.science-engineering-2.r1	1	s6-gate	34	41	4	HOP	ledger
+83	skip-rate B (9.19.3)	B.science-engineering-2.r1	1	s6-gate	45	56	7	CONTENT	selfscan
+84	skip-rate B (9.19.3)	B.science-engineering-2.r2	1	s6-gate	17	31	8	HEADINGS	template-read
+85	skip-rate B (9.19.3)	B.science-engineering-2.r2	1	s6-gate	35	40	3	PROC	adversarial
+86	skip-rate B (9.19.3)	B.science-engineering-2.r2	1	s6-gate	45	47	2	PROC	adversarial
+87	skip-rate B (9.19.3)	B.science-engineering.r1	1	s6-gate	16	18	2	AA	none-yet
+88	skip-rate B (9.19.3)	B.science-engineering.r1	1	s6-gate	22	22	1	AA	none-yet
+89	skip-rate B (9.19.3)	B.science-engineering.r1	1	s6-gate	32	42	6	VERDICT	template-read
+90	skip-rate B (9.19.3)	B.science-engineering.r1	1	post-gate	49	49	1	HEADINGS	schema-read
+91	skip-rate B (9.19.3)	B.self-application.r1	0	s6-gate	25	33	4	VERDICT	ledger
+92	skip-rate B (9.19.3)	B.self-application.r2	0	pre-s6	18	18	1	VERDICT	AAscan
+93	skip-rate B (9.19.3)	B.software-systems-2.r1	0	pre-s6	19	27	4	VERDICT	selfscan
+94	skip-rate B (9.19.3)	B.software-systems-2.r2	0	s6-gate	13	14	2	S6	rubric-read
+95	skip-rate B (9.19.3)	B.software-systems-2.r2	0	s6-gate	19	20	2	HOP	ledger
+96	skip-rate B (9.19.3)	B.software-systems-2.r2	0	post-gate	25	25	1	VERDICT	schema-read
+97	skip-rate B (9.19.3)	B.software-systems.r1	0	s6-gate	17	19	2	HOP	AAscan
+98	skip-rate B (9.19.3)	B.software-systems.r1	0	post-gate	26	26	1	IDFMT	schema-read
+99	skip-rate B (9.19.3)	B.software-systems.r2	0	pre-s6	12	12	1	AA	rubric-read
+100	skip-rate B (9.19.3)	B.theoretical-limit-carnot.r1	0	s6-gate	22	24	3	AA	rubric-read
+101	skip-rate B (9.19.3)	B.theoretical-limit-carnot.r1	0	s6-gate	29	32	2	HOP	ledger
+102	skip-rate B (9.19.3)	B.theoretical-limit-carnot.r1	0	s6-gate	36	38	2	PROC	ledger
+103	skip-rate B (9.19.3)	B.theoretical-limit-carnot.r2	0	pre-s6	14	14	1	AA	rubric-read
+104	skip-rate B (9.19.3)	B.theoretical-limit-carnot.r2	0	s6-gate	23	28	3	AA	rubric-read
+105	skip-rate B (9.19.3)	B.theoretical-limit-carnot.r2	0	s6-gate	32	37	3	QMARK	AAscan
+106	skip-rate B (9.19.3)	B.theoretical-limit-carnot.r2	0	s6-gate	41	41	1	BAND	adversarial
+107	skip-rate B (9.19.3)	B.theoretical-limit-carnot.r2	0	post-gate	45	45	1	VERDICT	schema-read
+108	pointer-fix	composed-inversion-second-order.a1	0	pre-s6	12	12	1	BAND	gate
+109	pointer-fix	decompose-irreducibility.supp1.a1	0	s6-gate	14	14	1	AA	rubric-read
+110	pointer-fix	decompose-irreducibility.supp1.a1	0	s6-gate	22	31	5	IDFMT	adversarial
+111	pointer-fix	estimate-fermi.a1	0	pre-s6	26	26	1	AA	ledger
+112	pointer-fix	estimate-fermi.a1	0	pre-s6	32	32	1	AA	adversarial
+113	pointer-fix	estimate-fermi.a1	0	pre-s6	38	38	1	IDFMT	schema-read
+114	pointer-fix	ishikawa-fishbone.a1	1	pre-s6	10	10	1	STRUCT	none-yet
+115	pointer-fix	ishikawa-fishbone.a1	1	pre-s6	20	20	1	HOP	ledger
+116	pointer-fix	ishikawa-fishbone.a1	1	pre-s6	29	29	1	VERDICT	rubric-read
+117	pointer-fix	ishikawa-fishbone.a1	1	pre-s6	37	37	1	AA	rubric-read
+118	pointer-fix	ishikawa-fishbone.a1	1	pre-s6	41	41	1	STRUCT	rubric-read
+119	pointer-fix	ishikawa-fishbone.a1	1	pre-s6	47	49	2	HEADINGS	schema-read
+120	pointer-fix	personal-general-2.a1	0	s6-gate	20	22	2	AA	selfscan
+121	pointer-fix	personal-general-2.a1	0	s6-gate	27	31	3	AA	adversarial
+122	pointer-fix	personal-general.a1	0	pre-s6	22	22	1	AA	adversarial
+123	pointer-fix	personal-general.a1	0	pre-s6	27	27	1	CONTENT	techniques
+124	pointer-fix	product-business-2.a1	0	pre-s6	19	20	2	VERDICT	schema-read
+125	pointer-fix	product-business.supp1.a1	0	pre-s6	20	20	1	HOP	ledger
+126	pointer-fix	product-business.supp1.a1	0	pre-s6	31	38	7	CONTENT	selfscan
+127	pointer-fix	science-engineering-2.supp1.a1	1	pre-s6	25	25	1	BAND	none-yet
+128	pointer-fix	science-engineering-2.supp1.a1	1	s6-gate	29	29	1	HOP	none-yet
+129	pointer-fix	science-engineering-2.supp1.a1	1	s6-gate	34	46	7	HEAD	rubric-read
+130	pointer-fix	science-engineering-2.supp1.a1	1	post-gate	51	60	7	HEADINGS	template-read
+131	pointer-fix	science-engineering.a1	1	pre-s6	14	29	8	QMARK	none-yet
+132	pointer-fix	science-engineering.a1	1	s6-gate	33	51	8	BAND	selfscan
+133	pointer-fix	self-application.supp1.a1	0	s6-gate	22	28	4	CONTENT	ledger
+134	pointer-fix	self-application.supp1.a1	0	post-gate	32	32	1	VERDICT	schema-read
+135	pointer-fix	software-systems-2.a1	0	pre-s6	18	23	5	CONTENT	adversarial
+136	pointer-fix	software-systems-2.a1	0	pre-s6	27	27	1	CONTENT	schema-read
+137	pointer-fix	software-systems-2.a1	0	pre-s6	31	31	1	CONTENT	summary
+138	pointer-fix	theoretical-limit-carnot.a1	0	s6-gate	16	29	7	AA	schema-read
+139	pointer-fix	theoretical-limit-carnot.a1	0	s6-gate	35	35	1	CONTENT	adversarial
+140	example-rerun-2	composed-inversion-second-order.a1	0	pre-s6	16	23	5	HEAD	ledger
+141	example-rerun-2	decompose-irreducibility.supp.a1	0	s6-gate	20	20	1	HEAD	selfscan
+142	example-rerun-2	decompose-irreducibility.supp.a1	0	s6-gate	24	29	4	VERDICT	adversarial
+143	example-rerun-2	decompose-irreducibility.supp.a1	0	post-gate	33	34	2	IDFMT	schema-read
+144	example-rerun-2	estimate-fermi.a1	0	s6-gate	32	33	2	BAND	rubric-read
+145	example-rerun-2	estimate-fermi.a1	0	post-gate	37	37	1	HEADINGS	template-read
+146	example-rerun-2	ishikawa-fishbone.a1	0	s6-gate	10	10	1	S6	AAscan
+147	example-rerun-2	personal-general-2.supp.a1	0	pre-s6	20	20	1	AA	none-yet
+148	example-rerun-2	personal-general-2.supp.a1	0	post-gate	34	34	1	BAND	schema-read
+149	example-rerun-2	personal-general.a1	1	pre-s6	13	13	1	AA	none-yet
+150	example-rerun-2	personal-general.a1	1	pre-s6	18	18	1	S6	adversarial
+151	example-rerun-2	personal-general.a1	1	pre-s6	22	35	8	HOP	ledger
+152	example-rerun-2	personal-general.a1	1	pre-s6	39	39	1	PROC	template-read
+153	example-rerun-2	personal-general.a1	1	pre-s6	45	48	2	HEADINGS	schema-read
+154	example-rerun-2	product-business.supp.a1	1	pre-s6	14	14	1	STRUCT	rubric-read
+155	example-rerun-2	product-business.supp.a1	1	s6-gate	20	20	1	AA	ledger
+156	example-rerun-2	product-business.supp.a1	1	s6-gate	24	35	7	AA	AAscan
+157	example-rerun-2	product-business.supp.a1	1	s6-gate	39	44	4	BAND	AAscan
+158	example-rerun-2	product-business.supp.a1	1	post-gate	49	49	1	IDFMT	schema-read
+159	example-rerun-2	science-engineering.a1	0	s6-gate	22	24	2	S6	rubric-read
+160	example-rerun-2	self-application.a1	0	s6-gate	27	38	9	VERDICT	rubric-read
+161	example-rerun-2	self-application.a1	0	post-gate	42	42	1	PROC	schema-read
+162	example-rerun-2	self-application.a1	0	post-gate	48	48	1	CONTENT	summary
+163	example-rerun-2	software-systems-2.a1	0	pre-s6	14	14	1	HOP	rubric-read
+164	example-rerun-2	software-systems-2.a1	0	pre-s6	20	23	4	HEAD	selfscan
+165	example-rerun-2	software-systems.a1	1	s6-gate	22	22	1	AA	selfscan
+166	example-rerun-2	software-systems.a1	1	s6-gate	27	32	4	AA	adversarial
+167	example-rerun-2	software-systems.a1	1	post-gate	36	46	6	QMARK	schema-read
+168	example-rerun-2	theoretical-limit-carnot.a1	0	s6-gate	24	26	2	HEAD	ledger
+169	example-rerun-2	theoretical-limit-carnot.a1	0	s6-gate	30	30	1	HOP	ledger
+170	example-rerun-2	theoretical-limit-carnot.a1	0	s6-gate	34	39	4	QMARK	selfscan
+171	example-rerun-2	theoretical-limit-carnot.a1	0	post-gate	43	43	1	VERDICT	schema-read
+172	skip-paired new	decompose-irreducibility.new.r1.a1	0	pre-s6	20	20	1	PROC	gate
+173	skip-paired new	decompose-irreducibility.new.r2.a1	0	pre-s6	10	14	4	AA	none-yet
+174	skip-paired new	decompose-irreducibility.new.r2.a1	0	s6-gate	18	18	1	S6	none-yet
+175	skip-paired new	decompose-irreducibility.new.r3.a1	1	pre-s6	12	22	7	AA	none-yet
+176	skip-paired new	decompose-irreducibility.new.r3.a1	1	s6-gate	27	31	3	QMARK	ledger
+177	skip-paired new	decompose-irreducibility.new.r3.a1	1	s6-gate	35	57	12	HOP	ledger
+178	skip-paired new	personal-general-2.new.r1.a1	0	s6-gate	16	16	1	STRUCT	none-yet
+179	skip-paired new	personal-general-2.new.r1.a1	0	s6-gate	26	26	1	BAND	rubric-read
+180	skip-paired new	personal-general-2.new.r2.a1	0	pre-s6	22	22	1	HOP	template-read
+181	skip-paired new	personal-general-2.new.r2.a1	0	pre-s6	32	33	2	VERDICT	schema-read
+182	skip-paired new	personal-general-2.new.r2.a1	0	pre-s6	38	38	1	S6	schema-read
+183	skip-paired new	personal-general-2.new.r3.a1	0	pre-s6	20	20	1	QMARK	rubric-read
+184	skip-paired new	personal-general-2.new.r3.a1	0	s6-gate	25	28	3	AA	ledger
+185	skip-paired new	personal-general-2.new.r3.a1	0	s6-gate	32	32	1	VERDICT	adversarial
+186	skip-paired new	personal-general-2.new.r3.a1	0	post-gate	36	36	1	PROC	schema-read
+187	skip-paired new	product-business.new.r1.a1	0	s6-gate	13	13	1	AA	none-yet
+188	skip-paired new	product-business.new.r1.a1	0	s6-gate	21	24	2	AA	rubric-read
+189	skip-paired new	product-business.new.r1.a1	0	s6-gate	29	32	2	AA	rubric-read
+190	skip-paired new	product-business.new.r1.a1	0	post-gate	37	37	1	HEADINGS	template-read
+191	skip-paired new	product-business.new.r2.a1	0	s6-gate	21	21	1	HOP	ledger
+192	skip-paired new	product-business.new.r2.a1	0	post-gate	28	28	1	PROC	schema-read
