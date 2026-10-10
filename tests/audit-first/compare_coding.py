@@ -22,7 +22,11 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 TSV = HERE / "postheld-coding.tsv"
 READINGS = HERE / "readings.json"
-POS = {"pre-held": "pre_held", "held-to-gate": "post_held_pre_gate", "post-gate": "post_gate"}
+POS = {
+    "pre-held": "pre_held",
+    "held-to-gate": "post_held_pre_gate",
+    "post-gate": "post_gate",
+}
 
 
 def load_tsv(path: Path) -> list[dict]:
@@ -82,7 +86,10 @@ def self_test() -> bool:
     for r in rows:
         split[r["position"]] += int(r["rewrite_cmds"])
         hand += int(r["rewrite_cmds"]) if r["coder"] == "hand" else 0
-    check("split 2/58/15", (split["pre-held"], split["held-to-gate"], split["post-gate"]) == (2, 58, 15))
+    check(
+        "split 2/58/15",
+        (split["pre-held"], split["held-to-gate"], split["post-gate"]) == (2, 58, 15),
+    )
     check("HAND 40", hand == 40)
     header = TSV.read_text().splitlines()[0].split("\t")
     with tempfile.TemporaryDirectory() as d:
@@ -104,7 +111,10 @@ def self_test() -> bool:
             lines[1][header.index("run")] = "N.no-such-run.r9"
 
         check("mutation +1 exits 1", compare(mutated(plus), READINGS, quiet=True) == 1)
-        check("mutation unknown run exits 1", compare(mutated(unknown), READINGS, quiet=True) == 1)
+        check(
+            "mutation unknown run exits 1",
+            compare(mutated(unknown), READINGS, quiet=True) == 1,
+        )
     print(f"compare_coding --self-test: {'PASS' if ok else 'FAIL'}")
     return ok
 
