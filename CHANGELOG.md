@@ -21,7 +21,7 @@ as drafts until the Assumption Audit has run) was measured against a pre-registe
 body was restored to 9.19.4; no version stamp changed and nothing was released. The 999.198 body is
 preserved on branch `audit-first-999.198`.
 
-- 24 of 28 dispatched runs assembled and delivered (4 excluded as routing misses). 3 of 24 had six
+- 28 runs scheduled; 4 were routing misses (the main session answered the prompt itself on all three attempts and never dispatched the agent) and are excluded; all 24 dispatched runs assembled and delivered. 3 of 24 had six
   or more in-place rewrites (baseline 34 of 87; critical value 5), and the median rewrites fell to 2
   (baseline 4), but the no-regression condition failed: `theoretical-limit-carnot.r2` reached 90
   turns (22 rewrites, gate at turn 73).

@@ -115,7 +115,7 @@ replacement blocks that assembly applies. The 999.198 body is preserved on branc
 
 ### After 999.198 (measured, not released)
 
-One arm, 28 dispatched, 4 excluded as routing misses, 24 assembled and delivered, against the pooled
+One arm, 28 runs scheduled, 4 excluded as routing misses (never dispatched), 24 dispatched, all assembled and delivered, against the pooled
 99-transcript baseline above. Verdict: `not-shown-effective`. Every figure is re-derived by
 `python3 tests/audit-first/run_audit.py read`; the pre-registered rule is in
 `docs/audit-first-preregistration.md`.
