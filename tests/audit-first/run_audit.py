@@ -55,6 +55,8 @@ ASSEMBLY_RATE_MIN = 0.90
 GATE_TURN_MAX = 28
 TURNS_MEDIAN_MAX = 43
 TURN_CEILING = 90
+POST_HELD_PERM_N = 20000  # permutations for the post-held-v1 primary
+POST_HELD_SEED = 999200
 # ------------------------------------------------------------------------------------------
 
 _spec = importlib.util.spec_from_file_location("phase_turns", REPO_ROOT / "tests" / "skip-rate" / "phase_turns.py")
@@ -361,10 +363,15 @@ def gate_turn(cmds: list[tuple[int, str]]) -> int | None:
     return None
 
 
-def split_rewrites(cmds: list[tuple[int, str]]) -> dict[str, int]:
+_UNSET = object()
+
+
+def split_rewrites(cmds: list[tuple[int, str]], held=_UNSET) -> dict[str, int]:
     """Rewrites before the held append, after it but before the first gate append, after the gate.
-    With no held append, every pre-gate rewrite is counted before it."""
-    held, gate = held_append(cmds), gate_turn(cmds)
+    With no held append, every pre-gate rewrite is counted before it. `held` overrides the turn
+    of the held append (None = no successful one); by default it is held_append(cmds)."""
+    held = held_append(cmds) if held is _UNSET else held
+    gate = gate_turn(cmds)
     out = {"pre_held": 0, "post_held_pre_gate": 0, "post_gate": 0}
     for t in rewrite_turns(cmds):
         if gate is not None and t >= gate:
@@ -490,6 +497,102 @@ def decide(
     }
 
 
+# --- post-held-v1 -------------------------------------------------------------------------
+
+
+def permutation_p(new: list[int], comp: list[int]) -> float:
+    """One-sided permutation p that the new arm's mean is lower than the comparator's."""
+    import random
+
+    obs = mean(comp) - mean(new)
+    pool, n = list(comp) + list(new), len(comp)
+    rng = random.Random(POST_HELD_SEED)
+    count = 0
+    for _ in range(POST_HELD_PERM_N):
+        rng.shuffle(pool)
+        if mean(pool[:n]) - mean(pool[n:]) >= obs - 1e-12:
+            count += 1
+    return (count + 1) / (POST_HELD_PERM_N + 1)
+
+
+def post_held(row: dict) -> int:
+    sp = row["rewrite_split"]
+    return sp["post_held_pre_gate"] + sp["post_gate"]
+
+
+def target_of(cmd: str) -> str:
+    return "process" if ".process" in cmd else "answer" if ".answer" in cmd else "analysis"
+
+
+def refusal_kind(result: str) -> str:
+    if "Type cell" in result:
+        return "type_cell"
+    if "GT-N" in result:
+        return "gt_n"
+    return "missing"
+
+
+def refusal_readings(calls: list[tuple[int, str, str]]) -> dict:
+    """Reported, not verdict-bearing: target-file split of the rewrite commands and the refusals."""
+    split = {"analysis": 0, "process": 0, "answer": 0}
+    for _, c, _ in calls:
+        if pt.is_rewrite(c):
+            split[target_of(c)] += 1
+    att = held_attempts(calls)
+    ok = held_append_ok(calls)
+    refused = [(t, r) for t, c, r in calls if is_held_append_cmd(c) and "NOT APPENDED" in r]
+    kinds = {"type_cell": 0, "gt_n": 0, "missing": 0}
+    for _, r in refused:
+        kinds[refusal_kind(r)] += 1
+    first = att[0][0] if att else None
+    return {
+        "target_split": split,
+        "held_refusals": len(refused),
+        "held_refusal_kinds": kinds,
+        "held_refusal_turns": (ok - first) if (refused and ok is not None and first is not None) else 0,
+    }
+
+
+def decide_post_held(
+    n_dispatched: int,
+    asm: list[dict],
+    comparator_rows: list[dict],
+    *,
+    stage_complete: bool,
+    stage2_started: bool,
+    stage1_complete: bool,
+    asm_stage1: list[dict],
+) -> dict:
+    v = decide(
+        n_dispatched,
+        asm,
+        stage_complete=stage_complete,
+        stage2_started=stage2_started,
+        stage1_complete=stage1_complete,
+        asm_stage1=asm_stage1,
+    )
+    comp = [post_held(r) for r in comparator_rows]
+    new = [post_held(r) for r in asm]
+    p = permutation_p(new, comp) if new and comp else None
+    primary = p is not None and p <= ALPHA
+    v["heavy_vs_baseline"] = v.pop("primary")
+    v["primary"] = primary
+    v["primary_p"] = p
+    v["rule"] = "post-held-v1"
+    v["mean_post_held"] = mean(new) if new else None
+    v["comparator_mean_post_held"] = mean(comp) if comp else None
+    v["comparator_n"] = len(comp)
+    if v["stage_complete"] and v["assembled"] >= MIN_ASSEMBLED:
+        ok = primary and v["heavy_vs_baseline"] and v["secondary"] and v["no_regression"]
+        v["verdict"] = "shown-effective" if ok else "not-shown-effective"
+    return v
+
+
+def load_comparator() -> list[dict]:
+    path = REPO_ROOT / RULE["comparator"]
+    return [r for r in json.loads(path.read_text(encoding="utf-8")) if r.get("assembled")]
+
+
 # --- scoring one captured run -------------------------------------------------------------
 
 
@@ -501,11 +604,13 @@ def score(key: str, cell: dict) -> dict:
     calls = agent_tool_calls(agent_dir)
     run = pt.read_run(agent_dir)
     cmds = bash_cmds(agent_dir)
+    calls_b = bash_calls(agent_dir) if RULE else None
     results = result_events(text)
     assembled = bool(run and "assemble" in run["first"])
     left = leftover_sidecars(files_dir)
     miss = missing_sections(files_dir)
-    return {
+    held_turn = held_append(cmds) if calls_b is None else held_append_ok(calls_b)
+    row = {
         "key": key,
         "prompt": cell["prompt"],
         "repeat": cell["repeat"],
@@ -515,10 +620,10 @@ def score(key: str, cell: dict) -> dict:
         "assembled": assembled,
         "turns": run["turns"] if run else 0,
         "rewrites": run["rewrites"] if run else 0,
-        "rewrite_split": split_rewrites(cmds),
+        "rewrite_split": split_rewrites(cmds) if calls_b is None else split_rewrites(cmds, held_turn),
         "dup_section_writes": dup_sections(cmds),
         "gate_turn": run["first"].get("gate") if run else None,
-        "held_append_turn": held_append(cmds),
+        "held_append_turn": held_turn,
         "leftover_sidecars": left,
         "missing_sections": miss,
         "complete": not left and not miss,
@@ -526,6 +631,9 @@ def score(key: str, cell: dict) -> dict:
         "agent_min": agent_minutes(agent_dir),
         "attempts": len(cell["attempts"]),
     }
+    if calls_b is not None:
+        row.update(refusal_readings(calls_b))
+    return row
 
 
 # --- running ------------------------------------------------------------------------------
@@ -640,14 +748,16 @@ def build_verdict(write: bool = True, echo: bool = False) -> dict | None:
     asm = [r for r in rows if r["assembled"]]
     stage1 = {k for k in cells if k.endswith(".r1")}
     stage2_started = any(k.endswith(".r2") for k in cells)
-    v = decide(
-        len(rows),
-        asm,
-        stage_complete=len(cells) >= n_prompts * len(REPEATS) * len(ARMS),
-        stage2_started=stage2_started,
-        stage1_complete=len(stage1) >= n_prompts * len(ARMS),
-        asm_stage1=[r for r in asm if r["repeat"] == 1],
-    )
+    kw = {
+        "stage_complete": len(cells) >= n_prompts * len(REPEATS) * len(ARMS),
+        "stage2_started": stage2_started,
+        "stage1_complete": len(stage1) >= n_prompts * len(ARMS),
+        "asm_stage1": [r for r in asm if r["repeat"] == 1],
+    }
+    if RULE is None:
+        v = decide(len(rows), asm, **kw)
+    else:
+        v = decide_post_held(len(rows), asm, load_comparator(), **kw)
     if echo:
         for r in rows:
             sp = r["rewrite_split"]
@@ -666,6 +776,22 @@ def build_verdict(write: bool = True, echo: bool = False) -> dict | None:
                 f"duplicate-section writes {sum(r['dup_section_writes'] for r in asm)}; "
                 f"cost ${sum(r['cost_usd'] for r in rows):.2f}; "
                 f"agent minutes {sum(r['agent_min'] or 0 for r in rows):.1f}"
+            )
+        if RULE is not None and asm:
+            comp = load_comparator()
+            allcmds = sum(sum(r["target_split"].values()) for r in rows)
+            proc = sum(r["target_split"]["process"] for r in rows)
+            kinds = {k: sum(r["held_refusal_kinds"][k] for r in rows) for k in ("type_cell", "gt_n", "missing")}
+            ph = [post_held(r) for r in asm]
+            print(
+                f"reported (not verdict-bearing): .process share {proc}/{allcmds}; "
+                f"target split {{analysis {sum(r['target_split']['analysis'] for r in rows)}, "
+                f"process {proc}, answer {sum(r['target_split']['answer'] for r in rows)}}}; "
+                f"runs with NOT APPENDED {sum(r['held_refusals'] > 0 for r in rows)}/{len(rows)}, "
+                f"refusals {sum(r['held_refusals'] for r in rows)} {kinds}, "
+                f"turns spent {sum(r['held_refusal_turns'] for r in rows)}; "
+                f"post-held rewrites mean {mean(ph):.2f} median {median(ph)} vs comparator "
+                f"mean {mean(post_held(r) for r in comp):.2f} median {median(post_held(r) for r in comp)}"
             )
         print("\nverdict:")
         for k, val in v.items():
@@ -725,6 +851,87 @@ def _decide(rows, dispatched_n=None, **kw):
     kw.setdefault("stage1_complete", True)
     kw.setdefault("asm_stage1", [])
     return decide(len(rows) if dispatched_n is None else dispatched_n, rows, **kw)
+
+
+def post_held_controls(check) -> None:
+    """post-held-v1 controls: the permutation primary both ways, the refusal-aware split, the verdict."""
+    global permutation_p
+    comp_rows = [r for r in json.loads((HERE / "readings.json").read_text()) if r["assembled"]]
+    comp = [post_held(r) for r in comp_rows]
+    check("comparator is 24 assembled runs, 73 post-held commands", len(comp) == 24 and sum(comp) == 73)
+    p_self = permutation_p(list(comp), comp)
+    check(f"comparator against itself does not clear (p={p_self:.3f})", p_self > 0.4)
+    p_zero = permutation_p([0] * 24, comp)
+    check(f"all-zero arm clears (p={p_zero:.5f})", p_zero <= ALPHA)
+    big = max(comp)
+    noise = sorted(comp)[:-1] + [0]
+    p_noise = permutation_p(noise, comp)
+    check(f"noise-sized arm (largest {big} removed, one 0 added) does not clear (p={p_noise:.3f})", p_noise > ALPHA)
+    half = [v // 2 for v in comp]
+    print(f"audit-first --self-test: illustrative floor-halved arm p={permutation_p(half, comp):.4f} (reported, not asserted)")
+    check("permutation_p is deterministic", permutation_p(noise, comp) == p_noise)
+    real_p = permutation_p
+    def permutation_p(new, comp):
+        return 0.0
+
+    try:
+        stubbed = permutation_p(list(comp), comp) <= ALPHA
+    finally:
+        permutation_p = real_p
+    check("must-fail: a p-function returning 0.0 clears the self-comparison, which the real one does not",
+          stubbed and real_p(list(comp), comp) > ALPHA)  # fmt: skip
+
+    # refusal-aware split reproduces the committed split on all 24, bar the one disclosed run
+    diffs = []
+    for r in comp_rows:
+        cell = json.loads(CELLS.read_text())[r["key"]]
+        agent = sib(RAW / cell["scored"], ".agent")
+        calls = bash_calls(agent)
+        sp = split_rewrites([(t, c) for t, c, _ in calls], held_append_ok(calls))
+        if sp != r["rewrite_split"]:
+            diffs.append((r["key"], r["rewrite_split"], sp))
+    ids = [d[0] for d in diffs]
+    check(f"held_append_ok split equals the committed split on {24 - len(diffs)} of 24 runs", len(diffs) <= 1)
+    check(
+        "the only difference is N.software-systems.r2: one rewrite between its refused and its successful append",
+        ids == ["N.software-systems.r2"]
+        and diffs[0][1]["post_held_pre_gate"] - 1 == diffs[0][2]["post_held_pre_gate"]
+        and diffs[0][2]["pre_held"] == diffs[0][1]["pre_held"] + 1,
+    )
+    print(f"audit-first --self-test: split differences under held_append_ok: {ids}")
+
+    # verdict on synthetic arms
+    def prow(ph, turns=40):
+        return _row(0, turns=turns) | {"rewrite_split": {"pre_held": 0, "post_held_pre_gate": ph, "post_gate": 0}}
+
+    kw = {"stage_complete": True, "stage2_started": True, "stage1_complete": True, "asm_stage1": []}
+    zero = [prow(0) for _ in range(24)]
+    v = decide_post_held(24, zero, comp_rows, **kw)
+    check("all-zero 24-run arm is shown-effective", v["verdict"] == "shown-effective" and v["rule"] == "post-held-v1")
+    v = decide_post_held(24, comp_rows, comp_rows, **kw)
+    check("the comparator itself is not-shown-effective", v["verdict"] == "not-shown-effective" and not v["primary"])
+    v = decide_post_held(24, zero[:23] + [prow(0, turns=90)], comp_rows, **kw)
+    check("a clearing primary with one run at 90 turns is not-shown-effective",
+          v["primary"] and v["verdict"] == "not-shown-effective")  # fmt: skip
+    v = decide_post_held(17, zero[:17], comp_rows, **kw)
+    check("17 assembled is uninformative", v["verdict"] == "uninformative")
+    v = decide_post_held(13, zero[:13], comp_rows, stage_complete=False, stage2_started=False,
+                         stage1_complete=True, asm_stage1=[_row(6)] * 5)  # fmt: skip
+    check("stage-1 futility is futility-stop", v["verdict"] == "futility-stop")
+    v = decide_post_held(24, [prow(0) | {"rewrites": 7}] * 24, comp_rows, **kw)
+    check("a clearing primary with a failed heavy-run secondary is not-shown-effective",
+          v["primary"] and v["verdict"] == "not-shown-effective")  # fmt: skip
+
+    # a refused call is not the held append
+    ha = 'cat .s2 .s3 .s4 >> "$F"'
+    calls = [(5, ha, "NOT APPENDED: a Type cell above names more than one assumption type; x"),
+             (6, _REWRITE_CMD, ""), (8, ha, "")]  # fmt: skip
+    check("refusal reading: one refusal, kind type_cell, 3 turns spent, ok turn 8",
+          held_append_ok(calls) == 8 and refusal_readings(calls)["held_refusal_kinds"]["type_cell"] == 1
+          and refusal_readings(calls)["held_refusal_turns"] == 3)  # fmt: skip
+    check("target split sorts .process, .answer and analysis",
+          [target_of(c) for c in ("sed -i x a.process", "sed -i x a.answer", "sed -i x a.md")]
+          == ["process", "answer", "analysis"])  # fmt: skip
 
 
 def arm_controls(check) -> None:
@@ -880,6 +1087,7 @@ def self_test() -> int:
         check("real software-systems.r1 transcript present", False)
 
     arm_controls(check)
+    post_held_controls(check)
 
     print(f"audit-first --self-test: {'PASS' if ok else 'FAIL'}")
     return 0 if ok else 1
