@@ -268,10 +268,69 @@ def dup_section_writes(agent_dir: Path) -> int:
     return dup_sections(bash_cmds(agent_dir))
 
 
+def is_held_append_cmd(cmd: str) -> bool:
+    """A command that appends the held .s2, .s3 and .s4 sidecars with `>>`."""
+    return ">>" in cmd and all(s in cmd for s in (".s2", ".s3", ".s4"))
+
+
 def held_append(cmds: list[tuple[int, str]]) -> int | None:
-    """Turn of the first command that appends the held .s2, .s3 and .s4 sidecars with `>>`."""
+    """Turn of the first command that appends the held .s2, .s3 and .s4 sidecars with `>>`.
+    It counts a call the checked append refused (NOT APPENDED); held_append_ok does not."""
     for t, c in cmds:
-        if ">>" in c and all(s in c for s in (".s2", ".s3", ".s4")):
+        if is_held_append_cmd(c):
+            return t
+    return None
+
+
+def _result_text(content) -> str:
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "\n".join(b.get("text", "") for b in content if isinstance(b, dict))
+    return ""
+
+
+def bash_calls(agent_dir: Path) -> list[tuple[int, str, str]]:
+    """(turn, command, tool_result text) for every Bash call; same turn numbering as bash_cmds.
+    The result is "" when none is found for the call."""
+    out: list[tuple[int, str, str]] = []
+    ids: list[str] = []
+    by_id: dict[str, int] = {}
+    results: dict[str, str] = {}
+    for f in sorted(agent_dir.glob("agent-*.jsonl")):
+        for line in f.read_text(encoding="utf-8", errors="replace").splitlines():
+            try:
+                o = json.loads(line)
+            except ValueError:
+                continue
+            msg = o.get("message") or {}
+            if o.get("type") == "assistant":
+                mid = msg.get("id") or f"{f.name}:{len(ids)}"
+                if mid not in ids:
+                    ids.append(mid)
+                for b in msg.get("content") or []:
+                    if isinstance(b, dict) and b.get("type") == "tool_use" and b.get("name") == "Bash":
+                        by_id[b.get("id", "")] = len(out)
+                        out.append((len(ids), (b.get("input") or {}).get("command", ""), ""))
+            elif o.get("type") == "user" and isinstance(msg.get("content"), list):
+                for b in msg["content"]:
+                    if isinstance(b, dict) and b.get("type") == "tool_result":
+                        results[b.get("tool_use_id", "")] = _result_text(b.get("content"))
+    for tid, i in by_id.items():
+        t, c, _ = out[i]
+        out[i] = (t, c, results.get(tid, ""))
+    return out
+
+
+def held_attempts(calls: list[tuple[int, str, str]]) -> list[tuple[int, bool]]:
+    """(turn, refused) for every held-append command; refused = the result says NOT APPENDED."""
+    return [(t, "NOT APPENDED" in r) for t, c, r in calls if is_held_append_cmd(c)]
+
+
+def held_append_ok(calls: list[tuple[int, str, str]]) -> int | None:
+    """Turn of the first held-append attempt the checked append did not refuse."""
+    for t, refused in held_attempts(calls):
+        if not refused:
             return t
     return None
 
@@ -608,6 +667,31 @@ def cmd_read() -> int:
     return 0
 
 
+def cmd_held() -> int:
+    """Per run: every held-append attempt (turn, refused) and each rewrite command before the
+    first successful one. Reads only; writes nothing."""
+    cells = json.loads(CELLS.read_text()) if CELLS.is_file() else {}
+    refused_runs = refused_n = pre_n = 0
+    for key, cell in sorted(cells.items()):
+        if cell["outcome"] != "scored":
+            continue
+        calls = bash_calls(sib(RAW / cell["scored"], ".agent"))
+        att = held_attempts(calls)
+        ok = held_append_ok(calls)
+        pre = [(t, c) for t, c, _ in calls if pt.is_rewrite(c) and (ok is None or t < ok)]
+        refused_runs += any(r for _, r in att)
+        refused_n += sum(r for _, r in att)
+        pre_n += len(pre)
+        print(f"{key}: attempts={att} first-successful-append={ok} rewrites-before={len(pre)}")
+        for t, c in pre:
+            print(f"    turn {t}: {c[:100].replace(chr(10), ' ')}")
+    print(
+        f"totals: runs with a refused attempt {refused_runs}; refused attempts {refused_n}; "
+        f"rewrite commands before the first successful held append {pre_n}"
+    )
+    return 0
+
+
 # --- self-test ----------------------------------------------------------------------------
 
 _REWRITE_CMD = "sed -i 's/a/b/' analysis-X.md"
@@ -737,13 +821,31 @@ def self_test() -> int:
     check("schedule 2 prompts x 2 repeats x 1 arm = 4, stage 1 first",
           len(sched) == 4 and [r for _, _, r in sched] == [1, 1, 2, 2])  # fmt: skip
     check("sib keeps the attempt marker", sib(Path("N.x.r1.a1"), ".jsonl").name == "N.x.r1.a1.jsonl")
+
+    # refusal-aware held-append reader
+    ha = "cat .s2 .s3 .s4 >> \"$F\""
+    syn = [(10, ha, "NOT APPENDED: a hop above ..."), (12, ha, "")]
+    check("held_attempts: refused then appended", held_attempts(syn) == [(10, True), (12, False)])
+    check("held_append_ok skips the refused call", held_append_ok(syn) == 12 and held_append([(t, c) for t, c, _ in syn]) == 10)
+    check("held_attempts: empty result is not refused", held_attempts([(7, ha, "")]) == [(7, False)])
+    real = RAW / "N.software-systems.r1.a1.agent"
+    if real.is_dir():
+        rc = bash_calls(real)
+        check("real software-systems.r1: attempts [(14, True), (17, False)]", held_attempts(rc) == [(14, True), (17, False)])
+        check("real software-systems.r1: held_append still 14", held_append([(t, c) for t, c, _ in rc]) == 14)
+        check("real software-systems.r1: bash_calls turns match bash_cmds", [(t, c) for t, c, _ in rc] == bash_cmds(real))
+        stub = [(t, False) for t, _ in held_attempts(rc)]
+        check("must-fail: result-blind stub misses the refusal", stub != [(14, True), (17, False)])
+    else:
+        check("real software-systems.r1 transcript present", False)
+
     print(f"audit-first --self-test: {'PASS' if ok else 'FAIL'}")
     return 0 if ok else 1
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", nargs="?", choices=["run", "read"])
+    ap.add_argument("cmd", nargs="?", choices=["run", "read", "held"])
     ap.add_argument("--bodies", type=Path)
     ap.add_argument("--work", type=Path)
     ap.add_argument("--workers", type=int, default=2)
@@ -758,7 +860,9 @@ def main() -> int:
         return cmd_run(a.bodies.resolve(), a.work.resolve(), a.workers, a.stage)
     if a.cmd == "read":
         return cmd_read()
-    ap.error("give run, read or --self-test")
+    if a.cmd == "held":
+        return cmd_held()
+    ap.error("give run, read, held or --self-test")
     return 2
 
 
