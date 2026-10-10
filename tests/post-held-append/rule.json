@@ -1,0 +1,4 @@
+{
+  "comparator": "tests/audit-first/readings.json",
+  "rule": "post-held-v1"
+}

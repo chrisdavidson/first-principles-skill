@@ -35,6 +35,8 @@ CELLS = HERE / "cells.json"
 VERDICT = HERE / "verdict.json"
 READINGS = HERE / "readings.json"
 PROMPTS_FILE = REPO_ROOT / "tests" / "example-rerun-2" / "prompts.json"
+RULE: dict | None = None  # the arm's rule.json; None selects the original decision rule
+KNOWN_RULES = ("post-held-v1",)
 
 # --- pre-registered protocol --------------------------------------------------------------
 MODEL = "claude-sonnet-5"
@@ -62,6 +64,19 @@ _spec.loader.exec_module(pt)
 
 _lock = threading.Lock()
 _SECTION_RE = re.compile(r"^s[1-6]$")
+
+
+def set_arm(path: Path) -> None:
+    """Point the arm paths (raw/, cells.json, readings.json, verdict.json) at `path` and load its
+    rule.json if it has one. An unknown rule is an error, never a fallback to the default."""
+    global RAW, CELLS, VERDICT, READINGS, RULE
+    rule_file = path / "rule.json"
+    rule = json.loads(rule_file.read_text(encoding="utf-8")) if rule_file.is_file() else None
+    if rule is not None and rule.get("rule") not in KNOWN_RULES:
+        print(f"audit-first: unknown rule {rule.get('rule')!r} in {rule_file}", file=sys.stderr)
+        raise SystemExit(2)
+    RAW, CELLS, VERDICT, READINGS = path / "raw", path / "cells.json", path / "verdict.json", path / "readings.json"
+    RULE = rule
 
 
 def sib(base: Path, suffix: str) -> Path:
@@ -712,6 +727,31 @@ def _decide(rows, dispatched_n=None, **kw):
     return decide(len(rows) if dispatched_n is None else dispatched_n, rows, **kw)
 
 
+def arm_controls(check) -> None:
+    """Second-arm controls: paths re-point, the rule loads, an unknown rule exits 2, default restored."""
+    global RAW, CELLS, VERDICT, READINGS, RULE
+    default = (RAW, CELLS, VERDICT, READINGS, RULE)
+    check("default paths are HERE-derived and no rule is loaded",
+          default == (HERE / "raw", HERE / "cells.json", HERE / "verdict.json", HERE / "readings.json", None))  # fmt: skip
+    arm2 = REPO_ROOT / "tests" / "post-held-append"
+    try:
+        set_arm(arm2)
+        check("set_arm re-points all four paths", (RAW, CELLS, VERDICT, READINGS) == (
+            arm2 / "raw", arm2 / "cells.json", arm2 / "verdict.json", arm2 / "readings.json"))  # fmt: skip
+        check("set_arm loads rule post-held-v1", RULE is not None and RULE["rule"] == "post-held-v1")
+        with tempfile.TemporaryDirectory() as td:
+            (Path(td) / "rule.json").write_text('{"rule": "nonsense"}')
+            try:
+                set_arm(Path(td))
+                code = None
+            except SystemExit as e:
+                code = e.code
+            check("unknown rule exits 2", code == 2)
+    finally:
+        RAW, CELLS, VERDICT, READINGS, RULE = default
+    check("default restored after the controls", (RAW, RULE) == (HERE / "raw", None))
+
+
 def self_test() -> int:
     ok = True
 
@@ -839,6 +879,8 @@ def self_test() -> int:
     else:
         check("real software-systems.r1 transcript present", False)
 
+    arm_controls(check)
+
     print(f"audit-first --self-test: {'PASS' if ok else 'FAIL'}")
     return 0 if ok else 1
 
@@ -850,8 +892,11 @@ def main() -> int:
     ap.add_argument("--work", type=Path)
     ap.add_argument("--workers", type=int, default=2)
     ap.add_argument("--stage", type=int, choices=[1, 2])
+    ap.add_argument("--arm-dir", type=Path, default=HERE)
     ap.add_argument("--self-test", action="store_true")
     a = ap.parse_args()
+    if not a.self_test:
+        set_arm(a.arm_dir.resolve())
     if a.self_test:
         return self_test()
     if a.cmd == "run":
