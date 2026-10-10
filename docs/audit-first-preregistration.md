@@ -12,7 +12,7 @@ Does the 999.198 body, which runs its checks before a section is appended and ho
 One arm, N: the generated `first-principles/` tree at the commit recorded on the line below,
 exported with `git archive` outside the repository before any run.
 
-**Arm commit:** (filled in before the first run)
+**Arm commit:** e5b1ef5d151d (exported with git archive 2026-10-10T14:48Z)
 
 There is no concurrent control arm. The control is the pooled 99 current-body transcripts read by
 `tests/skip-rate/phase_turns.py` (five captures, 33 to 46 percent of assembled runs with six or
