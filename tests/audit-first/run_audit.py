@@ -853,6 +853,50 @@ def _decide(rows, dispatched_n=None, **kw):
     return decide(len(rows) if dispatched_n is None else dispatched_n, rows, **kw)
 
 
+DOC_PATH = REPO_ROOT / "docs" / "post-held-preregistration.md"
+DOC_CONSTANTS = {
+    "Rule": "post-held-v1",
+    "Permutations": POST_HELD_PERM_N,
+    "Seed": POST_HELD_SEED,
+    "Alpha": ALPHA,
+    "Rewrite-heavy threshold": REWRITE_HEAVY,
+    "Secondary median ceiling": SECONDARY_MEDIAN,
+    "Median gate turn ceiling": GATE_TURN_MAX,
+    "Median turns ceiling": TURNS_MEDIAN_MAX,
+    "Turn cap": TURN_CEILING,
+    "Futility threshold": FUTILITY_K,
+    "Minimum assembled": MIN_ASSEMBLED,
+}
+
+
+def doc_constants_ok(text: str) -> list[str]:
+    """Problems between the pre-registration's labelled constant lines and the script's values.
+    Each label needs exactly one `- Label: value` line whose value equals the script's."""
+    problems = []
+    for label, value in DOC_CONSTANTS.items():
+        found = re.findall(rf"^- {re.escape(label)}: (\S+)$", text, re.MULTILINE)
+        if len(found) != 1:
+            problems.append(f"{label}: {len(found)} labelled lines, expected 1")
+        elif found[0] != str(value):
+            problems.append(f"{label}: document says {found[0]}, script has {value}")
+    return problems
+
+
+def doc_controls(check) -> None:
+    text = DOC_PATH.read_text(encoding="utf-8")
+    check("the pre-registration's constants match the script", doc_constants_ok(text) == [])
+    for label, value in DOC_CONSTANTS.items():
+        new = "post-held-v0" if label == "Rule" else "0.10" if label == "Alpha" else str(value + 1)
+        mutated = re.sub(rf"^(- {re.escape(label)}: )\S+$", rf"\g<1>{new}", text, flags=re.MULTILINE)
+        probs = doc_constants_ok(mutated)
+        check(f"doc mutation of `{label}` is caught", mutated != text and any(x.startswith(label + ":") for x in probs))
+    line = re.search(r"^- Seed: \S+$\n", text, re.MULTILINE).group(0)
+    probs = doc_constants_ok(text.replace(line, "", 1))
+    check("a deleted Seed line is caught", any(x.startswith("Seed:") for x in probs))
+    probs = doc_constants_ok(text.replace(line, line + line, 1))
+    check("a duplicated Seed line is caught", any(x.startswith("Seed:") for x in probs))
+
+
 def post_held_controls(check) -> None:
     """post-held-v1 controls: the permutation primary both ways, the refusal-aware split, the verdict."""
     global permutation_p
@@ -1088,6 +1132,7 @@ def self_test() -> int:
 
     arm_controls(check)
     post_held_controls(check)
+    doc_controls(check)
 
     print(f"audit-first --self-test: {'PASS' if ok else 'FAIL'}")
     return 0 if ok else 1
