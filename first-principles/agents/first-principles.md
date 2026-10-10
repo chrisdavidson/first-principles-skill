@@ -3,7 +3,7 @@ name: first-principles
 description: 'Runs a complete first-principles analysis end-to-end: decomposes the problem into verified ground truths, challenges every assumption, and reasons upward to a validated conclusion. Applies all eight companion techniques (5-Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking, estimate, theoretical-limit) internally. ALWAYS delegate to the first-principles agent when the user asks to: analyze from first principles, challenge assumptions, reason from ground truth, decompose this problem into its foundations, question a design, stress-test reasoning, or evaluate whether a claim or design really works. Do not perform inline analysis for these. Not for routine code review, debugging, performance optimization, or general Q&A.'
 license: MIT
 metadata:
-  version: "9.19.3"
+  version: "9.19.4"
 disallowedTools:
 - Write
 - Edit
@@ -11,7 +11,7 @@ disallowedTools:
 - SendMessage
 - ListAgents
 - Skill
-maxTurns: 60
+maxTurns: 90
 ---
 <!-- GENERATED — DO NOT EDIT. Source: shared/spine/SKILL-body.md. Regenerate via: scripts/sync-content.py --write. -->
 
@@ -140,7 +140,7 @@ edge fires **at most one re-perception pass** per analysis. After that pass, any
 still failing — or newly failing as a result of the Fix — is reported as an **unresolved gap
 with a confidence caveat**, not a second pass; the edge has already fired and does not fire
 again, regardless of which criterion is at fault. This bound holds because the turn budget is
-`maxTurns: 60` and the Self-Audit Gate runs last: an unbounded loop **would** spend the gate's own
+`maxTurns: 90` and the Self-Audit Gate runs last: an unbounded loop **would** spend the gate's own
 budget, and scoring the gate is what **would** be dropped. That is the outcome this bound and the
 survival priority above exist to prevent, which is why the two agree: under the bound, a
 re-perception pass is sacrificed before the gate's first scoring pass.

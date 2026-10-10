@@ -3462,7 +3462,7 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "Every re-entry edge is bounded \u2014 a stated maximum number of re-perception passes \u2014 so the Fix/Repeat loop cannot spin against a `maxTurns: 60` budget.",
+    "statement": "Every re-entry edge is bounded \u2014 a stated maximum number of re-perception passes \u2014 so the Fix/Repeat loop cannot spin against the `maxTurns` budget.",
     "rerun_by": "ci"
   },
   {

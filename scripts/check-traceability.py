@@ -4580,7 +4580,7 @@ def _rows_v818() -> list[MatrixRow]:
             surfaces=("agent",),
             statement=(
                 "Every re-entry edge is bounded — a stated maximum number of re-perception "
-                "passes — so the Fix/Repeat loop cannot spin against a `maxTurns: 60` budget."
+                "passes — so the Fix/Repeat loop cannot spin against the `maxTurns` budget."
             ),
             rerun_by="ci",
         ),

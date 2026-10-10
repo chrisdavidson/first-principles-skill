@@ -84,7 +84,7 @@ edge fires **at most one re-perception pass** per analysis. After that pass, any
 still failing — or newly failing as a result of the Fix — is reported as an **unresolved gap
 with a confidence caveat**, not a second pass; the edge has already fired and does not fire
 again, regardless of which criterion is at fault. This bound holds because the turn budget is
-`maxTurns: 60` and the Self-Audit Gate runs last: an unbounded loop **would** spend the gate's own
+`maxTurns: 90` and the Self-Audit Gate runs last: an unbounded loop **would** spend the gate's own
 budget, and scoring the gate is what **would** be dropped. That is the outcome this bound and the
 survival priority above exist to prevent, which is why the two agree: under the bound, a
 re-perception pass is sacrificed before the gate's first scoring pass.

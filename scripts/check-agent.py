@@ -50,7 +50,12 @@ _MAX_DESCRIPTION_LEN = 1024
 # its headroom (SCAN-04, first-principles.md:84). Checking only that the key
 # exists (as Check 5 did before) lets the value silently drift — a `60 -> 20`
 # edit passed every gate in the battery undetected.
-_EXPECTED_MAX_TURNS = 60
+# Raised 60 -> 90 (backlog 999.197, docs/skip-rate-reading.md "Where the turns go"): over 99
+# current-body transcripts a delivered run reaches its final pointer at a median of turn 40 but
+# a 90th percentile of 59, and 16 of 99 hit the 60 cap -- every one of them after six or more
+# in-place rewrites of its own analysis file -- whereupon the main session told the agent to
+# cut the delivery short.
+_EXPECTED_MAX_TURNS = 90
 # Quick task 260927-ngb: tests/abandonment/phase1/raw/ shows 6 of 20 Phase 1
 # runs where the subagent called `Agent` with
 # subagent_type: first-principles:first-principles from inside itself, then
@@ -176,7 +181,7 @@ disallowedTools:
   - SendMessage
   - ListAgents
   - Skill
-maxTurns: 60
+maxTurns: 90
 ---
 ## Body
 
@@ -288,7 +293,7 @@ disallowedTools:
 This is a non-empty body with valid content.
 """
 
-# Self-test fixture: `maxTurns` present but not the locked value (60)
+# Self-test fixture: `maxTurns` present but not the locked value (90)
 _FIXTURE_WRONG_MAXTURNS_VALUE = """\
 ---
 name: first-principles

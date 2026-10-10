@@ -4015,8 +4015,8 @@ def _match_headline_provenance_delta(hit: LiteralHit) -> bool:
     return bool(_HEADLINE_ROW_DELTA_RE.search(hit.text))
 
 
-def _match_maxturns_60(hit: LiteralHit) -> bool:
-    return bool(re.search(r"maxturns", hit.text, re.IGNORECASE)) and "60" in hit.text
+def _match_maxturns_value(hit: LiteralHit) -> bool:
+    return bool(re.search(r"maxturns", hit.text, re.IGNORECASE)) and "90" in hit.text
 
 
 def _match_sha256_digest(hit: LiteralHit) -> bool:
@@ -5206,10 +5206,10 @@ LITERAL_EXEMPTION_CLASSES: tuple[LiteralExemptionClass, ...] = (
         _match_retired_body_budget,
     ),
     LiteralExemptionClass(
-        "maxturns-60-value",
-        "GATE-01's pinned maxTurns value (60) is a gate-enforced structural "
+        "maxturns-value",
+        "GATE-01's pinned maxTurns value (90) is a gate-enforced structural "
         "invariant, not a hand-maintained branch count.",
-        _match_maxturns_60,
+        _match_maxturns_value,
     ),
     LiteralExemptionClass(
         "sha256-digest",

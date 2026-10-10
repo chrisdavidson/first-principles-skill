@@ -1,0 +1,571 @@
+{
+  "A.composed-inversion-second-order.r1": {
+    "arm": "A",
+    "attempts": [
+      "A.composed-inversion-second-order.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "composed-inversion-second-order",
+    "repeat": 1,
+    "scored": "A.composed-inversion-second-order.r1.a1"
+  },
+  "A.composed-inversion-second-order.r2": {
+    "arm": "A",
+    "attempts": [
+      "A.composed-inversion-second-order.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "composed-inversion-second-order",
+    "repeat": 2,
+    "scored": "A.composed-inversion-second-order.r2.a1"
+  },
+  "A.decompose-irreducibility.r1": {
+    "arm": "A",
+    "attempts": [
+      "A.decompose-irreducibility.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "decompose-irreducibility",
+    "repeat": 1,
+    "scored": "A.decompose-irreducibility.r1.a1"
+  },
+  "A.decompose-irreducibility.r2": {
+    "arm": "A",
+    "attempts": [
+      "A.decompose-irreducibility.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "decompose-irreducibility",
+    "repeat": 2,
+    "scored": "A.decompose-irreducibility.r2.a1"
+  },
+  "A.estimate-fermi.r1": {
+    "arm": "A",
+    "attempts": [
+      "A.estimate-fermi.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "estimate-fermi",
+    "repeat": 1,
+    "scored": "A.estimate-fermi.r1.a1"
+  },
+  "A.estimate-fermi.r2": {
+    "arm": "A",
+    "attempts": [
+      "A.estimate-fermi.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "estimate-fermi",
+    "repeat": 2,
+    "scored": "A.estimate-fermi.r2.a1"
+  },
+  "A.ishikawa-fishbone.r1": {
+    "arm": "A",
+    "attempts": [
+      "A.ishikawa-fishbone.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "ishikawa-fishbone",
+    "repeat": 1,
+    "scored": "A.ishikawa-fishbone.r1.a1"
+  },
+  "A.ishikawa-fishbone.r2": {
+    "arm": "A",
+    "attempts": [
+      "A.ishikawa-fishbone.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "ishikawa-fishbone",
+    "repeat": 2,
+    "scored": "A.ishikawa-fishbone.r2.a1"
+  },
+  "A.personal-general-2.r1": {
+    "arm": "A",
+    "attempts": [
+      "A.personal-general-2.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "personal-general-2",
+    "repeat": 1,
+    "scored": "A.personal-general-2.r1.a1"
+  },
+  "A.personal-general-2.r2": {
+    "arm": "A",
+    "attempts": [
+      "A.personal-general-2.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "personal-general-2",
+    "repeat": 2,
+    "scored": "A.personal-general-2.r2.a1"
+  },
+  "A.personal-general.r1": {
+    "arm": "A",
+    "attempts": [
+      "A.personal-general.r1.a1",
+      "A.personal-general.r1.a2"
+    ],
+    "outcome": "scored",
+    "prompt": "personal-general",
+    "repeat": 1,
+    "scored": "A.personal-general.r1.a2"
+  },
+  "A.personal-general.r2": {
+    "arm": "A",
+    "attempts": [
+      "A.personal-general.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "personal-general",
+    "repeat": 2,
+    "scored": "A.personal-general.r2.a1"
+  },
+  "A.product-business-2.r1": {
+    "arm": "A",
+    "attempts": [
+      "A.product-business-2.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "product-business-2",
+    "repeat": 1,
+    "scored": "A.product-business-2.r1.a1"
+  },
+  "A.product-business-2.r2": {
+    "arm": "A",
+    "attempts": [
+      "A.product-business-2.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "product-business-2",
+    "repeat": 2,
+    "scored": "A.product-business-2.r2.a1"
+  },
+  "A.product-business.r1": {
+    "arm": "A",
+    "attempts": [
+      "A.product-business.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "product-business",
+    "repeat": 1,
+    "scored": "A.product-business.r1.a1"
+  },
+  "A.product-business.r2": {
+    "arm": "A",
+    "attempts": [
+      "A.product-business.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "product-business",
+    "repeat": 2,
+    "scored": "A.product-business.r2.a1"
+  },
+  "A.science-engineering-2.r1": {
+    "arm": "A",
+    "attempts": [
+      "A.science-engineering-2.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "science-engineering-2",
+    "repeat": 1,
+    "scored": "A.science-engineering-2.r1.a1"
+  },
+  "A.science-engineering-2.r2": {
+    "arm": "A",
+    "attempts": [
+      "A.science-engineering-2.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "science-engineering-2",
+    "repeat": 2,
+    "scored": "A.science-engineering-2.r2.a1"
+  },
+  "A.science-engineering.r1": {
+    "arm": "A",
+    "attempts": [
+      "A.science-engineering.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "science-engineering",
+    "repeat": 1,
+    "scored": "A.science-engineering.r1.a1"
+  },
+  "A.science-engineering.r2": {
+    "arm": "A",
+    "attempts": [
+      "A.science-engineering.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "science-engineering",
+    "repeat": 2,
+    "scored": "A.science-engineering.r2.a1"
+  },
+  "A.self-application.r1": {
+    "arm": "A",
+    "attempts": [
+      "A.self-application.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "self-application",
+    "repeat": 1,
+    "scored": "A.self-application.r1.a1"
+  },
+  "A.self-application.r2": {
+    "arm": "A",
+    "attempts": [
+      "A.self-application.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "self-application",
+    "repeat": 2,
+    "scored": "A.self-application.r2.a1"
+  },
+  "A.software-systems-2.r1": {
+    "arm": "A",
+    "attempts": [
+      "A.software-systems-2.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "software-systems-2",
+    "repeat": 1,
+    "scored": "A.software-systems-2.r1.a1"
+  },
+  "A.software-systems-2.r2": {
+    "arm": "A",
+    "attempts": [
+      "A.software-systems-2.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "software-systems-2",
+    "repeat": 2,
+    "scored": "A.software-systems-2.r2.a1"
+  },
+  "A.software-systems.r1": {
+    "arm": "A",
+    "attempts": [
+      "A.software-systems.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "software-systems",
+    "repeat": 1,
+    "scored": "A.software-systems.r1.a1"
+  },
+  "A.software-systems.r2": {
+    "arm": "A",
+    "attempts": [
+      "A.software-systems.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "software-systems",
+    "repeat": 2,
+    "scored": "A.software-systems.r2.a1"
+  },
+  "A.theoretical-limit-carnot.r1": {
+    "arm": "A",
+    "attempts": [
+      "A.theoretical-limit-carnot.r1.a1",
+      "A.theoretical-limit-carnot.r1.a2"
+    ],
+    "outcome": "scored",
+    "prompt": "theoretical-limit-carnot",
+    "repeat": 1,
+    "scored": "A.theoretical-limit-carnot.r1.a2"
+  },
+  "A.theoretical-limit-carnot.r2": {
+    "arm": "A",
+    "attempts": [
+      "A.theoretical-limit-carnot.r2.a1",
+      "A.theoretical-limit-carnot.r2.a2"
+    ],
+    "outcome": "scored",
+    "prompt": "theoretical-limit-carnot",
+    "repeat": 2,
+    "scored": "A.theoretical-limit-carnot.r2.a2"
+  },
+  "B.composed-inversion-second-order.r1": {
+    "arm": "B",
+    "attempts": [
+      "B.composed-inversion-second-order.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "composed-inversion-second-order",
+    "repeat": 1,
+    "scored": "B.composed-inversion-second-order.r1.a1"
+  },
+  "B.composed-inversion-second-order.r2": {
+    "arm": "B",
+    "attempts": [
+      "B.composed-inversion-second-order.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "composed-inversion-second-order",
+    "repeat": 2,
+    "scored": "B.composed-inversion-second-order.r2.a1"
+  },
+  "B.decompose-irreducibility.r1": {
+    "arm": "B",
+    "attempts": [
+      "B.decompose-irreducibility.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "decompose-irreducibility",
+    "repeat": 1,
+    "scored": "B.decompose-irreducibility.r1.a1"
+  },
+  "B.decompose-irreducibility.r2": {
+    "arm": "B",
+    "attempts": [
+      "B.decompose-irreducibility.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "decompose-irreducibility",
+    "repeat": 2,
+    "scored": "B.decompose-irreducibility.r2.a1"
+  },
+  "B.estimate-fermi.r1": {
+    "arm": "B",
+    "attempts": [
+      "B.estimate-fermi.r1.a1",
+      "B.estimate-fermi.r1.a2"
+    ],
+    "outcome": "scored",
+    "prompt": "estimate-fermi",
+    "repeat": 1,
+    "scored": "B.estimate-fermi.r1.a2"
+  },
+  "B.estimate-fermi.r2": {
+    "arm": "B",
+    "attempts": [
+      "B.estimate-fermi.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "estimate-fermi",
+    "repeat": 2,
+    "scored": "B.estimate-fermi.r2.a1"
+  },
+  "B.ishikawa-fishbone.r1": {
+    "arm": "B",
+    "attempts": [
+      "B.ishikawa-fishbone.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "ishikawa-fishbone",
+    "repeat": 1,
+    "scored": "B.ishikawa-fishbone.r1.a1"
+  },
+  "B.ishikawa-fishbone.r2": {
+    "arm": "B",
+    "attempts": [
+      "B.ishikawa-fishbone.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "ishikawa-fishbone",
+    "repeat": 2,
+    "scored": "B.ishikawa-fishbone.r2.a1"
+  },
+  "B.personal-general-2.r1": {
+    "arm": "B",
+    "attempts": [
+      "B.personal-general-2.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "personal-general-2",
+    "repeat": 1,
+    "scored": "B.personal-general-2.r1.a1"
+  },
+  "B.personal-general-2.r2": {
+    "arm": "B",
+    "attempts": [
+      "B.personal-general-2.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "personal-general-2",
+    "repeat": 2,
+    "scored": "B.personal-general-2.r2.a1"
+  },
+  "B.personal-general.r1": {
+    "arm": "B",
+    "attempts": [
+      "B.personal-general.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "personal-general",
+    "repeat": 1,
+    "scored": "B.personal-general.r1.a1"
+  },
+  "B.personal-general.r2": {
+    "arm": "B",
+    "attempts": [
+      "B.personal-general.r2.a1",
+      "B.personal-general.r2.a2"
+    ],
+    "outcome": "scored",
+    "prompt": "personal-general",
+    "repeat": 2,
+    "scored": "B.personal-general.r2.a2"
+  },
+  "B.product-business-2.r1": {
+    "arm": "B",
+    "attempts": [
+      "B.product-business-2.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "product-business-2",
+    "repeat": 1,
+    "scored": "B.product-business-2.r1.a1"
+  },
+  "B.product-business-2.r2": {
+    "arm": "B",
+    "attempts": [
+      "B.product-business-2.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "product-business-2",
+    "repeat": 2,
+    "scored": "B.product-business-2.r2.a1"
+  },
+  "B.product-business.r1": {
+    "arm": "B",
+    "attempts": [
+      "B.product-business.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "product-business",
+    "repeat": 1,
+    "scored": "B.product-business.r1.a1"
+  },
+  "B.product-business.r2": {
+    "arm": "B",
+    "attempts": [
+      "B.product-business.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "product-business",
+    "repeat": 2,
+    "scored": "B.product-business.r2.a1"
+  },
+  "B.science-engineering-2.r1": {
+    "arm": "B",
+    "attempts": [
+      "B.science-engineering-2.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "science-engineering-2",
+    "repeat": 1,
+    "scored": "B.science-engineering-2.r1.a1"
+  },
+  "B.science-engineering-2.r2": {
+    "arm": "B",
+    "attempts": [
+      "B.science-engineering-2.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "science-engineering-2",
+    "repeat": 2,
+    "scored": "B.science-engineering-2.r2.a1"
+  },
+  "B.science-engineering.r1": {
+    "arm": "B",
+    "attempts": [
+      "B.science-engineering.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "science-engineering",
+    "repeat": 1,
+    "scored": "B.science-engineering.r1.a1"
+  },
+  "B.science-engineering.r2": {
+    "arm": "B",
+    "attempts": [
+      "B.science-engineering.r2.a1",
+      "B.science-engineering.r2.a2",
+      "B.science-engineering.r2.a3"
+    ],
+    "outcome": "exhausted",
+    "prompt": "science-engineering",
+    "repeat": 2,
+    "scored": null
+  },
+  "B.self-application.r1": {
+    "arm": "B",
+    "attempts": [
+      "B.self-application.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "self-application",
+    "repeat": 1,
+    "scored": "B.self-application.r1.a1"
+  },
+  "B.self-application.r2": {
+    "arm": "B",
+    "attempts": [
+      "B.self-application.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "self-application",
+    "repeat": 2,
+    "scored": "B.self-application.r2.a1"
+  },
+  "B.software-systems-2.r1": {
+    "arm": "B",
+    "attempts": [
+      "B.software-systems-2.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "software-systems-2",
+    "repeat": 1,
+    "scored": "B.software-systems-2.r1.a1"
+  },
+  "B.software-systems-2.r2": {
+    "arm": "B",
+    "attempts": [
+      "B.software-systems-2.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "software-systems-2",
+    "repeat": 2,
+    "scored": "B.software-systems-2.r2.a1"
+  },
+  "B.software-systems.r1": {
+    "arm": "B",
+    "attempts": [
+      "B.software-systems.r1.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "software-systems",
+    "repeat": 1,
+    "scored": "B.software-systems.r1.a1"
+  },
+  "B.software-systems.r2": {
+    "arm": "B",
+    "attempts": [
+      "B.software-systems.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "software-systems",
+    "repeat": 2,
+    "scored": "B.software-systems.r2.a1"
+  },
+  "B.theoretical-limit-carnot.r1": {
+    "arm": "B",
+    "attempts": [
+      "B.theoretical-limit-carnot.r1.a1",
+      "B.theoretical-limit-carnot.r1.a2",
+      "B.theoretical-limit-carnot.r1.a3"
+    ],
+    "outcome": "scored",
+    "prompt": "theoretical-limit-carnot",
+    "repeat": 1,
+    "scored": "B.theoretical-limit-carnot.r1.a3"
+  },
+  "B.theoretical-limit-carnot.r2": {
+    "arm": "B",
+    "attempts": [
+      "B.theoretical-limit-carnot.r2.a1"
+    ],
+    "outcome": "scored",
+    "prompt": "theoretical-limit-carnot",
+    "repeat": 2,
+    "scored": "B.theoretical-limit-carnot.r2.a1"
+  }
+}

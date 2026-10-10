@@ -13,6 +13,31 @@ installed session.
 
 ## [Unreleased]
 
+## [9.19.4] — 2026-10-10
+
+Patch release: **the agent's turn budget rises from 60 to 90.** Measured, not guessed: the
+skip-rate measurement and a turn-by-turn reading of 99 captured agent transcripts
+(`docs/skip-rate-reading.md`).
+
+### Changed — agent frontmatter (shipped; backlog 999.197)
+
+- **`maxTurns: 90`** (was 60). Delivery completes at a median of turn 40 but a 90th percentile of
+  59, and 16 of 99 runs hit the 60 cap. Every one of those runs had rewritten its own analysis file
+  in place six or more times after its self-audit found something to correct. At the cap, the main
+  session resumed the agent and told it to cut the delivery short ("plain text only, no files").
+  Raising the cap is headroom; backlog 999.198 (audit before writing) addresses the cause. GATE-01
+  pins the new value.
+
+### Measured
+
+- **Skip rate, 9.19.2 vs 9.19.3** (`docs/skip-rate-preregistration.md`, `docs/skip-rate-reading.md`,
+  `tests/skip-rate/`): 5 of 28 runs finished without delivering on 9.19.2, 0 of 27 on 9.19.3
+  (Fisher one-sided p = 0.028); the pre-registered verdict is *shown effective*. 9.19.3's agent
+  still tried to stop early in 3 of 27 runs; the guard blocked all 3 and all 3 delivered. `Skill`
+  was called in no run on either version. The transcripts show four distinct failures behind
+  "skip": an early skip, the turn cap followed by the main session cutting the delivery, a
+  delivery written to the wrong directory, and a main session that never dispatches the agent.
+
 ## [9.19.3] — 2026-10-09
 
 Patch release: **an agent that tries to finish without delivering its analysis file is sent back to

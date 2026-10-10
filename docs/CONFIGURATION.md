@@ -17,7 +17,7 @@ Its frontmatter is generated from `shared/spine/SKILL.meta.yml`. The canonical v
 | `license` | `MIT` | License field emitted verbatim |
 | `metadata.version` | `"9.14.0"` | Version string; must be a double-quoted YAML string, not a bare number |
 | `disallowedTools` | `[Write, Edit, Agent, SendMessage, ListAgents, Skill]` | Tools the agent is forbidden from invoking. `Agent`, `SendMessage` and `ListAgents` block nested sub-agent dispatch, including the agent delegating to itself — observed in six of twenty Phase 1 abandonment runs, `docs/abandonment-phase1-reading.md` — and the message/listing tools used to chase a dispatched agent. `Skill` blocks the agent invoking a skill as its first move — the slash-only launcher, an unrelated user-level skill, or one that does not exist — seen in 5 of 28 worked-example runs, 3 of which abandoned the procedure (backlog 999.196) |
-| `maxTurns` | `60` | Maximum conversation turns before the agent halts. Raised from 30 at v8.15.0: a full-composer run that dispatches research sub-agents was observed to exhaust 30 turns before the Self-Audit Gate's Fix/Repeat loop could run |
+| `maxTurns` | `90` | Maximum conversation turns before the agent halts. Raised from 30 at v8.15.0: a full-composer run that dispatches research sub-agents was observed to exhaust 30 turns before the Self-Audit Gate's Fix/Repeat loop could run. Raised from 60 to 90 in 9.19.4: 16 of 99 current-body runs hit 60, each after six or more in-place rewrites of its own analysis file, and the main session then cut the delivery short (`docs/skip-rate-reading.md`) |
 
 **To change agent frontmatter:** Edit `shared/spine/SKILL.meta.yml`, then run
 `python3 scripts/sync-content.py --write` to regenerate `first-principles/agents/first-principles.md`.

@@ -1113,6 +1113,11 @@ _FROZEN_PATHS=(
     # a natural product-business run allowed on its first stop. Frozen because the guard's live
     # behaviour is recorded only here.
     'tests/delivery-guard'
+    # skip-rate (2026-10-10) -- 56 interleaved runs, 9.19.2 vs 9.19.3, under
+    # docs/skip-rate-preregistration.md: 5/28 vs 0/27 non-deliveries, and the 99-transcript
+    # turn reading that set maxTurns to 90 (docs/skip-rate-reading.md). Frozen because both
+    # readings are re-derivable only from these captures.
+    'tests/skip-rate'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null
