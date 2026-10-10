@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""A behavioural test of the prescribed §4 append, run by hand; not a gate.
+"""A behavioural test of the prescribed held append and assembly, run by hand; not a gate.
 
     python3 tests/audit-first/check_snippet.py --self-test
     python3 tests/audit-first/check_snippet.py --body PATH --self-test
 
-Extracts the fenced sh block containing NOT APPENDED from the agent body, checks it equals
-EXPECTED_SNIPPET, runs it in a clean bash against bad and clean section-4 blocks, and checks the
-filled command is not counted as a rewrite by phase_turns.is_rewrite and classifies as s4.
+Extracts the held-append sh block (contains NOT APPENDED) and the step-4 assemble command from
+the agent body, checks each equals its expected text, runs them in a clean bash against bad, clean
+and missing drafts, and checks phase_turns does not count them as rewrites.
 """
 
 from __future__ import annotations
@@ -33,18 +33,33 @@ _spec.loader.exec_module(phase_turns)
 GREP_PATTERN = "'^→[[:space:]]*(\\[[^]]*\\])?[[:space:]]*GT-[0-9]'"
 
 EXPECTED_SNIPPET = (
-    "cat > \"<path>.s4\" <<'FP_EOF'\n"
-    "<the §4 block>\n"
-    "FP_EOF\n"
-    f'if grep -nE {GREP_PATTERN} "<path>.s4"; then '
+    'if [ ! -f "<path>.s2" ] || [ ! -f "<path>.s3" ] || [ ! -f "<path>.s4" ]; then '
+    'echo "NOT APPENDED: <path>.s2, .s3 or .s4 is missing '
+    '(if this call already succeeded, all three are in the file)"; '
+    f'elif grep -nE {GREP_PATTERN} "<path>.s4"; then '
     'echo "NOT APPENDED: a hop above begins with a GT-N identifier; '
-    'reorder it and re-issue this whole block"; '
-    'else cat "<path>.s4" >> "<path>" && rm -f "<path>.s4"; fi'
+    'reorder it and issue the §4 draft again"; '
+    'else cat "<path>.s2" "<path>.s3" "<path>.s4" >> "<path>" '
+    '&& rm -f "<path>.s2" "<path>.s3" "<path>.s4"; fi'
+)
+
+GUARD_BRANCH = (
+    'if ls "<path>".s[234] 2>/dev/null; then echo "NOT ASSEMBLED: the held drafts '
+    'listed above are not in the file; run the held append in step 2 first"; el'
+)
+EXPECTED_ASSEMBLE = (
+    GUARD_BRANCH
+    + 'if [ -f "<path>.answer" ]; then cat "<path>.answer" "<path>" "<path>.process" '
+    '> "<path>.tmp" && mv "<path>.tmp" "<path>" && rm -f "<path>.answer" '
+    '"<path>.process" || rm -f "<path>.tmp"; else echo "already assembled"; fi'
 )
 
 CLEAN_ENV = ["env", "-i", "PATH=/usr/bin:/bin"]
 REL = ".first-principles/analysis-20261010T000000Z.md"
 
+S1 = "## 1. Essence\n\nThe essence.\n"
+S2 = "## 2. Assumptions\n\n| A1 | stated |\n"
+S3 = "## 3. Ground Truths\n\nGT-1: a figure\n"
 HEAD = "## 4. Derivation Chains\n\n### Conclusion C1: example\n\nGT-1 (a) + GT-2? (b)\n"
 BAD_FIRST = HEAD + "→ GT-1's value is the binding term\n→ the rate follows\n"
 BAD_LATE = (
@@ -73,36 +88,47 @@ def extract(text: str) -> str:
     return textwrap.dedent(hits[0][1]).rstrip("\n")
 
 
-def fill(snippet: str, block: str) -> str:
-    return snippet.replace("<the §4 block>", block.rstrip("\n")).replace("<path>", REL)
+def extract_assemble(text: str) -> str:
+    hits = re.findall(r"`(if [^`\n]*already assembled[^`\n]*)`", text)
+    if len(hits) != 1:
+        raise ValueError(f"expected exactly one assemble command, found {len(hits)}")
+    return hits[0]
 
 
-def run(cmd: str) -> tuple[str, str, str | None]:
-    """Run cmd in a clean bash in a fresh dir; return (stdout, analysis content, sidecar or None)."""
+def fill(cmd: str) -> str:
+    return cmd.replace("<path>", REL)
+
+
+def run(cmds: list[str], files: dict[str, str]) -> tuple[list[str], dict[str, str]]:
+    """Run each cmd in order in a clean bash in one fresh dir.
+
+    files maps a suffix on REL ("" for the analysis file) to its initial content.
+    Returns (stdout per cmd, suffix -> content of every file left behind).
+    """
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
         (root / ".first-principles").mkdir()
-        (root / REL).write_text("")
-        r = subprocess.run(
-            [
-                *CLEAN_ENV,
-                "bash",
-                "--noprofile",
-                "--norc",
-                "-c",
-                cmd,
-            ],
-            cwd=root,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        side = root / (REL + ".s4")
-        return (
-            r.stdout,
-            (root / REL).read_text(),
-            side.read_text() if side.exists() else None,
-        )
+        for suffix, content in files.items():
+            (root / (REL + suffix)).write_text(content)
+        outs = []
+        for cmd in cmds:
+            r = subprocess.run(
+                [*CLEAN_ENV, "bash", "--noprofile", "--norc", "-c", cmd],
+                cwd=root,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            outs.append(r.stdout)
+        left = {
+            p.name[len(Path(REL).name) :]: p.read_text()
+            for p in (root / ".first-principles").iterdir()
+        }
+        return outs, left
+
+
+def drafts(s4: str) -> dict[str, str]:
+    return {"": S1, ".s2": S2, ".s3": S3, ".s4": s4}
 
 
 def self_test(body: Path) -> bool:
@@ -113,49 +139,109 @@ def self_test(body: Path) -> bool:
         print(f"{'PASS' if ok else 'FAIL'}: {name}")
 
     try:
-        snippet = extract(body.read_text())
+        text = body.read_text()
+        snippet = extract(text)
+        assemble = extract_assemble(text)
     except ValueError as e:
         check(f"extract: {e}", False)
         print("check_snippet --self-test: FAIL")
         return False
     check("extract: exactly one sh block with NOT APPENDED", True)
     check("drift: body snippet equals EXPECTED_SNIPPET", snippet == EXPECTED_SNIPPET)
+    check(
+        "drift: body assemble equals EXPECTED_ASSEMBLE", assemble == EXPECTED_ASSEMBLE
+    )
 
-    for name, blk, offending in (
+    cmd = fill(snippet)
+    for name, s4, offending in (
         ("bad first hop refused", BAD_FIRST, "→ GT-1's value is the binding term"),
         ("late order-marked bad hop refused", BAD_LATE, "→ [2nd] GT-3 caps the rate"),
     ):
-        out, content, side = run(fill(snippet, blk))
+        outs, left = run([cmd], drafts(s4))
         check(
             name,
-            content == ""
-            and "NOT APPENDED" in out
-            and offending in out
-            and side is not None,
+            left[""] == S1
+            and {".s2", ".s3", ".s4"} <= left.keys()
+            and "NOT APPENDED" in outs[0]
+            and offending in outs[0],
         )
 
-    for name, blk in (("Cn-led hop accepted", CN_LED), ("clean block appended", CLEAN)):
-        out, content, side = run(fill(snippet, blk))
+    for name, s4 in (
+        ("Cn-led hop accepted", CN_LED),
+        ("clean drafts appended in order", CLEAN),
+    ):
+        outs, left = run([cmd], drafts(s4))
         check(
             name,
-            content == blk.rstrip("\n") + "\n"
-            and side is None
-            and "NOT APPENDED" not in out,
+            left == {"": S1 + S2 + S3 + s4} and "NOT APPENDED" not in outs[0],
         )
 
-    for name, blk in (("bad", BAD_FIRST), ("clean", CLEAN)):
-        cmd = fill(snippet, blk)
-        check(
-            f"{name} fill: not a rewrite, classified s4",
-            not phase_turns.is_rewrite(cmd) and phase_turns.classify(cmd) == ["s4"],
-        )
+    files = drafts(CLEAN)
+    del files[".s3"]
+    outs, left = run([cmd], files)
+    check(
+        "missing .s3 refused, nothing appended",
+        left == {"": S1, ".s2": S2, ".s4": CLEAN} and "NOT APPENDED" in outs[0],
+    )
+
+    outs, left = run([cmd, cmd], drafts(CLEAN))
+    check(
+        "idempotent: second run leaves the file byte-identical and refuses",
+        left == {"": S1 + S2 + S3 + CLEAN}
+        and "NOT APPENDED" not in outs[0]
+        and "NOT APPENDED" in outs[1],
+    )
+
+    acmd = fill(assemble)
+    base = {"": S1 + S2, ".answer": "## Answer\n", ".process": "## Appendix\n"}
+    outs, left = run([acmd], {**base, ".s3": S3})
+    check(
+        "assembly refused while a held draft exists",
+        "NOT ASSEMBLED" in outs[0]
+        and Path(REL + ".s3").name in outs[0]
+        and left == {**base, ".s3": S3},
+    )
+    outs, left = run([acmd, acmd], base)
+    check(
+        "assembly proceeds with no drafts, then reports already assembled",
+        left == {"": "## Answer\n" + S1 + S2 + "## Appendix\n"}
+        and "NOT ASSEMBLED" not in outs[0]
+        and "already assembled" in outs[1],
+    )
+
+    sidecar = f"cat > \"{REL}.s2\" <<'FP_EOF'\n{S2}FP_EOF"
+    check(
+        "held append: not a rewrite, classified nothing",
+        not phase_turns.is_rewrite(cmd) and phase_turns.classify(cmd) == [],
+    )
+    check(
+        "assemble: not a rewrite, classified assemble",
+        not phase_turns.is_rewrite(acmd) and "assemble" in phase_turns.classify(acmd),
+    )
+    check(
+        "sidecar write and its re-issue: not rewrites, classified s2",
+        not phase_turns.is_rewrite(sidecar) and phase_turns.classify(sidecar) == ["s2"],
+    )
 
     mutant = snippet.replace(GREP_PATTERN, "'^NEVERMATCH'")
-    out, content, _ = run(fill(mutant, BAD_FIRST))
-    still_refuses = content == "" and "NOT APPENDED" in out
+    outs, left = run([fill(mutant)], drafts(BAD_FIRST))
     check(
-        "must-fail control: NEVERMATCH mutant fails the bad-block case",
-        not still_refuses,
+        "must-fail control: NEVERMATCH mutant fails the bad-draft case",
+        not (left[""] == S1 and "NOT APPENDED" in outs[0]),
+    )
+    mutant = snippet.replace('|| [ ! -f "<path>.s3" ]', "")
+    files = drafts(CLEAN)
+    del files[".s3"]
+    outs, left = run([fill(mutant)], files)
+    check(
+        "must-fail control: dropping the .s3 test fails the missing-draft case",
+        not (left[""] == S1 and "NOT APPENDED" in outs[0]),
+    )
+    mutant = assemble.replace(GUARD_BRANCH, "")
+    outs, left = run([fill(mutant)], {**base, ".s3": S3})
+    check(
+        "must-fail control: dropping the ls branch fails the assembly-guard case",
+        not ("NOT ASSEMBLED" in outs[0] and left == {**base, ".s3": S3}),
     )
 
     ok = all(o for _, o in results)
