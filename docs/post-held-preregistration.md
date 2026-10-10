@@ -13,7 +13,7 @@ in-place rewrites of the analysis file after the held append?
 One arm: the generated `first-principles/` tree at the commit recorded on the line below, exported
 with `git archive` outside the repository before any run.
 
-**Arm commit:** (filled in before the first run)
+**Arm commit:** d393bb373b91 (exported with git archive 2026-10-10T22:58:38Z)
 
 There is no concurrent control arm. The comparator is the 24 assembled runs of the committed 999.198
 arm (`tests/audit-first/readings.json`), which this arm does not touch. Arm directory
