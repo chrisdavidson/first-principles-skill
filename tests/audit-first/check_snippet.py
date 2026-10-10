@@ -36,6 +36,16 @@ _spec.loader.exec_module(phase_turns)
 
 GREP_PATTERN = "'^→[[:space:]]*(\\[[^]]*\\])?[[:space:]]*GT-[0-9]'"
 
+# Must equal replay_drafts.CANDIDATE_TYPE_AWK, so the measured fire rate is the shipped rule's.
+TYPE_AWK = (
+    '/^\\|/ { c = tolower($3); t = c; gsub(/^[ \\t]+|[ \\t]+$/, "", t); '
+    'if (t == "type" || t ~ /^[ \\t:-]*$/) next; '
+    'n = split(c, a, "physical law") + split(c, a, "current constraint") '
+    '+ split(c, a, "convention") + split(c, a, "untested belief") - 4; '
+    'if (n >= 2 || index(c, "/") > 0) { print NR ": " $0; bad = 1 } } '
+    "END { if (bad) exit 0; exit 1 }"
+)
+
 EXPECTED_SNIPPET = (
     'if [ ! -f "<path>.s2" ] || [ ! -f "<path>.s3" ] || [ ! -f "<path>.s4" ]; then '
     'echo "NOT APPENDED: <path>.s2, .s3 or .s4 is missing '
@@ -43,6 +53,10 @@ EXPECTED_SNIPPET = (
     f'elif grep -nE {GREP_PATTERN} "<path>.s4"; then '
     'echo "NOT APPENDED: a hop above begins with a GT-N identifier; '
     'reorder it and issue the §4 draft again"; '
+    f"elif awk -F'|' '{TYPE_AWK}' \"<path>.s2\"; then "
+    'echo "NOT APPENDED: a Type cell above names more than one assumption type; '
+    "give each row exactly one of physical law, current constraint, convention or "
+    'untested belief and issue the §2 draft again"; '
     'else cat "<path>.s2" "<path>.s3" "<path>.s4" >> "<path>" '
     '&& rm -f "<path>.s2" "<path>.s3" "<path>.s4"; fi'
 )
@@ -63,6 +77,23 @@ REL = ".first-principles/analysis-20261010T000000Z.md"
 
 S1 = "## 1. Essence\n\nThe essence.\n"
 S2 = "## 2. Assumptions\n\n| A1 | stated |\n"
+S2_HEAD = (
+    "## 2. Assumptions\n\n"
+    "| Assumption | Type | Treatment | Verdict | Verification |\n"
+    "|---|---|---|---|---|\n"
+)
+S2_CLEAN = (
+    S2_HEAD
+    + "| A1 rates are flat | physical law | held | Hold | checked |\n"
+    + "| A2 budget is fixed | Current constraint | held | Hold | checked |\n"
+)
+S2_SLASH = (
+    S2_CLEAN + "| A3 users agree | convention / untested belief | held | Hold | x |\n"
+)
+S2_TWO = (
+    S2_CLEAN
+    + "| A3 users agree | physical law, current constraint | held | Hold | x |\n"
+)
 S3 = "## 3. Ground Truths\n\nGT-1: a figure\n"
 HEAD = "## 4. Derivation Chains\n\n### Conclusion C1: example\n\nGT-1 (a) + GT-2? (b)\n"
 BAD_FIRST = HEAD + "→ GT-1's value is the binding term\n→ the rate follows\n"
@@ -131,8 +162,18 @@ def run(cmds: list[str], files: dict[str, str]) -> tuple[list[str], dict[str, st
         return outs, left
 
 
-def drafts(s4: str) -> dict[str, str]:
-    return {"": S1, ".s2": S2, ".s3": S3, ".s4": s4}
+def drafts(s4: str, s2: str = S2) -> dict[str, str]:
+    return {"": S1, ".s2": s2, ".s3": S3, ".s4": s4}
+
+
+def _load_replay():
+    spec = importlib.util.spec_from_file_location(
+        "replay_drafts", REPO / "tests" / "audit-first" / "replay_drafts.py"
+    )
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules["replay_drafts"] = mod
+    spec.loader.exec_module(mod)
+    return mod
 
 
 def self_test(body: Path) -> bool:
@@ -186,6 +227,66 @@ def self_test(body: Path) -> bool:
             left == {"": S1 + S2 + S3 + s4} and "NOT APPENDED" not in outs[0],
         )
 
+    for name, s2, offending in (
+        ("slash Type cell refused", S2_SLASH, "convention / untested belief"),
+        ("two-token Type cell refused", S2_TWO, "physical law, current constraint"),
+    ):
+        outs, left = run([cmd], drafts(CLEAN, s2))
+        check(
+            name,
+            left[""] == S1
+            and {".s2", ".s3", ".s4"} <= left.keys()
+            and left[".s2"] == s2
+            and left[".s3"] == S3
+            and left[".s4"] == CLEAN
+            and "NOT APPENDED: a Type cell above" in outs[0]
+            and offending in outs[0],
+        )
+    outs, left = run([cmd], drafts(CLEAN, S2_CLEAN))
+    check(
+        "clean single-type S2 appended in order",
+        left == {"": S1 + S2_CLEAN + S3 + CLEAN} and "NOT APPENDED" not in outs[0],
+    )
+
+    rd = _load_replay()
+    check(
+        "TYPE_AWK equals replay_drafts.CANDIDATE_TYPE_AWK",
+        TYPE_AWK == rd.CANDIDATE_TYPE_AWK,
+    )
+    fixtures = [S2_CLEAN, S2_SLASH, S2_TWO, S2]
+    ran = []
+    agree = True
+    with tempfile.TemporaryDirectory() as d:
+        for i, fx in enumerate(fixtures):
+            (Path(d) / f"fx{i}").write_text(fx)
+        base_codes = None
+        for impl in rd.available_impls():
+            argv = impl.split()
+            codes = [
+                subprocess.run(
+                    [*CLEAN_ENV, *argv, "-F|", TYPE_AWK, str(Path(d) / f"fx{i}")],
+                    capture_output=True,
+                    check=False,
+                ).returncode
+                for i in range(len(fixtures))
+            ]
+            ran.append(impl)
+            if impl == "awk":
+                base_codes = codes
+            elif base_codes is not None and codes != base_codes:
+                agree = False
+                print(f"  disagrees: {impl} {codes} vs awk {base_codes}")
+    print(f"awk impls run: {', '.join(ran)}")
+    check(
+        "TYPE_AWK decides every fixture alike under every awk on PATH",
+        bool(ran) and "awk" in ran and agree and base_codes == [1, 0, 0, 1],
+    )
+
+    check(
+        "Type-cell refusal: not a rewrite, classified nothing",
+        not phase_turns.is_rewrite(cmd) and phase_turns.classify(cmd) == [],
+    )
+
     files = drafts(CLEAN)
     del files[".s3"]
     outs, left = run([cmd], files)
@@ -237,6 +338,12 @@ def self_test(body: Path) -> bool:
     outs, left = run([fill(mutant)], drafts(BAD_FIRST))
     check(
         "must-fail control: NEVERMATCH mutant fails the bad-draft case",
+        not (left[""] == S1 and "NOT APPENDED" in outs[0]),
+    )
+    mutant = snippet.replace(TYPE_AWK, "BEGIN { exit 1 }")
+    outs, left = run([fill(mutant)], drafts(CLEAN, S2_SLASH))
+    check(
+        "must-fail control: a never-matching Type awk fails the dirty-S2 case",
         not (left[""] == S1 and "NOT APPENDED" in outs[0]),
     )
     mutant = snippet.replace('|| [ ! -f "<path>.s3" ]', "")
