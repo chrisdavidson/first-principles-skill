@@ -630,6 +630,8 @@ For the full annotated template with section-by-section guidance, type definitio
 
 ## Before presenting conclusions
 
+**Write the derived blocks after the last §4 or §6 edit.** The Assumption Audit scan, the adversarial pass record, the §6→§4 closure ledger, the self-audit scan and the Self-Audit Gate's verdict blocks are each read off §4 and §6. Append each to `"<path>.process"` only after the last change to §4 or §6 that it reads, so no block has to be rewritten when a chain or a §6 claim changes after it.
+
 **Step 0 — §6→§4 closure check (run first, ahead of the rubric loop below):** Enumerate every claim
 in the Conclusion section (section 6). For each claim, confirm it names a specific Derivation Chain
 from section 4. If it does, keep the claim. If it does not, either add the missing chain or cut the
