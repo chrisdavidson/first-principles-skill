@@ -25,8 +25,19 @@ preserved on branch `audit-first-999.198`.
   or more in-place rewrites (baseline 34 of 87; critical value 5), and the median rewrites fell to 2
   (baseline 4), but the no-regression condition failed: `theoretical-limit-carnot.r2` reached 90
   turns (22 rewrites, gate at turn 73).
-- Reported only: zero rewrites before the held append in all 24 runs; all three runs with six or
-  more rewrites churned after it. Spend $81.11.
+- Reported only: 2 of 75 in-place rewrite commands came before the held append (one each in
+  `decompose-irreducibility.r1` and `personal-general-2.r1`), both python patches to a held draft
+  sidecar, which the body forbids; all three runs with six or more rewrites churned after it. Spend
+  $81.11.
+- Erratum (999.200): an earlier version of this entry reported no rewrites before the held append;
+  the reader's own per-run split (`rewrite_split.pre_held` in `readings.json`) shows 2 of 75.
+  `held_append_turn` in `readings.json` also counts a refused `NOT APPENDED` call
+  (`software-systems.r1`: 14; the append that succeeded was turn 17, with no rewrite between), so a
+  reading that skips refused calls finds a third pre-append rewrite, a python patch to the `.s4`
+  draft sidecar in `software-systems.r2` (turn 16, between a refusal at 13 and the append at 18);
+  `readings.json` splits it as after the held append. The three runs with six or more rewrites keep
+  their counts. Falsifier: `python3 tests/audit-first/run_audit.py held` (per-run attempts, refused
+  or appended, and every rewrite command before the first successful append).
 - Falsifier for every figure above: `python3 tests/audit-first/run_audit.py read`. Evidence in
   `tests/audit-first/`; reading in `docs/skip-rate-reading.md`.
 

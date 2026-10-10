@@ -1032,6 +1032,15 @@ REGISTRY: tuple[RetractedClaim, ...] = (
             "Falsifier: python3 tests/audit-first/run_audit.py read."
         ),
     ),
+    RetractedClaim(
+        literal="zero rewrites before the held append",
+        retracted_by="999.200 coding of the 999.198 arm (tests/audit-first/readings.json rewrite_split.pre_held)",
+        corrected=(
+            "2 of 75 in-place rewrite commands came before the held append in the "
+            "999.198 arm, both python patches to a held draft sidecar. "
+            "Falsifier: python3 tests/audit-first/run_audit.py held."
+        ),
+    ),
 )
 
 

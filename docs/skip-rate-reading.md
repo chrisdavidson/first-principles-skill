@@ -129,11 +129,18 @@ One arm, 28 runs scheduled, 4 excluded as routing misses (never dispatched), 24 
 | Max turns | -- | 90 (theoretical-limit-carnot.r2, 22 rewrites, gate at turn 73) |
 
 The primary and secondary readings were met on their thresholds, but the no-regression condition
-failed on max turns, so the verdict is not-shown-effective. Reported only: zero rewrites before the
-held append in all 24 runs; all three runs with 6 or more rewrites (ishikawa-fishbone.r2 9,
+failed on max turns, so the verdict is not-shown-effective. Reported only: 2 of 75 in-place rewrite
+commands came before the held append (`decompose-irreducibility.r1` and `personal-general-2.r1`),
+both python patches to a held draft sidecar; all three runs with 6 or more rewrites (ishikawa-fishbone.r2 9,
 software-systems.r1 9, theoretical-limit-carnot.r2 22) churned after the held append, the residual
 the design disclosed (closure Step 0 and the adversarial pass editing sections 3 and 4 already in
-the file). `NOT APPENDED` printed 4 times in 4 runs. Spend $81.11. Excluded routing misses:
+the file). `NOT APPENDED` printed 4 times in 4 runs. `held_append_turn` in `readings.json` counts a
+refused `NOT APPENDED` call as the held append (`software-systems.r1`: 14, real append 17), which
+moves no rewrite in `software-systems.r1`; but one rewrite in `software-systems.r2` (a patch to the
+`.s4` draft, turn 16) falls between its refusal (13) and its append (18), so a refusal-aware reading
+finds 3 of 75 before the held append where `readings.json` finds 2. Falsifiers:
+`python3 tests/audit-first/run_audit.py held` for the attempts and the pre-append commands,
+`python3 tests/audit-first/run_audit.py read` for the per-run split. Spend $81.11. Excluded routing misses:
 estimate-fermi.r2, science-engineering.r1, science-engineering.r2, theoretical-limit-carnot.r1.
 
 ## Sensitivity
