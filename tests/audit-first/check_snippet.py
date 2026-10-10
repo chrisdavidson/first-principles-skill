@@ -7,6 +7,10 @@
 Extracts the held-append sh block (contains NOT APPENDED) and the step-4 assemble command from
 the agent body, checks each equals its expected text, runs them in a clean bash against bad, clean
 and missing drafts, and checks phase_turns does not count them as rewrites.
+
+The body under test was not released (999.198 verdict: not-shown-effective). Its snippet lives at
+e5b1ef5d151d; re-test with --body <(git show e5b1ef5d151d:first-principles/agents/first-principles.md).
+Against the shipped body, which lacks the snippet, the self-test reports SKIP and exits 0.
 """
 
 from __future__ import annotations
@@ -138,8 +142,14 @@ def self_test(body: Path) -> bool:
         results.append((name, ok))
         print(f"{'PASS' if ok else 'FAIL'}: {name}")
 
+    text = body.read_text()
+    if "NOT APPENDED" not in text:
+        print(
+            "SKIP: the body carries no held-append snippet (999.198 was not released); "
+            "pass --body for the arm commit's body to run this test"
+        )
+        return True
     try:
-        text = body.read_text()
         snippet = extract(text)
         assemble = extract_assemble(text)
     except ValueError as e:

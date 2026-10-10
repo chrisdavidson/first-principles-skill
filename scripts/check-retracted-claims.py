@@ -1019,6 +1019,19 @@ REGISTRY: tuple[RetractedClaim, ...] = (
             "first-principles/hooks/delivery-guard.py."
         ),
     ),
+    RetractedClaim(
+        literal="999.198 removes the cause",
+        retracted_by="999.198 live measurement, verdict not-shown-effective (tests/audit-first/verdict.json)",
+        corrected=(
+            "Running the self-audit checks before a section is appended met the "
+            "primary and secondary reductions (3 of 24 assembled runs with six or "
+            "more rewrites, critical value 5; median 2 against 4) but failed the "
+            "max-turns no-regression condition (one run reached 90 turns), so the "
+            "verdict was not-shown-effective and the cause was not shown removed. The "
+            "body was not released; it is preserved on branch audit-first-999.198. "
+            "Falsifier: python3 tests/audit-first/run_audit.py read."
+        ),
+    ),
 )
 
 

@@ -108,9 +108,33 @@ several turns.
 | 6 or more | 36 | 16 (44%) | 58 |
 
 **Response.** 9.19.4 raises `maxTurns` from 60 to 90 as headroom, which treats the symptom. Backlog
-999.198 removes the cause: run the self-audit checks before a section is appended, so corrections
-need no rewrite. Backlog 999.199 holds the alternative for later: correct by appending replacement
-blocks that assembly applies.
+999.198 tried to remove the cause by running the self-audit checks before a section is appended; it
+was measured and not shown effective (verdict `not-shown-effective`, below), so it was not released
+and the shipped body is the 9.19.4 body. Backlog 999.199 holds the alternative: correct by appending
+replacement blocks that assembly applies. The 999.198 body is preserved on branch `audit-first-999.198`.
+
+### After 999.198 (measured, not released)
+
+One arm, 28 dispatched, 4 excluded as routing misses, 24 assembled and delivered, against the pooled
+99-transcript baseline above. Verdict: `not-shown-effective`. Every figure is re-derived by
+`python3 tests/audit-first/run_audit.py read`; the pre-registered rule is in
+`docs/audit-first-preregistration.md`.
+
+| | Baseline | 999.198 arm |
+|---|---|---|
+| Assembled runs | -- | 24 of 24 |
+| Runs with 6 or more in-place rewrites | 34 of 87 | 3 of 24 (critical value 5; met) |
+| Median rewrites | 4 | 2 |
+| Median gate turn | -- | 26 |
+| Max turns | -- | 90 (theoretical-limit-carnot.r2, 22 rewrites, gate at turn 73) |
+
+The primary and secondary readings were met on their thresholds, but the no-regression condition
+failed on max turns, so the verdict is not-shown-effective. Reported only: zero rewrites before the
+held append in all 24 runs; all three runs with 6 or more rewrites (ishikawa-fishbone.r2 9,
+software-systems.r1 9, theoretical-limit-carnot.r2 22) churned after the held append, the residual
+the design disclosed (closure Step 0 and the adversarial pass editing sections 3 and 4 already in
+the file). `NOT APPENDED` printed 4 times in 4 runs. Spend $81.11. Excluded routing misses:
+estimate-fermi.r2, science-engineering.r1, science-engineering.r2, theoretical-limit-carnot.r1.
 
 ## Sensitivity
 

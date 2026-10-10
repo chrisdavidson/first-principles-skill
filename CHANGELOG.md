@@ -13,6 +13,23 @@ installed session.
 
 ## [Unreleased]
 
+### Measured — backlog 999.198, not released
+
+The 999.198 change (check each section against its rules before it is appended; hold sections 2-4
+as drafts until the Assumption Audit has run) was measured against a pre-registered rule
+(`docs/audit-first-preregistration.md`) and the verdict is **not-shown-effective**. The shipped
+body was restored to 9.19.4; no version stamp changed and nothing was released. The 999.198 body is
+preserved on branch `audit-first-999.198`.
+
+- 24 of 28 dispatched runs assembled and delivered (4 excluded as routing misses). 3 of 24 had six
+  or more in-place rewrites (baseline 34 of 87; critical value 5), and the median rewrites fell to 2
+  (baseline 4), but the no-regression condition failed: `theoretical-limit-carnot.r2` reached 90
+  turns (22 rewrites, gate at turn 73).
+- Reported only: zero rewrites before the held append in all 24 runs; all three runs with six or
+  more rewrites churned after it. Spend $81.11.
+- Falsifier for every figure above: `python3 tests/audit-first/run_audit.py read`. Evidence in
+  `tests/audit-first/`; reading in `docs/skip-rate-reading.md`.
+
 ## [9.19.4] — 2026-10-10
 
 Patch release: **the agent's turn budget rises from 60 to 90.** Measured, not guessed: the
