@@ -15,7 +15,7 @@ exported with `git archive` outside the repository before any run.
 **Arm commit:** (filled in before the first run)
 
 There is no concurrent control arm. The control is the pooled 99 current-body transcripts read by
-`tests/skip-rate/phase_turns.py` (five captures, 31 to 46 percent of assembled runs with six or
+`tests/skip-rate/phase_turns.py` (five captures, 33 to 46 percent of assembled runs with six or
 more rewrites in each). This saves about $99. The accepted risk is that time or model drift
 between those captures and this one is not controlled.
 
