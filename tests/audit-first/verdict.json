@@ -1,0 +1,25 @@
+{
+  "assembled": 24,
+  "assembly_rate": 1.0,
+  "critical": 5,
+  "dispatched": 24,
+  "futility": null,
+  "incomplete_runs": 0,
+  "k_ge6": 3,
+  "max_turns": 90,
+  "median_gate_turn": 26,
+  "median_rewrites": 2.0,
+  "median_turns": 39.0,
+  "no_regression": false,
+  "no_regression_conditions": {
+    "assembly_rate": true,
+    "complete": true,
+    "max_turns": false,
+    "median_gate_turn": true,
+    "median_turns": true
+  },
+  "primary": true,
+  "secondary": true,
+  "stage_complete": true,
+  "verdict": "not-shown-effective"
+}
