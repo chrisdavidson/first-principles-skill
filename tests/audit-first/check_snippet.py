@@ -137,7 +137,10 @@ def self_test(body: Path) -> bool:
     for name, blk in (("Cn-led hop accepted", CN_LED), ("clean block appended", CLEAN)):
         out, content, side = run(fill(snippet, blk))
         check(
-            name, content == blk + "\n" and side is None and "NOT APPENDED" not in out
+            name,
+            content == blk.rstrip("\n") + "\n"
+            and side is None
+            and "NOT APPENDED" not in out,
         )
 
     for name, blk in (("bad", BAD_FIRST), ("clean", CLEAN)):
