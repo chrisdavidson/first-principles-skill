@@ -124,6 +124,7 @@ shared/                         ← canonical source (edit here)
       report-figures.md         ← typst figure library (evidence trace, assumption verdict matrix), emitted as a reference sibling, extracted by awk, NOT inlined
       how-to-read.md            ← static business-reading guide, emitted as a reference sibling, copied beside the reports by awk at delivery, never Read
       persona-views.md          ← reader-persona contract, emitted as an agent reference sibling, read by the persona skill and PERSONA-GATE, NOT inlined
+      replace-blocks.md         ← awk applier for "## Replace:" correction blocks, emitted as a reference sibling, extracted by awk at assembly (step 4), never Read
   agent/                        ← phase-procedure fragments stitched into the agent body
   references/                   ← companion tool reference files (five-whys.md, etc.)
   references/<slug>-detail.md   ← v8.5 on-demand appendix siblings (SLUGS_WITH_DETAIL only)
