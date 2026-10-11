@@ -13,7 +13,7 @@ never rewritten in place) reduce in-place rewrites of the analysis file without 
 One arm: the generated `first-principles/` tree at the commit recorded on the line below, exported
 with `git archive` to `$HOME/.cache/fp-replace-blocks/` outside the repository before any run.
 
-**Arm commit:** (filled in before the first run)
+**Arm commit:** 81552f6fb80d (exported with git archive 2026-10-11T13:55:47Z)
 
 The arm is built on the 9.19.4 body (D-01), not on the 999.198 or 999.200 bodies. There is no concurrent
 control arm. Arm directory `tests/replace-blocks/`, rule `replace-v1` selected by its `rule.json`; the
