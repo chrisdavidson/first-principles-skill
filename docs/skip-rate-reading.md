@@ -157,17 +157,22 @@ the 999.200 body is the generated tree at commit d393bb373b91, kept on branch `p
 | | 999.198 arm | 999.200 arm |
 |---|---|---|
 | Assembled runs | 24 of 24 | 24 of 24 |
-| Post-held rewrites, mean / median | 3.04 / 2.0 | 3.04 / 2.0 |
-| Runs with 6 or more in-place rewrites | 3 of 24 | 6 of 24 (critical value 5) |
+| Post-held rewrites, mean / median | 3.04 / 2.0 | 3.04 / 2.0 (73 commands; 72 in the 999.198 arm read the same refusal-aware way) |
+| Runs with 6 or more in-place rewrites | 3 of 24 | 6 of 24 (critical value 5; secondary failed) |
 | Median rewrites | 2 | 2.0 |
 | Median gate turn | 26 | 23 |
 | Max turns | 90 (theoretical-limit-carnot.r2) | 99 (theoretical-limit-carnot.r2, 13 rewrites, gate at turn 77) |
 | `.process` (sidecar) share of rewrites | 27/75 | 30/78 |
 | Runs with NOT APPENDED | 4 | 9 of 24 |
 
-The no-regression condition failed on max turns (99); the other four conditions held. That 99 exceeds
-the agent's `maxTurns: 90` was not investigated. The Type-cell refusal fired 6 times (12 refusals in
-all: type_cell 6, gt_n 4, missing 2). The derived-block ordering rule did not reduce sidecar rewrites (27 of 75 in the 999.198 arm, 30 of 78 here, both by `python3 tests/audit-first/rewrite_causes.py --dirs '<arm>/raw/*.agent'`, category PROC).
+The heavy-run secondary failed (6 of 24 against a critical value of 5), and the no-regression condition failed on max turns (99); the other four no-regression conditions held. That 99 exceeds
+the agent's `maxTurns: 90` was not investigated. The prescribed call refused 11 times (type_cell 6, gt_n 4, missing 1); a twelfth
+`NOT APPENDED` line (`science-engineering-2.r1`, turn 28) was the agent's own hand-written re-check
+after its held append had already succeeded at turn 12. Of the 6 Type-cell refusals, only one
+(`decompose-irreducibility.r2`) flagged a cell naming two types; in the other five every flagged cell
+named one type with a `/` in a parenthetical (e.g. `physical law (queueing/statistics invariant)`),
+so the check refused cells it was meant to accept (each refusal's tool result in
+`tests/post-held-append/raw/` prints the rows it flagged). The derived-block ordering rule did not reduce sidecar rewrites (27 of 75 in the 999.198 arm, 30 of 78 here, both by `python3 tests/audit-first/rewrite_causes.py --dirs '<arm>/raw/*.agent'`, category PROC).
 Spend $83.53. Falsifiers: `python3 tests/audit-first/run_audit.py read --arm-dir tests/post-held-append`
 for every verdict figure and `python3 tests/audit-first/run_audit.py held --arm-dir tests/post-held-append`
 for the NOT APPENDED attempts. Backlog 999.199 is the next candidate.

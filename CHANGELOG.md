@@ -23,10 +23,15 @@ changed and nothing was released. The arm body is the generated tree at commit d
 is in `tests/post-held-append/`.
 
 - 28 runs scheduled; 4 routing misses excluded; 24 dispatched, all assembled and delivered.
-  Primary p = 0.512 (post-held rewrites mean 3.04 against the 999.198 arm's 3.04); 6 of 24 runs had
-  six or more rewrites (critical value 5); median rewrites 2. The no-regression condition failed:
+  Primary p = 0.512 (post-held rewrites mean 3.04 against the 999.198 arm's 3.04; read the same
+  refusal-aware way the new arm has 73 against the 999.198 arm's 72, so it is not lower). The
+  heavy-run secondary also failed: 6 of 24 runs had six or more rewrites (critical value 5; the
+  999.198 arm had 3). Median rewrites 2. The no-regression condition failed:
   `theoretical-limit-carnot.r2` reached 99 turns (13 rewrites, gate at turn 77); why 99 exceeds
-  `maxTurns: 90` was not investigated. The Type-cell refusal fired 6 times. Spend $83.53.
+  `maxTurns: 90` was not investigated. The Type-cell refusal fired 6 times; in only one of them
+  (`decompose-irreducibility.r2`) did a flagged cell name two types; in the other five every flagged
+  cell named one type with a `/` in a parenthetical (e.g. `physical law (queueing/statistics
+  invariant)`), so the check refused cells it was meant to accept. Spend $83.53.
 - Falsifiers: `python3 tests/audit-first/run_audit.py read --arm-dir tests/post-held-append`
   (verdict and every figure above) and
   `python3 tests/audit-first/run_audit.py held --arm-dir tests/post-held-append` (NOT APPENDED
