@@ -233,7 +233,7 @@ Provenance is a property of **what this analysis did**, never of who supplied th
 
 **Adversarial technique.** Weakest-link inspection by the analysis that wrote the chains is not by itself adversarial — it looks where the forward reasoning was already looking, and finds what that reasoning already suspected. Apply a structured adversarial technique to the conclusion, chosen by what the conclusion is. When it is a **plan or recommendation**, open the [Pre-Mortem procedure](${CLAUDE_PLUGIN_ROOT}/references/pre-mortem.md) with Read and apply it to that plan. When it is a **claim**, open the [Inversion procedure](${CLAUDE_PLUGIN_ROOT}/references/inversion.md) with Read and apply it to the headline conclusion. (Decision rule: inversion stress-tests a claim; pre-mortem stress-tests a plan. Both procedures state this rule themselves, each from its own side — inversion under **Decision rule — inversion vs. pre-mortem**, pre-mortem under **Decision rule — pre-mortem vs. inversion**; it is cited here, not re-authored.) The procedure is opened, not recalled: a pre-mortem run from recollection reliably drops the past-tense framing that is the technique's whole mechanism, and what it produces instead is a forward-looking risk list. If the read fails, say so in the adversarial pass record under the disclosure rule that closes "Before presenting conclusions", and run the pass from the summary in Companion tools rather than skipping it.
 
-Each structural weakness the pass returns becomes a named weak link on the chain it bears on, or an explicit confidence caveat on the conclusion it threatens. A weakness that becomes neither has not been acted on, and the pass that produced it was box-ticking. When the conclusion is neither a plan nor a claim — a decomposition, a description, an answer with nothing to commit to and nothing to assert — record the single line `adversarial pass not applicable — [reason]` and proceed. That line is honest depth, not an opt-out: it names the reason, and an analysis carrying a plan or claim cannot write it. It waives only this step's Premise, Causes, Clusters and Disposition parts; the Recompute, Sensitivity, Rival and Falsification parts each still carry content or their own not-applicable line.
+Each structural weakness the pass returns becomes a named weak link on the chain it bears on, or an explicit confidence caveat on the conclusion it threatens. When that chain or section is already appended, the named weak link or caveat goes in through a replacement block, never an in-place edit. A weakness that becomes neither has not been acted on, and the pass that produced it was box-ticking. When the conclusion is neither a plan nor a claim — a decomposition, a description, an answer with nothing to commit to and nothing to assert — record the single line `adversarial pass not applicable — [reason]` and proceed. That line is honest depth, not an opt-out: it names the reason, and an analysis carrying a plan or claim cannot write it. It waives only this step's Premise, Causes, Clusters and Disposition parts; the Recompute, Sensitivity, Rival and Falsification parts each still carry content or their own not-applicable line.
 
 **Falsification.** State the condition under which the conclusion is false — "the conclusion is false if [observation]" — in the record only, never in §6: a new §6 bold lead-in would itself be a Conclusion claim under the claim-inventory rule. Not-applicable line: `falsification not applicable — [reason]`.
 
@@ -306,7 +306,15 @@ then the six sections, then the process-output appendix.
    `cat >> "<path>.process" <<'FP_EOF'` or `cat >> "<path>" <<'FP_EOF'`, the block, then `FP_EOF`
    on its own line. Write each block once, in full, exactly as you would have emitted it. If a
    call is cut off before it runs, issue that one block's append again; never re-append a block
-   that already succeeded.
+   that already succeeded. Once a block is appended it is never rewritten in place — no `sed`,
+   `mv`, `cat`-and-splice or python rewrite of `"<path>"` or `"<path>.process"`. To correct it,
+   append a [replacement block](${CLAUDE_PLUGIN_ROOT}/references/replace-blocks.md) (applied by
+   step 4, not read) to the file that holds it: a line `## Replace: <heading text>` (the heading
+   exactly as written, without its `#` characters), then the corrected heading line and its full
+   corrected content; step 4 swaps it in for the old heading's scope, to the next heading of the
+   same or higher level. A `###` replacement may carry further `###` blocks after its first
+   heading — that is how a chain is added. When a check finds several corrections, collect them
+   and append all their replacement blocks in one call, one heredoc, rather than one call each.
 3. **Write the Answer last.** After the Self-Audit Gate's verdict blocks and then the structured summary are appended, re-apply
    the Answer-claim closure rule above — each Answer line restates a §6 claim and names its chain,
    or is cut — then write any top-of-response disclosures, then the `## Answer` heading and its
@@ -316,10 +324,25 @@ then the six sections, then the process-output appendix.
    `## Answer`: write any such disclosure here as a plain `**Disclosed:**` paragraph, never as a
    `##` heading, and repeat it in the final pointer message below.
 4. **Assemble once, idempotently:**
-   `if [ -f "<path>.answer" ]; then cat "<path>.answer" "<path>" "<path>.process" > "<path>.tmp" && mv "<path>.tmp" "<path>" && rm -f "<path>.answer" "<path>.process" || rm -f "<path>.tmp"; else echo "already assembled"; fi`.
+
+   ```sh
+   if [ -f "<path>.answer" ]; then A="<path>.apply"; awk '/^```awk$/ { f = 1; next } f && /^```$/ { exit } f' "${CLAUDE_PLUGIN_ROOT}/references/replace-blocks.md" > "$A" && [ -s "$A" ] && cat "<path>.answer" "<path>" "<path>.process" | awk -f "$A" > "<path>.tmp" && mv "<path>.tmp" "<path>" && rm -f "<path>.answer" "<path>.process" || rm -f "<path>.tmp"; rm -f "$A"; else echo "already assembled"; fi
+   ```
+
+   It applies every replacement block and `## Withdraw:` line while assembling, so the assembled
+   file carries no marker.
    If it fails, re-issue it once; never re-append a section instead of assembling. The guard makes
    a retry after a prior success a no-op — `"<path>.answer"` is already gone — rather than a second
-   assembly, and no `"<path>.tmp"` survives either outcome.
+   assembly, and no `"<path>.tmp"` survives either outcome. If it prints `NOT ASSEMBLED:`, nothing
+   was assembled and `.answer` and `.process` are kept: append `## Withdraw: <the text it names>`,
+   copied from the message rather than retyped, and, if the correction is still wanted, a corrected
+   replacement block, then re-issue step 4 — never edit the working files to remove the bad block.
+   If the message says a code fence is never closed, a Withdraw cannot help (it would sit inside
+   the fence): append a line of three backticks to close it, then `## Withdraw:` for the
+   replacement block whose content opened the fence if one did, then again any correction that sat
+   inside the fence (those lines are now fenced text and are not applied), then re-issue. A
+   `WARNING: withdraw matched nothing:` line means a Withdraw named no earlier replacement; it was
+   ignored and assembly still happened — if a refused block is still in the way, step 4 says so.
 5. **Check it:** `grep -c '^#' "<path>"`, `wc -w "<path>"`, and `grep -m1 '^## ' "<path>"`, which
    must print `## Answer`.
 6. **Write the Markdown reader report.** Choose a plain title of at most ten words that names
@@ -565,7 +588,7 @@ For the full annotated template with section-by-section guidance, type definitio
 **Step 0 — §6→§4 closure check (run first, ahead of the rubric loop below):** Enumerate every claim
 in the Conclusion section (section 6). For each claim, confirm it names a specific Derivation Chain
 from section 4. If it does, keep the claim. If it does not, either add the missing chain or cut the
-claim from section 6 — no unbacked §6 claim survives to presentation. This step scopes to section 6
+claim from section 6 — no unbacked §6 claim survives to presentation. Add or cut by appending a replacement block for the section or chain, never by editing the appended text in place. This step scopes to section 6
 only — the `## Answer` block does not exist yet at this point in the run; its own claims are
 checked by the separate Answer-claim closure rule (Output format above), applied once §6 is final,
 immediately before assembly.
@@ -640,7 +663,7 @@ not run, per the Report emission invariant that closes this section. Otherwise, 
 those criteria as a feedback loop:
 
 1. **Validate** — apply each gate criterion; quote the specific span that satisfies or fails each criterion — from the analysis text, or, per the Verdict Block Format's admission, from the self-audit scan for Criteria 4 and 6, and the Assumption Audit scan for Criterion 2.
-2. **Fix** — revise every criterion that does not pass.
+2. **Fix** — revise every criterion that does not pass; a correction to a block already appended is a replacement block, never an edit in place.
 3. **Repeat** — re-score once after fixing. If a criterion still fails after that single
    re-perception pass, report it as an unresolved gap with a confidence caveat instead of
    fixing it again — see Turn discipline for the bound governing every re-entry edge.
