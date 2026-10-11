@@ -13,6 +13,25 @@ installed session.
 
 ## [Unreleased]
 
+### Measured — backlog 999.200, not released
+
+The 999.200 change (a held-append check refusing a Type cell that names more than one assumption
+type; derived process blocks written after the last section 4 and 6 edit, on top of the 999.198
+body) was measured against a pre-registered rule (`docs/post-held-preregistration.md`) and the
+verdict is **not-shown-effective**. The shipped body was restored to 9.19.4; no version stamp
+changed and nothing was released. The arm body is the generated tree at commit d393bb373b91; evidence
+is in `tests/post-held-append/`.
+
+- 28 runs scheduled; 4 routing misses excluded; 24 dispatched, all assembled and delivered.
+  Primary p = 0.512 (post-held rewrites mean 3.04 against the 999.198 arm's 3.04); 6 of 24 runs had
+  six or more rewrites (critical value 5); median rewrites 2. The no-regression condition failed:
+  `theoretical-limit-carnot.r2` reached 99 turns (13 rewrites, gate at turn 77); why 99 exceeds
+  `maxTurns: 90` was not investigated. The Type-cell refusal fired 6 times. Spend $83.53.
+- Falsifiers: `python3 tests/audit-first/run_audit.py read --arm-dir tests/post-held-append`
+  (verdict and every figure above) and
+  `python3 tests/audit-first/run_audit.py held --arm-dir tests/post-held-append` (NOT APPENDED
+  attempts). Reading in `docs/skip-rate-reading.md`.
+
 ### Measured — backlog 999.198, not released
 
 The 999.198 change (check each section against its rules before it is appended; hold sections 2-4

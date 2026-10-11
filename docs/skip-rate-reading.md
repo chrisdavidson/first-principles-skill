@@ -143,6 +143,35 @@ finds 3 of 75 before the held append where `readings.json` finds 2. Falsifiers:
 `python3 tests/audit-first/run_audit.py read` for the per-run split. Spend $81.11. Excluded routing misses:
 estimate-fermi.r2, science-engineering.r1, science-engineering.r2, theoretical-limit-carnot.r1.
 
+### After 999.200 (measured, not released)
+
+Backlog 999.200 added to the 999.198 body a Type-cell check on the held append and derived process
+blocks written after the last section 4 and 6 edit. One arm, 28 runs scheduled, 4 excluded as routing
+misses (estimate-fermi.r1, estimate-fermi.r2, science-engineering.r1, science-engineering.r2), 24
+dispatched, all assembled and delivered, compared with the 24 assembled runs of the 999.198 arm.
+Verdict: `not-shown-effective` (rule `post-held-v1`, primary p = 0.512; the primary reading, post-held
+rewrites per run below the 999.198 arm's, was not met). The body was not released: master carries the
+9.19.4 body and no version stamp changed. The pre-registration is `docs/post-held-preregistration.md`;
+the 999.200 body is the generated tree at commit d393bb373b91.
+
+| | 999.198 arm | 999.200 arm |
+|---|---|---|
+| Assembled runs | 24 of 24 | 24 of 24 |
+| Post-held rewrites, mean / median | 3.04 / 2.0 | 3.04 / 2.0 |
+| Runs with 6 or more in-place rewrites | 3 of 24 | 6 of 24 (critical value 5) |
+| Median rewrites | 2 | 2.0 |
+| Median gate turn | 26 | 23 |
+| Max turns | 90 (theoretical-limit-carnot.r2) | 99 (theoretical-limit-carnot.r2, 13 rewrites, gate at turn 77) |
+| `.process` share of rewrites | 18/40 (heavy runs) | 30/78 |
+| Runs with NOT APPENDED | 4 | 9 of 24 |
+
+The no-regression condition failed on max turns (99); the other four conditions held. That 99 exceeds
+the agent's `maxTurns: 90` was not investigated. The Type-cell refusal fired 6 times (12 refusals in
+all: type_cell 6, gt_n 4, missing 2). The derived-block ordering rule did not reduce sidecar rewrites.
+Spend $83.53. Falsifiers: `python3 tests/audit-first/run_audit.py read --arm-dir tests/post-held-append`
+for every verdict figure and `python3 tests/audit-first/run_audit.py held --arm-dir tests/post-held-append`
+for the NOT APPENDED attempts. Backlog 999.199 is the next candidate.
+
 ## Sensitivity
 
 | Reading | 9.19.2 | 9.19.3 | p (one-sided) | Verdict |
