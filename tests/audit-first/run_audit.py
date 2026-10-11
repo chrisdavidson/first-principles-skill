@@ -966,11 +966,27 @@ DOC_CONSTANTS = {
 }
 
 
-def doc_constants_ok(text: str) -> list[str]:
+REPLACE_DOC_PATH = REPO_ROOT / "docs" / "replace-blocks-preregistration.md"
+REPLACE_DOC_CONSTANTS = {
+    "Rule": "replace-v1",
+    "Alpha": ALPHA,
+    "Baseline heavy share": P0_TEXT,
+    "Rewrite-heavy threshold": REWRITE_HEAVY,
+    "Secondary median ceiling": SECONDARY_MEDIAN,
+    "Median gate turn ceiling": GATE_TURN_MAX,
+    "Median turns ceiling": REPLACE_TURNS_MEDIAN_MAX,
+    "Turn cap": TURN_CEILING,
+    "Undelivered runs allowed": REPLACE_UNDELIVERED_MAX,
+    "Futility threshold": FUTILITY_K,
+    "Minimum assembled": MIN_ASSEMBLED,
+}
+
+
+def doc_constants_ok(text: str, consts: dict = DOC_CONSTANTS) -> list[str]:
     """Problems between the pre-registration's labelled constant lines and the script's values.
     Each label needs exactly one `- Label: value` line whose value equals the script's."""
     problems = []
-    for label, value in DOC_CONSTANTS.items():
+    for label, value in consts.items():
         found = re.findall(rf"^- {re.escape(label)}: (\S+)$", text, re.MULTILINE)
         if len(found) != 1:
             problems.append(f"{label}: {len(found)} labelled lines, expected 1")
@@ -979,19 +995,30 @@ def doc_constants_ok(text: str) -> list[str]:
     return problems
 
 
-def doc_controls(check) -> None:
-    text = DOC_PATH.read_text(encoding="utf-8")
-    check("the pre-registration's constants match the script", doc_constants_ok(text) == [])
-    for label, value in DOC_CONSTANTS.items():
-        new = "post-held-v0" if label == "Rule" else "0.10" if label == "Alpha" else str(value + 1)
+def doc_controls(check, path: Path = DOC_PATH, consts: dict = DOC_CONSTANTS, anchor: str = "Seed") -> None:
+    """Each labelled line of the pre-registration at `path` matches the script, and each mutation of it,
+    its deletion and its duplication is reported. `anchor` names the label used for the delete/duplicate
+    controls."""
+    text = path.read_text(encoding="utf-8")
+    check(f"{path.name}: the constants match the script", doc_constants_ok(text, consts) == [])
+    for label, value in consts.items():
+        if label == "Rule":
+            new = str(value) + "x"
+        elif label == "Alpha":
+            new = "0.10"
+        elif label == "Baseline heavy share":
+            new = "35/87"
+        else:
+            new = str(value + 1)
         mutated = re.sub(rf"^(- {re.escape(label)}: )\S+$", rf"\g<1>{new}", text, flags=re.MULTILINE)
-        probs = doc_constants_ok(mutated)
-        check(f"doc mutation of `{label}` is caught", mutated != text and any(x.startswith(label + ":") for x in probs))
-    line = re.search(r"^- Seed: \S+$\n", text, re.MULTILINE).group(0)
-    probs = doc_constants_ok(text.replace(line, "", 1))
-    check("a deleted Seed line is caught", any(x.startswith("Seed:") for x in probs))
-    probs = doc_constants_ok(text.replace(line, line + line, 1))
-    check("a duplicated Seed line is caught", any(x.startswith("Seed:") for x in probs))
+        probs = doc_constants_ok(mutated, consts)
+        check(f"{path.name}: mutation of `{label}` is caught",
+              mutated != text and any(x.startswith(label + ":") for x in probs))  # fmt: skip
+    line = re.search(rf"^- {re.escape(anchor)}: \S+$\n", text, re.MULTILINE).group(0)
+    probs = doc_constants_ok(text.replace(line, "", 1), consts)
+    check(f"{path.name}: a deleted {anchor} line is caught", any(x.startswith(anchor + ":") for x in probs))
+    probs = doc_constants_ok(text.replace(line, line + line, 1), consts)
+    check(f"{path.name}: a duplicated {anchor} line is caught", any(x.startswith(anchor + ":") for x in probs))
 
 
 def post_held_controls(check) -> None:
@@ -1395,6 +1422,7 @@ def self_test() -> int:
     replace_score_controls(check)
     frozen_rereads(check)
     doc_controls(check)
+    doc_controls(check, REPLACE_DOC_PATH, REPLACE_DOC_CONSTANTS, anchor="Rule")
 
     print(f"audit-first --self-test: {'PASS' if ok else 'FAIL'}")
     return 0 if ok else 1
