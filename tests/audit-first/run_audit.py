@@ -13,7 +13,9 @@ tests/skip-rate/phase_turns.py. A measurement tool, never a gate.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import importlib.util
+import io
 import json
 import os
 import re
@@ -24,6 +26,7 @@ import tempfile
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
+from fractions import Fraction
 from math import comb
 from pathlib import Path
 from statistics import mean, median
@@ -36,7 +39,7 @@ VERDICT = HERE / "verdict.json"
 READINGS = HERE / "readings.json"
 PROMPTS_FILE = REPO_ROOT / "tests" / "example-rerun-2" / "prompts.json"
 RULE: dict | None = None  # the arm's rule.json; None selects the original decision rule
-KNOWN_RULES = ("post-held-v1",)
+KNOWN_RULES = ("post-held-v1", "replace-v1")
 
 # --- pre-registered protocol --------------------------------------------------------------
 MODEL = "claude-sonnet-5"
@@ -57,6 +60,9 @@ TURNS_MEDIAN_MAX = 43
 TURN_CEILING = 90
 POST_HELD_PERM_N = 20000  # permutations for the post-held-v1 primary
 POST_HELD_SEED = 999200
+REPLACE_TURNS_MEDIAN_MAX = 39  # replace-v1: the 999.198 arm's median total turns (tests/audit-first/verdict.json)
+REPLACE_UNDELIVERED_MAX = 0  # replace-v1: every dispatched run assembled and delivered
+P0_TEXT = "34/87"  # P0 as the pre-registration writes it
 # ------------------------------------------------------------------------------------------
 
 _spec = importlib.util.spec_from_file_location("phase_turns", REPO_ROOT / "tests" / "skip-rate" / "phase_turns.py")
@@ -79,6 +85,10 @@ def set_arm(path: Path) -> None:
         raise SystemExit(2)
     RAW, CELLS, VERDICT, READINGS = path / "raw", path / "cells.json", path / "verdict.json", path / "readings.json"
     RULE = rule
+
+
+def _rule() -> str | None:
+    return RULE["rule"] if RULE else None
 
 
 def sib(base: Path, suffix: str) -> Path:
@@ -588,6 +598,65 @@ def decide_post_held(
     return v
 
 
+# --- replace-v1 ---------------------------------------------------------------------------
+
+
+def _marker_lines(lines) -> tuple[int, int]:
+    """(Replace, Withdraw) marker lines outside ``` fences."""
+    fenced = False
+    rep = wd = 0
+    for ln in lines:
+        if ln.startswith("```"):
+            fenced = not fenced
+        elif fenced:
+            continue
+        elif ln.startswith("## Replace: "):
+            rep += 1
+        elif ln.startswith("## Withdraw: "):
+            wd += 1
+    return rep, wd
+
+
+def marker_counts(cmd: str) -> tuple[int, int]:
+    """(Replace, Withdraw) marker lines a heredoc append writes; (0, 0) for any other command."""
+    if "cat >>" not in cmd or "FP_EOF" not in cmd:
+        return 0, 0
+    return _marker_lines(cmd.splitlines())
+
+
+def surviving_markers(files_dir: Path) -> int:
+    """Unfenced Replace/Withdraw marker lines left in the delivered analysis (not .process/.answer)."""
+    analyses = sorted(files_dir.glob("analysis-*.md")) if files_dir.is_dir() else []
+    analyses = [a for a in analyses if a.name.count(".") == 1]
+    if not analyses:
+        return 0
+    return sum(_marker_lines(analyses[-1].read_text(encoding="utf-8", errors="replace").splitlines()))
+
+
+def decide_replace(rows: list[dict], asm: list[dict], **kw) -> dict:
+    """The original rule plus the turn must-holds (D-16) and the no-regression additions (D-10)."""
+    v = decide(len(rows), asm, **kw)
+    undelivered = sum(1 for r in rows if not (r.get("delivered") and r.get("assembled")))
+    surviving_runs = sum(1 for r in rows if r.get("surviving_replace", 0) > 0)
+    v["rule"] = "replace-v1"
+    v["median_turns_ceiling_ok"] = v["median_turns"] is not None and v["median_turns"] <= REPLACE_TURNS_MEDIAN_MAX
+    v["undelivered"] = undelivered
+    v["all_delivered"] = undelivered <= REPLACE_UNDELIVERED_MAX
+    v["surviving_runs"] = surviving_runs
+    v["turn_cap_ok"] = all(r.get("turns", 0) < TURN_CEILING for r in rows)
+    for key in ("replace_blocks", "withdraw_blocks", "replace_calls", "corrections", "not_assembled"):
+        vals = [r.get(key, 0) for r in asm]
+        v[f"mean_{key}"] = mean(vals) if vals else None
+        v[f"median_{key}"] = median(vals) if vals else None
+    if v["stage_complete"] and v["assembled"] >= MIN_ASSEMBLED:
+        ok = (
+            v["primary"] and v["secondary"] and v["no_regression"] and v["median_turns_ceiling_ok"]
+            and v["all_delivered"] and surviving_runs == 0 and v["turn_cap_ok"]
+        )  # fmt: skip
+        v["verdict"] = "shown-effective" if ok else "not-shown-effective"
+    return v
+
+
 def load_comparator() -> list[dict]:
     path = REPO_ROOT / RULE["comparator"]
     return [r for r in json.loads(path.read_text(encoding="utf-8")) if r.get("assembled")]
@@ -604,7 +673,7 @@ def score(key: str, cell: dict) -> dict:
     calls = agent_tool_calls(agent_dir)
     run = pt.read_run(agent_dir)
     cmds = bash_cmds(agent_dir)
-    calls_b = bash_calls(agent_dir) if RULE else None
+    calls_b = bash_calls(agent_dir) if _rule() == "post-held-v1" else None
     results = result_events(text)
     assembled = bool(run and "assemble" in run["first"])
     left = leftover_sidecars(files_dir)
@@ -633,6 +702,19 @@ def score(key: str, cell: dict) -> dict:
     }
     if calls_b is not None:
         row.update(refusal_readings(calls_b))
+    if _rule() == "replace-v1":
+        counts = [(marker_counts(c), c, r) for _, c, r in bash_calls(agent_dir)]
+        surviving = surviving_markers(files_dir)
+        replace_calls = sum(1 for (rb, wb), _, _ in counts if rb + wb)
+        row.update(
+            replace_blocks=sum(rb for (rb, _), _, _ in counts),
+            withdraw_blocks=sum(wb for (_, wb), _, _ in counts),
+            replace_calls=replace_calls,
+            not_assembled=sum(1 for _, c, r in counts if "assemble" in pt.classify(c) and "NOT ASSEMBLED:" in r),
+            surviving_replace=surviving,
+            corrections=row["rewrites"] + replace_calls,
+            complete=not left and not miss and surviving == 0,
+        )
     return row
 
 
@@ -756,6 +838,8 @@ def build_verdict(write: bool = True, echo: bool = False) -> dict | None:
     }
     if RULE is None:
         v = decide(len(rows), asm, **kw)
+    elif _rule() == "replace-v1":
+        v = decide_replace(rows, asm, **kw)
     else:
         v = decide_post_held(len(rows), asm, load_comparator(), **kw)
     if echo:
@@ -777,7 +861,20 @@ def build_verdict(write: bool = True, echo: bool = False) -> dict | None:
                 f"cost ${sum(r['cost_usd'] for r in rows):.2f}; "
                 f"agent minutes {sum(r['agent_min'] or 0 for r in rows):.1f}"
             )
-        if RULE is not None and asm:
+        if _rule() == "replace-v1" and asm:
+            ref = {a: json.loads(p.read_text())["median_turns"] for a, p in (
+                ("999.198", HERE / "verdict.json"),
+                ("999.200", REPO_ROOT / "tests" / "post-held-append" / "verdict.json"),
+            )}  # fmt: skip
+            print(
+                "reported (not verdict-bearing): "
+                + "; ".join(
+                    f"{k} mean {v[f'mean_{k}']:.2f} median {v[f'median_{k}']}"
+                    for k in ("replace_blocks", "withdraw_blocks", "replace_calls", "corrections", "not_assembled")
+                )
+                + f"; median turns {v['median_turns']} vs 999.198 arm {ref['999.198']}, 999.200 arm {ref['999.200']}"
+            )
+        if _rule() == "post-held-v1" and asm:
             comp = load_comparator()
             allcmds = sum(sum(r["target_split"].values()) for r in rows)
             proc = sum(r["target_split"]["process"] for r in rows)
@@ -978,6 +1075,166 @@ def post_held_controls(check) -> None:
           == ["process", "answer", "analysis"])  # fmt: skip
 
 
+def _rrow(rewrites=0, turns=38, gate=25, delivered=True, assembled=True, surviving=0, repeat=1):
+    return _row(rewrites, turns=turns, gate=gate, complete=surviving == 0, repeat=repeat) | {
+        "delivered": delivered, "assembled": assembled, "surviving_replace": surviving,
+    }  # fmt: skip
+
+
+def replace_controls(check) -> None:
+    """replace-v1 controls: marker reading, the verdict on synthetic arms, the turn must-hold both ways."""
+    global REPLACE_TURNS_MEDIAN_MAX, REPLACE_UNDELIVERED_MAX
+    block = (
+        "cat >> \"$F\" <<'FP_EOF'\n## Replace: A\nx\n## Replace: B\ny\n## Withdraw: C\n"
+        "```\n## Replace: D\n```\nFP_EOF"
+    )
+    check("marker_counts: two Replace, one Withdraw, the fenced Replace ignored", marker_counts(block) == (2, 1))
+    check("marker_counts: a non-append command is (0, 0)", marker_counts("echo x\n## Replace: A\n") == (0, 0))
+    check("marker_counts: an unfenced-only block counts every marker",
+          marker_counts("cat >> f <<'FP_EOF'\n## Replace: A\nFP_EOF") == (1, 0))  # fmt: skip
+    with tempfile.TemporaryDirectory() as td:
+        d = Path(td)
+        (d / "analysis-X.md").write_text("## Answer\n## Replace: A\nx\n```\n## Replace: F\n```\n## Withdraw: Q\n")
+        (d / "analysis-X.md.process").write_text("## Replace: IGNORED\n")
+        check("surviving_markers: two unfenced markers, the fenced one and the .process file ignored",
+              surviving_markers(d) == 2)  # fmt: skip
+        (d / "analysis-X.md").write_text("## Answer\n```\n## Replace: F\n```\n")
+        check("surviving_markers: a fenced-only file has none", surviving_markers(d) == 0)
+        check("surviving_markers: a missing directory has none", surviving_markers(d / "nope") == 0)
+
+    kw = {"stage_complete": True, "stage2_started": True, "stage1_complete": True, "asm_stage1": []}
+
+    def verdict(rows, **over):
+        asm = [r for r in rows if r["assembled"]]
+        return decide_replace(rows, asm, **(kw | over))
+
+    zero = [_rrow() for _ in range(24)]
+    v = verdict(zero)
+    check("zero-rewrite 24-run arm, median turns 38, is shown-effective",
+          v["verdict"] == "shown-effective" and v["rule"] == "replace-v1")  # fmt: skip
+    slow = [_rrow(turns=40) for _ in range(24)]
+    v = verdict(slow)
+    check("zero rewrites with median turns 40 is NOT shown-effective (relabelling guard)",
+          v["primary"] and v["verdict"] == "not-shown-effective" and not v["median_turns_ceiling_ok"])  # fmt: skip
+    v = verdict(zero[:23] + [_rrow(turns=90)])
+    check("one run at 90 turns is not-shown-effective", v["verdict"] == "not-shown-effective")
+    v = verdict(zero[:23] + [_rrow(delivered=False)])
+    check("one undelivered run is not-shown-effective", v["verdict"] == "not-shown-effective" and v["undelivered"] == 1)
+    v = verdict(zero[:23] + [_rrow(surviving=1) | {"complete": True}])
+    check("one run with a surviving marker is not-shown-effective even if complete says true",
+          v["verdict"] == "not-shown-effective" and v["surviving_runs"] == 1)  # fmt: skip
+    check("17 assembled runs is uninformative", verdict(zero[:17])["verdict"] == "uninformative")
+    v = verdict([_rrow(6)] * 5 + [_rrow()] * 8, stage_complete=False, stage2_started=False,
+                asm_stage1=[_rrow(6)] * 5)  # fmt: skip
+    check("stage 1 with five heavy runs is futility-stop", v["verdict"] == "futility-stop")
+    v = verdict([_rrow()] * 13, stage_complete=False, stage2_started=False, asm_stage1=[_rrow()] * 13)
+    check("stage 1 without futility is in-progress", v["verdict"] == "in-progress")
+    heavy = [_rrow(6)] * 6 + [_rrow()] * 18
+    check("six heavy runs of 24 fail the primary", verdict(heavy)["verdict"] == "not-shown-effective")
+    check("secondary median rewrites 3 fails", verdict([_rrow(3)] * 24)["verdict"] == "not-shown-effective")
+
+    # must-fail: the ceiling and the undelivered bound are what stop the two cases above
+    real = (REPLACE_TURNS_MEDIAN_MAX, REPLACE_UNDELIVERED_MAX)
+    REPLACE_TURNS_MEDIAN_MAX = 10_000
+    try:
+        loose = verdict(slow)["verdict"]
+    finally:
+        REPLACE_TURNS_MEDIAN_MAX = real[0]
+    check("must-fail: with the turns ceiling patched to 10000 the median-40 arm is shown-effective, which the real one is not",
+          loose == "shown-effective" and verdict(slow)["verdict"] == "not-shown-effective")  # fmt: skip
+    REPLACE_UNDELIVERED_MAX = 1
+    try:
+        loose = verdict(zero[:23] + [_rrow(delivered=False)])["verdict"]
+    finally:
+        REPLACE_UNDELIVERED_MAX = real[1]
+    check("must-fail: with the undelivered bound patched to 1 an undelivered run is shown-effective, which the real bound is not",
+          loose == "shown-effective" and verdict(zero[:23] + [_rrow(delivered=False)])["verdict"] == "not-shown-effective")  # fmt: skip
+
+    check("REPLACE_TURNS_MEDIAN_MAX equals the 999.198 arm's committed median turns",
+          REPLACE_TURNS_MEDIAN_MAX == json.loads((HERE / "verdict.json").read_text())["median_turns"])  # fmt: skip
+    check("P0_TEXT is the exact fraction behind P0", Fraction(P0_TEXT) == Fraction(34, 87) and P0 == 34 / 87)
+
+
+def _fake_replace_run(arm: Path, surviving: bool) -> dict:
+    """Write one synthetic captured run under `arm` and return its cell."""
+    (arm / "raw" / "K.a1.agent").mkdir(parents=True)
+    (arm / "raw" / "K.a1.files").mkdir(parents=True)
+    (arm / "raw" / "K.a1.jsonl").write_text("")
+    (arm / "rule.json").write_text('{"rule": "replace-v1"}')
+    assemble = 'awk -f p "$F.answer" "$F" "$F.process" > "$F.tmp" && mv "$F.tmp" "$F"'
+    steps = [
+        ("m1", "t1", "cat >> \"$F\" <<'FP_EOF'\n## Replace: 2.\nnew\n## Withdraw: 3.\nFP_EOF", ""),
+        ("m2", "t2", "sed -i 's/a/b/' analysis-X.md", ""),
+        ("m3", "t3", assemble, "NOT ASSEMBLED: no heading matches 'Nope'"),
+        ("m4", "t4", assemble, ""),
+    ]
+    lines = []
+    for mid, tid, cmd, res in steps:
+        use = {"type": "tool_use", "id": tid, "name": "Bash", "input": {"command": cmd}}
+        lines.append(json.dumps({"type": "assistant", "message": {"id": mid, "content": [use]}}))
+        out = {"type": "tool_result", "tool_use_id": tid, "content": res}
+        lines.append(json.dumps({"type": "user", "message": {"content": [out]}}))
+    (arm / "raw" / "K.a1.agent" / "agent-1.jsonl").write_text("\n".join(lines) + "\n")
+    body = "## Answer\n" + "".join(f"## {n}. T\n" for n in range(1, 7))
+    (arm / "raw" / "K.a1.files" / "analysis-X.md").write_text(body + ("## Replace: 2.\n" if surviving else ""))
+    (arm / "raw" / "K.a1.files" / "report-X.md").write_text("r")
+    return {"scored": "K.a1", "prompt": "p", "repeat": 1, "attempts": ["K.a1"]}
+
+
+def replace_score_controls(check) -> None:
+    """score() under replace-v1 on a synthetic captured run, with and without a surviving marker."""
+    global RAW, CELLS, VERDICT, READINGS, RULE
+    saved = (RAW, CELLS, VERDICT, READINGS, RULE)
+    try:
+        for surviving in (True, False):
+            with tempfile.TemporaryDirectory() as td:
+                arm = Path(td)
+                cell = _fake_replace_run(arm, surviving)
+                set_arm(arm)
+                row = score("K", cell)
+                want = {"replace_blocks": 1, "withdraw_blocks": 1, "replace_calls": 1, "not_assembled": 1,
+                        "surviving_replace": int(surviving), "rewrites": 1, "corrections": 2,
+                        "complete": not surviving, "assembled": True, "delivered": True}  # fmt: skip
+                got = {k: row.get(k) for k in want}
+                check(f"score() reads a synthetic replace-v1 run (surviving marker: {surviving})", got == want)
+                if surviving:
+                    check("a surviving marker makes the row incomplete", not row["complete"])
+                    CELLS.write_text(json.dumps({"K": {"outcome": "scored", **cell}}))
+                    buf = io.StringIO()
+                    with contextlib.redirect_stdout(buf):
+                        v = build_verdict(write=False, echo=True)
+                    check("build_verdict dispatches replace-v1 to decide_replace and echoes the readings",
+                          v is not None and v["rule"] == "replace-v1" and "median turns" in buf.getvalue()
+                          and "999.198 arm 39.0" in buf.getvalue())  # fmt: skip
+                set_arm(arm)
+                RULE = None
+                plain = score("K", cell)
+                check("the same run scored with no rule carries no replace-v1 field", "replace_blocks" not in plain)
+    finally:
+        RAW, CELLS, VERDICT, READINGS, RULE = saved
+
+
+def frozen_rereads(check) -> None:
+    """Both frozen arms, rebuilt into temp files, equal the committed readings and verdict byte for byte."""
+    global RAW, CELLS, VERDICT, READINGS, RULE
+    saved = (RAW, CELLS, VERDICT, READINGS, RULE)
+    try:
+        for arm in (HERE, REPO_ROOT / "tests" / "post-held-append"):
+            want = (arm / "readings.json").read_bytes(), (arm / "verdict.json").read_bytes()
+            set_arm(arm)
+            with tempfile.TemporaryDirectory() as td:
+                READINGS, VERDICT = Path(td) / "readings.json", Path(td) / "verdict.json"
+                build_verdict(write=True)
+                got = READINGS.read_bytes(), VERDICT.read_bytes()
+            check(f"frozen arm {arm.name} re-reads byte-identically (readings, verdict)", got == want)
+            if arm == HERE:
+                broken = want[0].replace(b"turns", b"turnz", 1)
+                check("must-fail: the byte comparison notices one changed byte", broken != got[0])
+    finally:
+        RAW, CELLS, VERDICT, READINGS, RULE = saved
+    check("paths restored after the frozen re-reads", (RAW, RULE) == (HERE / "raw", None))
+
+
 def arm_controls(check) -> None:
     """Second-arm controls: paths re-point, the rule loads, an unknown rule exits 2, default restored."""
     global RAW, CELLS, VERDICT, READINGS, RULE
@@ -990,6 +1247,8 @@ def arm_controls(check) -> None:
         check("set_arm re-points all four paths", (RAW, CELLS, VERDICT, READINGS) == (
             arm2 / "raw", arm2 / "cells.json", arm2 / "verdict.json", arm2 / "readings.json"))  # fmt: skip
         check("set_arm loads rule post-held-v1", RULE is not None and RULE["rule"] == "post-held-v1")
+        set_arm(REPO_ROOT / "tests" / "replace-blocks")
+        check("set_arm loads rule replace-v1", RULE is not None and RULE["rule"] == "replace-v1")
         with tempfile.TemporaryDirectory() as td:
             (Path(td) / "rule.json").write_text('{"rule": "nonsense"}')
             try:
@@ -1132,6 +1391,9 @@ def self_test() -> int:
 
     arm_controls(check)
     post_held_controls(check)
+    replace_controls(check)
+    replace_score_controls(check)
+    frozen_rereads(check)
     doc_controls(check)
 
     print(f"audit-first --self-test: {'PASS' if ok else 'FAIL'}")
