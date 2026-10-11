@@ -30,6 +30,7 @@ import argparse
 import copy
 import importlib.util
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -78,6 +79,13 @@ _CORPORA = {
 # so a deleted or renamed capture tree cannot shrink the check to nothing.
 _CORPUS_FLOOR = 40
 
+PROGRAM_SRC = PLUGIN / "references" / "replace-blocks.md"
+_IDENTITY_ROOTS = (
+    REPO_ROOT / "tests" / "audit-first" / "raw",
+    REPO_ROOT / "tests" / "post-held-append" / "raw",
+)
+_IDENTITY_FLOOR = 40
+
 _CONTROL_IDS = (
     "P1-live-wiring",
     "P2-guard-self-test",
@@ -90,6 +98,30 @@ _CONTROL_IDS = (
     "M6-corpus-floor",
     "P4-survivor-blocked",
     "M7-survivor-check-stubbed",
+    "A01-plain-replace",
+    "A02-unmatched-refuses",
+    "A03-duplicate-refuses",
+    "A04-h3-scope",
+    "A05-fence-ignored",
+    "A06-last-wins",
+    "A07-chained",
+    "A08-extent-sibling",
+    "A09-level-mismatch-refuses",
+    "A10-unclosed-fence-refuses",
+    "A11-withdraw-recovers",
+    "A12-withdraw-unmatched-warns",
+    "A13-idempotent",
+    "A14-identity-captures",
+    "A22-malformed-then-withdraw-assembles",
+    "A23-malformed-alone-refuses",
+    "A24-unclosed-fence-recovery",
+    "M8-fence-test-dropped",
+    "M9-duplicate-refusal-removed",
+    "M11-withdraw-skip-removed",
+    "M12-unmatched-refusal-removed",
+    "M13-deferred-validation-ignores-withdraw",
+    "M14-unmatched-withdraw-refuses",
+    "M15-unmatched-withdraw-survives",
 )
 
 
@@ -217,6 +249,399 @@ def survivor_problems(guard) -> list[str]:
     return ["SURVIVOR: guard passed a surviving ## Replace: line"]
 
 
+# ----------------------------------------------------------- replacement-block applier
+
+
+def extract_program(text: str) -> str:
+    """The awk program exactly as step 4 extracts it: after the first line equal to
+    "```awk", up to the next line equal to "```"."""
+    out: list[str] = []
+    inside = False
+    for ln in text.split("\n"):
+        if not inside:
+            inside = ln == "```awk"
+            continue
+        if ln == "```":
+            break
+        out.append(ln)
+    return "\n".join(out) + "\n" if out else ""
+
+
+def shipped_program() -> str:
+    return extract_program(PROGRAM_SRC.read_text(encoding="utf-8"))
+
+
+def awk_dialects() -> list[tuple[str, list[str]]]:
+    """(label, argv) for every awk implementation on PATH, first label per binary kept."""
+    cands: list[tuple[str, list[str]]] = []
+    for name in ("gawk", "mawk", "original-awk", "nawk"):
+        if shutil.which(name):
+            cands.append((name, [shutil.which(name)]))
+    if shutil.which("busybox"):
+        cands.append(("busybox awk", [shutil.which("busybox"), "awk"]))
+    if shutil.which("gawk"):
+        cands.append(("gawk --posix", [shutil.which("gawk"), "--posix"]))
+    if shutil.which("awk"):
+        cands.append(("awk", [shutil.which("awk")]))
+    seen: set[tuple] = set()
+    out: list[tuple[str, list[str]]] = []
+    for label, argv in cands:
+        key = (os.path.realpath(argv[0]), tuple(argv[1:]))
+        if key not in seen:
+            seen.add(key)
+            out.append((label, argv))
+    return out
+
+
+def dialect_problems(labels: list[str], required: str) -> list[str]:
+    problems: list[str] = []
+    if not labels:
+        problems.append("DIALECT-NONE: no awk implementation found on PATH")
+    for want in [w.strip() for w in required.split(",") if w.strip()]:
+        if want not in labels:
+            problems.append(f"DIALECT-REQUIRED: {want!r} did not run (ran: {labels})")
+    return problems
+
+
+def apply(prog: Path, argv: list[str], text: str) -> tuple[int, str, str]:
+    proc = subprocess.run(
+        argv + ["-f", str(prog)],
+        input=text.encode("utf-8", "surrogateescape"),
+        capture_output=True,
+        check=False,
+    )
+    return (
+        proc.returncode,
+        proc.stdout.decode("utf-8", "surrogateescape"),
+        proc.stderr.decode("utf-8", "surrogateescape"),
+    )
+
+
+def _t(*lines: str) -> str:
+    return "\n".join(lines) + "\n"
+
+
+def _assembles(want: str):
+    def chk(rc: int, out: str, err: str) -> list[str]:
+        if rc == 0 and out == want:
+            return []
+        return [f"rc={rc} stdout={out!r} stderr={err!r}, wanted {want!r}"]
+
+    return chk
+
+
+def _refuses(*needles: str):
+    def chk(rc: int, out: str, err: str) -> list[str]:
+        if rc != 0 and out == "" and all(n in err for n in needles):
+            return []
+        return [f"rc={rc} stdout={out!r} stderr={err!r}, wanted refusal naming {needles}"]
+
+    return chk
+
+
+def _warns(want: str, line: str):
+    def chk(rc: int, out: str, err: str) -> list[str]:
+        if rc == 0 and out == want and line in err.split("\n"):
+            return []
+        return [f"rc={rc} stdout={out!r} stderr={err!r}, wanted {want!r} and {line!r}"]
+
+    return chk
+
+
+_FENCE = "`" * 3
+_A24_BASE = (
+    "## A",
+    "old",
+    "## B",
+    "b",
+    "## Replace: A",
+    "## A",
+    _FENCE,
+    "## Replace: B",
+    "## B",
+    "b2",
+)
+
+_FIXTURES = [
+    (
+        "A01-plain-replace",
+        _t("## A", "old", "## B", "keep", "## Replace: A", "## A", "new"),
+        _assembles(_t("## A", "new", "## B", "keep")),
+    ),
+    (
+        "A02-unmatched-refuses",
+        _t("## A", "x", "## Replace: Nope", "## Nope", "y"),
+        _refuses("NOT ASSEMBLED: no heading matches"),
+    ),
+    (
+        "A03-duplicate-refuses",
+        _t("## A", "x", "## A", "y", "## Replace: A", "## A", "z"),
+        _refuses("2 headings match"),
+    ),
+    (
+        "A04-h3-scope",
+        _t("## 4", "### C1", "x", "### C2", "y", "## 5", "z", "## Replace: C1", "### C1", "x2"),
+        _assembles(_t("## 4", "### C1", "x2", "### C2", "y", "## 5", "z")),
+    ),
+    (
+        "A05-fence-ignored",
+        _t(
+            "## A", "old", "## B", _FENCE, "## A", "## Replace: A", _FENCE,
+            "## Replace: A", "## A", "new",
+        ),
+        _assembles(_t("## A", "new", "## B", _FENCE, "## A", "## Replace: A", _FENCE)),
+    ),
+    (
+        "A06-last-wins",
+        _t("## A", "old", "## Replace: A", "## A", "n1", "## Replace: A", "## A", "n2"),
+        _assembles(_t("## A", "n2")),
+    ),
+    (
+        "A07-chained",
+        _t("## A", "old", "## Replace: A", "## A2", "mid", "## Replace: A2", "## A2", "fin"),
+        _assembles(_t("## A2", "fin")),
+    ),
+    (
+        "A08-extent-sibling",
+        _t(
+            "## 4", "### C1", "x", "### C2", "y", "## Replace: C1", "### C1", "x2",
+            "### C1b", "z",
+        ),
+        _assembles(_t("## 4", "### C1", "x2", "### C1b", "z", "### C2", "y")),
+    ),
+    (
+        "A09-level-mismatch-refuses",
+        _t("## A", "old", "## Replace: A", "### A", "new"),
+        _refuses("opens a level-3 heading but the target is level 2"),
+    ),
+    (
+        "A10-unclosed-fence-refuses",
+        _t("## A", "old", _FENCE, "## Replace: A", "## A", "new"),
+        _refuses("is never closed"),
+    ),
+    (
+        "A11-withdraw-recovers",
+        _t(
+            "## A", "old", "## Replace: Z", "## Z", "q", "## Withdraw: Z",
+            "## Replace: A", "## A", "new",
+        ),
+        _assembles(_t("## A", "new")),
+    ),
+    (
+        "A12-withdraw-unmatched-warns",
+        _t("## A", "x", "## Withdraw: Q"),
+        _warns(_t("## A", "x"), "WARNING: withdraw matched nothing: Q"),
+    ),
+    (
+        "A22-malformed-then-withdraw-assembles",
+        _t(
+            "## A", "old", "## Replace: A", "not a heading", "## Withdraw: A",
+            "## Replace: A", "## A", "new",
+        ),
+        _assembles(_t("## A", "new")),
+    ),
+    (
+        "A23-malformed-alone-refuses",
+        _t("## A", "old", "## Replace: A", "not a heading"),
+        _refuses("does not start with a ## or ### heading line"),
+    ),
+    (
+        "A24-unclosed-fence-recovery",
+        _t(*_A24_BASE),
+        _refuses("is never closed"),
+    ),
+]
+
+_A24_RECOVERED = _t(
+    *_A24_BASE, _FENCE, "## Withdraw: A", "## Replace: B", "## B", "b2"
+)
+_A13_INPUT = dict((f[0], f[1]) for f in _FIXTURES)["A08-extent-sibling"]
+
+
+def _lvl(s: str) -> int:
+    c = 0
+    while s[c : c + 1] == "#":
+        c += 1
+    if c < 1 or c > 6 or s[c : c + 1] != " ":
+        return 0
+    return c
+
+
+def _htext(s: str) -> str:
+    return s[_lvl(s) + 1 :].rstrip(" \t\r")
+
+
+def identity_input(text: str) -> str | None:
+    """text plus an identity replacement of every ##/### heading, or None to skip."""
+    if "\r" in text or not text.strip():
+        return None
+    if not text.endswith("\n"):
+        text += "\n"
+    lines = text.split("\n")[:-1]
+    heads: list[tuple[int, int, str]] = []
+    fenced = False
+    for i, ln in enumerate(lines):
+        if ln.startswith(_FENCE):
+            fenced = not fenced
+        elif not fenced and _lvl(ln):
+            heads.append((i, _lvl(ln), _htext(ln)))
+    texts = [h[2] for h in heads]
+    if fenced or len(set(texts)) != len(texts):
+        return None
+    if any(t.startswith(("Replace: ", "Withdraw: ")) for t in texts):
+        return None
+    out = list(lines)
+    for k, (i, level, htxt) in enumerate(heads):
+        if level not in (2, 3):
+            continue
+        end = len(lines)
+        for i2, l2, _ in heads[k + 1 :]:
+            if l2 <= level:
+                end = i2
+                break
+        out.append("## Replace: " + htxt)
+        out.extend(lines[i:end])
+    return "\n".join(out) + "\n"
+
+
+_IDENTITY_CACHE: list | None = None
+
+
+def identity_cases() -> tuple[list[tuple[str, str]], int]:
+    global _IDENTITY_CACHE
+    if _IDENTITY_CACHE is None:
+        cases: list[tuple[str, str]] = []
+        skipped = 0
+        for root in _IDENTITY_ROOTS:
+            for f in sorted(root.glob("*.files/analysis-*.md")):
+                text = f.read_text(encoding="utf-8", errors="surrogateescape")
+                built = identity_input(text)
+                if built is None:
+                    skipped += 1
+                    continue
+                want = text if text.endswith("\n") else text + "\n"
+                name = f"{root.parent.name}/{f.parent.name}"
+                cases.append((name, built))
+                _IDENTITY_WANT[name] = want
+        _IDENTITY_CACHE = [cases, skipped]
+    return _IDENTITY_CACHE[0], _IDENTITY_CACHE[1]
+
+
+_IDENTITY_WANT: dict[str, str] = {}
+_LAST_IDENTITY = {"files": 0, "skipped": 0, "mismatches": 0}
+
+
+def applier_problems(
+    program: str, only: set[str] | None = None, dialects=None
+) -> dict[str, list[str]]:
+    """{control id: problems}, each problem naming its dialect."""
+    dialects = awk_dialects() if dialects is None else dialects
+    ids = [f[0] for f in _FIXTURES] + ["A13-idempotent", "A14-identity-captures"]
+    res: dict[str, list[str]] = {i: [] for i in ids if only is None or i in only}
+    if not program.strip():
+        for cid in res:
+            res[cid].append("PROGRAM-EMPTY: no awk program extracted")
+        return res
+    with tempfile.TemporaryDirectory() as td:
+        prog = Path(td) / "replace.awk"
+        prog.write_text(program, encoding="utf-8")
+        for label, argv in dialects:
+            for cid, text, chk in _FIXTURES:
+                if cid not in res:
+                    continue
+                res[cid] += [f"[{label}] {p}" for p in chk(*apply(prog, argv, text))]
+            if "A24-unclosed-fence-recovery" in res:
+                rc, out, err = apply(prog, argv, _A24_RECOVERED)
+                want = _t("## A", "old", "## B", "b2")
+                if rc != 0 or out != want:
+                    res["A24-unclosed-fence-recovery"].append(
+                        f"[{label}] recovery gave rc={rc} stdout={out!r} stderr={err!r}"
+                    )
+            if "A13-idempotent" in res:
+                rc, out1, err = apply(prog, argv, _A13_INPUT)
+                rc2, out2, err2 = apply(prog, argv, out1)
+                if rc != 0 or rc2 != 0 or out1 != out2:
+                    res["A13-idempotent"].append(
+                        f"[{label}] re-run differs or failed (rc {rc}/{rc2})"
+                    )
+                if any(ln.startswith(("## Replace: ", "## Withdraw: ")) for ln in out1.split("\n")):
+                    res["A13-idempotent"].append(f"[{label}] a marker survives")
+            if "A14-identity-captures" in res:
+                cases, skipped = identity_cases()
+                bad = 0
+                for name, built in cases:
+                    rc, out, err = apply(prog, argv, built)
+                    if rc != 0 or out != _IDENTITY_WANT[name]:
+                        bad += 1
+                        res["A14-identity-captures"].append(
+                            f"[{label}] identity replacement changed {name} (rc={rc})"
+                        )
+                _LAST_IDENTITY.update(
+                    files=len(cases),
+                    skipped=skipped,
+                    mismatches=(_LAST_IDENTITY['mismatches'] if label != dialects[0][0] else 0) + bad,
+                )
+                if len(cases) < _IDENTITY_FLOOR:
+                    res["A14-identity-captures"].append(
+                        f"IDENTITY-FLOOR: {len(cases)} files, floor {_IDENTITY_FLOOR}"
+                    )
+    return res
+
+
+def _drop_line(program: str, needle: str) -> str:
+    return "".join(ln for ln in program.splitlines(True) if needle not in ln)
+
+
+_MUTATIONS = [
+    (
+        "M8-fence-test-dropped",
+        "A05-fence-ignored",
+        lambda p: _drop_line(p, "if (substr(C[i], 1, 3) == FENCE) { f = !f;"),
+    ),
+    (
+        "M9-duplicate-refusal-removed",
+        "A03-duplicate-refuses",
+        lambda p: _drop_line(p, "if (cnt > 1) die("),
+    ),
+    (
+        "M11-withdraw-skip-removed",
+        "A11-withdraw-recovers",
+        lambda p: _drop_line(p, "if (X[r]) continue"),
+    ),
+    (
+        "M12-unmatched-refusal-removed",
+        "A02-unmatched-refuses",
+        lambda p: _drop_line(p, "if (cnt == 0) die("),
+    ),
+    (
+        "M13-deferred-validation-ignores-withdraw",
+        "A22-malformed-then-withdraw-assembles",
+        lambda p: p.replace("!X[r] && BAD[r]", "BAD[r]", 1),
+    ),
+    (
+        "M14-unmatched-withdraw-refuses",
+        "A12-withdraw-unmatched-warns",
+        lambda p: p.replace(
+            'print "WARNING: withdraw matched nothing: " W > "/dev/stderr"',
+            'die("withdraw matched nothing: " W)',
+            1,
+        ),
+    ),
+    (
+        "M15-unmatched-withdraw-survives",
+        "A12-withdraw-unmatched-warns",
+        lambda p: p.replace("i += 1", "B[++nb] = C[i]; i += 1", 1),
+    ),
+]
+
+
+def mutation_problems(mutate, target: str, program: str) -> list[str]:
+    mutated = mutate(program)
+    if mutated == program:
+        return ["MUTATION-VACUOUS: the mutation left the program text unchanged"]
+    return applier_problems(mutated, only={target}).get(target, [])
+
+
 def _hooks() -> dict:
     return json.loads(HOOKS_JSON.read_text(encoding="utf-8"))
 
@@ -268,6 +693,22 @@ def self_test() -> int:
     finally:
         guard.surviving_marker = saved_sm
     control("M7-survivor-check-stubbed", stubbed, True)
+
+    labels = [lb for lb, _ in awk_dialects()]
+    print(f"check-delivery-guard --self-test: awk dialects run: {', '.join(labels)}")
+    program = shipped_program()
+    got = applier_problems(program)
+    for cid in _CONTROL_IDS:
+        if cid in got and cid != "A14-identity-captures":
+            control(cid, got[cid], False)
+    control("A14-identity-captures", got["A14-identity-captures"], False)
+    print(
+        "check-delivery-guard --self-test: A14 identity files "
+        f"{_LAST_IDENTITY['files']} (skipped {_LAST_IDENTITY['skipped']}, "
+        f"mismatches {_LAST_IDENTITY['mismatches']})"
+    )
+    for mid, target, mutate in _MUTATIONS:
+        control(mid, mutation_problems(mutate, target, program), True)
 
     if failures:
         print(
