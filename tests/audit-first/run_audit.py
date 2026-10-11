@@ -165,6 +165,76 @@ def is_limit_stub(text: str) -> bool:
     return not res and "limit" in text[-4000:].lower() and not dispatched(text)
 
 
+# Pre-registration amendment 1 (docs/replace-blocks-preregistration.md): a dispatched run whose
+# main-session result, or whose agent's last assistant message, is an API *transport* error (no
+# HTTP status; the API server could not be reached) is infrastructure failure, discarded and re-run
+# like a usage-limit stub. Outcome-blind: it reads the error text only, never assembly or delivery.
+_TRANSPORT_MARKERS = ("Can't reach the API server", "EAI_AGAIN", "ECONNRESET", "ETIMEDOUT", "ENOTFOUND",
+                      "ECONNREFUSED", "Connection error")  # fmt: skip
+TRANSPORT_PAUSE_S = 300
+TRANSPORT_MAX = 6
+
+
+def _is_transport_text(s: str) -> bool:
+    s = s.strip()
+    return s.startswith("API Error:") and any(m in s for m in _TRANSPORT_MARKERS)
+
+
+def _last_agent_text(agent_dir: Path) -> str:
+    last = None
+    for f in sorted(agent_dir.glob("agent-*.jsonl")):
+        for o in events(f.read_text(encoding="utf-8", errors="replace")):
+            if o.get("type") == "assistant":
+                last = o
+    if not last:
+        return ""
+    blocks = last.get("message", {}).get("content", []) or []
+    return "".join(b.get("text") or "" for b in blocks if isinstance(b, dict) and b.get("type") == "text")
+
+
+def is_transport_error(text: str, agent_dir: Path | None = None) -> bool:
+    res = result_event(text)
+    if res.get("is_error") and res.get("api_error_status") is None and _is_transport_text(str(res.get("result") or "")):
+        return True
+    return agent_dir is not None and agent_dir.is_dir() and _is_transport_text(_last_agent_text(agent_dir))
+
+
+def _set_aside(prefix: str, tag: str) -> list[str]:
+    """Rename raw entries `<prefix>.<rest>` to `<prefix>.<tag>.<rest>` so read never sees them.
+
+    Entries already set aside (usage-limit stubs, earlier transport set-asides) are left alone."""
+    moved = []
+    for p in sorted(RAW.glob(f"{prefix}.*")):
+        rest = p.name[len(prefix) + 1 :]
+        if "limit-stub" in rest or "transport" in rest:
+            continue
+        p.rename(RAW / f"{prefix}.{tag}.{rest}")
+        moved.append(p.name)
+    return moved
+
+
+def requeue_transport() -> list[str]:
+    """Under replace-v1 only: drop recorded cells whose scored attempt was a transport error, so run re-runs them."""
+    if _rule() != "replace-v1" or not CELLS.is_file():
+        return []
+    cells = json.loads(CELLS.read_text())
+    requeued = []
+    for key, c in sorted(cells.items()):
+        s = c.get("scored")
+        if c.get("outcome") != "scored" or not s:
+            continue
+        jl = RAW / f"{s}.jsonl"
+        text = jl.read_text(encoding="utf-8", errors="replace") if jl.is_file() else ""
+        if is_transport_error(text, RAW / f"{s}.agent"):
+            n = len({p.name[len(key) + 1 :].split(".")[0] for p in RAW.glob(f"{key}.transport-requeue*")})
+            _set_aside(key, f"transport-requeue{n + 1}")
+            del cells[key]
+            requeued.append(key)
+    if requeued:
+        CELLS.write_text(json.dumps(cells, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return requeued
+
+
 def capture_agent(text: str, dest: Path) -> list[Path]:
     init = init_event(text)
     sid, cwd = init.get("session_id"), init.get("cwd")
@@ -739,7 +809,7 @@ def generate(text: str, body: Path, cwd: Path, base: Path) -> str:
 def run_one(arm: str, pid: str, r: int, prompt: str, bodies: Path, work: Path) -> None:
     key = f"{arm}.{pid}.r{r}"
     body = (bodies / arm / "first-principles").resolve()
-    attempts, outcome, n = [], "exhausted", 0
+    attempts, outcome, n, transport = [], "exhausted", 0, 0
     while n < MAX_ATTEMPTS:
         n += 1
         cwd = work / f"{key}.a{n}"
@@ -766,6 +836,15 @@ def run_one(arm: str, pid: str, r: int, prompt: str, bodies: Path, work: Path) -
         if src.is_dir():
             shutil.copytree(src, sib(base, ".files"), dirs_exist_ok=True)
         shutil.rmtree(cwd, ignore_errors=True)
+        if _rule() == "replace-v1" and is_transport_error(text, sib(base, ".agent")):
+            transport += 1
+            _set_aside(base.name, f"transport-error{transport}")
+            if transport >= TRANSPORT_MAX:
+                raise SystemExit(f"[abort] {key}: {transport} transport errors in a row; re-run when the API is reachable")
+            print(f"[pause] {key}: API transport error; set aside, sleeping {TRANSPORT_PAUSE_S}s", flush=True)
+            time.sleep(TRANSPORT_PAUSE_S)
+            n -= 1
+            continue
         attempts.append(base.name)
         if dispatched(text):
             outcome = "scored"
@@ -806,6 +885,8 @@ def cmd_run(bodies: Path, work: Path, workers: int, stage: int | None) -> int:
         if not (bodies / arm / "first-principles" / "agents" / "first-principles.md").is_file():
             raise SystemExit(f"missing body for arm {arm} under {bodies}")
     RAW.mkdir(parents=True, exist_ok=True)
+    for k in requeue_transport():
+        print(f"[requeue] {k}: scored attempt was an API transport error; set aside and re-queued", flush=True)
     stages = (1, 2) if stage is None else (stage,)
     for st in stages:
         _run_stage(prompts, st, bodies, work, workers)
@@ -1241,6 +1322,74 @@ def replace_score_controls(check) -> None:
         RAW, CELLS, VERDICT, READINGS, RULE = saved
 
 
+def transport_controls(check) -> None:
+    """Amendment 1: transport-error detection, the replace-v1 requeue sweep, and its must-fail mutation."""
+    global RAW, CELLS, VERDICT, READINGS, RULE, _TRANSPORT_MARKERS
+    use = {"type": "tool_use", "id": "t", "name": "Agent", "input": {"subagent_type": AGENT_TYPE}}
+    disp = json.dumps({"type": "assistant", "message": {"content": [use]}})
+    down = "API Error: Can't reach the API server — check your internet or DNS (EAI_AGAIN)"
+
+    def stream(result: dict) -> str:
+        return disp + "\n" + json.dumps({"type": "result", **result}) + "\n"
+
+    cut = stream({"is_error": True, "api_error_status": None, "result": down})
+    ok = stream({"is_error": False, "result": "done"})
+    check("a dispatched run ended by an API transport error is a transport error", is_transport_error(cut))
+    check("a normally finished run is not a transport error", not is_transport_error(ok))
+    check("a 429 usage-limit result is not a transport error",
+          not is_transport_error(stream({"is_error": True, "api_error_status": 429, "result": "API Error: 429 limit"})))  # fmt: skip
+    check("an API error carrying an HTTP status is not a transport error",
+          not is_transport_error(stream({"is_error": True, "api_error_status": 500, "result": "API Error: 500 ECONNRESET"})))  # fmt: skip
+    with tempfile.TemporaryDirectory() as td:
+        ad = Path(td)
+        text_msg = {"type": "assistant", "message": {"content": [{"type": "text", "text": down}]}}
+        tool_msg = {"type": "assistant", "message": {"content": [use]}}
+        (ad / "agent-1.jsonl").write_text(json.dumps(text_msg) + "\n")
+        check("an agent whose last message is a transport error is caught under a normal main result",
+              is_transport_error(ok, ad))  # fmt: skip
+        (ad / "agent-1.jsonl").write_text(json.dumps(text_msg) + "\n" + json.dumps(tool_msg) + "\n")
+        check("an agent that carried on after a transport error is not caught", not is_transport_error(ok, ad))
+    saved_markers = _TRANSPORT_MARKERS
+    try:
+        _TRANSPORT_MARKERS = ()
+        check("must-fail: with no transport markers the cut run is not caught", not is_transport_error(cut))
+    finally:
+        _TRANSPORT_MARKERS = saved_markers
+    saved = (RAW, CELLS, VERDICT, READINGS, RULE)
+    try:
+        for rule in ("replace-v1", "post-held-v1"):
+            with tempfile.TemporaryDirectory() as td:
+                arm = Path(td)
+                (arm / "raw").mkdir()
+                (arm / "rule.json").write_text(json.dumps({"rule": rule}))
+                for k, text in (("K1", cut), ("K2", ok)):
+                    (arm / "raw" / f"{k}.a1.jsonl").write_text(text)
+                    (arm / "raw" / f"{k}.a1.agent").mkdir()
+                (arm / "raw" / "K1.a1.limit-stub.jsonl").write_text("")
+                cells = {k: {"outcome": "scored", "scored": f"{k}.a1", "attempts": [f"{k}.a1"]} for k in ("K1", "K2")}
+                (arm / "cells.json").write_text(json.dumps(cells))
+                set_arm(arm)
+                got = requeue_transport()
+                left = sorted(json.loads(CELLS.read_text()))
+                names = sorted(p.name for p in (arm / "raw").iterdir())
+                if rule == "replace-v1":
+                    check("the sweep re-queues only the transport-error cell", got == ["K1"] and left == ["K2"])
+                    check("the sweep sets the cell's raw files aside and leaves stubs and other cells alone",
+                          names == ["K1.a1.limit-stub.jsonl", "K1.transport-requeue1.a1.agent",
+                                    "K1.transport-requeue1.a1.jsonl", "K2.a1.agent", "K2.a1.jsonl"])  # fmt: skip
+                    check("a second sweep is a no-op", requeue_transport() == [])
+                else:
+                    check("the sweep does nothing under any other rule", got == [] and left == ["K1", "K2"])
+    finally:
+        RAW, CELLS, VERDICT, READINGS, RULE = saved
+    for arm in (HERE, REPO_ROOT / "tests" / "post-held-append"):
+        cells = json.loads((arm / "cells.json").read_text())
+        hits = [k for k, c in cells.items() if c.get("scored") and is_transport_error(
+            (arm / "raw" / f"{c['scored']}.jsonl").read_text(encoding="utf-8", errors="replace"),
+            arm / "raw" / f"{c['scored']}.agent")]  # fmt: skip
+        check(f"frozen arm {arm.name} has no transport-error run (the amendment changes no comparator)", hits == [])
+
+
 def frozen_rereads(check) -> None:
     """Both frozen arms, rebuilt into temp files, equal the committed readings and verdict byte for byte."""
     global RAW, CELLS, VERDICT, READINGS, RULE
@@ -1420,6 +1569,7 @@ def self_test() -> int:
     post_held_controls(check)
     replace_controls(check)
     replace_score_controls(check)
+    transport_controls(check)
     frozen_rereads(check)
     doc_controls(check)
     doc_controls(check, REPLACE_DOC_PATH, REPLACE_DOC_CONSTANTS, anchor="Rule")

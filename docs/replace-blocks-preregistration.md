@@ -157,3 +157,32 @@ Each line below is machine-checked against `tests/audit-first/run_audit.py`.
 
 None is a verdict gate for this measurement: the first two are measurement tools registered in no
 battery, CI job or gate registry; the third is the DELIVERY-GUARD gate that proves the applier.
+
+## Amendment 1 — API transport errors are re-run (2026-10-11, during stage 1)
+
+**When and why.** Made during stage 1, after two runs were recorded and while two more were in
+flight. `N.decompose-irreducibility.r1` was dispatched and then ended mid-analysis by
+`API Error: Can't reach the API server — check your internet or DNS (EAI_AGAIN)`, a network outage
+on the measuring machine. The rule above discards and re-runs usage-limit stubs only, so this run
+counted as undelivered, and with `Undelivered runs allowed: 0` it would have fixed the verdict at
+`not-shown-effective` whatever the remaining runs showed. The user chose to amend rather than
+continue as registered or defer.
+
+**The amendment.** A dispatched run is an infrastructure failure, discarded and re-run like a
+usage-limit stub, when either the main session's final result or the agent's last assistant
+message is an API error with no HTTP status whose text names an unreachable server or a connection
+failure (`Can't reach the API server`, `EAI_AGAIN`, `ECONNRESET`, `ETIMEDOUT`, `ENOTFOUND`,
+`ECONNREFUSED`, `Connection error`). The test reads only that error text, never assembly, delivery,
+turns or rewrites, so it cannot select runs by outcome. An agent that carried on after such an
+error is not caught, and an error carrying an HTTP status (a 429 limit, a 5xx) is not a transport
+error. The runner sets such an attempt's raw files aside (`<key>.a<n>.transport-error<k>.*`,
+waits 300 s and retries, aborting after 6 in a row); at the start of `run`, under `replace-v1` only,
+it re-queues any recorded cell whose scored attempt was one (`<key>.transport-requeue<k>.*`). The
+set-aside files stay in `tests/replace-blocks/raw/` as evidence. Every constant above is unchanged.
+
+**Effect on the comparators.** None. Neither frozen arm (`tests/audit-first/`,
+`tests/post-held-append/`) has a scored run the test catches — a self-test control asserts this —
+so applying the same rule there would change nothing.
+
+**Falsifier.** `python3 tests/audit-first/run_audit.py --self-test` (the transport controls,
+including a must-fail control with the markers removed, and the two frozen-arm controls).
