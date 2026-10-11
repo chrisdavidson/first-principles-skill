@@ -88,6 +88,8 @@ _CONTROL_IDS = (
     "M4-guard-always-allows",
     "M5-guard-always-blocks",
     "M6-corpus-floor",
+    "P4-survivor-blocked",
+    "M7-survivor-check-stubbed",
 )
 
 
@@ -194,6 +196,27 @@ def corpus_problems(decide_problem) -> list[str]:
     return problems
 
 
+def survivor_problems(guard) -> list[str]:
+    """[] only when the guard blocks an assembled file that still carries a Replace line."""
+    with tempfile.TemporaryDirectory() as td:
+        cwd = Path(td)
+        stamp = "20261009T120000Z"
+        rel = f".first-principles/analysis-{stamp}.md"
+        (cwd / ".first-principles").mkdir()
+        (cwd / rel).write_text("## Answer\nx\n## Replace: X\n## X\n", encoding="utf-8")
+        (cwd / ".first-principles" / f"report-{stamp}.md").write_text("# T\n")
+        transcript = cwd / "t.jsonl"
+        block = {"type": "tool_result", "content": rel}
+        transcript.write_text(
+            json.dumps({"type": "user", "message": {"role": "user", "content": [block]}})
+            + "\n"
+        )
+        got = guard.delivery_problem(transcript, cwd)
+    if isinstance(got, str) and "survives" in got:
+        return []
+    return ["SURVIVOR: guard passed a surviving ## Replace: line"]
+
+
 def _hooks() -> dict:
     return json.loads(HOOKS_JSON.read_text(encoding="utf-8"))
 
@@ -236,6 +259,15 @@ def self_test() -> int:
     control(
         "M6-corpus-floor", [p for p in problems if p.startswith("CORPUS-FLOOR")], True
     )
+
+    control("P4-survivor-blocked", survivor_problems(guard), False)
+    saved_sm = guard.surviving_marker
+    guard.surviving_marker = lambda p: None
+    try:
+        stubbed = survivor_problems(guard)
+    finally:
+        guard.surviving_marker = saved_sm
+    control("M7-survivor-check-stubbed", stubbed, True)
 
     if failures:
         print(

@@ -3,8 +3,8 @@
 <!-- GENERATED:FACTS -->
 ## Facts
 
-- `control_ids` (9): `P1-live-wiring`, `P2-guard-self-test`, `P3-corpus-verdicts`, `M1-matcher-renamed`, `M2-command-path-missing`, `M3-second-subagentstop-entry`, `M4-guard-always-allows`, `M5-guard-always-blocks`, `M6-corpus-floor`
-- `control_count`: `9`
+- `control_ids` (11): `P1-live-wiring`, `P2-guard-self-test`, `P3-corpus-verdicts`, `M1-matcher-renamed`, `M2-command-path-missing`, `M3-second-subagentstop-entry`, `M4-guard-always-allows`, `M5-guard-always-blocks`, `M6-corpus-floor`, `P4-survivor-blocked`, `M7-survivor-check-stubbed`
+- `control_count`: `11`
 - `registered_surfaces` (2): `first-principles/hooks/delivery-guard.py`, `first-principles/hooks/hooks.json`
 - `disclosed_bounds_anchors` (3): `decides delivery from the file on disk, never from the analysis's quality`, `blocks at most twice per run, then lets the stop through`, `whether a blocked agent then delivers is a live reading, never gated`
 <!-- END GENERATED:FACTS -->
