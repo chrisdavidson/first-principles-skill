@@ -152,7 +152,7 @@ dispatched, all assembled and delivered, compared with the 24 assembled runs of 
 Verdict: `not-shown-effective` (rule `post-held-v1`, primary p = 0.512; the primary reading, post-held
 rewrites per run below the 999.198 arm's, was not met). The body was not released: master carries the
 9.19.4 body and no version stamp changed. The pre-registration is `docs/post-held-preregistration.md`;
-the 999.200 body is the generated tree at commit d393bb373b91.
+the 999.200 body is the generated tree at commit d393bb373b91, kept on branch `post-held-999.200`.
 
 | | 999.198 arm | 999.200 arm |
 |---|---|---|
@@ -162,12 +162,12 @@ the 999.200 body is the generated tree at commit d393bb373b91.
 | Median rewrites | 2 | 2.0 |
 | Median gate turn | 26 | 23 |
 | Max turns | 90 (theoretical-limit-carnot.r2) | 99 (theoretical-limit-carnot.r2, 13 rewrites, gate at turn 77) |
-| `.process` share of rewrites | 18/40 (heavy runs) | 30/78 |
+| `.process` (sidecar) share of rewrites | 27/75 | 30/78 |
 | Runs with NOT APPENDED | 4 | 9 of 24 |
 
 The no-regression condition failed on max turns (99); the other four conditions held. That 99 exceeds
 the agent's `maxTurns: 90` was not investigated. The Type-cell refusal fired 6 times (12 refusals in
-all: type_cell 6, gt_n 4, missing 2). The derived-block ordering rule did not reduce sidecar rewrites.
+all: type_cell 6, gt_n 4, missing 2). The derived-block ordering rule did not reduce sidecar rewrites (27 of 75 in the 999.198 arm, 30 of 78 here, both by `python3 tests/audit-first/rewrite_causes.py --dirs '<arm>/raw/*.agent'`, category PROC).
 Spend $83.53. Falsifiers: `python3 tests/audit-first/run_audit.py read --arm-dir tests/post-held-append`
 for every verdict figure and `python3 tests/audit-first/run_audit.py held --arm-dir tests/post-held-append`
 for the NOT APPENDED attempts. Backlog 999.199 is the next candidate.
