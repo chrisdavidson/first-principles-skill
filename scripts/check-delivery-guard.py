@@ -31,6 +31,8 @@ import copy
 import importlib.util
 import json
 import os
+import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -79,6 +81,8 @@ _CORPORA = {
 # so a deleted or renamed capture tree cannot shrink the check to nothing.
 _CORPUS_FLOOR = 40
 
+AGENT_MD = PLUGIN / "agents" / "first-principles.md"
+PHASE_TURNS = REPO_ROOT / "tests" / "skip-rate" / "phase_turns.py"
 PROGRAM_SRC = PLUGIN / "references" / "replace-blocks.md"
 _IDENTITY_ROOTS = (
     REPO_ROOT / "tests" / "audit-first" / "raw",
@@ -122,6 +126,14 @@ _CONTROL_IDS = (
     "M13-deferred-validation-ignores-withdraw",
     "M14-unmatched-withdraw-refuses",
     "M15-unmatched-withdraw-survives",
+    "A15-step4-assembles",
+    "A16-step4-rerun-noop",
+    "A17-step4-refusal-keeps-files",
+    "A18-step4-empty-program-keeps-files",
+    "A19-step4-misfiled-resolves",
+    "A20-step4-not-rewrite",
+    "A21-awk-dialects",
+    "M10-size-guard-dropped",
 )
 
 
@@ -642,6 +654,172 @@ def mutation_problems(mutate, target: str, program: str) -> list[str]:
     return applier_problems(mutated, only={target}).get(target, [])
 
 
+# ------------------------------------------------------------- step 4, end to end
+
+
+def step4_command(text: str | None = None) -> str:
+    """The one-line sh command of step 4, read from the shipped agent, never copied."""
+    text = AGENT_MD.read_text(encoding="utf-8") if text is None else text
+    m = re.search(
+        r"^4\. \*\*Assemble once[^\n]*\n\s*```sh\n(.*?)\n\s*```", text, re.S | re.M
+    )
+    if not m:
+        raise ValueError("STEP4-MISSING: no sh block after '4. **Assemble once'")
+    lines = [ln.strip() for ln in m.group(1).split("\n")]
+    if len(lines) != 1 or not lines[0]:
+        raise ValueError(f"STEP4-SHAPE: expected one command line, found {len(lines)}")
+    return lines[0]
+
+
+def _snapshot(d: Path) -> dict[str, bytes]:
+    fp = d / ".first-principles"
+    return {f.name: f.read_bytes() for f in sorted(fp.iterdir())}
+
+
+def _run_step4(cmd: str, d: Path, bindir: Path, plugin_root: Path):
+    full = cmd.replace("<path>", ".first-principles/analysis-T.md")
+    return subprocess.run(
+        [
+            "env", "-i", f"PATH={bindir}:/usr/bin:/bin",
+            f"CLAUDE_PLUGIN_ROOT={plugin_root}", "bash", "-c", full,
+        ],
+        cwd=d,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def _has_marker(text: str) -> bool:
+    fenced = False
+    for ln in text.split("\n"):
+        if ln.startswith(_FENCE):
+            fenced = not fenced
+        elif not fenced and ln.startswith(("## Replace: ", "## Withdraw: ")):
+            return True
+    return False
+
+
+def step4_problems(cmd: str, label: str, argv: list[str]) -> dict[str, list[str]]:
+    ids = (
+        "A15-step4-assembles",
+        "A16-step4-rerun-noop",
+        "A17-step4-refusal-keeps-files",
+        "A18-step4-empty-program-keeps-files",
+        "A19-step4-misfiled-resolves",
+    )
+    res: dict[str, list[str]] = {i: [] for i in ids}
+    leftovers = (".answer", ".process", ".apply", ".tmp")
+
+    def fail(cid: str, msg: str) -> None:
+        res[cid].append(f"[{label}] {msg}")
+
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        bindir = root / "bin"
+        bindir.mkdir()
+        wrapper = bindir / "awk"
+        wrapper.write_text(
+            "#!/bin/sh\nexec " + " ".join(shlex.quote(a) for a in argv) + ' "$@"\n'
+        )
+        wrapper.chmod(0o755)
+        empty_root = root / "empty-plugin"
+        (empty_root / "references").mkdir(parents=True)
+        (empty_root / "references" / "replace-blocks.md").write_text("no program\n")
+
+        def case(name: str, main: str, process: str, answer: str) -> Path:
+            d = root / name
+            (d / ".first-principles").mkdir(parents=True)
+            base = d / ".first-principles" / "analysis-T.md"
+            base.write_text(main)
+            base.with_name("analysis-T.md.process").write_text(process)
+            base.with_name("analysis-T.md.answer").write_text(answer)
+            return d
+
+        def stray(d: Path) -> list[str]:
+            return [
+                f.name
+                for f in (d / ".first-principles").iterdir()
+                if f.name.endswith(leftovers)
+            ]
+
+        # A15 / A16
+        d = case(
+            "a15",
+            "## 1. Essence\ntext\n## Replace: 1. Essence\n## 1. Essence\nfixed\n",
+            "## Appendix — process output\nfoo\n",
+            "## Answer\nans\n",
+        )
+        proc = _run_step4(cmd, d, bindir, PLUGIN)
+        out = (d / ".first-principles" / "analysis-T.md").read_text()
+        if proc.returncode != 0 or not out.startswith("## Answer\n"):
+            fail("A15-step4-assembles", f"rc={proc.returncode} err={proc.stderr!r} out={out!r}")
+        elif "fixed" not in out or "text" in out or _has_marker(out):
+            fail("A15-step4-assembles", f"replacement not applied cleanly: {out!r}")
+        if stray(d):
+            fail("A15-step4-assembles", f"working files left behind: {stray(d)}")
+        before = _snapshot(d)
+        proc = _run_step4(cmd, d, bindir, PLUGIN)
+        if "already assembled" not in proc.stdout or _snapshot(d) != before:
+            fail("A16-step4-rerun-noop", f"stdout={proc.stdout!r}, or files changed")
+
+        # A17: a refusal keeps every file
+        d = case(
+            "a17",
+            "## 1. Essence\ntext\n",
+            "## Appendix\nfoo\n## Replace: Nope\n## Nope\nx\n",
+            "## Answer\nans\n",
+        )
+        before = _snapshot(d)
+        proc = _run_step4(cmd, d, bindir, PLUGIN)
+        if "NOT ASSEMBLED:" not in proc.stdout + proc.stderr:
+            fail("A17-step4-refusal-keeps-files", f"no refusal text: {proc.stderr!r}")
+        if _snapshot(d) != before:
+            fail("A17-step4-refusal-keeps-files", "files changed or working files left")
+
+        # A18: an empty extracted program keeps every file
+        d = case("a18", "## 1. Essence\ntext\n", "## Appendix\nfoo\n", "## Answer\nans\n")
+        before = _snapshot(d)
+        _run_step4(cmd, d, bindir, empty_root)
+        if _snapshot(d) != before:
+            fail("A18-step4-empty-program-keeps-files", "files changed or working files left")
+
+        # A19: a replacement misfiled in .process still resolves
+        d = case(
+            "a19",
+            "## 1. Essence\ntext\n## 2. Next\nn\n",
+            "## Appendix\nfoo\n## Replace: 1. Essence\n## 1. Essence\nfixed\n",
+            "## Answer\nans\n",
+        )
+        proc = _run_step4(cmd, d, bindir, PLUGIN)
+        out = (d / ".first-principles" / "analysis-T.md").read_text()
+        if proc.returncode != 0 or "fixed" not in out or "text" in out or _has_marker(out):
+            fail("A19-step4-misfiled-resolves", f"rc={proc.returncode} out={out!r}")
+    return res
+
+
+def phase_turns_problems(cmd: str) -> list[str]:
+    spec = importlib.util.spec_from_file_location("phase_turns", PHASE_TURNS)
+    pt = importlib.util.module_from_spec(spec)
+    sys.modules["phase_turns"] = pt
+    spec.loader.exec_module(pt)
+    real = cmd.replace("<path>", ".first-principles/analysis-20261009T120000Z.md")
+    problems = []
+    if pt.is_rewrite(real) is not False:
+        problems.append("REWRITE: phase_turns counts step 4 as a rewrite")
+    if "assemble" not in pt.classify(real):
+        problems.append(f"CLASSIFY: step 4 is not classified assemble: {pt.classify(real)}")
+    return problems
+
+
+def step4_all(cmd: str, dialects) -> dict[str, list[str]]:
+    merged: dict[str, list[str]] = {}
+    for label, argv in dialects:
+        for cid, probs in step4_problems(cmd, label, argv).items():
+            merged.setdefault(cid, []).extend(probs)
+    return merged
+
+
 def _hooks() -> dict:
     return json.loads(HOOKS_JSON.read_text(encoding="utf-8"))
 
@@ -710,6 +888,38 @@ def self_test() -> int:
     for mid, target, mutate in _MUTATIONS:
         control(mid, mutation_problems(mutate, target, program), True)
 
+    dialects = awk_dialects()
+    try:
+        cmd = step4_command()
+    except ValueError as exc:
+        cmd = ""
+        for cid in ("A15-step4-assembles", "A16-step4-rerun-noop",
+                    "A17-step4-refusal-keeps-files", "A18-step4-empty-program-keeps-files",
+                    "A19-step4-misfiled-resolves", "A20-step4-not-rewrite", "M10-size-guard-dropped"):
+            control(cid, [str(exc)], False)
+    if cmd:
+        s4 = step4_all(cmd, dialects)
+        for cid in (
+            "A15-step4-assembles",
+            "A16-step4-rerun-noop",
+            "A17-step4-refusal-keeps-files",
+            "A18-step4-empty-program-keeps-files",
+            "A19-step4-misfiled-resolves",
+        ):
+            control(cid, s4[cid], False)
+        control("A20-step4-not-rewrite", phase_turns_problems(cmd), False)
+        required = os.environ.get("FP_REQUIRE_AWK_DIALECTS", "")
+        a21 = dialect_problems(labels, required)
+        if not dialect_problems(labels, "no-such-awk"):
+            a21.append("A21 requirement path cannot fail")
+        control("A21-awk-dialects", a21, False)
+        mutated = cmd.replace(' && [ -s "$A" ]', "", 1)
+        if mutated == cmd:
+            m10 = ["MUTATION-VACUOUS: the mutation left the command unchanged"]
+        else:
+            m10 = step4_all(mutated, dialects)["A18-step4-empty-program-keeps-files"]
+        control("M10-size-guard-dropped", m10, True)
+
     if failures:
         print(
             f"check-delivery-guard --self-test: FAIL ({len(failures)} of {len(_CONTROL_IDS)})"
@@ -726,11 +936,14 @@ def describe() -> dict:
         "registered_surfaces": [
             "first-principles/hooks/delivery-guard.py",
             "first-principles/hooks/hooks.json",
+            "first-principles/references/replace-blocks.md",
+            "first-principles/agents/first-principles.md",
         ],
         "disclosed_bounds_anchors": [
             "decides delivery from the file on disk, never from the analysis's quality",
             "blocks at most twice per run, then lets the stop through",
             "whether a blocked agent then delivers is a live reading, never gated",
+            "awk implementations absent from the machine are untested",
         ],
     }
 
