@@ -1,0 +1,890 @@
+[
+  {
+    "agent_min": 17.3,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 3.1552427000000005,
+    "delivered": true,
+    "dup_section_writes": 0,
+    "gate_turn": 23,
+    "held_append_turn": 8,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 0,
+      "type_cell": 0
+    },
+    "held_refusal_turns": 0,
+    "held_refusals": 0,
+    "key": "N.composed-inversion-second-order.r1",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "composed-inversion-second-order",
+    "repeat": 1,
+    "rewrite_split": {
+      "post_gate": 1,
+      "post_held_pre_gate": 3,
+      "pre_held": 0
+    },
+    "rewrites": 4,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 2,
+      "answer": 0,
+      "process": 2
+    },
+    "turns": 37
+  },
+  {
+    "agent_min": 23.9,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 4.0021311000000015,
+    "delivered": true,
+    "dup_section_writes": 2,
+    "gate_turn": 29,
+    "held_append_turn": 10,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 0,
+      "type_cell": 1
+    },
+    "held_refusal_turns": 1,
+    "held_refusals": 1,
+    "key": "N.composed-inversion-second-order.r2",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "composed-inversion-second-order",
+    "repeat": 2,
+    "rewrite_split": {
+      "post_gate": 4,
+      "post_held_pre_gate": 4,
+      "pre_held": 0
+    },
+    "rewrites": 8,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 6,
+      "answer": 0,
+      "process": 2
+    },
+    "turns": 49
+  },
+  {
+    "agent_min": 24.3,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 3.5640065000000005,
+    "delivered": true,
+    "dup_section_writes": 2,
+    "gate_turn": 25,
+    "held_append_turn": 17,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 0,
+      "type_cell": 0
+    },
+    "held_refusal_turns": 0,
+    "held_refusals": 0,
+    "key": "N.decompose-irreducibility.r1",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "decompose-irreducibility",
+    "repeat": 1,
+    "rewrite_split": {
+      "post_gate": 0,
+      "post_held_pre_gate": 1,
+      "pre_held": 0
+    },
+    "rewrites": 1,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 0,
+      "answer": 0,
+      "process": 1
+    },
+    "turns": 39
+  },
+  {
+    "agent_min": 29.8,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 4.7385087,
+    "delivered": true,
+    "dup_section_writes": 4,
+    "gate_turn": 44,
+    "held_append_turn": 17,
+    "held_refusal_kinds": {
+      "gt_n": 1,
+      "missing": 0,
+      "type_cell": 1
+    },
+    "held_refusal_turns": 4,
+    "held_refusals": 2,
+    "key": "N.decompose-irreducibility.r2",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "decompose-irreducibility",
+    "repeat": 2,
+    "rewrite_split": {
+      "post_gate": 0,
+      "post_held_pre_gate": 5,
+      "pre_held": 0
+    },
+    "rewrites": 5,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 5,
+      "answer": 0,
+      "process": 0
+    },
+    "turns": 58
+  },
+  {
+    "agent_min": 13.1,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 2.0091690000000004,
+    "delivered": true,
+    "dup_section_writes": 0,
+    "gate_turn": 17,
+    "held_append_turn": 8,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 0,
+      "type_cell": 0
+    },
+    "held_refusal_turns": 0,
+    "held_refusals": 0,
+    "key": "N.ishikawa-fishbone.r1",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "ishikawa-fishbone",
+    "repeat": 1,
+    "rewrite_split": {
+      "post_gate": 0,
+      "post_held_pre_gate": 2,
+      "pre_held": 0
+    },
+    "rewrites": 2,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 0,
+      "answer": 0,
+      "process": 2
+    },
+    "turns": 28
+  },
+  {
+    "agent_min": 16.3,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 2.7951873000000003,
+    "delivered": true,
+    "dup_section_writes": 0,
+    "gate_turn": 20,
+    "held_append_turn": 9,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 0,
+      "type_cell": 0
+    },
+    "held_refusal_turns": 0,
+    "held_refusals": 0,
+    "key": "N.ishikawa-fishbone.r2",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "ishikawa-fishbone",
+    "repeat": 2,
+    "rewrite_split": {
+      "post_gate": 1,
+      "post_held_pre_gate": 1,
+      "pre_held": 0
+    },
+    "rewrites": 2,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 2,
+      "answer": 0,
+      "process": 0
+    },
+    "turns": 38
+  },
+  {
+    "agent_min": 24.6,
+    "assembled": true,
+    "attempts": 3,
+    "complete": true,
+    "cost_usd": 4.1328094,
+    "delivered": true,
+    "dup_section_writes": 0,
+    "gate_turn": 30,
+    "held_append_turn": 20,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 0,
+      "type_cell": 1
+    },
+    "held_refusal_turns": 2,
+    "held_refusals": 1,
+    "key": "N.personal-general-2.r1",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "personal-general-2",
+    "repeat": 1,
+    "rewrite_split": {
+      "post_gate": 2,
+      "post_held_pre_gate": 4,
+      "pre_held": 2
+    },
+    "rewrites": 8,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 6,
+      "answer": 0,
+      "process": 2
+    },
+    "turns": 44
+  },
+  {
+    "agent_min": 28.7,
+    "assembled": true,
+    "attempts": 2,
+    "complete": true,
+    "cost_usd": 4.403382,
+    "delivered": true,
+    "dup_section_writes": 2,
+    "gate_turn": 27,
+    "held_append_turn": 22,
+    "held_refusal_kinds": {
+      "gt_n": 1,
+      "missing": 0,
+      "type_cell": 1
+    },
+    "held_refusal_turns": 3,
+    "held_refusals": 2,
+    "key": "N.personal-general-2.r2",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "personal-general-2",
+    "repeat": 2,
+    "rewrite_split": {
+      "post_gate": 2,
+      "post_held_pre_gate": 0,
+      "pre_held": 0
+    },
+    "rewrites": 2,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 0,
+      "answer": 0,
+      "process": 2
+    },
+    "turns": 41
+  },
+  {
+    "agent_min": 16.6,
+    "assembled": true,
+    "attempts": 2,
+    "complete": true,
+    "cost_usd": 2.859782699999999,
+    "delivered": true,
+    "dup_section_writes": 1,
+    "gate_turn": 21,
+    "held_append_turn": 14,
+    "held_refusal_kinds": {
+      "gt_n": 1,
+      "missing": 0,
+      "type_cell": 0
+    },
+    "held_refusal_turns": 2,
+    "held_refusals": 1,
+    "key": "N.personal-general.r1",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "personal-general",
+    "repeat": 1,
+    "rewrite_split": {
+      "post_gate": 1,
+      "post_held_pre_gate": 0,
+      "pre_held": 0
+    },
+    "rewrites": 1,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 0,
+      "answer": 0,
+      "process": 1
+    },
+    "turns": 35
+  },
+  {
+    "agent_min": 14.2,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 2.258755,
+    "delivered": true,
+    "dup_section_writes": 0,
+    "gate_turn": 17,
+    "held_append_turn": 10,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 0,
+      "type_cell": 0
+    },
+    "held_refusal_turns": 0,
+    "held_refusals": 0,
+    "key": "N.personal-general.r2",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "personal-general",
+    "repeat": 2,
+    "rewrite_split": {
+      "post_gate": 0,
+      "post_held_pre_gate": 0,
+      "pre_held": 0
+    },
+    "rewrites": 0,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 0,
+      "answer": 0,
+      "process": 0
+    },
+    "turns": 29
+  },
+  {
+    "agent_min": 17.9,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 2.5626165,
+    "delivered": true,
+    "dup_section_writes": 0,
+    "gate_turn": 14,
+    "held_append_turn": 8,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 0,
+      "type_cell": 0
+    },
+    "held_refusal_turns": 0,
+    "held_refusals": 0,
+    "key": "N.product-business-2.r1",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "product-business-2",
+    "repeat": 1,
+    "rewrite_split": {
+      "post_gate": 1,
+      "post_held_pre_gate": 0,
+      "pre_held": 0
+    },
+    "rewrites": 1,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 0,
+      "answer": 0,
+      "process": 1
+    },
+    "turns": 28
+  },
+  {
+    "agent_min": 17.2,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 2.4105928000000003,
+    "delivered": true,
+    "dup_section_writes": 0,
+    "gate_turn": 13,
+    "held_append_turn": 8,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 0,
+      "type_cell": 0
+    },
+    "held_refusal_turns": 0,
+    "held_refusals": 0,
+    "key": "N.product-business-2.r2",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "product-business-2",
+    "repeat": 2,
+    "rewrite_split": {
+      "post_gate": 0,
+      "post_held_pre_gate": 0,
+      "pre_held": 0
+    },
+    "rewrites": 0,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 0,
+      "answer": 0,
+      "process": 0
+    },
+    "turns": 24
+  },
+  {
+    "agent_min": 19.7,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 2.760749600000001,
+    "delivered": true,
+    "dup_section_writes": 1,
+    "gate_turn": 21,
+    "held_append_turn": 15,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 0,
+      "type_cell": 0
+    },
+    "held_refusal_turns": 0,
+    "held_refusals": 0,
+    "key": "N.product-business.r1",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "product-business",
+    "repeat": 1,
+    "rewrite_split": {
+      "post_gate": 1,
+      "post_held_pre_gate": 0,
+      "pre_held": 0
+    },
+    "rewrites": 1,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 1,
+      "answer": 0,
+      "process": 0
+    },
+    "turns": 35
+  },
+  {
+    "agent_min": 16.7,
+    "assembled": true,
+    "attempts": 2,
+    "complete": true,
+    "cost_usd": 2.5540314000000004,
+    "delivered": true,
+    "dup_section_writes": 0,
+    "gate_turn": null,
+    "held_append_turn": 9,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 0,
+      "type_cell": 0
+    },
+    "held_refusal_turns": 0,
+    "held_refusals": 0,
+    "key": "N.product-business.r2",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "product-business",
+    "repeat": 2,
+    "rewrite_split": {
+      "post_gate": 0,
+      "post_held_pre_gate": 0,
+      "pre_held": 0
+    },
+    "rewrites": 0,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 0,
+      "answer": 0,
+      "process": 0
+    },
+    "turns": 25
+  },
+  {
+    "agent_min": 23.4,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 3.8563902000000017,
+    "delivered": true,
+    "dup_section_writes": 8,
+    "gate_turn": 36,
+    "held_append_turn": 12,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 1,
+      "type_cell": 1
+    },
+    "held_refusal_turns": 1,
+    "held_refusals": 2,
+    "key": "N.science-engineering-2.r1",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "science-engineering-2",
+    "repeat": 1,
+    "rewrite_split": {
+      "post_gate": 1,
+      "post_held_pre_gate": 1,
+      "pre_held": 0
+    },
+    "rewrites": 2,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 0,
+      "answer": 0,
+      "process": 2
+    },
+    "turns": 52
+  },
+  {
+    "agent_min": 32.6,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 4.985649999999999,
+    "delivered": true,
+    "dup_section_writes": 2,
+    "gate_turn": 37,
+    "held_append_turn": 18,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 0,
+      "type_cell": 0
+    },
+    "held_refusal_turns": 0,
+    "held_refusals": 0,
+    "key": "N.science-engineering-2.r2",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "science-engineering-2",
+    "repeat": 2,
+    "rewrite_split": {
+      "post_gate": 0,
+      "post_held_pre_gate": 6,
+      "pre_held": 0
+    },
+    "rewrites": 6,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 3,
+      "answer": 0,
+      "process": 3
+    },
+    "turns": 51
+  },
+  {
+    "agent_min": 23.9,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 3.0962471,
+    "delivered": true,
+    "dup_section_writes": 0,
+    "gate_turn": 17,
+    "held_append_turn": 11,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 0,
+      "type_cell": 0
+    },
+    "held_refusal_turns": 0,
+    "held_refusals": 0,
+    "key": "N.self-application.r1",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "self-application",
+    "repeat": 1,
+    "rewrite_split": {
+      "post_gate": 0,
+      "post_held_pre_gate": 0,
+      "pre_held": 0
+    },
+    "rewrites": 0,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 0,
+      "answer": 0,
+      "process": 0
+    },
+    "turns": 30
+  },
+  {
+    "agent_min": 26.8,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 4.56858,
+    "delivered": true,
+    "dup_section_writes": 0,
+    "gate_turn": 45,
+    "held_append_turn": 20,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 0,
+      "type_cell": 0
+    },
+    "held_refusal_turns": 0,
+    "held_refusals": 0,
+    "key": "N.self-application.r2",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "self-application",
+    "repeat": 2,
+    "rewrite_split": {
+      "post_gate": 1,
+      "post_held_pre_gate": 7,
+      "pre_held": 0
+    },
+    "rewrites": 8,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 4,
+      "answer": 0,
+      "process": 4
+    },
+    "turns": 64
+  },
+  {
+    "agent_min": 21.5,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 2.9355936000000002,
+    "delivered": true,
+    "dup_section_writes": 0,
+    "gate_turn": 22,
+    "held_append_turn": 12,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 0,
+      "type_cell": 0
+    },
+    "held_refusal_turns": 0,
+    "held_refusals": 0,
+    "key": "N.software-systems-2.r1",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "software-systems-2",
+    "repeat": 1,
+    "rewrite_split": {
+      "post_gate": 1,
+      "post_held_pre_gate": 4,
+      "pre_held": 1
+    },
+    "rewrites": 6,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 5,
+      "answer": 0,
+      "process": 1
+    },
+    "turns": 36
+  },
+  {
+    "agent_min": 17.6,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 2.6170432999999993,
+    "delivered": true,
+    "dup_section_writes": 0,
+    "gate_turn": 16,
+    "held_append_turn": 10,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 0,
+      "type_cell": 0
+    },
+    "held_refusal_turns": 0,
+    "held_refusals": 0,
+    "key": "N.software-systems-2.r2",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "software-systems-2",
+    "repeat": 2,
+    "rewrite_split": {
+      "post_gate": 1,
+      "post_held_pre_gate": 0,
+      "pre_held": 0
+    },
+    "rewrites": 1,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 0,
+      "answer": 0,
+      "process": 1
+    },
+    "turns": 30
+  },
+  {
+    "agent_min": 21.6,
+    "assembled": true,
+    "attempts": 2,
+    "complete": true,
+    "cost_usd": 3.7131624000000003,
+    "delivered": true,
+    "dup_section_writes": 2,
+    "gate_turn": 32,
+    "held_append_turn": 22,
+    "held_refusal_kinds": {
+      "gt_n": 1,
+      "missing": 0,
+      "type_cell": 0
+    },
+    "held_refusal_turns": 4,
+    "held_refusals": 1,
+    "key": "N.software-systems.r1",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "software-systems",
+    "repeat": 1,
+    "rewrite_split": {
+      "post_gate": 0,
+      "post_held_pre_gate": 1,
+      "pre_held": 1
+    },
+    "rewrites": 2,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 2,
+      "answer": 0,
+      "process": 0
+    },
+    "turns": 46
+  },
+  {
+    "agent_min": 17.6,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 2.4888455999999994,
+    "delivered": true,
+    "dup_section_writes": 1,
+    "gate_turn": 23,
+    "held_append_turn": 14,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 0,
+      "type_cell": 0
+    },
+    "held_refusal_turns": 0,
+    "held_refusals": 0,
+    "key": "N.software-systems.r2",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "software-systems",
+    "repeat": 2,
+    "rewrite_split": {
+      "post_gate": 0,
+      "post_held_pre_gate": 0,
+      "pre_held": 0
+    },
+    "rewrites": 0,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 0,
+      "answer": 0,
+      "process": 0
+    },
+    "turns": 34
+  },
+  {
+    "agent_min": 20.5,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 3.7799616,
+    "delivered": true,
+    "dup_section_writes": 1,
+    "gate_turn": 29,
+    "held_append_turn": 18,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 0,
+      "type_cell": 1
+    },
+    "held_refusal_turns": 2,
+    "held_refusals": 1,
+    "key": "N.theoretical-limit-carnot.r1",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "theoretical-limit-carnot",
+    "repeat": 1,
+    "rewrite_split": {
+      "post_gate": 1,
+      "post_held_pre_gate": 3,
+      "pre_held": 1
+    },
+    "rewrites": 5,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 3,
+      "answer": 0,
+      "process": 2
+    },
+    "turns": 43
+  },
+  {
+    "agent_min": 30.0,
+    "assembled": true,
+    "attempts": 1,
+    "complete": true,
+    "cost_usd": 7.2860086000000015,
+    "delivered": true,
+    "dup_section_writes": 0,
+    "gate_turn": 77,
+    "held_append_turn": 43,
+    "held_refusal_kinds": {
+      "gt_n": 0,
+      "missing": 1,
+      "type_cell": 0
+    },
+    "held_refusal_turns": 2,
+    "held_refusals": 1,
+    "key": "N.theoretical-limit-carnot.r2",
+    "leftover_sidecars": [],
+    "missing_sections": [],
+    "mode": null,
+    "prompt": "theoretical-limit-carnot",
+    "repeat": 2,
+    "rewrite_split": {
+      "post_gate": 3,
+      "post_held_pre_gate": 10,
+      "pre_held": 0
+    },
+    "rewrites": 13,
+    "state": "delivered",
+    "target_split": {
+      "analysis": 9,
+      "answer": 0,
+      "process": 4
+    },
+    "turns": 99
+  }
+]

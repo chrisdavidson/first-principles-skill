@@ -1,0 +1,31 @@
+{
+  "assembled": 24,
+  "assembly_rate": 1.0,
+  "comparator_mean_post_held": 3.0416666666666665,
+  "comparator_n": 24,
+  "critical": 5,
+  "dispatched": 24,
+  "futility": null,
+  "heavy_vs_baseline": false,
+  "incomplete_runs": 0,
+  "k_ge6": 6,
+  "max_turns": 99,
+  "mean_post_held": 3.0416666666666665,
+  "median_gate_turn": 23,
+  "median_rewrites": 2.0,
+  "median_turns": 37.5,
+  "no_regression": false,
+  "no_regression_conditions": {
+    "assembly_rate": true,
+    "complete": true,
+    "max_turns": false,
+    "median_gate_turn": true,
+    "median_turns": true
+  },
+  "primary": false,
+  "primary_p": 0.511924403779811,
+  "rule": "post-held-v1",
+  "secondary": true,
+  "stage_complete": true,
+  "verdict": "not-shown-effective"
+}
