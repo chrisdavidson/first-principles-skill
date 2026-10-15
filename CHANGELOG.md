@@ -86,6 +86,42 @@ preserved on branch `audit-first-999.198`.
 - Falsifier for every figure above: `python3 tests/audit-first/run_audit.py read`. Evidence in
   `tests/audit-first/`; reading in `docs/skip-rate-reading.md`.
 
+## [9.20.0] — 2026-10-15
+
+Minor release: **every analysis now opens with a one-page executive summary.** The reader report
+was accurate but dense — the summary above it was three lines of chain ids over a report of several
+thousand words. The new summary follows the shape of a business executive summary (problem,
+recommendation, findings, value and risk, next steps) and is written for a reader who will read
+nothing else.
+
+### Changed — the Answer block becomes the executive summary (shipped)
+
+- **Seven lead-ins, in order:** The question, Recommendation, Key findings (3–5 bullets), Value and
+  risks, Band (from §6), Would change it, Next steps (3–5 numbered actions). At most 400 words (was
+  120). The reader report still heads it Executive Summary; the working file still heads it
+  `## Answer`, so the delivery guard and the persona skill, which read the three original lead-ins,
+  are unchanged.
+- **It adds nothing.** Every line, bullet and step restates §6 and cites the chain §6 cites (The
+  question restates §1); every number appears in §1 or §6; a line that does not is cut before
+  assembly. It is written for an outsider: things named by what they are, ids only in citations.
+- **One page in the PDF.** The page template sets the Executive Summary on a page of its own and
+  starts §1 on the next.
+- The output template carries a worked example of the shape; the reading guide, the report layout
+  description and both READMEs describe it.
+
+### Added — gate controls
+
+- **FIG-GATE L04/L05.** L04 typesets a worst-case summary (every lead-in, five findings, five steps,
+  425 words, a title that wraps) through the shipped template and requires, from typst's own heading
+  locations, that the next section starts exactly one page after it; L05 removes the page break and
+  must fail. This proves one fixture fits one page, not that every live summary will.
+  Falsifier: `python3 scripts/check-report-figures.py --self-test`.
+
+### Not in this release
+
+- Backlog 999.199 (correct by appending replacement blocks) was measured and reverted; see
+  *Measured — backlog 999.199* above. The shipped tree apart from this change is 9.19.4's.
+
 ## [9.19.4] — 2026-10-10
 
 Patch release: **the agent's turn budget rises from 60 to 90.** Measured, not guessed: the
