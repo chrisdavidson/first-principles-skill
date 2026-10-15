@@ -7,8 +7,7 @@ loses the procedure. Its deliverable is a file, so a run that wrote no file is
 a skipped run whatever its final message says. This hook reads the agent's own
 transcript, finds the analysis file it created, and refuses the stop -- telling
 the agent what is missing -- until that file is assembled (its first `## `
-heading is `## Answer` and no `## Replace:`/`## Withdraw:` marker survives outside a
-code fence) and the Markdown reader report beside it exists.
+heading is `## Answer`) and the Markdown reader report beside it exists.
 
 It blocks at most MAX_BLOCKS times per agent run, then lets the stop through,
 so a run that genuinely cannot deliver (Bash denied, say) is never trapped.
@@ -87,18 +86,6 @@ def analysis_paths(transcript: Path) -> list[str]:
     return found
 
 
-def surviving_marker(analysis: Path) -> str | None:
-    """First `## Replace: ` or `## Withdraw: ` line outside a code fence, else None."""
-    fenced = False
-    with analysis.open(encoding="utf-8", errors="replace") as fh:
-        for ln in fh:
-            if ln.startswith("```"):
-                fenced = not fenced
-            elif not fenced and ln.startswith(("## Replace: ", "## Withdraw: ")):
-                return ln.rstrip("\n")
-    return None
-
-
 def delivery_problem(transcript: Path, cwd: Path) -> str | None:
     """None when the run delivered; otherwise what is missing, in one line."""
     paths = analysis_paths(transcript)
@@ -124,12 +111,6 @@ def delivery_problem(transcript: Path, cwd: Path) -> str | None:
                 f"`{raw}` exists but is not assembled (its first `## ` heading is "
                 f"{first_h2!r}, not '## Answer') -- finish steps 2-5 of *Deliver the "
                 "analysis as a file*"
-            )
-        survivor = surviving_marker(analysis)
-        if survivor is not None:
-            return (
-                f"`{raw}` is not assembled: the line {survivor!r} survives -- re-issue "
-                "step 4 of *Deliver the analysis as a file*; it applies replacement blocks"
             )
         report = analysis.with_name(analysis.name.replace("analysis-", "report-", 1))
         if not report.is_file():
@@ -300,45 +281,6 @@ def _self_test() -> int:
         check(
             "C07 named-but-absent file blocked",
             bool(r) and "does not exist" in r["reason"],
-        )
-
-        # A replacement marker that survives assembly means step 4 did not apply it.
-        r = run(
-            "c14",
-            created,
-            {
-                f"analysis-{stamp}.md": assembled + "## Replace: X\n## X\n",
-                f"report-{stamp}.md": report,
-            },
-        )
-        check(
-            "C14 surviving Replace marker blocked",
-            bool(r) and "survives" in r["reason"] and "not assembled" in r["reason"],
-        )
-        r = run(
-            "c15",
-            created,
-            {
-                f"analysis-{stamp}.md": assembled + "## Withdraw: X\n",
-                f"report-{stamp}.md": report,
-            },
-        )
-        check(
-            "C15 surviving Withdraw marker blocked",
-            bool(r) and "survives" in r["reason"],
-        )
-        check(
-            "C16 fenced marker passes",
-            run(
-                "c16",
-                created,
-                {
-                    f"analysis-{stamp}.md": assembled
-                    + "```\n## Replace: X\n## Withdraw: X\n```\n",
-                    f"report-{stamp}.md": report,
-                },
-            )
-            is None,
         )
 
         # Another agent type is never blocked.

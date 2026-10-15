@@ -1,0 +1,141 @@
+## Appendix — process output
+
+## Techniques not applied (process output)
+
+- trade-off — not applicable — this is a claim-verification task with no decision among named discrete options to weight and score; there is nothing to recommend choosing between, only a compound factual/economic claim to confirm or refute
+- fishbone — not applicable — inversion (Phase 2) adequately surfaced the hidden-assumption space for this two-part comparative claim without needing a breadth-first cause-category brainstorm
+
+## §6→§4 closure ledger (process output)
+
+- "An 85% round-trip electrical efficiency at 290-565°C is not merely unachieved but thermodynamically impossible [Case A]" → chain C1 ✓
+- "85% is not a law violation but is unsupported by any real, near-term, or theoretical-model figure [Case B]" → chain C2 ✓
+- "The 85%-class figures actually circulating in industry (Malta's 85-95%) are traceable to a combined-heat-and-power accounting basis, not the electricity-only basis the claim describes" → chain C3 ✓
+- "A 5 MWh molten-salt/power-cycle system costs several times more per kWh of nameplate capacity than a same-size lithium-ion system under current technology and market structure" → chain C4 ✓
+- "The claim's surface plausibility comes from merging a CHP-based efficiency figure with a resistive-heated architecture whose physics caps electricity-only round-trip efficiency at ≈64%" → chain C1, chain C3 ✓
+- "Two named, bounded uncertainties remain: Malta's eventual full-scale demonstration, and future maturation of sub-MW power-cycle equipment markets" → chain C2, chain C4 ✓
+- "Whether thermal storage is competitive at larger scale or under a cycle/duration-adjusted cost basis is left out of scope, not settled as a 'no'" → chain C4 (see also section 5) ✓
+
+All section-6 claims trace to a named section-4 chain; no claim was cut.
+
+## Assumption Audit scan (process output)
+
+| Chain | Step | Step Text (brief) | Assumption surfaced? | Added to Table? |
+|-------|------|--------------------|-----------------------|------------------|
+| C1 | 1 | Lossless charge + reversible engine → ≈64% ceiling | none | n/a |
+| C1 | 2 | ≈64% already excludes storage/turbine loss | none | n/a |
+| C1 | 3 | Add realistic storage loss (GT-4), narrows ceiling | A7 | yes (already in table) |
+| C1 | 4 | Add realistic turbine irreversibility (GT-2) → 33-43% | none | n/a |
+| C1 | 5 | 85% exceeds loss-free ≈64% ceiling → Second Law violation | none | n/a |
+| C1 | 6 | Under Case A, 85% is physically impossible | none | n/a |
+| C2 | 1 | Reversible heat-pump COP and engine efficiency are reciprocals | A12 | yes (already in table) |
+| C2 | 2 | Reversible ideal never reached in practice | none | n/a |
+| C2 | 3 | Survey of real/near-term figures (GT-7a, GT-9, GT-11), none reach 85% | none | n/a |
+| C2 | 4 | 85% exceeds best theoretical optimum and best demonstrated figure | none | n/a |
+| C2 | 5 | Under Case B, claim is unsupported, not a law violation | none | n/a |
+| C2 | 6 | (merged with step 5 above in final text — no separate step) | none | n/a |
+| C3 | 1 | Malta's 85-95% is explicitly a CHP-basis figure | none | n/a |
+| C3 | 2 | Claim's wording describes electricity-only loop, matching GT-7a's basis | A5 | yes (already in table) |
+| C3 | 3 | 85% traceable to a CHP-based figure, not electricity-only | none | n/a |
+| C4 | 1 | 5 MWh at 10h duration implies 0.5 MW power rating | none | n/a |
+| C4 | 2 | 0.5 MW far below multi-MW scale of cited cost studies | A8, A10 | yes (already in table) |
+| C4 | 3 | Extrapolate $3,000-6,000/kW → $1.5-3M power-block cost | none | n/a |
+| C4 | 4 | Divide by 5,000 kWh → $300-600/kWh power-block-only | none | n/a |
+| C4 | 5 | Add tank/BOP/engineering premium → $400-1,200/kWh bracket | none | n/a |
+| C4 | 6 | Li-ion 5 MWh ≈ one standard container unit | none | n/a |
+| C4 | 7 | Standard unit sits near $125-250/kWh, modest premium only | A9 | yes (already in table) |
+| C4 | 8 | 5 MWh thermal system several times more expensive than Li-ion | none | n/a |
+| C4 | 9 [2nd, actor] | Custom power-block procurement creates schedule/contract risk | A13 | yes (already in table) |
+| C4 | 10 [2nd, time] | Near-term: first-of-a-kind cost persists vs. Li-ion's learning curve | none | n/a |
+| C4 | 11 [3rd, time] | Long-horizon: modular power-block maturation could narrow the gap | none | n/a |
+
+Scan covers all 26 named chain steps across the 4 section-4 chains, in order, with no step skipped. (C2 is rendered with 6 hop lines in section 4; step 6 above records that the chain's final two clauses are carried on one hop line in the emitted text, so no assumption-bearing content is omitted by this row count.)
+
+## Replace: Assumption Audit scan (process output)
+
+## Assumption Audit scan (process output)
+
+| Chain | Step | Step Text (brief) | Assumption surfaced? | Added to Table? |
+|-------|------|--------------------|-----------------------|------------------|
+| C1 | 1 | Lossless charge + reversible engine → ≈64% ceiling | none | n/a |
+| C1 | 2 | ≈64% already excludes storage/turbine loss | none | n/a |
+| C1 | 3 | Add realistic storage loss (GT-4), narrows ceiling | A7 | yes (already in table) |
+| C1 | 4 | Add realistic turbine irreversibility (GT-2) → 33-43% | none | n/a |
+| C1 | 5 | 85% exceeds loss-free ≈64% ceiling → Second Law violation | none | n/a |
+| C1 | 6 | Under Case A, 85% is physically impossible | none | n/a |
+| C2 | 1 | Reversible heat-pump COP and engine efficiency are reciprocals | A12 | yes (already in table) |
+| C2 | 2 | So theoretical reversible-limit efficiency approaches 100% | none | n/a |
+| C2 | 3 | Reversible ideal never reached in practice (entropy generation) | none | n/a |
+| C2 | 4 | Survey of real/near-term figures (GT-7a, GT-9, GT-11), none reach 85% | none | n/a |
+| C2 | 5 | 85% exceeds best theoretical optimum and best demonstrated figure | none | n/a |
+| C2 | 6 | Under Case B, claim unsupported, not a law violation | none | n/a |
+| C3 | 1 | Malta's 85-95% is explicitly a CHP-basis figure | none | n/a |
+| C3 | 2 | Claim's wording describes electricity-only loop, matching GT-7a's basis | A5 | yes (already in table) |
+| C3 | 3 | 85% traceable to a CHP-based figure, not electricity-only | none | n/a |
+| C4 | 1 | 5 MWh at 10h duration implies 0.5 MW power rating | none | n/a |
+| C4 | 2 | 0.5 MW far below multi-MW scale of cited cost studies | A8, A10 | yes (already in table) |
+| C4 | 3 | Extrapolate $3,000-6,000/kW → $1.5-3M power-block cost | none | n/a |
+| C4 | 4 | Divide by 5,000 kWh → $300-600/kWh power-block-only | none | n/a |
+| C4 | 5 | Add tank/BOP/engineering premium → $400-1,200/kWh bracket | none | n/a |
+| C4 | 6 | Li-ion 5 MWh ≈ one standard container unit | none | n/a |
+| C4 | 7 | Standard unit sits near $125-250/kWh, modest premium only | A9 | yes (already in table) |
+| C4 | 8 | 5 MWh thermal system several times more expensive than Li-ion | none | n/a |
+| C4 | 9 [2nd, actor] | Custom power-block procurement creates schedule/contract risk | A13 | yes (already in table) |
+| C4 | 10 [2nd, time] | Near-term: first-of-a-kind cost persists vs. Li-ion's learning curve | none | n/a |
+| C4 | 11 [3rd, time] | Long-horizon: modular power-block maturation could narrow the gap | none | n/a |
+
+Scan covers all 26 named chain steps across the 4 section-4 chains (C1: 6, C2: 6, C3: 3, C4: 11), in order, with no step skipped.
+
+## Self-audit scan (process output)
+
+| Chain | Chain Head (brief) | Form conforming? | Rule applied | Dependency clean? | Band | Act attempted? | Edges fired |
+|-------|---------------------|-------------------|---------------|--------------------|------|-----------------|-------------|
+| C1 | GT-1, GT-5 | yes | n/a | yes | HIGH | no (GT-1/GT-5 are self-derived physical-law applications; no external citation exists to attempt) | none |
+| C2 | GT-7a, GT-9?, GT-11? | yes | n/a | yes | MEDIUM | yes (GT-7a opened and read at source; GT-9/GT-11 not opened) | none |
+| C3 | GT-7a, GT-7b? | yes | n/a | yes | LOW | yes (GT-7a opened and read at source; GT-7b attempted and failed, HTTP 403, Phase 3 failure record) | none |
+| C4 | GT-13?, GT-14?, GT-15 | yes | n/a | yes | MEDIUM | yes (GT-15 opened and read at source; GT-13/GT-14 not individually opened) | none |
+
+| §6 Span (brief) | Construct | Claim under R11? | R11 clause applied | Chain cited |
+|-------------------|-----------|-------------------|----------------------|---------------|
+| "Recommended approach:" lead-in + sentence | bold lead-in | yes | bold lead-in whose colon closes the bold span, content on same line | C1, C2, C3, C4 |
+| "Key insight:" lead-in + sentence | bold lead-in | yes | bold lead-in whose colon closes the bold span, content on same line | C1, C3 |
+| "Trade-offs acknowledged:" lead-in + sentence | bold lead-in | yes | bold lead-in whose colon closes the bold span, content on same line | C2, C4 |
+| "Pre-check:" line | bold lead-in | yes | per output-template.md, the §6 pre-check line is itself a claim, cited by the chains its own head names | C1, C2, C3, C4 |
+| "Confidence:" lead-in + explanation | bold lead-in | yes | bold lead-in whose colon closes the bold span, content on same line | C1, C2, C3, C4 |
+
+Scan complete: 4 chain rows, one per section-4 chain block in order; 5 section-6 rows, one per construct in order — 5 claims under R11, 0 excluded. 0 chains malformed, 0 claims untraced.
+
+## Adversarial pass (process output)
+
+**Recompute.**
+- Carnot ceiling (claim's own temperatures): Th = 565°C = 838.15 K, Tc = 25°C = 298.15 K → η = 1 − 298.15/838.15 = 0.6443 ≈ 64.4% — matches GT-1 and chain C1 exactly.
+- Alternate cold-sink check (290°C cold tank instead of ambient): Th = 838.15 K, Tc = 563.15 K → η = 1 − 563.15/838.15 = 0.3281 ≈ 32.8% — lower, not higher, confirming Abandoned Reasoning's second dead end.
+- Reversible heat-pump/heat-engine reciprocal (Case B, chain C2 hop 1-2): Carnot heating COP (ambient → 838.15 K) = 838.15/(838.15−298.15) = 838.15/540 = 1.5521; Carnot engine efficiency (838.15 K → 298.15 K) = 0.6443; product = 1.5521 × 0.6443 = 1.0000 — confirms the reversible-limit round-trip efficiency is exactly 1 (100%) for an idealized single-span Carnot battery, independently verifying chain C2's reciprocal claim.
+- Power-block cost bracket (chain C4): 0.5 MW × $3,000/kW = $1,500,000; 0.5 MW × $6,000/kW = $3,000,000; divided by 5,000 kWh → $300/kWh and $600/kWh respectively — matches chain C4's stated $300-600/kWh power-block-only bracket exactly.
+
+**Sensitivity.** The single ground truth whose falsity would flip the largest part of the overall verdict is GT-13?/GT-14? (chain C4): both are `?`-marked, and if a genuine mass-manufactured sub-MW power-cycle product existed today at utility-scale $/kW pricing, chain C4's cost verdict would flip from refuted to confirmed. The weakest link on the efficiency side is GT-7b? (chain C3): if Malta's 85-95% figure is actually electricity-only rather than CHP-based, chain C3's conflation-origin explanation would need revision — though this would not rescue chain C1's physical-impossibility finding under Case A, nor push any credible Case-B figure above the 60-81% range already surveyed, so it would not flip the headline "claim refuted" verdict even if it flipped. Chain C1 itself has no `?`-marked input and no sensitivity point found — its only two head inputs are a direct physical-law derivation and a definitional near-certainty.
+
+**Rival.** Consolidated from each chain's own confidence line: C1 — no live rival (the Carnot-ceiling math is unambiguous given the claim's own stated temperatures; the one candidate rival, discharging to the cold tank instead of ambient, is ruled out by the Recompute step above). C2 — one live, unsettled rival: Malta's eventual full-scale plant could exceed today's 60% estimate once built and measured (named as the Falsification condition below). C3 — one live, unsettled rival: Malta's 85-95% figure could itself be electricity-only, mischaracterized as CHP by secondary sources (this is why C3 is rated LOW, not MEDIUM). C4 — one partially live rival: a much longer-duration, lower-power 5 MWh design might partially escape the power-block cost penalty (named but not ruled out; recorded in Abandoned Reasoning's third dead end).
+
+**Adversarial technique: Inversion**, applied to this analysis's own headline conclusion (the conclusion is a claim-evaluation, not a plan, per the inversion-vs-pre-mortem decision rule; the inversion procedure was opened directly via Read, ${CLAUDE_PLUGIN_ROOT}/references/inversion.md).
+
+*Premise (inverted claim, stated in the required form):* Assume this analysis's own conclusion is false — i.e., assume the compound claim ("a 5 MWh molten-salt TES system can round-trip electricity at >85% efficiency and is cost-competitive with a same-capacity Li-ion system") is actually true.
+
+*Causes (unfiltered, generated from at least three named stakeholder viewpoints before any grouping):*
+- From a thermodynamicist's viewpoint: (1) the ambient/cold-sink temperature used in GT-1's Carnot calculation is wrong in a way that raises rather than lowers the ceiling; (2) a hybrid architecture using resistive heating plus waste-heat recovery or a boost heat pump could deliver an effective charge-side COP above 1, which the simple "resistive heating ≈100%" framing of Case A does not model.
+- From a storage-technology investor/developer's viewpoint: (3) Malta's (or a similar vendor's) full-scale PTES plant, once built, demonstrates a measured electricity-only round-trip efficiency above 85%, contradicting every company claim and literature figure surveyed; (4) a mass-manufactured, utility-scale-$/kW-priced sub-MW power-cycle product already exists today but was missed by this analysis's search, rather than genuinely absent from the market.
+- From the technology vendor's (Malta/Siemens-Gamesa-type) own viewpoint: (5) the vendor's own 85-95% figure is actually computed on an electricity-only basis and secondary press coverage mischaracterized it as CHP; (6) "nameplate capacity" should be read, in context, as a power (MW) rating rather than an energy (MWh) rating, under which a differently-sized comparison might favor the thermal system.
+- From a skeptical Li-ion-BESS-competitor's viewpoint: (7) Li-ion's quoted $125/kWh figure itself understates real small-scale, single-container, non-fleet pricing by enough that the true cost gap to a thermal system is much smaller than chain C4 estimates; (8) both technologies are being compared at a project stage (pilot / first-of-a-kind) where neither has reached mature unit economics, making a "which is cheaper" verdict premature in either direction.
+
+*Clusters (structural weaknesses, with chain/GT ids):*
+- **Cluster A — "Physics cannot be wrong" (causes 1-2; bears on GT-1, chain C1).** Cause 1 is ruled out by the Recompute step above (an alternate sink temperature lowers, not raises, the ceiling). Cause 2 names a genuinely different architecture (hybrid heat-pump-assisted charging) than the one Case A models; it is not ruled out in principle but no evidence of such a design at 290-565°C/5 MWh was found, so it stays outside this analysis's scope rather than rescuing Case A as stated.
+- **Cluster B — "Vendor claim could exceed the literature survey" (causes 3-4; bears on GT-7a, GT-9, GT-11, GT-13, GT-14, chains C2, C4).** Both causes are genuine, currently-open falsifiers rather than ruled-out rivals — neither is ruled out by available evidence.
+- **Cluster C — "Accounting-basis and framing rivals" (causes 5-7; bears on GT-7b, GT-15, chains C3, C4).** Cause 5 is the explicit live rival already carried on chain C3's LOW confidence line. Cause 6 is addressed by A6 (Phase 2, Discard) and Abandoned Reasoning's fourth dead end — a different reading of the claim's own words, not a flaw in this analysis's reading of them. Cause 7 would narrow, not reverse, chain C4's gap: even doubling Li-ion's assumed cost would likely still leave it cheaper than the $400-1,200/kWh thermal bracket.
+- **Cluster D — "Immaturity symmetry" (cause 8; bears on chain C4).** A fair general point, but asymmetric here: Li-ion rides a mature, high-volume global manufacturing base (GT-15) while sub-MW thermal power-cycle equipment has no comparable production volume (GT-13/14's complete absence of any 5 MWh-scale study is itself evidence of this asymmetry).
+
+*Disposition (per cluster):*
+- Cluster A: Accepted risk — the hybrid heat-pump-assisted-resistive-charging architecture is explicitly out of scope for Case A as modeled; mitigation: any future version of this claim naming such a hybrid architecture should be re-analyzed as a distinct case rather than folded into Case A's impossibility finding.
+- Cluster B: Accepted risk, explicitly named as the Falsification condition below, with the condition itself serving as the review trigger for revisiting this analysis.
+- Cluster C: Plan change already executed — chain C3's confidence was deliberately set to LOW (rather than the MEDIUM its other inputs alone would license) specifically because of cause 5; this is the named plan change already reflected in chain C3's band, not an observation layered on top of it afterward.
+- Cluster D: Accepted risk — noted but requiring no separate mitigation, because the asymmetry argument above already addresses it.
+
+**Falsification.** This analysis's verdict is false if: (a) an independently verified, full-scale, electricity-only round-trip efficiency measurement above 85% is published for any molten-salt or analogous Carnot-battery system operating in the 290-565°C range (would flip the efficiency sub-claim, chains C1/C2), or (b) a vendor-quoted or published techno-economic study of an actual ~5 MWh power-cycle-based thermal storage system shows installed cost at or below comparable 5 MWh Li-ion BESS pricing (would flip the economic sub-claim, chain C4).

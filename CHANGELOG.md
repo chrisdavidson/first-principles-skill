@@ -13,6 +13,27 @@ installed session.
 
 ## [Unreleased]
 
+### Measured — backlog 999.199, not released
+
+The 999.199 change (correct an appended block by appending a `## Replace:` replacement block, applied
+by an awk program at assembly, with `## Withdraw:` to cancel one; the delivery guard refusing a
+surviving marker) was measured against a pre-registered rule (`docs/replace-blocks-preregistration.md`)
+and the verdict is **not-shown-effective**. The shipped tree was restored byte-for-byte to 9.19.4 —
+agent body, the `replace-blocks.md` reference sibling, the delivery guard and the DELIVERY-GUARD
+controls, CI's awk-dialect step — and nothing was released. The arm body is the generated tree at
+commit 81552f6fb80d; evidence is in `tests/replace-blocks/`.
+
+- 28 runs scheduled; 5 routing misses excluded; 23 dispatched, all assembled and delivered, every run
+  on CLI 2.1.296. One run lost to a network outage was re-run under amendment 1.
+- Primary held (0 of 23 runs with six or more rewrites; critical value 4) and median rewrites fell to
+  0 against the 999.198 arm's 2 — mechanically, since a replacement append is not a rewrite. The turn
+  must-hold failed: median turns 50 against a ceiling of 39 (no-regression ceiling 43). Corrections
+  per run had a median of 6 (mean 7.35), with a mean of 3.43 Withdraw blocks and a median of 2 refused
+  assemblies, so the turns saved on rewrites were spent, and more, on correcting corrections. Max turns
+  84. Spend $99.56.
+- Falsifier: `python3 tests/audit-first/run_audit.py read --arm-dir tests/replace-blocks`. Reading in
+  `docs/skip-rate-reading.md`.
+
 ### Measured — backlog 999.200, not released
 
 The 999.200 change (a held-append check refusing a Type cell that names more than one assumption

@@ -177,6 +177,36 @@ Spend $83.53. Falsifiers: `python3 tests/audit-first/run_audit.py read --arm-dir
 for every verdict figure and `python3 tests/audit-first/run_audit.py held --arm-dir tests/post-held-append`
 for the NOT APPENDED attempts. Backlog 999.199 is the next candidate.
 
+### After 999.199 (measured, not released)
+
+Backlog 999.199 replaced in-place correction with append-only replacement blocks (`## Replace:` /
+`## Withdraw:`), applied by an awk program at assembly, on the 9.19.4 body. One arm, 28 runs scheduled,
+5 excluded as routing misses (estimate-fermi.r2, personal-general-2.r1, personal-general-2.r2,
+science-engineering.r1, science-engineering.r2), 23 dispatched, all assembled and delivered, compared
+with the 24 assembled runs of the 999.198 arm. One stage-1 run (decompose-irreducibility.r1) ended on a
+network outage (`EAI_AGAIN`) and was re-run under amendment 1 of the pre-registration; its first
+attempt is kept as `*.transport-requeue1.*`. Every run used CLI 2.1.296. Verdict:
+`not-shown-effective` (rule `replace-v1`): the primary and the rewrite secondary held, but the turn
+must-hold and the no-regression median-turn condition failed. The body was not released: master carries
+the 9.19.4 shipped tree and no version stamp changed. The pre-registration is
+`docs/replace-blocks-preregistration.md`; the 999.199 body is the generated tree at commit 81552f6fb80d.
+
+| | 999.198 arm | 999.199 arm |
+|---|---|---|
+| Assembled runs | 24 of 24 | 23 of 23 |
+| Runs with 6 or more in-place rewrites | 3 of 24 | 0 of 23 (critical value 4) |
+| Median rewrites | 2 | 0 |
+| Median total turns | 39 | 50 (must-hold 39, no-regression 43) |
+| Median gate turn | 26 | 23 |
+| Max turns | 90 | 84 (science-engineering-2.r2) |
+
+Rewrites fell to almost none, as the pre-registration predicted they mechanically would, because a
+replacement append is not a rewrite. The turns did not fall: corrections per run (rewrites plus
+replacement calls) had a median of 6 and a mean of 7.35, with a mean of 3.43 `## Withdraw:` blocks and a median of 2 refused assemblies (`NOT ASSEMBLED:`) per
+run. The agent spent the turns it saved on rewrites, and more, on correcting its corrections. Spend
+$99.56. Falsifier: `python3 tests/audit-first/run_audit.py read --arm-dir tests/replace-blocks` for
+every verdict figure.
+
 ## Sensitivity
 
 | Reading | 9.19.2 | 9.19.3 | p (one-sided) | Verdict |

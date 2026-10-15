@@ -1146,20 +1146,7 @@ ENTRIES: tuple[GateEntry, ...] = (
             "capture floor. Must-fail controls rename the matcher, drop the "
             "guard file, duplicate the entry, and stub the guard to always "
             "allow and to always block; each turns the gate red. Whether a "
-            "blocked agent then delivers is a live reading, never gated here. "
-            "The guard also treats a surviving `## Replace:`/`## Withdraw:` line "
-            "outside a code fence as unassembled. The checker runs the "
-            "replacement-block applier extracted from `references/replace-blocks.md` "
-            "against fixtures and an identity replacement of every heading in the "
-            "committed 999.198 and 999.200 arm files, and the shipped step-4 "
-            "command end to end in a clean environment, under every awk "
-            "implementation on PATH, printing which ran; the CI job installs and "
-            "requires mawk, original-awk (BWK) and busybox awk. awk implementations "
-            "absent from the machine are untested. Further must-fail controls stub "
-            "the survivor check and drop the fence test, the duplicate, unmatched "
-            "and Withdraw handling, the deferral of block validation past Withdraw, "
-            "the no-op handling of a Withdraw naming nothing (made to refuse, and "
-            "made to survive), and the empty-program guard."
+            "blocked agent then delivers is a live reading, never gated here."
         ),
         consumes=(
             "control_ids",

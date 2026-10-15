@@ -444,7 +444,4 @@ jobs:
           version: ${{ env.UV_VERSION }}
           enable-cache: true
       - run: uv sync --locked --group dev
-      - run: sudo apt-get update && sudo apt-get install -y mawk original-awk busybox
       - run: uv run python3 scripts/check-delivery-guard.py --self-test
-        env:
-          FP_REQUIRE_AWK_DIALECTS: "mawk,original-awk,busybox awk"

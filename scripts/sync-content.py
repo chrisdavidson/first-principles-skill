@@ -302,8 +302,6 @@ SPINE_REFERENCES = (
     # The reader-persona contract: role sources, word bands, citation grammar;
     # read by the persona skill and by PERSONA-GATE, never by the agent.
     "persona-views",
-    # The correct-by-appending applier: an awk program step 4 extracts and runs; never Read.
-    "replace-blocks",
 )
 
 # Phase 74-01: JSON spine references (filename stem under
@@ -403,7 +401,7 @@ SKILL_PEER_PREFIX = "${CLAUDE_PLUGIN_ROOT}/skills/"
 # out-of-generator-scope.
 # generate_all() raises ValueError if len(targets) != GENERATED_TARGET_COUNT so this
 # number cannot silently drift again (D-01, DEBT-02).
-GENERATED_TARGET_COUNT = 59
+GENERATED_TARGET_COUNT = 58
 
 # v8.5 Phase 154 GATE-02 (D-11): module-level re-entrancy sentinel guarding
 # cmd_self_test()'s dispatch control. That control drives main(["--self-test"])
@@ -1551,15 +1549,13 @@ def generate_all() -> dict[Path, str]:
     the PERSONA_EXAMPLES siblings: 4 agent persona-example siblings
     (first-principles/references/persona-examples/<name>.md), raising the
     count below from its prior value.
-    The replace-blocks Markdown spine reference (the awk applier for
-    correction blocks) raises it once more.
-    Current target count: 59 total.
+    Current target count: 58 total.
 
       - 1 agent SKILL.md (first-principles/agents/first-principles.md)
-      - 17 agent reference siblings (first-principles/references/*.md and
+      - 16 agent reference siblings (first-principles/references/*.md and
         *.json: 8 companion-tool refs + assumption-taxonomy + output-template
         + validation-rubric + report-layout + report-figures + how-to-read
-        + persona-views + replace-blocks + summary-schema.json)
+        + persona-views + summary-schema.json)
       - 4 agent detail siblings (first-principles/references/<slug>-detail.md,
         SLUGS_WITH_DETAIL: five-whys, theoretical-limit, estimate, fishbone)
       - 14 agent worked-example siblings (first-principles/references/examples/<name>.md)

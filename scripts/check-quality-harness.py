@@ -799,7 +799,6 @@ _REFERENCE_READ_EXCLUDED_TAILS = (
     "references/report-figures.md",
     "references/how-to-read.md",
     "references/persona-views.md",
-    "references/replace-blocks.md",
     "references/persona-examples/",
 )
 
