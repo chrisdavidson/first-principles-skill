@@ -63,7 +63,7 @@ A systematic methodology for decomposing any problem into verified fundamental t
 using any tool.** Your deliverable is appended to `.first-principles/analysis-<UTC>.md`, one
 section per Bash call, and your final message is only a short pointer to that file; the steps are
 under *Deliver the analysis as a file* in Output format below. The assembled file opens with a
-short `## Answer`, then the six sections below in order, then every process-output block as a
+one-page `## Answer` — the reader's executive summary — then the six sections below in order, then every process-output block as a
 trailing `## Appendix — process output`. That file is the working record; the reader receives it
 as two reports rendered from it, `report-<UTC>.md` and `report-<UTC>.pdf`, which carry the
 Answer and the six sections and, where typst is installed and the structured summary is
@@ -314,18 +314,40 @@ Every analysis produces a document with these six sections in this fixed order. 
 5. Abandoned Reasoning
 6. Conclusion
 
-**The document opens with an Answer, drawn from §6.** Above section 1, write one `## Answer`
-heading holding three bold lead-ins: `**Recommendation:**` (1–3 sentences restating §6's
-`**Recommended approach:**`), `**Band (from §6):**` (§6's own `**Confidence:**` band, copied
-verbatim), and `**Would change it:**` (the evidence or verification §6 names as capable of moving
-the band or the recommendation). Each lead-in line cites at least one chain inline — `(chain
-Cn)` — and every chain it cites is one §6 already cites for the claim being restated: the Answer
-states nothing §6 does not already state with the same chain. It carries neither a
+**The document opens with an Answer, drawn from §6 — the reader's one-page executive summary.**
+The reader report heads it Executive Summary. It is written for a reader who will read nothing
+else: someone outside the work who must understand the problem, the recommendation and its risks
+well enough to act. Above section 1, write one `## Answer` heading holding these bold lead-ins,
+each starting its own paragraph, in this order:
+
+- `**The question:**` — 1–2 plain sentences restating §1's core problem and why it matters,
+  citing `(§1)`.
+- `**Recommendation:**` — 1–3 sentences restating §6's `**Recommended approach:**`.
+- `**Key findings:**` — then a blank line and 3–5 one-sentence bullets, each restating a finding
+  from §6's `**Key insight:**` or `**Items the original framing leaves out:**`, most consequential
+  first.
+- `**Value and risks:**` — 1–3 sentences on what following the recommendation delivers, against
+  §1's success criteria, and what it costs or risks, restating §6's `**Trade-offs acknowledged:**`.
+- `**Band (from §6):**` — §6's own `**Confidence:**` band, copied verbatim, then one plain clause
+  saying what holds it there.
+- `**Would change it:**` — the evidence or verification §6 names as capable of moving the band or
+  the recommendation.
+- `**Next steps:**` — then a blank line and a numbered list of 3–5 actions in the order §6's
+  `**Recommended approach:**` gives them; where gathering the "Would change it" evidence is cheap,
+  it is step 1.
+
+Every lead-in line, bullet and numbered step except `**The question:**` cites at least one chain
+inline — `(chain Cn)` — and every chain it cites is one §6 already cites for the claim being
+restated: the Answer states nothing §6 does not already state with the same chain, and
+`**The question:**` states nothing §1 does not. Every number in it appears in §1 or §6. Write it
+for an outsider: name things by what they are rather than by an id, explain or leave out any
+term of art, and keep the ids to the citations in parentheses. It carries neither a
 `**Confidence:**` nor a `**Pre-check:**` lead-in — the body requires a `**Pre-check:**` line
 directly above every `**Confidence:**` line, and the Answer cannot carry one, hence `**Band (from
 §6):**` instead — and inline citation is its only form of tracing; ledger discharge is not
 available to it. It is written last, after the Self-Audit Gate's verdict blocks and from the
-final §6 text, and rewritten if a Fix step changes §6. It is at most 120 words. It adds no row to
+final §6 text, and rewritten if a Fix step changes §6. It is at most 400 words, so the reader
+report can set it on a single page. It adds no row to
 the §6→§4 closure ledger or the self-audit scan and is not itself scored by the gate, because it
 may state nothing §6 does not already state with the same chain. It is not a seventh output
 section — the six sections above remain the fixed shape defined here.
@@ -337,8 +359,9 @@ existing top-level heading, and the structured summary last of all. The steps un
 file in this order.
 
 **Answer-claim closure rule.** Once §6 is in its final form and before the file is assembled,
-confirm each Answer line restates a §6 claim and names the chain that claim already cites; an
-Answer line that does not is cut before assembly, never softened. This rule applies to the
+confirm each Answer line, bullet and step restates a §6 claim and names the chain that claim
+already cites — or, for `**The question:**`, restates §1 — and that every number in it appears
+in §1 or §6; one that does not is cut before assembly, never softened. This rule applies to the
 Answer as drafted here, not to Step 0 of "Before presenting conclusions" below, which runs before
 the Answer exists — the assembly step under *Deliver the analysis as a file* restates it as a
 one-line reminder at the point the check actually runs.
@@ -366,7 +389,7 @@ then the six sections, then the process-output appendix.
 3. **Write the Answer last.** After the Self-Audit Gate's verdict blocks and then the structured summary are appended, re-apply
    the Answer-claim closure rule above — each Answer line restates a §6 claim and names its chain,
    or is cut — then write any top-of-response disclosures, then the `## Answer` heading and its
-   three lead-ins, to `"<path>.answer"` with `cat > "<path>.answer" <<'FP_EOF'`. **The top of the
+   seven lead-ins, to `"<path>.answer"` with `cat > "<path>.answer" <<'FP_EOF'`. **The top of the
    response** — the phrase the re-entry disclosure, the Input Contract's mid-run re-open, and the
    Report emission invariant use unchanged — means the top of this delivered file, above
    `## Answer`: write any such disclosure here as a plain `**Disclosed:**` paragraph, never as a

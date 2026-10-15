@@ -5,11 +5,11 @@ and in what order.
 
 ## Start at the Answer
 
-Read the `## Answer` block first. In the reader report it is headed Executive Summary. It has
-three parts: the "Recommendation" says what to do; the "Band (from §6)" says how sure the analysis
-is, HIGH, MEDIUM or LOW; and "Would change it" names the evidence that would move the band or the
-advice. Each line names the chain behind it, such as (chain C2), so any claim you doubt can be
-traced.
+Read the `## Answer` block first: in the reader report it is the one-page Executive Summary.
+"The question" says what was asked; the "Recommendation", what to do; "Key findings" and "Value
+and risks", why and at what cost; the "Band (from §6)", how sure the analysis is (HIGH, MEDIUM or
+LOW); "Would change it", what evidence would move it; "Next steps", the actions in order. Each
+line names its chain, such as (chain C2), so a doubtful claim can be traced.
 
 ## Map to your role
 
@@ -22,9 +22,8 @@ traced.
   unproven. Then look in the "Ground Truths" for any id written as `GT-N?`: that fact was not
   verified.
 
-If a persona view for your role sits beside the report,
-it summarises what the analysis offers you and points to the recommendation; the six sections
-remain the source.
+A persona view for your role, if one sits beside the report, summarises what the analysis
+offers you; the six sections remain the source.
 
 ## Audit path for high-stakes decisions
 
@@ -47,7 +46,7 @@ Follow one claim back to its evidence:
 - **Each "Dead End"** in "Abandoned Reasoning": an option you need not fund again, with the reason
   it fails.
 - **"Would change it":** the evidence that would change the recommendation; if it is cheap,
-  get it first. The formal falsification test stays in the working file's process output.
+  get it first.
 
 ## When to act and when to dig
 

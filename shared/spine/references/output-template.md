@@ -26,19 +26,60 @@ The section heading must still appear. The escape valve exists to prevent box-ti
 ### Document order
 
 The delivered file is not just these six sections — it is assembled in one absolute order: a
-short `## Answer` block; then sections 1 through 6 above, in the fixed order and unchanged; then
+one-page `## Answer` block; then sections 1 through 6 above, in the fixed order and unchanged; then
 one `## Appendix — process output` heading; then every process-output block produced during the
 run, in the order produced, each keeping its own existing top-level heading, and the structured summary last of all.
 
-The `## Answer` block sits above section 1 and carries three bold lead-ins: `**Recommendation:**`
-(1–3 sentences restating §6's `**Recommended approach:**`), `**Band (from §6):**` (§6's own
-`**Confidence:**` band, copied verbatim), and `**Would change it:**` (the evidence or verification
-§6 names as capable of moving the band or the recommendation). Each lead-in cites at least one
-chain inline — `(chain Cn)` — and every chain it cites is one §6 already cites for the claim being
-restated: the Answer states nothing §6 does not already state with the same chain. It is at most
-120 words, is written last from the final §6 text, and is not a seventh output section. Before the
-file is assembled, each Answer line is confirmed to restate a §6 claim and name its chain; a line
-that does not is cut, not softened.
+The `## Answer` block sits above section 1 and is the reader's one-page executive summary — the
+reader report heads it Executive Summary. It is written for a reader outside the work who will
+read nothing else, and carries seven bold lead-ins, each starting its own paragraph, in this
+order:
+
+1. `**The question:**` — 1–2 plain sentences restating §1's core problem and why it matters, citing `(§1)`.
+2. `**Recommendation:**` — 1–3 sentences restating §6's `**Recommended approach:**`.
+3. `**Key findings:**` — a blank line, then 3–5 one-sentence bullets restating §6's `**Key insight:**` or `**Items the original framing leaves out:**`, most consequential first.
+4. `**Value and risks:**` — 1–3 sentences: what the recommendation delivers against §1's success criteria, and what it costs or risks, restating §6's `**Trade-offs acknowledged:**`.
+5. `**Band (from §6):**` — §6's own `**Confidence:**` band, copied verbatim, and one plain clause saying what holds it there.
+6. `**Would change it:**` — the evidence or verification §6 names as capable of moving the band or the recommendation.
+7. `**Next steps:**` — a blank line, then a numbered list of 3–5 actions in the order §6's `**Recommended approach:**` gives them, with cheap "Would change it" evidence first.
+
+Every lead-in, bullet and step except `**The question:**` cites at least one chain inline —
+`(chain Cn)` — and every chain it cites is one §6 already cites for the claim being restated: the
+Answer states nothing §6 does not already state with the same chain, `**The question:**` states
+nothing §1 does not, and every number in it appears in §1 or §6. It names things by what they
+are, explains or leaves out terms of art, and keeps ids to the citations in parentheses. It is at
+most 400 words, so the reader report sets it on a single page; it is written last from the final
+§6 text, and is not a seventh output section. Before the file is assembled, each Answer line is
+confirmed to restate a §6 (or, for the question, §1) claim and name its chain; a line that does
+not is cut, not softened.
+
+Example shape (content illustrative):
+
+```markdown
+## Answer
+
+**The question:** Can the nightly import be made to finish before the 06:00 reporting run without new hardware? Late imports leave the morning reports a day stale (§1).
+
+**Recommendation:** Split the import into independent per-region jobs and run them in parallel on the existing server (chains C3, C5).
+
+**Key findings:**
+
+- The import is limited by one serial step, not by disk or network speed (chain C2).
+- Regions share no data, so their jobs can run side by side safely (chain C3).
+- Buying a faster server would shorten the run by under a third, not enough to meet the deadline (chain C4).
+
+**Value and risks:** Parallel jobs finish in about 2 hours instead of 7, meeting the deadline with margin; the cost is a short rework of the job scheduler and a higher peak load during the run (chains C5, C6).
+
+**Band (from §6):** HIGH (chains C3, C5) — every input was measured on the live system.
+
+**Would change it:** A region that does read another region's data would rule out running them in parallel (chain C3).
+
+**Next steps:**
+
+1. Confirm no region reads another's tables (chain C3).
+2. Rework the scheduler to start one job per region (chain C5).
+3. Run one week in parallel alongside the old import and compare the outputs (chain C6).
+```
 
 **The structured summary closes the appendix.** The last process-output block in the file is
 `## Structured summary (process output)`: that heading, then exactly one fenced `json` block,

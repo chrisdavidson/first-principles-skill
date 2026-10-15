@@ -43,7 +43,7 @@ For the complete procedure with entry/exit criteria per phase and the exact outp
 `.first-principles/analysis-<UTC timestamp>.md` in your working directory, one section at a time,
 and its final message points to that file. A long analysis can exceed what a single message
 carries — before v9.13.0 the reader could receive only its last part — and writing it once,
-section by section, keeps it whole. The file opens with a short Answer, then the six sections
+section by section, keeps it whole. The file opens with a one-page executive summary (the Answer), then the six sections
 unchanged, then the working process as a trailing appendix. Add `.first-principles/` to
 `.gitignore` if you do not want these files tracked. The agent writes that file with Bash
 commands that keep its path in a shell variable, so Claude Code may prompt for Bash permission; a

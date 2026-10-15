@@ -1066,7 +1066,14 @@ ENTRIES: tuple[GateEntry, ...] = (
             "commit 45f6244a, which typst 0.15 cannot compile and which broke "
             "every reader-report PDF while the battery stayed green, must fail, "
             "as must a content-valued `document(author:)`. That proves the "
-            "template compiles, not that the page looks right. typst or pandoc "
+            "template compiles, not that the page looks right. It also "
+            "typesets a worst-case Executive Summary — every lead-in, five "
+            "findings, five steps, over the 400-word cap, under a wrapping "
+            "title — and requires, from typst's own heading locations, that "
+            "the next section starts exactly one page after it; with the "
+            "template's page break removed that must fail. That proves one "
+            "fixture fits one page, not that every live summary will. "
+            "typst or pandoc "
             "absent means BLOCKED, never PASS."
         ),
         consumes=(

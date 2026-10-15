@@ -9,8 +9,8 @@
 Each analysis produces two reader reports beside the working file
 `.first-principles/analysis-<UTC>.md`:
 
-- **`report-<UTC>.md`** — a title, a date line, the Executive Summary (the `## Answer` block,
-  renamed), then the six sections. The process-output appendix, its structured summary,
+- **`report-<UTC>.md`** — a title, a date line, the one-page Executive Summary (the `## Answer`
+  block, renamed), then the six sections. The process-output appendix, its structured summary,
   `**Disclosed:**` paragraphs and `**Pre-check:**` lines are left out: they are audit material
   for the working file, not for the reader. Where typst is installed and the working file's
   structured summary is readable, it also carries the assumption verdict matrix under §2 and the
@@ -20,7 +20,8 @@ Each analysis produces two reader reports beside the working file
 - **`report-<UTC>.pdf`** — the same Markdown typeset by pandoc with the typst PDF engine through
   the template below: US Letter, Noto Sans with Liberation Sans as fallback (both SIL Open Font
   License), a navy heading scheme, banded tables, a running header carrying the title, and a
-  `Page N of M` footer.
+  `Page N of M` footer. The Executive Summary stands on a page of its own: the section after it
+  starts a new page.
 
 Every delivered file links to its neighbours, and the two formats never mix: a Markdown file
 links only to Markdown files, and a PDF links only to PDFs. The working file has no PDF, so it is
@@ -98,7 +99,15 @@ variables, filled from the `-M title=` and `-M date=` arguments; `$body$` is the
 #show heading.where(level: 1): it => {
   block(below: 0.6em, text(size: 21pt, weight: "bold", it.body))
 }
+// The Executive Summary is a one-page brief: the level-2 heading after it starts a new page.
 #show heading.where(level: 2): it => {
+  context {
+    let es = query(<executive-summary>)
+    if es.len() > 0 {
+      let after = query(heading.where(level: 2).after(es.first().location()))
+      if after.len() > 1 and after.at(1).location() == it.location() { pagebreak(weak: true) }
+    }
+  }
   block(above: 1.9em, below: 0.8em, sticky: true, {
     text(size: 13.5pt, weight: "bold", it.body)
     v(-0.45em)

@@ -79,6 +79,11 @@ LAYOUT_INPUTS: tuple[Path, ...] = (
     REPO_ROOT / "shared" / "spine" / "references" / "how-to-read.md",
 )
 FONTS: tuple[str, ...] = ("Noto Sans", "Liberation Sans")
+# A report whose Executive Summary is at its prescribed worst case -- seven
+# lead-ins, five findings, five steps, over the 400-word cap, under a title
+# that wraps: L04 requires the next section to start exactly one page after it.
+ES_FIXTURE = REPO_ROOT / "tests" / "exec-summary-v9" / "executive-summary-max.md"
+ES_MIN_WORDS = 400
 
 # Closed set of finding codes. FIG-EXTRACT/FIG-FIXTURE/FIG-COMPILE/FIG-FONT
 # are the four U04 exempts from the "must be observed by some control" rule
@@ -101,6 +106,7 @@ FINDING_CODES: tuple[str, ...] = (
     "FIG-FONT",
     "FIG-ANCHOR",
     "FIG-LAYOUT",
+    "FIG-ESPAGE",
 )
 
 _EXEMPT_FROM_OBSERVATION = frozenset(
@@ -879,6 +885,7 @@ def _u04_code_registry_complete() -> str | None:
         "FIG-OVERFLOW",
     }  # U05
     observed |= {"FIG-LAYOUT"}  # L02, L03
+    observed |= {"FIG-ESPAGE"}  # L05
 
     lib_text, _extract_findings = extract_library(LIBRARY)
     _mutated, anchor_findings = apply_mutation(
@@ -939,6 +946,7 @@ def _u05_single_dimension_mismatches() -> str | None:
     if codes != {"FIG-OVERFLOW"}:
         return f"verdicts overflow: expected {{'FIG-OVERFLOW'}}, got {codes}"
     return None
+
 
 # ---------------------------------------------------------------------------
 # Page template (999.195): the PDF reader report's pandoc/typst layout
@@ -1032,6 +1040,98 @@ def _l03_content_author_fails() -> str | None:
     return None
 
 
+_ES_PAGEBREAK = "{ pagebreak(weak: true) }"
+_ES_PAGES_EXPR = (
+    "let es = query(<executive-summary>).first(); "
+    "let nx = query(heading.where(level: 2).after(es.location())).at(1); "
+    "(es.location().page(), nx.location().page())"
+)
+
+
+def es_page_findings(template_text: str, md_path: Path = ES_FIXTURE) -> list[Finding]:
+    """Typeset `md_path` through the page template and report FIG-ESPAGE
+    unless the level-2 heading after the Executive Summary starts exactly one
+    page after it: the summary stands alone on one page, neither sharing its
+    page with section 1 nor running onto a second. Pages are read from typst's
+    own heading locations, not from the PDF."""
+    subject = _relpath(md_path)
+    with tempfile.TemporaryDirectory() as td:
+        work = Path(td)
+        template = work / "layout.typ"
+        template.write_text(template_text, encoding="utf-8")
+        typ = work / "report.typ"
+        result = subprocess.run(
+            [
+                "pandoc",
+                "-f",
+                "commonmark_x",
+                f"--template={template}",
+                "-t",
+                "typst",
+                "-M",
+                "title=Fixture",
+                "-M",
+                "date=1 January 2026",
+                "-o",
+                str(typ),
+                str(md_path),
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            return [Finding("FIG-LAYOUT", subject, f"pandoc exit {result.returncode}")]
+        result = subprocess.run(
+            ["typst", "eval", "--root", str(work), _ES_PAGES_EXPR, "--in", str(typ)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    if result.returncode != 0:
+        first = next(iter(result.stderr.strip().split("\n")), "")
+        return [Finding("FIG-ESPAGE", subject, f"typst eval failed: {first}")]
+    try:
+        es_page, next_page = json.loads(result.stdout.strip())
+    except (ValueError, TypeError):
+        return [
+            Finding(
+                "FIG-ESPAGE", subject, f"unreadable pages: {result.stdout.strip()!r}"
+            )
+        ]
+    if next_page != es_page + 1:
+        return [
+            Finding(
+                "FIG-ESPAGE",
+                subject,
+                f"Executive Summary on page {es_page}, next section on page {next_page}",
+            )
+        ]
+    return []
+
+
+def _l04_executive_summary_one_page() -> str | None:
+    text = ES_FIXTURE.read_text(encoding="utf-8")
+    body = text.split("## Executive Summary\n", 1)[-1].split("\n## 1.", 1)[0]
+    if len(body.split()) < ES_MIN_WORDS:
+        return f"fixture summary is {len(body.split())} words, under the {ES_MIN_WORDS}-word cap"
+    findings = es_page_findings(_awk_extract(LAYOUT))
+    if findings:
+        return "; ".join(f"{f.code} {f.subject}: {f.detail}" for f in findings)
+    return None
+
+
+def _l05_no_pagebreak_fails() -> str | None:
+    source = _awk_extract(LAYOUT)
+    if source.count(_ES_PAGEBREAK) != 1:
+        return f"anchor: expected exactly one {_ES_PAGEBREAK!r} in the template"
+    findings = es_page_findings(source.replace(_ES_PAGEBREAK, "{ }"))
+    codes = {f.code for f in findings}
+    if codes != {"FIG-ESPAGE"}:
+        return f"expected {{'FIG-ESPAGE'}}, got {findings}"
+    return None
+
+
 _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     (("P01", _p01_shipped_library_all_fixtures_clean),)
     + tuple(
@@ -1050,6 +1150,8 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
         ("L01", _l01_shipped_layout_renders),
         ("L02", _l02_frozen_45f6244a_template_fails),
         ("L03", _l03_content_author_fails),
+        ("L04", _l04_executive_summary_one_page),
+        ("L05", _l05_no_pagebreak_fails),
     )
 )
 
@@ -1093,7 +1195,8 @@ def describe() -> dict:
         ],
         "checked_files": [_relpath(FIXTURE_DIR / name) for name in FIXTURES]
         + [_relpath(LAYOUT_BROKEN)]
-        + [_relpath(path) for path in LAYOUT_INPUTS],
+        + [_relpath(path) for path in LAYOUT_INPUTS]
+        + [_relpath(ES_FIXTURE)],
         "locked_constants": {
             "MAX_WIDTH_PT": MAX_WIDTH_PT,
             "FONTS": list(FONTS),
@@ -1116,6 +1219,7 @@ def describe() -> dict:
                 "requires-noto-sans-or-liberation-sans",
                 "page-template-proven-to-compile-not-to-look-right",
                 "pandoc-absent-is-blocked-not-pass",
+                "executive-summary-one-page-proven-on-one-worst-case-fixture",
             ]
         ),
     }
