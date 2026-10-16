@@ -18,9 +18,10 @@ array (ground-truth to chain or chain to chain) and for every entry in `conclusi
 (chain to conclusion, or ground truth to conclusion directly) -- one edge per citation, not one
 edge per node pair, so a chain cited twice by different `rests_on` entries draws twice. A ground
 truth with no incoming or outgoing edge is still drawn: an orphaned ground truth is a real,
-visible signal, never hidden. `conclusion.rests_on` is Phase 80's add-only field; it is `null` on
-a legacy worked example whose section 6 carries no `**Pre-check:**` line, in which case the
-conclusion node draws with zero edges rather than failing.
+visible signal, never hidden. `conclusion.rests_on` is an optional field (`"optional": true` in
+the schema): the key is absent in blocks written before it existed and `null` on a legacy worked
+example whose section 6 carries no `**Pre-check:**` line; in either case the conclusion node
+draws with zero edges rather than failing.
 
 **Assumption verdict matrix** reads `assumptions[]`. Rows are the four schema taxonomy types
 (`physical law`, `current constraint`, `convention`, `untested belief`), columns are the three

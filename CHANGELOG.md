@@ -13,6 +13,15 @@ installed session.
 
 ## [Unreleased]
 
+### Fixed — summary-schema versioning
+
+- `e5d670e4` added `conclusion.rests_on` as a required nested key without a version bump, so every
+  pre-field v1 block (9.16-9.17 agent reports) failed validation. The schema gains an `optional`
+  keyword; `conclusion.rests_on` carries it and an absent key reads as null. The `versioning` rule now
+  distinguishes adding an optional field (keeps the version) from adding a required one (increments
+  it); `schema_version` stays 1. SUMM-BLOCK still enforces `rests_on` through the section 6
+  **Pre-check:** cross-check and gains three controls.
+
 ### Added — integration manifest
 
 - `first-principles/references/integration.json` (source `shared/spine/references/integration.json`,

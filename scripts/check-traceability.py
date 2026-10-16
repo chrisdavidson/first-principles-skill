@@ -10698,7 +10698,7 @@ def _rows_v916() -> list[MatrixRow]:
             surfaces=("agent",),
             statement=(
                 "The schema carries at least `schema_version` (integer, starting 1; "
-                "add-only evolution, a removed/renamed field bumps it), `run_mode` (Step 0 "
+                "adding an optional field keeps the version; adding a required field, removing/renaming a field or narrowing an enum bumps it), `run_mode` (Step 0 "
                 "mode name verbatim), `assumptions[]` (`id`, `type` in the four assumption "
                 "types, `verdict` in Accept/Challenge/Discard), `ground_truths[]` (`id`, "
                 "`read_at_source` false exactly for `GT-N?`), `chains[]` (`id`, "
@@ -11123,10 +11123,12 @@ def _rows_v917() -> list[MatrixRow]:
             _repro_v917,
             surfaces=("agent",),
             statement=(
-                "The summary schema carries an add-only `conclusion.rests_on` array (ids "
+                "The summary schema carries an optional `conclusion.rests_on` array (ids "
                 "of the form `GT-N`, `GT-N?` or `Cn`) sourced from the section 6 "
-                "Conclusion's `**Pre-check:**` head line; `schema_version` stays 1 and a "
-                "legacy document whose section 6 carries no Pre-check line writes null."
+                "Conclusion's `**Pre-check:**` head line; `schema_version` stays 1, the "
+                "key may be absent in blocks written before the field existed (an absent "
+                "key reads as null), and a legacy document whose section 6 carries no "
+                "Pre-check line writes null."
             ),
             rerun_by="ci",
         ),

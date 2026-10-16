@@ -7673,7 +7673,7 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "The schema carries at least `schema_version` (integer, starting 1; add-only evolution, a removed/renamed field bumps it), `run_mode` (Step 0 mode name verbatim), `assumptions[]` (`id`, `type` in the four assumption types, `verdict` in Accept/Challenge/Discard), `ground_truths[]` (`id`, `read_at_source` false exactly for `GT-N?`), `chains[]` (`id`, `confidence` in HIGH/MEDIUM/LOW, ids it rests on), `dead_ends[]`, `techniques` (applied; not applied with phase and reason), `gate` (`passes[]` in order including rewritten passes, each with six criterion bands and cleared/Hand-wavy-cap result; `fix_repeat_fired`; `cleared`), `re_entry` (`fired`; edge and trigger when true), `conclusion` (full recommendation including any list it introduces; confidence) -- using only vocabulary the template and rubric already define.",
+    "statement": "The schema carries at least `schema_version` (integer, starting 1; adding an optional field keeps the version; adding a required field, removing/renaming a field or narrowing an enum bumps it), `run_mode` (Step 0 mode name verbatim), `assumptions[]` (`id`, `type` in the four assumption types, `verdict` in Accept/Challenge/Discard), `ground_truths[]` (`id`, `read_at_source` false exactly for `GT-N?`), `chains[]` (`id`, `confidence` in HIGH/MEDIUM/LOW, ids it rests on), `dead_ends[]`, `techniques` (applied; not applied with phase and reason), `gate` (`passes[]` in order including rewritten passes, each with six criterion bands and cleared/Hand-wavy-cap result; `fix_repeat_fired`; `cleared`), `re_entry` (`fired`; edge and trigger when true), `conclusion` (full recommendation including any list it introduces; confidence) -- using only vocabulary the template and rubric already define.",
     "rerun_by": "ci"
   },
   {
@@ -7928,7 +7928,7 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "The summary schema carries an add-only `conclusion.rests_on` array (ids of the form `GT-N`, `GT-N?` or `Cn`) sourced from the section 6 Conclusion's `**Pre-check:**` head line; `schema_version` stays 1 and a legacy document whose section 6 carries no Pre-check line writes null.",
+    "statement": "The summary schema carries an optional `conclusion.rests_on` array (ids of the form `GT-N`, `GT-N?` or `Cn`) sourced from the section 6 Conclusion's `**Pre-check:**` head line; `schema_version` stays 1, the key may be absent in blocks written before the field existed (an absent key reads as null), and a legacy document whose section 6 carries no Pre-check line writes null.",
     "rerun_by": "ci"
   },
   {

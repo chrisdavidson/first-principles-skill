@@ -1,7 +1,7 @@
 {
   "$comment": "Structured-summary block schema for the first-principles agent. Canonical source: shared/spine/references/summary-schema.json. Emitted verbatim to first-principles/references/summary-schema.json by scripts/sync-content.py --write: edit the source, never the emitted copy. This is a hand-validatable field table, not JSON Schema; reading it needs no validator dependency. A nested field marked \"optional\": true may be absent from the block; an absent optional key reads exactly as null and its null_when governs it.",
   "schema_version": 1,
-  "versioning": "schema_version is an integer starting at 1. Changes are add-only: adding a field keeps the version; removing or renaming a field, or narrowing an enum, increments it.",
+  "versioning": "schema_version is an integer starting at 1. Adding an OPTIONAL field (one marked \"optional\": true, whose key may be absent and then reads as null) keeps the version; adding a required field, removing or renaming a field, or narrowing an enum increments it.",
   "block": {
     "heading": "## Structured summary (process output)",
     "fence": "json",
