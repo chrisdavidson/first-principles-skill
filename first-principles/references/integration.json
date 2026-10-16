@@ -1,0 +1,19 @@
+{
+  "$comment": "Integration manifest for tools that run next to this plugin (first consumer: agent-router's first-principles integration). It states this plugin's public identity so a consumer reads it instead of hard-coding it. Data only: no consumer is required, and nothing in this plugin reads this file. Canonical source: shared/spine/references/integration.json, emitted verbatim to first-principles/references/integration.json by scripts/sync-content.py --write. Evolution is add-only: adding a key keeps manifest_version; removing or renaming a key, or changing a value's meaning, increments it. Paths are relative to the plugin root.",
+  "manifest_version": 1,
+  "plugin_name": "first-principles",
+  "agent_type": "first-principles:first-principles",
+  "command_prefix": "/first-principles:",
+  "launcher": "/first-principles:first-principles-analysis",
+  "output": {
+    "dir": ".first-principles",
+    "glob": ".first-principles/analysis-*.md"
+  },
+  "summary": {
+    "schema": "references/summary-schema.json",
+    "heading": "## Structured summary (process output)",
+    "schema_version": 1
+  },
+  "examples_dir": "references/examples",
+  "capabilities_used": ["exact-arithmetic"]
+}

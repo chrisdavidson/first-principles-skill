@@ -13,6 +13,17 @@ installed session.
 
 ## [Unreleased]
 
+### Added — integration manifest
+
+- `first-principles/references/integration.json` (source `shared/spine/references/integration.json`,
+  emitted verbatim as a second JSON spine reference): the plugin's public identity for tools that run
+  next to it — plugin and agent name, command prefix, launcher, output directory and glob, the
+  summary block's schema path, heading and version, the examples directory. Data only: nothing in
+  this plugin reads it, and no consumer is required. Add-only evolution under its own
+  `manifest_version` (1); it carries no plugin version stamp. First consumer: agent-router's
+  first-principles integration, which falls back to a pinned copy when the file is absent.
+  `GENERATED_TARGET_COUNT` 58 → 59. No agent-body, rubric, template or skill change.
+
 ### Measured — backlog 999.199, not released
 
 The 999.199 change (correct an appended block by appending a `## Replace:` replacement block, applied
