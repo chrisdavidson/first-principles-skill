@@ -13,26 +13,6 @@ installed session.
 
 ## [Unreleased]
 
-### Fixed — summary-schema versioning
-
-- `e5d670e4` added `conclusion.rests_on` as a required nested key without a version bump, so every
-  pre-field v1 block (9.16-9.17 agent reports) failed validation. The schema gains an `optional`
-  keyword; `conclusion.rests_on` carries it and an absent key reads as null. The `versioning` rule now
-  distinguishes adding an optional field (keeps the version) from adding a required one (increments
-  it); `schema_version` stays 1. SUMM-BLOCK still enforces `rests_on` through the section 6
-  **Pre-check:** cross-check and gains three controls.
-
-### Added — integration manifest
-
-- `first-principles/references/integration.json` (source `shared/spine/references/integration.json`,
-  emitted verbatim as a second JSON spine reference): the plugin's public identity for tools that run
-  next to it — plugin and agent name, command prefix, launcher, output directory and glob, the
-  summary block's schema path, heading and version, the examples directory. Data only: nothing in
-  this plugin reads it, and no consumer is required. Add-only evolution under its own
-  `manifest_version` (1); it carries no plugin version stamp. First consumer: agent-router's
-  first-principles integration, which falls back to a pinned copy when the file is absent.
-  `GENERATED_TARGET_COUNT` 58 → 59. No agent-body, rubric, template or skill change.
-
 ### Measured — backlog 999.199, not released
 
 The 999.199 change (correct an appended block by appending a `## Replace:` replacement block, applied
@@ -105,6 +85,34 @@ preserved on branch `audit-first-999.198`.
   or appended, and every rewrite command before the first successful append).
 - Falsifier for every figure above: `python3 tests/audit-first/run_audit.py read`. Evidence in
   `tests/audit-first/`; reading in `docs/skip-rate-reading.md`.
+
+## [9.21.0] — 2026-10-16
+
+Minor release: **an integration manifest, and the summary-schema versioning fix.** A tool that
+runs beside the plugin (first consumer: agent-router) now reads the plugin's identity from
+`references/integration.json` instead of hard-coding it, and structured-summary blocks written
+before `conclusion.rests_on` existed (9.16–9.17 reports) validate as `schema_version` 1 again.
+No agent-body, rubric, template or skill wording change.
+
+### Fixed — summary-schema versioning
+
+- `e5d670e4` added `conclusion.rests_on` as a required nested key without a version bump, so every
+  pre-field v1 block (9.16-9.17 agent reports) failed validation. The schema gains an `optional`
+  keyword; `conclusion.rests_on` carries it and an absent key reads as null. The `versioning` rule now
+  distinguishes adding an optional field (keeps the version) from adding a required one (increments
+  it); `schema_version` stays 1. SUMM-BLOCK still enforces `rests_on` through the section 6
+  **Pre-check:** cross-check and gains three controls.
+
+### Added — integration manifest
+
+- `first-principles/references/integration.json` (source `shared/spine/references/integration.json`,
+  emitted verbatim as a second JSON spine reference): the plugin's public identity for tools that run
+  next to it — plugin and agent name, command prefix, launcher, output directory and glob, the
+  summary block's schema path, heading and version, the examples directory. Data only: nothing in
+  this plugin reads it, and no consumer is required. Add-only evolution under its own
+  `manifest_version` (1); it carries no plugin version stamp. First consumer: agent-router's
+  first-principles integration, which falls back to a pinned copy when the file is absent.
+  `GENERATED_TARGET_COUNT` 58 → 59. No agent-body, rubric, template or skill change.
 
 ## [9.20.0] — 2026-10-15
 
