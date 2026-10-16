@@ -105,6 +105,7 @@ _KNOWN_FIELD_KEYS = (
             "length",
             "minimum",
             "maximum",
+            "optional",
         }
     )
     | _DOC_KEYS
@@ -119,7 +120,7 @@ _TYPE_MAP: dict[str, type] = {
 }
 
 
-def _validate_schema_keys(spec, path: str) -> None:
+def _validate_schema_keys(spec, path: str, *, top_level: bool = False) -> None:
     """Raise SchemaError if `spec` (or anything nested under it) uses a
     field-spec keyword this validator does not implement. This is the guard
     that keeps a future schema feature from being silently ignored."""
@@ -128,6 +129,19 @@ def _validate_schema_keys(spec, path: str) -> None:
     unknown = set(spec) - _KNOWN_FIELD_KEYS
     if unknown:
         raise SchemaError(f"{path}: unknown schema keyword(s) {sorted(unknown)!r}")
+    if "optional" in spec:
+        if not isinstance(spec["optional"], bool):
+            raise SchemaError(f"{path}: 'optional' must be a boolean")
+        if spec["optional"] and top_level:
+            raise SchemaError(
+                f"{path}: 'optional' is not allowed on a top-level field "
+                "(top-level presence is governed by 'required')"
+            )
+        if spec["optional"] and spec.get("nullable") is not True:
+            raise SchemaError(
+                f"{path}: 'optional' requires 'nullable': true "
+                "(an absent key reads as null)"
+            )
     if "items" in spec:
         _validate_schema_keys(spec["items"], f"{path}[]")
     if "fields" in spec:
@@ -159,7 +173,7 @@ def load_schema(path: Path) -> dict:
     if not isinstance(fields, dict):
         raise SchemaError(f"schema file {path}: 'fields' must be a JSON object")
     for key, spec in fields.items():
-        _validate_schema_keys(spec, key)
+        _validate_schema_keys(spec, key, top_level=True)
     return schema
 
 
@@ -391,9 +405,15 @@ def validate(value, spec: dict, path: str, *, exemplar: bool) -> list[Finding]:
                 findings.append(Finding("SB-SCHEMA", f"{path}.{key}: unknown key"))
         for key, subspec in subfields.items():
             if key not in value:
-                findings.append(
-                    Finding("SB-SCHEMA", f"{path}.{key}: missing required key")
-                )
+                if subspec.get("optional") is True:
+                    # An absent optional key reads exactly as an explicit null.
+                    findings.extend(
+                        validate(None, subspec, f"{path}.{key}", exemplar=exemplar)
+                    )
+                else:
+                    findings.append(
+                        Finding("SB-SCHEMA", f"{path}.{key}: missing required key")
+                    )
                 continue
             findings.extend(
                 validate(value[key], subspec, f"{path}.{key}", exemplar=exemplar)
@@ -1721,6 +1741,10 @@ def _xc_prechecks(text, sections, block, exemplar) -> list[Finding]:
     paired label against that ceiling.
 
     Disclosed bounds:
+    optional-key-absent-reads-as-null -- an absent optional schema key
+    (conclusion.rests_on) is validated as null, so live mode reports SB-NULL
+    for it exactly as for an explicit null; schema-level v1 validity is the
+    absence of SB-SCHEMA.
     precheck-missing-fails-in-exemplar-mode-only -- a Confidence line with
     no pre-check directly above it is SB-PRECHECK-MISSING in exemplar mode
     only; live mode never emits it, because a live presence reading is
@@ -4485,6 +4509,102 @@ def _x2_cross_check_ablation() -> str | None:
     return None
 
 
+def _without_rests_on(block: dict) -> dict:
+    m = copy.deepcopy(block)
+    del m["conclusion"]["rests_on"]
+    return m
+
+
+def _c33_optional_absent_reads_as_null() -> str | None:
+    """A block whose conclusion lacks the rests_on key (written before the
+    field existed) is schema-valid and reads exactly as an explicit null."""
+    schema = load_schema(DEFAULT_SCHEMA)
+    example = schema["example"]
+    null_version = copy.deepcopy(example)
+    null_version["conclusion"]["rests_on"] = None
+    text = _synthetic_report(
+        null_version, raw_block_body=json.dumps(_without_rests_on(example))
+    )
+    # Exemplar mode may still report SB-PRECHECK-MISSING for section 6's
+    # Confidence line (the disclosed exemplar-only presence rule); the absent
+    # key itself must raise nothing.
+    exemplar = check_report(text, exemplar=True, schema=schema)
+    bad = [
+        f
+        for f in exemplar
+        if f.code in ("SB-SCHEMA", "SB-NULL", "SB-CONCLUSION-RESTS-ON")
+    ]
+    if bad:
+        return f"absent rests_on, no Pre-check line, exemplar mode: got {bad!r}"
+    live = check_report(text, exemplar=False, schema=schema)
+    codes = {f.code for f in live}
+    if codes != {"SB-NULL"}:
+        return f"absent rests_on, live mode: expected {{'SB-NULL'}}, got {live!r}"
+    return None
+
+
+def _c34_optional_keyword_guards() -> str | None:
+    schema = load_schema(DEFAULT_SCHEMA)
+
+    def raises(mutate) -> bool:
+        m = copy.deepcopy(schema)
+        mutate(m)
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td) / "s.json"
+            p.write_text(json.dumps(m))
+            try:
+                load_schema(p)
+            except SchemaError:
+                return True
+        return False
+
+    def rests(m):
+        return m["fields"]["conclusion"]["fields"]["rests_on"]
+
+    cases = (
+        ("unknown keyword beside optional", lambda m: rests(m).update(oneOf=[])),
+        ("non-boolean optional", lambda m: rests(m).update(optional="yes")),
+        ("optional without nullable", lambda m: rests(m).update(nullable=False)),
+        (
+            "optional on a top-level field",
+            lambda m: m["fields"]["run_mode"].update(optional=True),
+        ),
+    )
+    for label, mutate in cases:
+        if not raises(mutate):
+            return f"load_schema did not raise SchemaError for: {label}"
+    m = copy.deepcopy(schema["example"])
+    del m["conclusion"]["confidence"]
+    findings = check_report(
+        _synthetic_report(schema["example"], raw_block_body=json.dumps(m)),
+        schema=schema,
+    )
+    if not any(
+        f.code == "SB-SCHEMA"
+        and "conclusion.confidence: missing required key" in f.message
+        for f in findings
+    ):
+        return f"missing conclusion.confidence not reported as SB-SCHEMA: {findings!r}"
+    return None
+
+
+def _c35_precheck_without_rests_on_key_fails() -> str | None:
+    """Section 6 carries a Pre-check line but the block omits the key: the
+    optional keyword must not let that through, in either mode."""
+    schema = load_schema(DEFAULT_SCHEMA)
+    example = schema["example"]
+    text = _synthetic_report(
+        example, raw_block_body=json.dumps(_without_rests_on(example))
+    )
+    ex = check_report(text, exemplar=True, schema=schema)
+    if {f.code for f in ex} != {"SB-NULL"}:
+        return f"exemplar mode: expected {{'SB-NULL'}}, got {ex!r}"
+    live = check_report(text, exemplar=False, schema=schema)
+    if "SB-NULL" not in {f.code for f in live}:
+        return f"live mode: expected SB-NULL, got {live!r}"
+    return None
+
+
 _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("C01", _c01_example_block_is_clean),
     ("C02", _c02_missing_block_is_rejected),
@@ -4520,6 +4640,9 @@ _CONTROLS: tuple[tuple[str, Callable[[], str | None]], ...] = (
     ("C30-precheck-head-shapes", _c30_head_shapes),
     ("C31-section6-same-line", _c31_section6_same_line),
     ("C32-edge-binding-by-value", _c32_edge_binding_by_value),
+    ("C33-optional-absent-reads-as-null", _c33_optional_absent_reads_as_null),
+    ("C34-optional-keyword-guards", _c34_optional_keyword_guards),
+    ("C35-precheck-without-rests-on-key-fails", _c35_precheck_without_rests_on_key_fails),
     ("P1-personal-general", _p1_personal_general),
     ("P2-software-systems", _p2_software_systems),
     ("P3-science-engineering", _p3_science_engineering),
@@ -4605,6 +4728,7 @@ def describe() -> dict:
                 "precheck-cited-band-reader-not-fence-aware",
                 "precheck-x3-passes-by-construction-under-a-comparator-stub",
                 "precheck-x4-chain-count-shares-the-site-chain-id-reader",
+                "optional-key-absent-reads-as-null",
             ]
         ),
     }
